@@ -25,8 +25,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-from __future__ import generators
-
 import sys
 from inspect import currentframe, getframeinfo, getouterframes
 import re
@@ -44,8 +42,11 @@ from myhdl._Error import Error
 
 _profileFunc = None
     
-class NoInstancesError(Error):
-    """No instances found"""
+class ExtractHierarchyError(Error):
+    pass
+class _error:
+    pass
+_error.NoInstances = "No instances found"
 
 re_assign = r"""^
                 \s*
@@ -138,7 +139,7 @@ class _HierExtr(object):
             finally:
                 sys.setprofile(None)
                 if not hierarchy:
-                    raise NoInstancesError
+                    raise ExtractHierarchyError(_error.NoInstances)
         self.top = _top
         hierarchy.reverse()
         hierarchy[0][1] = name

@@ -23,8 +23,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-from __future__ import generators
-
 import random
 from random import randrange
 random.seed(1) # random, but deterministic
@@ -38,9 +36,7 @@ import shutil
 import glob
 
 from myhdl import delay, Signal, Simulation, _simulator
-from myhdl._traceSignals import traceSignals, TopLevelNameError, ArgTypeError, \
-                                MultipleTracesError
-from myhdl._extractHierarchy import NoInstancesError
+from myhdl._traceSignals import traceSignals, TraceSignalsError, _error
 
 QUIET=1
 
@@ -99,31 +95,33 @@ class TestTraceSigs(TestCase):
         _simulator._tracing = 0
         try:
             traceSignals(fun)
-        except TopLevelNameError:
-            pass
+        except TraceSignalsError, e:
+            self.assertEqual(e.kind, _error.TopLevelName)
         else:
             self.fail()
 
     def testMultipleTraces(self):
         try:
             dut = top3()
-        except MultipleTracesError:
-            pass
+        except TraceSignalsError, e:
+            self.assertEqual(e.kind, _error.MultipleTraces)
         else:
             self.fail()
 
     def testArgType1(self):
         try:
             dut = traceSignals([1, 2])
-        except ArgTypeError:
-            pass
+        except TraceSignalsError, e:
+            self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
 
     def testReturnVal(self):
+        from myhdl._extractHierarchy import ExtractHierarchyError, _error
         try:
             dut = traceSignals(dummy)
-        except NoInstancesError:
+        except ExtractHierarchyError, e:
+            self.assertEqual(e.kind, _error.NoInstances)
             pass
         else:
             self.fail()

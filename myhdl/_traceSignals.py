@@ -41,6 +41,7 @@ _tracing = 0
 _profileFunc = None
 
 
+
 class TopLevelNameError(Error):
     """result of traceSignals call should be assigned to a top level name"""
 
@@ -50,21 +51,28 @@ class ArgTypeError(Error):
 class MultipleTracesError(Error):
     """Cannot trace multiple instances simultaneously"""
 
+class TraceSignalsError(Error):
+    pass
+class _error:
+    pass
+_error.TopLevelName = "result of traceSignals call should be assigned to a top level name"
+_error.ArgType = "traceSignals first argument should be a classic function"
+_error.MultipleTraces = "Cannot trace multiple instances simultaneously"
 
 def traceSignals(dut, *args, **kwargs):
     global _tracing
     if _tracing:
         return dut(*args, **kwargs) # skip
     if not callable(dut):
-        raise ArgTypeError("got %s" % type(dut))
+        raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
     if _simulator._tracing:
-        raise MultipleTracesError()
+        raise TraceSignalsError(_error.MultipleTraces)
     _tracing = 1
     try:
         outer = getouterframes(currentframe())[1]
         name = _findInstanceName(outer)
         if name is None:
-            raise TopLevelNameError
+            raise TraceSignalsError(_error.TopLevelName)
         h = _HierExtr(name, dut, *args, **kwargs)
         vcdpath = name + ".vcd"
         if path.exists(vcdpath):
