@@ -14,8 +14,9 @@ def bin2gray(B, G, width):
     """
     while 1:
         yield B
+        # a = 3
         for i in range(width):
-            G.next[i] = B[i] ^ B[i]
+            G.next[i] = B[i+1] ^ B[i]
             
             
 analyze_cmd = "iverilog -o bin2gray bin2gray_1.v tb_bin2gray_1.v"

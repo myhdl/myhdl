@@ -120,7 +120,6 @@ class TestTraceSigs(TestCase):
         else:
             self.fail()
 
-
     def testReturnVal(self):
         try:
             dut = traceSignals(dummy)

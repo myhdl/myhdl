@@ -35,6 +35,7 @@ from cStringIO import StringIO
 
 from myhdl import Signal, intbv
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
+from myhdl._Error import Error
 
 
 def _flatten(*args):
@@ -52,16 +53,6 @@ def _flatten(*args):
 _converting = 0
 _profileFunc = None
 
-class Error(Exception):
-    """ toVerilog Error"""
-    def __init__(self, arg=""):
-        self.arg = arg
-    def __str__(self):
-        if self.__doc__ and self.arg:
-            msg = self.__doc__ + ": " + str(self.arg)
-        else:
-            msg = self.__doc__ or self.arg
-        return msg
 
 class TopLevelNameError(Error):
     """result of toVerilog call should be assigned to a top level name"""
@@ -77,6 +68,7 @@ class UndefinedBitWidthError(Error):
 
 class UndrivenSignalError(Error):
     """Signal is not driven"""
+
 
 
 def toVerilog(func, *args, **kwargs):
@@ -163,6 +155,7 @@ def _analyzeGens(top, gennames):
         gen.lineoffset = inspect.getsourcelines(f)[1]-1
         symdict = f.f_globals.copy()
         symdict.update(f.f_locals)
+        print f.f_locals
         sigdict = {}
         for n, v in symdict.items():
             if isinstance(v, Signal):
@@ -318,7 +311,6 @@ class _AnalyzeGenVisitor(_ToVerilogBaseVisitor):
     def visitAssign(self, node, access=OUTPUT):
         for n in node.nodes:
             self.visit(n, OUTPUT)
-        print node.expr
         self.visit(node.expr, INPUT)
 
 

@@ -34,19 +34,10 @@ from myhdl import _simulator
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _WaiterList
 from myhdl._util import StopSimulation, SuspendSimulation
+from myhdl._Error import Error
 
 
 schedule = _futureEvents.append
-
-class Error(Exception):
-    """Simulation Error"""
-    def __init__(self, arg=""):
-        self.arg = arg
-    def __str__(self):
-        msg = self.__doc__
-        if self.arg:
-            msg = msg + ": " + str(self.arg)
-        return msg
 
 class MultipleCosimError(Error):
     """Only a single cosimulator argument allowed"""

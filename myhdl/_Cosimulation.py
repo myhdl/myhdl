@@ -30,18 +30,19 @@ import exceptions
 
 from myhdl._intbv import intbv
 from myhdl import _simulator
+from myhdl._Error import Error
 
 _MAXLINE = 4096
 
-class Error(Exception):
-    """Cosimulation Error"""
-    def __init__(self, arg=""):
-        self.arg = arg
-    def __str__(self):
-        msg = self.__doc__
-        if self.arg:
-            msg = msg + ": " + str(self.arg)
-        return msg
+## class Error(Exception):
+##     """Cosimulation Error"""
+##     def __init__(self, arg=""):
+##         self.arg = arg
+##     def __str__(self):
+##         msg = self.__doc__
+##         if self.arg:
+##             msg = msg + ": " + str(self.arg)
+##         return msg
 
 class MultipleCosimError(Error):
     """Only a single cosimulator allowed"""

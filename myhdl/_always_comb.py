@@ -33,16 +33,7 @@ from sets import Set
 
 from myhdl import Signal
 from myhdl._util import _isGenFunc
-
-class Error(Exception):
-    """always_comb Error"""
-    def __init__(self, arg=""):
-        self.arg = arg
-    def __str__(self):
-        msg = self.__doc__
-        if self.arg:
-            msg = msg + ": " + str(self.arg)
-        return msg
+from myhdl._Error import Error
 
 class ArgumentError(Error):
     """ always_comb argument should be a classic function"""

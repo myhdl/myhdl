@@ -21,7 +21,6 @@
 
 This module provides the following myhdl objects:
 downrange -- function that returns a downward range
-Error -- myhdl Error exception
 bin -- returns a binary string representation.
        The optional width specifies the desired string
        width: padding of the sign-bit is used.
