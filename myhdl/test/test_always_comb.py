@@ -211,7 +211,7 @@ class AlwaysCombCompilationTest(TestCase):
             self.assertEqual(e.kind, _error.EmbeddedFunction)
         else:
             self.fail()
-        
+
 
 class AlwaysCombSimulationTest(TestCase):
 
@@ -225,8 +225,11 @@ class AlwaysCombSimulationTest(TestCase):
         z = Signal(0)
         vectors = [intbv(j) for i in range(8) for j in range(16)]
         random.shuffle(vectors)
+
         
         def combfunc():
+            if __debug__:
+                f = x
             x.next = function(a, b, c, d)
 
         comb = always_comb(combfunc)

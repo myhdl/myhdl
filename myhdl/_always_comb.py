@@ -23,8 +23,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-from __future__ import generators
-
 import sys
 import inspect
 from types import FunctionType
@@ -89,6 +87,15 @@ class _SigNameVisitor(object):
         else:
             raise AlwaysCombError(_error.EmbeddedFunction)
 
+    def visitIf(self, node):
+        if len(node.tests) == 1 and not node.else_:
+            test = node.tests[0][0]
+            if isinstance(test, compiler.ast.Name) and \
+               test.name == '__debug__':
+                return # skip
+        for n in node.getChildNodes():
+            self.visit(n)
+            
     def visitName(self, node, access=INPUT):
         if node.name not in self.sigdict:
             return
