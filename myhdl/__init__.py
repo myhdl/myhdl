@@ -31,6 +31,7 @@ join -- callable to join clauses in a yield statement
 intbv -- mutable integer class with bit vector facilities
 downrange -- function that returns a downward range
 bin -- returns a binary string representation.
+Error -- myhdl Error exception
 
 The optional width specifies the desired string
   width: padding of the sign-bit is used.
@@ -46,6 +47,7 @@ import Simulation
 import delay
 import intbv
 import _simulator
+import Cosimulation
 
 StopSimulation = Simulation.StopSimulation
 join = Simulation.join
@@ -56,6 +58,7 @@ Signal = Signal.Signal
 now = _simulator.now
 delay = delay.delay
 intbv = intbv.intbv
+Cosimulation = Cosimulation.Cosimulation
 
 def downrange(start, stop=0):
     """ Return a downward range. """
@@ -82,6 +85,9 @@ def bin(num, width=0):
     if num < 0:
         pad = '1'
     return (width - len(s)) * pad + s
+
+class Error(Exception):
+    pass
 
 
 

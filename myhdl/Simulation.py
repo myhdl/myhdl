@@ -35,7 +35,7 @@ from types import GeneratorType
 
 schedule = _futureEvents.append
             
-class Simulation:
+class Simulation(object):
 
     """ Simulation class.
 
@@ -194,7 +194,7 @@ class StopSimulation(exceptions.Exception):
 
 class join(object):
 
-    """ Join trigger objects to from a single trigger object. """
+    """ Join trigger objects to form a single trigger object. """
     
     def __init__(self, *args):
         """ Construct join object
