@@ -219,6 +219,8 @@ class TestConcat(TestCase):
         
 
     def testConcatMixBoolToSizedBase(self):
+        if type(bool) is not type:
+            return
         bases = []
         for base in self.bases:
             seq = (base, intbv(base), Signal(intbv(base)))
