@@ -242,7 +242,7 @@ OK
 In the ideal case, it should be possible to simulate
 any HDL description seamlessly with \myhdl{}. Moreover
 the communicating signals at each side should act
-transparently as a single one, enabling fully racefree
+transparently as a single one, enabling fully race free
 operation.
 
 For various reasons, it may not be possible or desirable
@@ -251,7 +251,7 @@ applications with the Verilog PLI can testify, the
 restrictions in a particular simulator, and the 
 differences over various simulators, can be quite 
 frustrating. Moreover, full generality may require
-a disproportiate amount of development work compared
+a disproportionate amount of development work compared
 to a slightly less general solution that may
 be sufficient for the target application.
 
@@ -280,26 +280,26 @@ isn't.
 
 \myhdl\ support cosimulations so that test benches for HDL
 designs can be written in Python.
-Let's consider the nature of the targetHDL designs. For high-level,
+Let's consider the nature of the target HDL designs. For high-level,
 behavioral models that are not intended for implementation, it should
-come as no surprize that I would recommend to write them in \myhdl\
+come as no surprise that I would recommend to write them in \myhdl\
 directly; that is exactly the target of the \myhdl\ effort. Likewise,
 gate level designs with annotated timing are not the target
 application: static timing analysis is a much better verification
 method for such designs.
 
-Rather, the targetted HDL designs are naturally models that are
+Rather, the targeted HDL designs are naturally models that are
 intended for implementation.  Most likely, this will be through
 synthesis. As time delays are meaningless in synthesizable code, the
 restriction is compatible with the target application.
 
 \subsection{Race sensitivity issues}
 
-In a typical RTL code, some events cause other events to occur in the
-same timestep. For example, when a clock signal triggers some signals
+In a typical TTL code, some events cause other events to occur in the
+same time step. For example, when a clock signal triggers some signals
 may change in the same time step. For race-free operation, an HDL
-must differentiate between such events within a timestep. This is done
-by the concept of ``delta'' cycles. In a fully general, racefree
+must differentiate between such events within a time step. This is done
+by the concept of ``delta'' cycles. In a fully general, race free
 cosimulation, the cosimulators would communicate at the level of delta
 cycles. However, in \myhdl\ cosimulation, this is not entirely the
 case.
@@ -313,12 +313,12 @@ What does this mean? Let's start with the good news. As explained in
 the previous section, the logic of the \myhdl\ cosimulation implies
 that clocks are generated at the \myhdl\ side.  \emph{When using a
 \myhdl\ clock and its corresponding HDL signal directly as a clock,
-cosimulation operation is racefree.} In other words, the case
-that most closely reflects the \myhdl\ cosimulation approach, is racefree.
+cosimulation operation is race free.} In other words, the case
+that most closely reflects the \myhdl\ cosimulation approach, is race free.
 
 The situation is different when you want to use a signal driven by the
 HDL (and the corresponding MyHDL signal) as a clock. 
-Communication triggered by such a clock is not racefree. The solution
+Communication triggered by such a clock is not race free. The solution
 is to treat such an interface as a chip interface instead of an RTL
 interface.  For example, when data is triggered at positive clock
 edges, it can safely be sampled at negative clock edges.
@@ -360,7 +360,7 @@ on future implementations in other simulators.
 To make cosimulation work, a specific type of PLI callback is
 needed. The callback should be run when all pending events have been
 processed, while allowing the creation of new events in the current
-timestep (e.g. by the \myhdl\ simulator).  In some Verilog simulators,
+time step (e.g. by the \myhdl\ simulator).  In some Verilog simulators,
 the \code{cbReadWriteSync} callback does exactly that. However,
 in others, including Icarus, it does not. The callback's behavior is
 not fully standardized; some simulators run the callback before
@@ -369,15 +369,15 @@ non-blocking assignment events have been processed.
 Consequently, I had to look for a workaround. One half of the solution
 is to use the \code{cbReadOnlySync} callback.  This callback runs
 after all pending events have been processed.  However, it does not
-permit to create new events in the current timestep.  The second half
-of the solution is to map \myhdl\ delta cycles onto Verilog timesteps.
+permit to create new events in the current time step.  The second half
+of the solution is to map \myhdl\ delta cycles onto Verilog time steps.
 Note that there is some freedom here because of the restriction that
 only passive HDL code can be cosimulated.
 
 I chose to make the time granularity in the Verilog simulator a 1000
-times finer than in the \myhdl{} simulator. For each \myhdl\ timestep,
-1000 Verilog timesteps are available for  \myhdl\ delta cycles. In practice,
-only a few delta cycles per timestep should be needed. More than 1000
+times finer than in the \myhdl{} simulator. For each \myhdl\ time step,
+1000 Verilog time steps are available for  \myhdl\ delta cycles. In practice,
+only a few delta cycles per time step should be needed. More than 1000
 almost certainly indicates an error. This limit is checked at
 run-time. The factor 1000 also makes it easy to distinguish ``real''
 time from delta cycle time when printing out the Verilog time.
