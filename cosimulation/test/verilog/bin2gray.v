@@ -7,7 +7,7 @@ module bin2gray(B, G);
    integer i;
    wire [width:0] extB;
 
-   assign extB = {1'b0, B};
+   assign extB = {1'b0, B}; // zero-extend input
 
    always @(extB) begin
       for (i=0; i < width; i=i+1)
