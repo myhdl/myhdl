@@ -47,7 +47,7 @@ def instances():
     d = inspect.getouterframes(f)[1][0].f_locals
     l = []
     for v in d.values():
-      if type(v) in (GeneratorType, Cosimulation, _AlwaysComb):
+      if isinstance(v, (GeneratorType, Cosimulation, _AlwaysComb)):
          l.append(v)
       elif _isGenSeq(v):
          l.append(v)

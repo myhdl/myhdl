@@ -131,7 +131,7 @@ class Simulation(object):
                         continue
                     nr = len(clauses)
                     for clause in clauses:
-                        if type(clause) is _WaiterList:
+                        if isinstance(clause, _WaiterList):
                             clause.append(clone)
                             if nr > 1:
                                 actives[id(clause)] = clause
@@ -140,11 +140,11 @@ class Simulation(object):
                             wl.append(clone)
                             if nr > 1:
                                 actives[id(wl)] = wl
-                        elif type(clause) is delay:
+                        elif isinstance(clause, delay):
                             schedule((t + clause._time, clone))
-                        elif type(clause) is GeneratorType:
+                        elif isinstance(clause, GeneratorType):
                             _append(_Waiter(clause, clone))
-                        elif type(clause) is join:
+                        elif isinstance(clause, join):
                             _append(_Waiter(clause._generator(), clone))
                         elif clause is None:
                             _append(clone)
@@ -177,7 +177,7 @@ class Simulation(object):
                     while _futureEvents:
                         newt, event = _futureEvents[0]
                         if newt == t:
-                            if type(event) is _Waiter:
+                            if isinstance(event, _Waiter):
                                 _append(event)
                             else:
                                 _extend(event.apply())
@@ -210,11 +210,11 @@ def _checkArgs(arglist):
     ids = Set()
     cosim = None
     for arg in arglist:
-        if type(arg) is GeneratorType:
+        if isinstance(arg, GeneratorType):
             waiters.append(_Waiter(arg))
-        elif type(arg) is _AlwaysComb:
+        elif isinstance(arg, _AlwaysComb):
             waiters.append(_Waiter(arg.gen))
-        elif type(arg) is Cosimulation:
+        elif isinstance(arg, Cosimulation):
             if cosim is not None:
                 raise SimulationError(_error.MultipleCosim)
             cosim = arg

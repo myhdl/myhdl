@@ -47,7 +47,7 @@ class intbv(object):
                 _nrbits = maxfunc(len(bin(max-1)), len(bin(min)))
         if isinstance(val, (int, long)):
             self._val = val
-        elif type(val) is StringType:
+        elif isinstance(val, StringType):
             self._val = long(val, 2)
             _nrbits = len(val)
         elif isinstance(val, intbv):
@@ -111,11 +111,11 @@ class intbv(object):
     # indexing and slicing methods
 
     def __getitem__(self, key):
-        if type(key) is int:
+        if isinstance(key, int):
             i = key
             res = intbv((self._val >> i) & 0x1, _nrbits=1)
             return res
-        elif type(key) is slice:
+        elif isinstance(key, slice):
             i, j = key.start, key.stop
             if j is None: # default
                 j = 0
@@ -134,7 +134,7 @@ class intbv(object):
 
        
     def __setitem__(self, key, val):
-        if type(key) is int:
+        if isinstance(key, int):
             i = key
             if val not in (0, 1):
                 raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
@@ -143,7 +143,7 @@ class intbv(object):
                 self._val |= (1L << i)
             else:
                 self._val &= ~(1L << i)
-        elif type(key) is slice:
+        elif isinstance(key, slice):
             i, j = key.start, key.stop
             if j is None: # default
                 j = 0

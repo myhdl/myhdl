@@ -45,8 +45,8 @@ def enum(*args, **kwargs):
     
     i = 0
     for arg in args:
-        if type(arg) is not StringType:
-            raise TypeError
+        if not isinstance(arg, StringType):
+            raise TypeError()
         if codedict.has_key(arg):
             raise ValueError("enum literals should be unique")
         argdict[i] = arg

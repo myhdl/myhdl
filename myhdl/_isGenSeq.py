@@ -32,7 +32,7 @@ from myhdl._Cosimulation import Cosimulation
 from myhdl._always_comb import _AlwaysComb
       
 def _isGenSeq(obj):
-    if type(obj) in (GeneratorType, Cosimulation, _AlwaysComb):
+    if isinstance(obj, (GeneratorType, Cosimulation, _AlwaysComb)):
         return 1
     if not isinstance(obj, (ListType, TupleType, Set)):
         return 0

@@ -43,7 +43,7 @@ _error.EmbeddedFunction = "embedded functions in always_comb function argument n
     
 def always_comb(func):
     f = inspect.getouterframes(inspect.currentframe())[1][0]
-    if type(func) is not FunctionType:
+    if not isinstance( func, FunctionType):
         raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
         raise AlwaysCombError(_error.ArgType)

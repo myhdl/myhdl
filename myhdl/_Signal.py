@@ -88,7 +88,7 @@ class Signal(object):
         self._name = self._read = self._driven = None
         self._nrbits = 0
         self._printVcd = self._printVcdStr
-        if type(val) is bool:
+        if isinstance(val, bool):
             self._type = bool
             self._setNextVal = self._setNextBool
             self._printVcd = self._printVcdBit

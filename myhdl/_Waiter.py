@@ -46,13 +46,15 @@ class _Waiter(object):
             self.hasRun = 1
             clone = _Waiter(self.generator, self.caller)
         clause = self.generator.next()
-        if type(clause) in (tuple, list):
+        if isinstance(clause, _WaiterList):
+            return (clause,), clone
+        elif isinstance(clause, (tuple, list)):
             clone.nrTriggers = len(clause)
             if clause:
                 return clause, clone
             else:
                 return (None,), clone
-        elif type(clause) is join:
+        elif isinstance(clause, join):
             clone.semaphore = len(clause._args)-1
             return clause._args, clone
         else:

@@ -63,7 +63,7 @@ def _printExcInfo():
         print msg
 
 def _isGenFunc(obj):
-    if type(obj) is FunctionType:
+    if isinstance(obj, FunctionType):
         return bool(obj.func_code.co_flags & CO_GENERATOR)
     return bool(0)
 

@@ -34,7 +34,7 @@ def concat(base, *args):
         basewidth = base._nrbits
         val = base._val
     elif isinstance(base, (int, long)):
-        if type(base) is bool:
+        if isinstance(base, bool):
             basewidth = 1
         else:
             basewidth = 0
@@ -57,7 +57,7 @@ def concat(base, *args):
         elif isinstance(arg, Signal):
             w = arg._nrbits
             v = arg._val
-        elif type(arg) is bool:
+        elif isinstance(arg, bool):
             w = 1
             v = arg
         elif isinstance(arg, str):
