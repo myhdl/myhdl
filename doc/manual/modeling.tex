@@ -745,3 +745,116 @@ list.
 
 
 \subsection{Object-oriented modeling \label{model-obj}}
+
+The models in the previous sections used high-level built-in data
+types internally. However, they had a conventional RTL-style
+interface.  Communication with such a module is done through signals
+that are attached to it during instantiation.
+
+A more advanced approach is to model hardware blocks as
+objects. Communication with objects is done through method calls.
+A method encapsulates all details of a certain task performed
+by the object. As an object has a method interface instead
+of an RTL-style hardware interface, this is a much 
+higher level approach.
+
+As an example, we will design a synchronized queue object. 
+Such an object can be filled by producer, and independently
+read by a consumer. When the queue is empty, the consumer
+waits until an item is available. The queue can be modeled
+as an object with a \method{put(item)} and a \method{get()}
+method, as follows:
+
+\begin{verbatim}
+from myhdl import *
+
+def trigger(event):
+    event.next = not event
+
+class queue:
+    def __init__(self):
+       self.l = []
+       self.sync = Signal(0)
+       self.item = None
+    def put(self,item):
+       # non time-consuming method
+       self.l.append(item)
+       trigger(self.sync)
+    def get(self):
+       # time-consuming method
+       if not self.l:
+          yield self.sync
+       self.item = self.l.pop(0)
+\end{verbatim}
+
+The \class{queue} object constructor initializes an internal list to
+hold items, and a \var{sync} signal to synchronize the operation
+between the methods. Whenever \method{put()} puts an item in the
+queue, the signal is triggered.  When the \method{get()} method sees
+that the list is empty, it waits on the trigger first.
+\method{get()} is a generator method because 
+it may consume time. As the \code{yield} statement is used in \myhdl\
+for timing control, the method cannot ``yield'' the item. Instead, it
+makes it available in the \var{item} instance variable.
+
+To test the queue operation, we will model a producer and a consumer
+in the test bench.  As a waiting consumer should not block a whole
+system, it should run in a concurrent ``thread''. As always in
+\myhdl{}, concurrency is modeled by Python generators. Producer
+and consumer will thus run independently, and we will monitor
+their operation through some print statements:
+
+\begin{verbatim}
+q = queue()
+
+def Producer(q):
+    yield delay(120)
+    for i in range(5):
+        print "%s: PUT item %s" % (now(), i)
+        q.put(i)
+        yield delay(45 - 10*i)
+
+def Consumer(q):
+    yield delay(100)
+    while 1:
+        print "%s: TRY to get item" % now()
+        yield q.get()
+        print "%s: GOT item %s" % (now(), q.item)
+        yield delay(30)
+
+def main():
+    P = Producer(q)
+    C = Consumer(q)
+    return P, C 
+
+sim = Simulation(main())
+sim.run()
+\end{verbatim}
+
+Note that the generator method \method{get()} is called to create a
+generator in a \code{yield} statement in the \function{Consumer}
+function. This new generator will take over from \function{Consumer},
+until it is done.  Note that in \myhdl{}, there is a single way to
+consume time: with an explicit \code{yield} statement.  Running this
+produces the following output:
+
+\begin{verbatim}
+% python queue.py
+100: TRY to get item
+120: PUT item 0
+120: GOT item 0
+150: TRY to get item
+165: PUT item 1
+165: GOT item 1
+195: TRY to get item
+200: PUT item 2
+200: GOT item 2
+225: PUT item 3
+230: TRY to get item
+230: GOT item 3
+240: PUT item 4
+260: TRY to get item
+260: GOT item 4
+290: TRY to get item
+StopSimulation: No more events
+\end{verbatim}
