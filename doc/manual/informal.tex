@@ -47,8 +47,10 @@ a classic Python function) because it contains a \keyword{yield}
 statement (instead of \keyword{return} statement). In \myhdl{}, a
 \keyword{yield} statement has a similar purpose as a \keyword{wait}
 statement in VHDL: the statement suspends execution of the function,
-while its clauses specify when the function should resume. In this case,
-there is a \code{delay} clause, that specifies the required delay.
+and its clauses specify the conditions on which the generator should
+wait before resuming. In this case, it should
+    \index{wait!for a delay}%
+wait for a delay.
 
 To make sure that the generator runs ``forever'', we wrap its behavior
 in a \code{while 1} loop. This is a standard Python idiom, and it is
@@ -114,10 +116,11 @@ def sayHello():
         print "%s Hello World!" % now()
 \end{verbatim}
 
-Waiting for a clock edge is achieved with a second form of the
+Waiting for the clock edge is achieved with a second form of the
 \keyword{yield} statement: \samp{yield posedge(\var{signal})}. 
-A \class{Simulation} object will suspend the generator as that point,
-and resume it when there is a rising edge on the signal.
+At that point, the generator will
+    \index{wait!for a rising edge}%
+wait for a rising edge on the signal.
 
 The \class{Simulation} is now constructed with 2 generator arguments:
 
@@ -175,7 +178,7 @@ We can create any number of generators by calling generator functions
 with the appropriate parameters. This is very similar to the concept
 of instantiation in hardware description languages and we will use
 the same terminology in \myhdl{}. A \myhdl\ \dfn{instance} is
-    \index{instance!defined}
+    \index{instance!defined}%
 recursively defined as being either a sequence of instances, or a
 generator.  Hierarchy can be modeled by defining the instances in a
 higher-level function, and returning them. 
@@ -219,7 +222,34 @@ StopSimulation: Simulated for duration 50
 \end{verbatim}
 
 
-\section{Bit-oriented operations \label{intro-bit}}
+\begin{notice}[warning]
+Some commonly used terminology has different meanings
+in Python and hardware design. Rather than artificially
+changing terminology, I think it's best to keep it
+and explicitly describing the differences.
+
+A \dfn{module} in Python refers to all source code
+in a particular file. A module can be reused by
+other modules by importing. In hardware design,
+\index{module!in Python versus hardware design}%
+a module is  a reusable block of hardware with
+a well defined interface. It can be reused in 
+another module by \dfn{instantiating} it.
+
+An \dfn{instance} in Python (and other object-oriented
+languages) refers to the object created by a
+\index{instance!in Python versus hardware design}%
+class constructor. In hardware design, an instance
+is a particular incarnation of a hardware module.
+
+Normally, the meaning should be clear from
+the context. Occasionally, I may qualify terms 
+with the words 'hardware' or '\myhdl{}' to 
+avoid ambiguity.
+\end{notice}
+
+
+\section{Bit oriented operations \label{intro-bit}}
 
 Hardware design involves dealing with bits and bit-oriented
 operations. The standard Python type \class{int} has most of the
@@ -234,7 +264,9 @@ operations. In addition, it is a mutable type that provides indexing
 and slicing operations, and some additional bit-oriented support such
 as concatenation.
 
-\subsection{Indexing operations \label{intro-indexing}}
+\subsection{Bit indexing operations \label{intro-indexing}}
+\index{bit indexing}
+
 As an example, we will consider the design of a Gray encoder. The
 following code is a Gray encoder modeled in \myhdl{}:
 
@@ -258,7 +290,8 @@ at the start of the function is a \dfn{doc string}. This is standard
 Python practice for structured documentation of code. Moreover, we
 use a third form of the \keyword{yield} statement:
 \samp{yield \var{signal}}. This specifies that the generator should
-resume whenever \var{signal} changes value. This is typically used to
+    \index{wait!for a signal value change}%
+wait for a signal value change. This is typically used to
 describe 
     \index{combinatorial logic}%
 combinatorial logic.
@@ -312,7 +345,8 @@ B: 111 | G: 100
 StopSimulation: No more events
 \end{verbatim}
 
-\subsection{Slicing operations \label{intro-slicing}}
+\subsection{Bit slicing operations \label{intro-slicing}}
+\index{bit slicing}
 
 For a change, we will use a plain function as an example to illustrate
 slicing.  The following function calculates the HEC byte of an ATM
@@ -425,11 +459,12 @@ We use the bus functional procedure call as a clause in a
 \code{yield} statement. This introduces a fourth form of the
 \code{yield} statement: using a generator as a clause. Although this is
 a more dynamic usage than in the previous cases, the meaning is
-actually very similar. When the calling generator \code{stimulus()}
-encounters the \code{yield} statement, it suspends execution, and the
-clause specifies when it should resume. In this case, the generator
-\code{rs232_tx(tx, txData)} is \dfn{forked}, and the caller resumes
-when the forked generator returns.
+actually very similar: at that point,
+the original generator should 
+    \index{wait!for the completion of a generator}% 
+wait for the completion of a generator. 
+In this case, the original generator resumes when the
+\code{rs232_tx(tx, txData)} generator returns.
 
 When simulating this, we get:
 

@@ -103,8 +103,8 @@ some form of threading.
 
 The use of generators to model concurrency is the first key concept in
 \myhdl{}. The second key concept is a related one: in \myhdl{}, the
-yielded values are used to define the condition upon which the
-generator should resume. In other words, \keyword{yield}
+yielded values are used to specify the conditions on which the
+generator should wait before resuming. In other words, \keyword{yield}
 statements work as generalized 
     \index{sensitivity list}%
 sensitivity lists. 

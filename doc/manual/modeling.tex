@@ -1,6 +1,7 @@
 \chapter{Modeling techniques \label{model}}
 
 \section{Structural modeling \label{model-structure}}
+\index{modeling!structural}
 
 Hardware descriptions need to support the concepts of module
 instantiation and hierarchy.  In \myhdl{}, an instance is recursively
@@ -25,6 +26,7 @@ for modeling structure. This makes it straightforward
 to model more complex cases.
 
 \subsection{Conditional instantiation \label{model-conf}}
+\index{conditional instantiation}
 
 To model conditional instantiation, we can
 select the returned instance under parameter control.
@@ -50,6 +52,7 @@ def top(..., speed=SLOW):
 
 
 \subsection{Arrays of instances \label{model-instarray}}
+\index{arrays of instances}
 
 Python lists are easy to create. We can use them
 to model arrays of instances. 
@@ -118,11 +121,13 @@ that comply with the definition of an instance are assembled in
 a list, and that list is returned.
 
 \section{RTL modeling \label{model-rtl}}
+\index{modeling!RTL style}
+
 The present section describes how \myhdl\ supports RTL style modeling
 as is typically used for synthesizable models in Verilog or VHDL. 
 
-\subsection{Combinatorial logic \label{model-comb}}
-\index{combinatorial logic|(}
+\subsection{Combinatorial logic modeling\label{model-comb}}
+\index{modeling!combinatorial logic|(}
 
 \subsubsection{Template \label{model-comb-templ}}
  
@@ -240,11 +245,11 @@ z a b sel
 3 3 5 1
 StopSimulation: No more events
 \end{verbatim}
-\index{combinatorial logic|)}
+\index{modeling!combinatorial logic|)}
 
 
-\subsection{Sequential logic \label{model-seq}}
-\index{sequential logic|(}
+\subsection{Sequential logic modeling\label{model-seq}}
+\index{modeling!sequential logic|(}
 
 \subsubsection{Template \label{model-seq-templ}}
 Sequential RTL models are sensitive to a clock edge. In addition, they
@@ -347,6 +352,7 @@ StopSimulation
 
 
 \subsection{Finite State Machine modeling \label{model-fsm}}
+\index{modeling!Finite State Machine}
 
 Finite State Machine (FSM) modeling is very common in RTL
 design and therefore deserves special attention.
@@ -457,7 +463,9 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
 \end{verbatim}
 
 At this point, we will use the example to demonstrate
-the \myhdl\ support for waveform viewing.
+the \myhdl\ support for 
+\index{waveform viewing}%
+waveform viewing.
 During simulation, signal
 changes can be written to a VCD output file.  The VCD file can then be
 loaded and viewed in a waveform viewer tool such as \program{gtkwave}.
@@ -552,6 +560,7 @@ only.
 
 
 \section{High level modeling \label{model-hl}}
+\index{modeling!high level}
 
 \begin{quote}
 \em 
@@ -564,6 +573,7 @@ prove useful will be added.
 \end{quote}
 
 \subsection{Modeling memories with built-in types \label{model-mem}}
+\index{modeling!memories}
 
 Python has powerful built-in data types that can be useful to model
 hardware memories. This can be merely a matter of putting an interface
@@ -747,7 +757,8 @@ overflow error is detected by a regular check on the length of the
 list.
 
 
-\subsection{Object-oriented modeling \label{model-obj}}
+\subsection{Object oriented modeling \label{model-obj}}
+\index{modeling!object oriented}
 
 The models in the previous sections used high-level built-in data
 types internally. However, they had a conventional RTL-style
