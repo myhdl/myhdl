@@ -30,6 +30,8 @@ import exceptions
 
 from Signal import Signal
 import myhdl
+import _simulator
+
 
 _flag = 0
 _MAXLINE = 4096
@@ -66,20 +68,22 @@ class Cosimulation(object):
         
         """ Construct a cosimulation object. """
 
+        _simulator._cosim = None
         global _flag
         if _flag:
             raise MultipleCosimError
         _flag = 1
-
-        # Error = myhdl.Error
+        _simulator._cosim = self
 
         self.rt, self.wt = rt, wt = os.pipe()
         self.rf, self.wf = rf, wf = os.pipe()
 
         self._fromSignames = fromSignames = []
         self._fromSizes = fromSizes = []
+        self._fromSigs = fromSigs = []
         self._toSignames = toSignames = []
         self._toSizes = toSizes = []
+        self._toSigs = toSigs = []
 
         child_pid = os.fork()
 
@@ -105,43 +109,53 @@ class Cosimulation(object):
                     if long(e[1]) != 0:
                         raise TimeZeroError, "$from_myhdl"
                     for i in range(2, len(e)-1, 2):
-                        if e[i] in fromSignames:
-                            raise DuplicateSigNamesError, e[i]
-                        if not e[i] in kwargs:
-                            raise SigNotFoundError, e[i]
-                        fromSignames.append(e[i])
+                        n = e[i]
+                        if n in fromSignames:
+                            raise DuplicateSigNamesError, n
+                        if not n in kwargs:
+                            raise SigNotFoundError, n
+                        fromSignames.append(n)
+                        fromSigs.append(kwargs[n])
                         fromSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 elif e[0] == "TO":
                     if long(e[1]) != 0:
                         raise TimeZeroError, "$to_myhdl"
                     for i in range(2, len(e)-1, 2):
-                        if e[i] in toSignames:
-                            raise DuplicateSigNamesError, e[i]
-                        if not e[i] in kwargs:
-                            raise SigNotFoundError, e[i]
-                        toSignames.append(e[i])
+                        n = e[i]
+                        if n in toSignames:
+                            raise DuplicateSigNamesError, n
+                        if not n in kwargs:
+                            raise SigNotFoundError, n
+                        toSignames.append(n)
+                        toSigs.append(kwargs[n])
                         toSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
-                else:
-                    self.buf = e
+                elif e[0] == "START":
+                    if not toSignames:
+                        raise NoCommunicationError
+                    os.write(wf, "OK")
                     break
-            if not fromSignames and not toSignames:
-                raise NoCommunicationError
-            
+                else:
+                    raise Error, "Unexpected cosim input"
+
+    def get(self):
+        s = os.read(self.rt, MAXLINE)
+        e = s.split()
+        vals = e[1:]
+        for s, v in zip(self.toSigs, vals):
+            s.next = long(v, 16)
+
+    def put(self):
+        buf = hex(_simulator._time)
+        buf += " "
+        for s in self.fromSigs:
+            buf += hex(s)
+            buf += " "
+        os.write(wf, buf)
             
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """
         global _flag
         _flag = 0
-
-            
-     
-    
-
-        
-
-        
-
-    
 
