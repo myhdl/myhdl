@@ -111,22 +111,27 @@ If you want to know more about generators, consult the on-line Python
 documentation, e.g. at \url{http://www.python.org/doc/2.2.2/whatsnew}. 
 
 \begin{notice}[warning]
-At the beginning of this section I said that generators were
-introduced in Python 2.2. This is not entirely correct: in fact,
-generators will only be enabled as a standard feature in Python 2.3.
-However, a stable version of Python 2.3 has not been released yet at
-the time of this writing. So, what to do?
+Earlier I mentioned that generators were
+introduced in Python 2.2. In that version, they are a ``future''
+feature that has to be enabled explicitly. In Python 2.3, which is the
+latest stable Python version at the time of this writing, generators
+are enabled by default.
 
-Fortunately, Python lets you import features from its future releases
-(provided that the future is not too distant). So, until you use
-Python 2.3 or higher, you have to include the following line at the
-start of all code that defines generator functions:
+Besides generators, Python 2.3 has several other interesting new
+features, and it runs 25--35\% faster than Python 2.2. For this
+reasons, I recommend MyHDL users to upgrade to Python 2.3. The next
+major release of MyHDL will rely on on the new features and will
+require Python 2.3 or higher.
+
+In the mean time, if you use Python 2.2, you have to include the
+following line at the start of all code that defines generator
+functions:
 
 \begin{verbatim}
 from __future__ import generators
 \end{verbatim}
 
-From Python 2.3 on, this line may still be in the code, though it
-will not have an effect anymore.
+From Python 2.3 on, this line may still be in the code, though it will
+not have an effect anymore.
 \end{notice}
 
