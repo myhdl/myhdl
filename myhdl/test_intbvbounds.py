@@ -52,7 +52,6 @@ class TestIntbvBounds(TestCase):
         else:
             self.fail()
 
-
     def testSliceAssign(self):
         a = intbv(min=-24, max=34)
         for i in (-24, -2, 13, 33):
@@ -76,8 +75,6 @@ class TestIntbvBounds(TestCase):
                 pass
             else:
                 self.fail()
-            
-
 
     def checkBounds(self, i, j, op):
         a = intbv(i)
@@ -150,17 +147,6 @@ class TestIntbvBounds(TestCase):
         
     def testIRShift(self):
         self.checkOp(">>=")
-                    
-            
-        
-        
-        
-        
-       
-
-
-        
-
 
 if __name__ == "__main__":
     unittest.main()

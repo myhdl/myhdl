@@ -77,7 +77,7 @@ class SigTest(TestCase):
             self.fail()
 
     def testPosedgeAttrReadOnly(self):
-        """ val attribute should not be writable"""
+        """ posedge attribute should not be writable"""
         s1 = Signal(1)
         try:
             self.s1.posedge = 1
@@ -87,7 +87,7 @@ class SigTest(TestCase):
             self.fail()
             
     def testNegedgeAttrReadOnly(self):
-        """ val attribute should not be writable"""
+        """ negedge attribute should not be writable"""
         s1 = Signal(1)
         try:
             self.s1.negedge = 1
@@ -101,7 +101,7 @@ class SigTest(TestCase):
         self.assertRaises(TypeError, Signal)
 
     def testInitialization(self):
-        """ initial val and next should be equal but not identical """
+        """ initial val and next should be equal """
         for s in self.sigs:
             self.assertEqual(s.val, s.next)
 
