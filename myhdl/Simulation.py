@@ -124,9 +124,9 @@ class Simulation(object):
                         continue
                     for clause in clauses:
                         if type(clause) is _WaiterList:
-                            clause.append(clone)
+                            clause.purgeAppend(clone)
                         elif isinstance(clause, Signal):
-                            clause._eventWaiters.append(clone)
+                            clause._eventWaiters.purgeAppend(clone)
                         elif type(clause) is delay:
                             schedule((t + clause._time, clone))
                         elif type(clause) is GeneratorType:
@@ -241,10 +241,7 @@ class _Waiter(object):
                 return 0
         return 1
     
-    def clone(self):
-        return _Waiter(self.generator, self.caller, self.semaphore)
-    
-        
+           
 class _Semaphore(object):
     def __init__(self, val=1):
         self.val = val

@@ -40,7 +40,13 @@ from myhdl import intbv
 _schedule = _futureEvents.append
 
 class _WaiterList(list):
-    pass
+
+    def purgeAppend(self, waiter):
+        l = [w for w in self if not w.hasRun]
+        del self[:]
+        self.extend(l)
+        self.append(waiter)
+        
 
 def posedge(sig):
     """ Return a posedge trigger object """
