@@ -42,8 +42,10 @@ def bin(num, width=0):
     """
     num = long(num)
     s = _int2bitstring(num)
-    pad = '0'
-    if num < 0:
-        pad = '1'
-    return (width - len(s)) * pad + s
+    if width:
+        pad = '0'
+        if num < 0:
+            pad = '1'
+        return (width - len(s)) * pad + s
+    return s 
 
