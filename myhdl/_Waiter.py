@@ -29,8 +29,10 @@ from myhdl._simulator import _siglist, _futureEvents
 
 
 class _Waiter(object):
+
+    __slots__ = ('caller', 'generator', 'hasRun', 'semaphore')
     
-    def __init__(self, generator, caller=None, semaphore=None):
+    def __init__(self, generator, caller=None):
         self.generator = generator
         self.hasRun = 0
         self.caller = caller
@@ -38,7 +40,7 @@ class _Waiter(object):
         
     def next(self):
         self.hasRun = 1
-        clone = _Waiter(self.generator, self.caller, self.semaphore)
+        clone = _Waiter(self.generator, self.caller)
         clause = self.generator.next()
         if type(clause) in (tuple, list):
             if clause:
