@@ -255,6 +255,7 @@ class AlwaysCombSimulationTest(TestCase):
             raise StopSimulation, "always_comb simulation test"
 
         return instances(), processes()
+        
 
     def testAnd(self):
         def andFunction(a, b, c, d):
@@ -283,7 +284,6 @@ class AlwaysCombSimulationTest(TestCase):
         def function(a, b, c, d):
             return not (a & (not b)) | ((not c) & d)
         Simulation(self.bench(function)).run(quiet=QUIET)
-
 
 
 if __name__ == "__main__":

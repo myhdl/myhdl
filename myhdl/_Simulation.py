@@ -32,7 +32,7 @@ from sets import Set
 from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._simulator import _siglist, _futureEvents
-from myhdl._Waiter import _Waiter, _inferWaiter
+from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _flatten, _printExcInfo
 from myhdl._always_comb import _AlwaysComb
 
@@ -127,8 +127,6 @@ class Simulation(object):
 
                 while waiters:
                     waiter = _pop()
-                    #if waiter.hasRun or not waiter.hasGreenLight():
-                    #    continue
                     try:
                         waiter.next(waiters, actives, exc)
                     except StopIteration:
@@ -209,12 +207,12 @@ def _checkArgs(arglist):
         if isinstance(arg, GeneratorType):
             waiters.append(_inferWaiter(arg))
         elif isinstance(arg, _AlwaysComb):
-            waiters.append(_Waiter(arg.gen))
+            waiters.append(_SignalTupleWaiter(arg.gen))
         elif isinstance(arg, Cosimulation):
             if cosim is not None:
                 raise SimulationError(_error.MultipleCosim)
             cosim = arg
-            waiters.append(_Waiter(cosim._waiter()))
+            waiters.append(_SignalTupleWaiter(cosim._waiter()))
         elif isinstance(arg, _Waiter):
             waiters.append(arg)
         else:
