@@ -157,18 +157,11 @@ immediately.
 
 
 
-\section{Miscellaneous objects \label{ref-misc}}
+\section{Modelling support functions \label{ref-misc}}
 \declaremodule{}{myhdl}
 
+\begin{funcdesc}{always_comb}{func}
 
-\begin{funcdesc}{downrange}{high \optional{, low=0}}
-Generate a downward range list of integers.
-
-This function is modeled after the standard \code{range} function, but
-works in the downward direction. The returned interval is half-open,
-with the \var{high} index not included. \var{low} is optional and
-defaults to zero.  This function is especially useful in conjunction
-with the \class{intbv} class, that also works with downward indexing.
 \end{funcdesc}
 
 \begin{funcdesc}{bin}{num \optional{, width}}
@@ -180,6 +173,43 @@ This function complements the standard Python conversion functions
 \code{hex} and \code{oct}. A binary string representation is often
 needed in hardware design.
 \end{funcdesc}
+
+\begin{funcdesc}{concat}{base \optional{, arg \moreargs}}
+Concatenate the arguments to an \class{intbv} object. Naturally, the
+concatenation arguments need to have a defined bit width. Therefore,
+if they are \class{intbv} objects, they have to be the return values
+of a slicing operation. Alternatively, they may be bit strings.
+
+In contrast to all other arguments, the implicit \var{self} argument
+doesn't need to have a defined bit with. This is due to the fact that
+concatenation occurs at the lsb (rightmost) side.
+
+It may be clearer to call this method as an unbound method with an
+explicit first \class{intbv} argument.
+\end{funcdesc}
+
+\begin{funcdesc}{downrange}{high \optional{, low=0}}
+Generate a downward range list of integers.
+
+This function is modeled after the standard \code{range} function, but
+works in the downward direction. The returned interval is half-open,
+with the \var{high} index not included. \var{low} is optional and
+defaults to zero.  This function is especially useful in conjunction
+with the \class{intbv} class, that also works with downward indexing.
+\end{funcdesc}
+
+\begin{funcdesc}{enum}{arg \optional{,arg \moreargs}}
+
+\end{funcdesc}
+
+\begin{funcdesc}{instances}{}
+
+\end{funcdesc}
+
+\begin{funcdesc}{processes}{}
+
+\end{funcdesc}
+
 
 
 \section{The \class{intbv} class \label{ref-intbv}}
@@ -261,21 +291,7 @@ operations:
 	  enough to accept all significant bits of the value.
 \end{description}
 
-In addition, \class{intbv} objects support a concatenation method:
 
-\begin{methoddesc}[intbv]{concat}{\optional{arg \moreargs}}
-Concatenate the arguments to an \class{intbv} object. Naturally, the
-concatenation arguments need to have a defined bit width. Therefore,
-if they are \class{intbv} objects, they have to be the return values
-of a slicing operation. Alternatively, they may be bit strings.
-
-In contrast to all other arguments, the implicit \var{self} argument
-doesn't need to have a defined bit with. This is due to the fact that
-concatenation occurs at the lsb (rightmost) side.
-
-It may be clearer to call this method as an unbound method with an
-explicit first \class{intbv} argument.
-\end{methoddesc}
 
 In addition, an \class{intbv} object supports the iterator protocol. This
 makes it possible to iterate over all its bits, from the high index to
