@@ -222,9 +222,9 @@ binary string representation is often needed. Therefore, they also
 have a method that converts to a binary string:
 
 \begin{methoddesc}[intbv]{bin}{\optional{width}}
-Return a representation as a binary string, that is, a string that
-only contains '0's or '1's. If \var{width} is provided, the string is
-padded so that it has the desired width.
+Return a representation as a binary string, that is, a string
+containing only '0's or '1's. If \var{width} is provided, the string is
+padded with the sign bit so that it has the desired width.
 \end{methoddesc}
 
 In addition, an \class{intbv} object supports the iterator protocol. This
