@@ -210,6 +210,52 @@ class TestNotSupported(unittest.TestCase):
                 return
         self.check(g, z, a)
 
+        
+    def testTryExcept(self):
+        a = Signal(bool())
+        z = Signal(bool())
+        def g(z, a):
+            while 1:
+                yield a
+                z.next = 1
+                try:
+                    pass
+                except:
+                    pass
+        self.check(g, z, a)
+
+    def testTryFinally(self):
+        a = Signal(bool())
+        z = Signal(bool())
+        def g(z, a):
+            while 1:
+                yield a
+                z.next = 1
+                try:
+                    pass
+                finally:
+                    pass
+        self.check(g, z, a)
+
+    def testUnaryAdd(self):
+        a = Signal(bool())
+        z = Signal(bool())
+        def g(z, a):
+            while 1:
+                yield a
+                z.next = +a
+        self.check(g, z, a)
+
+    def testUnarySub(self):
+        a = Signal(bool())
+        z = Signal(bool())
+        def g(z, a):
+            while 1:
+                yield a
+                z.next = -a
+                return
+        self.check(g, z, a)
+
 
         
 

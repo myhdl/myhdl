@@ -252,6 +252,18 @@ class _ToVerilogBaseVisitor(object):
     def visitReturn(self, node, *args):
         self.raiseError("return statement not supported", node)
 
+    def visitTryExcept(self, node, *args):
+        self.raiseError("try-except statement not supported", node)
+        
+    def visitTryFinally(self, node, *args):
+        self.raiseError("try-finally statement not supported", node)
+
+    def visitUnaryAdd(self, node, *args):
+        self.raiseError("unary add not suported", node)
+        
+    def visitUnarySub(self, node, *args):
+        self.raiseError("unary sub not suported", node)
+
 
 class SignalAsInoutError(Error):
     """signal used as inout"""
@@ -756,6 +768,10 @@ class _ConvertGenVisitor(object):
         self.writeline()
         self.write("$finish;")
 
+    def visitRightShift(self, node):
+        # XXX
+        pass
+
     def visitSlice(self, node):
         # XXX
         pass
@@ -781,6 +797,10 @@ class _ConvertGenVisitor(object):
         for elt in tpl[1:]:
             self.write(" or ")
             self.visit(elt)
+
+    def visitWhile(self, node):
+        # XXX
+        pass
         
     def visitYield(self, node):
         self.inYield = True
