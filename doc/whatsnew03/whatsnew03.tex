@@ -141,7 +141,6 @@ For example, suppose that we have a mux module described as follows:
 
 \begin{verbatim}
 def mux(z, a, b, sel):
-
     """ Multiplexer.
     
     z -- mux output
@@ -149,7 +148,6 @@ def mux(z, a, b, sel):
     sel -- control input
 
     """
-
     def logic()
         while 1:
             yield a, b, sel
@@ -158,7 +156,6 @@ def mux(z, a, b, sel):
             else:
                 z.next = b
     mux_logic = logic()
-
     return mux_logic
 \end{verbatim}
 
@@ -166,7 +163,6 @@ Using \function{always_comb()}, we can describe it as follows instead:
 
 \begin{verbatim}
 def mux(z, a, b, sel):
-
     """ Multiplexer.
     
     z -- mux output
@@ -174,14 +170,12 @@ def mux(z, a, b, sel):
     sel -- control input
 
     """
-
     def logic()
         if sel == 1:
             z.next = a
         else:
             z.next = b
     mux_logic = always_comb(logic)
-
     return mux_logic
 \end{verbatim}
 
