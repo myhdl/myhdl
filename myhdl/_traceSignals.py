@@ -109,7 +109,7 @@ def traceSignals(dut, *args, **kwargs):
         _writeVcdSigs(vcdfile, h.instances)
     finally:
         _tracing = 0
-    linecache.clearcache()
+        linecache.clearcache()
     return h.m
 
 _filelinemap = {}
