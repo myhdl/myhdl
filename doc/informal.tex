@@ -226,7 +226,6 @@ StopSimulation: Simulated for duration 50
 
 
 \section{Bit-oriented operations}
-\label{gray}
 
 Hardware design involves dealing with bits and bit-oriented
 operations. The standard Python \class{int} has most of the desired
@@ -238,6 +237,8 @@ bitwise operations. In addition, it is a mutable type that provides
 indexing and slicing operations, and some additional bit-oriented
 support such as concatenation.
 
+\subsection{Indexing operations}
+\label{gray}
 As an example, we will consider the design of a Gray encoder. The
 following code is a Gray encoder modeled in \myhdl{}:
 
@@ -264,7 +265,8 @@ use a third form of the \keyword{yield} statement:
 resume whenever \var{signal} changes value. This is typically used to
 describe combinatorial logic.
 Finally, the code contains bit indexing operations and an exclusive-or
-operator as required for a Gray encoder. 
+operator as required for a Gray encoder. By convention, the lsb of an
+\code{intbv} object has index \code{0}.
 
 To verify the Gray encoder, we write a test bench that prints input
 and output for all possible input values:
@@ -314,4 +316,47 @@ B: 111 | G: 100
 StopSimulation: No more events
 
 \end{verbatim}
-          
+
+\subsection{Slicing operations}
+
+For a change, we will use a plain function as an example to illustrate
+slicing.  The following function calculates the HEC byte of an ATM
+header.
+
+\begin{verbatim}
+from myhdl import intbv
+concat = intbv.concat # shorthand alias
+
+COSET = 0x55
+
+def calculateHec(header):
+    """ Return hec for an ATM header, represented as an intbv.
+    """
+    hec = intbv(0)
+    for bit in header[32:]:
+        hec[8:] = concat(hec[7:2],
+                         bit ^ hec[1] ^ hec[7],
+                         bit ^ hec[0] ^ hec[7],
+                         bit ^ hec[7]
+                        )
+    return hec ^ COSET
+
+\end{verbatim}
+
+Slicing is supported on the \code{intbv} data type. In accordance with
+the most common hardware convention, slicing ranges are downward. As
+in standard Python, the slicing range is half-open: the bit with the
+highest index is not included. (In standard Python, this index
+corresponds to the rightmost item; for an \code{intbv} however, it
+corresponds to the leftmost bit.) The low index is \code{0} by
+default, and can be ommitted from the slice.
+
+The half-openness of a slice may seem awkward at first, but it helps
+to avoid one-off issues in practice. For example, the slice
+\code{hex[8:]} corresponds to exactly \code{8} bits. The slice
+\code{hex[7:2]} has \code{7-2=5} bits. You can think about it as
+follows: for a slice \code{[i:j]}, the bit with index \code{i} is the
+last bit that is not included, while the bit with index \code{j} is
+the last bit that is included.
+
+

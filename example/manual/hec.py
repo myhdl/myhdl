@@ -4,9 +4,7 @@ concat = intbv.concat # shorthand
 COSET = 0x55
 
 def calculateHec(header):
-    """ Return ATM hec for a header.
-
-    header -- intbv ATM header
+    """ Return hec for an ATM header, represented as an intbv.
     """
     hec = intbv(0)
     for bit in header[32:]:
@@ -16,7 +14,6 @@ def calculateHec(header):
                          bit ^ hec[7]
                         )
     return hec ^ COSET
-
 
 
 headers = ( 0x00000000,

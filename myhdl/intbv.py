@@ -31,8 +31,8 @@ from types import StringType
 class intbv(object):
     __slots__ = ('_val', '_len')
     
-    def __init__(self, val=0):
-        self._len = 0
+    def __init__(self, val=0, _len=0):
+        self._len = _len
         if type(val) is intbv:
             self._val = val._val
         elif type(val) is StringType:
@@ -204,27 +204,27 @@ class intbv(object):
            
     def __and__(self, other):
         if type(other) is intbv:
-            return intbv(self._val & other._val)
+            return intbv(self._val & other._val, max(self._len, other._len))
         else:
-            return intbv(self._val & other)
+            return intbv(self._val & other, self._len)
     def __rand__(self, other):
-        return intbv(other & self._val)
+        return intbv(other & self._val, self._len)
 
     def __or__(self, other):
         if type(other) is intbv:
-            return intbv(self._val | other._val)
+            return intbv(self._val | other._val, max(self._len, other._len))
         else:
-            return intbv(self._val | other)
+            return intbv(self._val | other, self._len)
     def __ror__(self, other):
-        return intbv(other | self._val)
+        return intbv(other | self._val, self._len)
     
     def __xor__(self, other):
         if type(other) is intbv:
-            return intbv(self._val ^ other._val)
+            return intbv(self._val ^ other._val, max(self._len, other._len))
         else:
-            return intbv(self._val ^ other)
+            return intbv(self._val ^ other, self._len)
     def __rxor__(self, other):
-        return intbv(other ^ self._val)
+        return intbv(other ^ self._val, self._len)
 
     def __iadd__(self, other):
         if type(other) is intbv:

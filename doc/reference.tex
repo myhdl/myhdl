@@ -215,11 +215,13 @@ operations:
 	  the bit with index \var{i} corresponds to the term
 	  \code{2**i}.
 
-\item[(2)] It follows from the indexing convention that slicing ranges
-	  are downward, in contrast to standard Python. However, the
-	  Python convention of half-open ranges is followed. In
-	  accordance with standard Python, the high index is not
-	  included. However, it is the \emph{leftmost} index in this
+\item[(2)] In contrast to standard Python sequencing conventions,
+	  slicing range are downward. This is a consequence of the
+	  indexing convention, combined with the classical convention
+	  that the most significant digits of a number are the
+	  leftmost ones.  However, the Python convention of half-open
+	  ranges is followed: the bit with the highest index is not
+	  included. However, it is the \emph{leftmost} bit in this
 	  case. As in standard Python, this takes care of one-off
 	  issues in many practical cases: in particular,
 	  \code{bv[\var{i}:]} returns \var{i} bits;
