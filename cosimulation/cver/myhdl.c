@@ -1,9 +1,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
+#include <string.h>
+#include <stdio.h>
 #include "vpi_user.h"
 #include "cv_vpi_user.h"
-#include <string.h>
 
 #define MAXLINE 4096
 #define MAXWIDTH 10
@@ -37,7 +38,6 @@ static char bufcp[MAXLINE];
 static myhdl_time64_t myhdl_time;
 static myhdl_time64_t verilog_time;
 static myhdl_time64_t pli_time;
-static myhdl_time64_t delay;
 static int delta;
 
 /* prototypes */
@@ -249,9 +249,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 
 static PLI_INT32 readonly_callback(p_cb_data cb_data)
 {
-  vpiHandle systf_handle;
   vpiHandle net_iter, net_handle;
-  vpiHandle reg_iter, reg_handle;
   s_cb_data cb_data_s;
   s_vpi_time verilog_time_s;
   s_vpi_value value_s;
@@ -383,7 +381,6 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 {
   s_cb_data cb_data_s;
   s_vpi_time time_s;
-  vpiHandle systf_handle;
   vpiHandle reg_iter, reg_handle;
   s_vpi_value value_s;
 
@@ -434,15 +431,12 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 
 static PLI_INT32 change_callback(p_cb_data cb_data)
 {
-  s_cb_data cb_data_s;
-  s_vpi_time time_s;
-  s_vpi_time verilog_time;
-  vpiHandle systf_handle;
   int *id;
 
   // vpi_printf("change callback");
   id = (int *)cb_data->user_data;
   changeFlag[*id] = 1;
+  return(0);
 }
 
 
