@@ -37,14 +37,11 @@ class Simulation:
                     if waiter.hasRun or not waiter.hasGreenLight():
                         continue
                     try:
-                        waitclauses = waiter.next()
+                        waitclauses, clone = waiter.next()
                     except StopIteration:
                         if waiter.caller:
                             waiters.append(waiter.caller)
                         continue
-                    clone = waiter.clone()
-                    if type(waitclauses) is not tuple:
-                        waitclauses = (waitclauses,)
                     for clause in waitclauses:
                         if type(clause) is _WaiterList:
                             clause.append(clone)
@@ -57,27 +54,8 @@ class Simulation:
                                 waiters.append(clone)
                         elif type(clause) is GeneratorType:
                             waiters.append(_WaiterWrap(clause, clone))
-                        elif type(clause) is join:
-                            joinclauses = clause._args
-                            n = len(joinclauses)
-                            joinclone = waiter.clone()
-                            joinclone.semaphore = _Semaphore(n)
-                            for clause in joinclauses:
-                                if type(clause) is _WaiterList:
-                                    clause.append(joinclone)
-                                elif isinstance(clause, Signal):
-                                    clause._eventWaiters.append(joinclone)
-                                elif type(clause) is delay:
-                                    if delay:
-                                        schedule((t + clause._time, joinclone))
-                                    else:
-                                        waiters.append(joinclone)
-                                elif type(clause) is GeneratorType:
-                                    waiters.append(_WaiterWrap(clause, joinclone))
-                                else:
-                                    raise TypeError
                         else:
-                            raise TypeError
+                            raise TypeError, "Incorrect yield clause type"
 
                 if _siglist: continue
                 if t == maxTime:
@@ -128,7 +106,16 @@ class _WaiterWrap(object):
         
     def next(self):
         self.hasRun = 1
-        return self.generator.next()
+        clone = _WaiterWrap(self.generator, self.caller, self.semaphore)
+        clause = self.generator.next()
+        if type(clause) is tuple:
+            return clause, clone
+        elif type(clause) is join:
+            n = len(clause._args)
+            clone.semaphore = _Semaphore(n)
+            return clause._args, clone
+        else:
+            return (clause,), clone
     
     def hasGreenLight(self):
         if self.semaphore:
