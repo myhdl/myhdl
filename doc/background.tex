@@ -4,13 +4,14 @@
 
 You need a basic understanding of Python to understand the \myhdl\
 manual. If you don't know Python, you will take comfort in knowing
-that it is probably one of the easiest languages to learn. Learning
-Python is also one of the better time investments that engineering
-professionals can make \footnote{I am not biased.}.
+that it is probably one of the easiest programming languages to
+learn \footnote{You must be bored by such claims, but in Python's
+case it's true.}. Learning Python is also one of the better time
+investments that engineering professionals can make \footnote{I am not
+biased.}.
 
-For beginners,
-\url{http://www.python.org/http://www.python.org/doc/current/tut/tut.html}
-is probably the best choice for an on-line tutorial. For alternatives,
+For beginners, \url{http://www.python.org/doc/current/tut/tut.html} is
+probably the best choice for an on-line tutorial. For alternatives,
 see \url{http://www.python.org/doc/Newbies.html}.
 
 A working knowledge of a hardware description language such as Verilog
@@ -22,7 +23,7 @@ you are interested in this manual.
 Generators are a recent feature in Python. They were introduced in
 Python 2.2, which is the most recent stable version at the time of
 this writing. Therefore, there isn't a lot of tutorial material
-available yet. However, because generators are a key concept in
+available yet. Because generators are the key concept in
 \myhdl{}, I include a small tutorial here.
 
 Consider the following function:
@@ -42,9 +43,9 @@ loop iteration is entered, the function returns:
 0
 \end{verbatim}
 
-Returning is fatal. Further loop iterations never get a chance, and
-nothing is left over from the function when it returns. It is truly
-gone. 
+Returning is fatal for a function. Further loop iterations never get a
+chance, and nothing is left over from the function when it returns. It
+is truly gone.
 
 To change the function into a generator function, we replace
 \keyword{return} with \keyword{yield}:
@@ -115,4 +116,25 @@ read on!
 
 If you want to know more about generators, you can consult.
 \url{http://www.python.org/doc/2.2.2/whatsnew}. 
+
+\begin{notice}[warning]
+At the beginning of this section I said that generators were
+introduced in Python 2.2. This is not completely correct: in fact,
+generators will only be enabled as a standard feature in Python 2.3.
+However, a stable version of Python 2.3 has not been released yet at
+the time of this writing. So, what to do?
+
+Fortunately, Python lets you import features from its future releases
+(provided that the future is not too distant). So, until you use
+Python 2.3 or higher, you have to include the following line at the
+start of all code that defines generator functions:
+
+\begin{verbatim}
+from __future__ import generators
+
+\end{verbatim}
+
+From Python 2.3. on, this line may still be in the code, though it
+will not have an effect anymore.
+\end{notice}
 
