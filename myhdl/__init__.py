@@ -34,6 +34,8 @@ Error -- myhdl Error exception
 bin -- returns a binary string representation.
        The optional width specifies the desired string
        width: padding of the sign-bit is used.
+concat -- function to concat ints, bitstrings, bools, intbvs, Signals
+       -- returns an intbv
 instances -- function that returns all instances defined in a function
 always_comb -- function that returns an input-sensitive generator
 
@@ -46,6 +48,7 @@ __date__ = "$Date$"
 __version__ = "0.3"
 
 from _bin import bin
+from _concat import concat
 from _intbv import intbv
 from _join import join
 from _Signal import posedge, negedge, Signal

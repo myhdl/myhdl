@@ -34,61 +34,10 @@ import operator
 from copy import copy, deepcopy
 
 from myhdl._intbv import intbv
-concat = intbv.concat
 
 class TestIntbvInit(TestCase):
     def testDefaultValue(self):
         self.assertEqual(intbv(), 0)
-
-
-class TestIntbvConcat(TestCase):
-
-    bases = ("0", "1", "10101", "01010", "110", "011", "1001000100001011111000")
-    extslist = [ ["0"], ["1"], ["00"], ["11"], ["000"], ["111"], ["1010101010"],
-                 ["0", "1"], ["1", "0"], ["1", "01", "10"], ["11111", "001001"],
-                 ["110001111101110", "10101110111001001", "111001101000101010"]
-               ]
- 
-    def testIntbvConcatStrings(self):
-        for base in self.bases:
-            for exts in self.extslist:
-                bv = concat(intbv(base), *exts)
-                # bv2 = concat(int(base, 2), *exts)
-                ref = long(base + reduce(operator.add, exts), 2)
-                self.assertEqual(bv, ref)
-                # self.assertEqual(bv2, ref)
-
-    def testIntbvConcatIntbv(self):
-        for base in self.bases:
-            for exts in self.extslist:
-                extbs = [intbv(ext) for ext in exts]
-                bv = concat(intbv(base), *extbs)
-                ref = long(base + reduce(operator.add, exts), 2)
-                self.assertEqual(bv, ref)
-
-    def testIntbvConcatMix(self):
-        for base in self.bases:
-            for exts in self.extslist:
-                extmix = []
-                for ext in exts:
-                    if randrange(2):
-                        extmix.append(intbv(ext))
-                    else:
-                        extmix.append(ext)
-                bv = concat(intbv(base), *extmix)
-                ref = long(base + reduce(operator.add, exts), 2)
-                self.assertEqual(bv, ref)
-
-    def testWrongType(self):
-        a = intbv(4)
-        self.assertRaises(TypeError, concat, a, 5)
-            
-    def testUnsizedConcat(self):
-        a = intbv(4)
-        b = intbv(5)
-        self.assertRaises(TypeError, concat, a, b)
-            
-
     
 
 def getItem(s, i):

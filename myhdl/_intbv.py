@@ -80,27 +80,6 @@ class intbv(object):
                 raise ValueError("intbv value %s < minimum %s" %
                                  (self._val, self._min))
 
-    # concat method
-    def concat(self, *args):
-        v = self._val
-        basewidth = width = self._len
-        for a in args:
-            if type(a) is intbv:
-                w = a._len
-                if not w:
-                    raise TypeError, "intbv arg to concat should have length"
-                val = a._val
-            elif type(a) is StringType:
-                w = len(a)
-                val = long(a, 2)
-            else:
-                raise TypeError
-            v= v*(2**w) + val
-            width += w
-        if basewidth:
-            return intbv(v, _len=basewidth + width)
-        else:
-            return intbv(v)
 
     # hash
     def __hash__(self):

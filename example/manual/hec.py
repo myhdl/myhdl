@@ -1,5 +1,4 @@
-from myhdl import intbv
-concat = intbv.concat # shorthand
+from myhdl import intbv, concat
 
 COSET = 0x55
 
