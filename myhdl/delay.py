@@ -33,7 +33,7 @@ class delay(object):
         """ Return a delay instance.
 
         Required parameters:
-            val -- a natural integer representing the desired delay
+        val -- a natural integer representing the desired delay
 
         """
         if type(val) != int or val < 0:
