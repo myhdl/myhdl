@@ -66,9 +66,11 @@ class Signal(object):
                  '_printVcd'
                 )
 
-    def __new__(cls, val, delay=0):
+    def __new__(cls, val, delay=None):
         """ Return a new Signal (default or delay 0) or DelayedSignal """
-        if delay:
+        if delay is not None:
+            if delay < 0:
+                raise TypeError("Signal: delay should be >= 0")
             return object.__new__(DelayedSignal)
         else:
             return object.__new__(cls)

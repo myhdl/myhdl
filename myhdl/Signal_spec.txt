@@ -40,7 +40,7 @@ In the following, a "sig" denotes an instance of the Signal class.
 
 * The Signal contractor should have an optional parameter 'delay' to
   specify an initial delay value for the signal. The default value is
-  0, meaning no delay.
+  None, meaning no delay.
 
 * A sig should have a 'delay' attribute that represents its current
   delay. It is acceptable that this attribute is only present if the
