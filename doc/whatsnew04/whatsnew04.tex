@@ -44,24 +44,25 @@ will assume that the reader is familiar with this kind of constraints.
 \section{Feature overview\label{section-feature}}
 
 \begin{description}
-\item[The object to be converted is an elaborated design.]
+\item[The design is converted after elaboration.]
 \emph{Elaboration} refers to the initial processing of
 a hardware description to achieve a representation that
 is ready for simulation or synthesis. In particular, structural
 parameters and constructs are processed in this step. In
-\myhdl{}, the Python interpreter itself is used for elaboration;
-an elaborated design corresponds to a \class{Simulation}
+\myhdl{}, the Python interpreter itself is used for elaboration.
+An elaborated design corresponds to a \class{Simulation}
 argument. Likewise, the Verilog conversion works on an
 elaborated design. The Python interpreter is thus used
 as much as possible, resulting in more power to the 
 \myhdl\ user and less work for the developer.
 
-\item[Python's full power can be used to describe structure.]
+\item[The design structure can be arbitrarily complex and hierarchical.]
 As the conversion works on an elaborated design, any modeling
 constraints only apply to the leaf elements of the design
 structure, that is, the co-operating generators. In other words, there
 are no restrictions on the description of the design structure:
-Python's full power can be used for that purpose.
+Python's full power can be used for that purpose. Also, the
+design hierarchy can be arbitrarily deep.
 
 \item[If-then-else structures with enumeration type items are mapped to case statements.]
 Python does not provide a case statement. However, 
@@ -74,28 +75,282 @@ synthesis attributes.
 The \function{enum} function in \myhdl\ returns an enumeration type. This
 function takes an additional parameter \var{encoding} that specifies the
 desired encoding in the implementation: binary, one hot, or one cold.
-The Verilog  generates the appropriate code.
+The Verilog converter generates the appropriate code.
 
-\item[The \keyword{break}, \keyword{continue}, and \keyword{return} statements are supported.]
-These control flow modification statements are mapped to Verilog named blocks
-and \code{disable} statements.
 
 \end{description}
 
+\section{Converter usage}
 
-\section{Supported Python subset}
+We will demonstrate the conversion process by showing some examples.
+
+\subsection{A small design with a single generator}
+
+Consider the following MyHDL code for an incrementer module:
+
+\begin{verbatim}
+def inc(count, enable, clock, reset, n):
+    """ Incrementer with enable.
+    
+    count -- output
+    enable -- control input, increment when 1
+    clock -- clock input
+    reset -- asynchronous reset input
+    n -- counter max value
+    """
+    def incProcess():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return incProcess()
+\end{verbatim}
+
+In Verilog terminology, function \function{inc} corresponds to a
+module, while generator function \function{incProcess}
+roughly corresponds to an always block.
+
+Normally, to simulate the design, we would "elaborate" an instance
+as follows:
+
+\begin{verbatim}
+m = 8
+n = 2 ** m
+ 
+count = Signal(intbv(0)[m:])
+enable = Signal(bool(0))
+clock, reset = [Signal(bool()) for i in range(2)]
+
+inc_inst = inc(count, enable, clock, reset, n=n)
+\end{verbatim}
+
+\code{inc_inst} is an elaborated design instance that can be simulated. To
+convert it to Verilog, we change the last line as follows:
+
+\begin{verbatim}
+inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
+\end{verbatim}
+
+Again, this creates an instance that can be simulated, but as a side
+effect, it also generates a Verilog module in file \file{inc_inst.v},
+that is supposed to have identical behavior. The Verilog code
+is as follows:
+
+\begin{verbatim}
+module inc_inst (
+    count,
+    enable,
+    clock,
+    reset
+);
+
+output [7:0] count;
+reg [7:0] count;
+input enable;
+input clock;
+input reset;
+
+
+always @(posedge clock or negedge reset) begin: _MYHDL1__BLOCK
+    if ((reset == 0)) begin
+        count <= 0;
+    end
+    else begin
+        if (enable) begin
+            count <= ((count + 1) % 256);
+        end
+    end
+end
+
+endmodule
+\end{verbatim}
+
+You can see the module interface and the always block, as expected
+from the MyHDL design. 
+
+\subsection{Converting a generator directly}
+
+It is also possible to convert a generator
+directly. For example, consider the following generator function:
+
+\begin{verbatim}
+def bin2gray(B, G, width):
+    """ Gray encoder.
+
+    B -- input intbv signal, binary encoded
+    G -- output intbv signal, gray encoded
+    width -- bit width
+    """
+    Bext = intbv(0)[width+1:]
+    while 1:
+        yield B
+        Bext[:] = B
+        for i in range(width):
+            G.next[i] = Bext[i+1] ^ Bext[i]
+\end{verbatim}
+
+As before, you can create an instance and convert to
+Verilog as follows:
+
+\begin{verbatim}
+width = 8
+
+B = Signal(intbv(0)[width:])
+G = Signal(intbv(0)[width:])
+
+bin2gray_inst = toVerilog(bin2gray, B, G, width)
+ \end{verbatim}
+
+The generate Verilog module is as follows:
+
+\begin{verbatim}
+module bin2gray_inst (
+    B,
+    G
+);
+
+input [7:0] B;
+output [7:0] G;
+reg [7:0] G;
+
+always @(B) begin: _MYHDL1__BLOCK
+    integer i;
+    reg [9-1:0] Bext;
+    Bext[9-1:0] = B;
+    for (i=0; i<8; i=i+1) begin
+        G[i] <= (Bext[(i + 1)] ^ Bext[i]);
+    end
+end
+
+endmodule
+\end{verbatim}
+
+\subsection{A hierarchical design}
+The hierarchy of convertible designs can be
+arbitrarily deep.
+
+For example, suppose we want to design an
+incrementer with Gray code output. Using the
+designs from previous sections, we can proceed
+as follows:
+
+\begin{verbatim}
+def GrayInc(graycnt, enable, clock, reset, width):
+    
+    bincnt = Signal(intbv()[width:])
+    
+    INC_1 = inc(bincnt, enable, clock, reset, n=2**width)
+    BIN2GRAY_1 = bin2gray(B=bincnt, G=graycnt, width=width)
+    
+    return INC_1, BIN2GRAY_1
+\end{verbatim}
+
+According to Gray code properties, only a single bit
+will change in consecutive values. However, as the
+\code{bin2gray} module is combinatorial, the output bits
+may have transient glitches, which may not be desirable.
+To solve this, let's create an additional level of
+hierarchy an add an output register to the design.
+(This will create an additional latency of a clock
+cycle, which may not be acceptable, but we will
+ignore that here.)
+
+\begin{verbatim}
+def GrayIncReg(graycnt, enable, clock, reset, width):
+    
+    graycnt_comb = Signal(intbv()[width:])
+    
+    GRAY_INC_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
+    
+    def reg():
+        while 1:
+            yield posedge(clock)
+            graycnt.next = graycnt_comb
+    REG_1 = reg()
+    
+    return GRAY_INC_1, REG_1
+\end{verbatim}
+
+We can convert this hierchical design as usual:
+
+\begin{verbatim}
+width = 8
+graycnt = Signal(intbv()[width:])
+enable, clock, reset = [Signal(bool()) for i in range(3)]
+
+GRAY_INC_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+\end{verbatim}
+
+The Verilog output module looks as follows:
+
+\begin{verbatim}
+module GRAY_INC_REG_1 (
+    graycnt,
+    enable,
+    clock,
+    reset
+);
+
+output [7:0] graycnt;
+reg [7:0] graycnt;
+input enable;
+input clock;
+input reset;
+
+reg [7:0] graycnt_comb;
+reg [7:0] _GRAY_INC_1_bincnt;
+
+always @(posedge clock or negedge reset) begin: _MYHDL1__BLOCK
+    if ((reset == 0)) begin
+        _GRAY_INC_1_bincnt <= 0;
+    end
+    else begin
+        if (enable) begin
+            _GRAY_INC_1_bincnt <= ((_GRAY_INC_1_bincnt + 1) % 256);
+        end
+    end
+end
+
+always @(_GRAY_INC_1_bincnt) begin: _MYHDL4__BLOCK
+    integer i;
+    reg [9-1:0] Bext;
+    Bext[9-1:0] = _GRAY_INC_1_bincnt;
+    for (i=0; i<8; i=i+1) begin
+        graycnt_comb[i] <= (Bext[(i + 1)] ^ Bext[i]);
+    end
+end
+
+always @(posedge clock) begin: _MYHDL9__BLOCK
+    graycnt <= graycnt_comb;
+end
+
+endmodule
+\end{verbatim}
+
+Note that the output is a flat ``netlist of blocks'', and
+that hierarchical signal names are generated as necessary.
+
+
+\section{The convertible subset}
 
 \subsection{Supported statements}
+
+The following is a list of the statements that are supported by the
+Verilog converter, possibly qualified with restrictions. Recall that
+this list only applies to the design post elaboration: in practice,
+this means it applies to the code of the generators that are the leaf
+blocks in a design.
+
 \begin{description}
 
 \item[The \keyword{break} statement.]
-Fully supported.
 
 \item[The \keyword{continue} statement.]
-Fully supported.
 
 \item[The \keyword{def} statement.]
-Fully supported.
 
 \item[The \keyword{for} statement.]
 The optional \keyword{else}
@@ -105,17 +360,16 @@ statement is not supported.
 \keyword{if}, \keyword{elif}, and \keyword{else} clauses
 are fully supported.
 
-\item[The \keyword{pass} statement.] Fully supported.
+\item[The \keyword{pass} statement.]
 
 \item[The \keyword{print} statement.]
 
 \item[The \keyword{return} statement.]
-Fully supported.
 
 \item[The \keyword{yield} statement.] 
 
 \item[The \keyword{while} statement.]
-Fully supported, except that the optional \keyword{else}
+The optional \keyword{else}
 statement is not supported.
 
 \end{description}
@@ -130,6 +384,12 @@ values. However, the \code{signed} type support in Verilog is
 relatively recent and mapping to it may be tricky. In my judgment,
 this is not the most urgent requirement, so
 I decided to leave this for later.
+
+\item[Verilog integers are 32 bit wide]
+Usually, Verilog integers are 32 bit wide. In contrast, Python is
+moving towards integers with undefined width. Python \class{int} 
+and \class{long} variables are mapped to Verilog integers; so for values
+larger than 32 bit this mapping is incorrect.
 
 \item[Synthesis pragmas are specified as Verilog comments.] The recommended
 way to specify synthesis pragmas in Verilog is through attribute
