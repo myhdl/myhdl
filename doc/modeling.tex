@@ -376,7 +376,7 @@ report underflow and overflow errors:
 class Error(Exception):
     pass
 
-def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
+def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
     memory = []
     while 1:
         yield posedge(clk)
@@ -402,5 +402,5 @@ list.
 
 \begin{quote}
 \em
-Lots of material to be added ...
+A lot to be added ...
 \end{quote}
