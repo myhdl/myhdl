@@ -53,7 +53,7 @@ class SigNotFoundError(Error):
 class TimeZeroError(Error):
     """myhdl vpi call when not at time 0"""
 class NoCommunicationError(Error):
-    """No communicating signals"""
+    """No signals communicating to myhdl"""
 class SimulationEndError(Error):
     """Premature simulation end"""
 
@@ -132,7 +132,7 @@ class Cosimulation(object):
                         toSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 elif e[0] == "START":
-                    if not toSignames and not fromSignames:
+                    if not toSignames:
                         raise NoCommunicationError
                     os.write(wf, "OK")
                     break
