@@ -1,4 +1,4 @@
-Release 0.3 25-Aug-2003
+Release 0.3 30-Aug-2003
 -----------------------
 
 * VCD output for waveform viewing
