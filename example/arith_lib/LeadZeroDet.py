@@ -4,6 +4,15 @@ from arith_utils import BEHAVIOR
 from PrefixAnd import PrefixAnd
 
 def LeadZeroDet(width, speed, A, Z, architecture=BEHAVIOR):
+    """ Set output bit to 1 at first non-zero MSB bit in input
+
+    width -- bit width
+    speed -- SLOW, MEDIUM, or FAST performance
+    A -- input
+    Z -- output
+    architecture - BEHAVIOR or STRUCTURE
+
+    """
 
     def Behavioral():
         while 1:

@@ -14,7 +14,18 @@ from random import random
 
 class DecTest(TestCase):
 
+    """ Decrementer unit test class """
+
     def bench(self, width, speed, nrsamples=0):
+        
+        """ Decrementer test bench
+
+        width -- decrementer bit width
+        speed -- SLOW, MEDIUM or FAST
+        nrsamples -- required number of random samples, or exhaustive
+                     test if not set (default)
+                     
+        """
 
         A = Signal(intbv())
         ZS = Signal(intbv())

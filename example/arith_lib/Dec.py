@@ -4,6 +4,16 @@ from arith_utils import BEHAVIOR
 from PrefixAnd import PrefixAnd
 
 def Dec(width, speed, A, Z, architecture=BEHAVIOR):
+    
+    """ Decrementer.
+
+    width -- bitwidth of input and output
+    speed -- SLOW, MEDIUM, or FAST performance
+    A -- input
+    Z -- output
+    architecture -- BEHAVIOR or STRUCTURE architecture selection
+
+    """
 
     def Behavioral():
         while 1:

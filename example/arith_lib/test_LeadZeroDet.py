@@ -14,7 +14,18 @@ from random import random
 
 class LeadZeroDetTest(TestCase):
 
+    """ Leading zeroes detector unit test class """
+
     def bench(self, width, speed, nrsamples=0):
+        
+        """ Leading zeroes detector test bench
+
+        width -- decrementer bit width
+        speed -- SLOW, MEDIUM or FAST
+        nrsamples -- required number of random samples, or exhaustive
+                     test if not set (default)
+                     
+        """
 
         A = Signal(intbv())
         ZS = Signal(intbv())
@@ -31,7 +42,6 @@ class LeadZeroDetTest(TestCase):
             for i in vals:
                 A.next = intbv(i)
                 yield delay(10)
-                # print "a:%s Res: %s %s" % (A.val, ZS.val, ZB.val)
                 self.assertEqual(ZS.val, ZB.val)
 
         return (beh, str, stimulus())
