@@ -31,6 +31,7 @@ random.seed(2) # random, but deterministic
 import sys
 maxint = sys.maxint
 import operator
+from copy import copy, deepcopy
 
 from myhdl import intbv
 concat = intbv.concat
@@ -609,6 +610,24 @@ class TestIntbvBounds(TestCase):
         
     def testIRShift(self):
         self.checkOp(">>=")
+
+
+class TestIntbvCopy(TestCase):
+
+    def testCopy(self):
+
+        for n in (intbv(), intbv(34), intbv(-12, min=-15), intbv(45, max=65),
+                  intbv(23, min=2, max=47), intbv(35)[3:]):
+            a = intbv(n)
+            b = copy(n)
+            c = deepcopy(n)
+            for m in (a, b, c):
+                self.assertEqual(n, m)
+                self.assertEqual(n._val, m._val)
+                self.assertEqual(n.min, m.min)
+                self.assertEqual(n.max, m.max)
+                self.assertEqual(len(n), len(m))
+
         
 
 if __name__ == "__main__":

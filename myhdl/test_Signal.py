@@ -555,6 +555,10 @@ class TestSignalNrBits(TestCase):
 
     def testIntbvBounds(self):
         for n in range(1, 40):
+            s = Signal(intbv(min=-(2**n)))
+            self.assertEqual(s._nrbits, 0)
+            s = Signal(intbv(max=2**n))
+            self.assertEqual(s._nrbits, 0)
             s = Signal(intbv(min=0, max=2**n))
             self.assertEqual(s._nrbits, n)
             s = Signal(intbv(1, min=1, max=2**n))
@@ -596,10 +600,9 @@ class TestSignalIntbvBounds(TestCase):
                 s.next[k:] = i
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
-                s.next[k:] = i
                 try:
                     s.next[k:] = i
-                    s._update()
+                    # s._update()
                 except ValueError:
                     pass
                 else:
@@ -610,7 +613,7 @@ class TestSignalIntbvBounds(TestCase):
         for v in (-1, 2**8, -10, 1000):
             try:
                 s.next[:] = v
-                s._update()
+                # s._update()
             except ValueError:
                 pass
             else:

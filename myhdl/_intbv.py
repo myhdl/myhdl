@@ -37,17 +37,14 @@ class intbv(object):
     __slots__ = ('_val', '_min', '_max', '_len', '_nrbits')
     
     def __init__(self, val=0, min=None, max=None, _len=0):
-        nrbits = 0
         if _len:
             self._min = 0
             self._max = 2**_len
         else:
             self._min = min
-            if min is not None:
-                _len = len(bin(min))
             self._max = max
-            if max is not None:
-                _len = maxfunc(len(bin(max-1)), _len)
+            if max is not None and min is not None:
+                _len = maxfunc(len(bin(max-1)), len(bin(min)))
         if isinstance(val, (int, long)):
             self._val = val
         elif type(val) is StringType:
@@ -55,6 +52,9 @@ class intbv(object):
             _len = len(val)
         elif isinstance(val, intbv):
             self._val = val._val
+            self._min = val._min
+            self._max = val._max
+            _len = val._len
         elif val is None:
             self._val = None # for Cosimulation and X, Z support perhaps
         else:
@@ -109,9 +109,9 @@ class intbv(object):
         
     # copy methods
     def __copy__(self):
-        return intbv(self._val)
+        return intbv(self)
     def __deepcopy__(self, visit):
-        return intbv(self._val)
+        return intbv(self)
 
     # iterator method
     def __iter__(self):

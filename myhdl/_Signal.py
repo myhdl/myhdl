@@ -82,7 +82,8 @@ class Signal(object):
         
         """
         self._next = self._val = val
-        self._min = self._max = self._nrbits = None
+        self._min = self._max = None
+        self._nrbits = 0
         self._type = (int, long, intbv)
         self._printVcd = self._printVcdStr
         if type(val) is bool:
