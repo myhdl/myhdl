@@ -25,7 +25,7 @@
 
 \myhdl\ now has support for waveform viewing. During simulation, signal
 changes can be written to a VCD output file.  The VCD file can then be
-loaded and viewed in a waveform viewer tool such as gtkwave.
+loaded and viewed in a waveform viewer tool such as \program{gtkwave}.
 
 The user interface of this feature consists of a single function,
 \function{trace_sigs()}.  To explain how it works, recall that in
@@ -117,7 +117,9 @@ state = Signal(t_State.SEARCH)
 Note that the waveforms show the string representation of the
 enumeration type identifiers. 
 
-\section{Inferring a list of all instances\label{section-instances}}
+\section{Inferring the sensitivity list for combinatorial logic}
+
+\section{Inferring the list of all instances\label{section-instances}}
 
 In \myhdl{}, the instances defined in a top level function
 need to be returned explicitly, according
@@ -125,12 +127,12 @@ the following template:
 
 \begin{verbatim}
 def top(...):
-
+    ...
     instance_1 = module_1(...)
     instance_2 = module_2(...)
     ...
     instance_n = module_n(...)
-
+    ... 
     return instance_1, instance_2, ... , instance_n
 \end{verbatim}
 
@@ -148,12 +150,12 @@ all instances automatically. It is used as follows:
 from myhdl import instances
 
 def top(...):
-
+    ...
     instance_1 = module_1(...)
     instance_2 = module_2(...)
     ...
     instance_n = module_n(...)
-
+    ...
     return instances()
 \end{verbatim}
 
@@ -163,10 +165,72 @@ function. In \myhdl {}, an instance is defined as
 a nested sequence of generators: all such variables
 are looked up and assembled in a list.
 
+\section{Inferring the list of all processes\label{section-processes}}
 
-\section{Inferring a list of all processes\label{section-processes}}
+In addition to instances, a top level function may
+also define local generators functions, which I will
+call \emph{processes} because of the analogy with VHDL.
+Like instances, processes need to be returned explicitly,
+with the qualification that they have to be called first
+to turn them into generators. The template is as follows:
 
+\begin{verbatim}
+def top(...):
+    ...
+    def process_1():
+        ...
+        yield ...
+        ...
+    def process_2():
+        ...
+        yield ...
+        ...
+    def process_n():
+        ...
+        yield ...
+        ...
+    ...
+    return process_1(), process_2(), ..., process_n()
+\end{verbatim}
 
+As for instances, it may be more convenient to assemble the list of
+processes automatically. One option is to turn each process into an
+instance by calling it and assigning the returned generator to a
+local variable. Those instances will then be found by the
+\function{instances()} function described in
+Section~\ref{section-instances}.
+
+Another option is to use the function \function{processes()} provided
+by \myhdl\ 0.3 . This function uses introspection to find the
+processes, calls each of them, and assembles the returned generators
+into a list. It can be used as follows:
+
+\begin{verbatim}
+def top(...):
+    ...
+    def process_1():
+        ...
+        yield ...
+        ...
+    def process_2():
+        ...
+        yield ...
+        ...
+    def process_n():
+        ...
+        yield ...
+        ...
+    ... 
+    return processes()
+\end{verbatim}
+
+To conclude, a top level function with both instances and
+processes can use the following idiomatic code to
+return all of them:
+
+\begin{verbatim}
+return instances(), processes()
+\end{verbatim}
 
 
 \section{Python 2.3 support\label{section-Python}}
