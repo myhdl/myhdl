@@ -342,11 +342,8 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
 static PLI_INT32 delay_callback(p_cb_data cb_data)
 {
   s_vpi_time time_s;
-  s_vpi_time verilog_time;
   s_cb_data cb_data_s;
 
-  verilog_time.type = vpiSimTime;
-  vpi_get_time(NULL, &verilog_time);
   // register readonly callback //
   time_s.type = vpiSimTime;
   time_s.high = 0;
@@ -378,7 +375,6 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 {
   s_cb_data cb_data_s;
   s_vpi_time time_s;
-  s_vpi_time verilog_time;
   vpiHandle systf_handle;
   vpiHandle reg_iter, reg_handle;
   s_vpi_value value_s;
@@ -400,9 +396,6 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
   if (reg_iter != NULL) {
     vpi_free_object(reg_iter);
   }
-
-  verilog_time.type = vpiSimTime;
-  vpi_get_time(NULL, &verilog_time);
 
   // register readonly callback //
   time_s.type = vpiSimTime;
@@ -451,7 +444,7 @@ void myhdl_register()
 
   tf_data.type      = vpiSysTask;
   tf_data.tfname    = "$to_myhdl";
-  tf_data.calltf    = to_myhdl_calltf;
+  tf_data.calltf    = (void *) to_myhdl_calltf;
   tf_data.compiletf = NULL;
   tf_data.sizetf    = NULL;
   tf_data.user_data = "$to_myhdl";
@@ -459,7 +452,7 @@ void myhdl_register()
 
   tf_data.type      = vpiSysTask;
   tf_data.tfname    = "$from_myhdl";
-  tf_data.calltf    = from_myhdl_calltf;
+  tf_data.calltf    = (void *) from_myhdl_calltf;
   tf_data.compiletf = NULL;
   tf_data.sizetf    = NULL;
   tf_data.user_data = "$from_myhdl";
