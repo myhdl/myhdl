@@ -266,7 +266,9 @@ class CosimulationTest(TestCase):
             buf += " "
         os.write(wt, buf)
 
-                   
+def suite():
+    return unittest.makeSuite(CosimulationTest, 'test')
+        
 if __name__ == "__main__":
     unittest.main()
 

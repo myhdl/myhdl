@@ -132,7 +132,7 @@ class Cosimulation(object):
                         toSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 elif e[0] == "START":
-                    if not toSignames:
+                    if not toSignames and not fromSignames:
                         raise NoCommunicationError
                     os.write(wf, "OK")
                     break

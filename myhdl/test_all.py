@@ -23,7 +23,7 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
-import test_Simulation, test_Signal, test_intbv
+import test_Simulation, test_Signal, test_intbv, test_Cosimulation
 
 modules = (test_Simulation, test_Signal, test_intbv)
 
