@@ -205,10 +205,10 @@ def _getGens(arg):
     else:
         l = []
         for elt in arg:
-            if type(arg) is GeneratorType:
-                l.append(arg)
-            elif type(arg) is _AlwaysComb:
-                l.append(arg.gen)
+            if type(elt) is GeneratorType:
+                l.append(elt)
+            elif type(elt) is _AlwaysComb:
+                l.append(elt.gen)
         return l
 
 
