@@ -110,8 +110,8 @@ of \keyword{yield} statements in in \myhdl\ generators is:
 
 \hspace{\leftmargin}\keyword{yield} \var{clause \optional{, clause ...}}
 
-After a simulation object executes a \keyword{yield} statement, it
-suspends execution of the generator. At the same time, each
+When a generator executes a \keyword{yield} statement, its
+execution is suspended at that point. At the same time, each
 \var{clause} is a \emph{trigger object} which defines the condition
 upon which the generator should be resumed. However, per invocation of a
 \keyword{yield} statement, the generator is resumed exactly once,
@@ -186,12 +186,12 @@ immediately.
 Returns a generator that is sensitive to all signals that
 are used as inputs in function \function{func()}. The generator
 will run \function{func()} whenever one of the inputs changes.
-\function{func} should be a locally defined function without
+\function{func()} should be a locally defined function without
 parameters.
 \end{funcdesc}
 
 \begin{funcdesc}{bin}{num \optional{, width}}
-Return a representation as a bit string.  If the optional \var{width}
+Returns a bit string representation. If the optional \var{width}
 is provided, and if it is larger than the width of the default
 representation, the bit string is padded with the sign bit.
 
