@@ -30,8 +30,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-from __future__ import generators
-
 from inspect import currentframe, getouterframes
 from copy import deepcopy as copy
 
