@@ -1,2 +1,4 @@
 global-include *.py
 global-include *.txt
+global-include *.pdf
+prune doc/tools
