@@ -23,8 +23,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-from __future__ import generators
-
 import random
 from random import randrange
 random.seed(1) # random, but deterministic
