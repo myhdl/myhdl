@@ -107,14 +107,17 @@ def testJoin():
         txData = intbv(val)
         yield join(rs232_rx(rx, rxData), rs232_tx(tx, txData, duration=T_10200))
     
+def main():
+    print "\n\n## stimulus ##\n"
+    Simulation(stimulus()).run()
+    print "\n\n## test ##\n" 
+    Simulation(test()).run()
+    print "\n\n## testTimeout ##\n"
+    Simulation(testTimeout()).run()
+    print "\n\n## testNoJoin ##\n"
+    Simulation(testNoJoin()).run()
+    print "\n\n## testJoin ##\n"
+    Simulation(testJoin()).run()
 
-print "\n\n## stimulus ##\n"
-Simulation(stimulus()).run()
-print "\n\n## test ##\n" 
-Simulation(test()).run()
-print "\n\n## testTimeout ##\n"
-Simulation(testTimeout()).run()
-print "\n\n## testNoJoin ##\n"
-Simulation(testNoJoin()).run()
-print "\n\n## testJoin ##\n"
-Simulation(testJoin()).run()
+if __name__ == '__main__':
+    main()

@@ -52,10 +52,14 @@ def monitor():
         print "   %s      %s" % (enable, count)
         
 
-if __name__ == "__main__":
+def main():
     Simulation(clockGen(), stimulus(), INC_1, monitor(), INC_1).run()
     
 
+if __name__ == '__main__':
+    main()
+           
+           
     
         
     

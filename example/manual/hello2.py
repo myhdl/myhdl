@@ -15,6 +15,9 @@ def sayHello():
         yield posedge(clk)
         print "%s Hello World!" % now()
 
-sim = Simulation(clkGen(), sayHello())
-sim.run(50)
+def main():
+    sim = Simulation(clkGen(), sayHello())
+    sim.run(50)
 
+if __name__ == '__main__':
+    main()

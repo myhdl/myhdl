@@ -28,7 +28,11 @@ def testBench(width):
 
     return (dut, stimulus())
 
-if __name__ == '__main__':
+def main():
     Simulation(testBench(width=3)).run()
+    
+
+if __name__ == '__main__':
+    main()
     
 

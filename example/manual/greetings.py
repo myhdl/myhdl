@@ -27,6 +27,10 @@ def greetings():
 
     return clkGen1, clkGen2, sayHello1, sayHello2
 
-sim = Simulation(greetings())
-sim.run(50)
+def main():
+    sim = Simulation(greetings())
+    sim.run(50)
+
+if __name__ == '__main__':
+    main()
 

@@ -1,5 +1,6 @@
 from __future__ import generators
 import sys
+import traceback
 
 from myhdl import Signal, Simulation, posedge, negedge, delay, \
                   StopSimulation, join
@@ -124,6 +125,13 @@ def test():
     
 sim = Simulation(clkGen(), test(), dut)
     
-if __name__ == "__main__":
-    sim.run()
+def main():
+    try:
+        sim.run()
+    except:
+        traceback.print_exc()
     
+if __name__ == '__main__':
+    main()
+           
+ 

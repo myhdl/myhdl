@@ -6,6 +6,11 @@ def sayHello():
         yield delay(10)
         print "%s Hello World!" % now()
 
-sim = Simulation(sayHello())
-sim.run(30)
+def main():
+    sim = Simulation(sayHello())
+    sim.run(30)
+
+if __name__ == '__main__':
+    main()
+
 

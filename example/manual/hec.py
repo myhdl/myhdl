@@ -23,7 +23,9 @@ headers = ( 0x00000000,
             0xbac6f4ca
           )
 
-if __name__ == '__main__':
+def main():
     for header in headers:
         print hex(calculateHec(intbv(header)))
         
+if __name__ == '__main__':
+    main()

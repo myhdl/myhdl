@@ -28,6 +28,8 @@ def test():
         yield delay(10)
         print "%s %s %s %s" % (z, a, b, sel)
 
-if __name__ == "__main__":
+def main():
     Simulation(MUX_1, test()).run()    
     
+if __name__ == '__main__':
+    main()
