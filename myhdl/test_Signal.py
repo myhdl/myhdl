@@ -546,7 +546,7 @@ class TestSignalIntBvIndexing(TestCase):
 class TestSignalNrBits(TestCase):
 
     def testBool(self):
-        if type(bool) is not types.TypeType: # bool not a type in 2.2
+        if type(bool) is not type : # bool not a type in 2.2
             return
         s = Signal(bool())
         self.assertEqual(s._nrbits, 1)
@@ -580,7 +580,7 @@ class TestSignalNrBits(TestCase):
 class TestSignalBoolBounds(TestCase):
     
     def testSignalBoolBounds(self):
-        if type(bool) is not types.TypeType: # bool not a type in 2.2
+        if type(bool) is not type: # bool not a type in 2.2
             return
         s = Signal(bool())
         s.next = 1
