@@ -44,15 +44,18 @@ export a lot of symbols. One may argue that
 Next, we define a generator function called
 \code{sayHello}. This is a generator function (as opposed to
 a classic Python function) because it contains a \keyword{yield}
-statement (instead of \keyword{return} statement). In \myhdl{}, a
-\keyword{yield} statement has a similar purpose as a \keyword{wait}
-statement in VHDL: the statement suspends execution of the function,
-and its clauses specify the conditions on which the generator should
-wait before resuming. In this case, it should
-    \index{wait!for a delay}%
+statement (instead of \keyword{return} statement).
+When called, a generator function returns a \dfn{generator},
+which is the basic simulation object in \myhdl{}.
+
+The \keyword{yield} statement in \myhdl{} has a similar meaning as
+the \keyword{wait} statement in VHDL: the statement suspends execution
+of a generator, and its clauses specify the conditions on which the
+generator should wait before resuming. In this case, it should
+\index{wait!for a delay}% 
 wait for a delay.
 
-To make sure that the generator runs ``forever'', we wrap its behavior
+To make sure that a generator runs ``forever'', we wrap its behavior
 in a \code{while 1} loop. This is a standard Python idiom, and it is
 the \myhdl\ equivalent of the implicit looping behavior of a 
     \index{Verilog!always block}% 
@@ -60,9 +63,8 @@ Verilog \keyword{always} block
     \index{VHDL!process}%
 and a VHDL \keyword{process}.
 
-In \myhdl{}, the basic simulation objects are generators. Generators
-are created by calling generator functions. For example, variable
-\code{gen} refers to a generator. To simulate this generator, we pass
+In the example, variable
+\code{gen} refers to a generator. To simulate it, we pass
 it as an argument to a \class{Simulation} object constructor.  We then
 run the simulation for the desired amount of time. In \myhdl{}, time
 is modeled as a natural integer.
@@ -224,7 +226,7 @@ StopSimulation: Simulated for duration 50
 
 \begin{notice}[warning]
 Some commonly used terminology has different meanings
-in Python and hardware design. Rather than artificially
+in Python versus hardware design. Rather than artificially
 changing terminology, I think it's best to keep it
 and explicitly describing the differences.
 
