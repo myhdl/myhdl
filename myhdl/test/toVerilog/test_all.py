@@ -23,6 +23,9 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
+import os
+import unittest
+
 import test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
        test_inc_initial, test_hec, test_loops, test_infer, test_errors, \
        test_RandomScrambler, test_beh, test_GrayInc
@@ -33,7 +36,6 @@ modules = (test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
            test_RandomScrambler, test_beh, test_GrayInc
            )
 
-import unittest
 
 tl = unittest.defaultTestLoader
 def suite():
@@ -45,7 +47,8 @@ def suite():
 def main():
     unittest.main(defaultTest='suite',
                   testRunner=unittest.TextTestRunner(verbosity=2))
-    
+
+
 
 if __name__ == '__main__':
     main()
