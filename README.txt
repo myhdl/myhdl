@@ -1,31 +1,44 @@
-MyHDL Release 0.2
+MyHDL Release 0.3
 =================
 
 INTRODUCTION
 ------------
 
 MyHDL is a Python package for using Python as a hardware description
-language. Popular hardware description languages, like Verilog and
-VHDL, are compiled languages. Python with MyHDL can be viewed as a
-"scripting language" counterpart of such languages. However, Python is
-more accurately described as a very high level language (VHLL). MyHDL
-users have access to the amazing power and elegance of Python for
-their modeling work.
+and verification language. Languages such Verilog and VHDL are
+compiled languages. Python with MyHDL can be viewed as a "scripting
+language" counterpart of such languages. However, Python is more
+accurately described as a very high level language (VHLL). MyHDL users
+have access to the amazing power and elegance of Python.
 
-The key idea behind MyHDL is to use Python generators to model the
-concurrency required in hardware descriptions. As generators are a
-recent Python feature, MyHDL requires Python 2.2.2 or higher.
+The key idea behind MyHDL is to use Python generators for modeling
+hardware concurrency. A generator is a resumable function with
+internal state. In MyHDL, a hardware module is modeled as a function
+that returns generators. With this approach, MyHDL directly supports
+features such as named port association, arrays of instances, and
+conditional instantiation.
 
-MyHDL can be used to experiment with high level modeling, and with
-verification techniques such as unit testing. The most important
-practical application however, is to use it as a hardware verification
-language by co-simulation with Verilog and VHDL.
+MyHDL supports the classic hardware description concepts. It provides
+a signal class similar to the VHDL signal, a class for bit oriented
+operations, and support for enumeration types.  The Python yield
+statement is used as a general sensitivity list to wait on a signal
+change, an edge, a delay, or on another generator. MyHDL supports
+waveform viewing by tracing signal changes in a VCD file.
 
-The present release, MyHDL 0.2, enables MyHDL for co-simulation. The
-MyHDL side is designed to work with any simulator that has a PLI. For
-each simulator, an appropriate PLI module in C needs to be
-provided. The release contains such a module for the Icarus Verilog
+High level modeling is the ideal application of MyHDL and Python. The
+possibilities are extensive and beyond the scope of most other
+languages. It can be expected that MyHDL users will often have the
+``Pythonic experience'' of finding an elegant solution to a complex
+modeling problem.
+
+With MyHDL, the Python unit test framework can be used on hardware
+designs.  MyHDL can also be used as hardware verification language for
+VHDL and Verilog designs, by co-simulation with any simulator that has
+a PLI.  The distribution contains a PLI module for the Icarus Verilog
 simulator.
+
+The MyHDL software is open source software. It is licensed under the
+GNU Lesser General Public License (LGPL).
 
 
 INSTALLATION
