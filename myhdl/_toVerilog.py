@@ -403,7 +403,6 @@ class _convertGenVisitor(object):
         self.inYield = False
         self.isSigAss = False
 
-
     def write(self, arg):
         self.buf.write("%s" % arg)
 
@@ -416,12 +415,23 @@ class _convertGenVisitor(object):
     def dedent(self):
         self.ind = self.ind[:-4]
 
-    def visitAdd(self, node):
+    def binaryOp(self, node, op):
         self.write("(")
         self.visit(node.left)
-        self.write(" + ")
+        self.write(" %s " % op)
         self.visit(node.right)
         self.write(")")
+
+    def multiOp(self, node, op):
+        self.write("(")
+        self.visit(node.nodes[0])
+        for node in node.nodes[1:]:
+            self.write(" %s " % op)
+            self.visit(node)
+        self.write(")")
+        
+    def visitAdd(self, node):
+        self.binaryOp(node, '+')
 
     def visitAssAttr(self, node):
         assert node.attrname == 'next'
@@ -440,14 +450,14 @@ class _convertGenVisitor(object):
         self.visit(node.expr)
         self.write(';')
 
+    def visitBitand(self, node):
+        self.multiOp(node, '&')
+        
+    def visitBitor(self, node):
+        self.multiOp(node, '|')
+         
     def visitBitxor(self, node):
-        self.write("(")
-        self.visit(node.nodes[0])
-        for node in node.nodes[1:]:
-            self.write(" ^ ")
-            self.visit(node)
-        self.write(")")
-
+        self.multiOp(node, '^')
 
     def visitCallFunc(self, node):
         f = node.node
@@ -479,6 +489,9 @@ class _convertGenVisitor(object):
 
     def visitConst(self, node):
         self.write(node.value)
+
+    def visitFloorDiv(self, node):
+        self.binaryOp(node, '/')
 
     def visitFor(self, node):
         print node.lineno
@@ -575,6 +588,9 @@ class _convertGenVisitor(object):
         self.write(" % ")
         self.visit(node.right)
         self.write(")")
+        
+    def visitMul(self, node):
+        self.binaryOp(node, '*')
        
     def visitName(self, node):
         if node.name in self.symdict:
@@ -600,14 +616,9 @@ class _convertGenVisitor(object):
         self.write('");')
         self.writeline()
         self.write("$finish;")
-
             
     def visitSub(self, node):
-        self.write("(")
-        self.visit(node.left)
-        self.write(" - ")
-        self.visit(node.right)
-        self.write(")")
+        self.binaryOp(node, "-")
 
     def visitSubscript(self, node):
         self.visit(node.expr)

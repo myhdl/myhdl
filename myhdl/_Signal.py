@@ -276,6 +276,22 @@ class Signal(object):
     def __rdiv__(self, other):
         return other / self._val
     
+    def __truediv__(self, other):
+        if isinstance(other, Signal):
+            return operator.truediv(self._val, other._val)
+        else:
+            return operator.truediv(self._val, other)
+    def __rtruediv__(self, other):
+        return operator.truediv(other, self._val)
+    
+    def __floordiv__(self, other):
+        if isinstance(other, Signal):
+            return self._val // other._val
+        else:
+            return self._val // other
+    def __rfloordiv__(self, other):
+        return other //  self._val
+    
     def __mod__(self, other):
         if isinstance(other, Signal):
             return self._val % other._val
