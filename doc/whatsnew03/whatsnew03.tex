@@ -129,7 +129,7 @@ signals. The SystemVerilog 3.1 standard improves on this by
 introducing the \code{always_comb} block with slightly enhanced
 semantics.
 
-\myhdl\ 0.3 provides a function called \function{always_comb()} which
+\myhdl{}~0.3 provides a function called \function{always_comb()} which
 is named and modeled after the SystemVerilog counterpart.
 \function{always_comb()} takes a classic local function as its
 argument. This function should specify the combinatorial logic behavior.
@@ -207,7 +207,7 @@ def top(...):
 
 It may be convenient to assemble the list of instances automatically,
 especially if there are many instances. For this purpose,
-\myhdl\ 0.3 provides the  function \function{instances()}.
+\myhdl{}~0.3 provides the  function \function{instances()}.
 It is used as follows:
 
 \begin{verbatim}
@@ -260,7 +260,7 @@ variable. Those instances will then be found by the
 Section~\ref{section-instances}.
 
 Another option is to use the function \function{processes()} provided
-by \myhdl\ 0.3 . This function uses introspection to find the
+by \myhdl{}~0.3 . This function uses introspection to find the
 processes, calls each of them, and assembles the returned generators
 into a list. It can be used as follows:
 
