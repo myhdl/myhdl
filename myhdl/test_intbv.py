@@ -32,7 +32,7 @@ import sys
 maxint = sys.maxint
 import operator
 
-from intbv import intbv
+from myhdl import intbv
 concat = intbv.concat
 
 class TestIntbvInit(TestCase):

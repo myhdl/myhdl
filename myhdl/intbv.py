@@ -29,7 +29,7 @@ maxint = sys.maxint
 from types import StringType
 import operator
 
-from bin import bin
+from myhdl import bin
 
 from __builtin__ import max as maxfunc
 

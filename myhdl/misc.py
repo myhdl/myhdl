@@ -17,7 +17,7 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl misc objects.
+""" myhdl miscellaneous objects.
 
 This module provides the following myhdl objects:
 instances -- function that returns instances in a generator function
@@ -35,8 +35,7 @@ import inspect
 from types import GeneratorType
 
 from myhdl import Cosimulation
-
-from util import _isgeneratorfunction, _isGenSeq
+from myhdl.util import _isgeneratorfunction, _isGenSeq
     
                         
 def instances():

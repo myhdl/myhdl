@@ -32,7 +32,8 @@ from types import GeneratorType
 
 import unittest
 from unittest import TestCase
-from misc import instances, processes
+
+from myhdl import instances, processes
 
 def A(n):
     yield None

@@ -35,8 +35,7 @@ from copy import deepcopy as copy
 
 from myhdl import _simulator as sim
 from myhdl._simulator import _siglist, _futureEvents, now
-from myhdl import intbv
-from bin import bin
+from myhdl import intbv, bin
 
 _schedule = _futureEvents.append
 
