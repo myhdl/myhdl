@@ -59,26 +59,7 @@ class TestNotSupported(unittest.TestCase):
                 `a`
         self.check(g, z, a)
             
-    def testBackquote(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                `a`
-        self.check(g, z, a)
-
-    def testBreak(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                break
-        self.check(g, z, a)
-        
+       
     def testClass(self):
         a = Signal(bool())
         z = Signal(bool())
@@ -90,15 +71,6 @@ class TestNotSupported(unittest.TestCase):
                     pass
         self.check(g, z, a)
 
-    def testContinue(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                continue
-        self.check(g, z, a)
         
     def testDict(self):
         a = Signal(bool())
