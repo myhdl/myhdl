@@ -118,7 +118,11 @@ class SigTest(TestCase):
         for s in (self.sigs + self.incompatibleSigs):
             for n in (self.vals + self.incompatibleVals):
                 self.assert_(isinstance(s.val, s._type))
-                if not isinstance(n, s._type):
+                if isinstance(s.val, (int, long, intbv)):
+                    t = (int, long, intbv)
+                else:
+                    t = s._type
+                if not isinstance(n, t):
                     i += 1
                     try:
                         s.next = n

@@ -84,15 +84,17 @@ class Signal(object):
         self._next = self._val = val
         self._min = self._max = None
         self._nrbits = 0
-        self._type = (int, long, intbv)
         self._printVcd = self._printVcdStr
         if type(val) is bool:
+            self._type = bool
             self._checkVal = self._checkBool
             self._printVcd = self._printVcdBit
             self._nrbits = 1
         elif isinstance(val, (int, long)):
+            self._type = (int, long)
             self._checkVal = self._checkInt
         elif isinstance(val, intbv):
+            self._type = intbv
             self._min = val._min
             self._max = val._max
             self._nrbits = val._len
