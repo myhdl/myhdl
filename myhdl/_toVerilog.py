@@ -432,6 +432,9 @@ class _convertGenVisitor(object):
         
     def visitAdd(self, node):
         self.binaryOp(node, '+')
+        
+    def visitAnd(self, node):
+        self.multiOp(node, '&&')
 
     def visitAssAttr(self, node):
         assert node.attrname == 'next'
@@ -462,20 +465,25 @@ class _convertGenVisitor(object):
     def visitCallFunc(self, node):
         f = node.node
         assert isinstance(f, ast.Name)
-        self.visit(f)
-        if f.name in self.symdict:
-            obj = self.symdict[f.name]
-        elif f.name in __builtins__:
-            obj = __builtins__[f.name]
-        else:
-            raise AssertionError
-        if type(obj) in (ClassType, type) and issubclass(obj, Exception):
-            self.write(": ")
-        else:
-            self.write(' ')
-        if node.args:
+        if f.name == 'bool':
+            self.write("(")
             self.visit(node.args[0])
-            # XXX
+            self.write(" ? 1'b1 : 1'b0)")
+        else:
+            self.visit(f)
+            if f.name in self.symdict:
+                obj = self.symdict[f.name]
+            elif f.name in __builtins__:
+                obj = __builtins__[f.name]
+            else:
+                raise AssertionError
+            if type(obj) in (ClassType, type) and issubclass(obj, Exception):
+                self.write(": ")
+            else:
+                self.write(' ')
+            if node.args:
+                self.visit(node.args[0])
+                # XXX
         
 
     def visitCompare(self, node):
@@ -608,6 +616,9 @@ class _convertGenVisitor(object):
         self.write("(!")
         self.visit(node.expr)
         self.write(")")
+        
+    def visitOr(self, node):
+        self.multiOp(node, '||')
 
     def visitRaise(self, node):
         self.writeline()

@@ -250,25 +250,25 @@ class intbv(object):
         if isinstance(other, intbv):
             return intbv(self._val & other._val, _len=max(self._len, other._len))
         else:
-            return intbv(self._val & other, _len=self._len)
+            return intbv(self._val & other)
     def __rand__(self, other):
-        return intbv(other & self._val, _len=self._len)
+        return intbv(other & self._val)
 
     def __or__(self, other):
         if isinstance(other, intbv):
             return intbv(self._val | other._val, _len=max(self._len, other._len))
         else:
-            return intbv(self._val | other, _len=self._len)
+            return intbv(self._val | other)
     def __ror__(self, other):
-        return intbv(other | self._val, _len=self._len)
+        return intbv(other | self._val)
     
     def __xor__(self, other):
         if isinstance(other, intbv):
             return intbv(self._val ^ other._val, _len=max(self._len, other._len))
         else:
-            return intbv(self._val ^ other, _len=self._len)
+            return intbv(self._val ^ other)
     def __rxor__(self, other):
-        return intbv(other ^ self._val, _len=self._len)
+        return intbv(other ^ self._val)
 
     def __iadd__(self, other):
         if isinstance(other, intbv):
