@@ -200,7 +200,7 @@ class _HierExtr(object):
                 if name:
                     if _isGenSeq(arg):
                         sigdict = {}
-                        for dict in (frame.f_locals, frame.f_globals):
+                        for dict in (frame.f_globals, frame.f_locals):
                             for n, v in dict.items():
                                 if isinstance(v, Signal):
                                     sigdict[n] = v

@@ -224,9 +224,9 @@ class _HierExtr(object):
                 if name:
                     if _isGenSeq(arg):
                         sigdict = {}
-                        for dict in (frame.f_locals, frame.f_globals):
+                        for dict in (frame.f_globals, frame.f_locals):
                             for n, v in dict.items():
-                                if isinstance(v, Signal) and n not in sigdict:
+                                if isinstance(v, Signal):
                                     sigdict[n] = v
                         i = [self.level, name, sigdict]
                         self.hierarchy.append(i)
@@ -274,12 +274,14 @@ def _analyzeGens(top):
         ast = compiler.parse(s)
         ast.locals = f.f_locals
         ast.globals = f.f_globals
+        symdict = f.f_globals.copy()
+        symdict.update(f.f_locals)
         sigdict = {}
-        for dict in (f.f_locals, f.f_globals):
-            for n, v in dict.items():
-                if isinstance(v, Signal) and n not in sigdict:
-                    sigdict[n] = v
+        for n, v in symdict.items():
+            if isinstance(v, Signal):
+                sigdict[n] = v
         ast.sigdict = sigdict
+        ast.symdict = symdict
         v = _AnalyzeGenVisitor(sigdict)
         compiler.walk(ast, v)
         genlist.append(ast)
@@ -322,6 +324,7 @@ class _AnalyzeGenVisitor(object):
             self.toplevel = 0 # skip embedded functions
             print node.code
             self.visit(node.code)
+            isAlways = True
         else:
             raise EmbeddedFunctionError
 
@@ -455,8 +458,10 @@ def _getRangeString(s):
     
 class _convertGenVisitor(object):
     
-    def __init__(self, f, sigdict):
+    def __init__(self, f, sigdict, symdict):
         self.f = f
+        self.sigdict = sigdict
+        self.symdict = symdict
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
@@ -540,7 +545,14 @@ class _convertGenVisitor(object):
         self.visit(node.right)
         
     def visitName(self, node):
-        self.write(node.name)
+        assert node.name in self.symdict
+        obj = self.symdict[node.name]
+        if type(obj) is int:
+            self.write(str(obj))
+        elif type(obj) is Signal:
+            self.write(obj._name)
+        else:
+            self.write(node.name)
 
     def visitTuple(self, node):
         assert self.inYield
@@ -566,7 +578,7 @@ class _convertGenVisitor(object):
 
 def _convertGens(astlist, vfile):
     for ast in astlist:
-           v = _convertGenVisitor(vfile, ast.sigdict)
+           v = _convertGenVisitor(vfile, ast.sigdict, ast.symdict)
            compiler.walk(ast, v)
  
 
