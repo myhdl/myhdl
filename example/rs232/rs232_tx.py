@@ -6,6 +6,14 @@ from myhdl import Signal, downrange, delay, posedge
 from rs232_util import reduceXor, sec, ODD, EVEN, MARK, SPACE
 
 def rs232_tx(tx, data, cfg):
+
+    """ rs232 transmitter.
+
+    tx -- serial output data
+    data -- input data to be transmitted
+    cfg -- rs232_util.Config input configuration object
+
+    """
     
     duration = delay(int(1*sec / cfg.baud_rate))
     

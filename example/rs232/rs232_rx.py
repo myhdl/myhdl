@@ -6,6 +6,14 @@ from rs232_util import sec, parity, ParityError, StopBitError
 
 def rs232_rx(rx, actual, cfg):
     
+    """ rs232 receiver.
+
+    rx -- serial input data
+    actual -- data actually received
+    cfg -- rs232_util.Config configuration object
+
+    """
+    
     data = intbv(0)
     period = int(1*sec / cfg.baud_rate)
     
