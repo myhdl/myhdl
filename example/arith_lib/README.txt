@@ -4,7 +4,7 @@ the copyright for the original code. The project web page is at
 <http://www.iis.ee.ethz.ch/~zimmi/arith_lib.html>.
 
 I translated a few modules into myhdl/Python and added testbenches to
-verify and demonstrate myhdl modelling, as well as Python's unittest
+verify and demonstrate myhdl modeling, as well as Python's unit test
 framework. The arith_lib library is useful for these purposes as it
 contains a (simple) behavioral architecture as well as a (sometimes
 complex) structural architecture for each module.
