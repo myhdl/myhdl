@@ -175,6 +175,7 @@ We can create any number of generators by calling generator functions
 with the appropriate parameters. This is very similar to the concept
 of instantiation in hardware description languages and we will use
 the same terminology in \myhdl{}. A \myhdl\ \dfn{instance} is
+    \index{instance!defined}
 recursively defined as being either a sequence of instances, or a
 generator.  Hierarchy can be modeled by defining the instances in a
 higher-level function, and returning them. 
@@ -366,10 +367,10 @@ low-level operations needed to implement some abstract transaction on
 a physical interface. Bus-functional procedures are typically used in
 flexible verification environments.
 
-Once again, \myhdl\ supports bus-functional procedures by generator
-functions. In \myhdl\, the difference between instances and
-bus-functional procedure calls comes from the way in which a generator
-function is used.
+Once again, \myhdl\ uses generator functions to support
+bus-functional procedures. In \myhdl\, the difference between
+instances and bus-functional procedure calls comes from the way in
+which a generator function is used.
 
 As an example, we will design a bus-functional procedure of a
 simplified UART transmitter. We assume 8 data bits, no parity bit, and
