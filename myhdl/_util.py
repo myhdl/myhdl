@@ -38,11 +38,11 @@ import inspect
 import re
 from types import FunctionType, GeneratorType, ListType, TupleType
 import compiler
+# hope this will always work ...
+from compiler.consts import CO_GENERATOR
 
 from myhdl._Cosimulation import Cosimulation
 
-# from compile.h - hope this never changes...
-CO_GENERATOR = 0x0020
 
 def downrange(start, stop=0):
     """ Return a downward range. """

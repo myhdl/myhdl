@@ -129,6 +129,7 @@ def toVerilog(func, *args, **kwargs):
     
     _writeVerilogHeader(vfile, intf)
     _writeSigDecls(vfile, intf, siglist)
+    _convertGens(astlist, vfile)
     _writeVerilogFooter(vfile)
     
     return h.top
@@ -437,6 +438,7 @@ def _writeSigDecls(f, intf, siglist):
 
 def _writeVerilogFooter(f):
     print >> f
+    print >> f
     print >> f, "endmodule"
 
     
@@ -450,6 +452,124 @@ def _getRangeString(s):
     
 
     
+    
+class _convertGenVisitor(object):
+    
+    def __init__(self, f, sigdict):
+        self.f = f
+        self.ind = ''
+        self.inYield = False
+        self.isSigAss = False
+
+    def write(self, arg):
+        self.f.write("%s" % arg)
+
+    def writeline(self):
+        self.f.write("\n%s" % self.ind)
+
+    def indent(self):
+        self.ind += ' ' * 4
+
+    def dedent(self):
+        self.ind = self.ind[:-4]
+
+    def visitAdd(self, node):
+        self.write("(")
+        self.visit(node.left)
+        self.write(" + ")
+        self.visit(node.right)
+        self.write(")")
+
+    def visitAssAttr(self, node):
+        assert node.attrname == 'next'
+        self.isSigAss = True
+        self.visit(node.expr)
+
+    def visitAssign(self, node):
+        self.writeline()
+        assert len(node.nodes) == 1
+        self.visit(node.nodes[0])
+        if self.isSigAss:
+            self.write(' <= ')
+            self.isSigAss = False
+        else:
+            self.write(' = ')
+        self.visit(node.expr)
+        self.write(';')
+
+    def visitCallFunc(self, node):
+        self.visit(node.node)
+        self.write(' ')
+        self.visit(node.args[0])
+        
+
+    def visitCompare(self, node):
+        self.visit(node.expr)
+        assert len(node.ops) == 1
+        op, code = node.ops[0]
+        self.write(" %s " % op)
+        self.visit(code)
+
+    def visitConst(self, node):
+        self.write(node.value)
+
+
+    def visitIf(self, node):
+        self.writeline()
+        self.write("if (")
+        test, suite = node.tests[0]
+        self.visit(test)
+        self.write(") begin")
+        self.indent()
+        self.visit(suite)
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        if node.else_:
+            self.writeline()
+            self.write("else begin")
+            self.indent()
+            self.visit(node.else_)
+            self.dedent()
+            self.writeline()
+            self.write("end")
+
+    def visitMod(self, node):
+        self.visit(node.left)
+        self.write(" % ")
+        self.visit(node.right)
+        
+    def visitName(self, node):
+        self.write(node.name)
+
+    def visitTuple(self, node):
+        assert self.inYield
+        tpl = node.nodes
+        self.visit(tpl[0])
+        for elt in tpl[1:]:
+            self.write(" or ")
+            self.visit(elt)
+        
+    def visitYield(self, node):
+        self.inYield = True
+        self.writeline()
+        self.write("@ (")
+        self.visit(node.value)
+        self.write(");")
+        self.inYield = False
+
+    
+
+    
+        
+        
+
+def _convertGens(astlist, vfile):
+    for ast in astlist:
+           v = _convertGenVisitor(vfile, ast.sigdict)
+           compiler.walk(ast, v)
+ 
+
     
         
         
