@@ -355,6 +355,8 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.require(node, val is not None, "cannot calculate len")
             self.write(`val`)
             return
+        elif f in (int, long):
+            opening, closing = '', ''
         elif type(f)  in (ClassType, type) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
