@@ -79,6 +79,7 @@ class Cosimulation(object):
         self._toSignames = toSignames = []
         self._toSizes = toSizes = []
         self._toSigs = toSigs = []
+        self._toSigDict = toSigDict = {}
 
         self._hasChange = 0
         self._getMode = 1
@@ -127,6 +128,7 @@ class Cosimulation(object):
                             raise SigNotFoundError, n
                         toSignames.append(n)
                         toSigs.append(kwargs[n])
+                        toSigDict[n] = kwargs[n]
                         toSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 elif e[0] == "START":
@@ -140,18 +142,17 @@ class Cosimulation(object):
     def _get(self):
         if not self._getMode:
             return
-        s = os.read(self._rt, _MAXLINE)
-        if not s:
+        buf = os.read(self._rt, _MAXLINE)
+        if not buf:
             raise SimulationEndError
-        e = s.split()
-        vals = e[1:]
-        for s, v in zip(self._toSigs, vals):
+        e = buf.split()
+        for i in range(1, len(e), 2):
+            s, v = self._toSigDict[e[i]], e[i+1]
             try:
                 next = long(v, 16)
             except ValueError:
                 next = intbv(None)
-            if s.val != next:
-                s.next = next
+            s.next = next
         self._getMode = 0
 
     def _put(self, time):

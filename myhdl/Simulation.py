@@ -97,6 +97,7 @@ class Simulation(object):
         t = sim._time
         while 1:
             try:
+
                 for s in _siglist:
                     waiters.extend(s._update())
                 del _siglist[:]
