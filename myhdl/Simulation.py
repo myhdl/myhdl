@@ -71,6 +71,8 @@ class Simulation(object):
         self._waiters, self._cosim = _flatten(*args)
         if not self._cosim and sim._cosim:
             warn("Cosimulation not registered as Simulation argument")
+        print self._cosim
+        print sim._cosim
         del _futureEvents[:]
         del _siglist[:]
 
