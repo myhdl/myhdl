@@ -25,6 +25,28 @@ A \class{Simulation} object has the following method:
 Run the simulation forever (by default) or for a specified duration.
 \end{methoddesc}
 
+
+\section{Simulation support objects \label{ref-simsupport}}
+\declaremodule{}{myhdl}
+
+The following objects provide support for \myhdl\ Simulations.
+
+\begin{funcdesc}{now}{}
+Return the current simulation time.
+\end{funcdesc}
+
+\begin{excclassdesc}{StopSimulation}{}
+Base exception that is caught by the \code{Simulation.run} method to
+stop a simulation.
+\end{excclassdesc}
+
+\begin{funcdesc}{traceSignals}{genfunc \optional{, *args} \optional{, *kwargs}}
+
+\end{funcdesc}
+
+
+
+
 \section{The \class{Signal} class \label{ref-sig}}
 \declaremodule{}{myhdl}
 
@@ -138,16 +160,6 @@ immediately.
 \section{Miscellaneous objects \label{ref-misc}}
 \declaremodule{}{myhdl}
 
-The following objects can be convenient in \myhdl\ modeling.
-
-\begin{excclassdesc}{StopSimulation}{}
-Base exception that is caught by the \code{Simulation.run} method to
-stop a simulation. Can be subclassed and raised in generator code.
-\end{excclassdesc}
-
-\begin{funcdesc}{now}{}
-Return the current simulation time.
-\end{funcdesc}
 
 \begin{funcdesc}{downrange}{high \optional{, low=0}}
 Generate a downward range list of integers.
