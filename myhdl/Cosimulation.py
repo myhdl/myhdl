@@ -32,7 +32,31 @@ from Signal import Signal
 import myhdl
 
 _flag = 0
-MAXLINE = 4096
+_MAXLINE = 4096
+
+class Error(Exception):
+    """Cosimulation Error"""
+    def __init__(self, arg=""):
+        self.arg = arg
+    def __str__(self):
+        msg = self.__doc__
+        if self.arg:
+            msg = msg + ": " + str(self.arg)
+        return msg
+
+class MultipleCosimError(Error):
+    """Only a single cosimulator allowed"""
+class DuplicateSigNamesError(Error):
+    """Duplicate signal name in myhdl vpi call"""
+class SigNotFoundError(Error):
+    """Signal not found in Cosimulation arguments"""
+class TimeZeroError(Error):
+    """myhdl vpi call when not at time 0"""
+class NoCommunicationError(Error):
+    """No communicating signals"""
+class SimulationEndError(Error):
+    """Premature simulation end"""
+
 
 class Cosimulation(object):
 
@@ -44,16 +68,18 @@ class Cosimulation(object):
 
         global _flag
         if _flag:
-            raise myhdl.Error, "Cosimulation: Only a single cosimulator allowed"
+            raise MultipleCosimError
         _flag = 1
+
+        # Error = myhdl.Error
 
         self.rt, self.wt = rt, wt = os.pipe()
         self.rf, self.wf = rf, wf = os.pipe()
 
-        self._fromSigs = []
-        self._fromSizes = []
-        self._toSigs = []
-        self._toSizes = []
+        self._fromSignames = fromSignames = []
+        self._fromSizes = fromSizes = []
+        self._toSignames = toSignames = []
+        self._toSizes = toSizes = []
 
         child_pid = os.fork()
 
@@ -66,33 +92,42 @@ class Cosimulation(object):
             try:
                 os.execvp(arglist[0], arglist)
             except OSError, e:
-                raise myhdl.Error, "Cosimulation: " + str(e)
+                raise Error, str(e)
         else:
             os.close(wt)
             os.close(rf)
             while 1:
-                s = os.read(rt, MAXLINE)
+                s = os.read(rt, _MAXLINE)
                 if not s:
-                    raise myhdl.Error, "Cosimulation down"
+                    raise SimulationEndError
                 e = s.split()
                 if e[0] == "FROM":
-                    self._fromSigs = [e[i] for i in range(1, len(e), 2)]
-                    self._fromSizes = [int(e[i]) for i in range(2, len(e), 2)]
+                    for i in range(1, len(e)-1, 2):
+                        if e[i] in fromSignames:
+                            raise DuplicateSigNamesError, e[i]
+                        if not e[i] in kwargs:
+                            raise SigNotFoundError, e[i]
+                        fromSignames.append(e[i])
+                        fromSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 elif e[0] == "TO":
-                    self._toSigs = [e[i] for i in range(1, len(e), 2)]
-                    self._toSizes = [int(e[i]) for i in range(2, len(e), 2)]
+                    for i in range(1, len(e)-1, 2):
+                        if e[i] in toSignames:
+                            raise DuplicateSigNamesError, e[i]
+                        if not e[i] in kwargs:
+                            raise SigNotFoundError, e[i]
+                        toSignames.append(e[i])
+                        toSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 else:
                     self.buf = e
                     break
             if long(e[0]) != 0:
-                raise myhdl.Error, "Cosimulation: myhdl call when not at time 0"
-            if not self._fromSigs and not self._toSigs:
-                raise myhdl.Error, "Cosimulation: no communicating signals"
+                raise TimeZeroError
+            if not fromSignames and not toSignames:
+                raise NoCommunicationError
             
             
-
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """
         global _flag
