@@ -90,10 +90,10 @@ class Signal(object):
         self._printVcd = self._printVcdStr
         if type(val) is bool:
             self._checkVal = self._checkBool
+            self._printVcd = self._printVcdBit
             self._nrbits = 1
         elif isinstance(val, (int, long)):
             self._checkVal = self._checkInt
-            self._printVcd = self._printVcdHex
         elif isinstance(val, intbv):
             self._min = val._min
             self._max = val._max
