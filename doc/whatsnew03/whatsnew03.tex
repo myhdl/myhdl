@@ -140,8 +140,8 @@ semantics.
 \myhdl\ 0.3 provides a function called \function{always_comb()} which
 is named and modeled after the SystemVerilog counterpart.
 \function{always_comb()} takes a single classic function as its
-argument. This function should be locally defined and specifies what
-should happen when one of its input signal
+argument. This function should be a locally defined function that
+specifies what should happen when one of its input signals
 changes. \function{always_comb()} returns a generator that is
 sensitive to all inputs, and that will run the function whenever an
 input changes.
