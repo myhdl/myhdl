@@ -31,11 +31,16 @@ following output:
 StopSimulation: Simulated for duration 30
 \end{verbatim}
 
-The first line of the script imports a
-number of objects from the \code{myhdl} package. In good Python style, and
-unlike most other languages, we can only use identifiers that are
-\emph{literally} defined in the source file \footnote{I don't want to
-explain the \samp{import *} syntax}. 
+The first line of the script imports a number of objects from the
+\code{myhdl} package. In good Python style, and unlike most other
+languages, we can only use identifiers that are
+\emph{literally} defined in the source file 
+\footnote{The exception is the \samp{from module import *} syntax,
+that imports all the symbols from a module. Although this is generally
+considered bad practice, disallowing this can be impractical for large
+modules that export a lot of symbols. It may be argued that \myhdl\
+falls in that category, so if you do this, I will look the other
+way.}.
 
 Next, we define a generator function called
 \code{sayHello}. This is a generator function (as opposed to
