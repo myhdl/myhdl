@@ -504,7 +504,7 @@ class TestSignalIntBvIndexing(TestCase):
             n = long(s, 2)
             sbv = Signal(intbv(n))
             sbvi = Signal(intbv(~n))
-            for i in range(0, len(s)+20):
+            for i in range(1, len(s)+20):
                 for j in range(0,len(s)+20):
                     try:
                         res = sbv[i:j]

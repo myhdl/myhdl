@@ -103,6 +103,14 @@ def getSlice(s, i, j):
     sj = len(exts)-j
     return exts[si:sj]
 
+def getSliceLeftOpen(s, j):
+    ext = '0' * (j-len(s)+1)
+    exts = ext + s
+    if j:
+        return exts[:-j]
+    else:
+        return exts
+
 def setItem(s, i, val):
     ext = '0' * (i-len(s)+1)
     exts = ext + s
@@ -166,6 +174,22 @@ class TestIntBvIndexing(TestCase):
                     mask = (2**(i-j))-1
                     self.assertEqual(resi, ref ^ mask)
                     self.assertEqual(type(resi), intbv)
+                    
+    def testGetSliceLeftOpen(self):
+        self.seqsSetup()
+        for s in self.seqs:
+            n = long(s, 2)
+            bv = intbv(n)
+            bvi = intbv(~n)
+            for j in range(0,len(s)+20):
+                res = bv[:j]
+                resi = bvi[:j]
+                ref = long(getSliceLeftOpen(s, j), 2)
+                self.assertEqual(res, ref)
+                self.assertEqual(type(res), intbv)
+                self.assertEqual(resi+ref, -1)
+                self.assertEqual(type(res), intbv)
+                        
 
     def testSetItem(self):
         self.seqsSetup()

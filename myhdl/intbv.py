@@ -100,8 +100,8 @@ class intbv(object):
     def __getslice__(self, i, j):
         if j == maxint: # default
             j = 0
-        #if i == 0: # default
-        #    return intbv(self._val >> j)
+        if i == 0: # default
+            return intbv(self._val >> j)
         if i <= j or i < 1 or j < 0:
             raise ValueError, "intbv[i:j]: requires i > j >= 0" \
                   "            i, j == %s, %s" % (i, j)
