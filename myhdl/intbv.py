@@ -58,6 +58,8 @@ class intbv(object):
             self._len = len(val)
         elif isinstance(val, intbv):
             self._val = val._val
+        elif val is None:
+            self._val = None # for Cosimulation and X, Z support perhaps
         else:
             raise TypeError("intbv constructor arg should be int or string")
         self._checkBounds()
