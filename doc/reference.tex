@@ -97,7 +97,7 @@ trigger object.  The effect is that the joined trigger object will
 trigger when \emph{all} of its arguments have triggered.
 \end{funcdesc}
 
-In addition, some objects can directly function as trigger
+In addition, some objects can directly be used as trigger
 objects. These are the objects of the following types:
 
 \begin{datadesc}{Signal}
@@ -109,10 +109,10 @@ generator is triggered.
 \end{datadesc}
 
 \begin{datadesc}{GeneratorType}
-\myhdl\ generators can itself be used as trigger objects. 
-This corresponds to forking a new generator, while the original
-generator waits for it to complete.  In other words, the original
-generator is triggered when the forked generator completes.
+\myhdl\ generators can be used as clauses in code{yield}
+statements. Such as generator is forked, while the original generator
+waits for it to complete. The original generator resumes when the
+forked generator returns.
 \end{datadesc}
 
 In addition, as a special case, the Python \code{None} object can be
@@ -143,19 +143,19 @@ Return the current simulation time.
 \end{funcdesc}
 
 \begin{funcdesc}{downrange}{high \optional{, low=0}}
-Generates a downward range list of integers. Modeled after the
-standard \code{range} function, but works in the downward
-direction. The returned interval is half-open, with the \var{high}
-index not included. \var{low} is optional and defaults to zero.
+Generate a downward range list of integers.
 
-This function is especially useful with the \class{intbv} class, that
-also works with downward indexing.
+This function is modeled after the standard \code{range} function, but
+works in the downward direction. The returned interval is half-open,
+with the \var{high} index not included. \var{low} is optional and
+defaults to zero.  This function is especially useful in conjunction
+with the \class{intbv} class, that also works with downward indexing.
 \end{funcdesc}
 
 \begin{funcdesc}{bin}{num \optional{, width}}
-Return a representation as a bit string.  If \var{width} is provided,
-and if it is larger than the width of the default representation, the
-bit string is padded with the sign bit.
+Return a representation as a bit string.  If the optional \var{width}
+is provided, and if it is larger than the width of the default
+representation, the bit string is padded with the sign bit.
 
 This function complements the standard Python conversion functions
 \code{hex} and \code{oct}. A binary string representation is often
@@ -170,7 +170,7 @@ This class represents \class{int}-like objects with some additional
 features that make it suitable for hardware design. The constructor
 argument can be an \class{int}, a \class{long}, an \class{intbv} or a
 bit string (a string with only '0's or '1's). For a bit string
-argument, the value is calculated as \code{int(\var{bitstring}, 2)}. 
+argument, the value is calculated as in \code{int(\var{bitstring}, 2)}. 
 \end{classdesc}
 
 Unlike \class{int} objects, \class{intbv} objects are mutable; this is
