@@ -154,13 +154,13 @@ class Simulation(object):
                             _append(_Waiter(clause._generator(), clone))
                         elif clause is None:
                             _append(clone)
-                        elif isinstance(clause, Exception) or \
-                                 issubclass(clause, Exception):
+                        elif isinstance(clause, Exception):
                             _append(clone)
                             if not exc:
                                 exc = clause
                         else:
-                            raise TypeError, "yield clause '%s'" % `clause`
+                            raise TypeError("type of yield clause %s is %s" %
+                                            (repr(clause), type(clause)))
  
                 if cosim:
                     cosim._get()
