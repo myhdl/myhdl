@@ -35,15 +35,12 @@ from compiler import ast
 import linecache
 from sets import Set
 
-from myhdl import Signal
+from myhdl import Signal, ExtractHierarchyError
 from myhdl._util import _isGenSeq, _isGenFunc
-from myhdl._Error import Error
 
 
 _profileFunc = None
     
-class ExtractHierarchyError(Error):
-    pass
 class _error:
     pass
 _error.NoInstances = "No instances found"

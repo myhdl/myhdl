@@ -29,8 +29,9 @@ import random
 from random import randrange
 random.seed(1) # random, but deterministic
 
-from myhdl import Simulation, now, delay, StopSimulation, join
+from myhdl import Simulation, SimulationError, now, delay, StopSimulation, join
 from myhdl import Signal, posedge, negedge, intbv
+from myhdl._Simulation import _error
 
 from myhdl._simulator import _siglist
 
@@ -38,6 +39,28 @@ QUIET=1
 
 class Shared:
     pass
+
+class SimArgs(TestCase):
+    """ Simulation arguments """
+    def test1(self):
+        try:
+            Simulation(None)
+        except SimulationError, e:
+            self.assertEqual(e.kind, _error.ArgType)
+        except:
+            self.fail()
+
+    def test2(self):
+        def g():
+            yield delay(10)
+        i = g()
+        try:
+            Simulation(i, i)
+        except SimulationError, e:
+            self.assertEqual(e.kind, _error.DuplicatedArg)
+        except:
+            self.fail()
+            
 
 class YieldNone(TestCase):
     """ Basic test of yield None behavior """

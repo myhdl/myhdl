@@ -28,22 +28,22 @@ import sys
 import os
 from warnings import warn
 from types import GeneratorType
+from sets import Set
 
-from myhdl import delay, Signal, Cosimulation, join
-from myhdl import _simulator
+from myhdl import delay, Signal, Cosimulation, join,  StopSimulation, SuspendSimulation
+from myhdl import _simulator, SimulationError
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _WaiterList
-from myhdl._util import StopSimulation, SuspendSimulation, _flatten, _printExcInfo
-from myhdl._Error import Error
+from myhdl._util import _flatten, _printExcInfo
 
 
 schedule = _futureEvents.append
 
-class MultipleCosimError(Error):
-    """Only a single cosimulator argument allowed"""
-class ArgTypeError(Error):
-    """Inappriopriate argument type"""
-
+class _error:
+    pass
+_error.ArgType = "Inappriopriate argument type"
+_error.MultipleCosim = "Only a single cosimulator argument allowed"
+_error.DuplicatedArg = "Duplicated argument"
             
 class Simulation(object):
 
@@ -203,16 +203,20 @@ class Simulation(object):
 
 def _checkArgs(arglist):
     waiters = []
+    ids = Set()
     cosim = None
     for arg in arglist:
         if type(arg) is GeneratorType:
             waiters.append(_Waiter(arg))
         elif type(arg) is Cosimulation:
             if cosim is not None:
-                raise MultipleCosimError
+                raise SimulationError(_error.MultipleCosim)
             cosim = arg
             waiters.append(_Waiter(cosim._waiter()))
         else:
-            raise ArgTypeError(str(type(arg)))
+            raise SimulationError(_error.ArgType, str(type(arg)))
+        if id(arg) in ids:
+            raise SimulationError(_error.DuplicatedArg)
+        ids.add(id(arg))
     return waiters, cosim
         

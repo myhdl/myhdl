@@ -28,13 +28,10 @@ import os
 import exceptions
 
 from myhdl._intbv import intbv
-from myhdl import _simulator
-from myhdl._Error import Error
+from myhdl import _simulator, CosimulationError
 
 _MAXLINE = 4096
 
-class CosimulationError(Error):
-    pass
 class _error:
     pass
 _error.MultipleCosim = "Only a single cosimulator allowed"

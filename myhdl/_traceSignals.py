@@ -35,13 +35,11 @@ from sets import Set
 from myhdl import _simulator, Signal, __version__
 from myhdl._util import _isGenSeq, _isGenFunc
 from myhdl._extractHierarchy import _findInstanceName, _HierExtr
-from myhdl._Error import Error
+from myhdl import TraceSignalsError
 
 _tracing = 0
 _profileFunc = None
 
-class TraceSignalsError(Error):
-    pass
 class _error:
     pass
 _error.TopLevelName = "result of traceSignals call should be assigned to a top level name"

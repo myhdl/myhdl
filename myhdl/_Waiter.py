@@ -23,7 +23,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-from __future__ import generators
 
 from myhdl._join import join
 from myhdl._simulator import _siglist, _futureEvents

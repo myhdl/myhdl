@@ -117,7 +117,8 @@ class TestTraceSigs(TestCase):
             self.fail()
 
     def testReturnVal(self):
-        from myhdl._extractHierarchy import ExtractHierarchyError, _error
+        from myhdl import ExtractHierarchyError
+        from myhdl._extractHierarchy import _error
         try:
             dut = traceSignals(dummy)
         except ExtractHierarchyError, e:

@@ -49,6 +49,15 @@ __date__ = "$Date$"
 
 __version__ = "0.3"
 
+
+class StopSimulation(Exception):
+    """ Basic exception to stop a Simulation """
+    pass
+
+class SuspendSimulation(Exception):
+    """ Basic exception to suspend a Simulation """
+    pass
+
 class Error(Exception):
     def __init__(self, kind, msg="", info=""):
         self.kind = kind
@@ -62,8 +71,15 @@ class Error(Exception):
 
 class AlwaysCombError(Error):
     pass
-
+class CosimulationError(Error):
+    pass
+class ExtractHierarchyError(Error):
+    pass
+class SimulationError(Error):
+    pass
 class ToVerilogError(Error):
+    pass
+class TraceSignalsError(Error):
     pass
 
 from _bin import bin
@@ -73,7 +89,7 @@ from _join import join
 from _Signal import posedge, negedge, Signal
 from _simulator import now
 from _delay import delay
-from _util import downrange, StopSimulation
+from _util import downrange
 from _Cosimulation import Cosimulation
 from _Simulation import Simulation
 from _misc import instances, processes
