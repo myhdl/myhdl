@@ -77,7 +77,7 @@ def always_comb(func):
 
 INPUT, OUTPUT, INOUT = range(3)
 
-class SigNameVisitor(object):
+class _SigNameVisitor(object):
     def __init__(self, sigdict):
         self.inputs = []
         self.outputs = []
@@ -136,7 +136,7 @@ class _AlwaysComb(object):
         s = inspect.getsource(func)
         s = s.lstrip()
         tree = compiler.parse(s)
-        v = SigNameVisitor(sigdict)
+        v = _SigNameVisitor(sigdict)
         compiler.walk(tree, v)
         v.inputs.sort()
         v.outputs.sort()
