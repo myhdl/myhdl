@@ -1,0 +1,197 @@
+\chapter{Modeling techniques}
+
+\section{RTL modeling}
+
+The present section describes how \myhdl\ supports RTL style modeling
+as is typically used for synthesizable models in Verilog or VHDL.
+
+\subsection{Combinatorial logic}
+
+\subsubsection{Template}
+
+Combinatorial logic is described with a generator function code template as
+follows: 
+
+\begin{verbatim}
+def combinatorialLogic(<arguments>)
+    while 1:
+        yield <input signal arguments>
+        <functional code>
+
+\end{verbatim}
+
+The overall code is wrapped in a \code{while 1} statement to keep the
+generator alive. All input signals are clauses in the \code{yield}
+statement, so that the generator resumes whenever one of the inputs
+changes. 
+
+\subsubsection{Example}
+
+The following is an example of a combinatorial multiplexer:
+
+\begin{verbatim}
+def mux(z, a, b, sel):
+    """ Multiplexer.
+    
+    z -- mux output
+    a, b -- data inputs
+    sel -- control input: select a if asserted, otherwise b
+    """
+    while 1:
+        yield a, b, sel
+        if sel == 1:
+            z.next = a
+        else:
+            z.next = b
+\end{verbatim}
+
+To verify, let's simulate this logic with some random patterns. The
+\code{random} module in Python's standard library comes in handy for
+such purposes. The function \code{randrange(\var{n})} returns a random
+natural integer smaller than \var{n}. It is used in the test bench
+code to produce random input values:
+
+\begin{verbatim}
+from random import randrange
+
+(z, a, b, sel) = [Signal(0) for i in range(4)]
+
+MUX_1 = mux(z, a, b, sel)
+
+def test():
+    print "z a b sel"
+    for i in range(8):
+        a.next, b.next, sel.next = randrange(8), randrange(8), randrange(2)
+        yield delay(10)
+        print "%s %s %s %s" % (z, a, b, sel)
+        
+Simulation(MUX_1, test()).run() 
+   
+\end{verbatim}
+
+Because of the randomness, the simulation output varies between runs
+\footnote{It also possible to have a reproducible random output, by
+explictly providing a seed value. See the documentation of the
+\code{random} module}. One particular run produced the following
+output:
+
+\begin{verbatim}
+% python mux.py
+z a b sel
+6 6 1 1
+7 7 1 1
+7 3 7 0
+1 2 1 0
+7 7 5 1
+4 7 4 0
+4 0 4 0
+3 3 5 1
+StopSimulation: No more events
+\end{verbatim}
+
+
+\subsection{Sequential logic}
+
+\subsubsection{Template}
+Sequential RTL models are sensitive to a clock edge. In addition, they
+may be sensitive to a reset signal. We will describe one of the most
+common patterns: a template with a rising clock edge and an
+asynchronous reset signal. Other templates are similar.
+
+\begin{verbatim}
+def sequentialLogic(<arguments>, clock, ..., reset, ...)
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == <active level>:
+            <reset code>
+        else:
+            <functional code>
+
+\end{verbatim}
+
+
+\subsubsection{Example}
+The following code is a description of an incrementer with enable, and
+an asychronous power-up reset.
+
+\begin{verbatim}
+ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+
+def Inc(count, enable, clock, reset, n):
+    """ Incrementer with enable.
+    
+    count -- output
+    n -- counter bit width
+    enable -- control input, increment when 1
+    clock -- clock input
+    reset -- asynchronous reset input
+    n -- counter max value
+    """
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+
+\end{verbatim}
+
+For the test bench, we will use an independent clock generator, stimulus
+generator, and monitor. After applying enough stimulus patterns, we
+can raise the \code{myhdl.StopStimulation} exception to stop the
+simulation run. The test bench for a small incrementer and a small
+number of patterns is a follows:
+
+\begin{verbatim}
+count, enable, clock, reset = [Signal(intbv(0)) for i in range(4)]
+
+INC_1 = Inc(count, enable, clock, reset, n=4)
+
+def clockGen():
+    while 1:
+        yield delay(10)
+        clock.next = not clock
+
+def stimulus():
+    reset.next = ACTIVE_LOW
+    yield negedge(clock)
+    reset.next = INACTIVE_HIGH
+    for i in range(12):
+        enable.next = min(1, randrange(3))
+        yield negedge(clock)
+    raise StopSimulation
+
+def monitor():
+    print "enable  count"
+    yield posedge(reset)
+    while 1:
+        yield posedge(clock)
+        yield delay(1)
+        print "   %s      %s" % (enable, count)
+        
+Simulation(clockGen(), stimulus(), INC_1, monitor(), INC_1).run()
+
+\end{verbatim}
+
+The simulation produces the following output:
+\begin{verbatim}
+% python inc.py
+enable  count
+   0      0
+   1      1
+   0      1
+   1      2
+   1      3
+   1      0
+   0      0
+   1      1
+   0      1
+   0      1
+   0      1
+   1      2
+StopSimulation
+
+\end{verbatim}
+
+
