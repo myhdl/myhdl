@@ -60,5 +60,5 @@ from _Simulation import Simulation
 from _misc import instances, processes
 from _always_comb import always_comb
 from _enum import enum
-from _trace_sigs import trace_sigs
+from _traceSignals import traceSignals
 
