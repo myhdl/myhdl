@@ -225,6 +225,43 @@ class TestNotSupported(unittest.TestCase):
                 yield a, b, c
                 z.next = a <= b < c
         self.check(g, z, a, b, c)
+
+    def testShortcutAnd(self):
+        a, b = [Signal(bool()) for i in range(2)]
+        z = Signal(bool())
+        def g(z, a, b):
+            while 1:
+                yield a
+                if a:
+                    pass
+                else:
+                    z.next = a and b
+        self.check(g, z, a, b)
+    
+    def testShortcutOr(self):
+        a, b, c  = [Signal(bool()) for i in range(3)]
+        z = Signal(bool())
+        def g(z, a, b):
+            while 1:
+                yield a
+                if a:
+                    pass
+                else:
+                    z.next = a < (b or c)
+        self.check(g, z, a, b)
+    
+
+
+class TestMisc(unittest.TestCase):
+    def test(self):
+        a, b, c = [Signal(bool()) for i in range(3)]
+        c = [1, 2]
+        def g(a, b, c):
+            yield a 
+            a.next = b is c
+        x = g(a, b, c)
+        x = toVerilog(g,a, b, c)
+    
         
 
 

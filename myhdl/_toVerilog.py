@@ -44,6 +44,12 @@ from myhdl._unparse import _unparse
 _converting = 0
 _profileFunc = None
 
+INPUT, OUTPUT, INOUT, \
+UNKNOWN, \
+NORMAL, DECLARATION, \
+ALWAYS, INITIAL, \
+BOOLEAN = range(9)
+
 class _error:
     pass
 _error.ArgType = "toVerilog first argument should be a classic function"
@@ -154,7 +160,9 @@ def _analyzeGens(top, genNames):
         symdict.update(f.f_locals)
         ast.symdict = symdict
         ast.name = genNames.get(id(g), genLabel.next() + "_BLOCK")
-        v = _AnalyzeBlockVisitor(symdict, ast.sourcefile, ast.lineoffset)
+        v = _NotSupportedVisitor(ast)
+        compiler.walk(ast, v)
+        v = _AnalyzeBlockVisitor(ast.symdict, ast.sourcefile, ast.lineoffset)
         compiler.walk(ast, v)
         ast.sigdict = v.sigdict
         ast.vardict = v.vardict
@@ -189,9 +197,20 @@ class _ToVerilogMixin(object):
         assert isinstance(node, ast.Node)
         if not test:
             self.raiseError(node, _error.Requirement, msg)
-   
+
+    def visitChildNodes(self, node, *args):
+        for n in node.getChildNodes():
+            self.visit(n, *args)
+            
 
 class _NotSupportedVisitor(_ToVerilogMixin):
+    
+    def __init__(self, ast):
+        self.sourcefile = ast.sourcefile
+        self.lineoffset = ast.lineoffset
+        self.symdict = ast.symdict
+        self.toplevel = True
+        
     def visitAssList(self, node, *args):
         self.raiseError(node, _error.NotSupported, "list assignment")
     def visitAssTuple(self, node, *args):
@@ -229,6 +248,46 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitTryFinally(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
 
+    def visitAnd(self, node, context=UNKNOWN):
+        if not context == BOOLEAN:
+            self.raiseError(node, _error.NotSupported, "shortcutting logical and in non-boolean context")
+        self.visitChildNodes(node, BOOLEAN)
+            
+    def visitOr(self, node, context=UNKNOWN):
+        if not context == BOOLEAN:
+            self.raiseError(node, _error.NotSupported, "shortcutting logical or in non-boolean context")
+        self.visitChildNodes(node, BOOLEAN)
+        
+    def visitAssign(self, node, *args):
+        if len(node.nodes) > 1:
+            self.raiseError(node, _error.NotSupported, "multiple assignments")
+        self.visit(node.nodes[0], *args)
+        self.visit(node.expr, *args)
+        
+    def visitCallFunc(self, node, context=UNKNOWN):
+        f = eval(_unparse(node.node), self.symdict)
+        if f is bool:
+            context = BOOLEAN
+        self.visitChildNodes(node, context)
+                
+    def visitCompare(self, node, *args):
+        if len(node.ops) != 1:
+            self.raiseError(node, _error.NotSupported, "chained comparison")
+        self.visitChildNodes(node, *args)
+        
+    def visitFunction(self, node, *args):
+        if not self.toplevel:
+            self.raiseError(node, _error.NotSupported, "embedded function definition")
+        self.toplevel = False
+        self.visitChildNodes(node, *args)
+        
+    def visitIf(self, node, *args):
+        for test, suite in node.tests:
+            self.visit(test, BOOLEAN)
+            self.visit(suite, UNKNOWN)
+        if node.else_:
+            self.visit(node.else_, UNKNOWN)
+
 
 def getObj(node):
     if hasattr(node, 'obj'):
@@ -240,17 +299,11 @@ def getNrBits(obj):
         return obj._nrbits
     return None
 
-  
-INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
-NORMAL, DECLARATION = range(2)
-ALWAYS, INITIAL = range(2)
-
-class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
+class _AnalyzeVisitor(_ToVerilogMixin):
     
     def __init__(self, symdict, sourcefile, lineoffset):
         self.sourcefile = sourcefile
         self.lineoffset = lineoffset
-        self.toplevel = 1
         self.symdict = symdict
         self.vardict = {}
         self.inputs = Set()
@@ -284,8 +337,6 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         self.visit(node.expr, OUTPUT)
         
     def visitAssign(self, node, access=OUTPUT, *args):
-        if len(node.nodes) > 1:
-            self.raiseError(node, _error.NotSupported, "multiple assignments")
         target, expr = node.nodes[0], node.expr
         self.visit(target, OUTPUT)
         if isinstance(target, ast.AssName):
@@ -340,6 +391,8 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             ast.sourcefile = inspect.getsourcefile(func)
             ast.lineoffset = inspect.getsourcelines(func)[1]-1
             ast.symdict = func.func_globals.copy()
+            v = _NotSupportedVisitor(ast)
+            compiler.walk(ast, v)
             v = _AnalyzeFuncVisitor(ast.symdict, ast.sourcefile, ast.lineoffset, node.args)
             compiler.walk(ast, v)
             ast.sigdict = v.sigdict
@@ -366,8 +419,6 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
                 self.visit(arg, INPUT)
             
     def visitCompare(self, node, *args):
-        if len(node.ops) != 1:
-            self.raiseError(node, _error.NotSupported, "chained comparison")
         node.obj = bool()
 
     def visitConst(self, node, *args):
@@ -396,7 +447,7 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         self.labelStack.pop()
 
     def visitFunction(self, node, *args):
-        raise AssertionError
+        raise AssertionError("subclass must implement this")
            
     def visitGetattr(self, node, *args):
         self.visit(node.expr, *args)
@@ -428,8 +479,7 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             node.obj = __builtins__[n]
 
     def visitReturn(self, node, *args):
-        self.visit(node.value)
-        
+        self.visit(node.value)       
             
     def visitSlice(self, node, access=INPUT, kind=NORMAL, *args):
         self.visit(node.expr, access)
@@ -481,9 +531,6 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
                 sigdict[n] = v
         
     def visitFunction(self, node, *args):
-        if not self.toplevel:
-            self.raiseError(node, _error.NotSupported, "embedded function definition")
-        self.toplevel = 0
         print node.code
         self.visit(node.code)
         self.kind = ALWAYS
@@ -508,6 +555,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             s._read = True
             
     def visitReturn(self, node, *args):
+        ### value should be None
         self.raiseError(node, _error.NotSupported, "return statement")
             
 
@@ -523,9 +571,6 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         self.returnObj = None
 
     def visitFunction(self, node, *args):
-        if not self.toplevel:
-            self.raiseError(node, _error.NotSupported, "embedded function definition")
-        self.toplevel = 0
         argnames = node.argnames
         for i, arg in enumerate(self.args):
             if isinstance(arg, ast.Keyword):
@@ -1050,7 +1095,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         
     def visitReturn(self, node):
         self.write("disable %s;" % self.returnLabel)
-
 
     def visitSlice(self, node):
         if isinstance(node.expr, ast.CallFunc) and \
