@@ -38,7 +38,7 @@ VHDL and Verilog designs, by co-simulation with any simulator that has
 a PLI.  The distribution contains a PLI module for the Icarus Verilog
 simulator.
 
-Finally, a subset of MyHDL code can be converted automatically into
+Finally, a subset of MyHDL code can be converted automatically to
 synthesizable Verilog code. This feature provides a direct path from
 Python to an FPGA or ASIC implementation.
 

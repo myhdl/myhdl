@@ -1,5 +1,5 @@
-Release 0.4 
------------
+Release 0.4 4-Feb-2004
+----------------------
 
 * Conversion to Verilog to provice a path to implementation
 
