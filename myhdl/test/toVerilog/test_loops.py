@@ -5,7 +5,7 @@ from random import randrange
 
 from myhdl import *
 
-def ForLoop(a, out):
+def ForLoop1(a, out):
     while 1:
         yield a
         var = 0
@@ -13,7 +13,52 @@ def ForLoop(a, out):
             if a[i] == 1:
                 var += 1
         out.next = var
+
+def ForLoop2(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in downrange(len(a), 5):
+            if a[i] == 1:
+                var += 1
+        out.next = var
+
+def ForLoop3(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in downrange(len(a), 3, 2):
+            if a[i] == 1:
+                var += 1
+        out.next = var
         
+def ForLoop4(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in range(len(a)):
+            if a[i] == 1:
+                var += 1
+        out.next = var
+
+def ForLoop5(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in range(6, len(a)):
+            if a[i] == 1:
+                var += 1
+        out.next = var
+
+def ForLoop6(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in range(5, len(a), 3):
+            if a[i] == 1:
+                var += 1
+        out.next = var
+
 def ForContinueLoop(a, out):
     while 1:
         yield a
@@ -183,8 +228,28 @@ class TestLoops(unittest.TestCase):
 
         return stimulus(), looptest_inst, looptest_v_inst
 
-    def testForLoop(self):
-        sim = self.bench(ForLoop)
+    def testForLoop1(self):
+        sim = self.bench(ForLoop1)
+        Simulation(sim).run()
+        
+    def testForLoop2(self):
+        sim = self.bench(ForLoop2)
+        Simulation(sim).run()
+        
+    def testForLoop3(self):
+        sim = self.bench(ForLoop3)
+        Simulation(sim).run()
+        
+    def testForLoop4(self):
+        sim = self.bench(ForLoop4)
+        Simulation(sim).run()
+        
+    def testForLoop5(self):
+        sim = self.bench(ForLoop5)
+        Simulation(sim).run()
+        
+    def testForLoop6(self):
+        sim = self.bench(ForLoop6)
         Simulation(sim).run()
         
     def testForContinueLoop(self):

@@ -715,6 +715,7 @@ class _ConvertVisitor(_ToVerilogMixin):
     def __init__(self, ast, buf):
         self.buf = buf
         self.name = ast.name
+        self.returnLabel = self.name
         self.sourcefile = ast.sourcefile
         self.lineoffset = ast.lineoffset
         self.sigdict = ast.sigdict
@@ -750,7 +751,7 @@ class _ConvertVisitor(_ToVerilogMixin):
     def dedent(self):
         self.ind = self.ind[:-4]
 
-    def binaryOp(self, node, op):
+    def binaryOp(self, node, op=None):
         self.write("(")
         self.visit(node.left)
         self.write(" %s " % op)
@@ -1068,7 +1069,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write("$finish;")
         
     def visitReturn(self, node):
-        self.write("disable %s;" % self.name)
+        self.write("disable %s;" % self.returnLabel)
 
     def visitRightShift(self, node):
         self.binaryOp(node, '>>')
@@ -1133,9 +1134,8 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.labelStack.append(node.breakLabel)
         self.labelStack.append(node.loopLabel)
         if node.breakLabel.isActive:
-            self.writeline()
             self.write("begin: %s" % node.breakLabel)
-        self.writeline()
+            self.writeline()
         self.write("while (")
         self.visit(node.test)
         self.write(") begin")
@@ -1297,7 +1297,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.writeDeclarations()
         self.dedent()
         self.writeline()
-        self.write("begin")
+        self.write("begin: %s" % self.returnLabel)
         self.indent()
         self.visit(node.code)
         self.dedent()
@@ -1307,5 +1307,3 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.write("endtask")
         self.writeline(2)
 
-    
-    
