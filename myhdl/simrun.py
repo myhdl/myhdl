@@ -69,7 +69,7 @@ def run(sim, duration=None, quiet=0):
             del _siglist[:]
 
             while waiters:
-                waiter = waiters.pop(0)
+                waiter = waiters.pop()
                 if waiter.hasRun or not waiter.hasGreenLight():
                     continue
                 try:
