@@ -54,4 +54,5 @@ from Cosimulation import Cosimulation
 from util import downrange, bin, Error, StopSimulation
 from misc import instances, processes
 from always_comb import always_comb
+from trace_sigs import trace_sigs
 

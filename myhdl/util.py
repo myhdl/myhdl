@@ -92,13 +92,12 @@ def _isgeneratorfunction(obj):
             return 1
    return 0
 
-def _isGenSeq(seq):
-   if not isinstance(seq, (ListType, TupleType)):
-      return 0
-   for e in seq:
-      if type(e) in (GeneratorType, Cosimulation):
-         continue
-      if _isGenSeq(e):
-         continue
-      return 0
-   return 1
+def _isGenSeq(obj):
+    if type(obj) in (GeneratorType, Cosimulation):
+        return 1
+    if not isinstance(obj, (ListType, TupleType)):
+        return 0
+    for e in obj:
+        if not _isGenSeq(e):
+            return 0
+    return 1
