@@ -36,7 +36,7 @@ With MyHDL, the Python unit test framework can be used on hardware
 designs.  MyHDL can also be used as hardware verification language for
 VHDL and Verilog designs, by co-simulation with any simulator that has
 a PLI.  The distribution contains a PLI module for the Icarus Verilog
-simulator.
+simulator and for the cver Verilog simulator.
 
 Finally, a subset of MyHDL code can be converted automatically to
 synthesizable Verilog code. This feature provides a direct path from
@@ -75,8 +75,7 @@ You can test the proper installation as follows:
 To install co-simulation support:
 
 Go to the directory co-simulation/<platform> for your target platform
-and following the instructions in the README.txt file. Currently, the
-only supported platform is Icarus.
+and following the instructions in the README.txt file.
 
 
 DOCUMENTATION
