@@ -1,6 +1,6 @@
-\chapter{Unit testing}
+\chapter{Unit testing \label{unittest}}
 
-\section{Introduction}
+\section{Introduction \label{unittest-intro}}
 
 Many aspects in the design flow of modern digital hardware design can
 be viewed as a special kind of software development. From that
@@ -20,7 +20,7 @@ Extreme Programming. Instead, in this section I will highlight one XP
 concept which I think is very relevant to hardware design: the
 importance and methodology of unit testing.
 
-\section{The importance of unit tests}
+\section{The importance of unit tests \label{unittest-why}}
 
 Unit testing is one of the corner stones of Extreme Programming. Other
 XP concepts, such as collective ownership of code and continuous
@@ -46,14 +46,14 @@ the standard Python library for creating unit tests for hardware
 designs.
 
 
-\section{Unit test development}
+\section{Unit test development \label{unittest-dev}}
 
 In this section, we will informally explore the application of unit
 test techniques to hardware design. We will do so by a (small)
 example: testing a binary to Gray encoder as introduced in
-section~\ref{gray}. 
+section~\ref{intro-indexing}. 
 
-\subsection{Defining the requirements}
+\subsection{Defining the requirements \label{unittest-req}}
 
 We start by defining the requirements. For a Gray encoder, we want to
 the output to comply with Gray code characteristics. Let's define a
@@ -80,7 +80,7 @@ binary code of the same order.
 
 With the requirements written down we can proceed.
 
-\subsection{Writing the test first}
+\subsection{Writing the test first \label{unittest-first}}
 
 A fascinating guideline in the XP world is to write the unit test
 first. That is, before implementing something, first write the test
@@ -196,7 +196,7 @@ numbers:
 \end{verbatim}
 
 
-\subsection{Test-driven implementation}
+\subsection{Test-driven implementation \label{unittest-impl}}
 
 With the test written, we begin with the implementation. For
 illustration purposes, we will intentionally write some incorrect
@@ -260,7 +260,7 @@ second one. After the test feedback, a full traceback is shown that
 can help to debug the test output.
 
 Finally, if we use the correct implementation as in
-section~\ref{gray}, the output is:
+section~\ref{intro-indexing}, the output is:
 
 \begin{verbatim}
 % python test_gray.py -v
@@ -275,7 +275,7 @@ OK
 
 
 
-\subsection{Changing requirements}
+\subsection{Changing requirements \label{unittest-change}}
 
 In the previous section, we concentrated on the general requirements
 of a Gray code. It is possible to specify these without specifying the

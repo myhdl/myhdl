@@ -1,20 +1,20 @@
-\chapter{Reference}
+\chapter{Reference \label{ref}}
 
 
 \myhdl\ is implemented as a Python package called \code{myhdl}. This
 chapter describes the objects that are exported by this package.
 
-\section{The \class{Simulation} class}
+\section{The \class{Simulation} class \label{ref-sim}}
 \begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
 Class to construct a new simulation. Each argument is either be a
 \myhdl\ generator, or a nested sequence of such generators. (A nested
 sequence is defined as a sequence in which each item may itself be a
-nested sequence.) See section~\ref{myhdl-generators} for the
+nested sequence.) See section~\ref{ref-gen} for the
 definition of \myhdl\ generators and their interaction with a
 \class{Simulation} object.
 
 As a special case, exactly one of the ``generators'' may be
-a \class{Cosimulation} object (see Section~\ref{cosimulation}).
+a \class{Cosimulation} object (see Section~\ref{ref-cosim}).
 \end{classdesc}
 
 A \class{Simulation} object has the following method:
@@ -23,8 +23,7 @@ A \class{Simulation} object has the following method:
 Run the simulation forever (by default) or for a specified duration.
 \end{methoddesc}
 
-\section{The \class{Signal} class}
-\label{signal}
+\section{The \class{Signal} class \label{ref-sig}}
 \begin{classdesc}{Signal}{val \optional{, delay}}
 This class is used to construct a new signal and to initialize its
 value to \var{val}. Optionally, a delay can be specified.
@@ -54,8 +53,8 @@ instead.
 
 
 
-\section{\myhdl\ generators and trigger objects}
-\label{myhdl-generators}
+\section{\myhdl\ generators and trigger objects \label{ref-gen}}
+
 \myhdl\ generators are standard Python generators with specialized
 \keyword{yield} statements. In hardware description languages, the equivalent
 statements are called \emph{sensitivity lists}. The general format
@@ -105,7 +104,7 @@ objects. These are the objects of the following types:
 
 \begin{datadesc}{Signal}
 For the full description of the \class{Signal} class, see
-section~\ref{signal}.
+section~\ref{ref-sig}.
 
 A signal is a trigger object. Whenever a signal changes value, the
 generator is triggered.
@@ -132,7 +131,7 @@ immediately.
 
 
 
-\section{Miscellaneous objects}
+\section{Miscellaneous objects \label{ref-misc}}
 
 The following objects can be convenient in \myhdl\ modeling.
 
@@ -166,7 +165,7 @@ needed in hardware design.
 \end{funcdesc}
 
 
-\section{The \class{intbv} class}
+\section{The \class{intbv} class \label{ref-intbv}}
 
 \begin{classdesc}{intbv}{arg}
 This class represents \class{int}-like objects with some additional
@@ -266,10 +265,9 @@ index 0. This is only possible for \class{intbv} objects with a
 defined bit width.
 
 
-\section{Co-simulation support}
+\section{Co-simulation support \label{ref-cosim}}
 
-\subsection{\myhdl\ }
-\label{cosimulation}
+\subsection{\myhdl\ \label{ref-cosim-myhdl}}
 
 \begin{classdesc}{Cosimulation}{exe, **kwargs}
 Class to construct a new Cosimulation object. 
@@ -285,7 +283,7 @@ declared in the \myhdl\ code.
 
 \end{classdesc}
 
-\subsection{Verilog}
+\subsection{Verilog \label{ref-cosim-verilog}}
 
 \begin{funcdesc}{\$to_myhdl}{arg, \optional{, arg \moreargs}}
 Task that defines which signals (regs \& nets) should be
@@ -303,6 +301,6 @@ This task should be called at the start of the simulation.
 \end{funcdesc}
 
 
-\subsection{VHDL}
+\subsection{VHDL \label{ref-cosim-vhdl}}
 
 Not implemented yet.

@@ -87,7 +87,7 @@ div.note .label         { margin-right: 0.5em;
 .verbatim pre           { color: #00008b;
                           font-family: lucida typewriter, lucidatypewriter,
                                        monospace;
-                          font-size: 100%}
+                          font-size: 90%}
 .verbatim               { margin-left: 2em; }
 .verbatim .footer       { padding: 0.05in;
                           font-size: 85%;

@@ -1,14 +1,14 @@
-\chapter{Modeling techniques}
+\chapter{Modeling techniques \label{model}}
 
-\section{RTL modeling}
+\section{RTL modeling \label{model-rtl}}
 The present section describes how \myhdl\ supports RTL style modeling
 as is typically used for synthesizable models in Verilog or VHDL. This
 section is included mainly for illustrative purposes, as this modeling
 style is well known and understood.
 
-\subsection{Combinatorial logic}
+\subsection{Combinatorial logic \label{model-comb}}
 
-\subsubsection{Template}
+\subsubsection{Template \label{model-comb-templ}}
 
 Combinatorial logic is described with a generator function code template as
 follows: 
@@ -25,7 +25,7 @@ generator alive. All input signals are clauses in the \code{yield}
 statement, so that the generator resumes whenever one of the inputs
 changes. 
 
-\subsubsection{Example}
+\subsubsection{Example \label{model-comb-ex}}
 
 The following is an example of a combinatorial multiplexer:
 
@@ -90,9 +90,9 @@ StopSimulation: No more events
 \end{verbatim}
 
 
-\subsection{Sequential logic}
+\subsection{Sequential logic \label{model-seq}}
 
-\subsubsection{Template}
+\subsubsection{Template \label{model-seq-templ}}
 Sequential RTL models are sensitive to a clock edge. In addition, they
 may be sensitive to a reset signal. We will describe one of the most
 common patterns: a template with a rising clock edge and an
@@ -109,7 +109,7 @@ def sequentialLogic(<arguments>, clock, ..., reset, ...)
 \end{verbatim}
 
 
-\subsubsection{Example}
+\subsubsection{Example \label{model-seq-ex}}
 The following code is a description of an incrementer with enable, and
 an asynchronous power-up reset.
 
@@ -190,7 +190,7 @@ enable  count
 StopSimulation
 \end{verbatim}
 
-\section{High level modeling}
+\section{High level modeling \label{model-hl}}
 
 \begin{quote}
 \em
@@ -204,7 +204,7 @@ example, note that so far we haven't used classes (nor meta-classes
 model.
 \end{quote}
 
-\subsection{Modeling memories with built-in types}
+\subsection{Modeling memories with built-in types \label{model-mem}}
 
 Python has powerful built-in data types that can be useful to model
 hardware memories. This can be merely a matter of putting an interface
@@ -288,7 +288,7 @@ on a list: \function{insert()} to insert entries, \function{pop()} to
 retrieve them, and \function{len()} to get the size of a Python
 object.
 
-\subsection{Modeling errors using exceptions}
+\subsection{Modeling errors using exceptions \label{model-err}}
 
 In the previous section, we used Python data types for modeling. If
 such a type is used inappropriately, Python's run time error system

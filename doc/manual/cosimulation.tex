@@ -1,6 +1,6 @@
-\chapter{Co-simulation with Verilog and VHDL}
+\chapter{Co-simulation with Verilog and VHDL \label{cosim}}
 
-\section{Introduction}
+\section{Introduction \label{cosim-intro}}
 
 One of the most exciting possibilities of \myhdl\
 is to use it as a hardware verification language (HVL).
@@ -26,7 +26,7 @@ the \myhdl\ release contains a PLI module to interface
 to the Icarus Verilog simulator. This interface will
 be used in the examples.
 
-\section{The HDL side}
+\section{The HDL side \label{cosim-hdl}}
 
 To introduce co-simulation, we will continue to use the Gray encoder
 example from the previous chapters. Suppose that we want to
@@ -95,7 +95,7 @@ defined in a PLI module written in C and made available in a
 simulator-dependent manner.  In Icarus Verilog, the tasks are defined
 in a \code{myhdl.vpi} module that is compiled from C source code.
 
-\section{The \myhdl\ side}
+\section{The \myhdl\ side \label{cosim-myhdl}}
 
 \myhdl\ supports co-simulation by a \code{Cosimulation} object. 
 A \code{Cosimulation} object must know how to run a HDL simulation.
@@ -194,7 +194,7 @@ OK
 \end{verbatim}
 
 
-\section{Restrictions}
+\section{Restrictions \label{cosim-restr}}
 
 In the ideal case, it should be possible to simulate
 any HDL description seamlessly with \myhdl{}. Moreover
@@ -223,7 +223,7 @@ The result is a compromise that places certain restrictions
 on the HDL code. In this section, these restrictions 
 are presented.
 
-\subsection{Only passive HDL can be co-simulated}
+\subsection{Only passive HDL can be co-simulated \label{cosim-pass}}
 
 The most important restriction of the \myhdl\ co-simulation solution is
 that only ``passive'' HDL can be co-simulated.  This means that the HDL
@@ -249,7 +249,7 @@ intended for implementation, most likely through synthesis. As time
 delays are meaningless in synthesizable code, the restriction is
 compatible with the target application.
 
-\subsection{Race sensitivity issues}
+\subsection{Race sensitivity issues \label{cosim-race}}
 
 In a typical RTL code, some events cause other events to occur in the
 same time step. For example, when a clock signal triggers some signals
@@ -283,7 +283,7 @@ value, so that they are guaranteed to change after the clock
 edge.
 
 
-\section{Implementation notes}
+\section{Implementation notes \label{cosim-impl}}
 
 \begin{quote}
 \em
@@ -306,10 +306,9 @@ This section documents the current approach and status of the PLI
 module implementation in Icarus, and some reflections on future
 implementations in other simulators.
 
-\subsection{Icarus Verilog}
+\subsection{Icarus Verilog \label{cosim-icarus}}
 
-\subsubsection{Delta cycle implementation}
-\label{icarus-delta-cycles}
+\subsubsection{Delta cycle implementation \label{cosim-icarus-delta}}
 
 To make co-simulation work, a specific type of PLI callback is
 needed. The callback should be run when all pending events have been
@@ -337,7 +336,7 @@ the limit is checked at run-time. The factor 1000 also makes it
 easy to distinguish ``real'' time from delta cycle time when printing
 out the Verilog time.
 
-\subsubsection{Passive Verilog check}
+\subsubsection{Passive Verilog check \label{cosim-icarus-pass}}
 
 As explained before, co-simulated Verilog should not contain delay
 statements. Ideally, there should be a run-time check to flag
@@ -353,7 +352,7 @@ In the mean time, just don't do this. It may appear to ``work'' but it
 really won't as events will be missed over the co-simulation
 interface.
 
-\subsubsection{Interrupted system calls}
+\subsubsection{Interrupted system calls \label{cosim-impl-syscalls}}
 
 The PLI module uses \code{read} and \code{write} system calls to
 communicate between the co-simulators. The implementation assumes that
@@ -371,7 +370,7 @@ Whenever an assertion fires in the PLI module, let me
 know. The same holds for Python exceptions that you cannot
 easily explain.
 
-\subsection{Other Verilog simulators}
+\subsection{Other Verilog simulators \label{cosim-impl-verilog}}
 
 The Icarus module is written with VPI calls, which are provided by the
 most recent generation of the Verilog PLI. Some simulators may only
@@ -381,7 +380,7 @@ module.
 If the simulator supports VPI, the Icarus module should be reusable to
 a large extent. However, it may be possible to improve on it.  The
 workaround to support delta cycles described in
-Section~\ref{icarus-delta-cycles} may not be necessary. In some
+Section~\ref{cosim-icarus-delta} may not be necessary. In some
 simulators, the \code{cbReadWriteSync} callback occurs after all
 events (including non-blocking assignments) have been processed. In
 that case, the functionality can be supported without a finer time
@@ -393,7 +392,7 @@ to introduce new, well defined callbacks. From reading some proposals,
 I conclude that the \code{cbEndOfSimTime} callback would provide the
 required functionality.
 
-\subsection{VHDL}
+\subsection{VHDL \label{cosim-impl-vhdl}}
 
 It would be great to have an interface to VHDL simulators such as the
 Modelsim VHDL simulator. This will require a PLI module using the

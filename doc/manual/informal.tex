@@ -1,6 +1,6 @@
-\chapter{Introduction to \myhdl\ }
+\chapter{Introduction to \myhdl\ \label{intro}}
 
-\section{A basic \myhdl\ simulation}
+\section{A basic \myhdl\ simulation \label{intro-basic}}
 
 We will introduce \myhdl\ with a classic \code{Hello World} style
 example. Here are the contents of a \myhdl\ simulation script called
@@ -59,7 +59,7 @@ run the simulation for the desired amount of time. In \myhdl{}, time
 is modeled as a natural integer.
 
 
-\section{Concurrent generators and signals}
+\section{Concurrent generators and signals \label{intro-conc}}
 
 In the previous section, we simulated a single generator. Of course,
 real hardware descriptions are not like that: in fact, they are
@@ -130,7 +130,7 @@ StopSimulation: Simulated for duration 50
 \end{verbatim}
 
 
-\section{Parameters, instantiations and hierarchy}
+\section{Parameters, instantiations and hierarchy \label{intro-hier}}
 
 So far, the generator function examples had no parameters. For
 example, the \code{clk} signal was defined in the enclosing scope of
@@ -214,7 +214,7 @@ StopSimulation: Simulated for duration 50
 \end{verbatim}
 
 
-\section{Bit-oriented operations}
+\section{Bit-oriented operations \label{intro-bit}}
 
 Hardware design involves dealing with bits and bit-oriented
 operations. The standard Python type \class{int} has most of the
@@ -229,8 +229,7 @@ operations. In addition, it is a mutable type that provides indexing
 and slicing operations, and some additional bit-oriented support such
 as concatenation.
 
-\subsection{Indexing operations}
-\label{gray}
+\subsection{Indexing operations \label{intro-indexing}}
 As an example, we will consider the design of a Gray encoder. The
 following code is a Gray encoder modeled in \myhdl{}:
 
@@ -306,7 +305,7 @@ B: 111 | G: 100
 StopSimulation: No more events
 \end{verbatim}
 
-\subsection{Slicing operations}
+\subsection{Slicing operations \label{intro-slicing}}
 
 For a change, we will use a plain function as an example to illustrate
 slicing.  The following function calculates the HEC byte of an ATM
@@ -352,7 +351,7 @@ follows: for a slice \code{[i:j]}, only bits below index \code{i} are
 included, and the bit with index \code{j} is the last bit included.
 
 
-\section{Bus-functional procedures}
+\section{Bus-functional procedures \label{intro-bfm}}
 
 A \dfn{bus-functional procedure} is a reusable encapsulation of the
 low-level operations needed to implement some abstract transaction on
@@ -656,7 +655,7 @@ TX: 0
 RX: 0
 \end{verbatim}
 
-\section{\myhdl\ and Python}
+\section{\myhdl\ and Python \label{intro-python}}
 
 To conclude this introductory chapter, it is useful to stress that
 \myhdl\ is not a language in itself. The underlying language is Python, 

@@ -74,7 +74,7 @@ DVIPS=	   dvips -N0 -t $(PAPER)
 MKDVI=	   $(PYTHON) ../tools/mkhowto --paper=$(PAPER) --dvi
 MKHTML=	   $(PYTHON) tools/mkhowto --html --about html/myabout.dat \
 		--iconserver ../icons --favicon ../icons/pyfav.gif \
-		--address $(MYHDLDOCS) --up-link ../../Overview.html \
+		--address $(MYHDLDOCS) --up-link ../Overview.html \
 		--up-title "Overview" \
 		--dvips-safe
 MKPDF=	   $(PYTHON) ../tools/mkhowto -l --paper=$(PAPER) --pdf
