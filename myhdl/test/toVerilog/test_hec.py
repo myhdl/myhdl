@@ -94,6 +94,17 @@ def HecCalculatorTask(hec, header):
         yield header
         calculateHecTask(h, header)
         hec.next = h
+        
+def HecCalculatorTask2(hec, header):
+    """ Hec calculation module.
+
+    Version with task call.
+    """
+    h = intbv(0)[8:]
+    while 1:
+        yield header
+        calculateHecTask(header=header, hec=h)
+        hec.next = h
 
          
         
@@ -149,6 +160,10 @@ class TestHec(unittest.TestCase):
 
     def testTask(self):
         sim = self.bench(HecCalculatorTask)
+        Simulation(sim).run()
+       
+    def testTask2(self):
+        sim = self.bench(HecCalculatorTask2)
         Simulation(sim).run()
        
         
