@@ -135,7 +135,7 @@ class Cosimulation(object):
         for i in range(1, len(e), 2):
             s, v = self._toSigDict[e[i]], e[i+1]
             try:
-                next = long(v, 16)
+                next = int(v, 16)
             except ValueError:
                 next = intbv(None)
             s.next = next
