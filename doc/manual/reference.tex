@@ -222,7 +222,7 @@ defaults to zero.  This function is especially useful in conjunction
 with the \class{intbv} class, that also works with downward indexing.
 \end{funcdesc}
 
-\begin{funcdesc}{enum}{arg \optional{, arg \moreargs}}
+\begin{funcdesc}{enum}{arg \optional{, arg \moreargs} \optional{encoding=''binary''}}
 Returns an enumeration type.
 
 The arguments should be string literals that represent the desired
@@ -233,6 +233,9 @@ t_EnumType = enum('ATTR_NAME_1', 'ATTR_NAME_2', ...)
 \end{verbatim}
 The enumeration type identifiers are available as attributes of
 the type name, for example: \code{t_EnumType.ATTR_NAME_1}
+The optional keyword argument \arg{encoding} specifies the encoding
+scheme used in Verilog output. The available encodings are \code{``binary''},
+\code{``one_hot''}, and \code{``one_cold''}.
 \end{funcdesc}
 
 \begin{funcdesc}{instances}{}
@@ -401,6 +404,6 @@ code, and also generates a test bench to verify it.
 and passes \var{*args} and \var{**kwargs} to the call.
 \end{funcdesc}
 
-For more information abuut the restrictions on convertible
+For more information about the restrictions on convertible
 \myhdl\ code, see section~\ref{conv-subset} in
 Chapter~\ref{conv}.

@@ -18,7 +18,7 @@ typical for implementation-oriented hardware modeling.  Subsequently,
 such a design is converted to an equivalent model in the Verilog
 language, using the function \function{toVerilog} from the \myhdl\
 library. Finally, a third-party \emph{synthesis tool} is used to
-convert the Verilog design into a gate implementation for an ASIC or
+convert the Verilog design to a gate implementation for an ASIC or
 FPGA. There are a number of Verilog synthesis tools available, varying
 in price, capabilities, and target implementation technology.
 
@@ -52,7 +52,7 @@ arbitrarily deep.
 
 \subsection{Generators are mapped to Verilog always or initial blocks\label{conv-features-gen}}
 The converter analyzes the code of each generator and maps it
-into a Verilog \code{always} blocks if possible, and to 
+to a Verilog \code{always} blocks if possible, and to 
 an \code{initial} block otherwise.
 The converted Verilog design will be a flat
 "net list of blocks".
@@ -60,11 +60,11 @@ The converted Verilog design will be a flat
 \subsection{The Verilog module interface is inferred from signal usage\label{conv-features-intf}}
 In \myhdl{}, the input or output direction of interface signals
 is not explicitly declared. The converter investigates signal usage
-in the design hierarchy to infer whether a signal is used as an
-input, output, or an internal signal. Internal signals are
+in the design hierarchy to infer whether a signal is used as
+input, output, or as an internal signal. Internal signals are
 given a hierarchical name in the Verilog output.
 
-\subsection{Function calls are mapped to a unique Verilog function or task\label{conv-features-func}}
+\subsection{Function calls are mapped to a unique Verilog function or task call\label{conv-features-func}}
 The converter analyzes function calls and function code to see if they
 should be mapped to Verilog functions or to tasks. Python functions
 are much more powerful than Verilog subprograms; for example, they are
@@ -90,7 +90,7 @@ The Verilog converter generates the appropriate code.
 
 \subsection{Introduction\label{conv-subset-intro}}
 
-Unsurprisingly, not all \myhdl\ code can be converted into Verilog. In
+Unsurprisingly, not all \myhdl\ code can be converted to Verilog. In
 fact, there are very important restrictions.  As the goal of the
 conversion functionality is implementation, this should not be a big
 issue: anyone familiar with synthesis is used to similar restrictions
@@ -114,7 +114,7 @@ more advanced capabilities, such as behavioral synthesis.
 
 Recall that any restrictions only apply to the design post
 elaboration.  In practice, this means that they apply only to the code
-of the generators, that are the "leaf" functional blocks in a MyHDL
+of the generators, that are the leaf functional blocks in a MyHDL
 design.
 
 \subsection{Coding style\label{conv-subset-style}}
@@ -129,9 +129,8 @@ change, or a tuple of such conditions.
 
 The most important restriction regards object types. Verilog is an
 almost typeless language, while Python is strongly (albeit
-dynamically) typed. The converter needs to infer the types of names
-used in the code, and map them to Verilog variables. Therefore, it
-does type inferencing of object constructors and expressions.
+dynamically) typed. The converter has to infer the types of names
+used in the code, and map those names to Verilog variables.
 
 Only a limited amount of types can be converted.
 Python \class{int} and \class{long} objects are mapped to Verilog
@@ -142,7 +141,7 @@ and MyHDL enumeration types returned by function \function{enum}. The
 latter objects can also be used as the base object of a
 \class{Signal}. 
 
-\class{intbv} objects need to be constructed so that a bit
+\class{intbv} objects must be constructed so that a bit
 width can be inferred. This can be done by specifying minimum
 and maximum values, e.g. as follows:
 
@@ -165,10 +164,7 @@ value \code{0} , and maximum value \code{2**N}.
 
 The following is a list of the statements that are supported by the
 Verilog converter, possibly qualified with restrictions
-or usage notes. Recall that
-this list only applies to the design post elaboration: in practice,
-this means it applies to the code of the generators that are the leaf
-blocks in a design.
+or usage notes. 
 
 \begin{description}
 
@@ -191,11 +187,9 @@ are fully supported.
 \item[The \keyword{pass} statement.]
 
 \item[The \keyword{print} statement.]
-The only supported expression for printing is
-a single literal string.
-The string can be interpolated, but the format specifiers
-are copied verbatim to the Verilog output.
-Print to a file (with syntax \code{'>>'}) is not supported.
+When printing an interpolated string, the format specifiers are copied
+verbatim to the Verilog output.  Printing to a file (with syntax
+\code{'>>'}) is not supported.
 
 \item[The \keyword{raise} statement.]
 This statement is mapped to Verilog statements
@@ -248,7 +242,7 @@ Name assignment in Python is a different concept than in
 many other languages. This point is very important for
 effective modeling in Python, and even more so
 for synthesizable \myhdl\ code. Therefore, the issues are
-discussed here.
+discussed here explicitly.
 
 Consider the following name assignments:
 
@@ -278,7 +272,7 @@ determined that a consistent type and bit width is being used in the
 assignments. This can be done for boolean expressions, numeric
 expressions, and enumeration type literals. In Verilog, the
 corresponding name is mapped to a single bit \code{reg}, an
-\code{integer} or a \code{reg} of the appropriate width, respectively.
+\code{integer}, or a \code{reg} with the appropriate width, respectively.
 
 In other cases, a single assignment should be used when an object is
 created. Subsequent value changes are then achieved by modification of
@@ -397,9 +391,8 @@ inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
 \end{verbatim}
 
 Again, this creates an instance that can be simulated, but as a side
-effect, it also generates a Verilog module in file \file{inc_inst.v},
-that is supposed to have identical behavior. The Verilog code
-is as follows:
+effect, it also generates an equivalent Verilog module in file \file{inc_inst.v},
+The Verilog code looks as follows:
 
 \begin{verbatim}
 module inc_inst (
@@ -466,7 +459,7 @@ G = Signal(intbv(0)[width:])
 bin2gray_inst = toVerilog(bin2gray, B, G, width)
  \end{verbatim}
 
-The generate Verilog module is as follows:
+The generate Verilog code looks as follows:
 
 \begin{verbatim}
 module bin2gray_inst (
@@ -515,7 +508,7 @@ will change in consecutive values. However, as the
 \code{bin2gray} module is combinatorial, the output bits
 may have transient glitches, which may not be desirable.
 To solve this, let's create an additional level of
-hierarchy an add an output register to the design.
+hierarchy and add an output register to the design.
 (This will create an additional latency of a clock
 cycle, which may not be acceptable, but we will
 ignore that here.)
@@ -546,7 +539,7 @@ enable, clock, reset = [Signal(bool()) for i in range(3)]
 GRAY_INC_REG_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
 \end{verbatim}
 
-The Verilog output module looks as follows:
+The Verilog output code looks as follows:
 
 \begin{verbatim}
 module GRAY_INC_REG_1 (
@@ -608,21 +601,22 @@ pragmas for efficient synthesis are generated in the Verilog code.
 
 As a further optimization, function \function{enum} was enhanced to support
 alternative encoding schemes elegantly, using an additional parameter
-'encoding'. For example:
+\var{encoding}. For example:
 
 \begin{verbatim}
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 \end{verbatim}
 
-The default encoding is \code{binary}; the other possibilities are \code{one_hot} and
-\code{one_cold}. This parameter only affects the conversion output, not the
-behavior of the type. Verilog case statements are optimized for an
-efficient implementation according to the encoding. Note that in
-contrast, a Verilog designer needs to make nontrivial code changes to
-implement a different encoding scheme.
+The default encoding is \code{``binary''}; the other possibilities are
+\code{``one_hot''} and \code{``one_cold''}. This parameter only
+affects the conversion output, not the behavior of the type. Verilog
+case statements are optimized for an efficient implementation
+according to the encoding. Note that in contrast, a Verilog designer
+needs to make nontrivial code changes to implement a different
+encoding scheme.
 
 As an example, consider the following finite state machine, whose
-state variable used the enumeration type defined above:
+state variable uses the enumeration type defined above:
 
 \begin{verbatim}
 FRAME_SIZE = 8
@@ -752,14 +746,14 @@ endmodule
 The \class{intbv} class is quite capable of representing negative
 values. However, the \code{signed} type support in Verilog is
 relatively recent and mapping to it may be tricky. In my judgment,
-this is not the most urgent requirement, so
+this was not the most urgent requirement, so
 I decided to leave this for later.
 
 \item[Verilog integers are 32 bit wide]
 Usually, Verilog integers are 32 bit wide. In contrast, Python is
 moving toward integers with undefined width. Python \class{int} 
 and \class{long} variables are mapped to Verilog integers; so for values
-larger than 32 bit this mapping is incorrect.
+wider than 32 bit this mapping is incorrect.
 
 \item[Synthesis pragmas are specified as Verilog comments.] The recommended
 way to specify synthesis pragmas in Verilog is through attribute
