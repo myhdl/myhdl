@@ -378,17 +378,17 @@ better to the nature of the operation.
 
 In previous versions, the \class{intbv} class provided a
 \method{concat()} method.  This method is no longer
-available. Instead, there is now a \function{concat()} function
-in \myhdl{}.
+available. Instead, there is now a \function{concat()} function in
+\myhdl{}, which supports a much broader range of objects.
 
 A function is more natural because \myhdl\ objects of various types
-can be concatenated.  In addition to \class{intbv} objects, this
-includes objects with a defined bit width, \class{bool} objectsm
-signals of such objects, and bit strings. Moreover, the first argument
-to \function{concat()} can be an \class{int} or a \class{long}, or a
-the corresponding signal. As a result, the \function{concat()}
-function supports a much broader range of objects than a method could.
-Function \function{concat()} returns an \class{intbv} object.
+can be concatenated: \class{intbv} objects with a defined bit width,
+\class{bool} objects, the corresponding signal objects, and bit
+strings. All these objects have a defined bit width.  Moreover, the
+first argument doesn't need to have a defined bit width. It can also be
+an unsized \class{intbv}, an \class{int}, a \class{long}, or a
+corresponding signal object.  Function \function{concat()} returns an
+\class{intbv} object.
 
 
 \section{Python 2.3 support\label{section-Python}}
