@@ -56,7 +56,7 @@ class StopSimulation(Exception):
     """ Basic exception to stop a Simulation """
     pass
 
-class SuspendSimulation(Exception):
+class _SuspendSimulation(Exception):
     """ Basic exception to suspend a Simulation """
     pass
 

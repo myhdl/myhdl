@@ -29,7 +29,7 @@ from warnings import warn
 from types import GeneratorType
 from sets import Set
 
-from myhdl import delay, Signal, Cosimulation, join,  StopSimulation, SuspendSimulation
+from myhdl import delay, Signal, Cosimulation, join,  StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _WaiterList
@@ -66,6 +66,7 @@ class Simulation(object):
         self._waiters, self._cosim = _checkArgs(arglist)
         if not self._cosim and _simulator._cosim:
             warn("Cosimulation not registered as Simulation argument")
+        self._finished = False
         del _futureEvents[:]
         del _siglist[:]
         
@@ -80,6 +81,7 @@ class Simulation(object):
         if _simulator._tracing:
             _simulator._tracing = 0
             _simulator._tf.close()
+        self._finished = True
             
         
     def runc(self, duration=0, quiet=0):
@@ -95,6 +97,10 @@ class Simulation(object):
 
         """
 
+        # If the simulation is already finished, raise StopSimulation immediately
+        # From this point it will propagate to the caller, that can catch it.
+        if self._finished:
+            raise StopSimulation("Simulation has already finished")
         waiters = self._waiters
         maxTime = None
         if duration:
@@ -107,6 +113,7 @@ class Simulation(object):
         actives = {}
         tracing = _simulator._tracing
         tracefile = _simulator._tf
+        exc = None
         _pop = waiters.pop
         _append = waiters.append
         _extend = waiters.extend
@@ -147,6 +154,11 @@ class Simulation(object):
                             _append(_Waiter(clause._generator(), clone))
                         elif clause is None:
                             _append(clone)
+                        elif isinstance(clause, Exception) or \
+                                 issubclass(clause, Exception):
+                            _append(clone)
+                            if not exc:
+                                exc = clause
                         else:
                             raise TypeError, "yield clause '%s'" % `clause`
  
@@ -163,10 +175,15 @@ class Simulation(object):
                         wl.purge()
                     actives = {}
 
+                # at this point it is safe to potentially suspend a simulation
+                if exc:
+                    raise exc
+
+                # future events
                 if _futureEvents:
                     if t == maxTime:
-                        raise SuspendSimulation, \
-                              "Simulated for duration %s" % duration
+                        raise _SuspendSimulation(
+                            "Simulated %s timesteps" % duration)
                     _futureEvents.sort()
                     t = _simulator._time = _futureEvents[0][0]
                     if tracing:
@@ -184,9 +201,9 @@ class Simulation(object):
                         else:
                             break
                 else:
-                    raise StopSimulation, "No more events"
+                    raise StopSimulation("No more events")
 
-            except SuspendSimulation:
+            except _SuspendSimulation:
                 if not quiet:
                     _printExcInfo()
                 if tracing:
@@ -197,10 +214,18 @@ class Simulation(object):
                 if not quiet:
                     _printExcInfo()
                 self._finalize()
+                self._finished = True
                 return 0
 
-            except:
-                self._finalize()
+            except Exception, e:
+                if tracing:
+                    tracefile.flusch
+                # if the exception came from a yield, make sure we can resume
+                if e is exc:
+                    pass # don't finalize
+                else:
+                    self._finalize()
+                # now reraise the exepction
                 raise
                 
 
