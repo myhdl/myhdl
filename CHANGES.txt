@@ -1,3 +1,11 @@
+Release 0.4 
+-----------
+
+* Conversion to Verilog to provice a path to implementation
+
+For details, consult the whatsnew04.* documents available
+in various formats under doc/.
+
 Release 0.3 30-Aug-2003
 -----------------------
 

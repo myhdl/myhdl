@@ -1,4 +1,4 @@
-MyHDL Release 0.3
+MyHDL Release 0.4
 =================
 
 INTRODUCTION
