@@ -64,10 +64,10 @@ class intbv(object):
                 width += w
             else:
                 raise TypeError
-        try:
-            v = int(v)
-        except:
-            pass
+##         try:
+##             v = int(v)
+##         except:
+##             pass
         res = intbv(v)
         if basewidth:
             res._len = basewidth + width
