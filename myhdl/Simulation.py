@@ -37,10 +37,10 @@ from Cosimulation import Cosimulation
 from join import join
 from _Waiter import _Waiter
 from util import StopSimulation, SuspendSimulation
-try:
-    import simrunc
-except:
-    pass
+## try:
+##     import simrunc
+## except:
+##     pass
 
 
 schedule = _futureEvents.append

@@ -261,7 +261,9 @@ class intbv(object):
             self._val %= other
         return self
         
-    def __ipow__(self, other, modulo): # XXX why 3rd param required?
+    def __ipow__(self, other, modulo=None):
+        # XXX why 3rd param required?
+        # unused but needed in 2.2, not in 2.3 
         if type(other) is intbv:
             self._val **= other._val
         else:

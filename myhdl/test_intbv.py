@@ -261,11 +261,11 @@ class TestIntBvAsInt(TestCase):
     def binaryCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
-            bi = intbv(i)
+            bi = intbv(long(i))
             bj = intbv(j)
-            ref = op(i, j)
+            ref = op(long(i), j)
             r1 = op(bi, j)
-            r2 = op(i, bj)
+            r2 = op(long(i), bj)
             r3 = op(bi, bj)
             self.assertEqual(type(r1), intbv)
             self.assertEqual(type(r2), intbv)
@@ -278,13 +278,13 @@ class TestIntBvAsInt(TestCase):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
             bj = intbv(j)
-            ref = i
+            ref = long(i)
             exec("ref %s j" % op)
-            r1 = bi1 = intbv(i)
+            r1 = bi1 = intbv(long(i))
             exec("r1 %s j" % op)
-            r2 = i 
+            r2 = long(i)
             exec("r2 %s bj" % op)
-            r3 = bi3 = intbv(i)
+            r3 = bi3 = intbv(long(i))
             exec("r3 %s bj" % op)
             self.assertEqual(type(r1), intbv)
             self.assertEqual(type(r3), intbv)
