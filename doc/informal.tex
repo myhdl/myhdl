@@ -177,7 +177,7 @@ the instances in a higher-level function, and returning them. For
 example: 
 
 \begin{verbatim}
-def talk():
+def greetings():
 
     clk1 = Signal(0)
     clk2 = Signal(0)
@@ -204,7 +204,7 @@ higher-level instantiating function can directly be used an
 argument. For example:
 
 \begin{verbatim}
-sim = Simulation(talk())
+sim = Simulation(greetings())
 sim.run(50)
 
 \end{verbatim}
@@ -225,6 +225,7 @@ StopSimulation: Simulated for duration 50
 
 
 \section{Bit-oriented operations}
+\label{gray}
 
 Hardware design involves dealing with bits and bit-oriented
 operations. The standard Python \class{int} has most of the desired
@@ -273,7 +274,6 @@ To verify the Gray encoder, we write a test bench that prints input
 and output for all possible input values:
 
 \begin{verbatim}
-bin = intbv.bin # shorthand alias
 def testBench(width):
     
     B = Signal(intbv(0))
