@@ -1,5 +1,5 @@
 from __future__ import generators
-from myhdl import Signal, intbv, concat
+from myhdl import Signal, intbv
 from arith_utils import BEHAVIOR
 from PrefixAnd import PrefixAnd
 
@@ -18,7 +18,7 @@ def Dec(width, speed, A, Z, architecture=BEHAVIOR):
             while 1:
                 yield A, PO
                 AI.next = ~A.val
-                Z.next = A.val ^ concat(PO.val[width-1:], '1')
+                Z.next = A.val ^ intbv.concat(PO.val[width-1:], '1')
         return [prefix, logic()]
 
     if architecture == BEHAVIOR:
