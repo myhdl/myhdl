@@ -39,7 +39,7 @@ width = 8
 graycnt = Signal(intbv()[width:])
 enable, clock, reset = [Signal(bool()) for i in range(3)]
 # GrayIncReg(graycnt, enable, clock, reset, width)
-GRAY_INC_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+GRAY_INC_REG_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
 
 objfile = "grayinc_1.o"
 analyze_cmd = "iverilog -o %s GRAY_INC_1.v tb_GRAY_INC_1.v" % objfile
@@ -52,7 +52,7 @@ def GrayIncReg_v(graycnt, enable, clock, reset, width):
     return Cosimulation(simulate_cmd, **locals())
 
 graycnt_v = Signal(intbv()[width:])
-GRAY_INC_v = GrayIncReg_v(graycnt_v, enable, clock, reset, width)
+GRAY_INC_REG_v = GrayIncReg_v(graycnt_v, enable, clock, reset, width)
 
 class TestGrayInc(unittest.TestCase):
 
@@ -89,7 +89,7 @@ class TestGrayInc(unittest.TestCase):
         clk_1 = self.clockGen()
         st_1 = self.stimulus()
         ch_1 = self.check()
-        sim = Simulation(GRAY_INC_1, GRAY_INC_v, clk_1, st_1, ch_1)
+        sim = Simulation(GRAY_INC_REG_1, GRAY_INC_REG_v, clk_1, st_1, ch_1)
         return sim
 
     def test(self):

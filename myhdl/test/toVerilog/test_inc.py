@@ -26,6 +26,25 @@ def incRef(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
+                
+def inc(count, enable, clock, reset, n):
+    """ Incrementer with enable.
+    
+    count -- output
+    enable -- control input, increment when 1
+    clock -- clock input
+    reset -- asynchronous reset input
+    n -- counter max value
+    """
+    def incProcess():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return incProcess()
 
 def incTask(count, enable, clock, reset, n):
     
@@ -135,6 +154,11 @@ class TestInc(TestCase):
     def testIncRef(self):
         """ Check increment operation """
         sim = self.bench(incRef)
+        sim.run(quiet=1)
+        
+    def testInc(self):
+        """ Check increment operation """
+        sim = self.bench(inc)
         sim.run(quiet=1)
         
     def testIncTask(self):

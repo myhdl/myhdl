@@ -12,7 +12,7 @@ def bin2gray(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
-    Bext = intbv(0, max=width)[width+1:]
+    Bext = intbv(0)[width+1:]
     while 1:
         yield B
         Bext[:] = B
@@ -51,9 +51,9 @@ class TestBin2Gray(TestCase):
 
     def bench(self, width, bin2gray):
 
-        B = Signal(intbv(0)[8:])
-        G = Signal(intbv(0)[8:])
-        G_v = Signal(intbv(0)[8:])
+        B = Signal(intbv(0)[width:])
+        G = Signal(intbv(0)[width:])
+        G_v = Signal(intbv(0)[width:])
 
         bin2gray_inst = toVerilog(bin2gray, B, G, width)
         # bin2gray_inst = bin2gray(B, G, width)
