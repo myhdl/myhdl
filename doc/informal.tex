@@ -291,6 +291,11 @@ def testBench(width):
 
 \end{verbatim}
 
+Note how we use the conversion function \code{bin} to get a binary
+string representation of the signal values. This function is exported
+by the \code{myhdl} packages and complements the standard Python
+\code{hex} and \code{oct} conversion functions.
+
 To demonstrate, we set up a simulation for a small width: 
 
 \begin{verbatim}
