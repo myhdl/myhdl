@@ -3,7 +3,7 @@ from __future__ import generators
 from random import randrange
 
 from myhdl import Signal, Simulation, StopSimulation
-from myhdl import intbv, delay, posedge, negedge, now
+from myhdl import intbv, delay, posedge, negedge, now, trace_sigs
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
@@ -25,35 +25,39 @@ def Inc(count, enable, clock, reset, n):
                 count.next = (count + 1) % n
 
 
-count, enable, clock, reset = [Signal(intbv(0)) for i in range(4)]
+def testbench():
+    count, enable, clock, reset = [Signal(intbv(0)) for i in range(4)]
 
-INC_1 = Inc(count, enable, clock, reset, n=4)
+    INC_1 = Inc(count, enable, clock, reset, n=4)
 
-def clockGen():
-    while 1:
-        yield delay(10)
-        clock.next = not clock
+    def clockGen():
+        while 1:
+            yield delay(10)
+            clock.next = not clock
 
-def stimulus():
-    reset.next = ACTIVE_LOW
-    yield negedge(clock)
-    reset.next = INACTIVE_HIGH
-    for i in range(12):
-        enable.next = min(1, randrange(3))
+    def stimulus():
+        reset.next = ACTIVE_LOW
         yield negedge(clock)
-    raise StopSimulation
+        reset.next = INACTIVE_HIGH
+        for i in range(12):
+            enable.next = min(1, randrange(3))
+            yield negedge(clock)
+        raise StopSimulation
 
-def monitor():
-    print "enable  count"
-    yield posedge(reset)
-    while 1:
-        yield posedge(clock)
-        yield delay(1)
-        print "   %s      %s" % (enable, count)
-        
+    def monitor():
+        print "enable  count"
+        yield posedge(reset)
+        while 1:
+            yield posedge(clock)
+            yield delay(1)
+            print "   %s      %s" % (enable, count)
+
+    return clockGen(), stimulus(), INC_1, monitor()
+
+tb = testbench()
 
 def main():
-    Simulation(clockGen(), stimulus(), INC_1, monitor(), INC_1).run()
+    Simulation(tb).run()
     
 
 if __name__ == '__main__':
