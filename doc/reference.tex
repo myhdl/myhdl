@@ -8,10 +8,10 @@ chapter describes the objects that are exported by this package.
 \begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
 Class to construct a new simulation. Each argument is either be a
 \myhdl\ generator, or a nested sequence of such generators. (A nested
-sequence means that each item in the sequence may itself be a
-sequence.) See section~\ref{myhdl-generators} for the definition of
-\myhdl\ generators and their interaction with a \class{Simulation}
-object. 
+sequence is defined as a sequence in which each item may itself be a
+nested sequence.) See section~\ref{myhdl-generators} for the
+definition of \myhdl\ generators and their interaction with a
+\class{Simulation} object.
 \end{classdesc}
 
 A \class{Simulation} object has the following method:
@@ -101,6 +101,19 @@ generator waits for it to complete.  In other words, the original
 generator is triggered when the spawned generator completes.
 \end{datadesc}
 
+In addition, as a special case, the Python \code{None} object can be
+present in  a \code{yield} statement:
+
+\begin{datadesc}{None}
+This is the do-nothing trigger object. The generator immediately
+resumes, as if no \code{yield} statement were present. This can be
+useful if the \code{yield} statement also has generator clauses: those
+generators are spawned, while the orginal generator resumes
+immediately.
+
+\end{datadesc}
+
+
 
 \section{Miscellaneous objects}
 
@@ -116,10 +129,10 @@ Return the current simulation time.
 \end{funcdesc}
 
 \begin{funcdesc}{downrange}{high, \optional{low=0}}
-Generates a downward range list. Modeled after the standard
-\code{range} function, but works in the downward direction. The
-returned interval is half-open, with \var{high} not being
-included. \var{low} is optional and defaults to zero.
+Generates a downward range list of integers. Modeled after the
+standard \code{range} function, but works in the downward
+direction. The returned interval is half-open, with \var{high} not
+being included. \var{low} is optional and defaults to zero.
 
 This function is especially useful with the \class{intbv} class, that
 also works with downward indexing.
@@ -222,9 +235,9 @@ binary string representation is often needed. Therefore, they also
 have a method that converts to a binary string:
 
 \begin{methoddesc}[intbv]{bin}{\optional{width}}
-Return a representation as a binary string, that is, a string
-containing only '0's or '1's. If \var{width} is provided, the string is
-padded with the sign bit so that it has the desired width.
+Return a representation as a bit string.  If \var{width} is provided,
+and if it is larger that the width of the default representation, the
+bit string is padded with the sign bit.
 \end{methoddesc}
 
 In addition, an \class{intbv} object supports the iterator protocol. This
