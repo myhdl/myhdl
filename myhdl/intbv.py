@@ -104,7 +104,7 @@ class intbv(object):
             j = 0
         if i <= j or i < 1 or j < 0:
             raise ValueError, "intbv[i:j]: requires i > j >= 0" \
-                  "            i, j ,v == %s, %s %s" % (i, j, val)
+                  "            i, j == %s, %s" % (i, j)
         res = intbv((self._val & 2**i-1) >> j)
         res._len = i-j
         return res
@@ -126,7 +126,6 @@ class intbv(object):
             raise ValueError, "intbv[i:j] = v: requires i > j >= 0" \
                   "            i, j ,v == %s, %s %s" % (i, j, val)
         if val >= 2**(i-j) or val < -2**(i-j):
-            print val, abs(val), i, j
             raise ValueError, "intbv[i:j] = v: abs(v) too large\n" \
                   "            i, j ,v == %s, %s %s" % (i, j, val)
         mask = (2**(i-j))-1
