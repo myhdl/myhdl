@@ -108,10 +108,7 @@ class intbv(object):
         res._len = i-j
         return res
         
-    def __setitem__(self, i, v):
-        val = v
-        if type(val) is intbv:
-            val = v._val
+    def __setitem__(self, i, val):
         if val not in (0, 1):
             raise ValueError, "intbv[i] = v: requires v in (0, 1)"
         if val:
@@ -119,16 +116,15 @@ class intbv(object):
         else:
             self._val &= ~(2**i)
 
-    def __setslice__(self, i, j, v):
+    def __setslice__(self, i, j, val):
         if j == maxint: # default if not supplied
             j = 0
-        val = v
-        if type(val) is intbv:
-            val = v
         if i <= j or i < 1 or j < 0:
             raise ValueError, "intbv[i:j] = v: requires i > j >= 0"
         if val >= 2**(i-j):
             raise ValueError, "intbv[i:j] = v: v too large"
+        if val < 0:
+            raise ValueError, "intbv[i:j] = v: v should be >= 0"
         mask = (2**(i-j))-1
         mask *= 2**j
         self._val &= ~mask
