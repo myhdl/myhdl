@@ -29,9 +29,8 @@ loaded and viewed in a waveform viewer tool such as \program{gtkwave}.
 
 The user interface of this feature consists of a single function,
 \function{traceSignals()}.  To explain how it works, recall that in
-\myhdl{}, an instance is created by calling a function that returns a
-sequence of generators, and by assigning the result to an instance
-name. For example:
+\myhdl{}, an instance is created by a function call and by assigning
+the result to an instance name. For example:
 
 \begin{verbatim}
 tb_fsm = testbench()
@@ -44,19 +43,14 @@ instead:
 tb_fsm = traceSignals(testbench)
 \end{verbatim}
 
-All signals in the instance hierarchy will be traced in
-an output VCD file called \file{tb_fsm.vcd}. Note that the argument of
-\function{traceSignals()} consists of the uncalled function. By calling
-the function under its control, \function{traceSignals()} gathers
-information about the hierarchy and the signals to be traced.  In
-addition to a function argument, \function{traceSignals()} accepts an
-arbitrary number of non-keyword and keyword arguments that will be
+All signals in the instance hierarchy will be traced in an output VCD
+file called \file{tb_fsm.vcd}. Note that first the argument of
+\function{traceSignals()} consists of the uncalled function. By
+calling the function under its control, \function{traceSignals()}
+gathers information about the hierarchy and the signals to be traced.
+In addition to a function argument, \function{traceSignals()} accepts
+an arbitrary number of non-keyword and keyword arguments that will be
 passed to the function call.
-
-The restrictions on VCD tracing are as follows. First, only
-\class{Signal} objects can be traced. Second, only a hierarchy of
-instances returned by a pre-simulation top level function call can be
-traced.
 
 Signals are dumped in a suitable format. This format is inferred at
 the \class{Signal} construction time, from the type of the initial
@@ -218,13 +212,10 @@ def top(...):
 \end{verbatim}
 
 
-This permits fine grained control: for example, it
-is possible to return a different set of instances
-under parameter control. 
-However, having to return instances explicitly can be inconvenient,
-especially if there are a large number of them. Therefore, \myhdl\ 0.3
-provides a function \function{instances()} which assembles a list of
-all instances automatically. It is used as follows:
+It may be convenient to assemble the list of instances automatically,
+especially if there are a large number of instances. For this purpose,
+\myhdl\ 0.3 provides the  function \function{instances()}.
+It is used as follows:
 
 \begin{verbatim}
 from myhdl import instances
