@@ -48,8 +48,7 @@ class _Waiter(object):
             else:
                 return (None,), clone
         elif type(clause) is join:
-            n = len(clause._args)
-            clone.semaphore = n-1
+            clone.semaphore = len(clause._args)-1
             return clause._args, clone
         else:
             return (clause,), clone
