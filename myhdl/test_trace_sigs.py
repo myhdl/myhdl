@@ -37,8 +37,8 @@ from unittest import TestCase
 import shutil
 
 from myhdl import delay, Signal, Simulation
-from trace_sigs import trace_sigs, TopLevelNameError, ArgTypeError, \
-                       NoInstancesError
+from myhdl._trace_sigs import trace_sigs, TopLevelNameError, ArgTypeError, \
+                              NoInstancesError
 
 QUIET=1
 

@@ -48,17 +48,17 @@ __version__ = "0.3"
 # Because exported objects often have the same name as the internal
 # module that defines them, the import order here matters.  Objects
 # that are used by others are exported first.
-from bin import bin
-from intbv import intbv
-from join import join
-from Signal import posedge, negedge, Signal
+from _bin import bin
+from _intbv import intbv
+from _join import join
+from _Signal import posedge, negedge, Signal
 from _simulator import now
-from delay import delay
-from util import downrange, Error, StopSimulation
-from Cosimulation import Cosimulation
-from Simulation import Simulation
-from misc import instances, processes
-from always_comb import always_comb
-from enum import enum
-from trace_sigs import trace_sigs
+from _delay import delay
+from _util import downrange, Error, StopSimulation
+from _Cosimulation import Cosimulation
+from _Simulation import Simulation
+from _misc import instances, processes
+from _always_comb import always_comb
+from _enum import enum
+from _trace_sigs import trace_sigs
 

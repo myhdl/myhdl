@@ -37,7 +37,7 @@ MAXLINE = 4096
 
 from myhdl import Signal
 
-from Cosimulation import Cosimulation, \
+from myhdl._Cosimulation import Cosimulation, \
      Error, \
      MultipleCosimError, \
      DuplicateSigNamesError, \

@@ -35,9 +35,9 @@ import inspect
 from myhdl import Signal, Simulation, instances, processes, \
                   intbv, posedge, negedge, delay, StopSimulation
 
-from always_comb import always_comb, _AlwaysComb
-from always_comb import ScopeError, ArgumentError, NrOfArgsError, \
-                        SignalAsInoutError
+from myhdl._always_comb import always_comb, _AlwaysComb, \
+                               ScopeError, ArgumentError, NrOfArgsError, \
+                               SignalAsInoutError
 
 
 QUIET=1
