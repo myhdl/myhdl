@@ -246,7 +246,7 @@ html/whatsnew03/whatsnew03.html: whatsnew03/whatsnew03.tex
 	$(MKHTML) --dir html/whatsnew03 whatsnew03/whatsnew03.tex
 
 whatsnew04: html/whatsnew04/whatsnew04.html
-html/whatsnew04/whatsnew04.html: whatsnew04/whatsnew04.tex
+html/whatsnew04/whatsnew04.html: whatsnew04/whatsnew04.tex manual/conversion.tex
 	$(MKHTML) --dir html/whatsnew04 whatsnew04/whatsnew04.tex
 
 
