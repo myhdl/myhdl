@@ -643,9 +643,9 @@ TX: 0
 
 \end{verbatim}
 
-It is more likely that we want to characterize this on a byte by byte
-basis, and align the two generators before transmitting each byte. In
-\myhdl{}, this can be done with the \function{join} function. By
+It is more likely that we want to characterize the designs on a byte
+by byte basis, and align the two generators before transmitting each
+byte. In \myhdl{}, this is done with the \function{join} function. By
 joining clauses together in a \code{yield} statement, we create a new
 clause that triggers only when all of its argument clauses have
 triggered. For example, we can adapt the test bench as follows:
