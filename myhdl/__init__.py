@@ -37,6 +37,7 @@ bin -- returns a binary string representation.
 concat -- function to concat ints, bitstrings, bools, intbvs, Signals
        -- returns an intbv
 instances -- function that returns all instances defined in a function
+processes -- function that returns all processes defined in a function
 always_comb -- function that returns an input-sensitive generator
 enum -- function that returns an enumeration type
 traceSignals -- function that enables signal tracing in a VCD file
