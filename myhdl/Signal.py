@@ -140,10 +140,6 @@ class Signal(object):
         if isinstance(val, Signal):
             val = val._val
         self._checkVal(val)
-        # print self._type
-##         if not isinstance(val, self._type):
-##             raise TypeError, "Incompatible type(v) for sig.next = v\n" \
-##                   "           Expected %s, got %s" % (self._type, type(val))
         self._next = val
         _siglist.append(self)
     next = property(_get_next, _set_next, None, "'next' access methods")
@@ -151,12 +147,20 @@ class Signal(object):
     # support for the 'posedge' attribute
     def _get_posedge(self):
         return self._posedgeWaiters
-    posedge = property(_get_posedge, None, None, "'posedge' access methodes")
+    posedge = property(_get_posedge, None, None, "'posedge' access methods")
                        
     # support for the 'negedge' attribute
     def _get_negedge(self):
         return self._negedgeWaiters
-    negedge = property(_get_negedge, None, None, "'posedge' access methodes")
+    negedge = property(_get_negedge, None, None, "'negedge' access methods")
+    
+    # support for the 'min' and 'max' attribute
+    def _get_max(self):
+        return self._max
+    max = property(_get_max, None)
+    def _get_min(self):
+        return self._min
+    min = property(_get_min, None)
 
     # check methods
     def _checkBool(self, val):

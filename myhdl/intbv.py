@@ -61,6 +61,14 @@ class intbv(object):
             raise TypeError("intbv constructor arg should be int or string")
         self._len = _len
         self._checkBounds()
+        
+    # support for the 'min' and 'max' attribute
+    def _get_max(self):
+        return self._max
+    max = property(_get_max, None)
+    def _get_min(self):
+        return self._min
+    min = property(_get_min, None)
 
     def _checkBounds(self):
         if self._max is not None:
