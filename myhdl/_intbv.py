@@ -125,7 +125,7 @@ class intbv(object):
         if i <= j:
             raise ValueError, "intbv[i:j] requires i > j\n" \
                   "            i, j == %s, %s" % (i, j)
-        res = intbv((self._val & 2**i-1) >> j, _len=i-j)
+        res = intbv((self._val & (1L << i)-1) >> j, _len=i-j)
         return res
         
     def __setitem__(self, i, val):
@@ -133,9 +133,9 @@ class intbv(object):
             raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
                   "            i == %s " % i
         if val:
-            self._val |= (2**i)
+            self._val |= (1L << i)
         else:
-            self._val &= ~(2**i)
+            self._val &= ~(1L << i)
 
     def __setslice__(self, i, j, val):
         if j == maxint: # default
@@ -144,20 +144,21 @@ class intbv(object):
             raise ValueError, "intbv[i:j] = v requires j >= 0\n" \
                   "            j == %s" % j
         if i == 0: # default
-            q = self._val % (2**j)
-            self._val = val * 2**j + q
+            q = self._val % (1L << j)
+            self._val = val * (1L << j) + q
             self._checkBounds()
             return
         if i <= j:
             raise ValueError, "intbv[i:j] = v requires i > j\n" \
                   "            i, j, v == %s, %s, %s" % (i, j, val)
-        if val >= 2**(i-j) or val < -2**(i-j):
+        lim = (1L << (i-j))
+        if val >= lim or val < -lim:
             raise ValueError, "intbv[i:j] = v abs(v) too large\n" \
                   "            i, j, v == %s, %s, %s" % (i, j, val)
-        mask = (2**(i-j))-1
-        mask *= 2**j
+        mask = (1L << (i-j))-1
+        mask *= (1L << j)
         self._val &= ~mask
-        self._val |= val * 2**j
+        self._val |= val * (1L << j)
         self._checkBounds()
               
         
@@ -377,7 +378,7 @@ class intbv(object):
 
     def __invert__(self):
         if self._len:
-            return intbv(~self._val & (2**self._len)-1)
+            return intbv(~self._val & (1L << self._len)-1)
         else:
             return intbv(~self._val)
     
