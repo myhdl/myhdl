@@ -101,7 +101,7 @@ in a \code{myhdl.vpi} module that is compiled from C source code.
 \section{The \myhdl\ side}
 
 \myhdl\ supports co-simulation by a \code{Cosimulation} object. 
-A \code{Cosimulation} object must know how to run a HDL co-simulation.
+A \code{Cosimulation} object must know how to run a HDL simulation.
 Therefore, the first argument to its constructor is a command string
 to execute a simulation.
 
@@ -131,7 +131,7 @@ just a command line usage example; actually simulating with the
 \code{myhdl.vpi} module is only meaningful from a
 \code{Cosimulation} object.)
 
-We can use a \code{Cosimulation} object to provide a HDL co-simulation
+We can use a \code{Cosimulation} object to provide a HDL
 version of a design to the \myhdl\ simulator. Instead of a generator
 function, we write a function that returns a \code{Cosimulation}
 object. For our example and the Icarus Verilog simulator, this is done
@@ -163,7 +163,7 @@ same name and parameters for the the \code{bin2gray} function:
 all we need to do is to provide this alternative definition
 to the existing unit test.
 
-Let's quickly try it just to be sure:
+Let's quickly try it on the Verilog design, just to be sure:
 
 \begin{verbatim}
 module bin2gray(B, G);
