@@ -62,7 +62,16 @@ class ArgTypeError(Error):
 class NoInstancesError(Error):
     """trace_sigs returned no instances"""
 
-re_assname = re.compile(r"^\s*(?P<assname>\w[\w\d]*)\s*=")
+re_assign = r"""^
+                \s*
+                (?P<name>\w[\w\d]*)
+                (?P<index>\[.*\])?
+                \s*
+                =
+                """
+ 
+rex_assign = re.compile(re_assign, re.X)
+
 
 def trace_sigs(dut, *args, **kwargs):
     global _tracing
@@ -74,15 +83,11 @@ def trace_sigs(dut, *args, **kwargs):
         raise ArgTypeError("got generator function")
     _tracing = 1
     try:
-        o = getouterframes(currentframe())[1]
-        s = o[4][0]
-        m = re_assname.match(s)
-        name = None
-        if m:
-            name = m.group('assname')
-        else:
+        outer = getouterframes(currentframe())[1]
+        name = _findInstanceName(outer)
+        if name is None:
             raise TopLevelNameError
-        h = HierExtr(name, dut, *args, **kwargs)
+        h = _HierExtr(name, dut, *args, **kwargs)
         vcdpath = name + ".vcd"
         if path.exists(vcdpath):
             backup = vcdpath + '.' + str(path.getmtime(vcdpath))
@@ -96,9 +101,31 @@ def trace_sigs(dut, *args, **kwargs):
     finally:
         _tracing = 0
     return h.m
+
+
+def _findInstanceName(framerec):
+    f = framerec[0]
+    c = framerec[4][0]
+    m = rex_assign.match(c)
+    name = None
+    if m:
+        basename, index = m.groups()
+        if index:
+            il = []
+            for i in index[1:-1].split("]["):
+                try:
+                    s = str(eval(i, f.f_globals, f.f_locals))
+                except:
+                    break
+                il.append(s)
+            else:
+                name = basename + '[' + "][".join(il) + ']'
+        else:
+            name = basename
+    return name
  
 
-class HierExtr(object):
+class _HierExtr(object):
     
     def __init__(self, name, dut, *args, **kwargs):
         self.names = [name]
@@ -113,32 +140,27 @@ class HierExtr(object):
             raise NoInstancesError
         self.m = _top
         instances.reverse()
-        # print instances
         instances[0][1] = name
 
     def extractor(self, frame, event, arg):
         if event == "call":
-            o = getouterframes(frame)[1]
-            s = o[4][0]
-            m = re_assname.match(s)
-            name = None
-            if m:
-                name = m.group('assname')
+            outer = getouterframes(frame)[1]
+            name = _findInstanceName(outer)
             self.names.append(name)
             if name:
-               self.level += 1
+                self.level += 1
         elif event == "return":
             name = self.names.pop()
             if name:
-               if _isGenSeq(arg):
-                  sigdict = {}
-                  for dict in (frame.f_locals, frame.f_globals):
-                      for n, v in dict.items():
-                          if isinstance(v, Signal):
-                              sigdict[n] = v
-                  i = [self.level, name, sigdict]
-                  self.instances.append(i)
-               self.level -= 1
+                if _isGenSeq(arg):
+                    sigdict = {}
+                    for dict in (frame.f_locals, frame.f_globals):
+                        for n, v in dict.items():
+                            if isinstance(v, Signal):
+                                sigdict[n] = v
+                    i = [self.level, name, sigdict]
+                    self.instances.append(i)
+                self.level -= 1
 
 
 _codechars = ""
