@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
-#include "vpi_user.h"
 #include <string.h>
+#include <stdio.h>
+#include "vpi_user.h"
 
 #define MAXLINE 4096
 #define MAXWIDTH 10
@@ -36,7 +37,6 @@ static char bufcp[MAXLINE];
 static myhdl_time64_t myhdl_time;
 static myhdl_time64_t verilog_time;
 static myhdl_time64_t pli_time;
-static myhdl_time64_t delay;
 static int delta;
 
 /* prototypes */
@@ -181,11 +181,13 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   delta = 0;
 
   time_s.type = vpiSuppressTime;
+  value_s.format = vpiSuppressVal;
   cb_data_s.reason = cbValueChange;
   cb_data_s.cb_rtn = change_callback;
   cb_data_s.time = &time_s;
+  // icarus stops on the following line but shouldn't
+  // cb_data_s.value = &value_s;
   cb_data_s.value = NULL;
-  // value_s.format = vpiHexStrVal;
   i = 0;
   to_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
@@ -209,6 +211,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   n = write(wpipe, buf, strlen(buf));
 
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
+    vpi_printf("ABORT from $to_myhdl\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
@@ -246,9 +249,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 
 static PLI_INT32 readonly_callback(p_cb_data cb_data)
 {
-  vpiHandle systf_handle;
   vpiHandle net_iter, net_handle;
-  vpiHandle reg_iter, reg_handle;
   s_cb_data cb_data_s;
   s_vpi_time verilog_time_s;
   s_vpi_value value_s;
@@ -264,7 +265,9 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   if (start_flag) {
     start_flag = 0;
     n = write(wpipe, "START", 5);  
+    // vpi_printf("INFO: RO cb at start-up\n");
     if ((n = read(rpipe, buf, MAXLINE)) == 0) {
+      vpi_printf("ABORT from RO cb at start-up\n");
       vpi_control(vpiFinish, 1);  /* abort simulation */
     }  
     assert(n > 0);
@@ -298,6 +301,7 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   }
   n = write(wpipe, buf, strlen(buf));
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
+    // vpi_printf("ABORT from RO cb\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
@@ -377,7 +381,6 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 {
   s_cb_data cb_data_s;
   s_vpi_time time_s;
-  vpiHandle systf_handle;
   vpiHandle reg_iter, reg_handle;
   s_vpi_value value_s;
 
@@ -428,14 +431,12 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 
 static PLI_INT32 change_callback(p_cb_data cb_data)
 {
-  s_cb_data cb_data_s;
-  s_vpi_time time_s;
-  s_vpi_time verilog_time;
-  vpiHandle systf_handle;
   int *id;
 
+  // vpi_printf("change callback");
   id = (int *)cb_data->user_data;
   changeFlag[*id] = 1;
+  return(0);
 }
 
 
@@ -460,3 +461,4 @@ void myhdl_register()
   tf_data.user_data = "$from_myhdl";
   vpi_register_systf(&tf_data);
 }
+
