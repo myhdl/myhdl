@@ -35,6 +35,7 @@ from myhdl import _simulator, SimulationError
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _WaiterList
 from myhdl._util import _flatten, _printExcInfo
+from myhdl._always_comb import _AlwaysComb
 
 
 schedule = _futureEvents.append
@@ -208,6 +209,8 @@ def _checkArgs(arglist):
     for arg in arglist:
         if type(arg) is GeneratorType:
             waiters.append(_Waiter(arg))
+        elif type(arg) is _AlwaysComb:
+            waiters.append(_Waiter(arg.genfunc()))
         elif type(arg) is Cosimulation:
             if cosim is not None:
                 raise SimulationError(_error.MultipleCosim)

@@ -18,6 +18,23 @@ def bin2gray(B, G, width):
         Bext[:] = B
         for i in range(width):
             G.next[i] = Bext[i+1] ^ Bext[i]
+
+def bin2gray2(B, G, width):
+    """ Gray encoder.
+
+    B -- input intbv signal, binary encoded
+    G -- output intbv signal, gray encoded
+    width -- bit width
+    """
+
+    def logic():
+        Bext = intbv(0)[width+1:]
+        Bext[:] = B
+        for i in range(width):
+            G.next[i] = Bext[i+1] ^ Bext[i]
+
+    return always_comb(logic)
+           
             
 objfile = "bin2gray.o"           
 analyze_cmd = "iverilog -o %s bin2gray_inst.v tb_bin2gray_inst.v" % objfile

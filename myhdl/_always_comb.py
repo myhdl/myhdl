@@ -62,7 +62,7 @@ def always_comb(func):
                    n not in sigdict:
                 sigdict[n] = v
     c = _AlwaysComb(func, sigdict)
-    return c.genfunc()
+    return c
    
 
 INPUT, OUTPUT, INOUT = range(3)
@@ -144,11 +144,12 @@ class _AlwaysComb(object):
         compiler.walk(tree, v)
         self.inputs = v.inputs
         self.outputs = v.outputs
+        self.senslist = tuple([self.sigdict[n] for n in self.inputs])
 
     def genfunc(self):
-        inputsigs = tuple([self.sigdict[n] for n in self.inputs])
+        senslist = self.senslist
         func = self.func
         while 1:
             func()
-            yield inputsigs
+            yield senslist
  

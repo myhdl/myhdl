@@ -38,6 +38,7 @@ from types import GeneratorType
 
 from myhdl import Cosimulation
 from myhdl._util import _isGenFunc, _isGenSeq
+from myhdl._always_comb import _AlwaysComb
 
     
 def instances():
@@ -45,7 +46,7 @@ def instances():
     d = inspect.getouterframes(f)[1][0].f_locals
     l = []
     for v in d.values():
-      if type(v) in (GeneratorType, Cosimulation):
+      if type(v) in (GeneratorType, Cosimulation, _AlwaysComb):
          l.append(v)
       elif _isGenSeq(v):
          l.append(v)
