@@ -38,12 +38,12 @@ from myhdl import enum
 
 class TestEnum(TestCase):
 
-    t_State = enum("HUNT", "CONFIRM", "SYNC")
-    t_Homograph = enum("HUNT", "CONFIRM", "SYNC")
+    t_State = enum("SEARCH", "CONFIRM", "SYNC")
+    t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
 
     def testUniqueLiterals(self):
         try:
-            t_State = enum("HUNT", "CONFIRM", "HUNT")
+            t_State = enum("SEARCH", "CONFIRM", "SEARCH")
         except ValueError:
             pass
         else:
@@ -58,9 +58,9 @@ class TestEnum(TestCase):
             self.fail()
 
     def testAttrAssign(self):
-        self.t_State.HUNT
+        self.t_State.SEARCH
         try:
-            self.t_State.HUNT = 4
+            self.t_State.SEARCH = 4
         except AttributeError:
             pass
         else:
@@ -78,7 +78,7 @@ class TestEnum(TestCase):
         self.assert_(self.t_State is not self.t_Homograph)
         
     def testHomographLiteral(self):
-        self.assert_(self.t_State.HUNT is not self.t_Homograph.HUNT)
+        self.assert_(self.t_State.SEARCH is not self.t_Homograph.SEARCH)
 
 
 if __name__ == "__main__":
