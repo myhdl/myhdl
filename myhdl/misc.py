@@ -62,14 +62,19 @@ def instances():
    return l
 
 
+def _isgeneratorfunction(obj):
+   if type(obj) is FunctionType:
+         s = inspect.getsource(obj)
+         if re.search(r"\byield\b", s):
+            return 1
+   return 0
+      
+
 def processes():
    f = inspect.currentframe()
    d = inspect.getouterframes(f)[1][0].f_locals
    l = []
    for v in d.values():
-      if type(v) is FunctionType:
-         s = inspect.getsource(v)
-         # check whether this is a generator function
-         if re.search(r"\byield\b", s):
-             l.append(v()) # call it
+      if _isgeneratorfunction(v):
+         l.append(v()) # call it
    return l
