@@ -254,7 +254,9 @@ class _YieldVisitor(object):
 
     def visitCallFunc(self, node, *args):
         fn = node.node
-        assert isinstance(fn, astNode.Name)
+        if not isinstance(fn, astNode.Name):
+            node.kind = _kind.UNDEFINED
+            return
         self.visit(fn)
         node.kind = fn.kind
                 
