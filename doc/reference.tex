@@ -216,7 +216,18 @@ this method as an unbound method with an explicit first \class{intbv}
 argument.
 \end{methoddesc}
 
-In addition, an \class{intbv} object supports the iterator protocol this
+\class{intbv} objects support the standary Python \code{hex} and
+\code{oct} conversions to a string representation. In hardware design, a
+binary string representation is often needed. Therefore, they also
+have a method that converts to a binary string:
+
+\begin{methoddesc}[intbv]{bin}{\optional{width}}
+Return a representation as a binary string, that is, a string that
+only contains '0's or '1's. If \var{width} is provided, the string is
+padded so that it has the desired width.
+\end{methoddesc}
+
+In addition, an \class{intbv} object supports the iterator protocol. This
 makes it possible to iterate over all its bits, from the high index to
 index 0. Again, this is only possible for \class{intbv} objects with a
 defined bit width.
