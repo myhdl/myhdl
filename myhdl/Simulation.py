@@ -26,14 +26,30 @@ __date__ = "$Date$"
 from __future__ import generators
 import sys
 import exceptions
+from warnings import warn
 
 import _simulator as sim
 from _simulator import _siglist, _futureEvents
 from Signal import Signal, _SignalWrap, _WaiterList
 from delay import delay
 from types import GeneratorType
+from Cosimulation import Cosimulation
 
 schedule = _futureEvents.append
+
+class Error(Exception):
+    """Simulation Error"""
+    def __init__(self, arg=""):
+        self.arg = arg
+    def __str__(self):
+        msg = self.__doc__
+        if self.arg:
+            msg = msg + ": " + str(self.arg)
+        return msg
+
+class MultipleCosimError(Error):
+    """Only a single cosimulator argument allowed"""
+
             
 class Simulation(object):
 
@@ -52,10 +68,11 @@ class Simulation(object):
 
         """
         sim._time = 0
-        self._waiters = _flatten(*args)
+        self._waiters, self._cosim = _flatten(*args)
+        if not self._cosim and sim._cosim:
+            warn("Cosimulation not registered as Simulation argument")
         del _futureEvents[:]
         del _siglist[:]
-        self.cosim = sim._cosim
 
     def run(self, duration=None, quiet=0):
         
@@ -74,18 +91,13 @@ class Simulation(object):
             maxTime = sim._time + duration
             schedule((maxTime, stop))
 
-        cosim = self.cosim
-        running = 0
-            
+        cosim = self._cosim
         t = sim._time
         while 1:
             try:
                 for s in _siglist:
                     waiters.extend(s._update())
                 del _siglist[:]
-
-                if cosim and running:
-                    cosim._put()
                 
                 while waiters:
                     waiter = waiters.pop(0)
@@ -115,6 +127,7 @@ class Simulation(object):
 
                 if cosim:
                     cosim._get()
+                    cosim._put()
 
                 if _siglist: continue
                 if t == maxTime:
@@ -150,14 +163,24 @@ class Simulation(object):
                 
  
 def _flatten(*args):
-    res = []
+    waiters = []
+    cosim = None
     for arg in args:
         if type(arg) is GeneratorType:
-            res.append(_Waiter(arg))
+            waiters.append(_Waiter(arg))
+        elif type(arg) is Cosimulation:
+            if cosim:
+                raise MultipleCosimError
+            cosim = arg
+            waiters.append(_Waiter(cosim._waiter))
         else:
             for item in arg:
-                res.extend(_flatten(item))
-    return res
+                w, c = _flatten(item)
+                if cosim and c:
+                    raise MultipleCosimError
+                cosim = c
+                waiters.extend(w)
+    return waiters, cosim
 
 
 class _Waiter(object):

@@ -34,7 +34,6 @@ import _simulator
 from myhdl import intbv
 
 
-_flag = 0
 _MAXLINE = 4096
 
 class Error(Exception):
@@ -68,14 +67,11 @@ class Cosimulation(object):
     def __init__(self, exe="", **kwargs):
         
         """ Construct a cosimulation object. """
-
-        _simulator._cosim = None
-        global _flag
-        if _flag:
+        
+        if _simulator._cosim:
             raise MultipleCosimError
-        _flag = 1
-        _simulator._cosim = self
-
+        _simulator._cosim = 1
+        
         self._rt, self._wt = rt, wt = os.pipe()
         self._rf, self._wf = rf, wf = os.pipe()
 
@@ -85,6 +81,8 @@ class Cosimulation(object):
         self._toSignames = toSignames = []
         self._toSizes = toSizes = []
         self._toSigs = toSigs = []
+
+        self._changeFlag = 0
 
         child_pid = os.fork()
 
@@ -148,20 +146,30 @@ class Cosimulation(object):
         vals = e[1:]
         for s, v in zip(self._toSigs, vals):
             try:
-                s.next = long(v, 16)
+                next = long(v, 16)
             except ValueError:
-                s.next = intbv.intbv(None)
+                next = intbv(None)
+            if s.val != next:
+                s.next = next
 
     def _put(self):
-        buf = hex(_simulator._time)[2:]
-        buf += " "
+        t = hex(_simulator._time)[2:]
+        if t[-1] == 'L':
+            t = t[:-1] # strip trailing L
+        t = (9 - len(t)) * '0' + t # zero-extend to more than 32 bits
+        buf = t[:-8] + " " + t[-8:] + " " # high and low time
         for s in self._fromSigs:
             buf += hex(s)[2:]
             buf += " "
+        self._changeFlag = 0
         os.write(self._wf, buf)
+
+    def _waiter(self):
+        sigs = tuple(self._fromSignals)
+        while 1:
+            yield sigs
+            self._changeFlag = 1
             
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """
-        global _flag
-        _flag = 0
-
+        _simulator._cosim = 0

@@ -217,7 +217,7 @@ class CosimulationTest(TestCase):
         os.read(rf, MAXLINE)
         os.write(wt, "DUMMY")
         s = os.read(rf, MAXLINE)
-        vals = [long(e, 16) for e in s.split()[1:]]
+        vals = [long(e, 16) for e in s.split()[2:]]
         self.assertEqual(vals, fromVals)
 
     def testToSignalVals(self):

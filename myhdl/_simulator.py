@@ -31,7 +31,7 @@ __date__ = "$Date$"
 _siglist = []
 _futureEvents = []
 _time = 0
-_cosim = None
+_cosim = 0
 
 def now():
     """ Return the current simulation time """
