@@ -607,7 +607,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
         for n in self.ast.outputs:
             s = self.ast.sigdict[n]
             if s._driven:
-                self.raiseError(node, _error._SigMultipleDriven, n)
+                self.raiseError(node, _error.SigMultipleDriven, n)
             s._driven = True
         for n in self.ast.inputs:
             s = self.ast.sigdict[n]

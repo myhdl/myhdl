@@ -26,6 +26,16 @@ def freeVarTypeError(count, enable, clock, reset, n):
                 incTaskFunc()
     return incTaskGen()
 
+def multipleDrivenSignal(count, enable, clock, reset, n):
+    def incTaskGen():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            if reset == ACTIVE_LOW:
+               count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return incTaskGen(), incTaskGen()
 
 def shadowingSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0)[8:])
@@ -239,6 +249,14 @@ class TestErr(TestCase):
             self.bench(internalSignal)
         except ToVerilogError, e:
             self.assertEqual(e.kind, _error.TypeInfer)
+        else:
+            self.fail()
+            
+    def testMultipleDrivenSignal(self):
+        try:
+            self.bench(multipleDrivenSignal)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.SigMultipleDriven)
         else:
             self.fail()
             
