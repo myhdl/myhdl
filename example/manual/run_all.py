@@ -7,6 +7,7 @@ modules = ('hello1',
            'mux',
            'mux2',
            'inc',
+           'queue',
            'sparseMemory',
            'fifo',
           )

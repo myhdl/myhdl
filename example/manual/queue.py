@@ -41,7 +41,9 @@ def Consumer(q):
 def main():
     P = Producer(q)
     C = Consumer(q)
-    return P, C 
+    sim = Simulation(P, C)
+    sim.run()
+    
 
-sim = Simulation(main())
-sim.run()
+if __name__ == '__main__':
+    main()
