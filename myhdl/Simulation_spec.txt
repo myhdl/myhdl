@@ -36,20 +36,13 @@ Specification for the Simulation class
   of durations t1, t2, ... tn should give exactly the same behavior as
   a single run for duration t1+t2+...+ tn. The 'run' method returns
   None if there are no further events, and 1 otherwise. When the
-  simulation has run for the specified duration, the StopSimulation
+  simulation has run for the specified duration, the SuspendSimulation
   exception is raised.
 
-* When there are no further events during as simulation run, the
-  StopSimulation exception is raised.
-
-* When the StopSimulation exception is caught, the run method prints
-  the exception message and returns 1.
-
 * A Simulation run interacts with a list of signals that need updating
-  and a list of generators that need to run. As Simulation
+  and a list of generators that need to run. At Simulation
   construction time, the signal list is empty and the generator list
-  contains all generators that were passed as constructor
-  parameters.
+  contains all generators that were passed as constructor parameters.
 
 * In a given timestep, all signals in the signal list are first
   updated. This may cause the need to run some additional
