@@ -4,7 +4,7 @@ global-include *.pdf
 global-include *.ps
 global-include *.c
 global-include Makefile
-global-exclude *.v
+global-include *.v
 global-exclude .cvsignore
 prune dist
 prune doc
@@ -15,3 +15,4 @@ exclude doc/html/.cvsignore
 include doc/paper-a4/*.pdf
 include doc/paper-letter/*.pdf
 prune myhdl/experiments
+exclude myhdl/test/toVerilog/*.v
