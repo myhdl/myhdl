@@ -118,6 +118,74 @@ Note that the waveforms show the string representation of the
 enumeration type identifiers. 
 
 \section{Inferring the sensitivity list for combinatorial logic}
+In \myhdl\, combinatorial logic described by a generator function
+with a sensitivity list that contains all inputs signals 
+(the signals that are read inside the function). 
+
+It is easy to forget some input signals, especially it there are a
+lot of them or if the code is being modified. There are various ways
+to solve this. One way is to use a sophisticated editor. Another way
+is direct language support. For example, recent versions of Verilog
+have the \code{ always @* } construct, that infers all input
+signals. The SystemVerilog 3.1 standard attemps to further improve on
+this by introducting the \code{always_comb} block with slightly
+enhanced semantics.
+
+\myhdl\ 0.3 provides a function called \function{always_comb()} which
+is named and modelled after the SystemVerilog counterpart.
+\function{always_comb()} takes a single classic function as its
+argument. This function should be locally defined and specifies what
+should happen when one of its input signal
+changes. \function{always_comb()} returns a generator that is
+sensitive to all inputs, and that will run the function
+whenever an input changes.
+
+For example, suppose have a mux module as follows:
+
+\begin{verbatim}
+def mux(z, a, b, sel):
+    """ Multiplexer.
+    
+    z -- mux output
+    a, b -- data inputs
+    sel -- control input
+
+    """
+    def logic()
+        while 1:
+            yield a, b, sel
+            if sel == 1:
+                z.next = a
+            else:
+                z.next = b
+
+    mux_logic = logic()
+
+    return mux_logic
+\end{verbatim}
+
+Using \function{always_comb()}, we can describe it as follows instead:
+
+\begin{verbatim}
+def mux(z, a, b, sel):
+    """ Multiplexer.
+    
+    z -- mux output
+    a, b -- data inputs
+    sel -- control input
+
+    """
+    def logic()
+        if sel == 1:
+            z.next = a
+        else:
+            z.next = b
+
+    mux_logic = always_comb(logic)
+
+    return mux_logic
+\end{verbatim}
+
 
 \section{Inferring the list of all instances\label{section-instances}}
 
@@ -140,7 +208,6 @@ def top(...):
 This permits fine grained control: for example, it
 is possible to return a different set of instances
 under parameter control. 
-
 However, having to return instances explicitly can be inconvenient,
 expecially if there are a large number of them. Therefore, \myhdl\ 0.3
 provides a function \function{instances()} which assembles a list of
