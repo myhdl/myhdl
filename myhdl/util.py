@@ -34,6 +34,9 @@ __date__ = "$Date$"
 
 import exceptions
 import sys
+import inspect
+import re
+from types import FunctionType
 
 
 def downrange(start, stop=0):
@@ -80,4 +83,9 @@ def printExcInfo():
         msg += ": %s" % value
         print msg
        
-
+def _isgeneratorfunction(obj):
+   if type(obj) is FunctionType:
+         s = inspect.getsource(obj)
+         if re.search(r"\byield\b", s):
+            return 1
+   return 0

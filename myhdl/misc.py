@@ -20,11 +20,10 @@
 """ myhdl misc objects.
 
 This module provides the following myhdl objects:
-downrange -- function that returns a downward range
-Error -- myhdl Error exception
-bin -- returns a binary string representation.
-       The optional width specifies the desired string
-       width: padding of the sign-bit is used.
+instances -- function that returns instances in a generator function
+             these are all generators in the local namespace
+processes -- function that returns processes in a generator function
+             these are generators obtained by calling local generator functions
 
 """
 
@@ -32,11 +31,11 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
-import re
 import inspect
 
-from types import GeneratorType, FunctionType, ListType, TupleType
+from types import GeneratorType, ListType, TupleType
 from myhdl import Cosimulation
+from util import _isgeneratorfunction
     
 def _isGenSeq(seq):
    if not isinstance(seq, (ListType, TupleType)):
@@ -60,15 +59,7 @@ def instances():
       elif _isGenSeq(v):
          l.append(v)
    return l
-
-
-def _isgeneratorfunction(obj):
-   if type(obj) is FunctionType:
-         s = inspect.getsource(obj)
-         if re.search(r"\byield\b", s):
-            return 1
-   return 0
-      
+     
 
 def processes():
    f = inspect.currentframe()
