@@ -22,10 +22,10 @@ def calculateHecRef(header):
                         )
     return hec ^ COSET
 
-def calculateHecSynth(header):
+def calculateHecFunc(header):
     """ Return hec for an ATM header.
     
-    Synthesizable version.
+    Translatable version.
     The hec polynomial is 1 + x + x**2 + x**8.
     """
     h = intbv(0)[8:]
@@ -38,6 +38,23 @@ def calculateHecSynth(header):
                       )
     h ^= COSET
     return h
+
+def calculateHecTask(hec, header):
+    """ Calculate hec for an ATM header.
+    
+    Translatable version.
+    The hec polynomial is 1 + x + x**2 + x**8.
+    """
+    h = intbv(0)[8:]
+    for i in downrange(len(header)):
+        bit = header[i]
+        h[:] = concat(h[7:2],
+                      bit ^ h[1] ^ h[7],
+                      bit ^ h[0] ^ h[7],
+                      bit ^ h[7]
+                      )
+    h ^= COSET
+    hec[:] = h
 
 def HecCalculatorPlain(hec, header):
     """ Hec calculation module.
@@ -65,7 +82,18 @@ def HecCalculatorFunc(hec, header):
     h = intbv(0)[8:]
     while 1:
         yield header
-        hec.next = calculateHecSynth(header=header)
+        hec.next = calculateHecFunc(header=header)
+
+def HecCalculatorTask(hec, header):
+    """ Hec calculation module.
+
+    Version with task call.
+    """
+    h = intbv(0)[8:]
+    while 1:
+        yield header
+        calculateHecTask(h, header)
+        hec.next = h
 
          
         
@@ -105,19 +133,24 @@ class TestHec(unittest.TestCase):
                 header.next = h
                 yield delay(10)
                 hec_ref = calculateHecRef(header)
-                # print "hec: %s hec_v: %s" % (hex(hec), hex(hec_v))
+                print "hec: %s hec_v: %s" % (hex(hec), hex(hec_v))
                 self.assertEqual(hec, hec_ref)
                 self.assertEqual(hec, hec_v)
 
         return stimulus(), heccalc_inst, heccalc_v_inst
 
-    def testPlain(self):
-        sim = self.bench(HecCalculatorPlain)
-        Simulation(sim).run()
+##     def testPlain(self):
+##         sim = self.bench(HecCalculatorPlain)
+##         Simulation(sim).run()
 
     def testFunc(self):
         sim = self.bench(HecCalculatorFunc)
         Simulation(sim).run()
+
+##     def testTask(self):
+##         sim = self.bench(HecCalculatorTask)
+##         Simulation(sim).run()
+       
         
 
         
