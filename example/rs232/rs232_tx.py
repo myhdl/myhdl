@@ -3,7 +3,7 @@ import operator
 
 from myhdl import Signal, downrange, delay, posedge
 
-from rs232_util import sec, ODD, EVEN, MARK, SPACE
+from rs232_util import reduceXor, sec, ODD, EVEN, MARK, SPACE
 
 def rs232_tx(tx, data, cfg):
     
@@ -20,9 +20,9 @@ def rs232_tx(tx, data, cfg):
         if cfg.n_bits == 7:
             data[7] = 0
         if cfg.parity == ODD:
-            tx.next = not reduce(operator.xor, [b for b in data[8:]])
+            tx.next = not reduceXor(data[8:])
         elif cfg.parity == EVEN:
-            tx.next = reduce(operator.xor, [b for b in data[8:]])
+            tx.next = reduceXor(data[8:])
         elif cfg.parity == MARK:
             tx.next = 1
         elif cfg.parity == SPACE:

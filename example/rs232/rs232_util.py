@@ -26,11 +26,14 @@ class Config(object):
 
 def parity(data, cfg):
     if cfg == ODD:
-        return not reduce(operator.xor, [b for b in data[8:]])
+        return not reduceXor(data[8:])
     elif cfg== EVEN:
-        return reduce(operator.xor, [b for b in data[8:]])
+        return reduceXor(data[8:])
     elif cfg == MARK:
         return 1
     elif cfg == SPACE:
         return 0
+
+def reduceXor(bv):
+    return reduce(operator.xor, [b for b in bv])
  

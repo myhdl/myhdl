@@ -23,8 +23,8 @@ class rs232Test(TestCase):
             self.assertEqual(data, actual)
 
     def testDefault(self):
+        """ Check default case """
         Simulation(self.default()).run(quiet=1)
-
 
     def oddParity(self):
         tx = Signal(intbv(0))
@@ -37,6 +37,7 @@ class rs232Test(TestCase):
             self.assertEqual(data, actual)
         
     def testOddParity(self):
+        """ Check odd parity """
         Simulation(self.oddParity()).run(quiet=1)
 
     def sevenBitsEvenParity(self):
@@ -51,6 +52,7 @@ class rs232Test(TestCase):
             self.assertEqual(data, actual)
         
     def testSevenBitsEvenParity(self):
+        """ Check 7 bits with even parity """
         Simulation(self.sevenBitsEvenParity()).run(quiet=1)
         
     def ParityError(self):
@@ -61,9 +63,9 @@ class rs232Test(TestCase):
         cfg_tx = Config(parity=EVEN)
         data = intbv(randrange(256))
         yield join(rs232_tx(tx, data, cfg_tx), rs232_rx(rx, actual, cfg_rx))
-        self.assertEqual(data, actual)
             
     def testParityError(self):
+        """ Expect a parity error """
         try:
             Simulation(self.ParityError()).run(quiet=1)
         except ParityError:
@@ -87,6 +89,7 @@ class rs232Characterize(TestCase):
                 raise Error
 
     def testCharacterize(self):
+        """ Characterize baud rate tolerance """
         coarseOffset = 100
         fineOffset = 5
         tx_baud_rate = 9600
