@@ -36,13 +36,34 @@ schedule = _futureEvents.append
             
 class Simulation:
 
+    """ Simulation class.
+
+    Methods:
+    run -- run a simulation for some duration
+
+    """
+
     def __init__(self, *args):
+        """ Construct a simulation object.
+
+        *args -- list of arguments. Each argument a generator or
+                 a nested sequence of generators.
+
+        """
         sim._time = 0
         self._waiters = _flatten(*args)
         del _futureEvents[:]
         del _siglist[:]
 
     def run(self, duration=None, quiet=0):
+        
+        """ Run the simulation for some duration.
+
+        duration -- specified simulation duration (default: forever)
+        quiet -- don't print StopSimulation messages (default: off)
+        
+        """
+        
         waiters = self._waiters
         maxTime = None
         if duration:
@@ -159,12 +180,23 @@ class _Semaphore(object):
     def __init__(self, val=1):
         self.val = val
         
+        
 class StopSimulation(exceptions.Exception):
+    """ Basic expection to stop a Simulation """
     pass
 
+
 class join(object):
+
+    """ Join trigger objects to from a single trigger object. """
     
     def __init__(self, *args):
+        """ Construct join object
+
+        *args -- list of trigger object arguments.
+        
+        """        
+        
         self._args = args
         
     def _generator(self):
