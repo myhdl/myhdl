@@ -129,13 +129,13 @@ It is easy to forget some input signals, especially it there are a lot
 of them or if the code is being modified. There are various ways to
 solve this. One way is to use a sophisticated editor. Another way is
 direct language support. For example, recent versions of Verilog have
-the \code{ always @* } construct, that infers all input signals. The
-SystemVerilog 3.1 standard attemps to further improve on this by
-introducting the \code{always_comb} block with slightly enhanced
+the \code{always~@*} construct, that infers all input signals. The
+SystemVerilog 3.1 standard attempts to further improve on this by
+introducing the \code{always_comb} block with slightly enhanced
 semantics.
 
 \myhdl\ 0.3 provides a function called \function{always_comb()} which
-is named and modelled after the SystemVerilog counterpart.
+is named and modeled after the SystemVerilog counterpart.
 \function{always_comb()} takes a single classic function as its
 argument. This function should be locally defined and specifies what
 should happen when one of its input signal
@@ -212,7 +212,7 @@ This permits fine grained control: for example, it
 is possible to return a different set of instances
 under parameter control. 
 However, having to return instances explicitly can be inconvenient,
-expecially if there are a large number of them. Therefore, \myhdl\ 0.3
+especially if there are a large number of them. Therefore, \myhdl\ 0.3
 provides a function \function{instances()} which assembles a list of
 all instances automatically. It is used as follows:
 
