@@ -163,41 +163,7 @@ same name and parameters for the the \code{bin2gray} function:
 all we need to do is to provide this alternative definition
 to the existing unit test.
 
-Let's quickly try it on the Verilog design, just to be sure:
-
-\begin{verbatim}
-module bin2gray(B, G);
-
-   parameter width = 8;
-   input [width-1:0]  B;
-   output [width-1:0] G;
-   reg [width-1:0] G;
-   integer i;
-
-   always @(B) begin
-      for (i=0; i < width-1; i=i+1)
-        G[i] <= B[i+1] ^ B[i];
-   end
-
-endmodule
-
-\end{verbatim}
-
-If we run our unit test we get:
-
-\begin{verbatim}
-
-% python test_bin2gray.py   
-Check that only one bit changes in successive codewords ... ERROR
-Check that all codewords occur exactly once ... FAIL
-Check that the code is an original Gray code ... ERROR
-...
-
-\end{verbatim}
-
-Oops! It seems we still have a bug! Oh yes, but of course, 
-we need to zero-extend the input to get the msb output bit
-correctly:
+Let's try it on the Verilog design:
 
 \begin{verbatim}
 module bin2gray(B, G);
@@ -209,7 +175,7 @@ module bin2gray(B, G);
    integer i;
    wire [width:0] extB;
 
-   assign extB = {1'b0, B};
+   assign extB = {1'b0, B}; // zero-extend input
 
    always @(extB) begin
       for (i=0; i < width; i=i+1)
@@ -220,7 +186,7 @@ endmodule
 
 \end{verbatim}
 
-And now:
+When we run our unit test, we get:
 
 \begin{verbatim}
 % python test_bin2gray.py 
