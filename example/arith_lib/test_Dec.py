@@ -31,7 +31,6 @@ class DecTest(TestCase):
             for i in vals:
                 A.next = intbv(i)
                 yield delay(10)
-                # print "a:%s Res: %s %s" % (A.val, ZS.val, ZB.val)
                 self.assertEqual(ZS.val, ZB.val)
 
         return (beh, str, stimulus())
