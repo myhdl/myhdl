@@ -40,17 +40,18 @@ Read-write attribute that represents the next value of the signal.
 \label{myhdl-generators}
 \myhdl\ generators are standard Python generators with specialized
 \keyword{yield} statements. In hardware description languages, the equivalent
-statements are called \emph{sensitivity lists}. The general format is:
+statements are called \emph{sensitivity lists}. The general format
+of \keyword{yield} statements in in \myhdl\ generators is:
 
-\keyword{yield} \var{clause \optional{, clause ...}}
+\hspace{2 cm}\keyword{yield} \var{clause \optional{, clause ...}}
 
 After a simulation object executes a \keyword{yield} statement, it
 suspends execution of the generator. At the same time, each
 \var{clause} is a \emph{trigger object} which defines the condition
 upon which the generator should be resumed. However, per invocation of a
 \keyword{yield} statement, the generator is resumed exactly once,
-regardless of the number of clauses. This happens when the
-\emph{first} trigger object triggers; subsequent triggers are
+regardless of the number of clauses. This happens as soon as one
+of the objects triggers; subsequent triggers are
 neglected. (However, as a result of the resumption, it is possible
 that the same \keyword{yield} statement is invoked again, and that a
 subsequent trigger still triggers the generator.)

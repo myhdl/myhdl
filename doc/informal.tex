@@ -52,7 +52,7 @@ the \myhdl\ equivalent of a Verilog \keyword{always} block or a
 VHDL \keyword{process}.
 
 In \myhdl\, the basic simulation objects are generators. Generators
-are the returned from calling generator functions. For example, variable
+are created by calling generator functions. For example, variable
 \code{gen} refers to a generator. To simulate this generator, we pass
 it as an argument to a \class{Simulation} object constructor.  We then
 run the simulation for the desired amount of time.
@@ -65,14 +65,14 @@ real hardware descriptions are not like that: in fact, they are
 typically massively concurrent. \myhdl\ supports this by allowing an
 arbitrary number of concurrent generators. More specifically, a
 \class{Simulation} constructor can take an arbitrary number of
-arguments, each of which can be a generator or a nested list of
+arguments, each of which can be a generator or a nested sequence of
 generators.
 
 With concurrency comes the problem of deterministic
 communication. Therefore, hardware languages use special objects to
-support deterministic communication between concurrent
-regions. \myhdl\ has as \class{Signal} object which is roughly
-modeled after VHDL signals.
+support deterministic communication between concurrent code. \myhdl\
+has as \class{Signal} object which is roughly modeled after VHDL
+signals.
 
 We will demonstrate these concepts by extending and modifying our
 first example. We introduce a clock signal, driven by a second
@@ -108,10 +108,10 @@ def sayHello():
 
 \end{verbatim}
 
-Waiting for a clock edge is achieved with a second form of a
+Waiting for a clock edge is achieved with a second form of the
 \keyword{yield} statement: \samp{yield posedge(\var{signal})}. 
-A \class{Simulation} will suspend the generator as that point, and
-resume it when there is a rising edge on the signal.
+A \class{Simulation} object will suspend the generator as that point,
+and resume it when there is a rising edge on the signal.
 
 The \class{Simulation} is now constructed with 2 generator arguments:
 
@@ -144,7 +144,7 @@ and reusable, as follows:
 
 \begin{verbatim}
 def clkGen(clock, period=20):
-    lowTime = int(period/2)
+    lowTime = int(period / 2)
     highTime = period - lowTime
     while 1:
         yield delay(lowTime)
@@ -155,9 +155,9 @@ def clkGen(clock, period=20):
 \end{verbatim}
 
 The clock signal is now a parameter of the function. Also, the clock
-period is a parameter with a default value of \code{20}. This
-\var{period} is an optional parameter; if it is not specified in a
-call, the default value will be used.
+\var{period} is a parameter with a default value of \code{20}.
+This makes \var{period} an \dfn{optional} parameter; if it is not
+specified in a call, the default value will be used.
 
 Similarly, the \code{sayHello} function can be made more general:
 
@@ -191,7 +191,7 @@ def talk():
 
 \end{verbatim}
 Like in standard Python, positional or named parameter association can
-be used in instantiations, or a mix of the two \footnote{All
+be used in instantiations, or a mix of both\footnote{All
 positional parameters have to come before any named parameter.}. All
 these styles are demonstrated in the example above. Like in hardware
 description languages, named association can be very useful if there
@@ -256,7 +256,7 @@ def bin2gray(width, B, G):
 
 This code introduces a few new concepts. The string in triple quotes
 at the start of the function is a \dfn{doc string}. This is standard
-Python practice for the structured documentation of code. Moreover, we
+Python practice for structured documentation of code. Moreover, we
 use a third form of the \keyword{yield} statement:
 \samp{yield \var{signal}}. This specifies that the generator should
 resume whenever \var{signal} changes value. This is typically used to
@@ -268,3 +268,49 @@ the actual value of a signal is accessed through the signal's
 \var{val} attribute. In \myhdl{}, unlike traditional hardware
 description languages, signals are explicitly modeled as composite
 objects whose current and next values are accessed through attributes.
+
+To verify the Gray encoder, we write a test bench that prints input
+and output for all possible input values:
+
+\begin{verbatim}
+bin = intbv.bin # shorthand alias
+def testBench(width):
+    
+    B = Signal(intbv(0))
+    G = Signal(intbv(0))
+    
+    dut = bin2gray(width, B, G)
+
+    def stimulus():
+        for i in range(2**width):
+            B.next = intbv(i)
+            yield delay(10)
+            print "B: %s | G: %s" % (bin(B.val, width), bin(G.val, width))
+
+    return (dut, stimulus())
+
+\end{verbatim}
+
+To demonstrate, we set up a simulation for a small width: 
+
+\begin{verbatim}
+Simulation(testBench(width=3)).run()
+
+\end{verbatim}
+
+The simulation produces the following output:
+
+\begin{verbatim}
+% python bin2gray.py
+B: 000 | G: 000
+B: 001 | G: 001
+B: 010 | G: 011
+B: 011 | G: 010
+B: 100 | G: 110
+B: 101 | G: 111
+B: 110 | G: 101
+B: 111 | G: 100
+StopSimulation: No more events
+
+\end{verbatim}
+          

@@ -16,7 +16,7 @@ see \url{http://www.python.org/doc/Newbies.html}.
 
 A working knowledge of a hardware description language such as Verilog
 or VHDL is helpful. Chances are that you know one of those anyway, if
-you are interested in this manual.
+you are interested in \myhdl{}.
 
 \section{A small tutorial on generators}
 
@@ -43,9 +43,9 @@ loop iteration is entered, the function returns:
 0
 \end{verbatim}
 
-Returning is fatal for a function. Further loop iterations never get a
-chance, and nothing is left over from the function when it returns. It
-is truly gone.
+Returning is fatal for the function call. Further loop iterations
+never get a chance, and nothing is left over from the function call
+when it returns.
 
 To change the function into a generator function, we replace
 \keyword{return} with \keyword{yield}:
@@ -94,10 +94,9 @@ loop, until they are exhausted. What happens is that the
 \keyword{yield} statement is like a
 \keyword{return}, except that it is non-fatal: the generator remembers
 its state and the point in the code when it yielded. A higher order
-agent (in the above case, ourselves) can decide when to get a further
-value by calling the generator's \function{next()}
-method. We say that generators are \dfn{resumable
-functions}.
+agent can decide when to get a further value by calling the
+generator's \function{next()} method. We say that generators are
+\dfn{resumable functions}.
 
 If you are familiar with hardware description languages, this may
 ring a bell. In hardware simulations, there is also a higher order
@@ -112,7 +111,7 @@ The use of generators to model concurrency is the first key concept in
 yielded values are used to define the condition upon which the generator
 should be resumed. In other words, the \keyword{yield} statements work
 as generalized sensitivity lists. If by now you are still interested,
-read on!
+read on to learn more!
 
 If you want to know more about generators, you can consult.
 \url{http://www.python.org/doc/2.2.2/whatsnew}. 
