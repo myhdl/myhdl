@@ -34,10 +34,6 @@ from myhdl import _simulator
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _WaiterList
 from myhdl._util import StopSimulation, SuspendSimulation
-## try:
-##     import simrunc
-## except:
-##     pass
 
 
 schedule = _futureEvents.append
