@@ -1,7 +1,21 @@
+Release 0.4.1 29-Dec-2004
+-------------------------
+
+* Maintenance release that solves most outstanding issues
+  and implements some feature requests.
+  See the SourceForge Bug and RFE Trackers for details.
+  (Use the group 'MyHDL 0.4' to find the relevant issues.)
+  More info can also be found on the mailing list.
+
+* Added cosimulation support for the cver Verilog simulator.
+
+Note: the documentation was not modified in this release.
+
+
 Release 0.4 4-Feb-2004
 ----------------------
 
-* Conversion to Verilog to provice a path to implementation
+* Conversion to Verilog to provide a path to implementation
 
 For details, consult the whatsnew04.* documents available
 in various formats under doc/.
