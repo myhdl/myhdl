@@ -478,9 +478,45 @@ class _ConvertVisitor(_ToVerilogMixin):
         elif str(type(obj)) == "<class 'myhdl._enum.Enum'>":
             assert hasattr(obj, node.attrname)
             e = getattr(obj, node.attrname)
-            self.write("%d'b%s" % (obj._nrbits, e._val))
-        
+            self.write(e._toVerilog())
+
     def visitIf(self, node, *args):
+        if node.isCase:
+            self.mapToCase(node, *args)
+        else:
+            self.mapToIf(node, *args)
+
+    def mapToCase(self, node, *args):
+        var = node.caseVar
+        self.write("// synthesis parallel_case")
+        if node.isFullCase:
+            self.write(" full_case")
+        self.writeline()
+        self.write("casez (%s)" % var)
+        self.indent()
+        for test, suite in node.tests:
+            self.writeline()
+            item = test.ops[0][1].obj
+            self.write(item._toVerilog(dontcare=True))
+            self.write(": begin")
+            self.indent()
+            self.visit(suite)
+            self.dedent()
+            self.writeline()
+            self.write("end")
+        if node.else_:
+            self.writeline()
+            self.write("default: begin")
+            self.indent()
+            self.visit(node.else_)
+            self.dedent()
+            self.writeline()
+            self.write("end")
+        self.dedent()
+        self.writeline()
+        self.write("endcase")
+        
+    def mapToIf(self, node, *args):
         first = True
         for test, suite in node.tests:
             if first:

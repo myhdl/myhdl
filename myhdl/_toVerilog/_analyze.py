@@ -98,6 +98,7 @@ def _analyzeGens(top, genNames):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
+            print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -377,6 +378,12 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             
     def visitCompare(self, node, *args):
         node.obj = bool()
+        self.visitChildNodes(node)
+        op, arg = node.ops[0]
+        if op == '==':
+            if isinstance(node.expr, astNode.Name) and \
+               str(type(arg.obj)) == "<class 'myhdl._enum.EnumItem'>":
+                node.case = (node.expr.name, arg.obj)
 
     def visitConst(self, node, *args):
         if isinstance(node.value, int):
@@ -425,6 +432,27 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             self.refStack.push()
             self.visit(node.else_, *args)
             self.refStack.pop()
+        # check whether the if can be mapped to a (parallel) case
+        node.isCase = node.isFullCase = False
+        test1 = node.tests[0][0]
+        if not hasattr(test1, 'case'):
+            return
+        name1, item1 = test1.case
+        choices = Set()
+        choices.add(item1._index)
+        for test, suite in node.tests[1:]:
+            if not hasattr(test, 'case'):
+                return
+            name, item = test.case
+            if name != name1 or type(item) is not type(item1):
+                return
+            if item._index in choices:
+                return
+            choices.add(item._index)
+        node.isCase = True
+        node.caseVar = name1
+        if (len(choices) == item1._nritems) or (node.else_ is not None):
+            node.isFullCase = True
 
     def visitName(self, node, access=_access.INPUT, *args):
         n = node.name

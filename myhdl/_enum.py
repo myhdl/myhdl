@@ -35,9 +35,9 @@ def enum(*args, **kwargs):
     encoding = kwargs.get('encoding', 'binary')
     argdict = {}
     codedict = {}
-    if encoding == 'binary':
+    if encoding == "binary":
         nrbits = len(bin(len(args)))
-    elif encoding in ('one_hot', 'one_cold'):
+    elif encoding in ("one_hot", "one_cold"):
         nrbits = len(args)
     else:
         raise ValueError("Unsupported enum encoding: %s \n    Supported encodings:" + \
@@ -50,9 +50,9 @@ def enum(*args, **kwargs):
         if codedict.has_key(arg):
             raise ValueError("enum literals should be unique")
         argdict[i] = arg
-        if encoding == 'binary':
+        if encoding == "binary":
             code = bin(i, nrbits)
-        elif encoding == 'one_hot':
+        elif encoding == "one_hot":
             code = bin(1<<i, nrbits)
         else: # one_cold
             code = bin(~(1<<i), nrbits)
@@ -66,11 +66,20 @@ def enum(*args, **kwargs):
             self._index = index
             self._val = codedict[arg]
             self._nrbits = nrbits
+            self._nritems = len(args)
         def __repr__(self):
             return argdict[self._index]
         def __hex__(self):
             return hex(int(self._val, 2))
         __str__ = __repr__
+        def _toVerilog(self, dontcare=False):
+            val = self._val
+            if dontcare:
+                if encoding == "one_hot":
+                    val = val.replace('0', '?')
+                elif encoding == "one_cold":
+                    val = val.replace('1', '?')
+            return "%d'b%s" % (self._nrbits, val)
 
     class Enum(object):
         def __init__(self):
