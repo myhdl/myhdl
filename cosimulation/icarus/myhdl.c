@@ -274,6 +274,10 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   verilog_time_s.type = vpiSimTime;
   vpi_get_time(NULL, &verilog_time_s);
   verilog_time = timestruct_to_time(&verilog_time_s);
+  if (verilog_time != (pli_time * 1000 + delta)) {
+    vpi_printf("%u %u\n", verilog_time_s.high, verilog_time_s.low );
+    vpi_printf("%llu %llu %d", verilog_time, pli_time, delta);
+  } 
   assert(verilog_time == pli_time * 1000 + delta);
   sprintf(buf, "%llu ", pli_time);
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
