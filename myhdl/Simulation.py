@@ -1,4 +1,5 @@
 """ Module with the Simulation class """
+from __future__ import generators
 import _simulator as sim
 from _simulator import _siglist, _futureEvents
 from Signal import Signal, _SignalWrap, _WaiterList
@@ -37,21 +38,18 @@ class Simulation:
                     if waiter.hasRun or not waiter.hasGreenLight():
                         continue
                     try:
-                        waitclauses, clone = waiter.next()
+                        clauses, clone = waiter.next()
                     except StopIteration:
                         if waiter.caller:
                             waiters.append(waiter.caller)
                         continue
-                    for clause in waitclauses:
+                    for clause in clauses:
                         if type(clause) is _WaiterList:
                             clause.append(clone)
                         elif isinstance(clause, Signal):
                             clause._eventWaiters.append(clone)
                         elif type(clause) is delay:
-                            if delay:
-                                schedule((t + clause._time, clone))
-                            else:
-                                waiters.append(clone)
+                            schedule((t + clause._time, clone))
                         elif type(clause) is GeneratorType:
                             waiters.append(_WaiterWrap(clause, clone))
                         else:
@@ -136,5 +134,10 @@ class StopSimulation(exceptions.Exception):
     pass
 
 class join(object):
+    
     def __init__(self, *args):
         self._args = args
+        
+    def _generator(self):
+        yield join(*args)
+        

@@ -17,25 +17,29 @@ from _simulator import _siglist
 class Shared:
     pass
 
-## class TestJoinMix(TestCase):
-##     """ Test of joins mixed with other clauses """
+class TestJoinMix(TestCase):
+    """ Test of joins mixed with other clauses """
     
-##     def bench(self):
+    def bench(self):
 
-##         A = Signal(0)
+        A = Signal(0)
 
-##         yield join(delay(10), delay(20)), delay(5)
+        def test():
+            yield join(delay(10), delay(20))
 
-##         self.assertEqual(now(), 5)
+        #yield join(delay(10), delay(20)), delay(5)
+        yield test(), delay(5)
 
-##         yield A
+        self.assertEqual(now(), 5)
 
-##         # self.assertEqual(now(), 20)
-##         self.fail("incorrect run") # should not get here
+        yield A
+
+        # self.assertEqual(now(), 20)
+        self.fail("incorrect run") # should not get here
 
 
-##     def testJoinMix(self):
-##         Simulation(self.bench()).run()
+    def testJoinMix(self):
+        Simulation(self.bench()).run()
 
 class JoinedGen(TestCase):
     
