@@ -30,6 +30,10 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 join -- callable to join clauses in a yield statement
 intbv -- mutable integer class with bit vector facilities
 downrange -- function that returns a downward range
+bin -- returns a binary string representation.
+
+The optional width specifies the desired string
+  width: padding of the sign-bit is used.
 
 """
 
@@ -54,8 +58,30 @@ delay = delay.delay
 intbv = intbv.intbv
 
 def downrange(start, stop=0):
+    """ Return a downward range. """
     return range(start-1, stop-1, -1)
 
+
+def _int2bitstring(num):
+    if num == 0:
+        return '0'
+    if abs(num) == 1:
+        return '1'
+    return _int2bitstring(num // 2) + _int2bitstring(num % 2)
+
+def bin(num, width=0):
+    """Return a binary string representation.
+
+    num -- number to convert
+    Optional parameter:
+    width -- specifies the desired string (sign bit padding)
+    """
+    num = long(num)
+    s = _int2bitstring(num)
+    pad = '0'
+    if num < 0:
+        pad = '1'
+    return (width - len(s)) * pad + s
 
 
 

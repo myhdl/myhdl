@@ -27,12 +27,6 @@ import sys
 maxint = sys.maxint
 from types import StringType
 
-def _int2bitstring(num):
-    if num == 0:
-        return '0'
-    if abs(num) == 1:
-        return '1'
-    return _int2bitstring(num // 2) + _int2bitstring(num % 2) 
 
 class intbv(object):
     __slots__ = ('_val', '_len')
@@ -70,23 +64,11 @@ class intbv(object):
                 width += w
             else:
                 raise TypeError
-##         try:
-##             v = int(v)
-##         except:
-##             pass
         res = intbv(v)
         if basewidth:
             res._len = basewidth + width
         return res
 
-    # conversion to binary string
-    def bin(self, width=0):
-        s = _int2bitstring(self._val)
-        pad = '0'
-        if self._val < 0:
-            pad = '1'
-        return (width - len(s)) * pad + s
-        
 
     # copy methods
     def __copy__(self):
@@ -97,7 +79,7 @@ class intbv(object):
     # iterator method
     def __iter__(self):
         if not self._len:
-            raise TypeError, "Cannot iterate for unsized intbv"
+            raise TypeError, "Cannot iterate over unsized intbv"
         return iter([self[i] for i in range(self._len, -1, -1)])
 
     # logical testing

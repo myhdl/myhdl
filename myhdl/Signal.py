@@ -130,6 +130,151 @@ class Signal(object):
     def _get_negedge(self):
         return self._negedgeWaiters
     negedge = property(_get_negedge, None, None, "'posedge' access methodes")
+    
+
+    ### operators for which delegation to current value is appropriate ###
+    
+    def __nonzero__(self):
+        if self._val:
+            return 1
+        else:
+            return 0
+
+    # indexing and slicing methods
+
+    def __getitem__(self, i):
+        return self._val[i]
+
+    def __getslice__(self, i, j):
+        return self._val[i:j]
+    
+        
+    # integer-like methods
+
+    def __add__(self, other):
+        if type(other) is Signal:
+            return self._val + other._val
+        else:
+            return self._val + other
+    def __radd__(self, other):
+        return other + self._val
+    
+    def __sub__(self, other):
+        if type(other) is Signal:
+            return self._val - other._val
+        else:
+            return self._val - other
+    def __rsub__(self, other):
+        return other - self._val
+
+    def __mul__(self, other):
+        if type(other) is Signal:
+            return self._val * other._val
+        else:
+            return self._val * other
+    def __rmul__(self, other):
+        return other * self._val
+
+    def __div__(self, other):
+        if type(other) is Signal:
+            return self._val / other._val
+        else:
+            return self._val / other
+    def __rdiv__(self, other):
+        return other / self._val
+    
+    def __mod__(self, other):
+        if type(other) is Signal:
+            return self._val % other._val
+        else:
+            return self._val % other
+    def __rmod__(self, other):
+        return other % self._val
+
+    # XXX divmod
+    
+    def __pow__(self, other):
+        if type(other) is Signal:
+            return self._val ** other._val
+        else:
+            return self._val ** other
+    def __rpow__(self, other):
+        return other ** self._val
+
+    def __lshift__(self, other):
+        if type(other) is Signal:
+            return self._val << other._val
+        else:
+            return self._val << other
+    def __rlshift__(self, other):
+        return other << self._val
+            
+    def __rshift__(self, other):
+        if type(other) is Signal:
+            return self._val >> other._val
+        else:
+            return self._val >> other
+    def __rrshift__(self, other):
+        return other >> self._val
+           
+    def __and__(self, other):
+        if type(other) is Signal:
+            return self._val & other._val
+        else:
+            return self._val & other
+    def __rand__(self, other):
+        return other & self._val
+
+    def __or__(self, other):
+        if type(other) is Signal:
+            return self._val | other._val
+        else:
+            return self._val | other
+    def __ror__(self, other):
+        return other | self._val
+    
+    def __xor__(self, other):
+        if type(other) is Signal:
+            return self._val ^ other._val
+        else:
+            return self._val ^ other
+    def __rxor__(self, other):
+        return other ^ self._val
+    
+    def __neg__(self):
+        return -self._val
+
+    def __pos__(self):
+        return +self._val
+
+    def __abs__(self):
+        return abs(self._val)
+
+    def __invert__(self):
+        return ~self._val
+        
+    # conversions
+    
+    def __int__(self):
+        return int(self._val)
+        
+    def __long__(self):
+        return long(self._val)
+
+    def __float__(self):
+        return float(self._val)
+    def __oct__(self):
+        return oct(self._val)
+    
+    def __hex__(self):
+        return hex(self._val)
+
+
+    # comparison
+    def __cmp__(self, other):
+        return cmp(self._val, other)
+    
+        
 
 
 class DelayedSignal(Signal):
