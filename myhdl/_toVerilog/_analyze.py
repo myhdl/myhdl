@@ -29,7 +29,7 @@ import inspect
 import compiler
 from compiler import ast as astNode
 from sets import Set
-from types import GeneratorType, FunctionType, ClassType
+from types import GeneratorType, FunctionType, ClassType, MethodType
 from cStringIO import StringIO
 import __builtin__
 
@@ -356,7 +356,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            # print ast
             ast.name = _Label(f.__name__)
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
@@ -382,6 +381,10 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                     self.visit(arg, _access.OUTPUT)
                 if n in ast.inputs:
                     self.visit(arg, _access.INPUT)
+        elif type(f) is MethodType:
+            self.raiseError(node,_error.NotSupported, "method call: '%s'" % f.__name__)
+        else:
+            raise AssertionError("Unexpected callable")
         if argsAreInputs:
             for arg in node.args:
                 self.visit(arg, _access.INPUT)
