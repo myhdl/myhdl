@@ -86,6 +86,9 @@ class MultipleTracesError(Error):
 class UndefinedBitWidthError(Error):
     """Signal has undefined bit width"""
 
+class UndrivenSignalError(Error):
+    """Signal is not driven"""
+
 re_assign = r"""^
                 \s*
                 (?P<name>\w[\w\d]*)
@@ -125,10 +128,8 @@ def toVerilog(func, *args, **kwargs):
     intf = _analyzeTopFunc(func, *args, **kwargs)
     
     _writeVerilogHeader(vfile, intf)
-
+    _writeSigDecls(vfile, intf, siglist)
     _writeVerilogFooter(vfile)
-
-    
     
     return h.top
 
@@ -224,7 +225,7 @@ class _HierExtr(object):
                         sigdict = {}
                         for dict in (frame.f_locals, frame.f_globals):
                             for n, v in dict.items():
-                                if isinstance(v, Signal):
+                                if isinstance(v, Signal) and n not in sigdict:
                                     sigdict[n] = v
                         i = [self.level, name, sigdict]
                         self.hierarchy.append(i)
@@ -278,7 +279,7 @@ def _analyzeGens(top):
                 if isinstance(v, Signal) and n not in sigdict:
                     sigdict[n] = v
         ast.sigdict = sigdict
-        v = _AnalyzeVisitor(sigdict)
+        v = _AnalyzeGenVisitor(sigdict)
         compiler.walk(ast, v)
         genlist.append(ast)
     return genlist
@@ -296,7 +297,7 @@ class EmbeddedFunctionError(Error):
         
 INPUT, OUTPUT, INOUT = range(3)
 
-class _AnalyzeVisitor(object):
+class _AnalyzeGenVisitor(object):
     
     def __init__(self, sigdict):
         self.inputs = Set()
@@ -318,6 +319,7 @@ class _AnalyzeVisitor(object):
     def visitFunction(self, node):
         if self.toplevel:
             self.toplevel = 0 # skip embedded functions
+            print node.code
             self.visit(node.code)
         else:
             raise EmbeddedFunctionError
@@ -412,23 +414,33 @@ def _writeVerilogHeader(f, intf):
     for portname in intf.argnames:
         s = intf.argdict[portname]
         assert (s._name == portname)
-        r = _getRangeSpec(s)
+        r = _getRangeString(s)
         if s._driven:
             print >> f, "output %s%s;" % (r, portname)
             print >> f, "reg %s%s;" % (r, portname)
-        elif s._read:
-            print >> f, "input %s%s;" % (r, portname)
         else:
-            raise AssertionError
+            print >> f, "input %s%s;" % (r, portname)
+    print >> f
 
+
+def _writeSigDecls(f, intf, siglist):
+    for s in siglist:
+        if s._name in intf.argnames:
+            continue
+        r = _getRangeString(s)
+        if s._driven:
+            print >> f, "reg %s%s;" % (r, s._name)
+        else:
+            raise UndrivenSignalError(s._name)
+    print >> f
+            
 
 def _writeVerilogFooter(f):
     print >> f
     print >> f, "endmodule"
 
     
-
-def _getRangeSpec(s):
+def _getRangeString(s):
     if s._type is bool:
         return ''
     elif s._type is intbv:
