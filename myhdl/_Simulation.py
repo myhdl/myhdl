@@ -108,23 +108,26 @@ class Simulation(object):
         actives = {}
         tracing = _simulator._tracing
         tracefile = _simulator._tf
+        _pop = waiters.pop
+        _append = waiters.append
+        _extend = waiters.extend
 
         while 1:
             try:
 
                 for s in _siglist:
-                    waiters.extend(s._update())
+                    _extend(s._update())
                 del _siglist[:]
 
                 while waiters:
-                    waiter = waiters.pop()
+                    waiter = _pop()
                     if waiter.hasRun or not waiter.hasGreenLight():
                         continue
                     try:
                         clauses, clone = waiter.next()
                     except StopIteration:
                         if waiter.caller:
-                            waiters.append(waiter.caller)
+                            _append(waiter.caller)
                         continue
                     nr = len(clauses)
                     for clause in clauses:
@@ -140,11 +143,11 @@ class Simulation(object):
                         elif type(clause) is delay:
                             schedule((t + clause._time, clone))
                         elif type(clause) is GeneratorType:
-                            waiters.append(_Waiter(clause, clone))
+                            _append(_Waiter(clause, clone))
                         elif type(clause) is join:
-                            waiters.append(_Waiter(clause._generator(), clone))
+                            _append(_Waiter(clause._generator(), clone))
                         elif clause is None:
-                            waiters.append(clone)
+                            _append(clone)
                         else:
                             raise TypeError, "yield clause '%s'" % `clause`
  
@@ -175,9 +178,9 @@ class Simulation(object):
                         newt, event = _futureEvents[0]
                         if newt == t:
                             if type(event) is _Waiter:
-                                waiters.append(event)
+                                _append(event)
                             else:
-                                waiters.extend(event.apply())
+                                _extend(event.apply())
                             del _futureEvents[0]
                         else:
                             break
