@@ -84,12 +84,13 @@ Specification for the Simulation class
     the generator should run at the rising or falling edge on a
     signal.
   - a join object. This specifies that the generator should run when
-    all arguments of the join have triggered.
+    all arguments of the join have triggered. A join argument can be
+    any of the trigger argument described int this list.
   - a generator. In this case, the generator is dynamically added to
     the list of generators to be run in the timestep. When the
     generator completes, the orginal generator is triggered.
 
 * When there are no further events, the Simulation.run method raises
-  the StopSimulationn exception.
+  the StopSimulation exception.
 
 
