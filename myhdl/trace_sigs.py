@@ -35,13 +35,23 @@ import string
 import time
 
 from util import _isGenSeq
+from myhdl import _simulator
 from myhdl import Signal, __version__
-import _simulator
 
 _tracing = 0
 
 class Error(Exception):
-    pass
+    """ trace_sigs Error"""
+    def __init__(self, arg=""):
+        self.arg = arg
+    def __str__(self):
+        msg = self.__doc__
+        if self.arg:
+            msg = msg + ": " + str(self.arg)
+        return msg
+
+class TopLevelNameError(Error):
+    """ result of trace_sigs call should be assigned to a top level name """
 
 re_assname = re.compile(r"^\s*(?P<assname>\w[\w\d]*)\s*=")
 
@@ -57,12 +67,15 @@ def trace_sigs(dut, *args, **kwargs):
     if m:
         name = m.group('assname')
     else:
-        raise Error
+        raise TopLevelNameError
     h = HierExtr(name, dut, *args, **kwargs)
     vcdfilename = name + ".vcd"
     vcdfile = open(vcdfilename, 'w')
     _simulator._tracing = 1
     _simulator._tf = vcdfile
+    print "TRACE"
+    print _simulator
+    print _simulator._tf
     _writeVcdHeader(vcdfile)
     _writeVcdSigs(vcdfile, h.instances)
     _tracing = 0
@@ -171,6 +184,7 @@ def _writeVcdSigs(f, instances):
     print >> f
     print >> f, "$enddefinitions $end"
     print >> f, "$dumpvars"
+    print f
     for s in siglist:
         s._printVcd() # initial value
     print >> f, "$end"

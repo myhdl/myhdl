@@ -34,9 +34,9 @@ import types
 import unittest
 from unittest import TestCase
 
-from Signal import Signal
-from _simulator import _siglist
+from myhdl._simulator import _siglist
 from myhdl import intbv
+from Signal import Signal
 
         
 class SigTest(TestCase):

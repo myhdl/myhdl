@@ -33,8 +33,8 @@ __date__ = "$Date$"
 from __future__ import generators
 from copy import deepcopy as copy
 
-import _simulator as sim
-from _simulator import _siglist, _futureEvents, now
+from myhdl import _simulator as sim
+from myhdl._simulator import _siglist, _futureEvents, now
 from myhdl import intbv
 from bin import bin
 
