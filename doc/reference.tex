@@ -1,3 +1,22 @@
-\chapter{Reference}
+\chapter{The \myhdl\ package reference}
 
-This is the reference material.
+
+\begin{classdesc}{Simulation}{*args}
+Simulation object.
+
+\begin{methoddesc}[Simulation]{run}{\optional{duration}}
+Run method.
+\end{methoddesc}
+
+\end{classdesc}
+
+\begin{excdesc}{StopStimulation}
+Exception that stops the simulation run. It is used internally but can
+be used externally as well.
+\end{excdesc}
+
+\begin{funcdesc}{now}{}
+Return the current simulation time.
+\end{funcdesc}
+
+

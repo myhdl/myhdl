@@ -5,7 +5,7 @@ from PrefixAnd import PrefixAnd
 
 def Dec(width, speed, A, Z, architecture=BEHAVIOR):
     
-    """ Decrementer.
+    """ Decrementer module.
 
     width -- bitwidth of input and output
     speed -- SLOW, MEDIUM, or FAST performance

@@ -9,6 +9,7 @@ default: $(NAME).dvi $(NAME).ps $(NAME).pdf
 	dvips -o $@ -t a4 -Ppdf -G0 $<
 
 %.dvi: %.tex
+	latex $<; \
 	latex $<
 
 clean:
