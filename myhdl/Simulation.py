@@ -127,7 +127,10 @@ class Simulation:
                 
             except StopSimulation, e:
                 if not quiet:
-                    print "StopSimulation: %s" % e
+                    msg = "StopSimulation"
+                    if str(e):
+                        msg += ": %s" % e
+                    print msg
                 if _futureEvents:
                     return 1
                 return 0

@@ -240,12 +240,12 @@ As an example, we will consider the design of a Gray encoder. The
 following code is a Gray encoder modeled in \myhdl{}:
 
 \begin{verbatim}
-def bin2gray(width, B, G):
+def bin2gray(B, G, width):
     """ Gray encoder.
 
-    width -- bit width
     B -- input intbv signal, binary encoded
     G -- output intbv signal, Gray encoded
+    width -- bit width
     """
     while 1:
         yield B
@@ -279,7 +279,7 @@ def testBench(width):
     B = Signal(intbv(0))
     G = Signal(intbv(0))
     
-    dut = bin2gray(width, B, G)
+    dut = bin2gray(B, G, width)
 
     def stimulus():
         for i in range(2**width):

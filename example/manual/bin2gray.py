@@ -1,12 +1,12 @@
 from __future__ import generators
 from myhdl import Signal, delay, Simulation, intbv, bin
 
-def bin2gray(width, B, G):
+def bin2gray(B, G, width):
     """ Gray encoder.
 
-    width -- bit width
     B -- input intbv signal, binary encoded
     G -- output intbv signal, gray encoded
+    width -- bit width
     """
     while 1:
         yield B
@@ -18,7 +18,7 @@ def testBench(width):
     B = Signal(intbv(0))
     G = Signal(intbv(0))
     
-    dut = bin2gray(width, B, G)
+    dut = bin2gray(B, G, width)
 
     def stimulus():
         for i in range(2**width):
