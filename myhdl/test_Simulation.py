@@ -9,7 +9,7 @@ from random import randrange
 random.seed(1) # random, but deterministic
 
 from myhdl import Simulation, now, delay, StopSimulation, join
-from myhdl import Signal, posedge, negedge
+from myhdl import Signal, posedge, negedge, intbv
 # from myhdl import Signal 
 
 from _simulator import _siglist
@@ -170,6 +170,7 @@ class TestYieldConcurrentGen(TestCase):
 
     def testYieldConcurrentGen(self):
         Simulation(self.bench()).run()
+
         
 
 class TestYieldGen(TestCase):
@@ -219,10 +220,95 @@ class TestYieldGen(TestCase):
         return(module(), clkGen())
 
     def testYieldGen(self):
-        Simulation(self.bench()).run()     
+        Simulation(self.bench()).run()
+
+
+class DeltaCycleOrder(TestCase):
+    
+    """ Check that delta cycle order does not matter """
+
+    def bench(self, function):
+
+        clk = Signal(0)
+        a = Signal(0)
+        b = Signal(0)
+        c = Signal(0)
+        d = Signal(0)
+        z = Signal(0)
+        delta = [Signal(0) for i in range(4)]
+        inputs = Signal(0)
+
+        s = [a, b, c, d]
+
         
+        vectors = [intbv(j) for i in range(8) for j in range(16)]
+        random.shuffle(vectors)
+        index = range(4)
+
+        def clkGen():
+            while 1:
+                yield delay(10)
+                clk.next ^= 1
+
+        def deltaGen():
+            while 1:
+                yield clk
+                delta[0].next = clk.val
+                yield delta[0]
+                for i in range(1, 4):
+                    delta[i].next = delta[i-1].val
+                    yield delta[i]
+
+        def inGen(i):
+            while 1:
+                yield posedge(delta[i])
+                s[index[i]].next = inputs.val[index[i]]
+
+        def logic():
+            while 1:
+                yield a, b, c, d
+                z.next = function(a.val, b.val, c.val, d.val)
+                # print hex(z.next)
+
+        def stimulus():
+            for v in vectors:
+                inputs.next = v
+                random.shuffle(index)
+                yield posedge(clk)
+                yield negedge(clk)
+                self.assertEqual(z.val, function(v[0], v[1], v[2], v[3]))
+            raise StopSimulation
+
+        inputGen = [inGen(i) for i in range(4)]
+        instance = [clkGen(), deltaGen(), logic(), stimulus(), inputGen]
+        return instance
+
+    def testAnd(self):
+        def andFunction(a, b, c, d):
+            return a & b & c & d
+        Simulation(self.bench(andFunction)).run()
+        
+    def testOr(self):
+        def orFunction(a, b, c, d):
+            return a | b | c | d
+        Simulation(self.bench(orFunction)).run()
+        
+    def testXor(self):
+        def xorFunction(a, b, c, d):
+            return a ^ b ^ c ^ d
+        Simulation(self.bench(xorFunction)).run()
+
+    def testMux(self):
+        def muxFunction(a, b, c, d):
+            if c:
+                return a
+            else:
+                return b
+        Simulation(self.bench(muxFunction)).run()
+    
 
 class DeltaCycleRace(TestCase):
+    
     """ Check that delta cycle races are like in VHDL """
     
     def bench(self):
@@ -288,6 +374,7 @@ class DeltaCycleRace(TestCase):
 
 
 class DelayLineTest(TestCase):
+    
     """ Check that delay lines work properly """
 
     def bench(self):
@@ -388,6 +475,7 @@ def getExpectedTimes(waveform, eventCheck):
 
 
 class WaveformTest(TestCase):
+    
     """ Test of all sorts of event response in a waveform """
 
     waveform = []
@@ -497,6 +585,7 @@ class WaveformTest(TestCase):
 
         
 class WaveformTestSigDelay(WaveformTest):
+    
     """ Repeat waveform tests with a delayed signal """
 
     waveform = []
@@ -511,6 +600,7 @@ class WaveformTestSigDelay(WaveformTest):
         
 
 class WaveformTestInertialDelay(WaveformTest):
+    
     """ Repeat waveform tests to check inertial delay """
 
     waveform = []
@@ -524,6 +614,7 @@ class WaveformTestInertialDelay(WaveformTest):
         duration += interval
 
 class WaveformTestInertialDelayStress(WaveformTest):
+    
     """ Repeat waveform tests to stress check inertial delay """
 
     waveform = []
@@ -537,7 +628,9 @@ class WaveformTestInertialDelayStress(WaveformTest):
         duration += interval
 
 class TestSimulationRunMethod(WaveformTest):
+    
     """ Basic test of run method of Simulation object """
+    
     def run(self, sim):
         duration = randrange(1, 300)
         while sim.run(duration, quiet=1):
@@ -545,6 +638,8 @@ class TestSimulationRunMethod(WaveformTest):
 
       
 class TimeZeroEventsTest(TestCase):
+
+    """ Check events at time 0 """
 
     def bench(self, sig, next, clause, timeout=1):
         val = sig.val
