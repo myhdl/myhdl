@@ -3,7 +3,7 @@ from __future__ import generators
 from random import randrange
 
 from myhdl import Signal, Simulation, StopSimulation
-from myhdl import intbv, delay, posedge, negedge, now, trace_sigs
+from myhdl import intbv, delay, posedge, negedge, now
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
