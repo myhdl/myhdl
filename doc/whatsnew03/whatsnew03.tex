@@ -73,8 +73,8 @@ returned by the standard \function{str()} function.
 \section{An enumeration type\label{section-enum}}
 
 It is often desirable to define a set of identifiers.  A standard
-Python idiom is to assign a range of integers to a tuple of
-identifiers, like so:
+Python idiom for this purpose is to assign a range of integers to a
+tuple of identifiers, like so:
 
 \begin{verbatim}
 >>> SEARCH, CONFIRM, SYNC = range(3)
@@ -143,10 +143,11 @@ changes. \function{always_comb()} returns a generator that is
 sensitive to all inputs, and that will run the function whenever an
 input changes.
 
-For example, suppose have a mux module described as follows:
+For example, suppose that we have a mux module described as follows:
 
 \begin{verbatim}
 def mux(z, a, b, sel):
+
     """ Multiplexer.
     
     z -- mux output
@@ -154,6 +155,7 @@ def mux(z, a, b, sel):
     sel -- control input
 
     """
+
     def logic()
         while 1:
             yield a, b, sel
@@ -161,9 +163,7 @@ def mux(z, a, b, sel):
                 z.next = a
             else:
                 z.next = b
-
     mux_logic = logic()
-
     return mux_logic
 \end{verbatim}
 
@@ -171,6 +171,7 @@ Using \function{always_comb()}, we can describe it as follows instead:
 
 \begin{verbatim}
 def mux(z, a, b, sel):
+
     """ Multiplexer.
     
     z -- mux output
@@ -178,14 +179,13 @@ def mux(z, a, b, sel):
     sel -- control input
 
     """
+
     def logic()
         if sel == 1:
             z.next = a
         else:
             z.next = b
-
     mux_logic = always_comb(logic)
-
     return mux_logic
 \end{verbatim}
 
@@ -249,15 +249,9 @@ def top(...):
     ...
     def process_1():
         ...
-        yield ...
-        ...
     def process_2():
         ...
-        yield ...
-        ...
     def process_n():
-        ...
-        yield ...
         ...
     ...
     return process_1(), process_2(), ..., process_n()
@@ -276,19 +270,15 @@ processes, calls each of them, and assembles the returned generators
 into a list. It can be used as follows:
 
 \begin{verbatim}
+from myhdl import processes
+
 def top(...):
     ...
     def process_1():
         ...
-        yield ...
-        ...
     def process_2():
         ...
-        yield ...
-        ...
     def process_n():
-        ...
-        yield ...
         ...
     ... 
     return processes()
@@ -342,9 +332,6 @@ intbv(0)
 >>> n[:] = 28
 >>> n
 intbv(28)
->>> n[:] = -17
->>> n
-intbv(-17)
 >>> n[:] = -18
 Traceback (most recent call last):
     ....
@@ -369,12 +356,33 @@ intbv(0)
 0
 >>> v.max
 64
->>> v[:] = 32
->>> v[:] = 65
-Traceback (most recent call last):
-    ....
-ValueError: intbv value 65 >= maximum 64
 \end{verbatim}
+
+Lastly, a small change was implemented with regard to 
+binary operations. In previous versions, both numeric
+and bit-wise operations always returned a new \class{intbv}
+instance, even in mixed-mode operations with \class{int}
+objects. This has changed: numeric operations 
+return an \class{int}, and bitwise operations return
+a \class{intbv}. In this way, the return value corresponds
+better to the nature of the operation.
+
+\section{Function \function{concat()} \label{section-concat}}
+
+In previous versions, the \class{intbv} class provided a
+\method{concat()} method.  This method is no longer
+available. Instead, there is now a \function{concat()} function.
+
+A function is more natural because \myhdl\ objects of various types
+can be concatenated.  In addition to \class{intbv} instances, this
+includes objects with a defined bit width, such as bit strings,
+\class{bool} variables, and \class{Signal} instances of such
+objects. Moreover, the first argument to \function{concat()} can be an
+unsized \class{int} and \class{long} arguments and the corresponding
+\class{Signal} instances. As a result, \function{concat()}
+supports a much broader range of objects than the method could.
+Function \function{concat()} returns an \class{intbv} instance.
+
 
 \section{Python 2.3 support\label{section-Python}}
 
@@ -383,7 +391,7 @@ As of this writing, Python 2.3 is the latest Python release.  \myhdl\
 tradition, \myhdl\ code developed with Python2.2 will run without
 changes or problems in Python 2.3.
 
-In general, I am not that keen on fast upgrading. However, as it
+In general, I am not that keen on early upgrading. However, as it
 happens, the evolution of Python enables features that are really
 important or even crucial to \myhdl{}.  Python 2.2 generators are the
 best example: they are the cornerstone of \myhdl{}. But Python 2.3
