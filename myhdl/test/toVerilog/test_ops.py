@@ -183,7 +183,6 @@ class TestBinaryOps(TestCase):
                 self.assertEqual(Bitxor, Bitxor_v)
                 self.assertEqual(FloorDiv, FloorDiv_v)
                 self.assertEqual(LeftShift, LeftShift_v)
-                print LeftShift
                 self.assertEqual(Mod, Mod_v)
                 self.assertEqual(Mul, Mul_v)
                 self.assertEqual(RightShift, RightShift_v)

@@ -218,7 +218,6 @@ class TestNotSupported(unittest.TestCase):
                 z.next = 1
                 return
         self.check(g, z, a)
-
         
     def testTryExcept(self):
         a = Signal(bool())
@@ -264,10 +263,6 @@ class TestNotSupported(unittest.TestCase):
                 z.next = -a
                 return
         self.check(g, z, a)
-
-
-        
-
             
 
 if __name__ == '__main__':
