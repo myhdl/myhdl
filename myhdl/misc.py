@@ -35,19 +35,8 @@ import inspect
 
 from types import GeneratorType, ListType, TupleType
 from myhdl import Cosimulation
-from util import _isgeneratorfunction
+from util import _isgeneratorfunction, _isGenSeq
     
-def _isGenSeq(seq):
-   if not isinstance(seq, (ListType, TupleType)):
-      return 0
-   for e in seq:
-      if type(e) in (GeneratorType, Cosimulation):
-         continue
-      if _isGenSeq(e):
-         continue
-      return 0
-   return 1
-
                         
 def instances():
    f = inspect.currentframe()

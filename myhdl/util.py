@@ -89,3 +89,14 @@ def _isgeneratorfunction(obj):
          if re.search(r"\byield\b", s):
             return 1
    return 0
+
+def _isGenSeq(seq):
+   if not isinstance(seq, (ListType, TupleType)):
+      return 0
+   for e in seq:
+      if type(e) in (GeneratorType, Cosimulation):
+         continue
+      if _isGenSeq(e):
+         continue
+      return 0
+   return 1
