@@ -150,7 +150,7 @@ class Cosimulation(object):
             try:
                 s.next = long(v, 16)
             except ValueError:
-                s.next = intbv(None)
+                s.next = intbv.intbv(None)
 
     def _put(self):
         buf = hex(_simulator._time)[2:]

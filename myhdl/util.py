@@ -17,18 +17,14 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl package initialization.
+""" myhdl utilility objects.
 
 This module provides the following myhdl objects:
-Simulation -- simulation class
-StopStimulation -- exception that stops a simulation
-now -- function that returns the current time
-Signal -- class to model hardware signals
-delay -- callable to model delay in a yield statement
-posedge -- callable to model a rising edge on a signal in a yield statement
-negedge -- callable to model a falling edge on a signal in a yield statement
-join -- callable to join clauses in a yield statement
-intbv -- mutable integer class with bit vector facilities
+downrange -- function that returns a downward range
+Error -- myhdl Error exception
+bin -- returns a binary string representation.
+       The optional width specifies the desired string
+       width: padding of the sign-bit is used.
 
 """
 
@@ -36,25 +32,34 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
-import Signal
-import Simulation
-import delay
-import intbv
-import _simulator
-import Cosimulation
-import util
 
-StopSimulation = Simulation.StopSimulation
-join = Simulation.join
-Simulation = Simulation.Simulation
-posedge = Signal.posedge
-negedge = Signal.negedge
-Signal = Signal.Signal
-now = _simulator.now
-delay = delay.delay
-intbv = intbv.intbv
-Cosimulation = Cosimulation.Cosimulation
-downrange = util.downrange
-bin = util.bin
-Error = util.Error
+def downrange(start, stop=0):
+    """ Return a downward range. """
+    return range(start-1, stop-1, -1)
+
+def _int2bitstring(num):
+    if num == 0:
+        return '0'
+    if abs(num) == 1:
+        return '1'
+    return _int2bitstring(num // 2) + _int2bitstring(num % 2)
+
+def bin(num, width=0):
+    """Return a binary string representation.
+
+    num -- number to convert
+    Optional parameter:
+    width -- specifies the desired string (sign bit padding)
+    """
+    num = long(num)
+    s = _int2bitstring(num)
+    pad = '0'
+    if num < 0:
+        pad = '1'
+    return (width - len(s)) * pad + s
+
+class Error(Exception):
+    pass
+
+
 

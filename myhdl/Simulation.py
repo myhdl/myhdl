@@ -55,6 +55,7 @@ class Simulation(object):
         self._waiters = _flatten(*args)
         del _futureEvents[:]
         del _siglist[:]
+        self.cosim = sim._cosim
 
     def run(self, duration=None, quiet=0):
         
@@ -72,6 +73,9 @@ class Simulation(object):
             stop.hasRun = 1
             maxTime = sim._time + duration
             schedule((maxTime, stop))
+
+        cosim = self.cosim
+        running = 0
             
         t = sim._time
         while 1:
@@ -79,6 +83,9 @@ class Simulation(object):
                 for s in _siglist:
                     waiters.extend(s._update())
                 del _siglist[:]
+
+                if cosim and running:
+                    cosim._put()
                 
                 while waiters:
                     waiter = waiters.pop(0)
@@ -105,6 +112,9 @@ class Simulation(object):
                             waiters.append(clone)
                         else:
                             raise TypeError, "Incorrect yield clause type"
+
+                if cosim:
+                    cosim._get()
 
                 if _siglist: continue
                 if t == maxTime:
