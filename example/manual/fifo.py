@@ -32,8 +32,9 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
             memory.insert(0, din.val)
         if re:
             dout.next = memory.pop()
-        empty.next = (len(memory) == 0)
-        full.next = (len(memory) == maxFilling)
+        filling = len(memory)
+        empty.next = (filling == 0)
+        full.next = (filling == maxFilling)
 
         
 def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
@@ -64,9 +65,10 @@ def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
                 dout.next = memory.pop()
             except IndexError:
                 raise Error, "Underflow -- Read from empty fifo"
-        empty.next = (len(memory) == 0)
-        full.next = (len(memory) == maxFilling)
-        if len(memory) > maxFilling:
+        filling = len(memory)
+        empty.next = (filling == 0)
+        full.next = (filling == maxFilling)
+        if filling > maxFilling:
             raise Error, "Overflow -- Max filling %s exceeded" % maxFilling
 
 
