@@ -127,7 +127,7 @@ The present section describes how \myhdl\ supports RTL style modeling
 as is typically used for synthesizable models in Verilog or VHDL. 
 
 \subsection{Combinatorial logic modeling\label{model-comb}}
-\index{modeling!combinatorial logic|(}
+\index{combinatorial logic}
 
 \subsubsection{Template \label{model-comb-templ}}
  
@@ -245,11 +245,10 @@ z a b sel
 3 3 5 1
 StopSimulation: No more events
 \end{verbatim}
-\index{modeling!combinatorial logic|)}
 
 
 \subsection{Sequential logic modeling\label{model-seq}}
-\index{modeling!sequential logic|(}
+\index{sequential logic}
 
 \subsubsection{Template \label{model-seq-templ}}
 Sequential RTL models are sensitive to a clock edge. In addition, they
@@ -348,7 +347,6 @@ enable  count
    1      2
 StopSimulation
 \end{verbatim}
-\index{sequential logic|)}
 
 
 \subsection{Finite State Machine modeling \label{model-fsm}}
@@ -397,8 +395,8 @@ state = Signal(t_State.SEARCH)
 
 As an example, we will use a framing controller FSM.  It is an
 imaginary example, but similar control structures are often found in
-telecommunication applications. Suppose that we need to recover the
-Start Of Frame (SOF) position of a incoming frame.
+telecommunication applications. Suppose that we need to find the
+Start Of Frame (SOF) position of an incoming frame of bytes.
 A sync pattern detector continuously looks for a framing
 pattern and indicates it to the FSM with a \code{syncFlag} signal. When
 found, the FSM moves from the initial \code{SEARCH} state to the
