@@ -34,6 +34,8 @@ from unittest import TestCase
 import sys
 from bin import bin
 
+SIZE = 100
+
 def _int2bitstring(num):
     if num == 0:
         return '0'
@@ -70,18 +72,18 @@ class TestBin(TestCase):
             self.assertEqual(bin(i, w), binref(i, w))
 
     def testRandomInt(self):
-        for j in range(100):
+        for j in range(SIZE):
             i = randrange(-sys.maxint, sys.maxint)
             self.assertEqual(bin(i), binref(i))
             
     def testRandomIntWidth(self):
-        for j in range(100):
+        for j in range(SIZE):
             w = randrange(1, 1000)
             i = randrange(-sys.maxint, sys.maxint)
             self.assertEqual(bin(i, w), binref(i, w))
 
     def testRandomLong(self):
-        for j in range(100):
+        for j in range(SIZE):
             k = randrange(sys.maxint)
             i = k + sys.maxint
             self.assertEqual(bin(i), binref(i))
@@ -89,7 +91,7 @@ class TestBin(TestCase):
             self.assertEqual(bin(i), binref(i))
             
     def testRandomLongWith(self):
-        for j in range(100):
+        for j in range(SIZE):
             w = randrange(1, 1000)
             k = randrange(sys.maxint)
             i = k + sys.maxint

@@ -29,18 +29,30 @@ maxint = sys.maxint
 from types import StringType
 import operator
 
+from bin import bin
+
+from __builtin__ import max as maxfunc
 
 class intbv(object):
-    __slots__ = ('_val', '_min', '_max', '_len')
+    __slots__ = ('_val', '_min', '_max', '_len', '_nrbits')
     
     def __init__(self, val=0, min=None, max=None, _len=0):
         self._len = _len
+        nrbits = 0
         if _len:
             self._min = 0
             self._max = 2**_len
+            nrbits = _len
         else:
             self._min = min
+            if min is not None:
+                nrbits = len(bin(min))
             self._max = max
+            if max is not None:
+                n = len(bin(max))
+                if n > nrbits:
+                    nrbits = n
+        self._nrbits = nrbits
         if isinstance(val, (int, long)):
             self._val = val
         elif type(val) is StringType:

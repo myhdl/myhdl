@@ -545,6 +545,8 @@ class TestIntbvBounds(TestCase):
             return # prune
         if not isinstance(a._val, (int, long)):
             return # prune
+        if abs(a) > maxint * maxint:
+            return # keep it reasonable
         if a > i:
             b = intbv(i, min=i, max=a+1)
             for m in (i+1, a):
