@@ -235,7 +235,8 @@ def _flatten(*args):
                 w, c = _flatten(item)
                 if cosim and c:
                     raise MultipleCosimError
-                cosim = c
+                if c:
+                    cosim = c
                 waiters.extend(w)
         else:
             raise ArgTypeError(str(type(arg)))

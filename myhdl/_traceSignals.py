@@ -109,7 +109,7 @@ def traceSignals(dut, *args, **kwargs):
     finally:
         _tracing = 0
         linecache.clearcache()
-    return h.m
+    return h.top
 
 _filelinemap = {}
 
@@ -190,7 +190,7 @@ class _HierExtr(object):
                 sys.setprofile(None)
                 if not hierarchy:
                     raise NoInstancesError
-        self.m = _top
+        self.top = _top
         hierarchy.reverse()
         hierarchy[0][1] = name
 

@@ -106,8 +106,6 @@ def toVerilog(func, *args, **kwargs):
         return func(*args, **kwargs) # skip
     if not callable(func):
         raise ArgTypeError("got %s" % type(func))
-    if _isGenFunc(func):
-        raise ArgTypeError("got generator function")
     _converting = 1
     try:
         outer = getouterframes(currentframe())[1]
@@ -200,14 +198,24 @@ class _HierExtr(object):
         self.names = [name]
         self.hierarchy = hierarchy = []
         self.level = 0
-        _profileFunc = self.extractor
-        sys.setprofile(_profileFunc)
-        try:
+        if _isGenFunc(func):
             _top = func(*args, **kwargs)
-        finally:
-            sys.setprofile(None)
-        if not hierarchy:
-            raise NoInstancesError
+            gsigdict = {}
+            for dict in (_top.gi_frame.f_globals, _top.gi_frame.f_locals):
+                for n, v in dict.items():
+                    if isinstance(v, Signal):
+                        gsigdict[n] = v
+            inst = [1, name, gsigdict]
+            self.hierarchy.append(inst)
+        else:
+            _profileFunc = self.extractor
+            sys.setprofile(_profileFunc)
+            try:
+                _top = func(*args, **kwargs)
+            finally:
+                sys.setprofile(None)
+            if not hierarchy:
+                raise NoInstancesError
         self.top = _top
         hierarchy.reverse()
         hierarchy[0][1] = name
@@ -326,7 +334,7 @@ class _AnalyzeGenVisitor(object):
     def visitFunction(self, node):
         if self.toplevel:
             self.toplevel = 0
-            # print node.code
+            print node.code
             self.visit(node.code)
             isAlways = True
         else:
@@ -507,7 +515,9 @@ def _getRangeString(s):
 class _convertGenVisitor(object):
     
     def __init__(self, f, sigdict, symdict):
-        self.f = f
+        self.buf = self.fileBuf = f
+        self.declBuf = StringIO()
+        self.codeBuf = StringIO()
         self.sigdict = sigdict
         self.symdict = symdict
         self.ind = ''
@@ -515,10 +525,10 @@ class _convertGenVisitor(object):
         self.isSigAss = False
 
     def write(self, arg):
-        self.f.write("%s" % arg)
+        self.buf.write("%s" % arg)
 
     def writeline(self):
-        self.f.write("\n%s" % self.ind)
+        self.buf.write("\n%s" % self.ind)
 
     def indent(self):
         self.ind += ' ' * 4
@@ -550,6 +560,15 @@ class _convertGenVisitor(object):
         self.visit(node.expr)
         self.write(';')
 
+    def visitBitxor(self, node):
+        self.write("(")
+        self.visit(node.nodes[0])
+        for node in node.nodes[1:]:
+            self.write(" ^ ")
+            self.visit(node)
+        self.write(")")
+
+
     def visitCallFunc(self, node):
         self.visit(node.node)
         self.write(' ')
@@ -566,6 +585,33 @@ class _convertGenVisitor(object):
     def visitConst(self, node):
         self.write(node.value)
 
+    def visitFor(self, node):
+        print node.lineno
+        assert isinstance(node.assign, ast.AssName)
+        var = node.assign.name
+        print var
+        self.buf = self.declBuf
+        self.write("integer %s;" % var)
+        self.writeline
+        self.buf = self.codeBuf
+        cf = node.list
+        assert isinstance(cf, ast.CallFunc)
+        assert isinstance(cf.node, ast.Name)
+        assert cf.node.name == 'range'
+        assert len(cf.args) == 1
+        d = {'var' : var}
+        self.writeline()
+        self.write("for (%(var)s=0; %(var)s<" % d)
+        self.visit(cf.args[0])
+        self.write("; %(var)s=%(var)s+1) begin" % d)
+        self.indent()
+        self.visit(node.body)
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        assert node.else_ is None
+         
+
     def visitFunction(self, node):
         w = node.code.nodes[-1]
         assert isinstance(w, ast.While)
@@ -574,21 +620,30 @@ class _convertGenVisitor(object):
         assert w.else_ is None
         assert isinstance(w.body.nodes[0], ast.Yield)
         sl = w.body.nodes[0].value
-        assert isinstance(sl, ast.Tuple)
+        assert isinstance(sl, (ast.Tuple, ast.Name))
         self.inYield = True
         self.write("always @(")
         self.visit(sl)
         self.inYield = False
         self.write(") begin")
         self.indent()
+        self.buf = self.codeBuf
         for s in w.body.nodes[1:]:
             self.visit(s)
+        self.buf = self.fileBuf
+        self.writeline()
+        self.write(self.declBuf.getvalue())
+        self.write(self.codeBuf.getvalue())
         self.dedent()
         self.writeline()
         self.write("end")
         self.writeline()
-        
 
+    def visitGetattr(self, node):
+        if node.attrname == 'next':
+            self.isSigAss = True
+        self.visit(node.expr)
+        
     def visitIf(self, node):
         self.writeline()
         self.write("if (")
@@ -615,14 +670,24 @@ class _convertGenVisitor(object):
         self.visit(node.right)
         
     def visitName(self, node):
-        assert node.name in self.symdict
-        obj = self.symdict[node.name]
-        if type(obj) is int:
-            self.write(str(obj))
-        elif type(obj) is Signal:
-            self.write(obj._name)
+        # assert node.name in self.symdict
+        if node.name in self.symdict:
+            obj = self.symdict[node.name]
+            if type(obj) is int:
+                self.write(str(obj))
+            elif type(obj) is Signal:
+                self.write(obj._name)
+            else:
+                raise AssertionError
         else:
             self.write(node.name)
+
+    def visitSubscript(self, node):
+        self.visit(node.expr)
+        self.write("[")
+        assert len(node.subs) == 1
+        self.visit(node.subs[0])
+        self.write("]")
 
     def visitTuple(self, node):
         assert self.inYield
