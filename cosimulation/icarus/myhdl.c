@@ -226,7 +226,7 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
   vpiHandle net_iter, net_handle;
   vpiHandle reg_iter, reg_handle;
   s_cb_data cb_data_s;
-  s_vpi_time verilog_time;
+  s_vpi_time verilog_time_s;
   s_vpi_value value_s;
   s_vpi_time time_s;
   char buf[MAXLINE];
@@ -245,11 +245,13 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
     assert(n > 0);
   }
 
-  net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
   buf[0] = '\0';
-  verilog_time.type = vpiSimTime;
-  vpi_get_time(systf_handle, &verilog_time);
-  sprintf(buf, "%xd%08x ", verilog_time.high, verilog_time.low);
+  verilog_time_s.type = vpiSimTime;
+  vpi_get_time(NULL, &verilog_time_s);
+  verilog_time = timestruct_to_time(&verilog_time_s);
+  assert(verilog_time == pli_time * 1000 + delta);
+  sprintf(buf, "%llu ", pli_time);
+  net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
   value_s.format = vpiHexStrVal;
   while ((net_handle = vpi_scan(net_iter)) != NULL) {
     vpi_get_value(net_handle, &value_s);

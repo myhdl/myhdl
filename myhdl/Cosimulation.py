@@ -136,11 +136,9 @@ class Cosimulation(object):
                     break
                 else:
                     raise Error, "Unexpected cosim input"
-            # os.waitpid(child_pid, 0)
 
     def _get(self):
         s = os.read(self._rt, _MAXLINE)
-        # print "Reading " + s
         if not s:
             raise SimulationEndError
         e = s.split()
@@ -157,23 +155,18 @@ class Cosimulation(object):
         buf = repr(time)
         if buf[-1] == 'L':
             buf = buf[:-1] # strip trailing L
-        if self._isActive:
-            self._isActive -= 1
         if self._hasChange:
             self._hasChange = 0
             for s in self._fromSigs:
                 buf += " "
                 buf += hex(s)[2:]
-        # print "Writing " + buf
         os.write(self._wf, buf)
 
     def _waiter(self):
         sigs = tuple(self._fromSigs)
         while 1:
             yield sigs
-            # print sigs
             self._hasChange = 1
-            self._isActive = 1
             
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """

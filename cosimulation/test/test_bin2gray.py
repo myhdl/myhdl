@@ -16,11 +16,6 @@ def nextLn(Ln):
     Ln1.reverse()
     return Ln0 + Ln1
 
-## def bin2gray(B, G, width):
-##     while 1:
-##         yield B
-##         G.next = B[0]
-
 class TestOriginalGrayCode(TestCase):
 
     def testOriginalGrayCode(self):
@@ -72,7 +67,7 @@ class TestGrayCodeProperties(TestCase):
             dut = bin2gray(B, G, width)
             check = test(B, G, G_Z, width)
             sim = Simulation(dut, check)
-            sim.run(quiet=0)
+            sim.run(quiet=1)
 
 
     def testUniqueCodeWords(self):
