@@ -356,7 +356,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if f.func_code.co_freevars:
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
-                    assert isinstance(obj, (int, long, Signal))
+                    if not  isinstance(obj, (int, long, Signal)):
+                        self.raiseError(node, _error.FreeVarTypeError, n)
                     ast.symdict[n] = obj
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)

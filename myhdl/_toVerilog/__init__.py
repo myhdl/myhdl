@@ -48,11 +48,13 @@ _error.UnboundLocal = "Local variable may be referenced before assignment"
 _error.TypeMismatch = "Type mismatch with earlier assignment"
 _error.NrBitsMismatch = "Nr of bits mismatch with earlier assignment"
 _error.IntbvBitWidth = "intbv instance should have bit width"
-_error.TypeInfer = "Can't infer type"
+_error.TypeInfer = "Can't infer variable type"
 _error.ReturnTypeMismatch = "Return type mismatch"
 _error.ReturnNrBitsMismatch = "Returned nr of bits mismatch"
 _error.ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
 _error.ReturnTypeInfer = "Can't infer return type"
+_error.ShadowingSignal = "Port is shadowed by internal signal"
+_error.FreeVarTypeError = "Free variable should be a Signal or an int"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")

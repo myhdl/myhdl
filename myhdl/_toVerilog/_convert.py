@@ -102,7 +102,8 @@ def _writeModuleHeader(f, intf):
     print >> f
     for portname in intf.argnames:
         s = intf.argdict[portname]
-        assert (s._name == portname)
+        if s._name != portname:
+            raise ToVerilogError(_error.ShadowingSignal, portname)
         r = _getRangeString(s)
         if s._driven:
             print >> f, "output %s%s;" % (r, portname)
