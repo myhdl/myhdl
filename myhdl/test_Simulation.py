@@ -418,6 +418,8 @@ class DeltaCycleOrder(TestCase):
         random.shuffle(vectors)
         index = range(4)
 
+        f = open("tmp1", "w")
+
         def clkGen():
             while 1:
                 yield delay(10)
@@ -439,8 +441,9 @@ class DeltaCycleOrder(TestCase):
 
         def logic():
             while 1:
-                yield a, b, c, d
+                # yield a, b, c, d
                 z.next = function(a.val, b.val, c.val, d.val)
+                yield a, b, c, d
 
         def stimulus():
             for v in vectors:

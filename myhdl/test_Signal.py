@@ -276,11 +276,11 @@ class TestSignalAsNum(TestCase):
     def binaryCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
-            bi = Signal(i)
-            bj = Signal(j)
-            ref = op(i, j)
+            bi = Signal(long(i))
+            bj = Signal(long(j))
+            ref = op(long(i), j)
             r1 = op(bi, j)
-            r2 = op(i, bj)
+            r2 = op(long(i), bj)
             r3 = op(bi, bj)
             self.assertEqual(type(r1), type(ref))
             self.assertEqual(type(r2), type(ref))
@@ -293,7 +293,7 @@ class TestSignalAsNum(TestCase):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
             bj = Signal(j)
-            ref = i
+            ref = long(i)
             exec("ref %s j" % op)
             r1 = bi1 = Signal(i)
             try:
@@ -302,7 +302,7 @@ class TestSignalAsNum(TestCase):
                 pass
             else:
                 self.fail()
-            r2 = i 
+            r2 = long(i)
             exec("r2 %s bj" % op)
             r3 = bi3 = Signal(i)
             try:
