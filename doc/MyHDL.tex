@@ -31,15 +31,15 @@ concurrency required in hardware descriptions. As generators are a
 recent Python feature, \myhdl\ requires Python 2.2.2 or higher.
 
 \myhdl\ can be used to experiment with high level modeling, and with
-verification techniques such as unit testing. But most importantly, it
-can now be used as a hardware verification language by cosimulation
-with Verilog and VHDL.
+verification techniques such as unit testing. The most important
+practical applicaton however, is to use it as a hardware verification
+language by cosimulation with Verilog and VHDL.
 
 The present release, \myhdl\ 0.2, enables \myhdl\ for
 cosimulation. The \myhdl\ side is designed to work with any simulator
-that has a PLI interface. For each simulator, an appropriate PLI
-module needs to be provided. The release comes with such a module for
-the Icarus Verilog simulator.
+that has a PLI. For each simulator, an appropriate PLI module in C
+needs to be provided. The release contains such a module for the
+Icarus Verilog simulator.
 
 
 \end{abstract}
