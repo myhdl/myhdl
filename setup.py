@@ -19,12 +19,13 @@ if sys.version_info[:3] < (2, 2, 2):
 from distutils.core import setup
     
 setup(name="myhdl",
-      version="0.4DEV",
-      description="myhdl python library",
+      version="0.3",
+      description="Python as a Hardware Description Language",
       author="Jan Decaluwe",
       author_email="jan@jandecaluwe.com",
-      url="www.jandecaluwe.com",
+      url="http://jandecaluwe.com/Tools/MyHDL/Overview.html",
+      download_url="http://jandecaluwe.com/Tools/MyHDL/Download.html",
       packages=['myhdl'],
-      license="LGPL"
+      license="LGPL",
       )
       
