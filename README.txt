@@ -8,22 +8,25 @@ MyHDL is a Python package for using Python as a hardware description
 language. Popular hardware description languages, like Verilog and
 VHDL, are compiled languages. MyHDL with Python can be viewed as a
 "scripting language" counterpart of such languages. However, Python is
-more accurately described as a very high level language (VHLL). MyHDL
-users have access to the amazing power and elegance of Python for their
-modeling work.
+more accurately described as a very high level language
+(VHLL). MyHDL users have access to the amazing power and elegance of
+Python for their modeling work.
 
 The key idea behind MyHDL is to use Python generators to model the
 concurrency required in hardware descriptions. As generators are a
 recent Python feature, MyHDL requires Python 2.2.2 or higher.
 
-MyHDL 0.1 is the initial public release of the package. It can be used
-to experiment with high level modeling, and with verification
-techniques such as unit testing. But the primary goal is to generate
-interest and to solicit feedback.
+MyHDL can be used to experiment with high level modeling, and with
+verification techniques such as unit testing. The most important
+practical applicaton however, is to use it as a hardware verification
+language by cosimulation with Verilog and VHDL.
 
-In a future release, MyHDL will hopefully be coupled to hardware
-simulators for languages such as Verilog and VHDL. That would turn
-Python into a powerful hardware verification language.
+The present release, MyHDL 0.2, enables MyHDL for
+cosimulation. The MyHDL side is designed to work with any simulator
+that has a PLI. For each simulator, an appropriate PLI module in C
+needs to be provided. The release contains such a module for the
+Icarus Verilog simulator.
+
 
 INSTALLATION
 ------------
@@ -51,15 +54,18 @@ You can test the installation as follows:
     cd test
     python test.py
 
+
 DOCUMENTATION
 -------------
 
 See the doc/ subdirectory.
 
+
 EXAMPLES
 --------
 
 See the example/ subdirectory for examples.
+
 
 AUTHOR
 ------
