@@ -110,7 +110,6 @@ class AlwaysCombCompilationTest(TestCase):
 
     def testInfer3(self):
         a, b, c, d = [Signal(0) for i in range(4)]
-        d = Signal(0)
         u = 1
         def h():
             c.next = a + x + u

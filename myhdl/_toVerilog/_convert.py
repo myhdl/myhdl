@@ -136,9 +136,9 @@ def _writeSigDecls(f, intf, siglist):
             continue
         r = _getRangeString(s)
         if s._driven:
-            # the following line would implement  initial value assignments
-            # print >> f, "reg %s%s = %s;" % (r, s._name, int(s._val))
-            print >> f, "reg %s%s;" % (r, s._name)
+            # the following line implements initial value assignments
+            print >> f, "reg %s%s = %s;" % (r, s._name, int(s._val))
+            # print >> f, "reg %s%s;" % (r, s._name)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -237,16 +237,26 @@ class _ConvertVisitor(_ToVerilogMixin):
     def writeDeclaration(self, obj, name, dir):
         if dir: dir = dir + ' '
         if type(obj) is bool:
-            self.write("%s%s;" % (dir, name))
+            self.write("%s%s" % (dir, name))
         elif isinstance(obj, int):
             if dir == "input ":
                 self.write("input %s;" % name)
                 self.writeline()
-            self.write("integer %s;" % name)
+            self.write("integer %s" % name)
         elif hasattr(obj, '_nrbits'):
-            self.write("%s[%s-1:0] %s;" % (dir, obj._nrbits, name))
+            self.write("%s[%s-1:0] %s" % (dir, obj._nrbits, name))
         else:
             raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
+        # initialize regs
+        if dir == 'reg ':
+            if str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
+                inival = obj._toVerilog()
+            else:
+                inival = int(obj)
+            self.write(" = %s;" % inival)
+        else:
+            self.write(";")
+        
 
     def writeDeclarations(self):
         for name, obj in self.ast.vardict.items():

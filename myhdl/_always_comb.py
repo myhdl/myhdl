@@ -31,7 +31,7 @@ from sets import Set
 
 from myhdl import Signal, AlwaysCombError
 from myhdl._util import _isGenFunc
-
+from myhdl._cell_deref import _cell_deref
 
 class _error:
     pass
@@ -53,12 +53,22 @@ def always_comb(func):
         raise AlwaysCombError(_error.Scope)
     varnames = func.func_code.co_varnames
     sigdict = {}
-    for dict in (f.f_locals, f.f_globals):
-        for n, v in dict.items():
-            if isinstance(v, Signal) and \
-                   n not in varnames and \
-                   n not in sigdict:
-                sigdict[n] = v
+##     for dict in (f.f_locals, f.f_globals):
+##         for n, v in dict.items():
+##             if isinstance(v, Signal) and \
+##                    n not in varnames and \
+##                    n not in sigdict:
+##                 sigdict[n] = v
+    for n, v in func.func_globals.items():
+        if isinstance(v, Signal) and \
+           n not in varnames:
+            sigdict[n] = v
+    # handle free variables
+    if func.func_code.co_freevars:
+        for n, c in zip(func.func_code.co_freevars, func.func_closure):
+            obj = _cell_deref(c)
+            if isinstance(obj, Signal):
+                sigdict[n] = obj
     c = _AlwaysComb(func, sigdict)
     return c
    

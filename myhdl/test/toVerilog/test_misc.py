@@ -117,6 +117,15 @@ def adderTranslateOn(a, b, c):
             import string
         c.next = a + b
 
+def adderLocal(a, b, c):
+    debug = False
+    while 1:
+        yield a, b
+        if debug:
+            c.next = a + b
+        debug = not debug
+        
+
         
 def Ignorecode_v(a, b, c):
     objfile = "ignorecode.o"           
@@ -137,6 +146,7 @@ class TestIgnoreCode(unittest.TestCase):
         c_v = Signal(intbv(0)[9:])
 
         ignorecode_inst = toVerilog(adder, a, b, c)
+        # ignorecode_inst = adder(a, b, c)
         ignorecode_v_inst = Ignorecode_v(a, b, c_v)
 
         def stimulus():
@@ -158,6 +168,10 @@ class TestIgnoreCode(unittest.TestCase):
         
     def testAdderTranslateOn(self):
         sim = self.bench(adderTranslateOn)
+        Simulation(sim).run()
+
+    def testAdderLocal(self):
+        sim = self.bench(adderLocal)
         Simulation(sim).run()
 
         
