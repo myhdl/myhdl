@@ -278,7 +278,7 @@ class TestMultiOps(TestCase):
             while 1:
                 yield argm, argn, argp
                 yield delay(1)
-                # print "%s %s %s %s" % (argm, argn, argp, Or, Or_v)
+                # print "%s %s %s %s %s" % (argm, argn, argp, Bitxor, Bitxor_v)
                 self.assertEqual(Bitand, Bitand_v)
                 self.assertEqual(Bitor, Bitor_v)
                 self.assertEqual(Bitxor, Bitxor_v)
