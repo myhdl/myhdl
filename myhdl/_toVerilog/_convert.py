@@ -244,9 +244,9 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.binaryOp(node, '<<')
     def visitMod(self, node, context=None, *args):
         if context == _context.PRINT:
-            self.visit(node.left)
+            self.visit(node.left, _context.PRINT)
             self.write(", ")
-            self.visit(node.right)
+            self.visit(node.right, _context.PRINT)
         else:
             self.binaryOp(node, '%')        
     def visitMul(self, node, *args):
@@ -391,8 +391,7 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def visitConst(self, node, context=None, *args):
         if context == _context.PRINT:
-            assert type(node.value) is str
-            self.write('"Verilog %s"' % node.value)
+            self.write('"%s"' % node.value)
         else:
             self.write(node.value)
 
@@ -579,10 +578,12 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write("// pass")
 
     def handlePrint(self, node):
-        assert len(node.nodes) == 1
-        s = node.nodes[0]
         self.write('$display(')
+        s = node.nodes[0]
         self.visit(s, _context.PRINT)
+        for s in node.nodes[1:]:
+            self.write(', , ')
+            self.visit(s, _context.PRINT)
         self.write(');')
     
     def visitPrint(self, node, *args):
@@ -592,7 +593,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.handlePrint(node)
     
     def visitRaise(self, node, *args):
-        self.write('$display("Verilog: ')
+        self.write('$display("')
         self.visit(node.expr1)
         self.write('");')
         self.writeline()

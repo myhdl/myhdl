@@ -144,6 +144,7 @@ def taskReturnVal(count, enable, clock, reset, n):
             if enable:
                 h2(cnt)
                 count.next = count + 1
+
        
 
 objfile = "inc_inst.o"
@@ -289,6 +290,8 @@ class TestErr(TestCase):
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
+
+            
 
 
 if __name__ == '__main__':

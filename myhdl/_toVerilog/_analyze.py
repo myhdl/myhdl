@@ -373,7 +373,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            # print ast
             fname = f.__name__
             ast.name = _Label(fname)
             ast.sourcefile = inspect.getsourcefile(f)
