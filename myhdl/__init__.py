@@ -29,6 +29,11 @@ posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
 join -- callable to join clauses in a yield statement
 intbv -- mutable integer class with bit vector facilities
+downrange -- function that returns a downward range
+Error -- myhdl Error exception
+bin -- returns a binary string representation.
+       The optional width specifies the desired string
+       width: padding of the sign-bit is used.
 
 """
 
