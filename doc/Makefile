@@ -145,8 +145,11 @@ world:	ps pdf html distfiles
 #.dvi.ps:
 #	$(DVIPS) -o $@ $<
 
+#.pdf.ps:
+#	pdf2ps $< $@
+
 .pdf.ps:
-	pdf2ps $< $@
+	xpdf $<
 
 
 # Targets for each document:
