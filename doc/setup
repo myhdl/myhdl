@@ -1,0 +1,4 @@
+# tex
+
+TEXINPUTS=".:./texinputs:"
+export TEXINPUTS

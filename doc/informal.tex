@@ -1,67 +1,82 @@
-\chapter{An informal introduction}
+\chapter{Introduction to \myhdl\ }
 
-Let's introduce \myhdl\ with a classical \code{Hello World}
-example. Here are the contents of a
-\file{HelloWorld.py} script:
+\section{A basic \myhdl\ simulation}
+
+Let's introduce \myhdl\ with a classical \code{Hello World} example
+under the form of a \myhdl\ simulation run.  Here are the contents of
+a \file{Hello1.py} script:
 
 \begin{verbatim}
-from myhdl import Signal, delay, posedge, now, Simulation
-
-clk = Signal(0)
-def clkGen():
-    while 1:
-        yield delay(10)
-        clk.next = 1
-        yield delay(10)
-        clk.next = 0
+from myhdl import delay, now, Simulation
 
 def sayHello():
     while 1:
-        yield posedge(clk)
+        yield delay(10)
         print "%s Hello World!" % now()
 
-sim = Simulation(clkGen(), sayHello())
-sim.run(50)
+gen = sayHello()
+sim = Simulation(gen)
+sim.run(30)
 
 \end{verbatim}
 
 When we run this script, we get the following output: 
 
 \begin{verbatim}
-jand> python HelloWorld.py
+% python Hello1.py
 10 Hello World!
+20 Hello World!
 30 Hello World!
-50 Hello World!
-StopSimulation: Simulated for duration 50
+StopSimulation: Simulated for duration 30
 
 \end{verbatim}
 
-To explain what happened, we will go over every line in the
-script. The first line imports a number of objects from the myhdl
+To explain what happened, we will go through the script line by
+line. The first line imports a number of objects from the \myhdl\
 package. In good Python style, and unlike most other languages, we can
 only use identifiers that are \emph{literally} defined in the source
-file. \footnote{I don't want to explain the \code{ from package import
-* } syntax}
+file \footnote{I don't want to explain the \code{ from package import
+* } syntax}.
+
+Next, we define a generator function called
+\code{sayHello}. This is a generator function (as opposed to
+a classic Python function) because it contains a \code{yield}
+statement (instead of \code{return} statement). In \myhdl\, a
+\code{yield} statement has a similar purpose as a \code{wait}
+statement in VHDL: the statement suspends execution of the function,
+and its clauses specify when the function should resume. In this case,
+there is a \code{delay} clause, that specifies the required delay.
+
+To make sure that the generator runs ``forever'', we wrap its behavior
+in a \code{while 1} loop. This is as standard Python idiom, and it is
+the \myhdl\ equivalent to a Verilog \code{always} block or a
+VHDL \code{process}.
+
+In hardware language terms, the generator function corresponds to a
+hardware module. To simulate a module, we need to pass an
+\emph{instance} of it to a simulator. In \myhdl{}, the equivalence of
+instantiating is calling a generator function to create an actual
+generator. For example, variable \code{gen} in the script refers a
+generator that can be simulated. To do this, we first create a
+\code{Simulation} object that takes the generator as its argument. We
+then run the simulation for the desired amount of time.
+
+\section{Concurrent generators and signals}
+
+
 
 Then, we create a clock \code{Signal} named \code{clk}, with initial
 value \code{0}. We also define a generator function \code{clkGen},
-that operates on clock \code{clk}. \code{clkGen} is a generator
-function (as opposed to a classic Python function) because it contains
-\code{yield} statements (instead of \code{return} statements). In
-myhdl, a \code{yield} statement has a similar purpose as a
-\code{wait} statement in VHDL: the statement suspends execution of the function, 
-and its clauses specify when the function should resume.
+that operates on clock \code{clk}. 
 
-In \code{clkGen}, the \code{yield} statements have \code{delay}
-clauses; this means the function should sleep for the specified amount
-of time. After each delay, the clock is assigned a new value, by
-assigning to its \code{next} attribute. Assigning to a
-\code{Signal}'s \code{next} attribute is \myhdl\'s equivalent to signal
+After each delay, the clock is assigned a new value, by
+assigning to its \code{next} attribute. Assigning to the 
+\code{next} attribute of a signal is the \myhdl\ equivalent to signal
 assignments in VHDL and non-blocking assignments in Verilog.
 
-To make sure that the clock generator runs ``forever'', we wrap
-everything in a \code{while 1} loop. This is Python's idiomatic
-equivalent to a Verilog \code{always} block or a VHDL \code{process}.
+
+
+
 
 
 
