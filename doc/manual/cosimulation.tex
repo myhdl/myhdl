@@ -47,7 +47,6 @@ def bin2gray(B, G, width):
         yield B
         for i in range(width):
             G.next[i] = B[i+1] ^ B[i]
-
 \end{verbatim}
 
 To show the co-simulation flow, we don't need the Verilog
@@ -61,7 +60,6 @@ module bin2gray(B, G);
    input [width-1:0]  B;     
    output [width-1:0] G;
    ....
-
 \end{verbatim}
 
 To write a test bench, one creates a new module that instantiates the
@@ -88,7 +86,6 @@ module dut_bin2gray;
    defparam dut.width = `width;
 
 endmodule
-
 \end{verbatim}
 
 The \code{\$from_myhdl} task call declares which regs are driven by
@@ -112,7 +109,6 @@ for our example can be obtained obtained by running the
 
 \begin{verbatim}
 % iverilog -o bin2gray -Dwidth=4 bin2gray.v dut_bin2gray.v
-
 \end{verbatim}
 
 This generates a \code{bin2gray} executable for a parameter \code{width}
@@ -122,7 +118,6 @@ The simulation itself is run by the \code{vvp} command:
 
 \begin{verbatim}
 % vvp -m ./myhdl.vpi bin2gray
-
 \end{verbatim}
 
 This runs the \code{bin2gray} simulation, and specifies to use the
@@ -147,7 +142,6 @@ cmd = "iverilog -o bin2gray -Dwidth=%s bin2gray.v dut_bin2gray.v"
 def bin2gray(B, G, width):
     os.system(cmd % width)
     return Cosimulation("vvp -m ./myhdl.vpi bin2gray", B=B, G=G)
-
 \end{verbatim}
 
 After the executable command argument, the \code{Cosimulation}
@@ -183,7 +177,6 @@ module bin2gray(B, G);
    end
 
 endmodule
-
 \end{verbatim}
 
 When we run our unit test, we get:
@@ -198,7 +191,6 @@ Check that the code is an original Gray code ... ok
 Ran 3 tests in 2.729s
 
 OK
-
 \end{verbatim}
 
 

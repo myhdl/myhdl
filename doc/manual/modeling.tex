@@ -18,7 +18,6 @@ def combinatorialLogic(<arguments>)
     while 1:
         yield <input signal arguments>
         <functional code>
-
 \end{verbatim}
 
 The overall code is wrapped in a \code{while 1} statement to keep the
@@ -45,7 +44,6 @@ def mux(z, a, b, sel):
             z.next = a
         else:
             z.next = b
-
 \end{verbatim}
 
 To verify, let's simulate this logic with some random patterns. The
@@ -69,7 +67,6 @@ def test():
         print "%s %s %s %s" % (z, a, b, sel)
         
 Simulation(MUX_1, test()).run() 
-   
 \end{verbatim}
 
 Because of the randomness, the simulation output varies between runs
@@ -109,7 +106,6 @@ def sequentialLogic(<arguments>, clock, ..., reset, ...)
             <reset code>
         else:
             <functional code>
-
 \end{verbatim}
 
 
@@ -137,7 +133,6 @@ def Inc(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
-
 \end{verbatim}
 
 For the test bench, we will use an independent clock generator, stimulus
@@ -174,7 +169,6 @@ def monitor():
         print "   %s      %s" % (enable, count)
         
 Simulation(clockGen(), stimulus(), monitor(), INC_1).run()
-
 \end{verbatim}
 
 The simulation produces the following output:
@@ -249,7 +243,6 @@ def sparseMemory(dout, din, addr, we, en, clk):
             memory[addr] = din.val
         else:
             dout.next = memory[addr]
-
 \end{verbatim} 
 
 Note how we use the \code{val} attribute of the \code{din} signal, as
@@ -288,7 +281,6 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
         filling = len(memory)
         empty.next = (filling == 0)
         full.next = (filling == maxFilling)
-
 \end{verbatim}
 
 Again, the model is merely a \myhdl\ interface around some operations
@@ -311,7 +303,6 @@ Traceback (most recent call last):
   File "sparseMemory.py", line 30, in sparseMemory
     dout.next = memory[addr]
 KeyError: 51
-
 \end{verbatim}
 
 Similarly, if the \code{fifo} is empty, and we attempt to read from
@@ -323,7 +314,6 @@ Traceback (most recent call last):
   File "fifo.py", line 34, in fifo
     dout.next = memory.pop()
 IndexError: pop from empty list
-
 \end{verbatim}
 
 Instead of these low level errors, it may be preferable to define
@@ -352,7 +342,6 @@ def sparseMemory(dout, din, addr, we, en, clk):
                 dout.next = memory[addr]
             except KeyError:
                 raise Error, "Uninitialized address %s" % hex(addr)
-
 \end{verbatim}
 
 This works by catching the low level data type exception, and raising
@@ -366,7 +355,6 @@ Traceback (most recent call last):
   File "sparseMemory.py", line 57, in sparseMemory
     raise Error, "Uninitialized address %s" % hex(addr)
 __main__.Error: Uninitialized address 0x33
-
 \end{verbatim}
 
 Likewise, the \function{fifo} function can be adapted as follows, to
@@ -392,7 +380,6 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
         full.next = (filling == maxFilling)
         if filling > maxFilling:
             raise Error, "Overflow -- Max filling %s exceeded" % maxFilling
-
 \end{verbatim}
 
 In this case, the underflow error is detected as before, by catching a

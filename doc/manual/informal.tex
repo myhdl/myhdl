@@ -17,7 +17,6 @@ def sayHello():
 gen = sayHello()
 sim = Simulation(gen)
 sim.run(30)
-
 \end{verbatim}
 
 All example code can be found in the distribution directory under
@@ -30,7 +29,6 @@ following output:
 20 Hello World!
 30 Hello World!
 StopSimulation: Simulated for duration 30
-
 \end{verbatim}
 
 The first line of the script imports a
@@ -90,7 +88,6 @@ def clkGen():
         clk.next = 1
         yield delay(10)
         clk.next = 0
-
 \end{verbatim}
 
 The \code{clk} signal is constructed with an initial value
@@ -108,7 +105,6 @@ def sayHello():
     while 1:
         yield posedge(clk)
         print "%s Hello World!" % now()
-
 \end{verbatim}
 
 Waiting for a clock edge is achieved with a second form of the
@@ -121,7 +117,6 @@ The \class{Simulation} is now constructed with 2 generator arguments:
 \begin{verbatim}
 sim = Simulation(clkGen(), sayHello())
 sim.run(50)
-
 \end{verbatim}
 
 When we run this simulation, we get:
@@ -132,7 +127,6 @@ When we run this simulation, we get:
 30 Hello World!
 50 Hello World!
 StopSimulation: Simulated for duration 50
-
 \end{verbatim}
 
 
@@ -154,7 +148,6 @@ def clkGen(clock, period=20):
         clock.next = 1
         yield delay(highTime)
         clock.next = 0
-
 \end{verbatim}
 
 The clock signal is now a parameter of the function. Also, the clock
@@ -169,7 +162,6 @@ def sayHello(clock, to="World!"):
     while 1:
         yield posedge(clock)
         print "%s Hello %s" % (now(), to)
-
 \end{verbatim}
 
 We can create any number of generators by calling generator functions
@@ -188,8 +180,8 @@ def greetings():
     sayHello1 = sayHello(clock=clk1)
     sayHello2 = sayHello(to="MyHDL", clock=clk2)
     return clkGen1, clkGen2, sayHello1, sayHello2
-
 \end{verbatim}
+
 As in standard Python, positional or named parameter association can
 be used in instantiations, or a mix of both\footnote{All positional
 parameters have to go before any named parameter.}. All these styles
@@ -206,7 +198,6 @@ constructor. For example:
 \begin{verbatim}
 sim = Simulation(greetings())
 sim.run(50)
-
 \end{verbatim}
 
 This produces the following output:
@@ -220,7 +211,6 @@ This produces the following output:
 47 Hello MyHDL
 50 Hello World!
 StopSimulation: Simulated for duration 50
-
 \end{verbatim}
 
 
@@ -257,7 +247,6 @@ def bin2gray(B, G, width):
         yield B
         for i in range(width):
             G.next[i] = B[i+1] ^ B[i]
-
 \end{verbatim}
 
 This code introduces a few new concepts. The string in triple quotes
@@ -289,7 +278,6 @@ def testBench(width):
             print "B: " + bin(B, width) + "| G: " + bin(G, width)
 
     return (dut, stimulus())
-
 \end{verbatim}
 
 We use the conversion function \code{bin} to get a binary
@@ -301,7 +289,6 @@ To demonstrate, we set up a simulation for a small width:
 
 \begin{verbatim}
 Simulation(testBench(width=3)).run()
-
 \end{verbatim}
 
 The simulation produces the following output:
@@ -317,7 +304,6 @@ B: 101 | G: 111
 B: 110 | G: 101
 B: 111 | G: 100
 StopSimulation: No more events
-
 \end{verbatim}
 
 \subsection{Slicing operations}
@@ -345,7 +331,6 @@ def calculateHec(header):
                          bit ^ hec[7]
                         )
     return hec ^ COSET
-
 \end{verbatim}
 
 The code shows how slicing access and assignment is supported on the
@@ -410,7 +395,6 @@ def rs232_tx(tx, data, duration=T_9600):
     print "TX: stop bit"      
     tx.next = 1
     yield delay(duration)
-
 \end{verbatim}
 
 This looks exactly like the generator functions in previous sections. It
@@ -427,7 +411,6 @@ def stimulus():
     for val in testvals:
         txData = intbv(val)
         yield rs232_tx(tx, txData)
-
 \end{verbatim}
 
 We use the bus functional procedure call as a clause in a
@@ -461,7 +444,6 @@ TX: 1
 TX: 0
 TX: 1
 ...
-
 \end{verbatim}
 
 We will continue with this example by designing the corresponding UART
@@ -507,7 +489,6 @@ def rs232_rx(rx, data, duration=T_9600, timeout=MAX_TIMEOUT):
     yield delay(duration)
     print "RX: stop bit"
     print "-- Received %s --" % hex(data)
-
 \end{verbatim}
 
 If the timeout condition is triggered, the receive bit \code{rx}
@@ -530,7 +511,6 @@ def test():
     for val in testvals:
         txData = intbv(val)
         yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
-
 \end{verbatim}
 
 Both forked generators will run concurrently, and the calling
@@ -567,7 +547,6 @@ RX: start bit
 TX: 0
 RX: 0
 ...
-
 \end{verbatim}
 
 For completeness, we will verify the timeout behavior with a test
@@ -582,7 +561,6 @@ def testTimeout():
     for val in testvals:
         txData = intbv(val)
         yield rs232_rx(rx, rxData, timeout=4*T_9600-1), rs232_tx(tx, txData)
-
 \end{verbatim}
  
 The simulation now stops with a timeout exception after a few
@@ -595,7 +573,6 @@ TX: 1
 TX: 0
 TX: 1
 StopSimulation: RX time out error
-
 \end{verbatim}
 
 Recall that the calling generator resumes as soon as one of the
@@ -617,7 +594,6 @@ def testNoJoin():
     for val in testvals:
         txData = intbv(val)
         yield rs232_rx(rx, rxData), rs232_tx(tx, txData, duration=T_10200)
-
 \end{verbatim}
 
 Simulating this shows how the transmission of the new byte starts
@@ -640,7 +616,6 @@ RX: stop bit
 -- Received 0xc5 --
 RX: start bit
 TX: 0
-
 \end{verbatim}
 
 It is more likely that we want to characterize the design on a byte
@@ -658,7 +633,6 @@ def testJoin():
     for val in testvals:
         txData = intbv(val)
         yield join(rs232_rx(rx, rxData), rs232_tx(tx, txData, duration=T_10200))
-
 \end{verbatim}
 
 Now, transmission of a new byte only starts when the previous one is received:
@@ -680,7 +654,6 @@ TX: start bit
 RX: start bit
 TX: 0
 RX: 0
-
 \end{verbatim}
 
 \section{\myhdl\ and Python}

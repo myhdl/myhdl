@@ -31,7 +31,6 @@ Consider the following nonsensical function:
 def function():
     for i in range(5):
         return i
-
 \end{verbatim}
 
 You can see why it doesn't make a lot of sense. As soon as the first
@@ -53,7 +52,6 @@ To change the function into a generator function, we replace
 def generator():
     for i in range(5):
         yield i
-
 \end{verbatim}
 
 Now we get:
@@ -61,7 +59,6 @@ Now we get:
 \begin{verbatim}
 >>> generator()
 <generator object at 0x815d5a8>
-
 \end{verbatim}
 
 When a generator function is called, it returns a generator object. A
@@ -85,7 +82,6 @@ calling its \function{next()} method:
 Traceback (most recent call last):
   File "<stdin>", line 1, in ?
 StopIteration
-
 \end{verbatim}
 
 Now we can generate the subsequent values from the for loop on demand,
@@ -128,7 +124,6 @@ start of all code that defines generator functions:
 
 \begin{verbatim}
 from __future__ import generators
-
 \end{verbatim}
 
 From Python 2.3 on, this line may still be in the code, though it
