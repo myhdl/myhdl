@@ -187,6 +187,18 @@ class AlwaysCombCompilationTest(TestCase):
         expected = ['a', 'b', 'x']
         expected.sort()
         self.assertEqual(i.inputs, expected)
+        
+    def testInfer10(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def f(x, y, z):
+            return 0
+        def h():
+            c.next = f(a, 2*b, d*x)
+        g = always_comb(h)
+        i= g.gi_frame.f_locals['self']
+        expected = ['a', 'b', 'd', 'x']
+        expected.sort()
+        self.assertEqual(i.inputs, expected)
 
 
 class AlwaysCombSimulationTest(TestCase):

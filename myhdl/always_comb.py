@@ -146,7 +146,8 @@ class _AlwaysComb(object):
 
     def genfunc(self):
         inputsigs = tuple([self.sigdict[n] for n in self.inputs])
+        func = self.func
         while 1:
-            self.func()
+            func()
             yield inputsigs
  
