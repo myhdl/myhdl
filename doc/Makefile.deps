@@ -1,0 +1,33 @@
+# LaTeX source dependencies.
+
+COMMONSTYLES= texinputs/python.sty \
+	texinputs/pypaper.sty
+
+INDEXSTYLES=texinputs/python.ist
+
+COMMONTEX= texinputs/copyright.tex \
+	texinputs/license.tex \
+	texinputs/boilerplate.tex
+
+MANSTYLES= texinputs/fncychap.sty \
+	texinputs/manual.cls \
+	$(COMMONSTYLES)
+
+HOWTOSTYLES= texinputs/howto.cls \
+	$(COMMONSTYLES)
+
+
+DOCFILES= $(HOWTOSTYLES) \
+	texinputs/boilerplate.tex \
+	texinputs/ltxmarkup.sty \
+	doc/doc.tex
+
+# LaTeX source files for the MyHDL Manual
+MANUALFILES= $(MANSTYLES) $(INDEXSTYLES) $(COMMONTEX) \
+	manual/MyHDL.tex \
+	manual/background.tex \
+	manual/informal.tex \
+	manual/modeling.tex \
+	manual/unittest.tex \
+	manual/cosimulation.tex \
+	manual/reference.tex

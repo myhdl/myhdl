@@ -1,0 +1,407 @@
+\chapter{Modeling techniques}
+
+\section{RTL modeling}
+The present section describes how \myhdl\ supports RTL style modeling
+as is typically used for synthesizable models in Verilog or VHDL. This
+section is included mainly for illustrative purposes, as this modeling
+style is well known and understood.
+
+\subsection{Combinatorial logic}
+
+\subsubsection{Template}
+
+Combinatorial logic is described with a generator function code template as
+follows: 
+
+\begin{verbatim}
+def combinatorialLogic(<arguments>)
+    while 1:
+        yield <input signal arguments>
+        <functional code>
+
+\end{verbatim}
+
+The overall code is wrapped in a \code{while 1} statement to keep the
+generator alive. All input signals are clauses in the \code{yield}
+statement, so that the generator resumes whenever one of the inputs
+changes. 
+
+\subsubsection{Example}
+
+The following is an example of a combinatorial multiplexer:
+
+\begin{verbatim}
+def mux(z, a, b, sel):
+    """ Multiplexer.
+    
+    z -- mux output
+    a, b -- data inputs
+    sel -- control input: select a if asserted, otherwise b
+
+    """
+    while 1:
+        yield a, b, sel
+        if sel == 1:
+            z.next = a
+        else:
+            z.next = b
+
+\end{verbatim}
+
+To verify, let's simulate this logic with some random patterns. The
+\code{random} module in Python's standard library comes in handy for
+such purposes. The function \code{randrange(\var{n})} returns a random
+natural integer smaller than \var{n}. It is used in the test bench
+code to produce random input values:
+
+\begin{verbatim}
+from random import randrange
+
+(z, a, b, sel) = [Signal(0) for i in range(4)]
+
+MUX_1 = mux(z, a, b, sel)
+
+def test():
+    print "z a b sel"
+    for i in range(8):
+        a.next, b.next, sel.next = randrange(8), randrange(8), randrange(2)
+        yield delay(10)
+        print "%s %s %s %s" % (z, a, b, sel)
+        
+Simulation(MUX_1, test()).run() 
+   
+\end{verbatim}
+
+Because of the randomness, the simulation output varies between runs
+\footnote{It also possible to have a reproducible random output, by
+explicitly providing a seed value. See the documentation of the
+\code{random} module.}. One particular run produced the following
+output:
+
+\begin{verbatim}
+% python mux.py
+z a b sel
+6 6 1 1
+7 7 1 1
+7 3 7 0
+1 2 1 0
+7 7 5 1
+4 7 4 0
+4 0 4 0
+3 3 5 1
+StopSimulation: No more events
+\end{verbatim}
+
+
+\subsection{Sequential logic}
+
+\subsubsection{Template}
+Sequential RTL models are sensitive to a clock edge. In addition, they
+may be sensitive to a reset signal. We will describe one of the most
+common patterns: a template with a rising clock edge and an
+asynchronous reset signal. Other templates are similar.
+
+\begin{verbatim}
+def sequentialLogic(<arguments>, clock, ..., reset, ...)
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == <active level>:
+            <reset code>
+        else:
+            <functional code>
+
+\end{verbatim}
+
+
+\subsubsection{Example}
+The following code is a description of an incrementer with enable, and
+an asynchronous power-up reset.
+
+\begin{verbatim}
+ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+
+def Inc(count, enable, clock, reset, n):
+    """ Incrementer with enable.
+    
+    count -- output
+    enable -- control input, increment when 1
+    clock -- clock input
+    reset -- asynchronous reset input
+    n -- counter max value
+
+    """
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+
+\end{verbatim}
+
+For the test bench, we will use an independent clock generator, stimulus
+generator, and monitor. After applying enough stimulus patterns, we
+can raise the \code{myhdl.StopSimulation} exception to stop the
+simulation run. The test bench for a small incrementer and a small
+number of patterns is a follows:
+
+\begin{verbatim}
+count, enable, clock, reset = [Signal(intbv(0)) for i in range(4)]
+
+INC_1 = Inc(count, enable, clock, reset, n=4)
+
+def clockGen():
+    while 1:
+        yield delay(10)
+        clock.next = not clock
+
+def stimulus():
+    reset.next = ACTIVE_LOW
+    yield negedge(clock)
+    reset.next = INACTIVE_HIGH
+    for i in range(12):
+        enable.next = min(1, randrange(3))
+        yield negedge(clock)
+    raise StopSimulation
+
+def monitor():
+    print "enable  count"
+    yield posedge(reset)
+    while 1:
+        yield posedge(clock)
+        yield delay(1)
+        print "   %s      %s" % (enable, count)
+        
+Simulation(clockGen(), stimulus(), monitor(), INC_1).run()
+
+\end{verbatim}
+
+The simulation produces the following output:
+\begin{verbatim}
+% python inc.py
+enable  count
+   0      0
+   1      1
+   0      1
+   1      2
+   1      3
+   1      0
+   0      0
+   1      1
+   0      1
+   0      1
+   0      1
+   1      2
+StopSimulation
+\end{verbatim}
+
+\section{High level modeling}
+
+\begin{quote}
+\em
+This section on high level modeling should become an exciting part of
+the manual, but it doesn't contain a lot of material just yet. One
+reason is that I concentrated on the groundwork first. Moreover,
+though I expect Python to offer some very powerful capabilities in
+this domain, I'm just starting to experiment and learn myself. For
+example, note that so far we haven't used classes (nor meta-classes
+:-)) yet, even though Python has a very powerful object-oriented
+model.
+\end{quote}
+
+\subsection{Modeling memories with built-in types}
+
+Python has powerful built-in data types that can be useful to model
+hardware memories. This can be merely a matter of putting an interface
+around some data type operations.
+
+For example, a \dfn{dictionary} comes in handy to model sparse memory
+structures. (In other languages, this data type is called 
+\dfn{associative array}, or \dfn{hash table}.) A sparse memory is one in
+which only a small part of the addresses is used in a particular
+application or simulation. Instead of statically allocating the full
+address space, which can be large, it is better to dynamically
+allocate the needed storage space. This is exactly what a dictionary
+provides. The following is an example of a sparse memory model:
+
+\begin{verbatim}
+
+
+def sparseMemory(dout, din, addr, we, en, clk):
+    """ Sparse memory model based on a dictionary.
+
+    Ports:
+    dout -- data out
+    din -- data in
+    addr -- address bus
+    we -- write enable: write if 1, read otherwise
+    en -- interface enable: enabled if 1
+    clk -- clock input
+    
+    """
+    memory = {}
+    while 1:
+        yield posedge(clk)
+        if not en:
+            continue
+        if we:
+            memory[addr] = din.val
+        else:
+            dout.next = memory[addr]
+
+\end{verbatim} 
+
+Note how we use the \code{val} attribute of the \code{din} signal, as
+we don't want to store the signal object itself, but its current
+value. (In many cases, \myhdl\ can use a signal's value automatically
+when there is no ambiguity: for example, this happens whenever a
+signal is used in expressions. When in doubt, you can always use the
+\code{val} attribute explicitly.)
+
+As a second example, we will demonstrate how to use a list to model a
+synchronous fifo:
+
+\begin{verbatim}
+def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
+    """ Synchronous fifo model based on a list.
+
+    Ports:
+    dout -- data out
+    din -- data in
+    re -- read enable
+    we -- write enable
+    empty -- empty indication flag
+    full -- full indication flag
+    clk -- clock input
+    Optional parameter:
+    maxFilling -- maximum fifo filling, "infinite" by default
+
+    """
+    memory = []
+    while 1:
+        yield posedge(clk)
+        if we:
+            memory.insert(0, din.val)
+        if re:
+            dout.next = memory.pop()
+        filling = len(memory)
+        empty.next = (filling == 0)
+        full.next = (filling == maxFilling)
+
+\end{verbatim}
+
+Again, the model is merely a \myhdl\ interface around some operations
+on a list: \function{insert()} to insert entries, \function{pop()} to
+retrieve them, and \function{len()} to get the size of a Python
+object.
+
+\subsection{Modeling errors using exceptions}
+
+In the previous section, we used Python data types for modeling. If
+such a type is used inappropriately, Python's run time error system
+will come into play. For example, if we access an address in the
+\function{sparseMemory} model that was not initialized before, we will
+get a traceback similar to the following (some lines omitted for
+clarity):
+
+\begin{verbatim}
+Traceback (most recent call last):
+...
+  File "sparseMemory.py", line 30, in sparseMemory
+    dout.next = memory[addr]
+KeyError: 51
+
+\end{verbatim}
+
+Similarly, if the \code{fifo} is empty, and we attempt to read from
+it, we get:
+
+\begin{verbatim}
+Traceback (most recent call last):
+...
+  File "fifo.py", line 34, in fifo
+    dout.next = memory.pop()
+IndexError: pop from empty list
+
+\end{verbatim}
+
+Instead of these low level errors, it may be preferable to define
+errors at the functional level. In Python, this is typically done by
+defining a custom \code{Error} exception, by subclassing the standard
+\code{Exception} class. This exception is then raised explicitly when
+an error condition occurs.
+
+For example, we can change the \function{sparseMemory} function as
+follows (with the doc string is omitted for brevity):
+
+\begin{verbatim}
+class Error(Exception):
+    pass
+
+def sparseMemory(dout, din, addr, we, en, clk):
+    memory = {}
+    while 1:
+        yield posedge(clk)
+        if not en:
+            continue
+        if we:
+            memory[addr] = din.val
+        else:
+            try:
+                dout.next = memory[addr]
+            except KeyError:
+                raise Error, "Uninitialized address %s" % hex(addr)
+
+\end{verbatim}
+
+This works by catching the low level data type exception, and raising
+the custom exception with an appropriate error message instead.  If
+the \function{sparseMemory} function is defined in a module with the
+same name, an access error is now reported as follows:
+
+\begin{verbatim}
+Traceback (most recent call last):
+...
+  File "sparseMemory.py", line 57, in sparseMemory
+    raise Error, "Uninitialized address %s" % hex(addr)
+__main__.Error: Uninitialized address 0x33
+
+\end{verbatim}
+
+Likewise, the \function{fifo} function can be adapted as follows, to
+report underflow and overflow errors:
+
+\begin{verbatim}
+class Error(Exception):
+    pass
+
+def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
+    memory = []
+    while 1:
+        yield posedge(clk)
+        if we:
+            memory.insert(0, din.val)
+        if re:
+            try:
+                dout.next = memory.pop()
+            except IndexError:
+                raise Error, "Underflow -- Read from empty fifo"
+        filling = len(memory)
+        empty.next = (filling == 0)
+        full.next = (filling == maxFilling)
+        if filling > maxFilling:
+            raise Error, "Overflow -- Max filling %s exceeded" % maxFilling
+
+\end{verbatim}
+
+In this case, the underflow error is detected as before, by catching a
+low level exception on the list data type. On the other hand, the
+overflow error is detected by a regular check on the length of the
+list.
+
+
+\begin{quote}
+\em
+A lot to be added ...
+\end{quote}

@@ -134,6 +134,23 @@
 % Use this to set the font family for headers and other decor:
 \newcommand{\py@HeaderFamily}{\sffamily}
 
+% Set up abstract ways to get the normal and smaller font sizes that
+% work even in footnote context.
+\newif\ifpy@infootnote \py@infootnotefalse
+\let\py@oldmakefntext\@makefntext
+\def\@makefntext#1{%
+  \bgroup%
+    \py@infootnotetrue
+    \py@oldmakefntext{#1}%
+  \egroup%
+}
+\def\py@defaultsize{%
+  \ifpy@infootnote\footnotesize\else\normalsize\fi%
+}
+\def\py@smallsize{%
+  \ifpy@infootnote\scriptsize\else\small\fi%
+}
+
 % Redefine the 'normal' header/footer style when using "fancyhdr" package:
 \@ifundefined{fancyhf}{}{
   % Use \pagestyle{normal} as the primary pagestyle for text.
@@ -181,19 +198,27 @@
 \newlength{\py@codewidth}
 
 \renewcommand{\verbatim}{%
-  \begingroup%
-  \small%
-  \begin{list}{}{\setlength{\leftmargin}{1cm}}
-    \item%
+  \setlength{\parindent}{1cm}%
+  % Calculate the text width for the minipage:
+  \setlength{\py@codewidth}{\linewidth}%
+  \addtolength{\py@codewidth}{-\parindent}%
+  %
+  \par\indent%
+  \begin{minipage}[t]{\py@codewidth}%
+    \small%
     \py@OldVerbatim%
 }
 \renewcommand{\endverbatim}{%
     \py@OldEndVerbatim%
-  \end{list}%
-  \endgroup
+  \end{minipage}%
 }
 \renewcommand{\verbatiminput}[1]{%
-  {\small%
+  {\setlength{\parindent}{1cm}%
+   % Calculate the text width for the minipage:
+   \setlength{\py@codewidth}{\linewidth}%
+   \addtolength{\py@codewidth}{-\parindent}%
+   %
+   \small%
    \begin{list}{}{\setlength{\leftmargin}{1cm}}
      \item%
      \py@OldVerbatimInput{#1}%
@@ -573,13 +598,27 @@
 % something else.
 \newcommand{\py@unspecified}{...}
 
+
+\newlength{\py@argswidth}
+\newcommand{\py@sigparams}[1]{%
+  \parbox[t]{\py@argswidth}{\py@varvars{#1}\code{)}}}
+\newcommand{\py@sigline}[2]{%
+  \settowidth{\py@argswidth}{#1\code{(}}%
+  \addtolength{\py@argswidth}{-2\py@argswidth}%
+  \addtolength{\py@argswidth}{\textwidth}%
+  \item[#1\code{(}\py@sigparams{#2}]}
+
 % C functions ------------------------------------------------------------
 % \begin{cfuncdesc}[refcount]{type}{name}{arglist}
 % Note that the [refcount] slot should only be filled in by
 % tools/anno-api.py; it pulls the value from the refcounts database.
+\newcommand{\cfuncline}[3]{
+  \py@sigline{\code{#1 \bfcode{#2}}}{#3}%
+  \index{#2@{\py@idxcode{#2()}}}
+}
 \newenvironment{cfuncdesc}[4][\py@badkey]{
   \begin{fulllineitems}
-    \item[\code{#2 \bfcode{#3}(\py@varvars{#4})}\index{#3@{\py@idxcode{#3()}}}]
+    \cfuncline{#2}{#3}{#4}
     \ifx#1\@undefined\else%
       \emph{Return value: \textbf{#1}.}\\
     \fi
@@ -604,8 +643,19 @@
     \fi]
 }{\end{fulllineitems}}
 
+% C type fields ----------------------------------------------------------
+% \begin{cmemberdesc}{container type}{ctype}{membername}
+\newcommand{\cmemberline}[3]{
+  \item[\code{#2 \bfcode{#3}}]
+  \index{#3@{\py@idxcode{#3}} (#1 member)}
+}
+\newenvironment{cmemberdesc}[3]{
+  \begin{fulllineitems}
+    \cmemberline{#1}{#2}{#3}
+}{\end{fulllineitems}}
+
 % Funky macros -----------------------------------------------------------
-% \begin{csimplemacro}{name}
+% \begin{csimplemacrodesc}{name}
 % -- "simple" because it has no args; NOT for constant definitions!
 \newenvironment{csimplemacrodesc}[1]{
   \begin{fulllineitems}
@@ -623,7 +673,8 @@
 }{\end{fulllineitems}}
 
 % similar to {funcdesc}, but doesn't add to the index
-\newcommand{\funclineni}[2]{\item[\code{\bfcode{#1}(\py@varvars{#2})}]}
+\newcommand{\funclineni}[2]{%
+  \py@sigline{\bfcode{#1}}{#2}}
 \newenvironment{funcdescni}[2]{
   \begin{fulllineitems}
     \funclineni{#1}{#2}
@@ -635,8 +686,8 @@
   % Using \renewcommand doesn't work for this, for unknown reasons:
   \global\def\py@thisclass{#1}
   \begin{fulllineitems}
-    \item[\strong{class }\code{\bfcode{#1}(\py@varvars{#2})}%
-      \index{#1@{\py@idxcode{#1}} (class in \py@thismodule)}]
+    \py@sigline{\strong{class }\bfcode{#1}}{#2}%
+    \index{#1@{\py@idxcode{#1}} (class in \py@thismodule)}
 }{\end{fulllineitems}}
 
 % \begin{classdesc*}{name}
@@ -654,8 +705,8 @@
   % Using \renewcommand doesn't work for this, for unknown reasons:
   \global\def\py@thisclass{#1}
   \begin{fulllineitems}
-    \item[\strong{exception }\code{\bfcode{#1}(\py@varvars{#2})}%
-      \index{#1@{\py@idxcode{#1}} (exception in \py@thismodule)}]
+    \py@sigline{\strong{exception }\bfcode{#1}}{#2}%
+    \index{#1@{\py@idxcode{#1}} (exception in \py@thismodule)}
 }{\end{fulllineitems}}
 
 % There is no corresponding {excclassdesc*} environment.  To describe
@@ -687,7 +738,7 @@
 % similar to {methoddesc}, but doesn't add to the index
 % (never actually uses the optional argument)
 \newcommand{\methodlineni}[3][\py@classbadkey]{%
-  \item[\code{\bfcode{#2}(\py@varvars{#3})}]}
+  \py@sigline{\bfcode{#2}}{#3}}
 \newenvironment{methoddescni}[3][\py@classbadkey]{
   \begin{fulllineitems}
     \methodlineni{#2}{#3}
@@ -770,6 +821,7 @@
 \newcommand{\NULL}{\constant{NULL}}
 \newcommand{\infinity}{\ensuremath{\infty}}
 \newcommand{\plusminus}{\ensuremath{\pm}}
+% \menuselection{Start \sub Programs \sub Python}
 \newcommand{\menuselection}[1]{{\def\sub{ \ensuremath{>} }#1}}
 
 % Also for consistency: spell Python "Python", not "python"!
@@ -779,24 +831,22 @@
 \texttt{#1}}}
 
 \newcommand{\bfcode}[1]{\code{\bfseries#1}} % bold-faced code font
+\newcommand{\csimplemacro}[1]{\code{#1}}
 \newcommand{\kbd}[1]{\code{#1}}
 \newcommand{\samp}[1]{`\code{#1}'}
-% This weird definition of \var{} allows it to always appear in roman
-% italics, and won't get funky in code fragments when we play around
-% with fonts.  This also works directly in math mode.
 \newcommand{\var}[1]{%
   \ifmmode%
-    \hbox{\normalsize\textrm{\textit{#1\/}}}%
+    \hbox{\py@defaultsize\textrm{\textit{#1\/}}}%
   \else%
-    \normalsize\textrm{\textit{#1\/}}%
+    \py@defaultsize\textrm{\textit{#1\/}}%
   \fi%
 }
 \renewcommand{\emph}[1]{{\em #1}}
 \newcommand{\dfn}[1]{\emph{#1}}
 \newcommand{\strong}[1]{{\bf #1}}
 % let's experiment with a new font:
-\newcommand{\file}[1]{`{\textsf{#1}}'}
-\newcommand{\filenq}[1]{{\textsf{#1}}}
+\newcommand{\file}[1]{`\filenq{#1}'}
+\newcommand{\filenq}[1]{{\py@smallsize\textsf{#1}}}
 
 % Use this def/redef approach for \url{} since hyperref defined this already,
 % but only if we actually used hyperref:
@@ -805,15 +855,15 @@
     \noindent%
     \pdfstartlink attr{/Border [0 0 0]} user{/S /URI /URI (#1)}%
     \py@LinkColor%                              color of the link text
-    \small\sf #1%
+    \py@smallsize\sf #1%
     \py@NormalColor%                    Turn it back off; these are declarative
     \pdfendlink}%                       and don't appear bound to the current
   }%                                    formatting "box".
 \else
-  \newcommand{\url}[1]{\mbox{\small\textsf{#1}}}
+  \newcommand{\url}[1]{\mbox{\py@smallsize\textsf{#1}}}
 \fi
-\newcommand{\email}[1]{{\small\textsf{#1}}}
-\newcommand{\newsgroup}[1]{{\small\textsf{#1}}}
+\newcommand{\email}[1]{{\py@smallsize\textsf{#1}}}
+\newcommand{\newsgroup}[1]{{\py@smallsize\textsf{#1}}}
 
 \newcommand{\py@varvars}[1]{{%
   {\let\unspecified=\py@unspecified%
@@ -849,12 +899,12 @@
 \newcommand{\ctype}[1]{\texttt{#1}}     % C struct or typedef name
 \newcommand{\cdata}[1]{\texttt{#1}}     % C variable, typically global
 
-\newcommand{\mailheader}[1]{{\small\textsf{#1:}}}
-\newcommand{\mimetype}[1]{{\small\textsf{#1}}}
+\newcommand{\mailheader}[1]{{\py@smallsize\textsf{#1:}}}
+\newcommand{\mimetype}[1]{{\py@smallsize\textsf{#1}}}
 % The \! is a "negative thin space" in math mode.
 \newcommand{\regexp}[1]{%
   {\tiny$^{^\lceil}\!\!$%
-   {\normalsize\code{#1}}%
+   {\py@defaultsize\code{#1}}%
    $\!\rfloor\!$%
   }}
 \newcommand{\envvar}[1]{%
@@ -1052,6 +1102,27 @@
     \end{longtable}%
   \end{center}%
 }
+
+% XXX Don't think we can use this yet, though it cleans up some
+% tedious markup.  There's no equivalent for the HTML transform yet,
+% and that needs to exist.  I don't know how to write it.
+%
+% This should really have something that makes it easier to bind a
+% table's ``Notes'' column and an associated tablenotes environment,
+% and generates the right magic for getting the numbers right in the
+% table.
+%
+% So this is quite incomplete.
+%
+\newcounter{py@tablenotescounter}
+\newenvironment{tablenotes}{%
+  \noindent Notes:
+  \par
+  \setcounter{py@tablenotescounter}{0}
+  \begin{list}{(\arabic{py@tablenotescounter})}%
+              {\usecounter{py@tablenotescounter}}
+}{\end{list}}
+
 
 % Cross-referencing (AMK, new impl. FLD)
 % Sample usage:
