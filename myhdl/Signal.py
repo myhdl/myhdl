@@ -41,11 +41,8 @@ _schedule = _futureEvents.append
 
 class _WaiterList(list):
 
-    def purgeAppend(self, waiter):
-        l = [w for w in self if not w.hasRun]
-        del self[:]
-        self.extend(l)
-        self.append(waiter)
+    def purge(self):
+        self[:] = [w for w in self if not w.hasRun]
         
 
 def posedge(sig):

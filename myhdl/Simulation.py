@@ -102,9 +102,10 @@ class Simulation(object):
             stop.hasRun = 1
             maxTime = sim._time + duration
             schedule((maxTime, stop))
-
         cosim = self._cosim
         t = sim._time
+        actives = {}
+        
         while 1:
             try:
 
@@ -124,9 +125,12 @@ class Simulation(object):
                         continue
                     for clause in clauses:
                         if type(clause) is _WaiterList:
-                            clause.purgeAppend(clone)
+                            clause.append(clone)
+                            actives[id(clause)] = clause
                         elif isinstance(clause, Signal):
-                            clause._eventWaiters.purgeAppend(clone)
+                            wl = clause._eventWaiters
+                            wl.append(clone)
+                            actives[id(wl)] = wl
                         elif type(clause) is delay:
                             schedule((t + clause._time, clone))
                         elif type(clause) is GeneratorType:
@@ -145,6 +149,11 @@ class Simulation(object):
                         continue
                 elif _siglist:
                     continue
+
+                # print actives
+                for wl in actives.values():
+                    wl.purge()
+                actives = {}
 
                 if _futureEvents:
                     if t == maxTime:
