@@ -7,7 +7,7 @@
 \usepackage{graphicx}
 % $Id$
 
-\title{New in \myhdl\ 0.4: Verilog output}
+\title{New in \myhdl\ 0.4: Conversion to Verilog}
 \release{0.4}
 \author{Jan Decaluwe}
 \authoraddress{\email{jan@jandecaluwe.com}}
@@ -17,10 +17,108 @@
 \tableofcontents
 
 
-\section{VCD output for waveform viewing\label{section-wave}}
+\section{Introduction}
 
-\begin{verbatim}
-tb_fsm = testbench()
-\end{verbatim}
+\myhdl\ 0.4 introduces a major new capability: 
+generating a hardware implementation automatically
+from a hardware description in Python. 
+
+The solution works as follows. The hardware description should be
+modelled using the \myhdl\ library, and satisfy certain constraints
+that are typical for implementation-oriented hardware modelling.
+Subsequently, such a design is converted to an equivalent model in the
+Verilog language, using a function from the \myhdl\ library. Finally,
+an third-party \emph{synthesis tool} is used to convert the Verilog
+design into a gate implementation for an ASIC or FPGA. There are a
+number of Verilog synthesis tools available, varying in price,
+capabilities, and target implementation space.
+
+As mentioned earlier, a hardware model intended for implementation
+should satisfy certain constraints. Because of the nature of hardware,
+these constraints are relatively severe.  For example,
+it must be possible to infer the bit width of signals in order to
+implement them as hardware busses or registers.  In the following, I
+will assume that the reader is familiar with this kind of constraints.
+
+
+\section{Feature overview\label{section-feature}}
+
+\begin{description}
+\item[The conversion target is an elaborated design.]
+\emph{Elaboration} refers to the initial processing of
+a hardware description to achieve a representation that
+is ready for simulation or synthesis. In particular, structural
+parameters and constructs are processed in this step. In
+\myhdl{}, the Python interpreter itself is used for elaboration;
+an elaborated design corresponds to a \class{Simulation}
+argument. Likewise, the Verilog conversion works on an
+elaborated design. The Python interpreter is thus used
+as much as possible, resulting in more power to the 
+\myhdl\ user and less work for the developer.
+
+\item[Python's full power can be used to describe structure.]
+As the conversion works on an elaborated design, any modeling
+constraints only apply to the leaf elements of the design
+structure, that is, the co-operating generators. In other words, there
+are no restrictions on the description of the design structure:
+Python's full power can be used for that purpose.
+
+\item[If-then-else structures with enumeration type items are mapped to case statements.]
+Python does not provide a case statement. However, 
+the convertor recognizes if-then-else structures in which a variable is
+sequentially compared to items of an enumeration type, and maps
+such a structure to a Verilog case statement with the appropriate
+synthesis attributes.
+
+\item[One hot and one cold encoding of enumeration type items are supported.]
+The \function{enum} function in \myhdl\ returns an enumeration type. This
+function takes an addional parameter \var{encoding} that specifies the
+desired encoding in the implementation: binary, one hot, or one cold.
+The Verilog convertor generates the appropriate code.
+
+
+\end{description}
+
+
+\section{Supported Python subset}
+
+\subsection{Supported statements}
+\begin{description}
+
+\item[The \keyword{def} statement.]
+
+\item[The \keyword{print} statement.]
+
+\item[The \keyword{while} statement.]
+
+\end{description}
+
+
+\section{Known issues}
+\begin{description}
+
+\item[Negative values of \class{intbv} instances are not supported.]
+The \class{intbv} class is quite capable of representing negative
+values. However, the \code{signed} type support in Verilog is
+relatively recent and mapping to it may be tricky. In my judgement,
+this is not the most urgent requirement, so
+I decided to leave this for later.
+
+\item[Synthesis pragmas are given as comments.] The recommended
+way to specify synthesis pragmas in Verilog is through attribute
+lists. However, my Verilog simulator Icarus doesn't support them
+for \code{case} statements (to specify \code{parallel_case} and
+\code{full_case} pragmas). Therefore, I still used the old
+but deprecated method of synthesis pragmas in Verilog comments.
+
+\item[Non-blocking assignments to task arguments dont' work.] 
+I didn't get non-blocking (signal) assignments to task arguments to
+work.  I don't know yet whether the issue is my own, a Verilog issue,
+or an issue with my Verilog simulator Icarus. I'll need to check this
+further.
+
+
+\end{description}
+
 
 \end{document}
