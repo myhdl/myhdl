@@ -35,13 +35,13 @@ that returns generators. With this approach, \myhdl{} directly supports
 features such as named port association, arrays of instances, and
 conditional instantiation. 
 
-\myhdl{} supports the classic hardware description concepts.  It provides
-a signal class similar to the VHDL signal, a class for bit oriented
-operations, and support for enumeration types.  The Python
-\code{yield} statement is used as a general sensitivity list to
-wait on a signal change, an edge, a delay, or on another
-generator. \myhdl{} supports waveform viewing by tracing signal changes
-in a VCD file.
+\myhdl{} supports the classic hardware description concepts.  It
+provides a signal class similar to the VHDL signal, a class for bit
+oriented operations, and support for enumeration types.  The Python
+\code{yield} statement is used as a general sensitivity list to wait
+on a signal change, an edge, a delay, or on the completion of another
+generator. \myhdl{} supports waveform viewing by tracing signal
+changes in a VCD file.
 
 Python's rare combination of power and clarity makes it ideal for high
 level modeling.  It can be expected that \myhdl{} users will often
@@ -54,6 +54,10 @@ designs.  \myhdl{} can also be used as hardware verification language for
 VHDL and Verilog designs, by co-simulation with any simulator that has
 a PLI.  The distribution contains a PLI module for the
 Icarus Verilog simulator.
+
+Finally, a subset of \myhdl{} code can be converted automatically into
+synthesizable Verilog code. This feature provides a direct path from
+Python to an FPGA or ASIC implementation.
 
 The \myhdl{} software is open source software. It is licensed under the
 GNU Lesser General Public License (LGPL).
@@ -71,7 +75,7 @@ GNU Lesser General Public License (LGPL).
 \input{unittest.tex}
 \input{cosimulation.tex}
 
-\chapter{Conversion to Verilog for implementation \label{conversion}}
+\chapter{Conversion to Verilog\label{conversion}}
 \input{conversion.tex}
 
 \input{reference.tex}
