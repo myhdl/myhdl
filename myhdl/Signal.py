@@ -176,9 +176,9 @@ class Signal(object):
         if not isinstance(val, (int, long, intbv)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         if self._max is not None and val >= self._max:
-            raise ValueError("Expected value < %s, got %s" % self._max, val)
+            raise ValueError("Expected value < %s, got %s" % (self._max, val))
         if self._min is not None and val < self._min:
-            raise ValueError("Expected value >= %s, got %s" % self._min, val)
+            raise ValueError("Expected value >= %s, got %s" % (self._min, val))
 
     def _checkType(self, val):
         if not isinstance(val, self._type):
