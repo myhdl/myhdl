@@ -7,6 +7,7 @@ def mux(z, a, b, sel):
     z -- mux output
     a, b -- data inputs
     sel -- control input: select a if asserted, otherwise b
+    
     """
     def muxlogic():
         if sel == 1:
