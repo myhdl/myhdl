@@ -32,16 +32,9 @@ from sets import Set
 from types import GeneratorType, ClassType
 from cStringIO import StringIO
 
-
 from myhdl import Signal, intbv
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._Error import Error
-
-
-
-class ToVerilogError(Error):
-    pass
-
 
 def _flatten(*args):
     l = []
@@ -54,20 +47,21 @@ def _flatten(*args):
             raise ArgumentError
     return l
 
-
 _converting = 0
 _profileFunc = None
 
-
+class ToVerilogError(Error):
+    pass
 class _error:
     pass
-_error.TopLevelName = "Result of toVerilog call should be assigned to a top level name"
 _error.ArgType = "toVerilog first argument should be a classic function"
+_error.NotSupported = "Not supported"
+_error.TopLevelName = "Result of toVerilog call should be assigned to a top level name"
+_error.SigMultipleDriven = "Signal has multiple drivers"
 _error.UndefinedBitWidth = "Signal has undefined bit width"
 _error.UndrivenSignal = "Signal is not driven"
-_error.NotSupported = "Not supported"
 _error.Requirement = "Requirement violation"
-
+    
 
 def toVerilog(func, *args, **kwargs):
     global _converting
@@ -266,13 +260,6 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitUnarySub(self, node, *args):
         self.raiseError(node, _error.NotSupported, "unary subtraction")
 
-
-class SignalAsInoutError(Error):
-    """signal used as inout"""
-    
-class SignalMultipleDrivenError(Error):
-    """signal has multiple drivers"""
-
   
 INPUT, OUTPUT, INOUT = range(3)
 
@@ -291,7 +278,7 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         for n in self.outputs:
             s = self.sigdict[n]
             if s._driven:
-                raise SignalMultipleDrivenError(n)
+                self.raiseError(node, _error._SigMultipleDriven, n)
             s._driven = True
         for n in self.inputs:
             s = self.sigdict[n]
@@ -485,7 +472,7 @@ class _EvalIntExprVisitor(_ToVerilogMixin):
         
     def visitConst(self, node):
         val = node.val = eval(node.value)
-        self._require(isinstance(val, int), "Expected integer constant", node)
+        self._require(node, isinstance(val, int), "Expected integer constant")
 
     def visitName(self, node):
         self._require(node, node.name in self.symdict, \
