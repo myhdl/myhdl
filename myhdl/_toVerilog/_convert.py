@@ -545,6 +545,10 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def visitKeyword(self, node, *args):
         self.visit(node.expr)
+
+    def visitModule(self, node, *args):
+        for stmt in node.node.nodes:
+            self.visit(stmt)
        
     def visitName(self, node, *args):
         n = node.name
