@@ -18,7 +18,8 @@ recent Python feature, MyHDL requires Python 2.2.2 or higher.
 
 MyHDL 0.1 is the initial public release of the package. It can be used
 to experiment with high level modeling, and with verification
-techniques such as unit testing.
+techniques such as unit testing. But the primary goal is to generate
+interest and to sollicate feedback.
 
 In a future release, MyHDL will hopefully be coupled to hardware
 simulators for languages such as Verilog and VHDL. That would turn
