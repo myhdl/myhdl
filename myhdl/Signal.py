@@ -168,7 +168,7 @@ class Signal(object):
     # integer-like methods
 
     def __add__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val + other._val
         else:
             return self._val + other
@@ -176,7 +176,7 @@ class Signal(object):
         return other + self._val
     
     def __sub__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val - other._val
         else:
             return self._val - other
@@ -184,7 +184,7 @@ class Signal(object):
         return other - self._val
 
     def __mul__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val * other._val
         else:
             return self._val * other
@@ -192,7 +192,7 @@ class Signal(object):
         return other * self._val
 
     def __div__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val / other._val
         else:
             return self._val / other
@@ -200,7 +200,7 @@ class Signal(object):
         return other / self._val
     
     def __mod__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val % other._val
         else:
             return self._val % other
@@ -210,7 +210,7 @@ class Signal(object):
     # XXX divmod
     
     def __pow__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val ** other._val
         else:
             return self._val ** other
@@ -218,7 +218,7 @@ class Signal(object):
         return other ** self._val
 
     def __lshift__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val << other._val
         else:
             return self._val << other
@@ -226,7 +226,7 @@ class Signal(object):
         return other << self._val
             
     def __rshift__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val >> other._val
         else:
             return self._val >> other
@@ -234,7 +234,7 @@ class Signal(object):
         return other >> self._val
            
     def __and__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val & other._val
         else:
             return self._val & other
@@ -242,7 +242,7 @@ class Signal(object):
         return other & self._val
 
     def __or__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val | other._val
         else:
             return self._val | other
@@ -250,7 +250,7 @@ class Signal(object):
         return other | self._val
     
     def __xor__(self, other):
-        if type(other) is Signal:
+        if isinstance(other, Signal):
             return self._val ^ other._val
         else:
             return self._val ^ other
