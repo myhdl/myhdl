@@ -117,19 +117,22 @@ state = Signal(t_State.SEARCH)
 Note that the waveforms show the string representation of the
 enumeration type identifiers. 
 
-\section{Inferring the sensitivity list for combinatorial logic}
-In \myhdl\, combinatorial logic described by a generator function
-with a sensitivity list that contains all inputs signals 
-(the signals that are read inside the function). 
 
-It is easy to forget some input signals, especially it there are a
-lot of them or if the code is being modified. There are various ways
-to solve this. One way is to use a sophisticated editor. Another way
-is direct language support. For example, recent versions of Verilog
-have the \code{ always @* } construct, that infers all input
-signals. The SystemVerilog 3.1 standard attemps to further improve on
-this by introducting the \code{always_comb} block with slightly
-enhanced semantics.
+\section{Inferring the sensitivity list for combinatorial
+logic\label{section-combinatorial}}
+
+In \myhdl\, combinatorial logic described by a generator function with
+a sensitivity list that contains all inputs signals (the signals that
+are read inside the function).
+
+It is easy to forget some input signals, especially it there are a lot
+of them or if the code is being modified. There are various ways to
+solve this. One way is to use a sophisticated editor. Another way is
+direct language support. For example, recent versions of Verilog have
+the \code{ always @* } construct, that infers all input signals. The
+SystemVerilog 3.1 standard attemps to further improve on this by
+introducting the \code{always_comb} block with slightly enhanced
+semantics.
 
 \myhdl\ 0.3 provides a function called \function{always_comb()} which
 is named and modelled after the SystemVerilog counterpart.
@@ -137,10 +140,10 @@ is named and modelled after the SystemVerilog counterpart.
 argument. This function should be locally defined and specifies what
 should happen when one of its input signal
 changes. \function{always_comb()} returns a generator that is
-sensitive to all inputs, and that will run the function
-whenever an input changes.
+sensitive to all inputs, and that will run the function whenever an
+input changes.
 
-For example, suppose have a mux module as follows:
+For example, suppose have a mux module described as follows:
 
 \begin{verbatim}
 def mux(z, a, b, sel):
@@ -262,8 +265,8 @@ def top(...):
 
 As for instances, it may be more convenient to assemble the list of
 processes automatically. One option is to turn each process into an
-instance by calling it and assigning the returned generator to a
-local variable. Those instances will then be found by the
+instance by calling it and assigning the returned generator to a local
+variable. Those instances will then be found by the
 \function{instances()} function described in
 Section~\ref{section-instances}.
 
@@ -291,14 +294,87 @@ def top(...):
     return processes()
 \end{verbatim}
 
-To conclude, a top level function with both instances and
-processes can use the following idiomatic code to
-return all of them:
+To conclude, a top level function with both instances and processes
+can use the following idiomatic code to return all of them:
 
 \begin{verbatim}
 return instances(), processes()
 \end{verbatim}
 
+\section{Class \class{intbv} enhancements\label{section-intbv}}
+
+Class \class{intbv} has been enhanced with new features.
+
+It is now possible to leave the left index of a slicing operation
+unspecified. The meaning is to access ``all'' higher order bits. For
+example:
+
+\begin{verbatim}
+>>> from myhdl import intbv
+>>> n = intbv()
+>>> hex(n)
+'0x0'
+>>> n[:] = 0xde
+>>> hex(n)
+'0xde'
+>>> n[:8] = 0xfa
+>>> hex(n)
+'0xfade'
+>>> n[8:] = 0xb4
+>>> hex(n)
+'0xfab4'
+\end{verbatim}
+
+\class{intbv} instances now have \var{min} and \var{max} attributes
+that can be specified at construction time. The meaning is that that
+only values within \code{range(min, max)} are permitted. The default
+values for these attributes is \var{None}, meaning ``infinite''. For
+example (traceback output shortened for clarity):
+
+\begin{verbatim}
+>>> n = intbv(min=-17, max=53)
+>>> n
+intbv(0)
+>>> n.min
+-17
+>>> n.max
+53
+>>> n[:] = 28
+>>> n
+intbv(28)
+>>> n[:] = -17
+>>> n
+intbv(-17)
+>>> n[:] = -18
+Traceback (most recent call last):
+    ....
+ValueError: intbv value -18 < minimum -17
+>>> n[:] = 53
+Traceback (most recent call last):
+    ....
+ValueError: intbv value 53 >= maximum 53
+\end{verbatim}
+
+When a slice is taken from an \class{intbv} instance, the return value
+is a new \class{intbv} instance with a defined bit width. As in
+Verilog, the value of the new \class{intbv} instance is always
+positive, regardless of the sign of the original value. In addition,
+the \var{min} and \var{max} attributes are set implicitly:
+
+\begin{verbatim}
+>>> v = intbv()[6:]
+>>> v
+intbv(0)
+>>> v.min
+0
+>>> v.max
+64
+>>> v[:] = 32
+>>> v[:] = 65
+Traceback (most recent call last):
+    ....
+ValueError: intbv value 65 >= maximum 64
+\end{verbatim}
 
 \section{Python 2.3 support\label{section-Python}}
 
@@ -319,23 +395,23 @@ statements are no longer required.
 
 Second, Python 2.3 has a \class{bool} type, which is implemented as a
 subtype of \class{int}. For general Python use, the implications are
-rather limited - the main difference is that logical result values will
-print as \code{False} and \code{True} instead of \code{0} and
-\code{1}. However, in \myhdl{}, I can use the \class{bool} type to infer
-a bit width.  If a \class{Signal} is constructed with a \class{bool}
-value, it is a single bit \class{Signal}. One application is waveform
-viewing as in Section~\ref{section-wave}. In the waveform, note how
-single bit signals are displayed as level changes.  With Python 2.2,
-the waveforms of these signals would only show value changes,
-which is not as clear for single bits.
+rather limited - the main difference is that logical result values
+will print as \code{False} and \code{True} instead of \code{0} and
+\code{1}. However, in \myhdl{}, I can use the \class{bool} type to
+infer a bit width.  If a \class{Signal} is constructed with a
+\class{bool} value, it is a single bit \class{Signal}. One application
+is waveform viewing as in Section~\ref{section-wave}. In the waveform,
+note how single bit signals are displayed as level changes.  With
+Python 2.2, the waveforms of these signals would only show value
+changes, which is not as clear for single bits.
 
 Finally, Python 2.3 is significantly faster. \myhdl\ code runs
 25--35\% faster in Python 2.3 - a nice speedup.
 
 Python is a very stable language, so upgrading to Python 2.3 is
 virtually risk free. Given the additional benefits, I recommend
-\myhdl\ users to do so as soon as possible. For the next major release
-(0.4), the new features will become crucial and only Python 2.3 (and
+\myhdl\ users to do so as soon as possible. For the next major
+release, the new features will become crucial and only Python 2.3 (and
 higher) will be supported.
 
 
