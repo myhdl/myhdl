@@ -39,7 +39,8 @@ import glob
 
 from myhdl import delay, Signal, Simulation, _simulator
 from myhdl._traceSignals import traceSignals, TopLevelNameError, ArgTypeError, \
-                                NoInstancesError, MultipleTracesError
+                                MultipleTracesError
+from myhdl._extractHierarchy import NoInstancesError
 
 QUIET=1
 
