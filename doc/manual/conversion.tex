@@ -1,7 +1,7 @@
 \section{Introduction\label{conv-intro}}
 
 MyHDL 0.4 provides a path to automatic implementation, by converting
-MyHDL code into synthesizable Verilog code.
+a subset of MyHDL code into synthesizable Verilog code.
 
 MyHDL aims to be a complete design language, for high level modeling,
 verification, but also for implementation. However, prior to \myhdl\
@@ -14,15 +14,14 @@ implementation.
 \section{Solution description\label{conv-solution}}
 
 The solution works as follows. The hardware description should be
-modeled in \myhdl\ style, and satisfy certain constraints
-that are typical for implementation-oriented hardware modeling.
-Subsequently, such a design is converted to an equivalent model in the
-Verilog language, using the function \function{toVerilog} 
-from the \myhdl\ library. Finally,
-a third-party \emph{synthesis tool} is used to convert the Verilog
-design into a gate implementation for an ASIC or FPGA. There are a
-number of Verilog synthesis tools available, varying in price,
-capabilities, and target implementation space.
+modeled in \myhdl\ style, and satisfy certain constraints that are
+typical for implementation-oriented hardware modeling.  Subsequently,
+such a design is converted to an equivalent model in the Verilog
+language, using the function \function{toVerilog} from the \myhdl\
+library. Finally, a third-party \emph{synthesis tool} is used to
+convert the Verilog design into a gate implementation for an ASIC or
+FPGA. There are a number of Verilog synthesis tools available, varying
+in price, capabilities, and target implementation space.
 
 The conversion does not start from source files, but from a design
 that has been "elaborated" by the Python interpreter.  This has
@@ -38,25 +37,23 @@ Python compiler package.
 \section{Features\label{conv-features}}
 
 \subsection{The design is converted after elaboration\label{conv-features-elab}}
-\emph{Elaboration} refers to the initial processing of
-a hardware description to achieve a representation of a 
-design instance that
-is ready for simulation or synthesis. In particular, structural
-parameters and constructs are processed in this step. In
-\myhdl{}, the Python interpreter itself is used for elaboration.
-A \class{Simulation} object is constructed with elaborated design
-instances as arguments.
-Likewise, the Verilog conversion works on an
-elaborated design instance. The Python interpreter is thus used
-as much as possible.
+\emph{Elaboration} refers to the initial processing of a hardware
+description to achieve a representation of a design instance that is
+ready for simulation or synthesis. In particular, structural
+parameters and constructs are processed in this step. In \myhdl{}, the
+Python interpreter itself is used for elaboration.  A
+\class{Simulation} object is constructed with elaborated design
+instances as arguments.  Likewise, the Verilog conversion works on an
+elaborated design instance. The Python interpreter is thus used as
+much as possible.
 
 \subsection{The structural description can be arbitrarily complex and hierarchical\label{conv-features-struc}}
 As the conversion works on an elaborated design instance, any modeling
-constraints only apply to the leaf elements of the design
-structure, that is, the co-operating generators. In other words, there
-are no restrictions on the description of the design structure:
-Python's full power can be used for that purpose. Also, the
-design hierarchy can be arbitrarily deep.
+constraints only apply to the leaf elements of the design structure,
+that is, the co-operating generators. In other words, there are no
+restrictions on the description of the design structure: Python's full
+power can be used for that purpose. Also, the design hierarchy can be
+arbitrarily deep.
 
 \subsection{Generators are mapped to Verilog always or initial blocks\label{conv-features-gen}}
 The converter analyzes the code of each generator and maps it
@@ -106,15 +103,15 @@ in the \emph{synthesizable subset} of Verilog and VHDL. The converter
 attempts to issue clear error messages when it encounters a construct
 that cannot be converted. 
 
-In practice, the synthesizable subset usually refers to RTL
-synthesis, which is by far the most popular type of synthesis
-today. There are industry standards that define the RTL synthesis
-subset.  However, those were not used as a model for the restrictions
-of the MyHDL converter, but as a minimal starting point.  On that
-basis, whenever it was judged easy or useful to support an additional
-feature, this was done. For example, it is actually easier to convert
-while loops than for loops even though they are not RTL-synthesizable.
-As another example, 'print' is supported because it's so useful for
+In practice, the synthesizable subset usually refers to RTL synthesis,
+which is by far the most popular type of synthesis today. There are
+industry standards that define the RTL synthesis subset.  However,
+those were not used as a model for the restrictions of the MyHDL
+converter, but as a minimal starting point.  On that basis, whenever
+it was judged easy or useful to support an additional feature, this
+was done. For example, it is actually easier to convert while loops
+than for loops even though they are not RTL-synthesizable.  As another
+example, \keyword{print} is supported because it's so useful for
 debugging, even though it's not synthesizable.  In summary, the
 convertible subset is a superset of the standard RTL synthesis subset,
 and supports synthesis tools with more advanced capabilities, such as
