@@ -38,16 +38,6 @@ from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._Error import Error
 
 
-class ToVerilogError(Exception):
-    def __init__(self, kind, msg="", info=""):
-        self.kind = kind
-        self.msg = msg
-        self.info = info
-    def __str__(self):
-        s = "%s%s" % (self.info, self.kind)
-        if self.msg:
-            s += ": %s" % self.msg
-        return s
 
 class ToVerilogError(Error):
     pass
@@ -76,7 +66,7 @@ _error.ArgType = "toVerilog first argument should be a classic function"
 _error.UndefinedBitWidth = "Signal has undefined bit width"
 _error.UndrivenSignal = "Signal is not driven"
 _error.NotSupported = "Not supported"
-
+_error.Requirement = "Requirement violation"
 
 
 def toVerilog(func, *args, **kwargs):
@@ -180,12 +170,9 @@ def _analyzeGens(top, gennames):
     return genlist
 
 
-
-   
-
-class _ToVerilogBaseVisitor(object):
+class _ToVerilogMixin(object):
     
-    def raiseError(self, msg, node):
+    def getLineNo(self, node):
         lineno = node.lineno
         if lineno is None:
             for n in node.getChildNodes():
@@ -193,78 +180,91 @@ class _ToVerilogBaseVisitor(object):
                     lineno = n.lineno
                     break
         lineno = lineno or 0
+        return lineno
+    
+    def raiseError(self, kind, msg, node):
+        lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
               (self.sourcefile, self.lineoffset+lineno)
-        raise ToVerilogError(_error.NotSupported, msg, info)
+        raise ToVerilogError(kind, msg, info)
+
+    def _require(self, test, msg=""):
+        if not test:
+            self.raiseError(RequirementError, msg, info)
+       
+   
+
+class _NotSupportedVisitor(_ToVerilogMixin):
+    
 
     def visitAssList(self, node, *args):
-        self.raiseError("list assignment not supported", node)
+        self.raiseError(_error.NotSupported, "list assignment", node)
 
     def visitAssTuple(self, node, *args):
-        self.raiseError("tuple assignment not supported", node)
+        self.raiseError(_error.NotSupported, "tuple assignment", node)
 
     def visitBackquote(self, node, *args):
-        self.raiseError("backquote not supported", node)
+        self.raiseError(_error.NotSupported, "backquote", node)
 
     def visitBreak(self, node, *args):
-        self.raiseError("break statement not supported", node)
+        self.raiseError(_error.NotSupported, "break statement", node)
 
     def visitClass(self, node, *args):
-        self.raiseError("class statement not supported", node)
+        self.raiseError(_error.NotSupported, "class statement", node)
 
     def visitContinue(self, node, *args):
-        self.raiseError("continue statement not supported", node)
+        self.raiseError(_error.NotSupported, "continue statement", node)
 
     def visitDict(self, node, *args):
-        self.raiseError("dictionaries not supported", node)
+        self.raiseError(_error.NotSupported, "dictionary", node)
 
     def visitDiv(self, node, *args):
-        self.raiseError("true division not supported - consider '//'", node)
+        self.raiseError(_error.NotSupported, "true division - consider '//'", node)
 
     def visitEllipsis(self, node, *args):
-        self.raiseError("ellipsis not supported", node)
+        self.raiseError(_error.NotSupported, "ellipsis", node)
 
     def visitExec(self, node, *args):
-        self.raiseError("exec not supported", node)
+        self.raiseError(_error.NotSupported, "exec statement", node)
 
     def visitExpression(self, node, *args):
-        self.raiseError("Expression node not supported", node)
+        self.raiseError(_error.NotSupported, "Expression node", node)
 
     def visitFrom(self, node, *args):
-        self.raiseError("from statement not supported", node)
+        self.raiseError(_error.NotSupported, "from statement", node)
         
     def visitGlobal(self, node, *args):
-        self.raiseError("global statement not supported", node)
+        self.raiseError(_error.NotSupported, "global statement", node)
 
     def visitImport(self, node, *args):
-        self.raiseError("import statement not supported", node)
+        self.raiseError(_error.NotSupported, "import statement", node)
 
     def visitLambda(self, node, *args):
-        self.raiseError("lambda statement not supported", node)
+        self.raiseError(_error.NotSupported, "lambda statement", node)
 
     def visitListComp(self, node, *args):
-        self.raiseError("list comprehensions not supported", node)
+        self.raiseError(_error.NotSupported, "list comprehensions", node)
         
     def visitList(self, node, *args):
-        self.raiseError("lists not supported", node)
+        self.raiseError(_error.NotSupported, "list", node)
         
     def visitPower(self, node, *args):
-        self.raiseError("power operator not supported", node)
+        self.raiseError(_error.NotSupported, "power operator", node)
 
     def visitReturn(self, node, *args):
-        self.raiseError("return statement not supported", node)
+        self.raiseError(_error.NotSupported, "return statement", node)
 
     def visitTryExcept(self, node, *args):
-        self.raiseError("try-except statement not supported", node)
+        self.raiseError(_error.NotSupported, "try-except statement", node)
         
     def visitTryFinally(self, node, *args):
-        self.raiseError("try-finally statement not supported", node)
+        self.raiseError(_error.NotSupported, "try-finally statement", node)
 
     def visitUnaryAdd(self, node, *args):
-        self.raiseError("unary add not suported", node)
+        self.raiseError(_error.NotSupported, "unary addition", node)
         
     def visitUnarySub(self, node, *args):
-        self.raiseError("unary sub not suported", node)
+        self.raiseError(_error.NotSupported, "unary subtraction", node)
 
 
 class SignalAsInoutError(Error):
@@ -276,7 +276,7 @@ class SignalMultipleDrivenError(Error):
   
 INPUT, OUTPUT, INOUT = range(3)
 
-class _AnalyzeGenVisitor(_ToVerilogBaseVisitor):
+class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
     
     def __init__(self, sigdict, sourcefile, lineoffset):
         self.sourcefile = sourcefile
@@ -470,6 +470,29 @@ def _getRangeString(s):
     else:
         raise AssertionError
     
+
+class _EvalIntExprVisitor(_ToVerilogMixin):
+    
+    def __init__(self, symdict, sourcefile, lineoffset):
+        self.symdict = symdict
+        self.sourcefile = sourcefile
+        self.lineoffset = lineoffset
+        
+    def visitAdd(self, node):
+        self.visit(node.left)
+        self.visit(node.right)
+        node.val = node.left.val + node.right.val
+        
+    def visitConst(self, node):
+        val = node.val = eval(node.value)
+        self._require(isinstance(val, int), "Expected integer constant", node)
+
+    def visitName(self, node):
+        self._require(node.name in self.symdict, \
+                      "Unresolved symbol %s" % node.name, node)
+        val = node.val = self.symdict[node.name]
+        self._require(isinstance(val, int), \
+                      "Expected integer value", node)
 
     
 class _ConvertGenVisitor(object):

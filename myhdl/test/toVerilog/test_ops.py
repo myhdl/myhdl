@@ -81,7 +81,7 @@ def binaryOps_v(
     simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
     if path.exists(objfile):
         os.remove(objfile)
-        os.system(analyze_cmd)
+    os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 
 class TestBinaryOps(TestCase):
@@ -93,7 +93,6 @@ class TestBinaryOps(TestCase):
 
         left = Signal(intbv(0)[m:])
         right = Signal(intbv(0)[n:])
-        print max(m, n)
         Bitand = Signal(intbv(0)[max(m, n):])
         Bitand_v = Signal(intbv(0)[max(m, n):])
         Bitor = Signal(intbv(0)[max(m, n):])
@@ -200,12 +199,13 @@ class TestBinaryOps(TestCase):
                 self.assertEqual(Or, Or_v)
 
         return binops, binops_v, stimulus(), check()
+    
 
-        def testBinaryOps(self):
-            for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
-                sim = self.binaryBench(m, n)
-                Simulation(sim).run()
-
+    def testBinaryOps(self):
+        for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
+            sim = self.binaryBench(m, n)
+            Simulation(sim).run()
+                
 
 
 def multiOps(
@@ -307,6 +307,7 @@ class TestMultiOps(TestCase):
                 self.assertEqual(Or, Or_v)
 
         return multiops, multiops_v, stimulus(), check()
+    
 
     def testMultiOps(self):
         for m, n, p in ((4, 4, 4,), (5, 3, 2), (3, 4, 6), (3, 7, 4)):

@@ -12,14 +12,15 @@ def bin2gray(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
+    Bext = intbv(0)[width+1:]
     while 1:
         yield B
-        # a = 3
+        Bext[:] = B
         for i in range(width):
-            G.next[i] = B[i+1] ^ B[i]
+            G.next[i] = Bext[i+1] ^ Bext[i]
             
 objfile = "bin2gray.o"           
-analyze_cmd = "iverilog -o %s bin2gray_1.v tb_bin2gray_1.v" % objfile
+analyze_cmd = "iverilog -o %s bin2gray_inst.v tb_bin2gray_inst.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
  
@@ -33,12 +34,12 @@ class TestBin2Gray(TestCase):
 
     def bench(self, width):
 
-        B = Signal(intbv(0)[9:])
+        B = Signal(intbv(0)[8:])
         G = Signal(intbv(0)[8:])
         G_v = Signal(intbv(0)[8:])
 
-        bin2gray_1 = toVerilog(bin2gray, B, G, width)
-        bin2gray_2 = bin2gray_v(B, G_v)
+        bin2gray_inst = toVerilog(bin2gray, B, G, width)
+        bin2gray_v_inst = bin2gray_v(B, G_v)
 
         def stimulus():
             for i in range(2**width):
@@ -46,10 +47,10 @@ class TestBin2Gray(TestCase):
                 yield delay(10)
                 #print "B: " + bin(B, width) + "| G_v: " + bin(G_v, width)
                 #print bin(G, width)
-                #print bin(G_v, width)
+                print bin(G_v, width)
                 self.assertEqual(G, G_v)
 
-        return bin2gray_2, stimulus(), bin2gray_1
+        return bin2gray_v_inst, stimulus(), bin2gray_inst
 
     def test(self):
         sim = self.bench(width=8)
