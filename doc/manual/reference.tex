@@ -177,7 +177,7 @@ immediately.
 
 
 
-\section{Modelling support\label{ref-misc}}
+\section{Modeling support\label{ref-misc}}
 \declaremodule{}{myhdl}
 
 \begin{funcdesc}{always_comb}{func}
@@ -230,16 +230,16 @@ assigned to a type name.  For example:
 t_EnumType = enum('ATTR_NAME_1', 'ATTR_NAME_2', ...)
 \end{verbatim}
 The enumeration type identifiers are available as attributes of
-the typename, for example: \code{t_EnumType.ATTR_NAME_1}
+the type name, for example: \code{t_EnumType.ATTR_NAME_1}
 \end{funcdesc}
 
 \begin{funcdesc}{instances}{}
-Looks up all \myhdl\ instances in the local namespace and returns them
+Looks up all \myhdl\ instances in the local name space and returns them
 in a list.
 
 \end{funcdesc}
 \begin{funcdesc}{processes}{}
-Looks up all processes in the local namespace, calls each of them,
+Looks up all processes in the local name space, calls each of them,
 returns the resulting generators in a list.  In \myhdl{}, a process is
 defined as a local generator function with no parameters.
 \end{funcdesc}

@@ -392,9 +392,13 @@ to introduce new, well defined callbacks. From reading some proposals,
 I conclude that the \code{cbEndOfSimTime} callback would provide the
 required functionality.
 
+I currently have no access to commercial Verilog simulators, so
+progress in co-simulation support will depend on external interest and
+participation. Contact me for more information if you interested.
+
 \subsection{VHDL \label{cosim-impl-vhdl}}
 
-It would be great to have an interface to VHDL simulators such as the
+It would be nice to have an interface to VHDL simulators such as the
 Modelsim VHDL simulator. This will require a PLI module using the
 PLI of the VHDL simulator. One feature which I would
 like to keep if possible is the way to declare the communicating
@@ -402,3 +406,8 @@ signals.  In the Verilog solution, it is not necessary to define and
 instantiate a special HDL module (entity). Rather, the participating
 signals can be declared directly in the \code{\$to_myhdl} and
 \code{\$from_myhdl} task calls.
+
+As for Verilog, I currently have no access to commercial VHDL
+simulators, so progress in co-simulation support will depend on
+external interest and participation.  Contact me for more information
+if you interested.
