@@ -20,7 +20,7 @@ sim.run(30)
 
 \end{verbatim}
 
-When we run this script, we get the following output: 
+When we run this simulation, we get the following output: 
 
 \begin{verbatim}
 % python hello1.py
@@ -35,7 +35,7 @@ The first line of the script imports a
 number of objects from the \code{myhdl} package. In good Python style, and
 unlike most other languages, we can only use identifiers that are
 \emph{literally} defined in the source file \footnote{I don't want to
-explain the \samp{import *} syntax}.
+explain the \samp{import *} syntax}. 
 
 Next, we define a generator function called
 \code{sayHello}. This is a generator function (as opposed to
@@ -47,12 +47,12 @@ and its clauses specify when the function should resume. In this case,
 there is a \code{delay} clause, that specifies the required delay.
 
 To make sure that the generator runs ``forever'', we wrap its behavior
-in a \code{while 1} loop. This is as standard Python idiom, and it is
-the \myhdl\ equivalent to a Verilog \keyword{always} block or a
+in a \code{while 1} loop. This is a standard Python idiom, and it is
+the \myhdl\ equivalent of a Verilog \keyword{always} block or a
 VHDL \keyword{process}.
 
 In \myhdl\, the basic simulation objects are generators. Generators
-are created by calling generator functions. For example, variable
+are the returned from calling generator functions. For example, variable
 \code{gen} refers to a generator. To simulate this generator, we pass
 it as an argument to a \class{Simulation} object constructor.  We then
 run the simulation for the desired amount of time.
@@ -71,18 +71,14 @@ generators.
 With concurrency comes the problem of deterministic
 communication. Therefore, hardware languages use special objects to
 support deterministic communication between concurrent
-regions. \myhdl\ has as \class{Signal} object which is roughly modelled
-after VHDL signals.
+regions. \myhdl\ has as \class{Signal} object which is roughly
+modeled after VHDL signals.
 
-We will demonstrate these concepts by extending our first example. We
-introduce a clock signal, driven by a second generator. The
-\code{sayHello} generator function is modified to wait for a rising
-edge (\code{posedge}) of the clock instead of a delay. The resulting
-script is as follows:
+We will demonstrate these concepts by extending and modifying our
+first example. We introduce a clock signal, driven by a second
+generator: 
 
 \begin{verbatim}
-from myhdl import Signal, delay, posedge, now, Simulation
-
 clk = Signal(0)
 
 def clkGen():
@@ -92,17 +88,40 @@ def clkGen():
         yield delay(10)
         clk.next = 0
 
+\end{verbatim}
+
+The \code{clk} signal is constructed with an initial value
+\code{0}. In the clock generator function \code{clkGen}, it is
+continuously assigned a new value after a certain delay. In \myhdl{},
+the new value of a signal is specified by assigning to its
+\code{next} attribute. This is the \myhdl\ equivalent of VHDL signal
+assignments and Verilog's non-blocking assignments.
+
+The \code{sayHello} generator function is modified to wait for a
+rising edge of the clock instead of a delay:
+
+\begin{verbatim}
 def sayHello():
     while 1:
         yield posedge(clk)
         print "%s Hello World!" % now()
 
+\end{verbatim}
+
+Waiting for a clock edge is achieved with a second form of a
+\keyword{yield} statement: \samp{yield posedge(\var{signal})}. 
+A \class{Simulation} will suspend the generator as that point, and
+resume it when there is a rising edge on the signal.
+
+The \class{Simulation} is now constructed with 2 generator arguments:
+
+\begin{verbatim}
 sim = Simulation(clkGen(), sayHello())
 sim.run(50)
 
 \end{verbatim}
 
-When we run this script, we get:
+When we run this simulation, we get:
 
 \begin{verbatim}
 % python hello2.py
@@ -113,23 +132,8 @@ StopSimulation: Simulated for duration 50
 
 \end{verbatim}
 
-The \code{clk} signal is constructed with an initial value
-\code{0}. In the clock generator function \code{clkGen}, it is then
-continuously toggled after a certain delay. In \myhdl{}, a the next
-value of a signal is specified by assigning to its \code{next}
-attribute. This is the \myhdl\ equivalent of VHDL signal assignments
-and Verilog's non-blocking assignments.
 
-The \code{sayHello} generator function shows a second form of a
-\keyword{yield} statement: \samp{yield posedge(\var{aSignal})}. Again,
-the generator will suspend execution at that point, but in this case
-it specifies that it should resume when there is a rising edge on the
-signal.
-
-The \class{Simulation} constructor now takes two generator arguments
-that run concurrently throughout the simulation.
-
-\section{Parameters and instantiations}
+\section{Parameters, instantiations and hierarchy}
 
 So far, the generator function examples had no parameters. For
 example, the \code{clk} signal was defined in the enclosing scope of
@@ -151,7 +155,9 @@ def clkGen(clock, period=20):
 \end{verbatim}
 
 The clock signal is now a parameter of the function. Also, the clock
-period is a parameter with a default value of \code{20}.
+period is a parameter with a default value of \code{20}. This
+\var{period} is an optional parameter; if it is not specified in a
+call, the default value will be used.
 
 Similarly, the \code{sayHello} function can be made more general:
 
@@ -163,13 +169,12 @@ def sayHello(clock, to="World!"):
 
 \end{verbatim}
 
-XXX
-
-Multiple generators can be created by multiple calls to a generator
-function, possibly with different parameters. This is analogous to the
-concept of \emph{instantiation} in hardware description
-languages. \myhdl\ supports hierarchy and instantiations through
-higher level functions that return multiple generators.
+We can create any number of generators by calling generator functions
+with the appropriate parameters. This is very similar to the concept of
+\dfn{instantiation} in hardware description languages and we will use
+the same terminology in \myhdl{}. Hierarchy can be modeled by defining
+the instances in a higher-level function, and returning them. For
+example: 
 
 \begin{verbatim}
 def talk():
@@ -182,8 +187,23 @@ def talk():
     sayHello1 = sayHello(clock=clk1)
     sayHello2 = sayHello(to="MyHDL", clock=clk2)
 
-    return (clkGen1, clkGen2, sayHello1, sayHello2) 
+    return clkGen1, clkGen2, sayHello1, sayHello2
 
+\end{verbatim}
+Like in standard Python, positional or named parameter association can
+be used in instantiations, or a mix of the two \footnote{All
+positional parameters have to come before any named parameter.}. All
+these styles are demonstrated in the example above. Like in hardware
+description languages, named association can be very useful if there
+are a lot of parameters, as the parameter order does not matter in
+that case.
+
+\class{Simulation} constructor arguments can also be sequences of
+generators. In this way, they support hierarchy: the return value of a
+higher-level instantiating function can directly be used an
+argument. For example:
+
+\begin{verbatim}
 sim = Simulation(talk())
 sim.run(50)
 
@@ -203,9 +223,48 @@ StopSimulation: Simulated for duration 50
 
 \end{verbatim}
 
-Like in standard Python, positional or named parameter association can
-be used, or a mix of the two \footnote{All positional parameters have
-to come before any named parameter.}. These styles are demonstrated in
-the example. Named association is very useful if there are a lot of
-parameters. 
 
+\section{Bit-oriented operations}
+
+Hardware design involves dealing with bits and bit-oriented
+operations. The standard Python \class{int} has most of the desired
+features, but lacks support for indexing and slicing. Therefore,
+\myhdl\ provides a \class{intbv} class. It works
+transparently as an integer and with integers, and like \class{int},
+offers access to the underlying a 2's complement representation for
+bitwise operations. In addition, it is a mutable type that provides
+indexing and slicing operations, and some additional bit-oriented
+support such as concatenation.
+
+As an example, we will consider the design of a Gray encoder. The
+following code is a Gray encoder modeled in \myhdl{}:
+
+\begin{verbatim}
+def bin2gray(width, B, G):
+    """ Gray encoder.
+
+    width -- bit width
+    B -- input intbv signal, binary encoded
+    G -- output intbv signal, gray encoded
+    """
+    while 1:
+        yield B
+        for i in range(width):
+            G.next[i] = B.val[i+1] ^ B.val[i]
+
+\end{verbatim}
+
+This code introduces a few new concepts. The string in triple
+quotes at the start of the function is a \dfn{doc string}. This is
+standard Python practice to document function and other
+code. Also, we use a third form of the \keyword{yield} statement:
+\samp{yield \var{signal}}. This specifies that the generator should
+resume whenever \var{signal} changes value. This is typically used to
+describe combinatorial logic.
+
+The actual code contains bit indexing operations and an exclusive-or
+operator as required for a Gray encoder. Moreover, the code shows how
+the actual value of a signal is accessed through the signal's
+\var{val} attribute. In \myhdl{}, unlike traditional hardware
+description languages, signals are explicitly modeled as composite
+objects whose current and next values are accessed through attributes.

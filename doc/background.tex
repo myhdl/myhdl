@@ -2,9 +2,117 @@
 
 \section{Prerequisites}
 
-\section{Why \myhdl\ requires Python2.2.2 or higher}
+You need a basic understanding of Python to understand the \myhdl\
+manual. If you don't know Python, you will take comfort in knowing
+that it is probably one of the easiest languages to learn. Learning
+Python is also one of the better time investments that engineering
+professionals can make \footnote{I am not biased.}.
 
-\section{A tutorial on generators}
+For beginners,
+\url{http://www.python.org/http://www.python.org/doc/current/tut/tut.html}
+is probably the best choice for an on-line tutorial. For alternatives,
+see \url{http://www.python.org/doc/Newbies.html}.
 
+A working knowledge of a hardware description language such as Verilog
+or VHDL is helpful. Chances are that you know one of those anyway, if
+you are interested in this manual.
 
+\section{A small tutorial on generators}
+
+Generators are a recent feature in Python. They were introduced in
+Python 2.2, which is the most recent stable version at the time of
+this writing. Therefore, there isn't a lot of tutorial material
+available yet. However, because generators are a key concept in
+\myhdl{}, I include a small tutorial here.
+
+Consider the following function:
+
+\begin{verbatim}
+def function():
+    for i in range(5):
+        return i
+
+\end{verbatim}
+
+You can see that it doesn't make a lot of sense. As soon as the first
+loop iteration is entered, the function returns:
+
+\begin{verbatim}
+>>> function()
+0
+\end{verbatim}
+
+Returning is fatal. Further loop iterations never get a chance, and
+nothing is left over from the function when it returns. It is truly
+gone. 
+
+To change the function into a generator function, we replace
+\keyword{return} with \keyword{yield}:
+
+\begin{verbatim}
+def generator():
+    for i in range(5):
+        yield i
+
+\end{verbatim}
+
+Now we get:
+
+\begin{verbatim}
+>>> generator()
+<generator object at 0x815d5a8>
+
+\end{verbatim}
+
+When a generator function is called, it returns a generator object. A
+generator object supports the iterator protocol, which is an expensive
+way of saying that you can let it generate subsequent values by
+calling its \function{next()} method:
+
+\begin{verbatim}
+>>> g = generator()
+>>> g.next()
+0
+>>> g.next()
+1
+>>> g.next()
+2
+>>> g.next()
+3
+>>> g.next()
+4
+>>> g.next()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+StopIteration
+
+\end{verbatim}
+
+You see that you can now generate the subsequent values from the for
+loop, until they are exhausted. What happens is that the
+\keyword{yield} statement is like a
+\keyword{return}, except that it is non-fatal: the generator remembers
+its state and the point in the code when it yielded. A higher order
+agent (in the above case, ourselves) can decide when to get a further
+value by calling the generator's \function{next()}
+method. We say that generators are \dfn{resumable
+functions}.
+
+If you are familiar with hardware description languages, this may
+ring a bell. In hardware simulations, there is also a higher order
+agent, the Simulator tool, that interacts with such resumable
+functions; they are called processes in VHDL and always blocks in
+Verilog. Like in those languages, Python generators provide an elegant
+and efficient method to model concurrency, without having to resort to
+some form of threading.
+
+The use of generators to model concurrency is the first key concept in
+\myhdl{}. The second key concept is a related one: in \myhdl{}, the
+yielded values are used to define the condition upon which the generator
+should be resumed. In other words, the \keyword{yield} statements work
+as generalized sensitivity lists. If by now you are still interested,
+read on!
+
+If you want to know more about generators, you can consult.
+\url{http://www.python.org/doc/2.2.2/whatsnew}. 
 

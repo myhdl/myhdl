@@ -2,19 +2,19 @@
 
 
 \myhdl\ is implemented as a Python package called \code{myhdl}. This
-chapter describes the objects that are expored by this package.
+chapter describes the objects that are exported by this package.
 
 \section{The \class{Simulation} class}
 \begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
-Class to construct a new simulation. Each argument can either be a
+Class to construct a new simulation. Each argument is either be a
 \myhdl\ generator, or a nested sequence of such generators. (A nested
-sequence means that each item in the sequence can itself be a
+sequence means that each item in the sequence may itself be a
 sequence.) See section~\ref{myhdl-generators} for the definition of
 \myhdl\ generators and their interaction with a \class{Simulation}
 object. 
 \end{classdesc}
 
-A \class{Simulation} instance has the following method:
+A \class{Simulation} object has the following method:
 
 \begin{methoddesc}[Simulation]{run}{\optional{duration}}
 Run the simulation forever (by default) or for a specified duration.
@@ -77,9 +77,9 @@ resume after a delay \var{t}.
 \end{funcdesc}
 
 \begin{funcdesc}{join}{arg \optional{, arg \moreargs}}
-Joins a number of trigger objects together. The effect is that the
-joined trigger object will only trigger when \emph{all} of its arguments
-have triggered.
+Joins a number of trigger objects together and return a new joined
+trigger object.  The effect is that the joined trigger object will
+trigger when \emph{all} of its arguments have triggered.
 \end{funcdesc}
 
 In addition, some objects can directly function as trigger
@@ -94,9 +94,10 @@ generator is triggered.
 \end{datadesc}
 
 \begin{datadesc}{GeneratorType}
-\myhdl\ generators can itself be used as trigger objects. In this case,
-the original generator is triggered when the spawned generator
-completes. 
+\myhdl\ generators can itself be used as trigger objects. 
+This corresponds to spawning a new generator, while the original
+generator waits for it to complete.  In other words, the original
+generator is triggered when the spawned generator completes.
 \end{datadesc}
 
 
@@ -141,7 +142,7 @@ even though \class{int} provides most of the desired
 functionality. (It is not possible to derive a mutable subtype from
 an immutable base type.)
 
-An \class{intbv} object supports the same comparison, numberic,
+An \class{intbv} object supports the same comparison, numeric,
 bitwise, logical, and conversion operations as \class{int} objects. See
 \url{http://www.python.org/doc/current/lib/typesnumeric.html} for more
 information on such operations. In all binary operations,
@@ -186,7 +187,7 @@ operations:
 	  \code{bv[\var{i}:\var{j}]} has \code{\var{i}-\var{j}}
 	  bits. As \class{intbv} objects have no explicitly defined
 	  bit width, the high index \var{j} has no default value and
-	  cannot be ommitted, while the low index \var{j} defaults to
+	  cannot be omitted, while the low index \var{j} defaults to
 	  \code{0}.
 
 \item[(3)] The value returned from a slicing operation is always
@@ -209,13 +210,15 @@ arguments need to have a defined bit width. Therefore, if they are
 operation. Alternatively, they may be bit strings.
 
 In contrast to all other arguments, the implicit \var{self} argument
-can be unsized.  It may be clearer to call this method as an unbound
-method with an explicit first \class{intbv} argument.
+doesn't need to have a defined bit with.  It may be clearer to call
+this method as an unbound method with an explicit first \class{intbv}
+argument.
 \end{methoddesc}
 
-In addition, an \class{intbv} object supports the iterator protocol if
-it has a defined bit width; this makes it possible to iterate over all
-its bits, from high index to zero.
+In addition, an \class{intbv} object supports the iterator protocol this
+makes it possible to iterate over all its bits, from the high index to
+index 0. Again, this is only possible for \class{intbv} objects with a
+defined bit width.
 
 
 
