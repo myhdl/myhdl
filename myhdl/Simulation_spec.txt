@@ -2,10 +2,9 @@ Specification for the Simulation class
 --------------------------------------
 
 * The Simulation object constructor has an arbitrary number of
-  arguments with each argument being a generator, or a hierchical
-  sequence of generators. With a "hierarchical" sequence I mean a
-  sequence whose elements may themselves be sequences, and so on, down
-  to an arbitrary level.
+  arguments with each argument being a generator, or a nested sequence
+  of generators. A nested sequence means a sequence whose elements may
+  themselves be sequences, and so on, down to an arbitrary level.
 
 * A Simulation object has a 'run(duration=None)' method. If a duration
   is specified, it should be a positive integer that indicates that
@@ -21,7 +20,7 @@ Specification for the Simulation class
   StopSimulation exception is raised.
 
 * When the StopSimulation exception is caught, the run method prints
-  the exception message and returns True.
+  the exception message and returns 1.
 
 
 

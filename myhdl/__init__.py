@@ -5,13 +5,12 @@ import intbv
 import _simulator
 
 # sig = sig.sig
+StopSimulation = Simulation.StopSimulation
+join = Simulation.join
+Simulation = Simulation.Simulation
 posedge = Signal.posedge
 negedge = Signal.negedge
-# DelayedSignal = Signal.DelayedSignal
 Signal = Signal.Signal
-join = Simulation.join
-StopSimulation = Simulation.StopSimulation
-Simulation = Simulation.Simulation
 now = _simulator.now
 delay = delay.delay
 concat = intbv.concat
