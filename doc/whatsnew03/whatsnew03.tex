@@ -55,7 +55,7 @@ passed to the function call.
 Signals are dumped in a suitable format. This format is inferred at
 the \class{Signal} construction time, from the type of the initial
 value. In particular, \class{bool} signals are dumped as single
-bits. (This only works starting with Python2.3, when \class{bool} has
+bits. (This only works starting with Python~2.3, when \class{bool} has
 become a separate type).  Likewise, \class{intbv} signals with a
 defined bit width are dumped as bit vectors. To support the general
 case, other types of signals are dumped as a string representation, as
@@ -382,23 +382,23 @@ corresponding signal object.  Function \function{concat()} returns an
 
 \section{Python 2.3 support\label{section-Python}}
 
-Python 2.3 was released on July 29, 2003, and as of this writing, it
-is the latest stable Python release.  \myhdl\ 0.3 works with both
-Python 2.2 and Python 2.3. In good Python tradition, \myhdl\ code
-developed with Python 2.2 should run without changes or problems in
-Python 2.3.
+Python~2.3 was released on July 29, 2003, and as of this writing, it
+is the latest stable Python release.  \myhdl{}~0.3 works with both
+Python~2.2 and Python~2.3. In good Python tradition, \myhdl\ code
+developed with Python~2.2 should run without changes or problems in
+Python~2.3.
 
 In general, I am not that keen on early upgrading. However, as it
 happens, the evolution of Python enables features that are really
-important or even crucial to \myhdl{}.  Python 2.2 generators are the
-best example: they are the cornerstone of \myhdl{}. But Python 2.3
+important or even crucial to \myhdl{}.  Python~2.2 generators are the
+best example: they are the cornerstone of \myhdl{}. But Python~2.3
 also has significant benefits, which I will summarize below.
 
-First, generators and the \code{yield} statement are a default Python
-2.3 feature. This means that \code{from __future__ import generators}
+First, generators and the \code{yield} statement are a default 
+Python~2.3 feature. This means that \code{from __future__ import generators}
 statements are no longer required.
 
-Second, Python 2.3 has a \class{bool} type, which is implemented as a
+Second, Python~2.3 has a \class{bool} type, which is implemented as a
 subtype of \class{int}. For general Python use, the implications are
 rather limited - the main difference is that logical result values
 will print as \code{False} and \code{True} instead of \code{0} and
@@ -410,14 +410,14 @@ note how single bit signals are displayed as level changes.  With
 Python 2.2, the waveforms of these signals would only show value
 changes, which is not as clear for single bits.
 
-Finally, Python 2.3 is significantly faster. \myhdl\ code runs
-25--35\% faster in Python 2.3. This is a very nice speedup compared to
+Finally, Python~2.3 is significantly faster. \myhdl\ code runs
+25--35\% faster in Python~2.3. This is a very nice speedup compared to
 the small burden of a straightforward upgrade.
 
-Python is a very stable language, so upgrading to Python 2.3 is
+Python is a very stable language, so upgrading to Python~2.3 is
 virtually risk free. Given the additional benefits, I recommend
 \myhdl\ users to do so as soon as possible. For the next major \myhdl\
-release, the new features will become required and only Python 2.3
+release, the new features will become required and only Python~2.3
 (and higher) will be supported.
 
 

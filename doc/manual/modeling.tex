@@ -470,8 +470,9 @@ loaded and viewed in a waveform viewer tool such as \program{gtkwave}.
 
 The user interface of this feature consists of a single function,
 \function{traceSignals()}.  To explain how it works, recall that in
-\myhdl{}, an instance is created by a function call and by assigning
-the result to an instance name. For example:
+\myhdl{}, an instance is created by assigning
+the result of a function call to an instance name.
+For example:
 
 \begin{verbatim}
 tb_fsm = testbench()
@@ -534,7 +535,7 @@ sim.run()
 
 When we run the test bench, it generates a VCD file
 called \file{tb_fsm.vcd}. When we load this file into
-\program{gtkwave}, we can view we waveforms:
+\program{gtkwave}, we can view the waveforms:
 
 \ifpdf
 \includegraphics{tbfsm.png}
@@ -543,7 +544,7 @@ called \file{tb_fsm.vcd}. When we load this file into
 Signals are dumped in a suitable format. This format is inferred at
 the \class{Signal} construction time, from the type of the initial
 value. In particular, \class{bool} signals are dumped as single
-bits. (This only works starting with Python2.3, when \class{bool} has
+bits. (This only works starting with Python~2.3, when \class{bool} has
 become a separate type).  Likewise, \class{intbv} signals with a
 defined bit width are dumped as bit vectors. To support the general
 case, other types of signals are dumped as a string representation, as
