@@ -100,10 +100,13 @@ class intbv(object):
     def __getslice__(self, i, j):
         if j == maxint: # default
             j = 0
+        if j < 0:
+            raise ValueError, "intbv[i:j] requires j >= 0\n" \
+                  "            j == %s" % j
         if i == 0: # default
             return intbv(self._val >> j)
-        if i <= j or i < 1 or j < 0:
-            raise ValueError, "intbv[i:j]: requires i > j >= 0" \
+        if i <= j:
+            raise ValueError, "intbv[i:j] requires i > j\n" \
                   "            i, j == %s, %s" % (i, j)
         res = intbv((self._val & 2**i-1) >> j)
         res._len = i-j
@@ -111,7 +114,7 @@ class intbv(object):
         
     def __setitem__(self, i, val):
         if val not in (0, 1):
-            raise ValueError, "intbv[i] = v: requires v in (0, 1)" \
+            raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
                   "            i == %s " % i
         if val:
             self._val |= (2**i)
@@ -121,16 +124,19 @@ class intbv(object):
     def __setslice__(self, i, j, val):
         if j == maxint: # default
             j = 0
+        if j < 0:
+            raise ValueError, "intbv[i:j] = v requires j >= 0\n" \
+                  "            j == %s" % j
         if i == 0: # default
             q = self._val % (2**j)
             self._val = val * 2**j + q
             return
-        if i <= j or i < 1 or j < 0:
-            raise ValueError, "intbv[i:j] = v: requires i > j >= 0" \
-                  "            i, j ,v == %s, %s %s" % (i, j, val)
+        if i <= j:
+            raise ValueError, "intbv[i:j] = v requires i > j\n" \
+                  "            i, j, v == %s, %s, %s" % (i, j, val)
         if val >= 2**(i-j) or val < -2**(i-j):
-            raise ValueError, "intbv[i:j] = v: abs(v) too large\n" \
-                  "            i, j ,v == %s, %s %s" % (i, j, val)
+            raise ValueError, "intbv[i:j] = v abs(v) too large\n" \
+                  "            i, j, v == %s, %s, %s" % (i, j, val)
         mask = (2**(i-j))-1
         mask *= 2**j
         self._val &= ~mask
