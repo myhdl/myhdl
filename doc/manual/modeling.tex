@@ -15,7 +15,7 @@ as is typically used for synthesizable models in Verilog or VHDL.
 \subsection{Combinatorial logic \label{model-comb}}
 
 \subsubsection{Template \label{model-comb-templ}}
-
+ 
 Combinatorial logic is described with a generator function code template as
 follows: 
 
@@ -231,6 +231,208 @@ enable  count
    1      2
 StopSimulation
 \end{verbatim}
+
+
+\subsection{Finite State Machine modeling \label{model-fsm}}
+
+Finite State Machine (FSM) modeling is very common in RTL
+design and therefore deserves special attention.
+
+For code clarity, the state values are typically represented by a set
+of identifiers. A standard Python idiom for this purpose is to assign
+a range of integers to a tuple of identifiers, like so:
+
+\begin{verbatim}
+>>> SEARCH, CONFIRM, SYNC = range(3)
+>>> CONFIRM
+1
+\end{verbatim}
+
+However, this technique has some drawbacks. Though it is clearly
+the intention that the identifiers belong together, this information
+is lost as soon as they are defined. Also, the identifiers evaluate to
+integers, whereas a string representation of the identifiers
+would be preferable. To solve these issues, we need an
+\emph{enumeration type}.
+
+\myhdl\ supports enumeration types by providing a function
+\function{enum()}.  The arguments to \function{enum()} are the string
+representations of the identifiers, and its return value is an
+enumeration type. The identifiers are available as attributes of the
+type. For example:
+
+\begin{verbatim}
+>>> from myhdl import enum
+>>> t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
+>>> t_State
+<Enum: SEARCH, CONFIRM, SYNC>
+>>> t_State.CONFIRM
+CONFIRM
+\end{verbatim}
+
+We can use this type to construct a state signal as follows:
+
+\begin{verbatim}
+state = Signal(t_State.SEARCH)
+\end{verbatim}
+
+As an example, we will use a framing controller FSM.  It is an
+imaginary example, but similar control structures are often found in
+telecommunication applications. Suppose that we need to recover the
+Start Of Frame (SOF) position of a incoming frame.
+A sync pattern detector continuously looks for a framing
+pattern and indicates it to the FSM with a \code{syncFlag} signal. When
+found, the FSM moves from the initial \code{SEARCH} state to the
+\code{CONFIRM} state. When the \code{syncFlag}
+is confirmed on the expected position, the FSM declares \var{SYNC},
+otherwise it falls back to the \code{SEARCH} state.  This FSM can be
+coded as follows:
+
+\begin{verbatim}
+ACTIVE_LOW = 0
+FRAME_SIZE = 8
+t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
+
+def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
+    
+    """ Framing control FSM.
+
+    SOF -- start-of-frame output bit
+    state -- t_State output signal
+    syncFlag -- sync pattern found indication input
+    clk -- clock input
+    reset_n -- active low reset
+    
+    """
+    
+    index = Signal(0) # position in frame
+
+    def FSM():
+        while 1:
+            yield posedge(clk), negedge(reset_n)
+            
+            if reset_n == ACTIVE_LOW:
+                SOF.next = 0
+                index.next = 0
+                state.next = t_State.SEARCH
+            else:
+                index.next = (index + 1) % FRAME_SIZE
+                SOF.next = 0
+                if state == t_State.SEARCH:
+                    index.next = 1
+                    if syncFlag:
+                        state.next = t_State.CONFIRM
+                elif state == t_State.CONFIRM:
+                    if index == 0:
+                        if syncFlag:
+                            state.next = t_State.SYNC
+                        else:
+                            state.next = t_State.SEARCH
+                elif state == t_State.SYNC:
+                    if index == 0:
+                        if not syncFlag:
+                            state.next = t_State.SEARCH
+                    SOF.next = (index == FRAME_SIZE-1)
+                else:
+                    raise ValueError("Undefined state")
+
+    return FSM()
+\end{verbatim}
+
+At this point, we will use the example to demonstrate
+the \myhdl\ support for waveform viewing.
+During simulation, signal
+changes can be written to a VCD output file.  The VCD file can then be
+loaded and viewed in a waveform viewer tool such as \program{gtkwave}.
+
+The user interface of this feature consists of a single function,
+\function{traceSignals()}.  To explain how it works, recall that in
+\myhdl{}, an instance is created by a function call and by assigning
+the result to an instance name. For example:
+
+\begin{verbatim}
+tb_fsm = testbench()
+\end{verbatim}
+
+To enable VCD tracing, the instance should be created as follows
+instead:
+
+\begin{verbatim}
+tb_fsm = traceSignals(testbench)
+\end{verbatim}
+
+All signals in the instance hierarchy will be traced in an output VCD
+file called \file{tb_fsm.vcd}. Note that first the argument of
+\function{traceSignals()} consists of the uncalled function. By
+calling the function under its control, \function{traceSignals()}
+gathers information about the hierarchy and the signals to be traced.
+In addition to a function argument, \function{traceSignals()} accepts
+an arbitrary number of non-keyword and keyword arguments that will be
+passed to the function call. 
+
+A small test bench for our framing controller example,
+with signal tracing enabled, is shown below:
+
+
+\begin{verbatim}
+def testbench():
+
+    SOF = Signal(bool(0))
+    syncFlag = Signal(bool(0))
+    clk = Signal(bool(0))
+    reset_n = Signal(bool(1))
+    state = Signal(t_State.SEARCH)
+            
+    framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset_n)
+
+    def clkgen():
+        while 1:
+            yield delay(10)
+            clk.next = not clk
+
+    def stimulus():
+        for i in range(3):
+            yield posedge(clk)
+        for n in (12, 8, 8, 4):
+            syncFlag.next = 1
+            yield posedge(clk)
+            syncFlag.next = 0
+            for i in range(n-1):
+                yield posedge(clk)
+        raise StopSimulation
+        
+    return framectrl, clkgen(), stimulus()
+
+tb_fsm = traceSignals(testbench)
+
+sim = Simulation(tb_fsm)
+sim.run()
+\end{verbatim}
+
+When we run the test bench, it generates a VCD file
+called \file{tb_fsm.vcd}. When we load this file into
+\program{gtkwave}, we can view we waveforms:
+
+\ifpdf
+\includegraphics{tbfsm.png}
+\fi
+
+Signals are dumped in a suitable format. This format is inferred at
+the \class{Signal} construction time, from the type of the initial
+value. In particular, \class{bool} signals are dumped as single
+bits. (This only works starting with Python2.3, when \class{bool} has
+become a separate type).  Likewise, \class{intbv} signals with a
+defined bit width are dumped as bit vectors. To support the general
+case, other types of signals are dumped as a string representation, as
+returned by the standard \function{str()} function.
+
+\begin{notice}[warning]
+Support for literal string representations is not part of the VCD
+standard. It is specific to \program{gtkwave}. To generate a
+standard VCD file, you need to use signals with a defined bit width
+only.
+\end{notice}
+
 
 \section{High level modeling \label{model-hl}}
 
