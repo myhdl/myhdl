@@ -102,8 +102,6 @@ In the following, a "sig" denotes an instance of the Signal class.
 * A sig should have no other public attributes than those described
   above.
 
-* Signal objects are unhashable.
-
 * In practice, Signals will often have numbers as their underlying
   values. As a matter of convenience, the special Python object
   methods for numeric and bitwise operators are supported on Signal

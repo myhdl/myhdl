@@ -136,7 +136,7 @@ class Signal(object):
 
     # hashing not supported
     def __hash__(self):
-        assert TypeError, "Signal objects are unhashable"
+        return hash(self._val)
         
     ### operators for which delegation to current value is appropriate ###
     

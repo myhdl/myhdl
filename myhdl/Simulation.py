@@ -24,6 +24,7 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 
 from __future__ import generators
+import sys
 import exceptions
 
 import _simulator as sim
@@ -127,7 +128,9 @@ class Simulation:
                 
             except StopSimulation, e:
                 if not quiet:
-                    msg = "StopSimulation"
+                    kind, value, traceback = sys.exc_info()
+                    msg = str(kind)
+                    msg = msg[msg.rindex('.')+1:]
                     if str(e):
                         msg += ": %s" % e
                     print msg

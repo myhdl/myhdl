@@ -35,11 +35,6 @@ import operator
 from intbv import intbv
 concat = intbv.concat
 
-class TestIntbvUnhashable(TestCase):
-
-    def testIntbvUnhashable(self):
-        self.assertRaises(TypeError, hash, intbv(3))
-
 
 class TestIntbvConcat(TestCase):
 

@@ -80,4 +80,3 @@ separate type.
 * intbv supports the iterator protocol to iterate on its bits; again,
   this requires a known length.
 
-* intbv objects are unhashable
