@@ -24,10 +24,10 @@ __revision__ = "$Revision$"
 __date__ = "$Date$"
 
 import test_Simulation, test_Signal, test_intbv, test_Cosimulation, test_misc, \
-       test_always_comb, test_intbvbounds
+       test_always_comb
 
 modules = (test_Simulation, test_Signal, test_intbv, test_misc, test_always_comb,
-           test_intbvbounds)
+          )
 
 import unittest
 
