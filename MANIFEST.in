@@ -6,6 +6,7 @@ global-include *.c
 global-include *.v
 global-include Makefile
 global-exclude .cvsignore
+include cosimulation/icarus/myhdl.c.20030518
 prune dist
 prune doc
 graft doc/html/manual
