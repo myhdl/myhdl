@@ -430,7 +430,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
 
     def visitConst(self, node, *args):
         if isinstance(node.value, int):
-            node.obj = int()
+            node.obj = node.value
         else:
             node.obj = None
             
@@ -519,7 +519,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         elif n in self.ast.symdict:
             node.obj = self.ast.symdict[n]
         elif n in __builtin__.__dict__:
-            node.obj = __builtins__[n]
+            node.obj = __builtin__.__dict__[n]
         else:
             pass
 
@@ -560,8 +560,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.body, *args)
         self.refStack.pop()
         y = node.body.nodes[0]
-        if isinstance(node.test, astNode.Const) and \
-           node.test.value == True and \
+        if node.test.obj == True and \
            isinstance(y, astNode.Yield):
             node.kind = _kind.ALWAYS
         self.require(node, node.else_ is None, "while-else not supported")

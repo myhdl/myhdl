@@ -586,6 +586,8 @@ class _ConvertVisitor(_ToVerilogMixin):
             elif type(obj) is Signal:
                 assert obj._name
                 self.write(obj._name)
+            elif str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
+                self.write(obj._toVerilog())
             else:
                 self.write(n)
         else:
