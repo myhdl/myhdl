@@ -71,7 +71,7 @@ Simulation(MUX_1, test()).run()
 
 Because of the randomness, the simulation output varies between runs
 \footnote{It also possible to have a reproducible random output, by
-explictly providing a seed value. See the documentation of the
+explicitly providing a seed value. See the documentation of the
 \code{random} module}. One particular run produced the following
 output:
 
@@ -112,7 +112,7 @@ def sequentialLogic(<arguments>, clock, ..., reset, ...)
 
 \subsubsection{Example}
 The following code is a description of an incrementer with enable, and
-an asychronous power-up reset.
+an asynchronous power-up reset.
 
 \begin{verbatim}
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
@@ -138,7 +138,7 @@ def Inc(count, enable, clock, reset, n):
 
 For the test bench, we will use an independent clock generator, stimulus
 generator, and monitor. After applying enough stimulus patterns, we
-can raise the \code{myhdl.StopStimulation} exception to stop the
+can raise the \code{myhdl.StopSimulation} exception to stop the
 simulation run. The test bench for a small incrementer and a small
 number of patterns is a follows:
 

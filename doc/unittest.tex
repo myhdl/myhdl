@@ -15,7 +15,7 @@ other occasions, XP just seems to emphasize the common sense, which
 doesn't always coincide with common practice. For example, XP stresses
 the importance of normal, non-overtime workweeks, if we are to have the
 fresh mind needed for good software development. Refreshing to hear,
-if you ask me, although hardly surprizing.
+if you ask me, although hardly surprising.
 
 It is not my intention nor qualification to present a tutorial on
 Extreme Programming. Instead, in this section I will highlight one XP
@@ -71,7 +71,7 @@ Consecutive codewords in a Gray code should differ in a single bit.
 
 Is this sufficient? Not quite: suppose for example that an
 implementation returns the lsb of each binary input. This would comply
-with the requirement, but is obviously not wat we want. Also, we don't
+with the requirement, but is obviously not what we want. Also, we don't
 want the bit width of Gray codewords to exceed the bit width of the
 binary codewords.
 
@@ -87,13 +87,13 @@ With the requirements written down we can proceed.
 A very fascinating guideline in the XP world is to write the unit test
 first. That is, before implementing something, first write the test
 that will verify it. This seems to go against our natural inclination,
-and certainly agains common practices. Many engineers like to
+and certainly against common practices. Many engineers like to
 implement first and think about verification afterwards.
 
 But if you think about it, it makes a lot of sense to deal
 with verification first. Verification is about the requirements only
 --- so your thoughts are not yet cluttered with implementation
-details. The unit tests are an exectutable description of the
+details. The unit tests are an executable description of the
 requirements, so it will be very clear what needs to be done and they
 will be better understood. It follows that the implementation should
 go smoother. Perhaps most importantly, the test is available when you
@@ -207,7 +207,7 @@ numbers:
 \subsection{Test-driven implementation}
 
 With the test written, we begin with the implementation. For
-illutration purposes, we will intentionally write some incorrect
+illustration purposes, we will intentionally write some incorrect
 implementations to see how the test behaves.
 
 The easiest way to run tests defined with the \code{unittest}
@@ -303,7 +303,7 @@ It may be that more control is needed. For example, the requirement
 may be for a particular code, instead of compliance with general
 properties. As an illustration, we will show how to test for
 \emph{the} original Gray code, which is one specific instance that
-satifies the requirements of the previous section. In this particular
+satisfies the requirements of the previous section. In this particular
 case, this test will actually be easier than the previous one.
 
 We denote the original Gray code of order \code{n} as \code{Ln}. Some
