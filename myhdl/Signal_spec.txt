@@ -1,0 +1,69 @@
+Specification for the Signal class
+----------------------------------
+
+In the following, attribute and method names starting with an
+underscore are intended to be "private". In other words, they are not
+part of the public interface of the Signal class. The private
+attributes and methods are for internal use or for use by a simulator
+object that interacts with Signal objects.
+
+In the following, a "sig" denotes an instance of the Signal class.
+
+* A sig should have a read-only attribute 'val' that represents its
+  current value.
+
+* The Signal contructor should have one mandatory parameter 'val' to
+  initialize its current value and future value.
+
+* The Signal contructor should have an optional parameter 'delay' to
+  specify an initial delay value for the signal. The default value is
+  0, meaning no delay.
+
+* A sig should have a 'delay' attribute that represents its current
+  delay. It is acceptable that this attribute is only present if the
+  sig has been constructed with a non-zero delay.
+
+* A sig should have a 'next' attribute that represents its future
+  value. The 'next' attribute provides both write and read
+  access. (Read access is required to support mutable values.)
+
+* A sig should have a number of private list attributes that can hold
+  generators that are waiting for a particular change on the sig's value:
+  - '_eventWaiters': generators waiting for a value change
+  - '_posedgeWaiters': generators waiting for a change from false to true
+  - '_negedgeWaiters': generators waiting for a change from true to false
+
+* A sig should have read-only attributes 'posedge' and 'negedge' to
+  represent a posedge and negedge value change in yield clauses of
+  generators. To represent an event (a value change), the sig itself
+  is used in a yield clause.
+
+* A sig should have an '_update()' method that performs the actions
+  required to make the future value current. When 'delay' is 0, it
+  assigns the future value to the current value. In addition, it
+  returns a list of waiters for which a particular value change is
+  satisfied, and removes them from the internal lists that held
+  them. When 'delay' is nonzero, it schedules the application of the
+  future value in the _simulator._futureEvents list and returns an
+  empty list.
+
+* A sig should have an '_apply(next, ...)' method that handles the
+  application of a scheduled 'next' value. It implements inertial
+  delay by only applying the 'next' value if there has been no change
+  to the sig's 'next' attribute since the 'next' value was scheduled.
+  If so, it assigns the 'next' value to the current value. In
+  addition, it returns a list of waiters for which a particular value
+  change is satisfied, and removes them from the internal lists that
+  held them.
+
+* When the 'next' attribute is accessed to modify a mutable value, the
+  change should be made to an object that is distinct from the current
+  value object.
+
+* Whenever the 'next' attribute is accessed, a sig should be entered
+  in the '_simulator._siglist'.  A simulator can thus know which sig's
+  need updating.
+
+* A sig should have no other public attributes than those described
+  above.
+

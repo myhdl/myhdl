@@ -1,0 +1,28 @@
+Specification for the Simulation class
+--------------------------------------
+
+* The Simulation object constructor has an arbitrary number of
+  arguments with each argument being a generator, or a hierchical
+  sequence of generators. With a "hierarchical" sequence I mean a
+  sequence whose elements may themselves be sequences, and so on, down
+  to an arbitrary level.
+
+* A Simulation object has a 'run(duration=None)' method. If a duration
+  is specified, it should be a positive integer that indicates that
+  the simulation should run for that amount of time. If not, it should
+  run until there are no further events. Consecutive runs for a number
+  of durations t1, t2, ... tn should give exactly the same behavior as
+  a single run for duration t1+t2+...+ tn. The 'run' method returns
+  None if there are no further events, and 1 otherwise. When the
+  simulation has run for the specified duration, the StopSimulation
+  exception is raised.
+
+* When there are no further events during as simulation run, the
+  StopSimulation exception is raised.
+
+* When the StopSimulation exception is caught, the run method prints
+  the exception message and returns True.
+
+
+
+
