@@ -497,8 +497,8 @@ further capabilities of \myhdl\ and its use of the \code{yield}
 statement. 
 
 Until now, the \code{yield} statements had a single clause. However,
-they can have multiple clauses as well. In that case, the calling
-generator is triggered as soon as the condition corresponding to one
+they can have multiple clauses as well. In that case, the generator
+resumes as soon as the wait condition specified by one
 of the clauses is satisfied. This corresponds to the functionality of
     \index{sensitivity list}%
 sensitivity lists in Verilog and VHDL.
@@ -559,7 +559,7 @@ def test():
         yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
 \end{verbatim}
 
-Both forked generators will run concurrently, and the calling
+Both forked generators will run concurrently, and the original
 generator will resume as soon as one of them finishes (which will be
 the transmitter in this case).  The simulation output shows how
 the UART procedures run in lockstep:
@@ -621,7 +621,7 @@ TX: 1
 StopSimulation: RX time out error
 \end{verbatim}
 
-Recall that the calling generator resumes as soon as one of the
+Recall that the original generator resumes as soon as one of the
 forked generators returns. In the previous cases, this is just fine,
 as the transmitter and receiver generators run in lockstep. However,
 it may be desirable to resume the caller only when \emph{all} of the
