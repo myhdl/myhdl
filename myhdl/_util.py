@@ -35,6 +35,7 @@ import exceptions
 import sys
 import inspect
 import re
+from sets import Set
 from types import FunctionType, GeneratorType, ListType, TupleType
 import compiler
 # hope this will always work ...
@@ -42,32 +43,9 @@ from compiler.consts import CO_GENERATOR
 
 from myhdl._Cosimulation import Cosimulation
 
-
 def downrange(start, stop=0):
     """ Return a downward range. """
     return range(start-1, stop-1, -1)
-
-def _int2bitstring(num):
-    if num == 0:
-        return '0'
-    if abs(num) == 1:
-        return '1'
-    return _int2bitstring(num // 2) + _int2bitstring(num % 2)
-
-def bin(num, width=0):
-    """Return a binary string representation.
-
-    num -- number to convert
-    Optional parameter:
-    width -- specifies the desired string (sign bit padding)
-    """
-    num = long(num)
-    s = _int2bitstring(num)
-    pad = '0'
-    if num < 0:
-        pad = '1'
-    return (width - len(s)) * pad + s
-
         
 class StopSimulation(exceptions.Exception):
     """ Basic exception to stop a Simulation """
@@ -77,7 +55,7 @@ class SuspendSimulation(exceptions.Exception):
     """ Basic exception to suspend a Simulation """
     pass
 
-def printExcInfo():
+def _printExcInfo():
     kind, value  = sys.exc_info()[:2]
     msg = str(kind)
     msg = msg[msg.rindex('.')+1:]
@@ -85,7 +63,6 @@ def printExcInfo():
         msg += ": %s" % value
         print msg
        
-
 def _isGenSeq(obj):
     if type(obj) in (GeneratorType, Cosimulation):
         return 1
@@ -96,9 +73,18 @@ def _isGenSeq(obj):
             return 0
     return 1
 
-        
 def _isGenFunc(obj):
     if type(obj) is FunctionType:
         return bool(obj.func_code.co_flags & CO_GENERATOR)
     return bool(0)
+
+def _flatten(*args):
+    arglist = []
+    for arg in args:
+        if isinstance(arg, (list, tuple, Set)):
+            for item in arg:
+                arglist.extend(_flatten(item))
+        else:
+            arglist.append(arg)
+    return arglist
 

@@ -27,7 +27,7 @@ __date__ = "$Date$"
 
 from types import StringType
 
-from myhdl._util import bin
+from myhdl._bin import bin
 
 def enum(*args):
 

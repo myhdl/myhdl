@@ -33,7 +33,7 @@ from myhdl import delay, Signal, Cosimulation, join
 from myhdl import _simulator
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _WaiterList
-from myhdl._util import StopSimulation, SuspendSimulation
+from myhdl._util import StopSimulation, SuspendSimulation, _flatten, _printExcInfo
 from myhdl._Error import Error
 
 
@@ -62,7 +62,8 @@ class Simulation(object):
 
         """
         _simulator._time = 0
-        self._waiters, self._cosim = _flatten(*args)
+        arglist = _flatten(*args)
+        self._waiters, self._cosim = _checkArgs(arglist)
         if not self._cosim and _simulator._cosim:
             warn("Cosimulation not registered as Simulation argument")
         del _futureEvents[:]
@@ -184,52 +185,33 @@ class Simulation(object):
 
             except SuspendSimulation:
                 if not quiet:
-                    printExcInfo()
+                    _printExcInfo()
                 if tracing:
                     tracefile.flush()
                 return 1
 
             except StopSimulation:
                 if not quiet:
-                    printExcInfo()
+                    _printExcInfo()
                 self._finalize()
                 return 0
 
             except:
                 self._finalize()
                 raise
-        
+                
 
-
-def printExcInfo():
-    kind, value, traceback = sys.exc_info()
-    msg = str(kind)
-    msg = msg[msg.rindex('.')+1:]
-    if str(value):
-        msg += ": %s" % value
-        print msg
-        
-     
-def _flatten(*args):
+def _checkArgs(arglist):
     waiters = []
     cosim = None
-    for arg in args:
+    for arg in arglist:
         if type(arg) is GeneratorType:
             waiters.append(_Waiter(arg))
         elif type(arg) is Cosimulation:
-            if cosim:
+            if cosim is not None:
                 raise MultipleCosimError
             cosim = arg
-            waiters.append(_Waiter(cosim._waiter()))
-        elif isinstance(arg, (list, tuple)):
-            for item in arg:
-                w, c = _flatten(item)
-                if cosim and c:
-                    raise MultipleCosimError
-                if c:
-                    cosim = c
-                waiters.extend(w)
         else:
             raise ArgTypeError(str(type(arg)))
     return waiters, cosim
-
+        

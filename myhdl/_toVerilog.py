@@ -386,8 +386,9 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             n = target.name
             obj = self.getObj(expr)
             if obj is None:
-                self.raiseError(node, "Cannot infer type of %s" % n)
+                self.raiseError(node, "Cannot infer type or bit width of %s" % n)
             self.vardict[n] = obj
+            # XXX if n is already in vardict
 
     def visitAssName(self, node, *args):
         n = node.name
