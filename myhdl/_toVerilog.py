@@ -248,6 +248,9 @@ class _ToVerilogBaseVisitor(object):
         
     def visitList(self, node, *args):
         self.raiseError("lists not supported", node)
+        
+    def visitPower(self, node, *args):
+        self.raiseError("power operator not supported", node)
 
     def visitReturn(self, node, *args):
         self.raiseError("return statement not supported", node)
@@ -703,16 +706,16 @@ class _ConvertGenVisitor(object):
             self.write("end")
 
     def visitInvert(self, node):
-        # XXX
-        pass
+        self.write("(~")
+        self.visit(node.expr)
+        self.write(")")
 
     def visitKeyword(self, node):
         # XXX
         pass
 
     def visitLeftShift(self, node):
-        # XXX
-        pass
+        self.binaryOp(node, '<<')
 
     def visitMod(self, node):
         self.write("(")
@@ -748,10 +751,6 @@ class _ConvertGenVisitor(object):
         # XXX
         pass
     
-    def visitPower(self, node):
-        # XXX
-        pass
-
     def visitPrint(self, node):
         # XXX
         pass
@@ -769,8 +768,7 @@ class _ConvertGenVisitor(object):
         self.write("$finish;")
 
     def visitRightShift(self, node):
-        # XXX
-        pass
+        self.binaryOp(node, '>>')
 
     def visitSlice(self, node):
         # XXX

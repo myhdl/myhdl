@@ -200,6 +200,15 @@ class TestNotSupported(unittest.TestCase):
                 l = [1, 2, 3]
         self.check(g, z, a)
 
+    def testPower(self):
+        a = Signal(bool())
+        z = Signal(bool())
+        def g(z, a):
+            while 1:
+                yield a
+                z.next = 2 ** 8
+        self.check(g, z, a)
+
     def testReturn(self):
         a = Signal(bool())
         z = Signal(bool())

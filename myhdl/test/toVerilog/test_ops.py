@@ -13,8 +13,10 @@ def binaryOps(
               Bitor,
               Bitxor,
               FloorDiv,
+              LeftShift,
               Mod,
               Mul,
+              RightShift,
               Sub,
               Sum,
               EQ,
@@ -33,9 +35,12 @@ def binaryOps(
         Bitxor.next = left ^ right
         if right != 0:
             FloorDiv.next = left // right
+        if left < 256 and right < 40:
+           LeftShift.next = left << right
         if right != 0:
             Mod.next = left % right
         Mul.next = left * right
+        RightShift.next = left >> right
         if left >= right:
             Sub.next = left - right
         Sum.next = left + right
@@ -55,8 +60,10 @@ def binaryOps_v(
                 Bitor,
                 Bitxor,
                 FloorDiv,
+                LeftShift,
                 Mod,
                 Mul,
+                RightShift,
                 Sub,
                 Sum,
                 EQ,
@@ -93,10 +100,14 @@ class TestBinaryOps(TestCase):
         Bitxor_v = Signal(intbv(0)[max(m, n):])
         FloorDiv = Signal(intbv(0)[m:])
         FloorDiv_v = Signal(intbv(0)[m:])
+        LeftShift = Signal(intbv(0)[64:])
+        LeftShift_v = Signal(intbv(0)[64:])
         Mod = Signal(intbv(0)[m:])
         Mod_v = Signal(intbv(0)[m:])
         Mul = Signal(intbv(0)[m+n:])
         Mul_v = Signal(intbv(0)[m+n:])
+        RightShift = Signal(intbv(0)[m:])
+        RightShift_v = Signal(intbv(0)[m:])
         Sub = Signal(intbv(0)[max(m, n):])
         Sub_v = Signal(intbv(0)[max(m, n):])
         Sum = Signal(intbv(0)[max(m, n)+1:])
@@ -111,8 +122,10 @@ class TestBinaryOps(TestCase):
                            Bitor,
                            Bitxor,
                            FloorDiv,
+                           LeftShift,
                            Mod,
                            Mul,
+                           RightShift,
                            Sub,
                            Sum,
                            EQ,
@@ -129,8 +142,10 @@ class TestBinaryOps(TestCase):
                                Bitor_v,
                                Bitxor_v,
                                FloorDiv_v,
+                               LeftShift_v,
                                Mod_v,
                                Mul_v,
+                               RightShift_v,
                                Sub_v,
                                Sum_v,
                                EQ_v,
@@ -167,8 +182,11 @@ class TestBinaryOps(TestCase):
                 self.assertEqual(Bitor, Bitor_v)
                 self.assertEqual(Bitxor, Bitxor_v)
                 self.assertEqual(FloorDiv, FloorDiv_v)
+                self.assertEqual(LeftShift, LeftShift_v)
+                print LeftShift
                 self.assertEqual(Mod, Mod_v)
                 self.assertEqual(Mul, Mul_v)
+                self.assertEqual(RightShift, RightShift_v)
                 self.assertEqual(Sub, Sub_v)
                 self.assertEqual(Sum, Sum_v)
                 self.assertEqual(EQ, EQ_v)
@@ -183,7 +201,7 @@ class TestBinaryOps(TestCase):
         return binops, binops_v, stimulus(), check()
 
     def testBinaryOps(self):
-        for m, n in ((4, 4,), (5, 3), (2, 6)):
+        for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
             sim = self.binaryBench(m, n)
             Simulation(sim).run()
             
@@ -294,8 +312,70 @@ class TestMultiOps(TestCase):
 
 
 
+def unaryOps(
+             Not,
+             Invert,
+             arg):
+   while 1:
+        yield arg
+        Not.next = not arg
+        Invert.next = ~arg
+ 
+def unaryOps_v(
+               Not,
+               Invert,
+               arg):
+    analyze_cmd = "iverilog -o unaryops unaryops.v tb_unaryops.v"
+    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi unaryops"
+    if path.exists("unaryops"):
+        os.remove("unaryops")
+    os.system(analyze_cmd)
+    return Cosimulation(simulate_cmd, **locals())
 
-            
+ 
+
+class TestUnaryOps(TestCase):
+
+    def unaryBench(self, m):
+
+        M = 2**m
+
+        arg = Signal(intbv(0)[m:])
+        Not = Signal(bool(0))
+        Not_v = Signal(bool(0))
+        Invert = Signal(intbv(0)[m:])
+        Invert_v = Signal(intbv(0)[m:])
+                      
+        unaryops = toVerilog(unaryOps,
+                             Not,
+                             Invert,
+                             arg)
+        unaryops_v = unaryOps_v(
+                                Not_v,
+                                Invert_v,
+                                arg)
+
+        def stimulus():
+            for i in range(M):
+                arg.next = intbv(i)
+                yield delay(10)
+            for i in range(100):
+                arg.next = randrange(M)
+                yield delay(10)
+            raise StopSimulation
+
+        def check():
+            while 1:
+                yield arg
+                self.assertEqual(Not, Not_v)
+                self.assertEqual(Invert, Invert_v)
+
+        return unaryops, unaryops_v, stimulus(), check()
+
+    def testUnaryOps(self):
+       for m in (4, 7):
+          sim = self.unaryBench(m)
+          Simulation(sim).run()
     
 
 if __name__ == '__main__':
