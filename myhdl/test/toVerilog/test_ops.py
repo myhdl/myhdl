@@ -23,6 +23,8 @@ def binaryOps(
               GT,
               LE,
               GE,
+              And,
+              Or,
               left, right):
    while 1:
         yield left, right
@@ -43,6 +45,8 @@ def binaryOps(
         GT.next = left > right
         LE.next = left <= right
         GE.next = left >= right
+        And.next = bool(left and right)
+        Or.next = bool(left or right)
         
             
  
@@ -61,6 +65,8 @@ def binaryOps_v(
                 GT,
                 LE,
                 GE,
+                And,
+                Or,
                 left, right):
     analyze_cmd = "iverilog -o binops binops.v tb_binops.v"
     simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi binops"
@@ -97,6 +103,8 @@ class TestOps(TestCase):
         Sum_v = Signal(intbv(0)[max(m, n)+1:])
         EQ, NE, LT, GT, LE, GE = [Signal(bool()) for i in range(6)]
         EQ_v, NE_v, LT_v, GT_v, LE_v, GE_v = [Signal(bool()) for i in range(6)]
+        And, Or = [Signal(bool()) for i in range(2)]
+        And_v, Or_v, = [Signal(bool()) for i in range(2)]
                       
         binops = toVerilog(binaryOps,
                            Bitand,
@@ -113,6 +121,8 @@ class TestOps(TestCase):
                            GT,
                            LE,
                            GE,
+                           And,
+                           Or,
                            left, right)
         binops_v = binaryOps_v(
                                Bitand_v,
@@ -129,6 +139,8 @@ class TestOps(TestCase):
                                GT_v,
                                LE_v,
                                GE_v,
+                               And_v,
+                               Or_v,
                                left, right)
 
         def stimulus():
@@ -150,7 +162,7 @@ class TestOps(TestCase):
             while 1:
                 yield left, right
                 yield delay(1)
-                # print "%s %s %s %s" % (left, right, Mul, Mul_v)
+                # print "%s %s %s %s" % (left, right, Or, Or_v)
                 self.assertEqual(Bitand, Bitand_v)
                 self.assertEqual(Bitor, Bitor_v)
                 self.assertEqual(Bitxor, Bitxor_v)
@@ -160,6 +172,13 @@ class TestOps(TestCase):
                 self.assertEqual(Sub, Sub_v)
                 self.assertEqual(Sum, Sum_v)
                 self.assertEqual(EQ, EQ_v)
+                self.assertEqual(NE, NE_v)
+                self.assertEqual(LT, LT_v)
+                self.assertEqual(GT, GT_v)
+                self.assertEqual(LE, LE_v)
+                self.assertEqual(GE, GE_v)
+                self.assertEqual(And, And_v)
+                self.assertEqual(Or, Or_v)
 
         return binops, binops_v, stimulus(), check()
 
