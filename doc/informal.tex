@@ -236,7 +236,7 @@ suggest an integer with bit vector flavour.
 
 Class \class{intbv} works transparently as an integer and with other
 integer-like types. Like class \class{int}, it provides access to the
-underlying a two's complement representation for bitwise
+underlying two's complement representation for bitwise
 operations. In addition, it is a mutable type that provides indexing
 and slicing operations, and some additional bit-oriented support such
 as concatenation.
@@ -335,6 +335,8 @@ COSET = 0x55
 
 def calculateHec(header):
     """ Return hec for an ATM header, represented as an intbv.
+
+    The hec polynomial is 1 + x + x**2 + x**8.
     """
     hec = intbv(0)
     for bit in header[32:]:
@@ -363,6 +365,6 @@ to avoid one-off count issues in practice. For example, the slice
 \code{hex[8:]} has exactly \code{8} bits. Likewise, the slice
 \code{hex[7:2]} has \code{7-2=5} bits. You can think about it as
 follows: for a slice \code{[i:j]}, only bits below index \code{i} are
-included, and index \code{j} is the last bit included.
+included, and the bit with index \code{j} is the last bit included.
 
 
