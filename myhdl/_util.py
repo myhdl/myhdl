@@ -41,6 +41,8 @@ import compiler
 
 from myhdl._Cosimulation import Cosimulation
 
+# from compile.h - hope this never changes...
+CO_GENERATOR = 0x0020
 
 def downrange(start, stop=0):
     """ Return a downward range. """
@@ -97,34 +99,8 @@ def _isGenSeq(obj):
             return 0
     return 1
 
+        
 def _isgeneratorfunction(obj):
     if type(obj) is FunctionType:
-        s = inspect.getsource(obj)
-        s = s.lstrip()
-        s = 'from __future__ import generators\n' + s # for 2.2 ...
-        tree = compiler.parse(s)
-        v = _YieldVisitor()
-        compiler.walk(tree, v)
-        return v.isgenfunc
-    return 0
-
-class _YieldVisitor(object):
-    
-    def __init__(self):
-        self.toplevel = 1
-        self.isgenfunc = 0
-
-    def visitYield(self, node):
-        self.isgenfunc = 1
-
-    def visitFunction(self, node):
-        if self.toplevel:
-            self.toplevel = 0 # skip embedded functions
-            self.visit(node.code)
-
-    def visitClass(self, node):
-        pass # skip
-
-    def visitExec(self, node):
-        pass # skip
-        
+        return bool(obj.func_code.co_flags & CO_GENERATOR)
+    return bool(0)
