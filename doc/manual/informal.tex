@@ -132,7 +132,7 @@ StopSimulation: Simulated for duration 50
 \end{verbatim}
 
 
-\section{Parameters, instantiations and hierarchy \label{intro-hier}}
+\section{Parameters, instances and hierarchy \label{intro-hier}}
 
 So far, the generator function examples had no parameters. For
 example, the \code{clk} signal was defined in the enclosing scope of
@@ -168,7 +168,7 @@ def sayHello(clock, to="World!"):
 
 We can create any number of generators by calling generator functions
 with the appropriate parameters. This is very similar to the concept
-of \dfn{instantiation} in hardware description languages and we will use
+of instantiation in hardware description languages and we will use
 the same terminology in \myhdl{}. A \myhdl\ \dfn{instance} is
 recursively defined as being either a sequence of instances, or a
 generator.  Hierarchy can be modeled by defining the instances in a

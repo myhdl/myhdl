@@ -2,11 +2,120 @@
 
 \section{Structural modeling \label{model-structure}}
 
-\subsection{Configurations \label{model-conf}}
+Hardware descriptions need to support the concepts of module
+instantiation and hierarchy.  In \myhdl{}, an instance is recursively
+defined as being either a sequence of instances, or a generator.
+Hierarchy is modeled by defining instances in a higher-level
+function, and returning them.  The following is a schematic example
+of the basic case.
+
+\begin{verbatim}
+def top(...):
+    ...
+    instance_1 = module_1(...)
+    instance_2 = module_2(...)
+    ...
+    instance_n = module_n(...)
+    ... 
+    return instance_1, instance_2, ... , instance_n
+\end{verbatim}
+
+Note that \myhdl\ uses conventional procedural techniques
+for modeling structure. This makes it straightforward
+to model more complex cases.
+
+\subsection{Conditional generation \label{model-conf}}
+
+To model conditional instance generation, we can
+select the returned instance under parameter control.
+For example:
+
+\begin{verbatim}
+SLOW, MEDIUM, FAST = range(3)
+
+def top(..., speed=SLOW):
+    ...
+    def slowAndSmall():
+       ...
+    ...
+    def fastAndLarge():
+       ...
+    if speed == SLOW:
+        return slowAndSmall()
+    elif speed == FAST:
+        return fastAndLarge()
+    else:
+        raise NotImplementedError
+\end{verbatim}
+
 
 \subsection{Arrays of instances \label{model-instarray}}
 
+Python lists are easy to create. We can use them
+to model arrays of instances. 
+
+Suppose we have a top module that instantiates a
+single \code{channel} submodule, as follows:
+
+\begin{verbatim}
+def top(...):
+
+    din = Signal(0)
+    dout = Signal(0)
+    clk = Signal(bool(0))
+    reset = Signal(bool(0))
+
+    channel_inst = channel(dout, din, clk, reset)
+
+    return channel_inst 
+\end{verbatim}
+
+If we wanted to support an arbitrary number of channels,
+we can use lists of signals and a list of instances,
+as follows:
+
+\begin{verbatim}
+def top(..., n=8):
+
+    din = [Signal(0) for i in range(n)]
+    dout = [Signal(0) for in range(n)]
+    clk = Signal(bool(0))
+    reset = Signal(bool(0))
+    channel_inst = [None for i in range(n)]
+
+    for i in range(n):
+        channel_inst[i] = channel(dout[i], din[i], clk, reset)
+
+    return channel_inst
+\end{verbatim}
+
 \subsection{Inferring the list of all instances \label{model-infer-instlist}}
+
+In \myhdl{}, instances have to be returned explicitly by
+a top level function. This procedural approach has important
+advantages, as shown earlier. However, if we just want to
+return all defined instances, it may be convenient to assemble 
+the list of instances automatically. For this purpose,
+\myhdl\ 0.3 provides the  function \function{instances()}.
+Using the first example in this section, it is used as follows:
+
+\begin{verbatim}
+from myhdl import instances
+
+def top(...):
+    ...
+    instance_1 = module_1(...)
+    instance_2 = module_2(...)
+    ...
+    instance_n = module_n(...)
+    ...
+    return instances()
+\end{verbatim}
+
+Function \function{instances()} uses introspection to inspect the type
+of the local variables defined by the calling function. All variables
+that comply with the definition of an instance are assembled in
+a list, and that list is returned.
 
 \section{RTL modeling \label{model-rtl}}
 The present section describes how \myhdl\ supports RTL style modeling

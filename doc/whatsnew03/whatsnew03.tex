@@ -231,9 +231,9 @@ def top(...):
 \end{verbatim}
 
 Function \function{instances()} uses introspection to inspect the type
-of the local variables defined by the calling function. In \myhdl {},
-an instance is defined as a nested sequence of generators: all such
-variables are looked up and assembled in a list.
+of the local variables defined by the calling function. All variables
+that comply with the definition of an instance are assembled in
+a list, and that list is returned.
 
 \section{Inferring the list of all processes\label{section-processes}}
 
