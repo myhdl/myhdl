@@ -25,18 +25,18 @@
 
 \myhdl\ now has support for waveform viewing. During simulation, signal
 changes can be written to a VCD output file.  The VCD file can then be
-loaded and viewed in a waveform viewer tool.
+loaded and viewed in a waveform viewer tool such as gtkwave.
 
 The user interface of this feature consists of a single function,
 \function{trace_sigs()}.  To explain how it works, recall that in
-\myhdl{}, instances are created by calling a function that returns a
+\myhdl{}, an instance is created by calling a function that returns a
 sequence of generators. For example:
 
 \begin{verbatim}
 tb_fsm = testbench()
 \end{verbatim}
 
-The \code{tb_fsm} variable is subsequently passed 
+The \code{tb_fsm} instance is subsequently passed 
 as an argument to a \class{Simulation} object constructor
 for simulation. To enable VCD tracing, the instance should 
 be created as follows instead:
@@ -45,14 +45,14 @@ be created as follows instead:
 tb_fsm = trace_sigs(testbench)
 \end{verbatim}
 
-As a result, all signals in the hierarchy of the instance will be
-traced in an output VCD file called \file{tb_fsm.vcd}. Note that the
-argument of \function{trace_sigs()} consists of the uncalled
-function. By calling the function under its control,
-\function{trace_sigs()} gathers information about the hierarchy and
-the signals to be traced.  In addition to a function argument,
-\function{trace_sigs()} accepts an arbitrary number of non-keyword and
-keyword arguments that will be passed to the function call.
+As a result, all signals in the instance hierarchy will be traced in
+an output VCD file called \file{tb_fsm.vcd}. Note that the argument of
+\function{trace_sigs()} consists of the uncalled function. By calling
+the function under its control, \function{trace_sigs()} gathers
+information about the hierarchy and the signals to be traced.  In
+addition to a function argument, \function{trace_sigs()} accepts an
+arbitrary number of non-keyword and keyword arguments that will be
+passed to the function call.
 
 The restrictions on VCD tracing are as follows. First, only
 \class{Signal} objects can be traced. Second, only a hierarchy of
@@ -69,6 +69,90 @@ become a separate type).  Likewise, \class{intbv} signals with a
 defined bit width are dumped as bit vectors. To support the general
 case, other types of signals are dumped as a string representation, as
 returned by the standard \function{str()} function.
+
+\section{An enumeration type\label{section-enum}}
+
+It is often desirable to define a set of identifiers.  A standard
+Python idiom is to assign a range of integers to a tuple of
+identifiers, like so:
+
+\begin{verbatim}
+>>> SEARCH, CONFIRM, SYNC = range(3)
+>>> CONFIRM
+1
+\end{verbatim}
+
+This technique is perfectly acceptable and can be used to write
+clearer code. However, there are some drawbacks. Though it is clearly
+the intention that the identifiers belong together, this information
+is lost as soon as they are defined. Also, the identifiers evaluate to
+integers, whereas a string representation of the identifiers
+would be preferable. To solve these issues, we need an
+\emph{enumeration type}.
+
+\myhdl\ 0.3 supports enumeration types by providing a function
+\function{enum()}.  The arguments to \function{enum()} are the string
+representations of the identifiers, and its return value is an
+enumeration type. The identifiers are available as attributes of the
+type. For example:
+
+\begin{verbatim}
+>>> from myhdl import enum
+>>> t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
+>>> t_State
+<Enum: SEARCH, CONFIRM, SYNC>
+>>> t_State.CONFIRM
+CONFIRM
+\end{verbatim}
+
+In the waveform in Section~\ref{section-wave}, you see a
+\class{Signal} called \code{state} which as been constructed with an
+enumeration type identifier as initial value, as follows:
+
+\begin{verbatim}
+state = Signal(t_State.SEARCH)
+\end{verbatim}
+
+Note that the waveforms show the string representation of the
+enumeration type identifiers. 
+
+\section{Python 2.3 support\label{section-Python}}
+
+As of this writing, Python 2.3 is the latest Python release.  \myhdl\
+0.3 works with both Python 2.2 and Python 2.3. In good Python
+tradition, \myhdl\ code developed with Python2.2 will run without
+changes or problems in Python 2.3.
+
+In general, I am not that keen on fast upgrading. However, as it
+happens, the evolution of Python enables features that are really
+important or even crucial to \myhdl{}.  Python 2.2 generators are the
+best example: they are the cornerstone of \myhdl{}. But Python 2.3
+also has significant benefits, which I will summarize below.
+
+First, generators and the \code{yield} statement are a default Python
+2.3 feature. This means that \code{from __future__ import generators}
+statements are no longer required.
+
+Second, Python 2.3 has a \class{bool} type, which is implemented as a
+subtype of \class{int}. For general Python use, the implications are
+rather limited - the main difference is that logical results will
+print as \code{False} and \code{True} instead of \code{0} and
+\code{1}. However, in \myhdl{}, I can use the \class{bool} type to infer
+a bit width.  If a \class{Signal} is constructed with a \class{bool}
+value, it is a single bit \class{Signal}. One application is waveform
+viewing as in Section~\ref{section-wave}. In the waveform, note how
+single bit signals are displayed as level changes.  With Python 2.2,
+the waveforms of these signals would only show value changes,
+which is not as clear for single bits.
+
+Finally, Python 2.3 is significantly faster. \myhdl\ code runs
+25--35\% faster in Python 2.3 - a nice speedup.
+
+Python is a very stable language, so upgrading to Python 2.3 is
+virtually risk free. Given the additional benefits, I recommend
+\myhdl\ users to do so as soon as possible. For the next major release
+(0.4), the new features will become crucial and only Python 2.3 (and
+higher) will be supported.
 
 
 \end{document}

@@ -8,7 +8,9 @@ global-include Makefile
 global-exclude .cvsignore
 prune dist
 prune doc
-graft doc/html
+graft doc/html/manual
+graft doc/html/icons
+graft doc/html/whatsnew*
 exclude doc/html/.cvsignore
 include doc/paper-a4/*.pdf
 include doc/paper-a4/*.ps
