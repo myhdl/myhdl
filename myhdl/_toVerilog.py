@@ -676,8 +676,6 @@ def _writeTestBench(f, intf):
 def _getRangeString(s):
     if s._type is bool:
         return ''
-    elif s._type is intbv:
-        return "[%s:0] " % (s._nrbits-1)
     elif s._nrbits is not None:
         return "[%s:0] " % (s._nrbits-1)
     else:
@@ -720,8 +718,9 @@ class _ConvertVisitor(_ToVerilogMixin):
     def write(self, arg):
         self.buf.write("%s" % arg)
 
-    def writeline(self):
-        self.buf.write("\n%s" % self.ind)
+    def writeline(self, nr=1):
+        for i in range(nr):
+            self.buf.write("\n%s" % self.ind)
 
     def writeDeclarations(self):
         for name, obj in self.vardict.items():
@@ -730,8 +729,6 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.write("reg %s;" % name)
             elif isinstance(obj, int):
                 self.write("integer %s;" % name)
-            elif isinstance(obj, intbv):
-                self.write("reg [%s-1:0] %s;" % (obj._nrbits, name))
             elif hasattr(obj, '_nrbits'):
                 self.write("reg [%s-1:0] %s;" % (obj._nrbits, name))
             else:
@@ -1158,8 +1155,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.dedent()
         self.writeline()
         self.write("end")
-        self.writeline()
-        self.writeline()
+        self.writeline(2)
     
 class _ConvertInitialVisitor(_ConvertVisitor):
     
@@ -1175,8 +1171,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         self.dedent()
         self.writeline()
         self.write("end")
-        self.writeline()
-        self.writeline()
+        self.writeline(2)
 
     
 class _ConvertFunctionVisitor(_ConvertVisitor):
@@ -1192,8 +1187,6 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
             pass
         elif isinstance(obj, int):
             self.write("integer")
-        elif isinstance(obj, intbv):
-            self.write("[%s-1:0]" % obj._nrbits)
         elif hasattr(obj, '_nrbits'):
             self.write("[%s-1:0]" % obj._nrbits)
         else:
@@ -1207,8 +1200,6 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
                 self.write("input %s;" % name)
             elif isinstance(obj, int):
                 self.write("integer %s;" % name)
-            elif isinstance(obj, intbv):
-                self.write("input [%s-1:0] %s;" % (obj._nrbits, name))
             elif hasattr(obj, '_nrbits'):
                 self.write("input [%s-1:0] %s;" % (obj._nrbits, name))
             else:
@@ -1229,8 +1220,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.write("end")
         self.writeline()
         self.write("endfunction")
-        self.writeline()
-        self.writeline()
+        self.writeline(2)
 
     def visitReturn(self, node):
         self.writeline()
