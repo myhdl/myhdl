@@ -38,6 +38,7 @@ from myhdl import Signal, intbv
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl import ToVerilogError
 from myhdl._util import _flatten
+from myhdl._unparse import _unparse
             
 
 _converting = 0
@@ -156,11 +157,10 @@ def _analyzeGens(top, gennames):
             gen.name = gennames[id(g)]
         else:
             gen.name = genLabel.next()
-        v = _EvalIntExprVisitor(symdict, gen.sourcefile, gen.lineoffset)
-        compiler.walk(gen, v)
         v = _AnalyzeGenVisitor(sigdict, symdict, gen.sourcefile, gen.lineoffset)
         compiler.walk(gen, v)
         gen.vardict = v.vardict
+        gen.kind = v.kind
         genlist.append(gen)
     return genlist
 
@@ -251,107 +251,11 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitTryFinally(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
 
-        
-
-class _EvalIntExprVisitor(object):
     
-    def __init__(self, symdict, sourceFile=None, lineOffset=None):
-        self.symdict = symdict
-        
-    def binaryOp(self, node, op):
-        self.visit(node.left)
-        self.visit(node.right)
-        try:
-            node.val = op(node.left.val, node.right.val)
-        except:
-            node.val = None
-
-    def unaryOp(self, node, op):
-        self.visit(node.expr)
-        try:
-            node.val = op(node.expr.val)
-        except:
-            node.val = None
-
-    def multiOp(self, node, op):
-        vals = []
-        for n in node.nodes:
-            self.visit(n)
-            vals.append(n.val)
-        node.val = op(*vals)
-            
-    def visitAdd(self, node):
-        self.binaryOp(node, operator.add)
-
-##     def visitAnd(self, node):
-##         node.val = None
-##         for n in node.nodes:
-##             self.visit(n)
-##             if n.val:
-##                 node.val = n.val
-##                 return
-
-
-##     def visitCallFunc(self, node):
-##         self.visit(node.node)
-##         vals = []
-##         kwvals = {}
-##         for arg in node.args:
-##             self.visit(arg)
-##             if isinstance(arg, ast.Keyword):
-##                 kwvals[arg.name] = arg.expr.val
-##             else:
-##                 vals.append(arg.val)
-##         node.val = node.node.val(*vals, **kwvals)
-        
-    def visitConst(self, node):
-        val = node.value
-        if isinstance(val, int):
-            node.val = val
-        else:
-            node.val = None
-
-##     # trick for testing
-##     def visitDiscard(self, node):
-##         self.visit(node.expr)
-##         self.val = node.expr.val
-
-##     def visitFloorDiv(self, node):
-##         self.binaryOp(node, operator.floordiv)
-
-##     def visitLeftShift(self, node):
-##         self.binaryOp(node, operator.lshift)
-        
-##     def visitMod(self, node):
-##         self.binaryOp(node, operator.mod)
-  
-##     def visitMul(self, node):
-##         self.binaryOp(node, operator.mul)
-  
-    def visitName(self, node):
-        node.val = None
-        if node.name in self.symdict:
-            node.val = self.symdict[node.name]
-        elif node.name in __builtins__:
-            node.val = __builtins__[node.name]
-
-##     def visitPower(self, node):
-##         self.binaryOp(node, operator.pow)
-        
-##     def visitRightShift(self, node):
-##         self.binaryOp(node, operator.rshift)
-                 
-##     def visitSub(self, node):
-##         self.binaryOp(node, operator.sub)
-
-##     def visitUnaryAdd(self, node):
-##         self.unaryOp(node, operator.pos)
-        
-##     def visitUnarySub(self, node):
-##         self.unaryOp(node, operator.neg)
-
   
 INPUT, OUTPUT, INOUT = range(3)
+NORMAL, DECLARATION = range(2)
+ALWAYS, INITIAL = range(2)
 
 class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
     
@@ -368,31 +272,42 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
     def getObj(self, node):
         if hasattr(node, 'obj'):
             return node.obj
-        else:
-            return None
+        return None
+
+    def getKind(self, node):
+        if hasattr(node, 'kind'):
+            return node.kind
+        return None
+
+    def getVal(self, node):
+        val = eval(_unparse(node), self.symdict)
+        return val
         
-    def visitAssAttr(self, node, access=OUTPUT):
+    def visitAssAttr(self, node, access=OUTPUT, *args):
         self.visit(node.expr, OUTPUT)
         
-    def visitAssign(self, node, access=OUTPUT):
+    def visitAssign(self, node, access=OUTPUT, *args):
         if len(node.nodes) > 1:
             self.raiseError(node, _error.NotSupported, "multiple assignments")
         target, expr = node.nodes[0], node.expr
         self.visit(target, OUTPUT)
-        self.visit(expr, INPUT)
         if isinstance(target, ast.AssName):
+            self.visit(expr, INPUT, DECLARATION)
+            node.kind = DECLARATION
             n = target.name
             obj = self.getObj(expr)
             if obj is None:
                 self.raiseError(node, "Cannot infer type or bit width of %s" % n)
             self.vardict[n] = obj
             # XXX if n is already in vardict
+        else:
+            self.visit(expr, INPUT)
 
     def visitAssName(self, node, *args):
         n = node.name
         self.require(node, n not in self.symdict, "Illegal redeclaration: %s" % n)
         
-    def visitAugAssign(self, node, access=INPUT):
+    def visitAugAssign(self, node, access=INPUT, *args):
         self.visit(node.node, INOUT)
         self.visit(node.expr, INPUT)
 
@@ -415,19 +330,31 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         else:
             node.obj = None
             
-    def visitFor(self, node):
+    def visitFor(self, node, *args):
         assert isinstance(node.assign, ast.AssName)
         self.visit(node.assign)
         var = node.assign.name
         self.vardict[var] = int()
         self.visit(node.body)
+        self.require(node.else_ is None, "for-else not supported")
         
-    def visitFunction(self, node):
-        if self.toplevel:
-            self.toplevel = 0
-            print node.code
-            self.visit(node.code)
-            
+    def visitFunction(self, node, *args):
+        if not self.toplevel:
+            self.raiseError(node, _error.NotSupported, "embedded function definition")
+        self.toplevel = 0
+        print node.code
+        self.visit(node.code)
+        self.kind = ALWAYS
+        for n in node.code.nodes[:-1]:
+            if not self.getKind(n) == DECLARATION:
+                self.kind = INITIAL
+                break
+        if self.kind == ALWAYS:
+            w = node.code.nodes[-1]
+            if not self.getKind(w) == ALWAYS:
+                self.kind = INITIAL
+
+           
     def visitGetattr(self, node, *args):
         self.visit(node.expr, *args)
         assert isinstance(node.expr, ast.Name)
@@ -437,7 +364,10 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
 
-    def visitModule(self, node):
+    def visitModule(self, node, *args):
+        print node
+        #assert len(node.node.nodes) == 1
+        #assert isinstance(node.node.nodes[0], ast.Function)
         self.visit(node.node)
         for n in self.outputs:
             s = self.sigdict[n]
@@ -448,7 +378,7 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             s = self.sigdict[n]
             s._read = True
 
-    def visitName(self, node, access=INPUT):
+    def visitName(self, node, access=INPUT, *args):
         n = node.name
         if n in self.sigdict:
             if access == INPUT:
@@ -465,22 +395,39 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         elif n in __builtins__:
             node.obj = __builtins__[n]
             
-    def visitSlice(self, node, access=INPUT):
+    def visitSlice(self, node, access=INPUT, kind=NORMAL, *args):
         self.visit(node.expr, access)
         node.obj = self.getObj(node.expr)
         if node.lower:
             self.visit(node.lower, INPUT)
-            assert hasattr(node.lower, 'val')
-            if isinstance(node.obj, intbv):
-                node.obj = intbv()[node.lower.val:]
         if node.upper:
             self.visit(node.upper, INPUT)
+        if isinstance(node.obj , intbv):
+            if kind == DECLARATION:
+                self.require(node.lower, "Expected leftmost index")
+                leftind = self.getVal(node.lower)
+                if node.upper:
+                    rightind = self.getVal(node.upper)
+                else:
+                    rightind = 0
+                node.obj = intbv()[leftind:rightind]
+            
  
-    def visitSubscript(self, node, access=INPUT):
+    def visitSubscript(self, node, access=INPUT, *args):
         self.visit(node.expr, access)
         for n in node.subs:
             self.visit(n, INPUT)
-        
+
+    def visitWhile(self, node, *args):
+        self.visit(node.test, *args)
+        self.visit(node.body, *args)
+        if isinstance(node.test, ast.Const) and \
+           node.test.value == True and \
+           isinstance(node.body.nodes[0], ast.Yield):
+            node.kind = ALWAYS
+        self.require(node.else_ is None, "while-else not supported")
+
+       
                 
 def _analyzeTopFunc(func, *args, **kwargs):
     s = inspect.getsource(func)
@@ -612,8 +559,12 @@ def _getRangeString(s):
 
 def _convertGens(genlist, vfile):
     for gen in genlist:
-        v = _ConvertGenVisitor(vfile, gen.sigdict, gen.symdict, gen.vardict,
-                               gen.name, gen.sourcefile, gen.lineoffset )
+        if gen.kind == ALWAYS:
+            Visitor = _ConvertAlwaysVisitor
+        else:
+            Visitor = _ConvertInitialVisitor
+        v = Visitor(vfile, gen.sigdict, gen.symdict, gen.vardict,
+                    gen.name, gen.sourcefile, gen.lineoffset )
         compiler.walk(gen, v)
 
 
@@ -633,7 +584,6 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
-        self.toplevel = 1
  
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -783,33 +733,7 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         assert node.else_ is None
 
     def visitFunction(self, node):
-        if not self.toplevel:
-            self.raiseError(node, _error.NotSupported, "embedded function definition")
-        self.toplevel = 0
-        w = node.code.nodes[-1]
-        assert isinstance(w, ast.While)
-        assert isinstance(w.test, ast.Const)
-        assert w.test.value in ('1', True)
-        assert w.else_ is None
-        assert isinstance(w.body.nodes[0], ast.Yield)
-        sl = w.body.nodes[0].value
-        self.inYield = True
-        self.write("always @(")
-        self.visit(sl)
-        self.inYield = False
-        self.write(") begin: %s" % self.name)
-        self.indent()
-        self.writeDeclarations()
-        self.buf = self.codeBuf
-        for s in w.body.nodes[1:]:
-            self.visit(s)
-        self.buf = self.fileBuf
-        self.write(self.codeBuf.getvalue())
-        self.dedent()
-        self.writeline()
-        self.write("end")
-        self.writeline()
-        self.writeline()
+        raise AssertionError
 
     def visitGetattr(self, node):
         assert isinstance(node.expr, ast.Name)
@@ -906,7 +830,7 @@ class _ConvertGenVisitor(_ToVerilogMixin):
     
     def visitRaise(self, node):
         self.writeline()
-        self.write('$display("')
+        self.write('$display("Verilog: ')
         self.visit(node.expr1)
         self.write('");')
         self.writeline()
@@ -974,8 +898,52 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         self.inYield = False
 
         
- 
-
+class _ConvertAlwaysVisitor(_ConvertGenVisitor):
     
-        
+    def __init__(self, *args):
+        _ConvertGenVisitor.__init__(self, *args)
+
+    def visitFunction(self, node):
+        w = node.code.nodes[-1]
+        assert isinstance(w.body.nodes[0], ast.Yield)
+        sl = w.body.nodes[0].value
+        self.inYield = True
+        self.write("always @(")
+        self.visit(sl)
+        self.inYield = False
+        self.write(") begin: %s" % self.name)
+        self.indent()
+        self.writeDeclarations()
+        self.buf = self.codeBuf
+        for s in w.body.nodes[1:]:
+            self.visit(s)
+        self.buf = self.fileBuf
+        self.write(self.codeBuf.getvalue())
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        self.writeline()
+        self.writeline()
+    
+class _ConvertInitialVisitor(_ConvertGenVisitor):
+    
+    def __init__(self, *args):
+        _ConvertGenVisitor.__init__(self, *args)
+
+    def visitFunction(self, node):
+        self.inYield = True
+        self.write("initial begin: %s" % self.name) 
+        self.indent()
+        self.writeDeclarations()
+        self.buf = self.codeBuf
+        self.visit(node.code)
+        self.buf = self.fileBuf
+        self.write(self.codeBuf.getvalue())
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        self.writeline()
+        self.writeline()
+    
+         
         

@@ -23,9 +23,11 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-import test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported
+import test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
+       test_inc_initial
 
-modules = (test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported,
+modules = (test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
+           test_inc_initial
            )
 
 import unittest

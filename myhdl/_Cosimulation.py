@@ -132,7 +132,7 @@ class Cosimulation(object):
             return
         buf = os.read(self._rt, _MAXLINE)
         if not buf:
-            raise SimulationEndError
+            raise CosimulationError(_error.SimulationEnd)
         e = buf.split()
         for i in range(1, len(e), 2):
             s, v = self._toSigDict[e[i]], e[i+1]

@@ -69,7 +69,6 @@ class TestInc_initial(TestCase):
             if enable:
                 expect = (expect + 1) % n
             yield delay(1)
-            print "%d count %s expect %s" % (now(), count, expect)
             self.assertEqual(count, expect)
             self.assertEqual(count, count_v)
                 
