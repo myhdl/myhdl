@@ -1,16 +1,17 @@
-\chapter{Reference}
+\chapter{Reference manual}
 
 
 \myhdl\ is implemented as a Python package called \code{myhdl}. This
 chapter describes all objects that are expored by this package.
 
 \section{The \class{Simulation} class}
-\begin{classdesc}{Simulation}{*args}
+\begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
 Class to construct a new simulation. Each argument can either be a
 \myhdl\ generator, or a nested sequence of such generators. (A nested
 sequence means that each item in the sequence can itself be a
 sequence.) See section~\ref{myhdl-generators} for the definition of
-\myhdl\ generators.
+\myhdl\ generators and their interaction with a \class{Simulation}
+object. 
 \end{classdesc}
 
 A \class{Simulation} instance has the following method:
@@ -20,28 +21,90 @@ Run the simulation forever or for a specified duration.
 \end{methoddesc}
 
 \section{The \class{Signal} class}
+\label{signal}
 \begin{classdesc}{Signal}{val, \optional{delay}}
+This class is used to construct a new signal and to initialize its
+value to \var{val}. Optionally, a delay can be specified.
+\end{classdesc}
 
-A \class{Signal} has the following attributes:
+A \class{Signal} object has the following attributes:
 
 \begin{memberdesc}[Signal]{val}
 Read-only attribute that represents the current value of the signal. 
-
 \end{memberdesc}
 \begin{memberdesc}[Signal]{next}
-Read-write attribute.
-
+Read-write attribute that represents the next value of the signal.
 \end{memberdesc}
 
-\end{classdesc}
-
-\section{\myhdl\ generators}
+\section{\myhdl\ generators and trigger objects}
 \label{myhdl-generators}
+\myhdl\ generators are standard Python generators with specialized
+\keyword{yield} statements. In hardware description languages, the equivalent
+statements are called \emph{sensitivity lists}. The general format is:
+
+\keyword{yield} \var{clause \optional{, clause ...}}
+
+After a simulator executes a \keyword{yield} statement, it suspends
+execution of the generator. At the same time, each \var{clause} is a
+\emph{trigger object} which defines the condition upon which the
+generator should be resumed. However, per invocation of a \keyword{yield}
+statement, the generator is resumed exactly once, regardless of the
+number of clauses. This happens when the \emph{first} trigger object
+triggers; subsequent triggers are neglected. (However, as a result of
+the resumption, it is possible that the same \keyword{yield} statement
+is invoked again, and that a subsequent trigger still triggers the
+generator.)
+
+In this section, the trigger objects and their functionality will be
+described. When referring to ``the generator'' we mean the generator
+to which the \keyword{yield} statement belongs.
+
+\begin{funcdesc}{posedge}{signal}
+Return a trigger object that specifies that the generator should
+resume on a rising edge on the signal. A rising edge means a change
+from false to true.
+\end{funcdesc}
+
+\begin{funcdesc}{negedge}{signal}
+Return a trigger object that specifies that the generator should
+resume on a falling edge on the signal. A falling edge means a change
+from false to true.
+\end{funcdesc}
+
+\begin{funcdesc}{delay}{t}
+Return a trigger object that specifies that the generator should
+resume after a delay \var{t}.
+\end{funcdesc}
+
+\begin{funcdesc}{join}{arg \optional{, arg \moreargs}}
+Joins a number of trigger objects together. The effect is that the
+joined trigger object will only trigger when \emph{all} of its arguments
+have triggered.
+\end{funcdesc}
+
+In addition, some objects can directly function as trigger
+objects. These are the objects of the following types:
+
+\begin{datadesc}{Signal}
+For the full description of the \class{Signal} class, see
+section~\ref{signal}.
+
+A signal is a trigger object. Whenever a signal changes value, the
+generator is triggered.
+\end{datadesc}
+
+\begin{datadesc}{GeneratorType}
+\myhdl\ generators can itself be used as trigger objects. In this case,
+the original generator is triggered when the spawned generator
+completes. 
+\end{datadesc}
 
 
-\section{Modeling convenience objects}
+\section{Miscellaneous objects}
 
-\begin{excclassdesc}{StopStimulation}{}
+The following objects can be convenient in \myhdl\ modeling.
+
+\begin{excclassdesc}{StopSimulation}{}
 Base exception that is caught by the \code{Simulation.run} method to
 stop a simulation. Can be subclassed and raised in generator code.
 \end{excclassdesc}
@@ -50,12 +113,77 @@ stop a simulation. Can be subclassed and raised in generator code.
 Return the current simulation time.
 \end{funcdesc}
 
-\begin{funcdesc}{downrange}{high, \optional{low}}
-Generates a downward range list. Like the standard \code{range}
-function, but in the downward direction.
+\begin{funcdesc}{downrange}{high, \optional{low=0}}
+Generates a downward range list. Modeled after the standard
+\code{range} function, but works in the downward direction. The
+returned interval is half-open, with \var{high} not being
+included. \var{low} is optional and defaults to zero.
+
+This function is especially useful with the \class{intbv} class, that
+also works with downward indexing.
 \end{funcdesc}
 
-\section{The  \class{intbv} class}
+\section{The \class{intbv} class}
+
+\begin{classdesc}{intbv}{arg}
+This class represents \class{int}-like objects with some additional
+features that make it suitable for hardware design. The constructor
+argument can be an \class{int}, a \class{long}, an \class{intbv} or a
+bit string (a string with only '0's or '1's). For a bit string
+argument, the value is calculated as \code{int(\var{bitstring}, 2)}. 
+\end{classdesc}
+
+Unlike \class{int} objects, \class{intbv} objects are mutable; this is
+also the reason for their existence. Mutability is needed to support
+assignment to indexes and slices, as is common in hardware design. For
+the same reason, \class{intbv} is not a subclass from \class{int},
+even though \class{int} provides most of the desired
+functionality. (It is not possible to derive a mutable subtype from
+and immutable type.)
+
+An \class{intbv} object supports all comparison, numberic, bitwise,
+and logical operations as \class{int} objects. See
+\url{http://www.python.org/doc/current/lib/typesnumeric.html} for more
+information on such operations. In all binary operations,
+\class{intbv} objects can work together with \class{int} objects; in
+those cases the return type is an \class{intbv} object.
+
+In addition, \class{intbv} objects support indexing and slicing
+operations:
+
+\begin{tableiii}{clc}{code}{Operation}{Result}{Notes}
+  \lineiii{\var{bv}[\var{i}]}
+	  {\var{i}'th item of \var{bv}}
+	  {(1)}
+  \lineiii{\var{bv}[\var{i}] = \var{x}}  
+	  {item \var{i} of \var{bv} is replaced by \var{x}} 
+          {(1)}
+  \lineiii{\var{bv}[\var{i}:\var{j}]} 
+          {slice of \var{bv} from \var{i} downto \var{j}} 
+          {(2)(3)}
+  \lineiii{\var{bv}[\var{i}:\var{j}] = \var{t}} 
+  	  {slice of \var{bv} from \var{i} downto to \var{j} is replaced
+          by \var{t}} 
+          {(2)(4)}
+\end{tableiii}
+
+\begin{description}
+\item[(1)] Indexing follows the most common hardware design
+	  conventions: the lsb bit is the rightmost bit, and it has
+	  index 0. This has the following desirable property: if the
+	  value is decomposed as a sum of powers of 2, the bit with
+	  index \var{i} corresponds to the term \code{2**i}. 
+
+\item[(2)] slicing
+
+\item[(3)] positive return
+
+\item[(4)] value check
+
+\end{description}
+
+
+
 
 
 
