@@ -40,17 +40,6 @@ from myhdl._Error import Error
 _tracing = 0
 _profileFunc = None
 
-
-
-class TopLevelNameError(Error):
-    """result of traceSignals call should be assigned to a top level name"""
-
-class ArgTypeError(Error):
-    """traceSignals first argument should be a classic function"""
-    
-class MultipleTracesError(Error):
-    """Cannot trace multiple instances simultaneously"""
-
 class TraceSignalsError(Error):
     pass
 class _error:
