@@ -130,7 +130,9 @@ class Simulation(object):
                 # print _siglist
                 if cosim:
                     cosim._get()
-                    if _siglist or cosim._hasChange:
+                    if _siglist or cosim._isActive:
+##                         if cosim._isActive:
+                        print "CA:" + ` cosim._isActive` + " S:" + `_siglist`
                         cosim._put(t)
                         continue
                 elif _siglist:

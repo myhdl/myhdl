@@ -2,10 +2,12 @@ from __future__ import generators
 
 import unittest
 from unittest import TestCase
+import random
 from random import randrange
+random.seed(2)
 
 from myhdl import Simulation, StopSimulation, Signal, \
-                  delay, intbv, negedge, posedge
+                  delay, intbv, negedge, posedge, now
 
 from inc import inc
 
@@ -44,9 +46,9 @@ class TestInc(TestCase):
             while 1:
                 yield posedge(clock)
                 if enable:
-                    expect = (count + 1) % n
+                    expect = (expect + 1) % n
                 yield delay(1)
-                print "count %s expect %s" % (count, expect)
+                print "%d count %s expect %s" % (now(), count, expect)
                 # self.assertEqual(count, expect)
 
         Simulation(clockGen(), stimulus(), INC_1, check()).run(quiet=1)        

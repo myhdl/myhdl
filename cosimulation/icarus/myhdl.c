@@ -25,17 +25,16 @@ static int wpipe;
 static vpiHandle from_myhdl_systf_handle = NULL;
 static vpiHandle to_myhdl_systf_handle = NULL;
 
-typedef struct to_myhdl_data {
-  vpiHandle systf_handle;
-  short int sync_flag;
-} s_to_myhdl_data, *p_to_myhdl_data;
+typedef struct cb_user_data {
+  char buf[MAXLINE];
+} s_cb_user_data, *p_cb_user_data;
 
 /* prototypes */
 static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data);
 static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data);
-static PLI_INT32 to_myhdl_sensitivity_callback(p_cb_data cb_data);
-static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data);
+static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data);
 static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data);
+static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data);
 
 static int init_pipes();
 
@@ -126,7 +125,6 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   s_cb_data cb_data_s;
   s_vpi_time time_s;
   s_vpi_value value_s;
-  p_to_myhdl_data to_myhdl_data;
   static int to_myhdl_flag = 0;
 
   if (to_myhdl_flag) {
@@ -164,13 +162,13 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   }
   buf[n] = '\0';
 
-  // register write callback //
+  // register read-only callback //
   time_s.type = vpiSimTime;
   time_s.high = 0;
   time_s.low = 0;
-  cb_data_s.reason = cbReadWriteSynch;
+  cb_data_s.reason = cbReadOnlySynch;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_readwrite_callback;
+  cb_data_s.cb_rtn = to_myhdl_readonly_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
@@ -180,7 +178,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 }
 
 
-static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data)
+static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
 {
   vpiHandle systf_handle;
   vpiHandle net_iter, net_handle;
@@ -190,6 +188,8 @@ static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data)
   s_cb_data cb_data_s;
   s_vpi_time time_s;
   char buf[MAXLINE];
+  p_cb_user_data cb_user_data;
+  char bufcp[MAXLINE];
   int n;
   char *time_high_string;
   char *time_low_string;
@@ -198,6 +198,7 @@ static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data)
   PLI_UINT32 delay;
 
   static int start_flag = 1;
+
 
   if (start_flag) {
     start_flag = 0;
@@ -213,10 +214,12 @@ static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data)
   buf[0] = '\0';
   current_time.type = vpiSimTime;
   vpi_get_time(systf_handle, &current_time);
-  sprintf(buf, "%x%08x ", current_time.high, current_time.low);
+  sprintf(buf, "%xd%08x ", current_time.high, current_time.low);
+  vpi_printf("%d: RW trigger\n", current_time.low);
   value_s.format = vpiHexStrVal;
   while ((net_handle = vpi_scan(net_iter)) != NULL) {
     vpi_get_value(net_handle, &value_s);
+    vpi_printf("val %s\n", value_s.value.str);
     strcat(buf, value_s.value.str);
     strcat(buf, " ");
   }
@@ -227,8 +230,11 @@ static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data)
     return(0);
   }
   buf[n] = '\0';
-  
-  reg_iter = vpi_iterate(vpiArgument, from_myhdl_systf_handle);
+
+  /* save copy for later callback */
+  cb_user_data = (p_cb_user_data)malloc(sizeof(s_cb_user_data));
+  strcpy(cb_user_data->buf, buf);
+
   time_high_string = strtok(buf, " ");
   time_low_string = strtok(NULL, " ");
   time_high = (PLI_UINT32) strtoul(time_high_string, (char **) NULL, 16);
@@ -241,6 +247,7 @@ static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data)
     } else {
       delay = time_low - current_time.low;
     }
+    vpi_printf("schedule delay callback\n");
     // register cbAfterDelay callback //
     time_s.type = vpiSimTime;
     time_s.high = 0;
@@ -252,33 +259,24 @@ static PLI_INT32 to_myhdl_readwrite_callback(p_cb_data cb_data)
     cb_data_s.time = &time_s;
     cb_data_s.value = NULL;
     vpi_register_cb(&cb_data_s);
-    // We're done for now
-    if (reg_iter != NULL) {
-      vpi_free_object(reg_iter);
-    }
-/*      while ((reg_handle = vpi_scan(reg_iter)) != NULL) { */
-/*        value_s.value.str = strtok(NULL, " "); */
-    //    }
     return(0);
   }
 
-  while ((reg_handle = vpi_scan(reg_iter)) != NULL) {
-    value_s.value.str = strtok(NULL, " ");
-    vpi_put_value(reg_handle, &value_s, NULL, vpiNoDelay);
-  }
+  /* hack: emulate cbEndOfTimeSync by cbAfterDelay */
 
-  // register myself again //
+  // register callback //
+  vpi_printf("schedule delta callback\n");
   time_s.type = vpiSimTime;
   time_s.high = 0;
-  time_s.low = 0;
-  cb_data_s.reason = cbReadWriteSynch;
-  cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_readwrite_callback;
+  time_s.low = 1;
+  cb_data_s.reason = cbAfterDelay;
+  cb_data_s.user_data = (PLI_BYTE8 *) cb_user_data;
+  cb_data_s.cb_rtn = to_myhdl_delta_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
   vpi_register_cb(&cb_data_s);
-
+  vpi_printf("scheduled delta callback\n");
   return(0);
 }
 
@@ -287,15 +285,58 @@ static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data)
   s_cb_data cb_data_s;
   s_vpi_time time_s;
   s_vpi_time current_time;
+  vpi_printf("Got here delta \n");
 
   vpi_get_time(NULL, &current_time);
-  // register readwrite callback //
+  // register readonly callback //
   time_s.type = vpiSimTime;
   time_s.high = 0;
   time_s.low = 0;
   cb_data_s.reason = cbReadWriteSynch;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_readwrite_callback;
+  cb_data_s.cb_rtn = to_myhdl_readonly_callback;
+  cb_data_s.obj = NULL;
+  cb_data_s.time = &time_s;
+  cb_data_s.value = NULL;
+  vpi_register_cb(&cb_data_s);
+  return(0);
+}
+
+static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data)
+{
+  s_cb_data cb_data_s;
+  s_vpi_time time_s;
+  s_vpi_time current_time;
+  p_cb_user_data cb_user_data;
+  vpiHandle systf_handle;
+  vpiHandle reg_iter, reg_handle;
+  s_vpi_value value_s;
+
+  vpi_printf("Got here delta \n");
+  cb_user_data = (p_cb_user_data)cb_data->user_data;
+
+  /* skip time values */
+  strtok(cb_user_data->buf, " ");
+  strtok(NULL, " ");
+
+  reg_iter = vpi_iterate(vpiArgument, from_myhdl_systf_handle);
+
+  while ((value_s.value.str = strtok(NULL, " ")) != NULL) {
+    reg_handle = vpi_scan(reg_iter);
+    vpi_put_value(reg_handle, &value_s, NULL, vpiNoDelay);
+  }
+  if (reg_iter != NULL) {
+    vpi_free_object(reg_iter);
+  }
+
+  vpi_get_time(NULL, &current_time);
+  // register readonly callback //
+  time_s.type = vpiSimTime;
+  time_s.high = 0;
+  time_s.low = 0;
+  cb_data_s.reason = cbReadWriteSynch;
+  cb_data_s.user_data = NULL;
+  cb_data_s.cb_rtn = to_myhdl_readonly_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
