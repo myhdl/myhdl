@@ -6,6 +6,9 @@ import random
 from random import randrange
 random.seed(2)
 
+#import psyco
+#psyco.profile()
+
 from myhdl import Simulation, StopSimulation, Signal, \
                   delay, intbv, negedge, posedge, now
 
