@@ -25,12 +25,14 @@ __date__ = "$Date$"
 
 from __future__ import generators
 
+import sys
 import inspect
 from types import FunctionType
 import compiler
 
 from myhdl import Signal
 from myhdl._util import _isgeneratorfunction
+from myhdl import _traceSignals
 
 class Error(Exception):
     """always_comb Error"""
@@ -59,8 +61,8 @@ class EmbeddedFunctionError(Error):
 
 
     
-
 def always_comb(func):
+    sys.setprofile(None)
     f = inspect.getouterframes(inspect.currentframe())[1][0]
     if type(func) is not FunctionType:
         raise ArgumentError
@@ -77,6 +79,7 @@ def always_comb(func):
             if isinstance(v, Signal) and n not in varnames:
                 sigdict[n] = v
     c = _AlwaysComb(func, sigdict)
+    sys.setprofile(_traceSignals._profileFunc)
     return c.genfunc()
    
 

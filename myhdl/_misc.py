@@ -31,30 +31,37 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
+import sys
 import inspect
+
 from types import GeneratorType
 
 from myhdl import Cosimulation
 from myhdl._util import _isgeneratorfunction, _isGenSeq
+from myhdl import _traceSignals
+
     
-                        
 def instances():
-   f = inspect.currentframe()
-   d = inspect.getouterframes(f)[1][0].f_locals
-   l = []
-   for v in d.values():
+    sys.setprofile(None)
+    f = inspect.currentframe()
+    d = inspect.getouterframes(f)[1][0].f_locals
+    l = []
+    for v in d.values():
       if type(v) in (GeneratorType, Cosimulation):
          l.append(v)
       elif _isGenSeq(v):
          l.append(v)
-   return l
+    sys.setprofile(_traceSignals._profileFunc)
+    return l
+    
      
-
 def processes():
-   f = inspect.currentframe()
-   d = inspect.getouterframes(f)[1][0].f_locals
-   l = []
-   for v in d.values():
+    sys.setprofile(None)
+    f = inspect.currentframe()
+    d = inspect.getouterframes(f)[1][0].f_locals
+    l = []
+    for v in d.values():
       if _isgeneratorfunction(v):
          l.append(v()) # call it
-   return l
+    sys.setprofile(_traceSignals._profileFunc)
+    return l

@@ -45,6 +45,7 @@ from myhdl import _simulator, Signal, __version__
 from myhdl._util import _isGenSeq, _isgeneratorfunction
 
 _tracing = 0
+_profileFunc = None
 
 class Error(Exception):
     """ traceSignals Error"""
@@ -164,10 +165,12 @@ def _findInstanceName(framerec):
 class _HierExtr(object):
     
     def __init__(self, name, dut, *args, **kwargs):
+        global _profileFunc
         self.names = [name]
         self.instances = instances = []
         self.level = 0
-        sys.setprofile(self.extractor)
+        _profileFunc = self.extractor
+        sys.setprofile(_profileFunc)
         try:
             _top = dut(*args, **kwargs)
         finally:
