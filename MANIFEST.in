@@ -1,4 +1,9 @@
 global-include *.py
 global-include *.txt
 global-include *.pdf
+global-include *.ps
+global-include *.c
+global-include Makefile
 prune doc/tools
+prune dist
+exclude doc/Makefile

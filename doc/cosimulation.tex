@@ -13,7 +13,7 @@ such as object orientation. The reason is that verification
 it the most complex and time-consuming task of the
 design process: consequently every useful technique
 is welcome. Moreover, test benches need not be 
-implementable; therefore there are no implementability
+implementable; therefore there are no implementation
 constraints on creativity. 
 
 Technically, verification of a design implemented in
@@ -30,7 +30,7 @@ be used in the examples in the present chapter.
 \section{The HDL side}
 
 To introduce cosimulation, we will continue to use the Gray encoder
-example from the previous chapters where we have designed it and
+example from the previous chapters; recall that we have designed it and
 written unit tests for it in \myhdl{}. Now suppose that we want to
 synthesize it and write it in Verilog for that purpose. Clearly we would
 like to reuse our unit test verification environment. This is exactly
@@ -62,9 +62,7 @@ module bin2gray(B, G);
 
    parameter width = 8;
    input [width-1:0]  B;     
-
    output [width-1:0] G;
-
    ....
 
 \end{verbatim}
@@ -120,7 +118,7 @@ compiler as follows:
 
 \end{verbatim}
 
-This generates a \code{bin2gray} executable for a parameter \var{width}
+This generates a \code{bin2gray} executable for a parameter \code{width}
 of 4, by compiling the contributing verilog files.
 
 The simulation itself is run by the \code{vvp} command:
@@ -237,6 +235,7 @@ OK
 
 
 \section{Restrictions}
+
 
 
 
