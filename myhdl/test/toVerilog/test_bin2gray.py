@@ -19,7 +19,7 @@ def bin2gray(B, G, width):
         for i in range(width):
             G.next[i] = Bext[i+1] ^ Bext[i]
 
-def bin2gray(B, G, width):
+def bin2gray2(B, G, width):
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
@@ -49,7 +49,7 @@ def bin2gray_v(B, G):
 
 class TestBin2Gray(TestCase):
 
-    def bench(self, width):
+    def bench(self, width, bin2gray):
 
         B = Signal(intbv(0)[8:])
         G = Signal(intbv(0)[8:])
@@ -70,8 +70,12 @@ class TestBin2Gray(TestCase):
 
         return bin2gray_v_inst, stimulus(), bin2gray_inst
 
-    def test(self):
-        sim = self.bench(width=8)
+    def test1(self):
+        sim = self.bench(width=8, bin2gray=bin2gray)
+        Simulation(sim).run()
+        
+    def test2(self):
+        sim = self.bench(width=8, bin2gray=bin2gray2)
         Simulation(sim).run()
     
 
