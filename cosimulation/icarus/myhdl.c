@@ -42,9 +42,9 @@ static int delta;
 /* prototypes */
 static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data);
 static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data);
-static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data);
-static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data);
-static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data);
+static PLI_INT32 readonly_callback(p_cb_data cb_data);
+static PLI_INT32 delay_callback(p_cb_data cb_data);
+static PLI_INT32 delta_callback(p_cb_data cb_data);
 static PLI_INT32 change_callback(p_cb_data cb_data);
 
 static int init_pipes();
@@ -217,7 +217,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   time_s.low = 0;
   cb_data_s.reason = cbReadOnlySynch;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_readonly_callback;
+  cb_data_s.cb_rtn = readonly_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
@@ -230,7 +230,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   time_s.low = 1;
   cb_data_s.reason = cbAfterDelay;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_delta_callback;
+  cb_data_s.cb_rtn = delta_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
@@ -240,7 +240,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 }
 
 
-static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
+static PLI_INT32 readonly_callback(p_cb_data cb_data)
 {
   vpiHandle systf_handle;
   vpiHandle net_iter, net_handle;
@@ -317,7 +317,7 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
     time_s.low = (PLI_UINT32) delay;
     cb_data_s.reason = cbAfterDelay;
     cb_data_s.user_data = NULL;
-    cb_data_s.cb_rtn = to_myhdl_delay_callback;
+    cb_data_s.cb_rtn = delay_callback;
     cb_data_s.obj = NULL;
     cb_data_s.time = &time_s;
     cb_data_s.value = NULL;
@@ -329,7 +329,7 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
   return(0);
 }
 
-static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data)
+static PLI_INT32 delay_callback(p_cb_data cb_data)
 {
   s_vpi_time time_s;
   s_vpi_time verilog_time;
@@ -342,7 +342,7 @@ static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data)
   time_s.low = 0;
   cb_data_s.reason = cbReadOnlySynch;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_readonly_callback;
+  cb_data_s.cb_rtn = readonly_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
@@ -354,7 +354,7 @@ static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data)
   time_s.low = 1;
   cb_data_s.reason = cbAfterDelay;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_delta_callback;
+  cb_data_s.cb_rtn = delta_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
@@ -363,7 +363,7 @@ static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data)
   return(0);
 }
 
-static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data)
+static PLI_INT32 delta_callback(p_cb_data cb_data)
 {
   s_cb_data cb_data_s;
   s_vpi_time time_s;
@@ -397,7 +397,7 @@ static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data)
   time_s.low = 0;
   cb_data_s.reason = cbReadOnlySynch;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_readonly_callback;
+  cb_data_s.cb_rtn = readonly_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
@@ -409,7 +409,7 @@ static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data)
   time_s.low = 1;
   cb_data_s.reason = cbAfterDelay;
   cb_data_s.user_data = NULL;
-  cb_data_s.cb_rtn = to_myhdl_delta_callback;
+  cb_data_s.cb_rtn = delta_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
