@@ -116,7 +116,7 @@ class _HierExtr(object):
         self.names = []
         self.instNamesStack = [Set()]
         self.hierarchy = hierarchy = []
-        self.gennames = gennames = {}
+        self.genNames = genNames = {}
         self.level = 0
         # handle special case of a top-level generator separately
         if _isGenFunc(dut):
@@ -185,7 +185,7 @@ class _HierExtr(object):
                                 absgname = gname
                                 if prefix:
                                     absgname = prefix + "_" + gname
-                                self.gennames[id(g)] = absgname
+                                self.genNames[id(g)] = absgname
                         inst = [self.level, name, sigdict]       
                         self.hierarchy.append(inst)
                     self.level -= 1

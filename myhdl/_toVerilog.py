@@ -85,7 +85,7 @@ def toVerilog(func, *args, **kwargs):
     siglist = _analyzeSigs(h.hierarchy)
     arglist = _flatten(h.top)
     _checkArgs(arglist)
-    genlist = _analyzeGens(arglist, h.gennames)
+    genlist = _analyzeGens(arglist, h.genNames)
     intf = _analyzeTopFunc(func, *args, **kwargs)
     intf.name = name
     
@@ -137,7 +137,7 @@ def LabelGenerator():
 genLabel = LabelGenerator()
          
 
-def _analyzeGens(top, gennames):
+def _analyzeGens(top, genNames):
     genlist = []
     for g in top:
         f = g.gi_frame
@@ -149,7 +149,7 @@ def _analyzeGens(top, gennames):
         symdict = f.f_globals.copy()
         symdict.update(f.f_locals)
         ast.symdict = symdict
-        ast.name = gennames.get(id(g), genLabel.next() + "_BLOCK")
+        ast.name = genNames.get(id(g), genLabel.next() + "_BLOCK")
         v = _AnalyzeBlockVisitor(symdict, ast.sourcefile, ast.lineoffset)
         compiler.walk(ast, v)
         ast.sigdict = v.sigdict
@@ -188,63 +188,44 @@ class _ToVerilogMixin(object):
    
 
 class _NotSupportedVisitor(_ToVerilogMixin):
-
-    
     def visitAssList(self, node, *args):
         self.raiseError(node, _error.NotSupported, "list assignment")
-        
     def visitAssTuple(self, node, *args):
         self.raiseError(node, _error.NotSupported, "tuple assignment")
-        
     def visitBackquote(self, node, *args):
         self.raiseError(node, _error.NotSupported, "backquote")
-        
     def visitBreak(self, node, *args):
         self.raiseError(node, _error.NotSupported, "break statement")
-        
     def visitClass(self, node, *args):
         self.raiseError(node, _error.NotSupported, "class statement")
-
     def visitContinue(self, node, *args):
         self.raiseError(node, _error.NotSupported, "continue statement")
-
     def visitDict(self, node, *args):
         self.raiseError(node, _error.NotSupported, "dictionary")
-
     def visitDiv(self, node, *args):
         self.raiseError(node, _error.NotSupported, "true division - consider '//'")
-
     def visitEllipsis(self, node, *args):
         self.raiseError(node, _error.NotSupported, "ellipsis")
-
     def visitExec(self, node, *args):
         self.raiseError(node, _error.NotSupported, "exec statement")
-
     def visitExpression(self, node, *args):
         self.raiseError(node, _error.NotSupported, "Expression node")
-
     def visitFrom(self, node, *args):
         self.raiseError(node, _error.NotSupported, "from statement")
-        
     def visitGlobal(self, node, *args):
         self.raiseError(node, _error.NotSupported, "global statement")
-
     def visitImport(self, node, *args):
         self.raiseError(node, _error.NotSupported, "import statement")
-
     def visitLambda(self, node, *args):
         self.raiseError(node, _error.NotSupported, "lambda statement")
-
     def visitListComp(self, node, *args):
         self.raiseError(node, _error.NotSupported, "list comprehension")
-        
     def visitList(self, node, *args):
         self.raiseError(node, _error.NotSupported, "list")
-
-
+    def visitSliceObj(self, node):
+        self.raiseError(node, _error.NotSupported, "slice object")
     def visitTryExcept(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-except statement")
-        
     def visitTryFinally(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
 
@@ -794,7 +775,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                  }
         if node.op not in opmap:
             self.raiseError(node, _error.NotSupported,
-                            "augmented assignment %s" % op)
+                            "augmented assignment %s" % node.op)
         op = opmap[node.op]
         self.writeline()
         self.visit(node.node)
@@ -1048,9 +1029,6 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.visit(node.upper)
         self.write("]")
 
-    def visitSliceObj(self, node):
-        # XXX
-        pass
             
     def visitSub(self, node):
         self.binaryOp(node, "-")
@@ -1194,7 +1172,3 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.write("disable __MYHDL__;")
     
     
-         
-     
-         
-        
