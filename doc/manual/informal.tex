@@ -345,8 +345,10 @@ objects.
 
 As in standard Python, the slicing range is half-open: the highest
 index bit is not included. Unlike standard Python however, this index
-corresponds to the \emph{leftmost} item. The rightmost index is
-\code{0} by default, and can be omitted from the slice.
+corresponds to the \emph{leftmost} item. Both indices can be ommitted
+from the slice. If the leftmost index is ommitted, the meaning is to
+access ``all'' higher order bits.  If the rightmost index is ommitted,
+it is \code{0} by default.
 
 The half-openness of a slice may seem awkward at first, but it helps
 to avoid one-off count issues in practice. For example, the slice

@@ -130,7 +130,7 @@ include Makefile.deps
 
 # Main target
 default:	all
-all:		html ps pdf 
+all:		html pdf 
 
 dvi:	$(DVIFILES)
 pdf:	$(PDFFILES)

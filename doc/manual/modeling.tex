@@ -33,8 +33,10 @@ changes.
 
 Note that the input signals are listed explicitly in the
 template. Alternatively, \myhdl\ provides the \function{always_comb()}
-function to infer the input signals automatically. The name refers to
-a construct with similar semantics in SystemVerilog.  The argument of
+function to infer the input signals automatically. 
+\footnote{The name \function{always_comb()} refers to
+a construct with similar semantics in SystemVerilog.}.
+The argument of
 \function{always_comb()} is a local function that specifies
 what happens when one of the input signals
 changes. It returns a generator that is
@@ -69,6 +71,21 @@ def mux(z, a, b, sel):
             z.next = a
         else:
             z.next = b
+\end{verbatim}
+
+Alternatively, it could be written as follows, using
+\function{always_comb()}:
+
+\begin{verbatim}
+def mux(z, a, b, sel):
+
+    def muxlogic():
+        if sel == 1:
+            z.next = a
+        else:
+            z.next = b
+
+    return always_comb(muxlogic)
 \end{verbatim}
 
 To verify, let's simulate this logic with some random patterns. The
