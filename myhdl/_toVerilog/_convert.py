@@ -581,7 +581,9 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write(n)
         elif node.name in self.ast.symdict:
             obj = self.ast.symdict[n]
-            if isinstance(obj, int):
+            if isinstance(obj, bool):
+                self.write("1'b%s" % int(obj))
+            elif isinstance(obj, int):
                 self.write(str(obj))
             elif type(obj) is Signal:
                 assert obj._name
