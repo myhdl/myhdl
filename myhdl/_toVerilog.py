@@ -173,9 +173,6 @@ def _analyzeGens(top, genNames):
         compiler.walk(ast, v)
         v = _AnalyzeBlockVisitor(ast)
         compiler.walk(ast, v)
-        ast.sigdict = v.sigdict
-        ast.vardict = v.vardict
-        ast.kind = v.kind
         genlist.append(ast)
     return genlist
 
@@ -193,13 +190,13 @@ class _ToVerilogMixin(object):
         return lineno
     
     def getVal(self, node):
-        val = eval(_unparse(node), self.symdict)
+        val = eval(_unparse(node), self.ast.symdict)
         return val
     
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
-              (self.sourcefile, self.lineoffset+lineno)
+              (self.ast.sourcefile, self.ast.lineoffset+lineno)
         raise ToVerilogError(kind, msg, info)
 
     def require(self, node, test, msg=""):
@@ -215,9 +212,7 @@ class _ToVerilogMixin(object):
 class _NotSupportedVisitor(_ToVerilogMixin):
     
     def __init__(self, ast):
-        self.sourcefile = ast.sourcefile
-        self.lineoffset = ast.lineoffset
-        self.symdict = ast.symdict
+        self.ast = ast
         self.toplevel = True
         
     def visitAssList(self, node, *args):
@@ -274,7 +269,7 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         self.visit(node.expr, *args)
         
     def visitCallFunc(self, node, context=UNKNOWN):
-        f = eval(_unparse(node.node), self.symdict)
+        f = eval(_unparse(node.node), self.ast.symdict)
         if f is bool:
             context = BOOLEAN
         self.visitChildNodes(node, context)
@@ -324,13 +319,12 @@ class ReferenceStack(list):
 class _AnalyzeVisitor(_ToVerilogMixin):
     
     def __init__(self, ast):
-        self.sourcefile = ast.sourcefile
-        self.lineoffset = ast.lineoffset
-        self.symdict = ast.symdict
-        self.vardict = {}
-        self.inputs = Set()
-        self.outputs = Set()
-        self.used = Set()
+        ast.sigdict = {}
+        ast.vardict = {}
+        ast.inputs = Set()
+        ast.outputs = Set()
+        ast.kind = None
+        self.ast = ast
         self.labelStack = []
         self.refStack = ReferenceStack()
         self.globalRefs = Set()
@@ -346,7 +340,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         return None
 
     def getVal(self, node):
-        val = eval(_unparse(node), self.symdict)
+        val = eval(_unparse(node), self.ast.symdict)
         return val
 
     def binaryOp(self, node, *args):
@@ -399,7 +393,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
     def visitUnarySub(self, node, *args):
         self.visit(node.expr)
         node.obj = int()
-    
         
     def visitAssAttr(self, node, access=OUTPUT, *args):
         self.visit(node.expr, OUTPUT)
@@ -416,18 +409,18 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 self.raiseError(node, _error.TypeInfer, n)
             if isinstance(obj, intbv) and len(obj) == 0:
                 self.raiseError(node, _error.IntbvBitWidth, n)
-            if n in self.vardict:
-                curObj = self.vardict[n]
+            if n in self.ast.vardict:
+                curObj = self.ast.vardict[n]
                 if isinstance(obj, type(curObj)):
                     pass
                 elif isinstance(curObj, type(obj)):
-                    self.vardict[n] = obj
+                    self.ast.vardict[n] = obj
                 else:
                     self.raiseError(node, _error.TypeMismatch, n)
                 if getNrBits(obj) != getNrBits(curObj):
                     self.raiseError(node, _error.NrBitsMismatch, n)
             else:
-                self.vardict[n] = obj
+                self.ast.vardict[n] = obj
         else:
             self.visit(expr, INPUT)
 
@@ -475,13 +468,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             compiler.walk(ast, v)
             v = _AnalyzeFuncVisitor(ast, node.args)
             compiler.walk(ast, v)
-            ast.sigdict = v.sigdict
-            ast.vardict = v.vardict
-            ast.argnames = v.argnames
-            ast.inputs = v.inputs
-            ast.outputs = v.outputs
-            ast.returnObj = v.returnObj
-            ast.kind = v.kind
             node.ast = ast
             for i, arg in enumerate(node.args):
                 if isinstance(arg, astNode.Keyword):
@@ -500,8 +486,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.obj = bool()
 
     def visitConst(self, node, *args):
-##         if isinstance(node.value, bool): # bool constants are names ???
-##             node.obj = bool()
         if isinstance(node.value, int):
             node.obj = int()
         else:
@@ -518,7 +502,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.refStack.push()
         self.visit(node.assign)
         var = node.assign.name
-        self.vardict[var] = int()
+        self.ast.vardict[var] = int()
         self.visit(node.list)
         self.visit(node.body, *args)
         self.refStack.pop()
@@ -532,8 +516,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
     def visitGetattr(self, node, *args):
         self.visit(node.expr, *args)
         assert isinstance(node.expr, astNode.Name)
-        assert node.expr.name in self.symdict
-        obj = self.symdict[node.expr.name]
+        assert node.expr.name in self.ast.symdict
+        obj = self.ast.symdict[node.expr.name]
         if str(type(obj)) == "<class 'myhdl._enum.Enum'>":
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
@@ -551,25 +535,24 @@ class _AnalyzeVisitor(_ToVerilogMixin):
 
     def visitName(self, node, access=INPUT, *args):
         n = node.name
-        self.used.add(n)
         if n not in self.refStack:
-            if n in self.vardict:
+            if n in self.ast.vardict:
                 self.raiseError(node, _error.UnboundLocal, n)
             self.globalRefs.add(n)
-        if n in self.sigdict:
+        if n in self.ast.sigdict:
             if access == INPUT:
-                self.inputs.add(n)
+                self.ast.inputs.add(n)
             elif access == OUTPUT:
-                self.outputs.add(n)
+                self.ast.outputs.add(n)
             elif access == UNKNOWN:
                 pass
             else: 
                 raise AssertionError
         node.obj = None
-        if n in self.vardict:
-            node.obj = self.vardict[n]
-        elif n in self.symdict:
-            node.obj = self.symdict[n]
+        if n in self.ast.vardict:
+            node.obj = self.ast.vardict[n]
+        elif n in self.ast.symdict:
+            node.obj = self.ast.symdict[n]
         elif n in __builtin__.__dict__:
             node.obj = __builtins__[n]
         else:
@@ -624,35 +607,34 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
     
     def __init__(self, ast):
         _AnalyzeVisitor.__init__(self, ast)
-        self.sigdict = sigdict = {}
-        for n, v in self.symdict.items():
+        for n, v in self.ast.symdict.items():
             if isinstance(v, Signal):
-                sigdict[n] = v
+                self.ast.sigdict[n] = v
         
     def visitFunction(self, node, *args):
         self.refStack.push()
         # print node.code
         self.visit(node.code)
-        self.kind = ALWAYS
+        self.ast.kind = ALWAYS
         for n in node.code.nodes[:-1]:
             if not self.getKind(n) == DECLARATION:
-                self.kind = INITIAL
+                self.ast.kind = INITIAL
                 break
-        if self.kind == ALWAYS:
+        if self.ast.kind == ALWAYS:
             w = node.code.nodes[-1]
             if not self.getKind(w) == ALWAYS:
-                self.kind = INITIAL
+                self.ast.kind = INITIAL
         self.refStack.pop()
                 
     def visitModule(self, node, *args):
         self.visit(node.node)
-        for n in self.outputs:
-            s = self.sigdict[n]
+        for n in self.ast.outputs:
+            s = self.ast.sigdict[n]
             if s._driven:
                 self.raiseError(node, _error._SigMultipleDriven, n)
             s._driven = True
-        for n in self.inputs:
-            s = self.sigdict[n]
+        for n in self.ast.inputs:
+            s = self.ast.sigdict[n]
             s._read = True
             
     def visitReturn(self, node, *args):
@@ -664,12 +646,10 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
     
     def __init__(self, ast, args):
         _AnalyzeVisitor.__init__(self, ast)
-        self.sigdict = sigdict = {}
         self.args = args
-        self.argnames = []
-        self.kind = None
-        self.hasReturn = False
-        self.returnObj = None
+        self.ast.argnames = []
+        self.ast.hasReturn = False
+        self.ast.returnObj = None
 
     def visitFunction(self, node, *args):
         self.refStack.push()
@@ -677,14 +657,14 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         for i, arg in enumerate(self.args):
             if isinstance(arg, astNode.Keyword):
                 n = arg.name
-                self.symdict[n] = getObj(arg.expr)
+                self.ast.symdict[n] = getObj(arg.expr)
             else: # Name
                 n = argnames[i]
-                self.symdict[n] = getObj(arg)
-            self.argnames.append(n)
-        for n, v in self.symdict.items():
+                self.ast.symdict[n] = getObj(arg)
+            self.ast.argnames.append(n)
+        for n, v in self.ast.symdict.items():
             if isinstance(v, (Signal, intbv)):
-                self.sigdict[n] = v
+                self.ast.sigdict[n] = v
         self.visit(node.code)
         self.refStack.pop()
         
@@ -700,19 +680,19 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             self.raiseError(node, error._ReturnTypeInfer)
         if isinstance(obj, intbv) and len(obj) == 0:
             self.raiseError(node, _error.ReturnIntbvBitWidth)
-        if self.hasReturn:
-            returnObj = self.returnObj
+        if self.ast.hasReturn:
+            returnObj = self.ast.returnObj
             if isinstance(obj, type(returnObj)):
                 pass
             elif isinstance(returnObj, type(obj)):
-                self.returnObj = obj
+                self.ast.returnObj = obj
             else:
                 self.raiseError(node, _error.ReturnTypeMismatch)
             if getNrBits(obj) != getNrBits(returnObj):
                 self.raiseError(node, _error.ReturnNrBitsMismatch)
         else:
-            self.returnObj = obj
-            self.hasReturn = True
+            self.ast.returnObj = obj
+            self.ast.hasReturn = True
 
        
 def _analyzeTopFunc(func, *args, **kwargs):
@@ -850,14 +830,9 @@ def _convertGens(genlist, vfile):
 class _ConvertVisitor(_ToVerilogMixin):
     
     def __init__(self, ast, buf):
+        self.ast = ast
         self.buf = buf
-        self.name = ast.name
-        self.returnLabel = self.name
-        self.sourcefile = ast.sourcefile
-        self.lineoffset = ast.lineoffset
-        self.sigdict = ast.sigdict
-        self.symdict = ast.symdict
-        self.vardict = ast.vardict
+        self.returnLabel = ast.name
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
@@ -871,7 +846,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.buf.write("\n%s" % self.ind)
 
     def writeDeclarations(self):
-        for name, obj in self.vardict.items():
+        for name, obj in self.ast.vardict.items():
             self.writeline()
             if type(obj) is bool:
                 self.write("reg %s;" % name)
@@ -1035,7 +1010,6 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitCompare(self, node):
         self.write("(")
         self.visit(node.expr)
-        assert len(node.ops) == 1
         op, code = node.ops[0]
         self.write(" %s " % op)
         self.visit(code)
@@ -1121,8 +1095,8 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def visitGetattr(self, node):
         assert isinstance(node.expr, astNode.Name)
-        assert node.expr.name in self.symdict
-        obj = self.symdict[node.expr.name]
+        assert node.expr.name in self.ast.symdict
+        obj = self.ast.symdict[node.expr.name]
         if type(obj) is Signal:
             if node.attrname == 'next':
                 self.isSigAss = True
@@ -1158,7 +1132,6 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.writeline()
             self.write("end")
 
-
     def visitKeyword(self, node):
         self.visit(node.expr)
        
@@ -1168,10 +1141,10 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write("1'b0")
         elif n == 'True':
             self.write("1'b1")
-        elif n in self.vardict:
+        elif n in self.ast.vardict:
             self.write(n)
-        elif node.name in self.symdict:
-            obj = self.symdict[n]
+        elif node.name in self.ast.symdict:
+            obj = self.ast.symdict[n]
             if isinstance(obj, int):
                 self.write(str(obj))
             elif type(obj) is Signal:
@@ -1181,18 +1154,14 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             raise AssertionError
 
-
     def visitPass(self, node):
         self.write("// pass")
     
-    
     def visitPrint(self, node):
-        # XXX
-        pass
+        pass # XXX
 
     def visitPrintnl(self, node):
-        # XXX
-        pass
+        pass # XXX
     
     def visitRaise(self, node):
         self.write('$display("Verilog: ')
@@ -1291,7 +1260,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.write("always @(")
         self.visit(sl)
         self.inYield = False
-        self.write(") begin: %s" % self.name)
+        self.write(") begin: %s" % self.ast.name)
         self.indent()
         self.writeDeclarations()
         assert isinstance(w.body, astNode.Stmt)
@@ -1310,7 +1279,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visitFunction(self, node):
-        self.write("initial begin: %s" % self.name) 
+        self.write("initial begin: %s" % self.ast.name) 
         self.indent()
         self.writeDeclarations()
         self.visit(node.code)
@@ -1324,12 +1293,11 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
     
     def __init__(self, ast, funcBuf):
         _ConvertVisitor.__init__(self, ast, funcBuf)
-        self.argnames = ast.argnames
         self.returnObj = ast.returnObj
         self.returnLabel = Label("RETURN")
 
     def writeOutputDeclaration(self):
-        obj = self.returnObj
+        obj = self.ast.returnObj
         if type(obj) is bool:
             pass
         elif isinstance(obj, int):
@@ -1340,8 +1308,8 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
              raise AssertionError("unexpected type")
 
     def writeInputDeclarations(self):
-        for name in self.argnames:
-            obj = self.symdict[name]
+        for name in self.ast.argnames:
+            obj = self.ast.symdict[name]
             self.writeline()
             if type(obj) is bool:
                 self.write("input %s;" % name)
@@ -1355,7 +1323,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
     def visitFunction(self, node):
         self.write("function ")
         self.writeOutputDeclaration()
-        self.write(" %s;" % self.name)
+        self.write(" %s;" % self.ast.name)
         self.indent()
         self.writeInputDeclarations()
         self.writeDeclarations()
@@ -1372,7 +1340,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.writeline(2)
 
     def visitReturn(self, node):
-        self.write("%s = " % self.name)
+        self.write("%s = " % self.ast.name)
         self.visit(node.value)
         self.write(";")
         self.writeline()
@@ -1383,17 +1351,13 @@ class _ConvertTaskVisitor(_ConvertVisitor):
     
     def __init__(self, ast, funcBuf):
         _ConvertVisitor.__init__(self, ast, funcBuf)
-        self.argnames = ast.argnames
-        self.inputs = ast.inputs
-        self.outputs = ast.outputs
         self.returnLabel = Label("RETURN")
 
-
     def writeInterfaceDeclarations(self):
-        for name in self.argnames:
-            obj = self.symdict[name]
-            output = name in self.outputs
-            input = name in self.inputs
+        for name in self.ast.argnames:
+            obj = self.ast.symdict[name]
+            output = name in self.ast.outputs
+            input = name in self.ast.inputs
             inout = input and output
             dir = inout and "inout" or output and "output" or input and "input"
             self.writeline()
@@ -1407,7 +1371,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
                 raise AssertionError("unexpected type")
             
     def visitFunction(self, node):
-        self.write("task %s;" % self.name)
+        self.write("task %s;" % self.ast.name)
         self.indent()
         self.writeInterfaceDeclarations()
         self.writeDeclarations()
