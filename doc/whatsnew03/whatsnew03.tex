@@ -322,7 +322,7 @@ example:
 '0xfab4'
 \end{verbatim}
 
-\class{intbv} instances now have \var{min} and \var{max} attributes
+\class{intbv} objects now have \var{min} and \var{max} attributes
 that can be specified at construction time. The meaning is that that
 only values within \code{range(min, max)} are permitted. The default
 values for these attributes is \var{None}, meaning ``infinite''. For
@@ -349,9 +349,9 @@ Traceback (most recent call last):
 ValueError: intbv value 53 >= maximum 53
 \end{verbatim}
 
-When a slice is taken from an \class{intbv} instance, the return value
-is a new \class{intbv} instance with a defined bit width. As in
-Verilog, the value of the new \class{intbv} instance is always
+When a slice is taken from an \class{intbv} object, the return value
+is a new \class{intbv} object with a defined bit width. As in
+Verilog, the value of the new \class{intbv} object is always
 positive, regardless of the sign of the original value. In addition,
 the \var{min} and \var{max} attributes are set implicitly:
 
@@ -368,7 +368,7 @@ intbv(0)
 Lastly, a small change was implemented with regard to 
 binary operations. In previous versions, both numeric
 and bit-wise operations always returned a new \class{intbv}
-instance, even in mixed-mode operations with \class{int}
+object, even in mixed-mode operations with \class{int}
 objects. This has changed: numeric operations 
 return an \class{int}, and bitwise operations return
 a \class{intbv}. In this way, the return value corresponds
@@ -382,14 +382,13 @@ available. Instead, there is now a \function{concat()} function
 in \myhdl{}.
 
 A function is more natural because \myhdl\ objects of various types
-can be concatenated.  In addition to \class{intbv} instances, this
-includes objects with a defined bit width, such as bit strings,
-\class{bool} variables, and \class{Signal} instances of such
-objects. Moreover, the first argument to \function{concat()} can be an
-\class{int} or a \class{long}, or a the corresponding \class{Signal}
-instance. As a result, the \function{concat()} function supports a
-much broader range of objects than a method could.  Function
-\function{concat()} returns an \class{intbv} instance.
+can be concatenated.  In addition to \class{intbv} objects, this
+includes objects with a defined bit width, \class{bool} objectsm
+signals of such objects, and bit strings. Moreover, the first argument
+to \function{concat()} can be an \class{int} or a \class{long}, or a
+the corresponding signal. As a result, the \function{concat()}
+function supports a much broader range of objects than a method could.
+Function \function{concat()} returns an \class{intbv} object.
 
 
 \section{Python 2.3 support\label{section-Python}}

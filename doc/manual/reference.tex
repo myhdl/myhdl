@@ -15,7 +15,7 @@ nested sequence.) See section~\ref{ref-gen} for the
 definition of \myhdl\ generators and their interaction with a
 \class{Simulation} object.
 
-As a special case, exactly one of the ``generators'' may be
+As a special case, exactly one of the arguments may be
 a \class{Cosimulation} object (see Section~\ref{ref-cosim}).
 \end{classdesc}
 
@@ -36,15 +36,29 @@ Return the current simulation time.
 \end{funcdesc}
 
 \begin{excclassdesc}{StopSimulation}{}
-Base exception that is caught by the \code{Simulation.run} method to
+Base exception that is caught by the \code{Simulation.run()} method to
 stop a simulation.
 \end{excclassdesc}
 
-\begin{funcdesc}{traceSignals}{genfunc \optional{, *args} \optional{, *kwargs}}
+\begin{funcdesc}{traceSignals}{func \optional{, *args} \optional{, *kwargs}}
+Enables signal tracing to a VCD file for waveform viewing.
+\var{func} is a function that returns a nested sequence of
+generators that represents an instance
+hierarchy. \function{traceSignals()} call \var{func} under its control
+and passes \var{*args} and \var{**kwargs} to the call. In this way, it
+finds the hierarchy and the signals to be traced.
 
+The return value is the same as would be returned by the call
+\code{func(*args, *kwargs)}. It should be assigned
+to a top level instance name. For example:
+\begin{verbatim}
+topname = traceSignals(func, ...)
+\end{verbatim}
+The resulting VCD file will be named after the top level instance
+name. In the example, it would be called \file{topname.vcd}.  If the
+VCD file exists already, it will be moved to a backup file by
+attaching a timestamp to it, before creating the new file.
 \end{funcdesc}
-
-
 
 
 \section{The \class{Signal} class \label{ref-sig}}
@@ -77,7 +91,15 @@ attribute of another Signal object, its current value is assigned
 instead.
 \end{memberdesc}
 
-
+\begin{memberdesc}[Signal]{min}
+Read-only attribute that is the minimum value (inclusive) of a
+numeric signal, or \var{None} for no minimum.
+\end{memberdesc}
+\begin{memberdesc}[Signal]{max}
+Read-only attribute that is the maximum value
+(exclusive) of a numeric signal, or \var{None} for no 
+maximum.
+\end{memberdesc}
 
 \section{\myhdl\ generators and trigger objects \label{ref-gen}}
 \declaremodule{}{myhdl}
@@ -161,7 +183,11 @@ immediately.
 \declaremodule{}{myhdl}
 
 \begin{funcdesc}{always_comb}{func}
-
+Returns a generator that is sensitive to all signals that
+are used as inputs in function \function{func()}. The generator
+will run \function{func()} whenever one of the inputs changes.
+\function{func} should be a locally defined function without
+parameters.
 \end{funcdesc}
 
 \begin{funcdesc}{bin}{num \optional{, width}}
@@ -175,17 +201,15 @@ needed in hardware design.
 \end{funcdesc}
 
 \begin{funcdesc}{concat}{base \optional{, arg \moreargs}}
-Concatenate the arguments to an \class{intbv} object. Naturally, the
-concatenation arguments need to have a defined bit width. Therefore,
-if they are \class{intbv} objects, they have to be the return values
-of a slicing operation. Alternatively, they may be bit strings.
+Returns an \class{intbv} object by concatenating its arguments.
 
-In contrast to all other arguments, the implicit \var{self} argument
-doesn't need to have a defined bit with. This is due to the fact that
-concatenation occurs at the lsb (rightmost) side.
-
-It may be clearer to call this method as an unbound method with an
-explicit first \class{intbv} argument.
+The following argument types are supported: \class{intbv} objects with
+a defined bit width, \class{bool} objects, signals of the previous
+objects, and bit strings. All these objects have a defined bit
+width. The first argument \var{base} is special as it doesn't need to
+have a defined bit width. In addition to the previously mentioned
+objects, \class{intbv}, \class{int} and \class{long} objects
+are supported, as well as signals of such objects.
 \end{funcdesc}
 
 \begin{funcdesc}{downrange}{high \optional{, low=0}}
@@ -198,7 +222,7 @@ defaults to zero.  This function is especially useful in conjunction
 with the \class{intbv} class, that also works with downward indexing.
 \end{funcdesc}
 
-\begin{funcdesc}{enum}{arg \optional{,arg \moreargs}}
+\begin{funcdesc}{enum}{arg \optional{, arg \moreargs}}
 
 \end{funcdesc}
 

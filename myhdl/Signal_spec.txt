@@ -30,7 +30,7 @@ part of the public interface of the Signal class. The private
 attributes and methods are for internal use or for use by a simulator
 object that interacts with Signal objects.
 
-In the following, a "sig" denotes an instance of the Signal class.
+In the following, a "sig" denotes an object of the Signal class.
 
 * A sig should have a read-only attribute 'val' that represents its
   current value.

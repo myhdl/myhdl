@@ -75,9 +75,9 @@ separate type.
 * When setting slices, there should be check on the input value to
   verify that all significant bits can be accepted by the slice.
 
-* When getting as slice, the result is a new intbv instance. Its
+* When getting as slice, the result is a new intbv object. Its
   value is always positive or zero, regardless of the sign of the
-  original intbv instances. When the left index is specified, the
+  original intbv object. When the left index is specified, the
   new intbv has a defined bitwidth w=i-j. The min and max attributes
   of the new intbv are implicitly set to 0 and 2**w respectively.
 
