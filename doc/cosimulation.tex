@@ -374,7 +374,7 @@ is to use the \code{cbReadOnlySync} callback.  This callback runs
 after all pending events have been processed.  However, it does not
 permit to create new events in the current time step.  The second half
 of the solution is to map \myhdl\ delta cycles onto real Verilog time
-steps.  Note that fortunatly I had some freedom here because of the
+steps.  Note that fortunately I had some freedom here because of the
 restriction that only passive HDL code can be co-simulated.
 
 I chose to make the time granularity in the Verilog simulator a 1000
