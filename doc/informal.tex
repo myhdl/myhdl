@@ -98,7 +98,7 @@ The \code{clk} signal is constructed with an initial value
 continuously assigned a new value after a certain delay. In \myhdl{},
 the new value of a signal is specified by assigning to its
 \code{next} attribute. This is the \myhdl\ equivalent of VHDL signal
-assignments and Verilog's non-blocking assignments.
+assignments and Verilog's nonblocking assignments.
 
 The \code{sayHello} generator function is modified to wait for a
 rising edge of the clock instead of a delay:
@@ -231,7 +231,7 @@ operations. The standard Python type \class{int} has most of the
 desired features, but lacks support for indexing and
 slicing. Therefore,
 \myhdl\ provides the \class{intbv} class. The name was chosen to
-suggest an integer with bit vector flavour.
+suggest an integer with bit vector flavor.
 
 Class \class{intbv} works transparently as an integer and with other
 integer-like types. Like class \class{int}, it provides access to the
@@ -357,7 +357,7 @@ objects.
 As in standard Python, the slicing range is half-open: the highest
 index bit is not included. Unlike standard Python however, this index
 corresponds to the \emph{leftmost} item. The rightmost index is
-\code{0} by default, and can be ommitted from the slice.
+\code{0} by default, and can be omitted from the slice.
 
 The half-openness of a slice may seem awkward at first, but it helps
 to avoid one-off count issues in practice. For example, the slice
@@ -686,8 +686,8 @@ RX: 0
 
 To conclude this introductory chapter, it is useful to stress that
 \myhdl\ is not a language. The language is Python, and \myhdl\ is
-implemented as a Python package called \code{myhdl}.  Moreover, it has
-been a design goal to keep the \code{myhdl} package as minimalistic as
+implemented as a Python package called \code{myhdl}.  Moreover, it is
+a design goal to keep the \code{myhdl} package as minimalistic as
 possible, so that \myhdl\ descriptions are very much ``pure Python''.
 
 To have Python as the underlying language is significant in several
@@ -695,29 +695,28 @@ ways:
 
 \begin{itemize}
 
-\item Python is a very powerful high level language. 
-
-
-problems Even
-experienced Pythoneers are often surprized by an elegant Python
-solution to a complex problem.
+\item Python is a very powerful high level language. This translates
+into high productivity and elegant solutions to complex problems.
 
 \item  Python is continuously improved by some very clever 
-software designers, supported by a large and fast growing user
-base. Python profits fully from the open source development model.
+minds, supported by a large and fast growing user base. Python profits
+fully from the open source development model.
 
-\item Python comes with an extensive standard library. 
+\item Python comes with an extensive standard library. Some
+functionality is likely to be of direct interest to \myhdl\ users:
+examples include string handling, regular expressions, random number
+generation, unit test support, operating system interfacing and GUI
+development. In addition, there are modules for mathematics, database
+connections, networking programming, internet data handling, and so
+on.
 
-
- For example,
-\myhdl\ users may 
-For example, \myhdl\ users that need string handling, regular
-expressions, random number generation, unitor operating system
-interfacing, can directly get it by importing a standard module. In
-addition, 
-
-
-
+\item Python has a powerful C extension model. All built-in types are
+written with the same C API that is available for custom
+extensions. To a module user, there is no difference between a
+standard Python module and a C extension module --- except
+performance. The typical Python development model is to prototype
+everything in Python until the application is stable, and then rewrite
+performance critical modules in C if necessary. 
 
 \end{itemize}
 
