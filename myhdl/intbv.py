@@ -23,8 +23,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-#import psyco
-#psyco.full()
 
 import sys
 maxint = sys.maxint
