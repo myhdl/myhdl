@@ -33,9 +33,10 @@ import compiler
 import re
 import string
 import time
+from types import FunctionType
 
 from myhdl import _simulator, Signal, __version__
-from myhdl.util import _isGenSeq
+from myhdl.util import _isGenSeq, _isgeneratorfunction
 
 _tracing = 0
 
@@ -50,34 +51,40 @@ class Error(Exception):
         return msg
 
 class TopLevelNameError(Error):
-    """ result of trace_sigs call should be assigned to a top level name """
+    """result of trace_sigs call should be assigned to a top level name"""
+
+class ArgTypeError(Error):
+    """trace_sigs first argument should be a classic function"""
 
 re_assname = re.compile(r"^\s*(?P<assname>\w[\w\d]*)\s*=")
 
 def trace_sigs(dut, *args, **kwargs):
     global _tracing
+    if not callable(dut):
+        raise ArgTypeError("got %s" % type(dut))
+    if _isgeneratorfunction(dut):
+        raise ArgTypeError("got generator function")
     if _tracing:
         return dut(*args, **kwargs) # skip
     _tracing = 1
-    o = getouterframes(currentframe())[1]
-    s = o[4][0]
-    m = re_assname.match(s)
-    name = None
-    if m:
-        name = m.group('assname')
-    else:
-        raise TopLevelNameError
-    h = HierExtr(name, dut, *args, **kwargs)
-    vcdfilename = name + ".vcd"
-    vcdfile = open(vcdfilename, 'w')
-    _simulator._tracing = 1
-    _simulator._tf = vcdfile
-    print "TRACE"
-    print _simulator
-    print _simulator._tf
-    _writeVcdHeader(vcdfile)
-    _writeVcdSigs(vcdfile, h.instances)
-    _tracing = 0
+    try:
+        o = getouterframes(currentframe())[1]
+        s = o[4][0]
+        m = re_assname.match(s)
+        name = None
+        if m:
+            name = m.group('assname')
+        else:
+            raise TopLevelNameError
+        h = HierExtr(name, dut, *args, **kwargs)
+        vcdfilename = name + ".vcd"
+        vcdfile = open(vcdfilename, 'w')
+        _simulator._tracing = 1
+        _simulator._tf = vcdfile
+        _writeVcdHeader(vcdfile)
+        _writeVcdSigs(vcdfile, h.instances)
+    finally:
+        _tracing = 0
     return h.m
  
 
@@ -183,7 +190,6 @@ def _writeVcdSigs(f, instances):
     print >> f
     print >> f, "$enddefinitions $end"
     print >> f, "$dumpvars"
-    print f
     for s in siglist:
         s._printVcd() # initial value
     print >> f, "$end"
