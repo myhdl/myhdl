@@ -38,6 +38,7 @@ setup(name="myhdl",
       download_url="http://sourceforge.net/project/showfiles.php?group_id=91207",
       packages=['myhdl'],
       license="LGPL",
+      platforms=["Any"],
       keywords="HDL ASIC FPGA hardware design",
       classifiers=filter(None, classifiers.split("\n")),
       )
