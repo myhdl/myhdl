@@ -25,12 +25,12 @@ __date__ = "$Date$"
 
 import test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
        test_inc_initial, test_hec, test_loops, test_infer, test_errors, \
-       test_RandomScrambler
+       test_RandomScrambler, test_beh
        
 
 modules = (test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
            test_inc_initial, test_hec, test_loops, test_infer, test_errors, \
-           test_RandomScrambler
+           test_RandomScrambler, test_beh
            )
 
 import unittest
