@@ -34,6 +34,9 @@ import re
 import string
 import time
 from types import FunctionType
+import os
+path = os.path
+import shutil
 
 from myhdl import _simulator, Signal, __version__
 from myhdl.util import _isGenSeq, _isgeneratorfunction
@@ -80,8 +83,12 @@ def trace_sigs(dut, *args, **kwargs):
         else:
             raise TopLevelNameError
         h = HierExtr(name, dut, *args, **kwargs)
-        vcdfilename = name + ".vcd"
-        vcdfile = open(vcdfilename, 'w')
+        vcdpath = name + ".vcd"
+        if path.exists(vcdpath):
+            backup = vcdpath + '.' + str(path.getmtime(vcdpath))
+            shutil.copyfile(vcdpath, backup)
+            os.remove(vcdpath)
+        vcdfile = open(vcdpath, 'w')
         _simulator._tracing = 1
         _simulator._tf = vcdfile
         _writeVcdHeader(vcdfile)

@@ -34,8 +34,9 @@ path = os.path
 
 import unittest
 from unittest import TestCase
+import shutil
 
-from myhdl import delay, Signal
+from myhdl import delay, Signal, Simulation
 from trace_sigs import trace_sigs, TopLevelNameError, ArgTypeError, \
                        NoInstancesError
 
@@ -66,10 +67,20 @@ def top():
 
 class TestTraceSigs(TestCase):
 
+    def setUp(self):
+        self.paths = paths = ["dut.vcd", "inst.vcd"]
+        for p in paths:
+            if path.exists(p):
+                os.remove(p)
+
+    def tearDown(self):
+        for p in self.paths:
+            if path.exists(p):
+                os.remove(p)
+        
+
     def testTopName(self):
         p = "dut.vcd"
-        if path.exists(p):
-            os.remove(p)
         dut = trace_sigs(fun)
         try:
             trace_sigs(fun)
@@ -80,8 +91,6 @@ class TestTraceSigs(TestCase):
 
     def testArgType1(self):
         p = "dut.vcd"
-        if path.exists(p):
-            os.remove(p)
         try:
             dut = trace_sigs([1, 2])
         except ArgTypeError:
@@ -91,8 +100,6 @@ class TestTraceSigs(TestCase):
             
     def testArgType2(self):
         p = "dut.vcd"
-        if path.exists(p):
-            os.remove(p)
         try:
             dut = trace_sigs(gen, Signal(0))
         except ArgTypeError:
@@ -102,37 +109,39 @@ class TestTraceSigs(TestCase):
 
     def testReturnVal(self):
         p = "dut.vcd"
-        if path.exists(p):
-            os.remove(p)
         try:
             dut = trace_sigs(dummy)
         except NoInstancesError:
             pass
         else:
             self.fail()
+            
 
     def testHierarchicalTrace1(self):
         p = "inst.vcd"
-        if path.exists(p):
-            os.remove(p)
         top()
         self.assert_(path.exists(p))
         
     def testHierarchicalTrace2(self):
         pdut = "dut.vcd"
         psub = "inst.vcd"
-        for p in (pdut, psub):
-            if path.exists(p):
-                os.remove(p)
         dut = trace_sigs(top)
         self.assert_(path.exists(pdut))
         self.assert_(not path.exists(psub))
 
-    
-        
-        
+    def testBackupOutputFile(self):
+        p = "dut.vcd"
+        dut = trace_sigs(fun)
+        Simulation(dut).run(1000)
+        size = path.getsize(p)
+        pbak = p + '.' + str(path.getmtime(p))
+        self.assert_(not path.exists(pbak))
+        dut = trace_sigs(fun)
+        self.assert_(path.exists(p))
+        self.assert_(path.exists(pbak))
+        self.assert_(path.getsize(pbak) == size)
+        self.assert_(path.getsize(p) < size)
+        os.remove(pbak)
        
-       
-
 if __name__ == "__main__":
     unittest.main()

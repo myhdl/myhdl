@@ -196,6 +196,8 @@ class Simulation(object):
             except SuspendSimulation:
                 if not quiet:
                     printExcInfo()
+                if tracing:
+                    tracefile.flush()
                 return 1
 
             except StopSimulation:
