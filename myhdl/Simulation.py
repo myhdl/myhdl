@@ -79,6 +79,8 @@ class Simulation:
                             waiters.append(_Waiter(clause, clone))
                         elif type(clause) is join:
                             waiters.append(_Waiter(clause._generator(), clone))
+                        elif clause is None:
+                            waiters.append(clone)
                         else:
                             raise TypeError, "Incorrect yield clause type"
 

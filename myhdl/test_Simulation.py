@@ -38,6 +38,71 @@ from _simulator import _siglist
 class Shared:
     pass
 
+class YieldNone(TestCase):
+    """ Basic test of yield None behavior """
+
+    def test1(self):
+        def stimulus():
+            a = Signal(0)
+            yield delay(10)
+            a.next = 1
+            yield None
+            self.assertEqual(a.val, 0)
+            self.assertEqual(now(), 10)
+            yield delay(0)
+            self.assertEqual(a.val, 1)
+            self.assertEqual(now(), 10)
+        Simulation(stimulus()).run(quiet=1)
+
+    def test2(self):
+        def stimulus():
+            a = Signal(0)
+            yield delay(10)
+            a.next = 1
+            self.assertEqual(a.val, 0)
+            self.assertEqual(now(), 10)
+            yield None
+            a.next = 0
+            self.assertEqual(a.val, 0)
+            self.assertEqual(now(), 10)
+            yield None
+            a.next = 1
+            self.assertEqual(a.val, 0)
+            self.assertEqual(now(), 10)
+            yield delay(0)
+            self.assertEqual(a.val, 1)
+            self.assertEqual(now(), 10)
+        Simulation(stimulus()).run(quiet=1)
+
+    def test3(self):
+        def stimulus():
+            a = Signal(0)
+            yield delay(10)
+            a.next = 1
+            yield None, delay(10)
+            self.assertEqual(a.val, 0)
+            self.assertEqual(now(), 10)
+            yield delay(0)
+            self.assertEqual(a.val, 1)
+            self.assertEqual(now(), 10)
+        Simulation(stimulus()).run(quiet=1)
+
+    def test4(self):
+        def stimulus():
+            a = Signal(0)
+            yield delay(10)
+            def gen():
+                yield delay(20)
+                a.next = 1
+            yield None, gen()
+            self.assertEqual(a.val, 0)
+            self.assertEqual(now(), 10)
+            yield delay(25)
+            self.assertEqual(a.val, 1)
+            self.assertEqual(now(), 35)
+        Simulation(stimulus()).run(quiet=1)
+            
+
 class JoinMix(TestCase):
     """ Test of joins mixed with other clauses """
          
