@@ -110,16 +110,14 @@ CONFIRM
 
 Enumeration types are often used for the state variable in a finite
 state machine.  In the waveform in Section~\ref{section-wave}, you see
-a \class{Signal} called \code{state} which as been constructed with an
-enumeration type identifier as initial value, as follows:
+a \class{Signal} called \var{state}. Note how the waveforms show the
+string representation of the enumeration type identifiers The
+\var{state} signal has been constructed with an enumeration type
+identifier as its initial value, as follows:
 
 \begin{verbatim}
 state = Signal(t_State.SEARCH)
 \end{verbatim}
-
-Note that the waveforms show the string representation of the
-enumeration type identifiers. 
-
 
 \section{Inferring the sensitivity list for combinatorial
 logic\label{section-combinatorial}}
@@ -194,6 +192,13 @@ def mux(z, a, b, sel):
     return mux_logic
 \end{verbatim}
 
+Note in the first version, the sensitivity list is at the beginning of
+the generator function code. This is traditionally done in
+synthesizable RTL style modeling. However, the semantics of this style
+are not entirely correct: at the start of the simulation, the
+combinatorial output will not reflect the initial state of the
+inputs. \function{always_comb} solves this by putting the sensitivity
+list at the end of the code.
 
 \section{Inferring the list of all instances\label{section-instances}}
 
