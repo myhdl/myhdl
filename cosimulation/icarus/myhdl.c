@@ -6,6 +6,7 @@
 
 #define MAXLINE 4096
 #define MAXWIDTH 10
+#define MAXARGS 64
 // #define DEBUG 1
 
 /* Sized variables */
@@ -28,6 +29,8 @@ static int wpipe;
 static vpiHandle from_myhdl_systf_handle = NULL;
 static vpiHandle to_myhdl_systf_handle = NULL;
 
+static char changeFlag[MAXARGS];
+
 static char bufcp[MAXLINE];
 
 static myhdl_time64_t myhdl_time;
@@ -42,12 +45,13 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data);
 static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data);
 static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data);
 static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data);
+static PLI_INT32 change_callback(p_cb_data cb_data);
 
 static int init_pipes();
 
 static myhdl_time64_t timestruct_to_time(const struct t_vpi_time*ts);
 
-/* stolen from Icarus */
+/* from Icarus */
 static myhdl_time64_t timestruct_to_time(const struct t_vpi_time*ts)
 {
       myhdl_time64_t ti = ts->high;
@@ -147,6 +151,8 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   char buf[MAXLINE];
   char s[MAXWIDTH];
   int n;
+  int i;
+  int *id;
   s_cb_data cb_data_s;
   s_vpi_time verilog_time_s;
   s_vpi_time time_s;
@@ -174,6 +180,13 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   pli_time = 0;
   delta = 0;
 
+  time_s.type = vpiSuppressTime;
+  cb_data_s.reason = cbValueChange;
+  cb_data_s.cb_rtn = change_callback;
+  cb_data_s.time = &time_s;
+  cb_data_s.value = NULL;
+  // value_s.format = vpiHexStrVal;
+  i = 0;
   to_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
   while ((net_handle = vpi_scan(net_iter)) != NULL) {
@@ -181,6 +194,13 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
     strcat(buf, " ");
     sprintf(s, "%d ", vpi_get(vpiSize, net_handle));
     strcat(buf, s);
+    changeFlag[i] = 0;
+    id = malloc(sizeof(int));
+    *id = i;
+    cb_data_s.user_data = (PLI_BYTE8 *)id;
+    cb_data_s.obj = net_handle;
+    vpi_register_cb(&cb_data_s);
+    i++;
   }
   n = write(wpipe, buf, strlen(buf));
 
@@ -231,6 +251,7 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
   s_vpi_time time_s;
   char buf[MAXLINE];
   int n;
+  int i;
   char *myhdl_time_string;
   myhdl_time64_t delay;
 
@@ -253,10 +274,17 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
   sprintf(buf, "%llu ", pli_time);
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
   value_s.format = vpiHexStrVal;
+  i = 0;
   while ((net_handle = vpi_scan(net_iter)) != NULL) {
-    vpi_get_value(net_handle, &value_s);
-    strcat(buf, value_s.value.str);
-    strcat(buf, " ");
+    if (changeFlag[i]) {
+      strcat(buf, vpi_get_str(vpiName, net_handle));
+      strcat(buf, " ");
+      vpi_get_value(net_handle, &value_s);
+      strcat(buf, value_s.value.str);
+      strcat(buf, " ");
+      changeFlag[i] = 0;
+    }
+    i++;
   }
   n = write(wpipe, buf, strlen(buf));
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
@@ -390,6 +418,20 @@ static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data)
   return(0);
 }
 
+static PLI_INT32 change_callback(p_cb_data cb_data)
+{
+  s_cb_data cb_data_s;
+  s_vpi_time time_s;
+  s_vpi_time verilog_time;
+  vpiHandle systf_handle;
+  int *id;
+
+  id = (int *)cb_data->user_data;
+  changeFlag[*id] = 1;
+}
+
+
+
 void myhdl_register()
 {
   s_vpi_systf_data tf_data;
@@ -409,5 +451,4 @@ void myhdl_register()
   tf_data.sizetf    = NULL;
   tf_data.user_data = "$from_myhdl";
   vpi_register_systf(&tf_data);
-
 }

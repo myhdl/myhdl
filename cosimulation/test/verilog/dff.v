@@ -1,18 +1,18 @@
-module dff(q, d, clock, reset);
+module dff(q, d, clk, reset);
 
    input d;
-   input clock;
+   input clk;
    input reset;
    output q;
    reg 	  q;
 
-   always @(posedge clock or negedge reset) begin
+   always @(posedge clk or negedge reset) begin
       if (reset == 0) begin
 	 q <= 0;
       end
       else begin
 	 q <= d;
       end
-   end // always @ (posedge clock or negedge reset)
+   end // always @ (posedge clk or negedge reset)
 
 endmodule // inc
