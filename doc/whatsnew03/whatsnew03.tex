@@ -30,7 +30,7 @@ loaded and viewed in a waveform viewer tool such as \program{gtkwave}.
 The user interface of this feature consists of a single function,
 \function{trace_sigs()}.  To explain how it works, recall that in
 \myhdl{}, an instance is created by calling a function that returns a
-sequence of generators and assigning the result to an instance
+sequence of generators, and by assigning the result to an instance
 name. For example:
 
 \begin{verbatim}
@@ -68,9 +68,10 @@ case, other types of signals are dumped as a string representation, as
 returned by the standard \function{str()} function.
 
 \begin{notice}[warning]
-Dumping string representations is not part of the VCD standard and is
-specific to \program{gtkwave}. If you need to generate a standard VCD
-file, you need to use signals with a defined bit width only.
+Support for literal string representations is not part of the VCD
+standard. It is specific to \program{gtkwave}. To generate a
+standard VCD file, you need to use signals with a defined bit width
+only.
 \end{notice}
 
 \section{An enumeration type\label{section-enum}}
@@ -85,8 +86,7 @@ tuple of identifiers, like so:
 1
 \end{verbatim}
 
-This technique is perfectly acceptable and can be used to write
-clearer code. However, there are some drawbacks. Though it is clearly
+However, this technique has some drawbacks. Though it is clearly
 the intention that the identifiers belong together, this information
 is lost as soon as they are defined. Also, the identifiers evaluate to
 integers, whereas a string representation of the identifiers
@@ -124,16 +124,16 @@ enumeration type identifiers.
 \section{Inferring the sensitivity list for combinatorial
 logic\label{section-combinatorial}}
 
-In \myhdl\, combinatorial logic described by a generator function with
+In \myhdl{}, combinatorial logic is described by a generator function with
 a sensitivity list that contains all inputs signals (the signals that
 are read inside the function).
 
-It is easy to forget some input signals, especially it there are a lot
-of them or if the code is being modified. There are various ways to
-solve this. One way is to use a sophisticated editor. Another way is
-direct language support. For example, recent versions of Verilog have
-the \code{always~@*} construct, that infers all input signals. The
-SystemVerilog 3.1 standard attempts to further improve on this by
+It may be easy to forget some input signals, especially it there are a
+lot of them or if the code is being modified. There are various ways
+to solve this. One way is to use a sophisticated editor. Another way
+is direct language support. For example, recent versions of Verilog
+have the \code{always~@*} construct, that infers all input
+signals. The SystemVerilog 3.1 standard improves on this by
 introducing the \code{always_comb} block with slightly enhanced
 semantics.
 
@@ -167,6 +167,7 @@ def mux(z, a, b, sel):
             else:
                 z.next = b
     mux_logic = logic()
+
     return mux_logic
 \end{verbatim}
 
@@ -189,6 +190,7 @@ def mux(z, a, b, sel):
         else:
             z.next = b
     mux_logic = always_comb(logic)
+
     return mux_logic
 \end{verbatim}
 
@@ -196,8 +198,8 @@ def mux(z, a, b, sel):
 \section{Inferring the list of all instances\label{section-instances}}
 
 In \myhdl{}, the instances defined in a top level function
-need to be returned explicitly, according
-the following template:
+need to be returned explicitly. The following is a schematic
+example:
 
 \begin{verbatim}
 def top(...):
@@ -232,11 +234,10 @@ def top(...):
     return instances()
 \end{verbatim}
 
-Function \function{instances()} uses introspection to
-inspect the local variables defined by the calling
-function. In \myhdl {}, an instance is defined as
-a nested sequence of generators: all such variables
-are looked up and assembled in a list.
+Function \function{instances()} uses introspection to inspect the type
+of the local variables defined by the calling function. In \myhdl {},
+an instance is defined as a nested sequence of generators: all such
+variables are looked up and assembled in a list.
 
 \section{Inferring the list of all processes\label{section-processes}}
 
@@ -245,7 +246,8 @@ also define local generators functions, which I will
 call \emph{processes} because of the analogy with VHDL.
 Like instances, processes need to be returned explicitly,
 with the qualification that they have to be called first
-to turn them into generators. The template is as follows:
+to turn them into generators. The following is a schematic
+example:
 
 \begin{verbatim}
 def top(...):
@@ -254,6 +256,7 @@ def top(...):
         ...
     def process_2():
         ...
+    ...
     def process_n():
         ...
     ...
@@ -281,6 +284,7 @@ def top(...):
         ...
     def process_2():
         ...
+    ...
     def process_n():
         ...
     ... 
@@ -374,24 +378,27 @@ better to the nature of the operation.
 
 In previous versions, the \class{intbv} class provided a
 \method{concat()} method.  This method is no longer
-available. Instead, there is now a \function{concat()} function.
+available. Instead, there is now a \function{concat()} function
+in \myhdl{}.
 
 A function is more natural because \myhdl\ objects of various types
 can be concatenated.  In addition to \class{intbv} instances, this
 includes objects with a defined bit width, such as bit strings,
 \class{bool} variables, and \class{Signal} instances of such
 objects. Moreover, the first argument to \function{concat()} can be an
-unsized \class{int} and \class{long} arguments and the corresponding
-\class{Signal} instances. As a result, \function{concat()}
-supports a much broader range of objects than the method could.
-Function \function{concat()} returns an \class{intbv} instance.
+\class{int} or a \class{long}, or a the corresponding \class{Signal}
+instance. As a result, the \function{concat()} function supports a
+much broader range of objects than a method could.  Function
+\function{concat()} returns an \class{intbv} instance.
 
 
 \section{Python 2.3 support\label{section-Python}}
 
-As of this writing, Python 2.3 is the latest Python release.  \myhdl\
-0.3 works with both Python 2.2 and Python 2.3. In good Python
-tradition, \myhdl\ code developed with Python2.2 will run without
+Python 2.3 was released on July 29, 2003, and as of this writing, it
+is the latest stable Python release.
+
+\myhdl\ 0.3 works with both Python 2.2 and Python 2.3. In good Python
+tradition, \myhdl\ code developed with Python 2.2 should run without
 changes or problems in Python 2.3.
 
 In general, I am not that keen on early upgrading. However, as it
@@ -417,7 +424,8 @@ Python 2.2, the waveforms of these signals would only show value
 changes, which is not as clear for single bits.
 
 Finally, Python 2.3 is significantly faster. \myhdl\ code runs
-25--35\% faster in Python 2.3 - a nice speedup.
+25--35\% faster in Python 2.3. This is a very nice speedup compared to
+the small burden of a straightforward upgrade.
 
 Python is a very stable language, so upgrading to Python 2.3 is
 virtually risk free. Given the additional benefits, I recommend
