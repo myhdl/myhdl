@@ -61,7 +61,7 @@ _profileFunc = None
 
 class _error:
     pass
-_error.TopLevelName = "result of toVerilog call should be assigned to a top level name"
+_error.TopLevelName = "Result of toVerilog call should be assigned to a top level name"
 _error.ArgType = "toVerilog first argument should be a classic function"
 _error.UndefinedBitWidth = "Signal has undefined bit width"
 _error.UndrivenSignal = "Signal is not driven"
@@ -182,7 +182,7 @@ class _ToVerilogMixin(object):
         lineno = lineno or 0
         return lineno
     
-    def raiseError(self, kind, msg, node):
+    def raiseError(self, node, kind, msg):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
               (self.sourcefile, self.lineoffset+lineno)
@@ -198,73 +198,73 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     
 
     def visitAssList(self, node, *args):
-        self.raiseError(_error.NotSupported, "list assignment", node)
+        self.raiseError(node, _error.NotSupported, "list assignment")
 
     def visitAssTuple(self, node, *args):
-        self.raiseError(_error.NotSupported, "tuple assignment", node)
+        self.raiseError(node, _error.NotSupported, "tuple assignment")
 
     def visitBackquote(self, node, *args):
-        self.raiseError(_error.NotSupported, "backquote", node)
+        self.raiseError(node, _error.NotSupported, "backquote")
 
     def visitBreak(self, node, *args):
-        self.raiseError(_error.NotSupported, "break statement", node)
+        self.raiseError(node, _error.NotSupported, "break statement")
 
     def visitClass(self, node, *args):
-        self.raiseError(_error.NotSupported, "class statement", node)
+        self.raiseError(node, _error.NotSupported, "class statement")
 
     def visitContinue(self, node, *args):
-        self.raiseError(_error.NotSupported, "continue statement", node)
+        self.raiseError(node, _error.NotSupported, "continue statement")
 
     def visitDict(self, node, *args):
-        self.raiseError(_error.NotSupported, "dictionary", node)
+        self.raiseError(node, _error.NotSupported, "dictionary")
 
     def visitDiv(self, node, *args):
-        self.raiseError(_error.NotSupported, "true division - consider '//'", node)
+        self.raiseError(node, _error.NotSupported, "true division - consider '//'")
 
     def visitEllipsis(self, node, *args):
-        self.raiseError(_error.NotSupported, "ellipsis", node)
+        self.raiseError(node, _error.NotSupported, "ellipsis")
 
     def visitExec(self, node, *args):
-        self.raiseError(_error.NotSupported, "exec statement", node)
+        self.raiseError(node, _error.NotSupported, "exec statement")
 
     def visitExpression(self, node, *args):
-        self.raiseError(_error.NotSupported, "Expression node", node)
+        self.raiseError(node, _error.NotSupported, "Expression node")
 
     def visitFrom(self, node, *args):
-        self.raiseError(_error.NotSupported, "from statement", node)
+        self.raiseError(node, _error.NotSupported, "from statement")
         
     def visitGlobal(self, node, *args):
-        self.raiseError(_error.NotSupported, "global statement", node)
+        self.raiseError(node, _error.NotSupported, "global statement")
 
     def visitImport(self, node, *args):
-        self.raiseError(_error.NotSupported, "import statement", node)
+        self.raiseError(node, _error.NotSupported, "import statement")
 
     def visitLambda(self, node, *args):
-        self.raiseError(_error.NotSupported, "lambda statement", node)
+        self.raiseError(node, _error.NotSupported, "lambda statement")
 
     def visitListComp(self, node, *args):
-        self.raiseError(_error.NotSupported, "list comprehensions", node)
+        self.raiseError(node, _error.NotSupported, "list comprehensions")
         
     def visitList(self, node, *args):
-        self.raiseError(_error.NotSupported, "list", node)
+        self.raiseError(node, _error.NotSupported, "list")
         
     def visitPower(self, node, *args):
-        self.raiseError(_error.NotSupported, "power operator", node)
+        self.raiseError(node, _error.NotSupported, "power operator")
 
     def visitReturn(self, node, *args):
-        self.raiseError(_error.NotSupported, "return statement", node)
+        self.raiseError(node, _error.NotSupported, "return statement")
 
     def visitTryExcept(self, node, *args):
-        self.raiseError(_error.NotSupported, "try-except statement", node)
+        self.raiseError(node, _error.NotSupported, "try-except statement")
         
     def visitTryFinally(self, node, *args):
-        self.raiseError(_error.NotSupported, "try-finally statement", node)
+        self.raiseError(node, _error.NotSupported, "try-finally statement")
 
     def visitUnaryAdd(self, node, *args):
-        self.raiseError(_error.NotSupported, "unary addition", node)
+        self.raiseError(node, _error.NotSupported, "unary addition")
         
     def visitUnarySub(self, node, *args):
-        self.raiseError(_error.NotSupported, "unary subtraction", node)
+        self.raiseError(node, _error.NotSupported, "unary subtraction")
 
 
 class SignalAsInoutError(Error):
@@ -488,14 +488,14 @@ class _EvalIntExprVisitor(_ToVerilogMixin):
         self._require(isinstance(val, int), "Expected integer constant", node)
 
     def visitName(self, node):
-        self._require(node.name in self.symdict, \
-                      "Unresolved symbol %s" % node.name, node)
+        self._require(node, node.name in self.symdict, \
+                      "Unresolved symbol %s" % node.name)
         val = node.val = self.symdict[node.name]
-        self._require(isinstance(val, int), \
+        self._require(node, isinstance(val, int), \
                       "Expected integer value", node)
 
     
-class _ConvertGenVisitor(object):
+class _ConvertGenVisitor(_ToVerilogMixin):
     
     def __init__(self, f, sigdict, symdict, name, sourcefile, lineoffset):
         self.buf = self.fileBuf = f
@@ -511,19 +511,7 @@ class _ConvertGenVisitor(object):
         self.isSigAss = False
         self.toplevel = 1
 
-    def raiseError(self, kind, msg, node):
-        lineno = node.lineno
-        if lineno is None:
-            for n in node.getChildNodes():
-                if n.lineno is not None:
-                    lineno = n.lineno
-                    break
-        lineno = lineno or 0
-        info = "in file %s, line %s:\n    " % \
-              (self.sourcefile, self.lineoffset+lineno)
-        raise ToVerilogError(kind, msg, info)
-    
-
+ 
     def write(self, arg):
         self.buf.write("%s" % arg)
 
@@ -561,7 +549,7 @@ class _ConvertGenVisitor(object):
         # if not node.a
         # assert node.attrname == 'next'
         if node.attrname != 'next':
-            self.raiseError(_error.NotSupported, "attribute assignment", node)
+            self.raiseError(node, _error.NotSupported, "attribute assignment")
         self.isSigAss = True
         self.visit(node.expr)
 
@@ -664,7 +652,7 @@ class _ConvertGenVisitor(object):
 
     def visitFunction(self, node):
         if not self.toplevel:
-            self.raiseError(_error.NotSupported, "embedded function definition", node)
+            self.raiseError(node, _error.NotSupported, "embedded function definition")
         self.toplevel = 0
         w = node.code.nodes[-1]
         assert isinstance(w, ast.While)
