@@ -178,10 +178,10 @@ paper-$(PAPER)/whatsnew03.pdf: whatsnew03/whatsnew03.tex
 
 # What's new
 # in 0.4
-paper-$(PAPER)/whatsnew04.dvi: whatsnew04/whatsnew04.tex
+paper-$(PAPER)/whatsnew04.dvi: whatsnew04/whatsnew04.tex manual/conversion.tex
 	cd paper-$(PAPER) && $(MKDVI) ../whatsnew04/whatsnew04.tex
 
-paper-$(PAPER)/whatsnew04.pdf: whatsnew04/whatsnew04.tex
+paper-$(PAPER)/whatsnew04.pdf: whatsnew04/whatsnew04.tex manual/conversion.tex
 	cd paper-$(PAPER) && $(MKPDF) ../whatsnew04/whatsnew04.tex
 
 # The remaining part of the Makefile is concerned with various

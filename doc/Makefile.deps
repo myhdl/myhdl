@@ -30,4 +30,5 @@ MANUALFILES= $(MANSTYLES) $(INDEXSTYLES) $(COMMONTEX) \
 	manual/modeling.tex \
 	manual/unittest.tex \
 	manual/cosimulation.tex \
+	manual/conversion.tex \
 	manual/reference.tex
