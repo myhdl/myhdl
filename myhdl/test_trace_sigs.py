@@ -52,11 +52,6 @@ def fun():
     inst = gen(clk)
     return inst
 
-def fun2():
-    clk = Signal(bool(0))
-    inst = gen(clk)
-    return inst
-
 def dummy():
     clk = Signal(bool(0))
     inst = gen(clk)
@@ -64,6 +59,12 @@ def dummy():
 
 def top():
     inst = trace_sigs(fun)
+    return inst
+
+def top2():
+    inst = [{} for i in range(4)]
+    j = 3
+    inst[j-2]['key'] = trace_sigs(fun)
     return inst
 
 
@@ -79,7 +80,6 @@ class TestTraceSigs(TestCase):
         for p in self.paths:
             if path.exists(p):
                 os.remove(p)
-        
 
     def testTopName(self):
         p = "dut.vcd"
@@ -118,7 +118,6 @@ class TestTraceSigs(TestCase):
         else:
             self.fail()
             
-
     def testHierarchicalTrace1(self):
         p = "inst.vcd"
         top()
@@ -130,6 +129,20 @@ class TestTraceSigs(TestCase):
         dut = trace_sigs(top)
         self.assert_(path.exists(pdut))
         self.assert_(not path.exists(psub))
+
+    def testIndexedName(self):
+        p = "dut[1][0].vcd"
+        dut = [[None] * 3 for i in range(4)]
+        i, j = 0, 2
+        dut[i+1][j-2] = trace_sigs(top)
+        self.assert_(path.exists(p))
+        os.remove(p)
+
+    def testIndexedName2(self):
+        p = "inst[1][key].vcd"
+        top2()
+        self.assert_(path.exists(p))
+        os.remove(p)
 
     def testBackupOutputFile(self):
         p = "dut.vcd"
