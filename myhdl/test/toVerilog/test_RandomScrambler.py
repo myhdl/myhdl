@@ -84,7 +84,7 @@ def RandomScrambler_v(o7, o6, o5, o4, o3, o2, o1, o0,
     return Cosimulation(simulate_cmd, **locals())
 
 
-class TestRandomScramber(TestCase):
+class TestRandomScrambler(TestCase):
 
     def stimulus(self):
         input = intbv()

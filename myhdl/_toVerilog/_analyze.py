@@ -373,6 +373,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
+            print ast
             fname = f.__name__
             ast.name = _Label(fname)
             ast.sourcefile = inspect.getsourcefile(f)
@@ -403,8 +404,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                     self.visit(arg, _access.OUTPUT)
                 if n in ast.inputs:
                     self.visit(arg, _access.INPUT)
-            if ast.isGen:
-                self.raiseError(node, _error.NotSupported, "Generator function call")
         elif type(f) is MethodType:
             self.raiseError(node,_error.NotSupported, "method call: '%s'" % f.__name__)
         else:
@@ -610,8 +609,13 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             
     def visitReturn(self, node, *args):
         ### value should be None
-        self.raiseError(node, _error.NotSupported, "return statement")
-        
+        if isinstance(node.value, astNode.Const) and node.value.value is None:
+            obj = None
+        elif isinstance(node.value, astNode.Name) and node.value.name == 'None':
+            obj = None
+        else:
+            self.raiseError(node, _error.NotSupported, "return value other than None")
+     
 
 class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
     
@@ -653,17 +657,29 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
                 self.ast.sigdict[n] = v
         self.visit(node.code)
         self.refStack.pop()
+        if self.ast.isGen:
+            self.raiseError(node, _error.NotSupported,
+                            "call to a generator function")
+        if self.ast.kind == _kind.TASK:
+            if self.ast.returnObj is not None:
+                self.raiseError(node, _error.NotSupported,
+                                "function with side effects and return value")
+        else:
+            if self.ast.returnObj is None:
+                self.raiseError(node, _error.NotSupported,
+                                "pure function without return value")
+        
         
     def visitReturn(self, node, *args):
         self.visit(node.value, _access.INPUT, _kind.DECLARATION, *args)
         if isinstance(node.value, astNode.Const) and node.value.value is None:
             obj = None
-        elif isinstance(node.value, astNode.Name) and node.value.name is None:
+        elif isinstance(node.value, astNode.Name) and node.value.name == 'None':
             obj = None
         elif node.value.obj is not None:
             obj = node.value.obj
         else:
-            self.raiseError(node, error._ReturnTypeInfer)
+            self.raiseError(node, _error.ReturnTypeInfer)
         if isinstance(obj, intbv) and len(obj) == 0:
             self.raiseError(node, _error.ReturnIntbvBitWidth)
         if self.ast.hasReturn:
