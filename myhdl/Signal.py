@@ -1,12 +1,43 @@
-""" Module that holds the sig class """
+#  This file is part of the myhdl library, a Python package for using
+#  Python as a Hardware Description Language.
+#
+#  Copyright (C) 2003 Jan Decaluwe
+#
+#  The myhdl library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public License as
+#  published by the Free Software Foundation; either version 2.1 of the
+#  License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+""" Module that provides the Signal class and related objects.
+
+This module provides the following objects:
+
+Signal -- class to model hardware signals
+posedge -- callable to model a rising edge on a signal in a yield statement
+negedge -- callable to model a falling edge on a signal in a yield statement
+
+"""
+__author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
+__version__ = "$Revision$"
+__date__ = "$Date$"
+
 from __future__ import generators
+from copy import deepcopy as copy
 
 import _simulator
 from _simulator import _siglist, _futureEvents, now
 
-from copy import deepcopy as copy
 
-schedule = _futureEvents.append
+_schedule = _futureEvents.append
 
 class _WaiterList(list):
     pass
@@ -94,7 +125,7 @@ class DelayedSignal(Signal):
             # print "Update timestamp %s" % now()
         self._nextZ = self._next
         t = _simulator._time + self._delay
-        schedule((t, _SignalWrap(self, self._next, self._timeStamp)))
+        _schedule((t, _SignalWrap(self, self._next, self._timeStamp)))
         return []
 
     def _apply(self, next, timeStamp):

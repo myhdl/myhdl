@@ -12,14 +12,28 @@
 #  WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 #  Lesser General Public License for more details.
-
+#
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" doc """
+""" myhdl package initialization.
 
-__author__= "Jan Decaluwe <jan@jandecaluwe.com>"
+This module provides the following myhdl objects:
+Simulation -- simulation class
+StopStimulation -- exception that stops a simulation
+now -- function that returns the current time
+Signal -- class to model hardware signals
+delay -- callable to model delay in a yield statement
+posedge -- callable to model a rising edge on a signal in a yield statement
+negedge -- callable to model a falling edge on a signal in a yield statement
+join -- callable to join clauses in a yield statement
+intbv -- mutable integer class with bit vector facilities
+downrange -- function that returns a downward range
+
+"""
+
+__author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
