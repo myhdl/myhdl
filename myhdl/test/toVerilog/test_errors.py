@@ -254,7 +254,7 @@ class TestInc(TestCase):
         try:
             self.bench(yieldObject2)
         except ToVerilogError, e:
-            self.assertEqual(e.kind, _error.UnsupportedYield)
+            self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
 

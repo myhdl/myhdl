@@ -400,7 +400,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 if n in ast.inputs:
                     self.visit(arg, _access.INPUT)
             if ast.isGen:
-                node.obj = _Generator()
+                self.raiseError(node, _error.NotSupported, "Generator function call")
         elif type(f) is MethodType:
             self.raiseError(node,_error.NotSupported, "method call: '%s'" % f.__name__)
         else:
@@ -549,9 +549,10 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.refStack.push()
         self.visit(node.body, *args)
         self.refStack.pop()
+        y = node.body.nodes[0]
         if isinstance(node.test, astNode.Const) and \
            node.test.value == True and \
-           isinstance(node.body.nodes[0], astNode.Yield):
+           isinstance(y, astNode.Yield):
             node.kind = _kind.ALWAYS
         self.require(node, node.else_ is None, "while-else not supported")
         self.labelStack.pop()
@@ -566,7 +567,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 if not type(n.obj) in (Signal, _EdgeDetector):
                     self.raiseError(node, _error.UnsupportedYield)
         else:
-            if not type(n.obj) in (Signal, _EdgeDetector, _Generator):
+            if not type(n.obj) in (Signal, _EdgeDetector):
                 self.raiseError(node, _error.UnsupportedYield)
         
 
