@@ -111,16 +111,18 @@ class Signal(object):
         self._tracing = 0
         
     def _update(self):
-        if self._val != self._next:
+        val, next = self._val, self._next
+        if val != next:
             waiters = self._eventWaiters[:]
             del self._eventWaiters[:]
-            if not self._val and self._next:
+            if not val and next:
                 waiters.extend(self._posedgeWaiters[:])
                 del self._posedgeWaiters[:]
-            elif not self._next and self._val:
+            elif not next and val:
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
-            self._val = self._next
+            self._checkVal(next)
+            self._val = next
             if self._tracing:
                 self._printVcd()
             return waiters
@@ -141,7 +143,6 @@ class Signal(object):
     def _set_next(self, val):
         if isinstance(val, Signal):
             val = val._val
-        self._checkVal(val)
         self._next = val
         _siglist.append(self)
     next = property(_get_next, _set_next, None, "'next' access methods")
@@ -398,15 +399,17 @@ class DelayedSignal(Signal):
         return []
 
     def _apply(self, next, timeStamp):
-        if timeStamp == self._timeStamp and self._val != next:
+        val = self._val
+        if timeStamp == self._timeStamp and val != next:
             waiters = self._eventWaiters[:]
             del self._eventWaiters[:]
-            if not self._val and next:
+            if not val and next:
                 waiters.extend(self._posedgeWaiters[:])
                 del self._posedgeWaiters[:]
-            elif not next and self._val:
+            elif not next and val:
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
+            self._checkVal(next)
             self._val = copy(next)
             if self._tracing:
                 self._printVcd()

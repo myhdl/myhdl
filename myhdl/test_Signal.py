@@ -113,7 +113,7 @@ class SigTest(TestCase):
             self.assert_(s.val == n)
 
     def testNextType(self):
-        """ sig.next = n should fail if type(n) incompatible """
+        """ sig.next = n should fail on update if type(n) incompatible """
         i = 0
         for s in (self.sigs + self.incompatibleSigs):
             for n in (self.vals + self.incompatibleVals):
@@ -122,6 +122,7 @@ class SigTest(TestCase):
                     i += 1
                     try:
                         s.next = n
+                        s._update()
                     except TypeError:
                         pass
                     else:
@@ -566,6 +567,54 @@ class TestSignalNrBits(TestCase):
             self.assertEqual(s._nrbits, n+1)
             s = Signal(intbv(min=-(2**n)-1, max=2**n-1))
             self.assertEqual(s._nrbits, n+2)
+            
+
+class TestSignalBoolBounds(TestCase):
+    
+    def testSignalBoolBounds(self):
+        if type(bool) is not types.TypeType: # bool not a type in 2.2
+            return
+        s = Signal(bool())
+        s.next = 1
+        s.next = 0
+        for v in (-1, -8, 2, 5):
+            try:
+                s.next = v
+                s._update()
+            except ValueError:
+                pass
+            else:
+                self.fail()
+
+                
+class TestSignalIntbvBounds(TestCase):
+
+    def testSliceAssign(self):
+        s = Signal(intbv(min=-24, max=34))
+        for i in (-24, -2, 13, 33):
+            for k in (0, 9, 10):
+                s.next[k:] = i
+        for i in (-25, -128, 34, 35, 229):
+            for k in (0, 9, 10):
+                s.next[k:] = i
+                try:
+                    s.next[k:] = i
+                    s._update()
+                except ValueError:
+                    pass
+                else:
+                    self.fail()
+        s = Signal(intbv(5)[8:])
+        for v in (0, 2**8-1, 100):
+            s.next[:] = v
+        for v in (-1, 2**8, -10, 1000):
+            try:
+                s.next[:] = v
+                s._update()
+            except ValueError:
+                pass
+            else:
+                self.fail()
             
 
 if __name__ == "__main__":
