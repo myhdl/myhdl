@@ -166,12 +166,20 @@ class Simulation(object):
                 if not quiet:
                     printExcInfo()
                 if cosim:
+                    _simulator._cosim = 0
                     os.close(cosim._rt)
                     os.close(cosim._wf)
                     os.waitpid(cosim._child_pid, 0)
-                    _simulator._cosim = 0
                 return 0
-                    
+
+            except:
+                if cosim:
+                    _simulator._cosim = 0
+                    os.close(cosim._rt)
+                    os.close(cosim._wf)
+                    os.waitpid(cosim._child_pid, 0)
+                raise
+
 
 def printExcInfo():
     kind, value, traceback = sys.exc_info()
