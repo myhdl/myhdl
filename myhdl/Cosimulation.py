@@ -139,6 +139,7 @@ class Cosimulation(object):
 
     def _get(self):
         s = os.read(self._rt, _MAXLINE)
+        # print "Reading " + s
         if not s:
             raise SimulationEndError
         e = s.split()
@@ -160,13 +161,16 @@ class Cosimulation(object):
         for s in self._fromSigs:
             buf += hex(s)[2:]
             buf += " "
+        # print "clear change"
         self._hasChange = 0
+        # print "Writing " + buf
         os.write(self._wf, buf)
 
     def _waiter(self):
         sigs = tuple(self._fromSigs)
         while 1:
             yield sigs
+            # print "detected change"
             self._hasChange = 1
             
     def __del__(self):

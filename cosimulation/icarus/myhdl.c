@@ -87,7 +87,9 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
 
   init_pipes();
 
+#ifdef DEBUG
   vpi_printf("Hello from $from_myhdl %d %d\n", rpipe, wpipe);
+#endif
   from_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
   net_iter = vpi_iterate(vpiArgument, from_myhdl_systf_handle);
 
@@ -136,7 +138,9 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 
   init_pipes();
 
+#ifdef DEBUG
   vpi_printf("Hello from $to_myhdl %d %d\n", rpipe, wpipe);
+#endif
   to_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
 
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
