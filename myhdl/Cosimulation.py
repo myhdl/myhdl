@@ -29,10 +29,8 @@ import os
 import exceptions
 
 from Signal import Signal
-import myhdl
 import _simulator
 from myhdl import intbv
-
 
 _MAXLINE = 4096
 
@@ -166,7 +164,7 @@ class Cosimulation(object):
         os.write(self._wf, buf)
 
     def _waiter(self):
-        sigs = tuple(self._fromSignals)
+        sigs = tuple(self._fromSigs)
         while 1:
             yield sigs
             self._changeFlag = 1

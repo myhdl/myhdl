@@ -35,7 +35,7 @@ from unittest import TestCase
 
 from Signal import Signal
 from _simulator import _siglist
-from intbv import intbv
+from myhdl import intbv
 
         
 class SigTest(TestCase):

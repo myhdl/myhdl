@@ -41,25 +41,13 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
-import Signal
-import Simulation
-import delay
-import intbv
-import _simulator
-import Cosimulation
-import util
-
-StopSimulation = Simulation.StopSimulation
-join = Simulation.join
-Simulation = Simulation.Simulation
-posedge = Signal.posedge
-negedge = Signal.negedge
-Signal = Signal.Signal
-now = _simulator.now
-delay = delay.delay
-intbv = intbv.intbv
-Cosimulation = Cosimulation.Cosimulation
-downrange = util.downrange
-bin = util.bin
-Error = util.Error
+# import intbv as a class first; it's used in other classes
+from intbv import intbv
+from Simulation import StopSimulation, join, Simulation
+from Signal import posedge, negedge, Signal
+from _simulator import now
+from delay import delay
+from intbv import intbv
+from Cosimulation import Cosimulation
+from util import downrange, bin, Error
 

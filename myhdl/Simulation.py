@@ -173,7 +173,7 @@ def _flatten(*args):
             if cosim:
                 raise MultipleCosimError
             cosim = arg
-            waiters.append(_Waiter(cosim._waiter))
+            waiters.append(_Waiter(cosim._waiter()))
         else:
             for item in arg:
                 w, c = _flatten(item)

@@ -35,8 +35,7 @@ from copy import deepcopy as copy
 
 import _simulator
 from _simulator import _siglist, _futureEvents, now
-from intbv import intbv
-
+from myhdl import intbv
 
 _schedule = _futureEvents.append
 
@@ -116,6 +115,7 @@ class Signal(object):
     def _set_next(self, val):
         if isinstance(val, Signal):
             val = val._val
+        # print self._type
         if not isinstance(val, self._type):
             raise TypeError, "Incompatible type(v) for sig.next = v\n" \
                   "           Expected %s, got %s" % (self._type, type(val))
