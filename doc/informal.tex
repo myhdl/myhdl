@@ -384,9 +384,9 @@ transmitter. We assume 8 data bits, no parity bit, and a single stop
 bit, and we add print statements to follow the simulation behavior:
 
 \begin{verbatim}
-DURATION_9600 = int(1e9 / 9600)
+T_9600 = int(1e9 / 9600)
 
-def rs232_tx(tx, data, duration=DURATION_9600):
+def rs232_tx(tx, data, duration=T_9600):
     
     """ Simple rs232 transmitter procedure.
 
