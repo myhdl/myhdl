@@ -37,8 +37,8 @@ languages, we can only use identifiers that are
 \emph{literally} defined in the source file 
 \footnote{The exception is the \samp{from module import *} syntax,
 that imports all the symbols from a module. Although this is generally
-considered bad practice, disallowing this can be impractical for large
-modules that export a lot of symbols. It may be argued that
+considered bad practice, it can be tolerated for large modules that
+export a lot of symbols. One may argue that
 \code{myhdl} falls into that category.}.
 
 Next, we define a generator function called
