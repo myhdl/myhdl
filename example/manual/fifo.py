@@ -63,11 +63,11 @@ def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
             try:
                 dout.next = memory.pop()
             except IndexError:
-                raise Error, "Underflow - Read from empty fifo"
+                raise Error, "Underflow -- Read from empty fifo"
         empty.next = (len(memory) == 0)
         full.next = (len(memory) == maxFilling)
         if len(memory) > maxFilling:
-            raise Error, "Overflow - Max filling %s exceeded" % maxFilling
+            raise Error, "Overflow -- Max filling %s exceeded" % maxFilling
 
 
 dout, din, re, we, empty, full, clk = args = [Signal(0) for i in range(7)]
