@@ -608,12 +608,12 @@ t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding='one_hot')
 \end{verbatim}
 
 The default encoding is \code{'binary'}; the other possibilities are
-\code{'one_hot'} and \code{'one_cold'}. This parameter only
-affects the conversion output, not the behavior of the type. Verilog
-case statements are optimized for an efficient implementation
-according to the encoding. Note that in contrast, a Verilog designer
-needs to make nontrivial code changes to implement a different
-encoding scheme.
+\code{'one_hot'} and \code{'one_cold'}. This parameter only affects
+the conversion output, not the behavior of the type.  The generated
+Verilog code for case statements is optimized for an efficient
+implementation according to the encoding. Note that in contrast, a
+Verilog designer has to make nontrivial code changes to implement a
+different encoding scheme.
 
 As an example, consider the following finite state machine, whose
 state variable uses the enumeration type defined above:
