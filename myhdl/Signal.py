@@ -287,10 +287,17 @@ class Signal(object):
 
     # augmented assignment not supported
     def _augm(self):
-        raise TypeError, "Signal objects don't support augmented assignment"
+        raise TypeError, "Signal object doesn't support augmented assignment"
 
     __iadd__ = __isub__ = __idiv__ = __imul__ = __ipow__ = __imod__ = _augm
     __ior__ = __iand__ = __ixor__ = __irshift__ = __ilshift__ = _augm
+
+    # index and slice assignment not supported
+    def __setitem__(self, i, val):
+        raise TypeError, "Signal object doesn't support item assignment"
+
+    def __setslice__(self, i, j, val):
+        raise TypeError, "Signal object doesn't support slice assignment"
 
 
 class DelayedSignal(Signal):

@@ -455,6 +455,93 @@ class TestSignalAsNum(TestCase):
         self.comparisonCheck("==")
     def testNe(self):
         self.comparisonCheck("!=")
+
+
+
+def getItem(s, i):
+    ext = '0' * (i-len(s)+1)
+    exts = ext + s
+    si = len(exts)-1-i
+    return exts[si]
+
+def getSlice(s, i, j):
+    ext = '0' * (i-len(s)+1)
+    exts = ext + s
+    si = len(exts)-i
+    sj = len(exts)-j
+    return exts[si:sj]
+
+
+
+class TestSignalIntBvIndexing(TestCase):
+
+    def seqsSetup(self):
+        seqs = ["0", "1", "000", "111", "010001", "110010010", "011010001110010"]
+        seqs.extend(["0101010101", "1010101010", "00000000000", "11111111111111"])
+        seqs.append("11100101001001101000101011011101001101")
+        seqs.append("00101011101001011111010100010100100101010001001")
+        self.seqs = seqs
+        seqv = ["0", "1", "10", "101", "1111", "1010"]
+        seqv.extend(["11001", "00111010", "100111100"])
+        seqv.append("0110101001111010101110011010011")
+        seqv.append("1101101010101101010101011001101101001100110011")
+        self.seqv = seqv
+
+    def testGetItem(self):
+        self.seqsSetup()
+        for s in self.seqs:
+            n = long(s, 2)
+            sbv = Signal(intbv(n))
+            sbvi = Signal(intbv(~n))
+            for i in range(len(s)+20):
+                ref = long(getItem(s, i), 2)
+                res = sbv[i]
+                resi = sbvi[i]
+                self.assertEqual(res, ref)
+                self.assertEqual(type(res), intbv)
+                self.assertEqual(resi, ref^1)
+                self.assertEqual(type(resi), intbv)
+
+    def testGetSlice(self):
+        self.seqsSetup()
+        for s in self.seqs:
+            n = long(s, 2)
+            sbv = Signal(intbv(n))
+            sbvi = Signal(intbv(~n))
+            for i in range(0, len(s)+20):
+                for j in range(0,len(s)+20):
+                    try:
+                        res = sbv[i:j]
+                        resi = sbvi[i:j]
+                    except ValueError:
+                        self.assert_(i<=j)
+                        continue
+                    ref = long(getSlice(s, i, j), 2)
+                    self.assertEqual(res, ref)
+                    self.assertEqual(type(res), intbv)
+                    mask = (2**(i-j))-1
+                    self.assertEqual(resi, ref ^ mask)
+                    self.assertEqual(type(resi), intbv)
+
+    def testSetItem(self):
+        sbv = Signal(intbv(5))
+        try:
+            sbv[1] = 1
+        except TypeError:
+            pass
+        else:
+            self.fail()
+            
+    def testSetSlice(self):
+        sbv = Signal(intbv(5))
+        try:
+            sbv[1:0] = 1
+        except TypeError:
+            pass
+        else:
+            self.fail()
+            
+            
               
 
 if __name__ == "__main__":

@@ -104,3 +104,19 @@ In the following, a "sig" denotes an instance of the Signal class.
 
 * Signal objects are unhashable.
 
+* In practice, Signals will often have numbers as their underlying
+  values. As a matter of convenience, the special Python object
+  methods for numeric and bitwise operators are supported on Signal
+  objects, by delegation to the corresponding method on the underlying
+  current value. As an exception, augmented assignment methods are not
+  supported, as these would provide write access to the current value.
+  The current value of a Signal object should always behave as a
+  read-only attribute.
+
+* In addition, the special methods for logical interpretation and
+  comparision are supported by delegation to the current value.
+
+* In addition, index access and slice access is supported by
+  delegation to the current value. However, for the same reasons as
+  above, index and slice assignment are not supported.
+
