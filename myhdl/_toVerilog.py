@@ -673,9 +673,8 @@ def _convertGens(genlist, vfile):
 
 class _ConvertVisitor(_ToVerilogMixin):
     
-    def __init__(self, ast, blockBuf, funcBuf=None):
-        self.buf = blockBuf
-        self.funcBuf = funcBuf
+    def __init__(self, ast, buf):
+        self.buf = buf
         self.name = ast.name
         self.sourcefile = ast.sourcefile
         self.lineoffset = ast.lineoffset
@@ -1071,8 +1070,9 @@ class _ConvertVisitor(_ToVerilogMixin):
         
 class _ConvertAlwaysVisitor(_ConvertVisitor):
     
-    def __init__(self, *args):
-        _ConvertVisitor.__init__(self, *args)
+    def __init__(self, ast, blockBuf, funcBuf):
+        _ConvertVisitor.__init__(self, ast, blockBuf)
+        self.funcBuf = funcBuf
 
     def visitFunction(self, node):
         w = node.code.nodes[-1]
@@ -1095,8 +1095,9 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
     
 class _ConvertInitialVisitor(_ConvertVisitor):
     
-    def __init__(self, *args):
-        _ConvertVisitor.__init__(self, *args)
+    def __init__(self, ast, blockBuf, funcBuf):
+        _ConvertVisitor.__init__(self, ast, blockBuf)
+        self.funcBuf = funcBuf
 
     def visitFunction(self, node):
         self.write("initial begin: %s" % self.name) 
@@ -1112,8 +1113,8 @@ class _ConvertInitialVisitor(_ConvertVisitor):
     
 class _ConvertFunctionVisitor(_ConvertVisitor):
     
-    def __init__(self, ast, blockBuf, funcBuf=None):
-        _ConvertVisitor.__init__(self, ast, blockBuf, funcBuf)
+    def __init__(self, ast, funcBuf):
+        _ConvertVisitor.__init__(self, ast, funcBuf)
         self.argnames = ast.argnames
         self.returnObj = ast.returnObj
 
