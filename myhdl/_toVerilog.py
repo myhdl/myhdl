@@ -131,10 +131,17 @@ def _analyzeSigs(hierarchy):
 def LabelGenerator():
     i = 1
     while 1:
-        yield "__MYHDL__%s" % i
+        yield "__MYHDL%s" % i
         i += 1
         
 genLabel = LabelGenerator()
+
+class Label(object):
+    def __init__(self, name):
+        self.name = genLabel.next() + '_' + name
+        self.isActive = False
+    def __str__(self):
+        return str(self.name)
          
 
 def _analyzeGens(top, genNames):
@@ -194,12 +201,8 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         self.raiseError(node, _error.NotSupported, "tuple assignment")
     def visitBackquote(self, node, *args):
         self.raiseError(node, _error.NotSupported, "backquote")
-    def visitBreak(self, node, *args):
-        self.raiseError(node, _error.NotSupported, "break statement")
     def visitClass(self, node, *args):
         self.raiseError(node, _error.NotSupported, "class statement")
-    def visitContinue(self, node, *args):
-        self.raiseError(node, _error.NotSupported, "continue statement")
     def visitDict(self, node, *args):
         self.raiseError(node, _error.NotSupported, "dictionary")
     def visitDiv(self, node, *args):
@@ -254,6 +257,7 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         self.symdict = symdict
         self.vardict = {}
         self.used = Set()
+        self.labelStack = []
 
     def getObj(self, node):
         if hasattr(node, 'obj'):
@@ -268,6 +272,14 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
     def getVal(self, node):
         val = eval(_unparse(node), self.symdict)
         return val
+
+    def binaryOp(self, node, *args):
+        self.visit(node.left)
+        self.visit(node.right)
+        node.obj = int()
+        
+    visitAdd = binaryOp
+    visitSub = binaryOp
         
     def visitAssAttr(self, node, access=OUTPUT, *args):
         self.visit(node.expr, OUTPUT)
@@ -302,6 +314,9 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         self.visit(node.node, INOUT)
         self.visit(node.expr, INPUT)
 
+    def visitBreak(self, node, *args):
+        self.labelStack[-2].isActive = True
+
     def visitCallFunc(self, node, *args):
         for child in node.getChildNodes():
             self.visit(child, *args)
@@ -310,6 +325,8 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         # print node.args
         if type(func) is type and issubclass(func, intbv):
             node.obj = intbv()
+        elif func is len:
+            node.obj = int() # XXX
         elif func in myhdl.__dict__.values():
             pass
         elif func in __builtin__.__dict__.values():
@@ -345,14 +362,22 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         else:
             node.obj = None
             
+    def visitContinue(self, node, *args):
+        self.labelStack[-1].isActive = True
+            
     def visitFor(self, node, *args):
-        assert isinstance(node.assign, ast.AssName)
+        node.breakLabel = Label("BREAK")
+        node.loopLabel = Label("LOOP")
+        self.labelStack.append(node.breakLabel)
+        self.labelStack.append(node.loopLabel)
         self.visit(node.assign)
         var = node.assign.name
         self.vardict[var] = int()
         self.visit(node.list)
         self.visit(node.body, *args)
         self.require(node, node.else_ is None, "for-else not supported")
+        self.labelStack.pop()
+        self.labelStack.pop()
 
     def visitFunction(self, node, *args):
         raise AssertionError
@@ -415,6 +440,10 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         node.obj = bool() # XXX 
 
     def visitWhile(self, node, *args):
+        node.breakLabel = Label("BREAK")
+        node.loopLabel = Label("LOOP")
+        self.labelStack.append(node.breakLabel)
+        self.labelStack.append(node.loopLabel)
         self.visit(node.test, *args)
         self.visit(node.body, *args)
         if isinstance(node.test, ast.Const) and \
@@ -422,7 +451,9 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
            isinstance(node.body.nodes[0], ast.Yield):
             node.kind = ALWAYS
         self.require(node, node.else_ is None, "while-else not supported")
-
+        self.labelStack.pop()
+        self.labelStack.pop()
+        
 
 class _AnalyzeBlockVisitor(_AnalyzeVisitor):
     
@@ -684,6 +715,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
+        self.labelStack = []
  
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -792,6 +824,10 @@ class _ConvertVisitor(_ToVerilogMixin):
          
     def visitBitxor(self, node):
         self.multiOp(node, '^')
+        
+    def visitBreak(self, node):
+        self.writeline()
+        self.write("disable %s;" % self.labelStack[-2])
 
     def visitCallFunc(self, node):
         fn = node.node
@@ -828,7 +864,6 @@ class _ConvertVisitor(_ToVerilogMixin):
             Visitor = _ConvertFunctionVisitor
             v = Visitor(node.ast, self.funcBuf)
             compiler.walk(node.ast, v)
-            
 
     def visitCompare(self, node):
         self.write("(")
@@ -842,10 +877,16 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitConst(self, node):
         self.write(node.value)
 
+    def visitContinue(self, node):
+        self.writeline()
+        self.write("disable %s;" % self.labelStack[-1])
+
     def visitFloorDiv(self, node):
         self.binaryOp(node, '/')
 
     def visitFor(self, node):
+        self.labelStack.append(node.breakLabel)
+        self.labelStack.append(node.loopLabel)
         var = node.assign.name
         cf = node.list
         self.require(node, isinstance(cf, ast.CallFunc), "Expected (down)range call")
@@ -873,6 +914,9 @@ class _ConvertVisitor(_ToVerilogMixin):
                 start, stop, step = args[0], args[1], None
             else:
                 start, stop, step = args
+        if node.breakLabel.isActive:
+            self.writeline()
+            self.write("begin: %s" % node.breakLabel)
         self.writeline()
         self.write("for (%s=" % var)
         if start is None:
@@ -890,12 +934,18 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             self.visit(step)
         self.write(") begin")
+        if node.loopLabel.isActive:
+            self.write(": %s" % node.loopLabel)
         self.indent()
         self.visit(node.body)
         self.dedent()
         self.writeline()
         self.write("end")
-        
+        if node.breakLabel.isActive:
+            self.writeline()
+            self.write("end")
+        self.labelStack.pop()
+        self.labelStack.pop()
 
     def visitFunction(self, node):
         raise AssertionError("To be implemented in subclass")
@@ -1027,7 +1077,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             self.visit(node.upper)
         self.write("]")
-
             
     def visitSub(self, node):
         self.binaryOp(node, "-")
@@ -1056,8 +1105,27 @@ class _ConvertVisitor(_ToVerilogMixin):
         pass
 
     def visitWhile(self, node):
-        # XXX
-        pass
+        self.labelStack.append(node.breakLabel)
+        self.labelStack.append(node.loopLabel)
+        if node.breakLabel.isActive:
+            self.writeline()
+            self.write("begin: %s" % node.breakLabel)
+        self.writeline()
+        self.write("while (")
+        self.visit(node.test)
+        self.write(") begin")
+        if node.loopLabel.isActive:
+            self.write(": %s" % node.loopLabel)
+        self.indent()
+        self.visit(node.body)
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        if node.breakLabel.isActive:
+            self.writeline()
+            self.write("end")
+        self.labelStack.pop()
+        self.labelStack.pop()
         
     def visitYield(self, node):
         self.inYield = True
