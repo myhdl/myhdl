@@ -11,7 +11,7 @@ a = Signal(intbv(1))
 b = Signal(intbv(2))
 c = Signal(intbv(3))
 
-cosim = Cosimulation("vvp -m ../myhdl.vpi tb_test", a=a, b=b, c=c)
+cosim = Cosimulation("vvp -v -m ../myhdl.vpi tb_test", a=a, b=b, c=c)
 
 def stimulus(a, b):
     for i in range(10):
