@@ -50,6 +50,7 @@ __date__ = "$Date$"
 
 __version__ = "0.4.1"
 
+import warnings
 
 class StopSimulation(Exception):
     """ Basic exception to stop a Simulation """
@@ -82,6 +83,11 @@ class ToVerilogError(Error):
     pass
 class TraceSignalsError(Error):
     pass
+
+class ToVerilogWarning(UserWarning):
+    pass
+# warnings.filterwarnings('always', r".*", ToVerilogWarning)
+
 
 from _bin import bin
 from _concat import concat

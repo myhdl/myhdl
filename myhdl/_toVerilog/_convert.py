@@ -33,10 +33,11 @@ from sets import Set
 from types import GeneratorType, FunctionType, ClassType
 from cStringIO import StringIO
 import __builtin__
+import warnings
 
 import myhdl
 from myhdl import *
-from myhdl import ToVerilogError
+from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._util import _flatten
 from myhdl._always_comb import _AlwaysComb
@@ -129,14 +130,27 @@ def _writeModuleHeader(f, intf):
 
 
 def _writeSigDecls(f, intf, siglist):
+    constwires = []
     for s in siglist:
         if s._name in intf.argnames:
             continue
         r = _getRangeString(s)
         if s._driven:
+            # the following line would implement  initial value assignments
+            # print >> f, "reg %s%s = %s;" % (r, s._name, int(s._val))
             print >> f, "reg %s%s;" % (r, s._name)
         elif s._read:
-            raise ToVerilogError(_error.UndrivenSignal, s._name)
+            # the original exception
+            # raise ToVerilogError(_error.UndrivenSignal, s._name)
+            # changed to a warning and a continuous assignment to a wire
+            warnings.warn("%s: %s" % (_error.UndrivenSignal, s._name),
+                          category=ToVerilogWarning
+                          )
+            constwires.append(s)
+            print >> f, "wire %s%s;" % (r, s._name)
+    print >> f
+    for s in constwires:
+        print >> f, "assign %s = %s;" % (s._name, int(s._val))
     print >> f
             
 
