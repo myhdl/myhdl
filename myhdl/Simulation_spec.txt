@@ -45,6 +45,51 @@ Specification for the Simulation class
 * When the StopSimulation exception is caught, the run method prints
   the exception message and returns 1.
 
+* A Simulation run interacts with a list of signals that need updating
+  and a list of generators that need to run. As Simulation
+  construction time, the signal list is empty and the generator list
+  contains all generators that were passed as constructor
+  parameters.
 
+* In a given timestep, all signals in the signal list are first
+  updated. This may cause the need to run some additional
+  generators. Then, the generators are run and the return values from
+  their yield clauses are inspected. This may cause the need to update
+  signals in the same timestep. As long as the signal list is not
+  empty, the procedure is repeated. Once it is empty, the Simulation
+  moves to the next timestep where some action may be required. Again
+  the action may be a signal update, or a generator run. All actions
+  from the same time step are first collected before any generator is
+  run in the new timestep. In the new timestep, the update/run
+  procedure is repeated as described before.
+
+* The yield clauses recognized by as Simulation may contain a number
+  of different objects. The general format is:
+
+      yield arg1, arg2, .... argn
+
+  Each argument defines a trigger. When any trigger is satisfied, the
+  generator is run again. However, any subsequent triggers that were
+  originate from the same invocation of the yield clause, have no
+  effect. In other words: the first trigger wins, and the others are
+  neglected. (Note however, that another trigger could still have an
+  effect in another invocation of that same yield clause.)
+
+  Each trigger argument may be one of the following:
+  - a delay(t) object. This specifies that the generator should run at
+    time now() + t 
+  - a signal object. This specifies that the generator should run when
+    the signal value changes
+  - a posedge(signal) or negedge(signal) object. This specifies that
+    the generator should run at the rising or falling edge on a
+    signal.
+  - a join object. This specifies that the generator should run when
+    all arguments of the join have triggered.
+  - a generator. In this case, the generator is dynamically added to
+    the list of generators to be run in the timestep. When the
+    generator completes, the orginal generator is triggered.
+
+* When there are no further events, the Simulation.run method raises
+  the StopSimulationn exception.
 
 
