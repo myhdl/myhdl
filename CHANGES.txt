@@ -3,7 +3,7 @@ Release 0.3 30-Aug-2003
 
 * VCD output for waveform viewing
 * Enumeration types support
-* Inferring the sensitivitiy list for combinatorial logic
+* Inferring the sensitivity list for combinatorial logic
 * Inferring the list of instances
 * Inferring the list of processes
 * Class intbv enhancements
