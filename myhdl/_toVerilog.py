@@ -831,7 +831,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.multiOp(node, '^')
         
     def visitBreak(self, node):
-        self.writeline()
         self.write("disable %s;" % self.labelStack[-2])
 
     def visitCallFunc(self, node):
@@ -886,7 +885,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write(node.value)
 
     def visitContinue(self, node):
-        self.writeline()
         self.write("disable %s;" % self.labelStack[-1])
 
     def visitDiscard(self, node):
@@ -1048,8 +1046,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.multiOp(node, '||')
 
     def visitPass(self, node):
-        # XXX
-        pass
+        self.write("// pass")
     
     def visitPower(self, node):
         # XXX

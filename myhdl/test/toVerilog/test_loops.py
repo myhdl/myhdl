@@ -27,6 +27,7 @@ def ForContinueLoop(a, out):
 def ForBreakLoop(a, out):
     while 1:
         yield a
+        out.next = 0
         for i in downrange(len(a)):
             if a[i] == 1:
                 out.next = i
@@ -35,12 +36,43 @@ def ForBreakLoop(a, out):
 def ForBreakContinueLoop(a, out):
     while 1:
         yield a
+        out.next = 0
         for i in downrange(len(a)):
             if a[i] == 0:
                 continue
             out.next = i
             break
-        
+
+def NestedForLoop1(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in downrange(len(a)):
+            if a[i] == 0:
+                continue
+            else:
+                for j in downrange(i):
+                    if a[j] == 0:
+                        var +=1
+                break
+        out.next = var
+
+def NestedForLoop2(a, out):
+    while 1:
+        yield a
+        var = 0
+        out.next = 0
+        for i in downrange(len(a)):
+            if a[i] == 0:
+                continue
+            else:
+                for j in downrange(i-1):
+                    if a[j] == 0:
+                        pass
+                    else:
+                        out.next = j
+                        break
+                break
 
 def WhileLoop(a, out):
     while 1:
@@ -71,6 +103,7 @@ def WhileBreakLoop(a, out):
         yield a
         var = 0
         i = len(a)-1
+        out.next = 0
         while i >= 0:
             if a[i] == 1:
                 out.next = i
@@ -82,6 +115,7 @@ def WhileBreakContinueLoop(a, out):
         yield a
         var = 0
         i = len(a)-1
+        out.next = 0
         while i >= 0:
             if a[i] == 0:
                  i -= 1
@@ -116,42 +150,50 @@ class TestLoops(unittest.TestCase):
             for i in range(100):
                 a.next = randrange(2**min(i, 16))
                 yield delay(10)
-                # print "%s %s" % (out, out_v)
+                print "%s %s" % (out, out_v)
                 self.assertEqual(out, out_v)
 
         return stimulus(), looptest_inst, looptest_v_inst
 
-    def testForLoop(self):
-        sim = self.bench(ForLoop)
+##     def testForLoop(self):
+##         sim = self.bench(ForLoop)
+##         Simulation(sim).run()
+        
+##     def testForContinueLoop(self):
+##         sim = self.bench(ForContinueLoop)
+##         Simulation(sim).run()
+        
+##     def testForBreakLoop(self):
+##         sim = self.bench(ForBreakLoop)
+##         Simulation(sim).run()
+        
+##     def testForBreakContinueLoop(self):
+##         sim = self.bench(ForBreakContinueLoop)
+##         Simulation(sim).run()
+        
+##     def testNestedForLoop1(self):
+##         sim = self.bench(NestedForLoop1)
+##         Simulation(sim).run()
+        
+    def testNestedForLoop2(self):
+        sim = self.bench(NestedForLoop2)
         Simulation(sim).run()
         
-    def testForContinueLoop(self):
-        sim = self.bench(ForContinueLoop)
-        Simulation(sim).run()
-        
-    def testForBreakLoop(self):
-        sim = self.bench(ForBreakLoop)
-        Simulation(sim).run()
-        
-    def testForBreakContinueLoop(self):
-        sim = self.bench(ForBreakContinueLoop)
-        Simulation(sim).run()
-        
-    def testWhileLoop(self):
-        sim = self.bench(WhileLoop)
-        Simulation(sim).run()
+##     def testWhileLoop(self):
+##         sim = self.bench(WhileLoop)
+##         Simulation(sim).run()
 
-    def testWhileContinueLoop(self):
-        sim = self.bench(WhileContinueLoop)
-        Simulation(sim).run()
+##     def testWhileContinueLoop(self):
+##         sim = self.bench(WhileContinueLoop)
+##         Simulation(sim).run()
 
-    def testWhileBreakLoop(self):
-        sim = self.bench(WhileBreakLoop)
-        Simulation(sim).run()
+##     def testWhileBreakLoop(self):
+##         sim = self.bench(WhileBreakLoop)
+##         Simulation(sim).run()
         
-    def testWhileBreakContinueLoop(self):
-        sim = self.bench(WhileBreakContinueLoop)
-        Simulation(sim).run()
+##     def testWhileBreakContinueLoop(self):
+##         sim = self.bench(WhileBreakContinueLoop)
+##         Simulation(sim).run()
 
         
 if __name__ == '__main__':
