@@ -1,9 +1,13 @@
 \documentclass{howto}
-\usepackage{distutils}
+% \usepackage{distutils}
+\usepackage{palatino}
+\renewcommand{\ttdefault}{cmtt}
+\renewcommand{\sfdefault}{cmss}
+\newcommand{\myhdl}{\protect \mbox{MyHDL}}
 \usepackage{graphicx}
 % $Id$
 
-\title{What's New in MyHDL 0.3}
+\title{What's New in \myhdl\ 0.3}
 \release{0.3}
 \author{Jan Decaluwe}
 \authoraddress{\email{jan@jandecaluwe.com}}
@@ -19,13 +23,13 @@
 \includegraphics{tbfsm.png}
 \fi
 
-MyHDL now has support for waveform viewing. During simulation, signal
+\myhdl\ now has support for waveform viewing. During simulation, signal
 changes can be written to a VCD output file.  The VCD file can then be
-loaded in a waveform viewer tool.
+loaded and viewed in a waveform viewer tool.
 
 The user interface of this feature consists of a single function,
 \function{trace_sigs()}.  To explain how it works, recall that in
-MyHDL, instances are created by calling a function that returns a
+\myhdl{}, instances are created by calling a function that returns a
 sequence of generators. For example:
 
 \begin{verbatim}
