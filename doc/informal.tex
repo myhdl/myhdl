@@ -420,9 +420,11 @@ transmitted. This can be modeled as follows:
 
 
 \begin{verbatim}
+testvals = (0xc5, 0x3a, 0x4b)
+
 def stimulus():
     tx = Signal(1)
-    for val in (0xc5, 0x5c, 0xd2):
+    for val in testvals:
         txData = intbv(val)
         yield rs232_tx(tx, txData)
 
@@ -441,7 +443,6 @@ and resumes the caller when the spawned generator returns.
 When simulating this, we get:
 
 \begin{verbatim}
-% python rs232.py
 -- Transmitting 0xc5 --
 TX: start bit
 TX: 1
@@ -453,11 +454,11 @@ TX: 0
 TX: 1
 TX: 1
 TX: stop bit
--- Transmitting 0x5c --
+-- Transmitting 0x3a --
 TX: start bit
 TX: 0
-TX: 0
 TX: 1
+TX: 0
 TX: 1
 ...
 
@@ -479,7 +480,7 @@ a timeout. We can specify the timeout condition while waiting for the
 start bit, as in the following generator function:
 
 \begin{verbatim}
-def rs232_rx(rx, data, duration=DURATION_9600, timeout=MAX_TIMEOUT):
+def rs232_rx(rx, data, duration=T_9600, timeout=MAX_TIMEOUT):
     
     """ Simple rs232 receiver procedure.
 
@@ -526,7 +527,7 @@ def test():
     tx = Signal(1)
     rx = tx
     rxData = intbv(0)
-    for val in (0xc5, 0x5c, 0xd2):
+    for val in testvals:
         txData = intbv(val)
         yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
 
@@ -560,7 +561,7 @@ RX: 1
 TX: stop bit
 RX: stop bit
 -- Received 0xc5 --
--- Transmitting 0x5c --
+-- Transmitting 0x3a --
 TX: start bit
 RX: start bit
 TX: 0
@@ -578,9 +579,9 @@ def testTimeout():
     tx = Signal(1)
     rx = Signal(1)
     rxData = intbv(0)
-    for val in (0xc5, 0x5c, 0xd2):
+    for val in testvals:
         txData = intbv(val)
-        yield rs232_rx(rx, rxData, timeout=4*DURATION_9600-1), rs232_tx(tx, txData)
+        yield rs232_rx(rx, rxData, timeout=4*T_9600-1), rs232_tx(tx, txData)
 
 \end{verbatim}
  
@@ -597,7 +598,87 @@ StopSimulation: RX time out error
 
 \end{verbatim}
 
+Recall that the calling generator resumes as soon as one of the
+spawned generators returns. In the previous cases, this is just fine,
+as the transmitter and receiver generators run in lockstep. However,
+it may be desirable to resume the caller only when \emph{all} of the
+spawned generators have finished. For example, suppose that we want to
+characterize the robustness of the transmitter and receiver design to
+bit duration differences. We can adapt our test bench as follows, to
+run the transmitter at a faster rate:
 
+\begin{verbatim}
+T_10200 = int(1e9 / 10200)
 
+def testNoJoin():
+    tx = Signal(1)
+    rx = tx
+    rxData = intbv(0)
+    for val in testvals:
+        txData = intbv(val)
+        yield rs232_rx(rx, rxData), rs232_tx(tx, txData, duration=T_10200)
 
+\end{verbatim}
 
+Simulating this shows how the transmission of the new byte starts
+before the previous is one if received, potentially creating
+additional transmission errors:
+
+\begin{verbatim}
+-- Transmitting 0xc5 --
+TX: start bit
+RX: start bit
+...
+TX: 1
+RX: 1
+TX: 1
+TX: stop bit
+RX: 1
+-- Transmitting 0x3a --
+TX: start bit
+RX: stop bit
+-- Received 0xc5 --
+RX: start bit
+TX: 0
+
+\end{verbatim}
+
+It is more likely that we want to characterize this on a byte by byte
+basis, and align the two generators before transmitting each byte. In
+\myhdl{}, this can be done with the \function{join} function. By
+joining clauses together in a \code{yield} statement, we create a new
+clause that triggers only when all of its argument clauses have
+triggered. For example, we can adapt the test bench as follows:
+
+\begin{verbatim}
+def testJoin():
+    tx = Signal(1)
+    rx = tx
+    rxData = intbv(0)
+    for val in testvals:
+        txData = intbv(val)
+        yield join(rs232_rx(rx, rxData), rs232_tx(tx, txData, duration=T_10200))
+
+\end{verbatim}
+
+Now, transmission of a new byte only starts when the previous one is received:
+
+\begin{verbatim}
+-- Transmitting 0xc5 --
+TX: start bit
+RX: start bit
+...
+TX: 1
+RX: 1
+TX: 1
+TX: stop bit
+RX: 1
+RX: stop bit
+-- Received 0xc5 --
+-- Transmitting 0x3a --
+TX: start bit
+RX: start bit
+TX: 0
+RX: 0
+
+\end{verbatim}

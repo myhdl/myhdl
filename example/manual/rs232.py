@@ -6,9 +6,10 @@ from random import randrange
 from myhdl import Signal, Simulation, StopSimulation, \
                   intbv, delay, negedge, join
 
-DURATION_9600 = int(1e9 / 9600)
+T_9600 = int(1e9 / 9600)
+T_10200 = int(1e9 / 10200)
 
-def rs232_tx(tx, data, duration=DURATION_9600):
+def rs232_tx(tx, data, duration=T_9600):
     
     """ Simple rs232 transmitter procedure.
 
@@ -35,7 +36,7 @@ def rs232_tx(tx, data, duration=DURATION_9600):
 
 MAX_TIMEOUT = sys.maxint
         
-def rs232_rx(rx, data, duration=DURATION_9600, timeout=MAX_TIMEOUT):
+def rs232_rx(rx, data, duration=T_9600, timeout=MAX_TIMEOUT):
     
     """ Simple rs232 receiver procedure.
 
@@ -44,6 +45,8 @@ def rs232_rx(rx, data, duration=DURATION_9600, timeout=MAX_TIMEOUT):
     duration -- receive bit duration
     
     """
+
+
 
     # wait on start bit until timeout
     yield negedge(rx), delay(timeout)
@@ -64,11 +67,11 @@ def rs232_rx(rx, data, duration=DURATION_9600, timeout=MAX_TIMEOUT):
     print "-- Received %s --" % hex(data)
 
 
-
+testvals = (0xc5, 0x3a, 0x4b)
 
 def stimulus():
     tx = Signal(1)
-    for val in (0xc5, 0x5c, 0xd2):
+    for val in testvals:
         txData = intbv(val)
         yield rs232_tx(tx, txData)
 
@@ -77,7 +80,7 @@ def test():
     tx = Signal(1)
     rx = tx
     rxData = intbv(0)
-    for val in (0xc5, 0x5c, 0xd2):
+    for val in testvals:
         txData = intbv(val)
         yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
     
@@ -85,14 +88,35 @@ def testTimeout():
     tx = Signal(1)
     rx = Signal(1)
     rxData = intbv(0)
-    for val in (0xc5, 0x5c, 0xd2):
+    for val in testvals:
         txData = intbv(val)
-        yield rs232_rx(rx, rxData, timeout=4*DURATION_9600-1), rs232_tx(tx, txData)
+        yield rs232_rx(rx, rxData, timeout=4*T_9600-1), rs232_tx(tx, txData)
+
+
+def testNoJoin():
+    tx = Signal(1)
+    rx = tx
+    rxData = intbv(0)
+    for val in testvals:
+        txData = intbv(val)
+        yield rs232_rx(rx, rxData), rs232_tx(tx, txData, duration=T_10200)
+        
+def testJoin():
+    tx = Signal(1)
+    rx = tx
+    rxData = intbv(0)
+    for val in testvals:
+        txData = intbv(val)
+        yield join(rs232_rx(rx, rxData), rs232_tx(tx, txData, duration=T_10200))
     
 
+print "\n\n## stimulus ##\n"
 Simulation(stimulus()).run()
-print
+print "\n\n## test ##\n" 
 Simulation(test()).run()
-print
+print "\n\n## testTimeout ##\n"
 Simulation(testTimeout()).run()
-    
+print "\n\n## testNoJoin ##\n"
+Simulation(testNoJoin()).run()
+print "\n\n## testJoin ##\n"
+Simulation(testJoin()).run()
