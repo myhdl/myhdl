@@ -29,7 +29,6 @@ import os
 import exceptions
 from warnings import warn
 
-import _simulator as sim
 import _simulator
 from _simulator import _siglist, _futureEvents
 from Signal import Signal, _SignalWrap, _WaiterList
@@ -70,9 +69,9 @@ class Simulation(object):
                  a nested sequence of generators.
 
         """
-        sim._time = 0
+        _simulator._time = 0
         self._waiters, self._cosim = _flatten(*args)
-        if not self._cosim and sim._cosim:
+        if not self._cosim and _simulator._cosim:
             warn("Cosimulation not registered as Simulation argument")
         del _futureEvents[:]
         del _siglist[:]
@@ -101,10 +100,10 @@ class Simulation(object):
         if duration:
             stop = _Waiter(None)
             stop.hasRun = 1
-            maxTime = sim._time + duration
+            maxTime = _simulator._time + duration
             schedule((maxTime, stop))
         cosim = self._cosim
-        t = sim._time
+        t = _simulator._time
         actives = {}
         
         while 1:
@@ -161,7 +160,7 @@ class Simulation(object):
                         raise SuspendSimulation, \
                               "Simulated for duration %s" % duration
                     _futureEvents.sort()
-                    t = sim._time = _futureEvents[0][0]
+                    t = _simulator._time = _futureEvents[0][0]
                     if cosim:
                         cosim._put(t)
                     while _futureEvents:
