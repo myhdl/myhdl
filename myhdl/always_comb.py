@@ -29,9 +29,8 @@ import inspect
 from types import FunctionType
 import compiler
 
-from util import _isgeneratorfunction
-
 from myhdl import Signal
+from myhdl.util import _isgeneratorfunction
 
 class Error(Exception):
     """always_comb Error"""

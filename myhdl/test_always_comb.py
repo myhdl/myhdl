@@ -32,12 +32,13 @@ import unittest
 from unittest import TestCase
 import inspect
 
+from myhdl import Signal, Simulation, instances, processes, \
+                  intbv, posedge, negedge, delay, StopSimulation
+
 from always_comb import always_comb, _AlwaysComb
 from always_comb import ScopeError, ArgumentError, NrOfArgsError, \
                         SignalAsInoutError
 
-from myhdl import Signal, Simulation, instances, processes, \
-                  intbv, posedge, negedge, delay, StopSimulation
 
 QUIET=1
 

@@ -32,7 +32,8 @@ random.seed(1) # random, but deterministic
 import unittest
 from unittest import TestCase
 import sys
-from bin import bin
+
+from myhdl import bin
 
 SIZE = 100
 
