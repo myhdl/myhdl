@@ -30,6 +30,7 @@ random.seed(1) # random, but deterministic
 import sys
 maxint = sys.maxint
 import types
+import copy
 
 import unittest
 from unittest import TestCase
@@ -111,7 +112,10 @@ class SigTest(TestCase):
     def testUpdate(self):
         """ _update() should assign next into val """
         for s, n in zip(self.sigs, self.nexts):
+            cur = copy.copy(s.val)
             s.next = n
+            # assigning to next should not change current value ...
+            self.assert_(s.val == cur)
             s._update()
             self.assert_(s.val == n)
 
