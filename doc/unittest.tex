@@ -98,11 +98,11 @@ most importantly, the test is available when you are done
 implementing, and can be run anytime by anybody to verify changes.
 
 Python has a standard \code{unittest} module that facilitates writing,
-managing and running unit tests. With \code{unittest}, test case are
+managing and running unit tests. With \code{unittest}, test cases are
 written by creating a class that inherits from
 \code{unittest.TestCase}. Individual tests are created by methods of
-that class: all methods that start with \code{test} are considered to
-be tests of the test case.
+that class: all method names that start with \code{test} are
+considered to be tests of the test case.
 
 We will define a test case for the Gray code properties, and then
 write a test for each of the requirements. The outline of the test
