@@ -153,26 +153,30 @@ class Simulation(object):
                         else:
                             break
                 else:
-                    if cosim:
-                        os.close(cosim._rt)
-                        os.close(cosim._wf)
-                        os.waitpid(cosim._child_pid, 0)
-                        _simulator._cosim = 0
                     raise StopSimulation, "No more events"
                 
-            except StopSimulation, e:
+            except StopSimulation:
                 if not quiet:
-                    kind, value, traceback = sys.exc_info()
-                    msg = str(kind)
-                    msg = msg[msg.rindex('.')+1:]
-                    if str(e):
-                        msg += ": %s" % e
-                    print msg
+                    printExcInfo()
                 if _futureEvents:
                     return 1
+                if cosim:
+                    os.close(cosim._rt)
+                    os.close(cosim._wf)
+                    os.waitpid(cosim._child_pid, 0)
+                    _simulator._cosim = 0
                 return 0
-                
- 
+                    
+
+def printExcInfo():
+    kind, value, traceback = sys.exc_info()
+    msg = str(kind)
+    msg = msg[msg.rindex('.')+1:]
+    if str(value):
+        msg += ": %s" % value
+        print msg
+        
+     
 def _flatten(*args):
     waiters = []
     cosim = None
@@ -234,7 +238,6 @@ class _Semaphore(object):
 class StopSimulation(exceptions.Exception):
     """ Basic exception to stop a Simulation """
     pass
-
 
 class join(object):
 
