@@ -27,9 +27,9 @@ import sys
 
 sys.path.append("../../test")
 
-import test_bin2gray
+import test_bin2gray, test_inc
 
-modules = (test_bin2gray, )
+modules = (test_bin2gray, test_inc)
 
 import unittest
 
