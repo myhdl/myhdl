@@ -87,10 +87,10 @@ class Simulation(object):
             os.close(cosim._wf)
             os.waitpid(cosim._child_pid, 0)
         
-    def run(self, duration=0, quiet=0):
+    def runc(self, duration=0, quiet=0):
         simrunc.run(sim=self, duration=duration, quiet=quiet)
          
-    runpy = simrun.run
+    run = simrun.run
 
 
 def printExcInfo():
