@@ -23,9 +23,10 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
-import test_Simulation, test_Signal, test_intbv, test_Cosimulation, test_misc
+import test_Simulation, test_Signal, test_intbv, test_Cosimulation, test_misc, \
+       test_always_comb
 
-modules = (test_Simulation, test_Signal, test_intbv, test_misc)
+modules = (test_Simulation, test_Signal, test_intbv, test_misc, test_always_comb)
 
 import unittest
 
