@@ -51,11 +51,12 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
                         if not syncFlag:
                             state.next = t_State.SEARCH
                     SOF.next = (index == FRAME_SIZE-1)
-                else:
                     
+                else:
                     raise ValueError("Undefined state")
 
-    return FSM()
+    FSM_1 = FSM()
+    return FSM_1
 
 
 def testbench():

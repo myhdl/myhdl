@@ -1,5 +1,5 @@
 from __future__ import generators
-from myhdl import Signal, delay, Simulation, intbv, bin
+from myhdl import Signal, delay, Simulation, intbv, bin, traceSignals
 
 def bin2gray(B, G, width):
     """ Gray encoder.
@@ -18,7 +18,7 @@ def testBench(width):
     B = Signal(intbv(0))
     G = Signal(intbv(0))
     
-    dut = bin2gray(B, G, width)
+    dut = traceSignals(bin2gray, B, G, width)
 
     def stimulus():
         for i in range(2**width):

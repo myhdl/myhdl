@@ -24,8 +24,8 @@ generating a hardware implementation automatically
 from a hardware description in Python. 
 
 The solution works as follows. The hardware description should be
-modelled using the \myhdl\ library, and satisfy certain constraints
-that are typical for implementation-oriented hardware modelling.
+modeled using the \myhdl\ library, and satisfy certain constraints
+that are typical for implementation-oriented hardware modeling.
 Subsequently, such a design is converted to an equivalent model in the
 Verilog language, using a function from the \myhdl\ library. Finally,
 an third-party \emph{synthesis tool} is used to convert the Verilog
@@ -44,7 +44,7 @@ will assume that the reader is familiar with this kind of constraints.
 \section{Feature overview\label{section-feature}}
 
 \begin{description}
-\item[The conversion target is an elaborated design.]
+\item[The object to be converted is an elaborated design.]
 \emph{Elaboration} refers to the initial processing of
 a hardware description to achieve a representation that
 is ready for simulation or synthesis. In particular, structural
@@ -65,17 +65,20 @@ Python's full power can be used for that purpose.
 
 \item[If-then-else structures with enumeration type items are mapped to case statements.]
 Python does not provide a case statement. However, 
-the convertor recognizes if-then-else structures in which a variable is
+the converter recognizes if-then-else structures in which a variable is
 sequentially compared to items of an enumeration type, and maps
 such a structure to a Verilog case statement with the appropriate
 synthesis attributes.
 
 \item[One hot and one cold encoding of enumeration type items are supported.]
 The \function{enum} function in \myhdl\ returns an enumeration type. This
-function takes an addional parameter \var{encoding} that specifies the
+function takes an additional parameter \var{encoding} that specifies the
 desired encoding in the implementation: binary, one hot, or one cold.
-The Verilog convertor generates the appropriate code.
+The Verilog  generates the appropriate code.
 
+\item[The \keyword{break}, \keyword{continue}, and \keyword{return} statements are supported.]
+These control flow modification statements are mapped to Verilog named blocks
+and \code{disable} statements.
 
 \end{description}
 
@@ -85,11 +88,35 @@ The Verilog convertor generates the appropriate code.
 \subsection{Supported statements}
 \begin{description}
 
+\item[The \keyword{break} statement.]
+Fully supported.
+
+\item[The \keyword{continue} statement.]
+Fully supported.
+
 \item[The \keyword{def} statement.]
+Fully supported.
+
+\item[The \keyword{for} statement.]
+The optional \keyword{else}
+statement is not supported.
+
+\item[The \keyword{if} statement.]
+\keyword{if}, \keyword{elif}, and \keyword{else} clauses
+are fully supported.
+
+\item[The \keyword{pass} statement.] Fully supported.
 
 \item[The \keyword{print} statement.]
 
+\item[The \keyword{return} statement.]
+Fully supported.
+
+\item[The \keyword{yield} statement.] 
+
 \item[The \keyword{while} statement.]
+Fully supported, except that the optional \keyword{else}
+statement is not supported.
 
 \end{description}
 
@@ -100,18 +127,26 @@ The Verilog convertor generates the appropriate code.
 \item[Negative values of \class{intbv} instances are not supported.]
 The \class{intbv} class is quite capable of representing negative
 values. However, the \code{signed} type support in Verilog is
-relatively recent and mapping to it may be tricky. In my judgement,
+relatively recent and mapping to it may be tricky. In my judgment,
 this is not the most urgent requirement, so
 I decided to leave this for later.
 
-\item[Synthesis pragmas are given as comments.] The recommended
+\item[Synthesis pragmas are specified as Verilog comments.] The recommended
 way to specify synthesis pragmas in Verilog is through attribute
-lists. However, my Verilog simulator Icarus doesn't support them
+lists. However, my Verilog simulator (Icarus) doesn't support them
 for \code{case} statements (to specify \code{parallel_case} and
 \code{full_case} pragmas). Therefore, I still used the old
 but deprecated method of synthesis pragmas in Verilog comments.
 
-\item[Non-blocking assignments to task arguments dont' work.] 
+\item[Inconsistent place of the sensitivity list inferred from \code{always_comb}.]
+The semantics of \code{always_comb}, both in Verilog and \myhdl{}, is to
+have an implicit sensitivity list at the end of the code. However, this
+may not be synthesizable. Therefore, the inferred sensitivity list is
+put at the top of the corresponding \code{always} block.
+This may cause inconsistent behavior at the start of the
+simulation. The workaround is to create events at time 0.
+
+\item[Non-blocking assignments to task arguments don't work.] 
 I didn't get non-blocking (signal) assignments to task arguments to
 work.  I don't know yet whether the issue is my own, a Verilog issue,
 or an issue with my Verilog simulator Icarus. I'll need to check this
