@@ -40,8 +40,10 @@ always_comb -- function that returns an input-sensitive generator
 """
 
 __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__version__ = "$Revision$"
+__revision__ = "$Revision$"
 __date__ = "$Date$"
+
+__version__ = "0.3"
 
 # import intbv as a class first; it's used in other classes
 from intbv import intbv

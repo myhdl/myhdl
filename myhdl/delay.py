@@ -20,7 +20,7 @@
 """ Module that provides the delay class."""
 
 __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__version__ = "$Revision$"
+__revision__ = "$Revision$"
 __date__ = "$Date$"
 
 _errmsg = "arg of delay constructor should be a natural integeer"

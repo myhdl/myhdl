@@ -20,7 +20,7 @@
 """ Module with the always_comb function. """
 
 __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__version__ = "$Revision$"
+__revision__ = "$Revision$"
 __date__ = "$Date$"
 
 from __future__ import generators
@@ -51,7 +51,7 @@ class NrOfArgsError(Error):
     """ always_comb argument should be a function without arguments"""
 
 class ScopeError(Error):
-    """always_comb should be called with a local function as argument"""
+    """always_comb argument should be a local function"""
     
 class SignalAsInoutError(Error):
     """signal used as inout in always_comb function argument"""

@@ -27,7 +27,7 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 
 """
 __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__version__ = "$Revision$"
+__revision__ = "$Revision$"
 __date__ = "$Date$"
 
 from __future__ import generators

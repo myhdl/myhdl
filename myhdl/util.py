@@ -29,7 +29,7 @@ bin -- returns a binary string representation.
 """
 
 __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__version__ = "$Revision$"
+__revision__ = "$Revision$"
 __date__ = "$Date$"
 
 import exceptions
