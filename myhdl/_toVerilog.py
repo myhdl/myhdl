@@ -700,7 +700,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             elif isinstance(obj, int):
                 self.write("integer %s;" % name)
             elif isinstance(obj, intbv):
-                self.write("reg [%s-1:0] %s;" % (obj._len, name))
+                self.write("reg [%s-1:0] %s;" % (obj._nrbits, name))
             elif hasattr(obj, '_nrbits'):
                 self.write("reg [%s-1:0] %s;" % (obj._nrbits, name))
             else:
@@ -1013,13 +1013,13 @@ class _ConvertVisitor(_ToVerilogMixin):
         if isinstance(node.expr, ast.CallFunc) and \
            node.expr.node.obj is intbv:
             c = self.getVal(node)
-            self.write("%s'h" % c._len)
+            self.write("%s'h" % c._nrbits)
             self.write("%x" % c._val)
             return
         self.visit(node.expr)
         self.write("[")
         if node.lower is None:
-            self.write("%s" % node.obj._len)
+            self.write("%s" % node.obj._nrbits)
         else:
             self.visit(node.lower)
         self.write("-1:")
@@ -1124,7 +1124,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         elif isinstance(obj, int):
             self.write("integer")
         elif isinstance(obj, intbv):
-            self.write("[%s-1:0]" % obj._len)
+            self.write("[%s-1:0]" % obj._nrbits)
         elif hasattr(obj, '_nrbits'):
             self.write("[%s-1:0]" % obj._nrbits)
         else:
@@ -1139,7 +1139,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
             elif isinstance(obj, int):
                 self.write("integer %s;" % name)
             elif isinstance(obj, intbv):
-                self.write("input [%s-1:0] %s;" % (obj._len, name))
+                self.write("input [%s-1:0] %s;" % (obj._nrbits, name))
             elif hasattr(obj, '_nrbits'):
                 self.write("input [%s-1:0] %s;" % (obj._nrbits, name))
             else:

@@ -34,32 +34,32 @@ from myhdl._bin import bin
 from __builtin__ import max as maxfunc
 
 class intbv(object):
-    __slots__ = ('_val', '_min', '_max', '_len', '_nrbits')
+    __slots__ = ('_val', '_min', '_max', '_nrbits')
     
-    def __init__(self, val=0, min=None, max=None, _len=0):
-        if _len:
+    def __init__(self, val=0, min=None, max=None, _nrbits=0):
+        if _nrbits:
             self._min = 0
-            self._max = 2**_len
+            self._max = 2**_nrbits
         else:
             self._min = min
             self._max = max
             if max is not None and min is not None:
-                _len = maxfunc(len(bin(max-1)), len(bin(min)))
+                _nrbits = maxfunc(len(bin(max-1)), len(bin(min)))
         if isinstance(val, (int, long)):
             self._val = val
         elif type(val) is StringType:
             self._val = long(val, 2)
-            _len = len(val)
+            _nrbits = len(val)
         elif isinstance(val, intbv):
             self._val = val._val
             self._min = val._min
             self._max = val._max
-            _len = val._len
+            _nrbits = val._nrbits
         elif val is None:
             self._val = None # for Cosimulation and X, Z support perhaps
         else:
             raise TypeError("intbv constructor arg should be int or string")
-        self._len = _len
+        self._nrbits = _nrbits
         self._checkBounds()
         
     # support for the 'min' and 'max' attribute
@@ -93,9 +93,9 @@ class intbv(object):
 
     # iterator method
     def __iter__(self):
-        if not self._len:
+        if not self._nrbits:
             raise TypeError, "Cannot iterate over unsized intbv"
-        return iter([self[i] for i in range(self._len-1, -1, -1)])
+        return iter([self[i] for i in range(self._nrbits-1, -1, -1)])
 
     # logical testing
     def __nonzero__(self):
@@ -106,12 +106,12 @@ class intbv(object):
 
     # length
     def __len__(self):
-        return self._len
+        return self._nrbits
 
     # indexing and slicing methods
 
     def __getitem__(self, i):
-        res = intbv((self._val >> i) & 0x1, _len=1)
+        res = intbv((self._val >> i) & 0x1, _nrbits=1)
         return res
 
     def __getslice__(self, i, j):
@@ -125,7 +125,7 @@ class intbv(object):
         if i <= j:
             raise ValueError, "intbv[i:j] requires i > j\n" \
                   "            i, j == %s, %s" % (i, j)
-        res = intbv((self._val & (1L << i)-1) >> j, _len=i-j)
+        res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
         return res
         
     def __setitem__(self, i, val):
@@ -248,7 +248,7 @@ class intbv(object):
            
     def __and__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val & other._val, _len=max(self._len, other._len))
+            return intbv(self._val & other._val, _nrbits=max(self._nrbits, other._nrbits))
         else:
             return intbv(self._val & other)
     def __rand__(self, other):
@@ -256,7 +256,7 @@ class intbv(object):
 
     def __or__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val | other._val, _len=max(self._len, other._len))
+            return intbv(self._val | other._val, _nrbits=max(self._nrbits, other._nrbits))
         else:
             return intbv(self._val | other)
     def __ror__(self, other):
@@ -264,7 +264,7 @@ class intbv(object):
     
     def __xor__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val ^ other._val, _len=max(self._len, other._len))
+            return intbv(self._val ^ other._val, _nrbits=max(self._nrbits, other._nrbits))
         else:
             return intbv(self._val ^ other)
     def __rxor__(self, other):
@@ -378,8 +378,8 @@ class intbv(object):
         return abs(self._val)
 
     def __invert__(self):
-        if self._len:
-            return intbv(~self._val & (1L << self._len)-1)
+        if self._nrbits:
+            return intbv(~self._val & (1L << self._nrbits)-1)
         else:
             return intbv(~self._val)
     

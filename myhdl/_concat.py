@@ -28,31 +28,10 @@ __date__ = "$Date$"
 from myhdl._intbv import intbv
 from myhdl._Signal import Signal
 
-def concat(self, *args):
-    v = self._val
-    basewidth = width = self._len
-    for a in args:
-        if type(a) is intbv:
-            w = a._len
-            if not w:
-                raise TypeError, "intbv arg to concat should have length"
-            val = a._val
-        elif type(a) is StringType:
-            w = len(a)
-            val = long(a, 2)
-        else:
-            raise TypeError
-        v= v*(2**w) + val
-        width += w
-    if basewidth:
-        return intbv(v, _len=basewidth + width)
-    else:
-        return intbv(v)
-
 def concat(base, *args):
 
     if isinstance(base, intbv):
-        basewidth = base._len
+        basewidth = base._nrbits
         val = base._val
     elif isinstance(base, (int, long)):
         if type(base) is bool:
@@ -73,7 +52,7 @@ def concat(base, *args):
     width = 0
     for arg in args:
         if isinstance(arg, intbv):
-            w = arg._len
+            w = arg._nrbits
             v = arg._val
         elif isinstance(arg, Signal):
             w = arg._nrbits
@@ -93,7 +72,7 @@ def concat(base, *args):
         val = val*(2**w) + v
         
     if basewidth:
-        return intbv(val, _len=basewidth + width)
+        return intbv(val, _nrbits=basewidth + width)
     else:
         return intbv(val)
 

@@ -100,7 +100,7 @@ class Signal(object):
             self._type = intbv
             self._min = val._min
             self._max = val._max
-            self._nrbits = val._len
+            self._nrbits = val._nrbits
             self._setNextVal = self._setNextIntbv
             if self._nrbits:
                 self._printVcd = self._printVcdVec
