@@ -61,9 +61,14 @@ def _analyzeSigs(hierarchy):
         for n, s in sigdict.items():
             if s._name is None:
                 if len(prefixes) > 1:
-                    s._name = '_' + '_'.join(prefixes[1:]) + '_' + n
+                    name = '_' + '_'.join(prefixes[1:]) + '_' + n
                 else:
-                    s._name = n
+                    name = n
+                if '[' in name or ']' in name:
+                    name = "\\" + name + ' '
+##                 name = name.replace('[', '_')
+##                 name = name.replace(']', '_')
+                s._name = name
                 siglist.append(s)
             if not s._nrbits:
                 raise ToVerilogError(_error.UndefinedBitWidth, s._name)

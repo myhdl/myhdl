@@ -565,6 +565,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             if isinstance(obj, int):
                 self.write(str(obj))
             elif type(obj) is Signal:
+                assert obj._name
                 self.write(obj._name)
             else:
                 self.write(n)

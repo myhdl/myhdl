@@ -24,10 +24,13 @@ __revision__ = "$Revision$"
 __date__ = "$Date$"
 
 import test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
-       test_inc_initial, test_hec, test_loops, test_infer, test_errors
+       test_inc_initial, test_hec, test_loops, test_infer, test_errors, \
+       test_RandomScrambler
+       
 
 modules = (test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
-           test_inc_initial, test_hec, test_loops, test_infer, test_errors
+           test_inc_initial, test_hec, test_loops, test_infer, test_errors, \
+           test_RandomScrambler
            )
 
 import unittest

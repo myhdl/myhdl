@@ -175,7 +175,6 @@ class _HierExtr(object):
                         gens = _getGens(arg)
                         for gname, g in frame.f_locals.items():
                             if type(g) is _AlwaysComb:
-                                print "YES"
                                 g = g.gen
                             if type(g) is GeneratorType and \
                                g in gens and gname not in instNames:
