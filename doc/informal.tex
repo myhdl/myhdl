@@ -2,8 +2,8 @@
 
 \section{A basic \myhdl\ simulation}
 
-Let's introduce \myhdl\ with a classical \code{Hello World} style
-example Here are the contents of a simulation script called
+We will introduce \myhdl\ with a classical \code{Hello World} style
+example. Here are the contents of a \myhdl\ simulation script called
 \file{Hello1.py}:
 
 \begin{verbatim}
@@ -32,7 +32,7 @@ StopSimulation: Simulated for duration 30
 \end{verbatim}
 
 The first line of the script imports a
-number of objects from the \myhdl\ package. In good Python style, and
+number of objects from the \code{myhdl} package. In good Python style, and
 unlike most other languages, we can only use identifiers that are
 \emph{literally} defined in the source file \footnote{I don't want to
 explain the \samp{import *} syntax}.
@@ -51,16 +51,13 @@ in a \code{while 1} loop. This is as standard Python idiom, and it is
 the \myhdl\ equivalent to a Verilog \code{always} block or a
 VHDL \code{process}.
 
-In hardware language terms, the generator function corresponds to a
-hardware module. To simulate a module, we need to pass a module
-\emph{instance} to a simulator. In \myhdl{}, the equivalence of
-a module instance is a generator. We create a generator by calling a
-generator function; thus, variable \code{gen} refers to a
-generator. To simulate this generator, we pass it as an argument to a
-\code{Simulation} object constructor.  We then run the simulation for
-the desired amount of time.
+In \myhdl\, the basic simulation objects are generators. Generators
+are created by calling a generator function. For example, variable
+\code{gen} refers to a generator. To simulate this generator, we pass
+it as an argument to a code{Simulation} object constructor.  We then
+run the simulation for the desired amount of time.
 
- 
+
 \section{Concurrent generators and signals}
 
 In the previous section, we simulated a single generator. Of course,
@@ -131,8 +128,82 @@ signal.
 The \code{Simulation} constructor now takes two generator arguments
 that run concurrently throughout the simulation.
 
+\section{Parameters and instantiations}
 
+So far, the generator function examples had no parameters. The signals
+they operated on were defined in their enclosing scope. However, 
+to make the code reusable we will want to pass arguments through a
+parameter list. For example, we can change the clock generator
+function as follows to make it more general and reusable:
 
+\begin{verbatim}
+def clkGen(clock, period=20):
+    lowTime = int(period/2)
+    highTime = period - lowTime
+    while 1:
+        yield delay(lowTime)
+        clock.next = 1
+        yield delay(highTime)
+        clock.next = 0
 
+\end{verbatim}
 
+The clock signal is now a parameter of the function. Also, the clock
+period is a parameter with a default value of \code{20}.
+
+Similarly, the \code{sayHello} function can be made more general:
+
+\begin{verbatim}
+def sayHello(clock, to="World!"):
+    while 1:
+        yield posedge(clock)
+        print "%s Hello %s" % (now(), to)
+
+\end{verbatim}
+
+XXX
+
+Multiple generators can be created by multiple calls to a generator
+function, possibly with different parameters. This is analogous to the
+concept of \emph{instantiation} in hardware description
+languages. \myhdl\ supports hierarchy and instantiations through
+higher level functions that return multiple generators.
+
+\begin{verbatim}
+def talk():
+
+    clk1 = Signal(0)
+    clk2 = Signal(0)
+    
+    clkGen1 = clkGen(clk1)
+    clkGen2 = clkGen(clock=clk2, period=19)
+    sayHello1 = sayHello(clock=clk1)
+    sayHello2 = sayHello(to="MyHDL", clock=clk2)
+
+    return (clkGen1, clkGen2, sayHello1, sayHello2) 
+
+sim = Simulation(talk())
+sim.run(50)
+
+\end{verbatim}
+
+This produces the following output:
+
+\begin{verbatim}
+% python Hello3.py
+9 Hello MyHDL
+10 Hello World!
+28 Hello MyHDL
+30 Hello World!
+47 Hello MyHDL
+50 Hello World!
+StopSimulation: Simulated for duration 50
+
+\end{verbatim}
+
+Like in standard Python, positional or named parameter association can
+be used, or a mix of the two \footnote{All positional parameters have
+to come before any named parameter.}. These styles are demonstrated in
+the example. Named association is very useful if there are a lot of
+parameters. 
 
