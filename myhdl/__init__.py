@@ -30,7 +30,6 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 join -- callable to join clauses in a yield statement
 intbv -- mutable integer class with bit vector facilities
 downrange -- function that returns a downward range
-Error -- myhdl Error exception
 bin -- returns a binary string representation.
        The optional width specifies the desired string
        width: padding of the sign-bit is used.
@@ -57,11 +56,12 @@ from _join import join
 from _Signal import posedge, negedge, Signal
 from _simulator import now
 from _delay import delay
-from _util import downrange, Error, StopSimulation
+from _util import downrange, StopSimulation
 from _Cosimulation import Cosimulation
 from _Simulation import Simulation
 from _misc import instances, processes
 from _always_comb import always_comb
 from _enum import enum
 from _traceSignals import traceSignals
+from _toVerilog import toVerilog
 

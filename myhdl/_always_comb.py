@@ -29,6 +29,7 @@ import sys
 import inspect
 from types import FunctionType
 import compiler
+from sets import Set
 
 from myhdl import Signal
 from myhdl._util import _isgeneratorfunction
@@ -74,7 +75,9 @@ def always_comb(func):
     sigdict = {}
     for dict in (f.f_locals, f.f_globals):
         for n, v in dict.items():
-            if isinstance(v, Signal) and n not in varnames:
+            if isinstance(v, Signal) and \
+                   n not in varnames and \
+                   n not in sigdict:
                 sigdict[n] = v
     c = _AlwaysComb(func, sigdict)
     return c.genfunc()
@@ -84,8 +87,8 @@ INPUT, OUTPUT, INOUT = range(3)
 
 class _SigNameVisitor(object):
     def __init__(self, sigdict):
-        self.inputs = []
-        self.outputs = []
+        self.inputs = Set()
+        self.outputs = Set()
         self.toplevel = 1
         self.sigdict = sigdict
 
@@ -108,9 +111,9 @@ class _SigNameVisitor(object):
         if node.name not in self.sigdict:
             return
         if access == INPUT:
-            self.inputs.append(node.name)
+            self.inputs.add(node.name)
         elif access == OUTPUT:
-            self.outputs.append(node.name)
+            self.outputs.add(node.name)
         elif access == INOUT:
             raise SignalAsInoutError(node.name)
         else:
@@ -157,8 +160,6 @@ class _AlwaysComb(object):
         tree = compiler.parse(s)
         v = _SigNameVisitor(sigdict)
         compiler.walk(tree, v)
-        v.inputs.sort()
-        v.outputs.sort()
         self.inputs = v.inputs
         self.outputs = v.outputs
 

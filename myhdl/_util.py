@@ -69,8 +69,6 @@ def bin(num, width=0):
         pad = '1'
     return (width - len(s)) * pad + s
 
-class Error(Exception):
-    pass
         
 class StopSimulation(exceptions.Exception):
     """ Basic exception to stop a Simulation """

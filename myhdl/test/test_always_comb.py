@@ -31,6 +31,7 @@ random.seed(1) # random, but deterministic
 import unittest
 from unittest import TestCase
 import inspect
+from sets import Set
 
 from myhdl import Signal, Simulation, instances, processes, \
                   intbv, posedge, negedge, delay, StopSimulation
@@ -95,7 +96,7 @@ class AlwaysCombCompilationTest(TestCase):
             v = u
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['a']
+        expected = Set(['a'])
         self.assertEqual(i.inputs, expected)
         
     def testInfer2(self):
@@ -106,8 +107,7 @@ class AlwaysCombCompilationTest(TestCase):
             g = a
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['a', 'x']
-        expected.sort()
+        expected = Set(['a', 'x'])
         self.assertEqual(i.inputs, expected)
 
     def testInfer3(self):
@@ -119,7 +119,7 @@ class AlwaysCombCompilationTest(TestCase):
             a = 1
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['x']
+        expected = Set(['x'])
         self.assertEqual(i.inputs, expected)
 
     def testInfer4(self):
@@ -130,7 +130,7 @@ class AlwaysCombCompilationTest(TestCase):
             x = 1
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['a']
+        expected = Set(['a'])
         self.assertEqual(i.inputs, expected)
         
         
@@ -164,8 +164,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next[a:0] = x[b:0]
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['a', 'b', 'x']
-        expected.sort()
+        expected = Set(['a', 'b', 'x'])
         self.assertEqual(i.inputs, expected)
         
     def testInfer8(self):
@@ -176,8 +175,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next[8:1+a+v] = x[4:b*3+u]
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['a', 'b', 'x']
-        expected.sort()
+        expected = Set(['a', 'b', 'x'])
         self.assertEqual(i.inputs, expected)
          
     def testInfer9(self):
@@ -186,8 +184,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next[a-1] = x[b-1]
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['a', 'b', 'x']
-        expected.sort()
+        expected = Set(['a', 'b', 'x'])
         self.assertEqual(i.inputs, expected)
         
     def testInfer10(self):
@@ -198,8 +195,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next = f(a, 2*b, d*x)
         g = always_comb(h)
         i = g.gi_frame.f_locals['self']
-        expected = ['a', 'b', 'd', 'x']
-        expected.sort()
+        expected = Set(['a', 'b', 'd', 'x'])
         self.assertEqual(i.inputs, expected)
 
     def testEmbeddedFunction(self):
