@@ -37,6 +37,7 @@ def mux(z, a, b, sel):
     z -- mux output
     a, b -- data inputs
     sel -- control input: select a if asserted, otherwise b
+
     """
     while 1:
         yield a, b, sel
@@ -74,7 +75,7 @@ Simulation(MUX_1, test()).run()
 Because of the randomness, the simulation output varies between runs
 \footnote{It also possible to have a reproducible random output, by
 explicitly providing a seed value. See the documentation of the
-\code{random} module}. One particular run produced the following
+\code{random} module.}. One particular run produced the following
 output:
 
 \begin{verbatim}
@@ -127,6 +128,7 @@ def Inc(count, enable, clock, reset, n):
     clock -- clock input
     reset -- asynchronous reset input
     n -- counter max value
+
     """
     while 1:
         yield posedge(clock), negedge(reset)
@@ -227,7 +229,6 @@ provides. The following is an example of a sparse memory model:
 
 
 def sparseMemory(dout, din, addr, we, en, clk):
-
     """ Sparse memory model based on a dictionary.
 
     Ports:
@@ -263,8 +264,8 @@ synchronous fifo:
 
 \begin{verbatim}
 def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
-
     """ Synchronous fifo model based on a list.
+
     Ports:
     dout -- data out
     din -- data in
@@ -332,8 +333,8 @@ defining a custom \code{Error} exception, by subclassing the standard
 \code{Exception} class. This exception is then raised explicitly when
 an error condition occurs.
 
-For example, we can change function \function{sparseMemory} as follows
-(with the doc string is omitted for brevity):
+For example, we can change the \function{sparseMemory} function as
+follows (with the doc string is omitted for brevity):
 
 \begin{verbatim}
 class Error(Exception):
