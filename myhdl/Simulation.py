@@ -116,7 +116,7 @@ class Simulation(object):
         t = _simulator._time
         actives = {}
         tracing = _simulator._tracing
-        tracefile = _simulator._tracefile
+        tracefile = _simulator._tf
 
         while 1:
             try:

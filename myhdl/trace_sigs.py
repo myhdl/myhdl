@@ -61,11 +61,11 @@ def trace_sigs(dut, *args, **kwargs):
     h = HierExtr(name, dut, *args, **kwargs)
     vcdfilename = name + ".vcd"
     vcdfile = open(vcdfilename, 'w')
+    _simulator._tracing = 1
+    _simulator._tf = vcdfile
     _writeVcdHeader(vcdfile)
     _writeVcdSigs(vcdfile, h.instances)
     _tracing = 0
-    _simulator._tracing = 1
-    _simulator._tracefile = vcdfile
     return h.m
  
 
@@ -82,7 +82,7 @@ class HierExtr(object):
             sys.setprofile(None)
         self.m = _top
         instances.reverse()
-        print instances
+        # print instances
         instances[0][1] = name
 
     def extractor(self, frame, event, arg):
@@ -144,6 +144,7 @@ def _writeVcdHeader(f):
 def _writeVcdSigs(f, instances):
     curlevel = 0
     namegen = _genNameCode()
+    siglist = []
     for level, name, sigdict in instances:
         delta = curlevel - level
         curlevel = level
@@ -155,13 +156,24 @@ def _writeVcdSigs(f, instances):
         for n, s in sigdict.items():
             if not s._tracing:
                 s._tracing = 1
-                s._codeName = namegen.next()
-            print >> f, "$var reg 8 %s %s $end" % (s._codeName, n)
+                s._code = namegen.next()
+                siglist.append(s)
+            w = s._nrbits
+            if w:
+                if w == 1:
+                    print >> f, "$var reg 1 %s %s $end" % (s._code, n)
+                else:
+                    print >> f, "$var reg %s %s %s $end" % (w, s.code, n)
+            else:
+                print >> f, "$var real 1 %s %s $end" % (s._code, n)
     for i in range(curlevel):
         print >> f, "$upscope $end"
     print >> f
     print >> f, "$enddefinitions $end"
     print >> f, "$dumpvars"
+    for s in siglist:
+        s._printVcd() # initial value
+    print >> f, "$end"
             
             
         

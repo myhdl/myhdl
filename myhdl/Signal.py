@@ -33,7 +33,7 @@ __date__ = "$Date$"
 from __future__ import generators
 from copy import deepcopy as copy
 
-import _simulator
+import _simulator as sim
 from _simulator import _siglist, _futureEvents, now
 from myhdl import intbv
 from bin import bin
@@ -65,9 +65,10 @@ class Signal(object):
 
     """
 
-    __slots__ = ('_next', '_val', '_type',
+    __slots__ = ('_next', '_val', '_min', '_max', '_type', 
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
-                 '_codeName', '_tracing', 
+                 '_code', '_tracing', '_nrbits', '_hasBounds',
+                 '_printVcd'
                 )
 
     def __new__(cls, val, delay=0):
@@ -84,14 +85,35 @@ class Signal(object):
         
         """
         self._next = self._val = val
-        if type(val) in (int, long, intbv):
-            self._type = (int, long, intbv)
+        self._min = self._max = self._nrbits = None
+        self._type = (int, long, intbv)
+        self._printVcd = self._printVcdStr
+        if type(val) is bool:
+            self._min = 0
+            self._max = 1
+            self._nrbits = 1
+        elif isinstance(val, (int, long)):
+            self._printVcd = self._printVcdHex
+        elif isinstance(val, intbv):
+            self._printVcd = self._printVcdHex
+            self._min = val._min
+            self._max = val._max
+            if val._len:
+                self._nrbits = val._len
+            elif val._min is not None and val._max is not None:
+                self._nrbits = max(len(bin(val._min)), len(bin(val._max-1)))
         else:
             self._type = type(val)
+        if self._nrbits:
+            if self._nrbits == 1:
+                self._printVcd = self._printVcdBit
+            else:
+                self._printVcd = self._printVcdVec
+        self._hasBounds = (self._min is not None) or (self._max is not None)
         self._eventWaiters = _WaiterList()
         self._posedgeWaiters = _WaiterList()
         self._negedgeWaiters = _WaiterList()
-        self._codeName = ""
+        self._code = ""
         self._tracing = 0
         
     def _update(self):
@@ -106,7 +128,7 @@ class Signal(object):
                 del self._negedgeWaiters[:]
             self._val = self._next
             if self._tracing:
-                print >> _simulator._tracefile, "b%s %s" % (bin(self._val, 8), self._codeName)
+                self._printVcd()
             return waiters
         else:
             return []
@@ -142,7 +164,18 @@ class Signal(object):
     def _get_negedge(self):
         return self._negedgeWaiters
     negedge = property(_get_negedge, None, None, "'posedge' access methodes")
-    
+
+    def _printVcdStr(self):
+        print >> sim._tf, "s%s %s" % (str(self._val), self._code)
+        
+    def _printVcdHex(self):
+        print >> sim._tf, "s%s %s" % (hex(self._val), self._code)
+
+    def _printVcdBit(self):
+        print >> sim._tf, "%d%s" % (self._val, self._code)
+
+    def _printVcdVec(self):
+        print >> sim._tf, "b%s %s" % (bin(self._val, self._nrbits), self._code)
 
     # hashing not supported
     def __hash__(self):
@@ -331,9 +364,9 @@ class DelayedSignal(Signal):
 
     def _update(self):
         if self._next != self._nextZ:
-            self._timeStamp = _simulator._time
+            self._timeStamp = sim._time
         self._nextZ = self._next
-        t = _simulator._time + self._delay
+        t = sim._time + self._delay
         _schedule((t, _SignalWrap(self, self._next, self._timeStamp)))
         return []
 

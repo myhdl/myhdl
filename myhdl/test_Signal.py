@@ -29,6 +29,7 @@ from random import randrange
 random.seed(1) # random, but deterministic
 import sys
 maxint = sys.maxint
+import types
 
 import unittest
 from unittest import TestCase
@@ -536,9 +537,37 @@ class TestSignalIntBvIndexing(TestCase):
             pass
         else:
             self.fail()
+
+
+class TestSignalNrBits(TestCase):
+
+    def testBool(self):
+        if type(bool) is not types.TypeType: # bool not a type in 2.2
+            return
+        s = Signal(bool())
+        self.assertEqual(s._nrbits, 1)
+
+    def testIntbvSlice(self):
+        for n in range(1, 40):
+            for m in range(0, n):
+                s = Signal(intbv()[n:m])
+                self.assertEqual(s._nrbits, n-m)
+
+    def testIntbvBounds(self):
+        for n in range(1, 40):
+            s = Signal(intbv(min=0, max=2**n))
+            self.assertEqual(s._nrbits, n)
+            s = Signal(intbv(1, min=1, max=2**n))
+            self.assertEqual(s._nrbits, n)
+            s = Signal(intbv(min=0, max=2**n+1))
+            self.assertEqual(s._nrbits, n+1)
+            s = Signal(intbv(min=-(2**n), max=2**n-1))
+            self.assertEqual(s._nrbits, n+1)
+            s = Signal(intbv(min=-(2**n), max=1))
+            self.assertEqual(s._nrbits, n+1)
+            s = Signal(intbv(min=-(2**n)-1, max=2**n-1))
+            self.assertEqual(s._nrbits, n+2)
             
-            
-              
 
 if __name__ == "__main__":
     unittest.main()

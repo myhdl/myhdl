@@ -33,7 +33,7 @@ _futureEvents = []
 _time = 0
 _cosim = 0
 _tracing = 0
-_tracefile = None
+_tf = None
 
 def now():
     """ Return the current simulation time """
