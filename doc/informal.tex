@@ -434,10 +434,10 @@ We use the bus functional procedure call as a clause in the
 \code{yield} statement: using a generator as a clause. Although this is
 a more dynamic usage than in the previous cases, the meaning is
 actually very similar. When the calling generator \code{stimulus()}
-encounters the \code{yield} statement, the Simulator suspends its
-execution and looks to the clause to know when it should resume. In
-this case, it \dfn{spawns} the generator \code{rs232_tx(tx, txData)},
-and resumes the caller when the spawned generator returns.
+encounters the \code{yield} statement, it suspends exectution, and the
+clause specifieds when it should resume. In this case, the generator
+\code{rs232_tx(tx, txData)} is \dfn{forked}, and the caller resumes
+when the forked generator returns.
 
 When simulating this, we get:
 
@@ -532,7 +532,7 @@ def test():
 
 \end{verbatim}
 
-Both spawned generators will run concurrently, and the calling
+Both forked generators will run concurrently, and the calling
 generator will resume as soon as one of them finishes (which will be
 the transmitter in this case).  The simulation output shows how
 the UART procedures run in lockstep:
@@ -598,10 +598,10 @@ StopSimulation: RX time out error
 \end{verbatim}
 
 Recall that the calling generator resumes as soon as one of the
-spawned generators returns. In the previous cases, this is just fine,
+forked generators returns. In the previous cases, this is just fine,
 as the transmitter and receiver generators run in lockstep. However,
 it may be desirable to resume the caller only when \emph{all} of the
-spawned generators have finished. For example, suppose that we want to
+forked generators have finished. For example, suppose that we want to
 characterize the robustness of the transmitter and receiver design to
 bit duration differences. We can adapt our test bench as follows, to
 run the transmitter at a faster rate:

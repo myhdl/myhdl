@@ -110,9 +110,9 @@ generator is triggered.
 
 \begin{datadesc}{GeneratorType}
 \myhdl\ generators can itself be used as trigger objects. 
-This corresponds to spawning a new generator, while the original
+This corresponds to forking a new generator, while the original
 generator waits for it to complete.  In other words, the original
-generator is triggered when the spawned generator completes.
+generator is triggered when the forked generator completes.
 \end{datadesc}
 
 In addition, as a special case, the Python \code{None} object can be
@@ -122,7 +122,7 @@ present in  a \code{yield} statement:
 This is the do-nothing trigger object. The generator immediately
 resumes, as if no \code{yield} statement were present. This can be
 useful if the \code{yield} statement also has generator clauses: those
-generators are spawned, while the original generator resumes
+generators are forked, while the original generator resumes
 immediately.
 
 \end{datadesc}
