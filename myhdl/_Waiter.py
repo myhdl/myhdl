@@ -25,9 +25,8 @@ __date__ = "$Date$"
 
 from __future__ import generators
 
-from join import join
-
-from _simulator import _siglist, _futureEvents;
+from myhdl import join
+from myhdl._simulator import _siglist, _futureEvents;
 
 
 class _Waiter(object):
