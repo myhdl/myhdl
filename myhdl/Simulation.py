@@ -33,8 +33,7 @@ class Simulation:
                 del _siglist[:]
                 
                 while waiters:
-                    waiter = waiters[0]
-                    del waiters[0]
+                    waiter = waiters.pop(0)
                     if waiter.hasRun or not waiter.hasGreenLight():
                         continue
                     try:
