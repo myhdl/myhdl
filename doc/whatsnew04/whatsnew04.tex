@@ -7,7 +7,7 @@
 \usepackage{graphicx}
 % $Id$
 
-\title{New in \myhdl\ 0.4: Conversion to Verilog}
+\title{New in \myhdl\ 0.4: Verilog conversion for implementation}
 \release{0.4}
 \author{Jan Decaluwe}
 \authoraddress{\email{jan@jandecaluwe.com}}
@@ -17,66 +17,176 @@
 \tableofcontents
 
 
-\section{Introduction}
+\section{Introduction and rationale\label{section-intro}}
 
-\myhdl\ 0.4 introduces a major new capability: 
-generating a hardware implementation automatically
-from a hardware description in Python. 
+MyHDL 0.4 provides a path to automatic implementation
+through conversion to Verilog. Automatic implementation
+is called \emph{synthesis} in the hardware design
+world and the corresponding source code is called 
+\emph{synthesizable code}.
+
+In a typical design project, the amount of synthesizable code is
+only a small fraction all source code: the larger part will consist of
+high-level models, project maintenance and automation code, and
+verification related code such as test benches.
+
+Still, synthesizable code is of special importance in several
+ways. First, the implementation is what counts in the end. Secondly,
+synthesizable code has important restrictions and a different concept
+of Quality of Results. Finally, synthesizable code is what many
+designers like to do most and first (regardless of whether this is a
+good idea from a methodology viewpoint).
+
+MyHDL aims to be a complete solution, but prior to 0.4 a MyHDL user
+had to translate synthesizable code manually to Verilog or
+VHDL. Needless to say, this is very inconvenient. With 0.4,
+this manual step should no longer be necessary. XXX advantages.
+
+\section{Solution description\label{section-solution}}
 
 The solution works as follows. The hardware description should be
-modeled using the \myhdl\ library, and satisfy certain constraints
+modeled in \myhdl\ style, and satisfy certain constraints
 that are typical for implementation-oriented hardware modeling.
 Subsequently, such a design is converted to an equivalent model in the
-Verilog language, using a function from the \myhdl\ library. Finally,
+Verilog language, using the function \function{toVerilog} 
+from the \myhdl\ library. Finally,
 an third-party \emph{synthesis tool} is used to convert the Verilog
 design into a gate implementation for an ASIC or FPGA. There are a
 number of Verilog synthesis tools available, varying in price,
 capabilities, and target implementation space.
 
-As mentioned earlier, a hardware model intended for implementation
-should satisfy certain constraints. Because of the nature of hardware,
-these constraints are relatively severe.  For example,
-it must be possible to infer the bit width of signals in order to
-implement them as hardware busses or registers.  In the following, I
-will assume that the reader is familiar with this kind of constraints.
 
+\section{Features\label{section-features}}
 
-\section{Feature overview\label{section-feature}}
-
-\begin{description}
-\item[The design is converted after elaboration.]
+\subsection{The design is converted after elaboration}
 \emph{Elaboration} refers to the initial processing of
-a hardware description to achieve a representation that
+a hardware description to achieve a representation of a 
+design instance that
 is ready for simulation or synthesis. In particular, structural
 parameters and constructs are processed in this step. In
 \myhdl{}, the Python interpreter itself is used for elaboration.
-An elaborated design corresponds to a \class{Simulation}
-argument. Likewise, the Verilog conversion works on an
-elaborated design. The Python interpreter is thus used
-as much as possible, resulting in more power to the 
-\myhdl\ user and less work for the developer.
+A \class{Simulation} is constructed with elaborated design
+instances as arguments.
+Likewise, the Verilog conversion works on an
+elaborated design instance. The Python interpreter is thus used
+as much as possible.
 
-\item[The design structure can be arbitrarily complex and hierarchical.]
-As the conversion works on an elaborated design, any modeling
+\subsection{The structural description can be arbitrarily complex and hierarchical}
+As the conversion works on an elaborated design instance, any modeling
 constraints only apply to the leaf elements of the design
 structure, that is, the co-operating generators. In other words, there
 are no restrictions on the description of the design structure:
 Python's full power can be used for that purpose. Also, the
 design hierarchy can be arbitrarily deep.
 
-\item[If-then-else structures with enumeration type items are mapped to case statements.]
+\subsection{If-then-else structures may be mapped to case statements}
 Python does not provide a case statement. However, 
 the converter recognizes if-then-else structures in which a variable is
 sequentially compared to items of an enumeration type, and maps
 such a structure to a Verilog case statement with the appropriate
 synthesis attributes.
 
-\item[One hot and one cold encoding of enumeration type items are supported.]
+\subsection{Support for one hot and one cold encoding}
 The \function{enum} function in \myhdl\ returns an enumeration type. This
 function takes an additional parameter \var{encoding} that specifies the
 desired encoding in the implementation: binary, one hot, or one cold.
 The Verilog converter generates the appropriate code.
 
+
+\section{The convertible subset}
+
+\subsection{Introduction}
+
+Unsurprisingly, not all Python code can be converted into Verilog. In
+fact, there are very important restrictions.  As the goal of the
+conversion functionality is implementation, this should not be a big
+issue: anyone familiar with synthesis is used to similar restrictions
+in the \emph{synthesizable subset} of Verilog and VHDL. The implementation
+attempts to issue clear error messages when it encounters a construct
+that cannot be converted. 
+
+In practice, the synthesizable subset usually refers to RTL
+synthesis, which is by far the most popular type of synthesis
+today. There are industry standards that define the RTL synthesis
+subset.  However, those were not used as a model for the restrictions
+of the MyHDL converter, but as a minimal starting point.  On that
+basis, whenever it was judged easy or useful to support an additional
+feature, this was done. For example, it is actually easier to convert
+while loops than for loops even though they are not RTL-synthesizable.
+As another example, 'print' is supported because it's so useful for
+debugging, even though it's not synthesizable.  In summary, the
+convertible subset is a superset of the standard RTL synthesis subset,
+and supports synthesis tools with more advanced capabilities, such as
+behavioral synthesis.
+
+Recall that any restrictions only apply to the design post
+elaboration.  In practice, this means that they apply only to the code
+of the generators, that are the "leaf" functional blocks in a MyHDL
+design.
+
+\subsection{Coding style}
+
+A natural restriction on convertible code is that it should be
+written in MyHDL style: cooperating generators, communicating through
+signals, and with \code{yield} statements specifying wait points and resume
+conditions.  Supported resume conditions are a signal edge, a signal
+change, or a tuple of such conditions.
+
+\subsection{Supported types}
+
+The most important restriction regards object types. Verilog is an
+almost typeless language, while Python is strongly (albeit
+dynamically) typed. The converter needs to infer the types of
+variables and map them to Verilog types. Therefore, it does type
+inferencing of object constructors and expressions.  Python
+\class{int} and \class{long} objects are mapped to Verilog
+integers. All other supported types are mapped to Verilog regs (or
+wires), and therefore need to have a defined bit width. The supported
+types are the Python \class{bool} type, the MyHDL \class{intbv} type,
+and MyHDL enumeration types returned by function \function{enum}. The
+latter objects can also be used as the base object of a
+\class{Signal}. 
+
+\class{intbv} objects need to be constructed so that a bit
+width can be inferred.
+
+\subsection{Supported statements}
+
+The following is a list of the statements that are supported by the
+Verilog converter, possibly qualified with restrictions. Recall that
+this list only applies to the design post elaboration: in practice,
+this means it applies to the code of the generators that are the leaf
+blocks in a design.
+
+\begin{description}
+
+\item[The \keyword{break} statement.]
+
+\item[The \keyword{continue} statement.]
+
+\item[The \keyword{def} statement.]
+
+\item[The \keyword{for} statement.]
+The optional \keyword{else}
+statement is not supported.
+
+\item[The \keyword{if} statement.]
+\keyword{if}, \keyword{elif}, and \keyword{else} clauses
+are fully supported.
+
+\item[The \keyword{pass} statement.]
+
+\item[The \keyword{print} statement.]
+
+\item[The \keyword{raise} statement.]
+
+\item[The \keyword{return} statement.]
+
+\item[The \keyword{yield} statement.] 
+
+\item[The \keyword{while} statement.]
+The optional \keyword{else}
+statement is not supported.
 
 \end{description}
 
@@ -333,7 +443,7 @@ endmodule
 Note that the output is a flat ``netlist of blocks'', and
 that hierarchical signal names are generated as necessary.
 
-\subsection{Finite state machines}
+\subsection{Optimizations for finite state machines}
 As often in hardware design, finite state machines deserve special attention.
 
 In Verilog and VHDL, finite state machines are typically described
@@ -375,7 +485,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """
     
-    index = (intbv(0)[8:]) # position in frame
+    index = intbv(0)[8:] # position in frame
     while 1:
         yield posedge(clk), negedge(reset_n)
         if reset_n == ACTIVE_LOW:
@@ -479,47 +589,6 @@ always @(posedge clk or negedge reset_n) begin: _MYHDL1__BLOCK
 end
 endmodule
 \end{verbatim}
-
-
-\section{The convertible subset}
-
-\subsection{Supported statements}
-
-The following is a list of the statements that are supported by the
-Verilog converter, possibly qualified with restrictions. Recall that
-this list only applies to the design post elaboration: in practice,
-this means it applies to the code of the generators that are the leaf
-blocks in a design.
-
-\begin{description}
-
-\item[The \keyword{break} statement.]
-
-\item[The \keyword{continue} statement.]
-
-\item[The \keyword{def} statement.]
-
-\item[The \keyword{for} statement.]
-The optional \keyword{else}
-statement is not supported.
-
-\item[The \keyword{if} statement.]
-\keyword{if}, \keyword{elif}, and \keyword{else} clauses
-are fully supported.
-
-\item[The \keyword{pass} statement.]
-
-\item[The \keyword{print} statement.]
-
-\item[The \keyword{return} statement.]
-
-\item[The \keyword{yield} statement.] 
-
-\item[The \keyword{while} statement.]
-The optional \keyword{else}
-statement is not supported.
-
-\end{description}
 
 
 \section{Known issues}
