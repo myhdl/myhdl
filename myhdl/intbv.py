@@ -30,10 +30,16 @@ from types import StringType
 
 
 class intbv(object):
-    __slots__ = ('_val', '_len')
+    __slots__ = ('_val', '_min', '_max', '_len')
     
-    def __init__(self, val=0, _len=0):
+    def __init__(self, val=0, min=None, max=None, _len=0):
         self._len = _len
+        if _len:
+            self._min = 0
+            self._max = 2**_len
+        else:
+            self._min = min
+            self._max = max
         if isinstance(val, (int, long)):
             self._val = val
         elif type(val) is StringType:
@@ -43,6 +49,19 @@ class intbv(object):
             self._val = val._val
         else:
             raise TypeError("intbv constructor arg should be int or string")
+        self._boundCheck()
+        
+
+    def _boundCheck(self):
+        if self._max is not None:
+            if self._val >= self._max:
+                raise ValueError("intbv value %s >= maximum %s" %
+                                 (self._val, self._max))
+        if self._min is not None:
+            if self._val < self._min:
+                raise ValueError("intbv value %s < minimum %s" %
+                                 (self._val, self._min))
+        
 
     # concat method
     def concat(self, *args):
@@ -130,6 +149,7 @@ class intbv(object):
         if i == 0: # default
             q = self._val % (2**j)
             self._val = val * 2**j + q
+            self._boundCheck()
             return
         if i <= j:
             raise ValueError, "intbv[i:j] = v requires i > j\n" \
@@ -141,6 +161,7 @@ class intbv(object):
         mask *= 2**j
         self._val &= ~mask
         self._val |= val * 2**j
+        self._boundCheck()
               
         
     # integer-like methods
@@ -213,27 +234,27 @@ class intbv(object):
            
     def __and__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val & other._val, max(self._len, other._len))
+            return intbv(self._val & other._val, _len=max(self._len, other._len))
         else:
-            return intbv(self._val & other, self._len)
+            return intbv(self._val & other, _len=self._len)
     def __rand__(self, other):
-        return intbv(other & self._val, self._len)
+        return intbv(other & self._val, _len=self._len)
 
     def __or__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val | other._val, max(self._len, other._len))
+            return intbv(self._val | other._val, _len=max(self._len, other._len))
         else:
-            return intbv(self._val | other, self._len)
+            return intbv(self._val | other, _len=self._len)
     def __ror__(self, other):
-        return intbv(other | self._val, self._len)
+        return intbv(other | self._val, _len=self._len)
     
     def __xor__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val ^ other._val, max(self._len, other._len))
+            return intbv(self._val ^ other._val, _len=max(self._len, other._len))
         else:
-            return intbv(self._val ^ other, self._len)
+            return intbv(self._val ^ other, _len=self._len)
     def __rxor__(self, other):
-        return intbv(other ^ self._val, self._len)
+        return intbv(other ^ self._val, _len=self._len)
 
     def __iadd__(self, other):
         if isinstance(other, intbv):
