@@ -35,6 +35,7 @@ from copy import deepcopy as copy
 
 import _simulator
 from _simulator import _siglist, _futureEvents, now
+from intbv import intbv
 
 
 _schedule = _futureEvents.append
@@ -50,7 +51,7 @@ def negedge(sig):
 
 class Signal(object):
 
-    __slots__ = ('_next', '_val',
+    __slots__ = ('_next', '_val', '_type',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                 )
 
@@ -62,6 +63,10 @@ class Signal(object):
 
     def __init__(self, val):
         self._next = self._val = val
+        if type(val) in (int, long, intbv):
+            self._type = (int, long, intbv)
+        else:
+            self._type = type(val)
         self._eventWaiters = _WaiterList()
         self._posedgeWaiters = _WaiterList()
         self._negedgeWaiters = _WaiterList()
@@ -93,6 +98,9 @@ class Signal(object):
         _siglist.append(self)
         return self._next
     def _set_next(self, val):
+        if not isinstance(val, self._type):
+            raise TypeError, "Incompatible type(v) for sig.next = v\n" \
+                  "           Expected %s, got %s" % (self._type, type(val))
         self._next = val
         _siglist.append(self)
     next = property(_get_next, _set_next, None, "'next' access methods")

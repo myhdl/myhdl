@@ -50,6 +50,18 @@ In the following, a "sig" denotes an instance of the Signal class.
   value. The 'next' attribute provides both write and read
   access. (Read access is required to support mutable values.)
 
+* In principle, any object could be assigned to sig.next; however, for
+  meaningful modelling its type should be "compatible" with the type
+  of the current value. Python's ultra-dynamic nature is not useful in
+  this case, and could in fact be the source of hard-to-trace
+  bugs. Therefore, there should be a check that the type of the object
+  assigned to sig.next is compatible with the type of the initial
+  value. "Compatible" means that the type should either be a subtype
+  of the initial type, or that the types have been designed to work
+  transparently together by other means. In particular, int
+  (and long) and intbv are not subtypes of each other, but they are
+  designed to work together.
+
 * A sig should have a number of private list attributes that can hold
   generators that are waiting for a particular change on the sig's value:
   - '_eventWaiters': generators waiting for a value change

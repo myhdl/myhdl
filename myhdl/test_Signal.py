@@ -28,13 +28,23 @@ from unittest import TestCase
 
 from Signal import Signal
 from _simulator import _siglist
+from intbv import intbv
 
 class SigTest(TestCase):
 
     def setUp(self):
-        self.vals  = (0, 1, 2, 3, 5, [1,2,3], (1,2,3), {1:1, 2:2})
-        self.nexts = (1, 0, 0, 4, 5, [4,5,6], (4,5,5), {3:3, 4:4})
+        self.vals   = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]  
+        self.nexts  = [0, 1, 1, 0, 1, 0, 4, 5, intbv(1), intbv(0), intbv(0)]
+        self.vals  += [intbv(0), intbv(1), intbv(0), intbv(1), 2           ]
+        self.nexts += [intbv(0), intbv(1), 1       , 0       , intbv(3)    ]
+        self.vals  += [ [1,2,3], (1,2,3), {1:1, 2:2}, (0, [2, 3], (1, 2))  ]
+        self.nexts += [ [4,5,6], (4,5,5), {3:3, 4:4}, (1, (0, 1), [2, 3])  ]
         self.sigs = [Signal(i) for i in self.vals]
+        
+        self.incompatibleVals  = [ [3, 4], (1, 2),  3 , intbv(0), [1]      ]
+        self.incompatibleNexts = [ 4     , 3     , "3", (0)     , intbv(1) ]
+        self.incompatibleSigs = [Signal(i) for i in self.incompatibleVals]
+        
         self.eventWaiters = [object() for i in range(3)]
         self.posedgeWaiters = [object() for i in range(5)]
         self.negedgeWaiters = [object() for i in range(7)]
@@ -93,6 +103,22 @@ class SigTest(TestCase):
             s.next = n
             s._update()
             self.assert_(s.val == n)
+
+    def testNextType(self):
+        """ sig.next = n should fail if type(n) incompatible """
+        i = 0
+        for s in (self.sigs + self.incompatibleSigs):
+            for n in (self.vals + self.incompatibleVals):
+                self.assert_(isinstance(s.val, s._type))
+                if not isinstance(n, s._type):
+                    i += 1
+                    try:
+                        s.next = n
+                    except TypeError:
+                        pass
+                    else:
+                        self.fail()
+        self.assert_(i >= len(self.incompatibleSigs), "Nothing tested %s" %i)
 
     def testAfterUpdate(self):
         """ updated val and next should be equal but not identical """
