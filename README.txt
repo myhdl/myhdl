@@ -1,22 +1,33 @@
-myhdl Release 0.1
+MyHDL Release 0.1
 =================
 
 INTRODUCTION
 ------------
 
-myhdl is a Python package for using Python as a hardware description
+MyHDL is a Python package for using Python as a hardware description
 language. Popular hardware description languages, like Verilog and
-VHDL, are compiled languages. myhdl with Python can be viewed as a
-"scripting language" counterpart of such languages.
+VHDL, are compiled languages. MyHDL with Python could be viewed as a
+"scripting language" counterpart of such languages. However, Python is
+more accurately described as a very high level language (VHLL). MyHDL
+users have access to the amazing power and elegance of Python in their
+modeling work.
 
-The key idea behind myhdl is to use Python generators to model the
+The key idea behind MyHDL is to use Python generators to model the
 concurrency required in hardware descriptions. As generators are a
-recent Python feature, you will need Python 2.2.2. or higher.
+recent Python feature, MyHDL requires Python 2.2.2. or higher.
+
+MyHDL 0.1 is the initial public release of the package. It can be used
+to experiment with high level modeling, and with verification
+techniques such as unit testing.
+
+In a future release, MyHDL will hopefully be coupled to hardware
+simulators for languages such as Verilog and VHDL. That would turn
+MyHDL into a powerful hardware verification language.
 
 INSTALLATION
 ------------
 
-If you have superuser power, you can install myhdl as follows:
+If you have superuser power, you can install MyHDL as follows:
 
     python setup.py install
 
