@@ -56,6 +56,11 @@ _error.ReturnNrBitsMismatch = "Returned nr of bits mismatch"
 _error.ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
 _error.ReturnTypeInfer = "Can't infer return type"
 
+
+_access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
+_kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB")
+_context = enum("BOOLEAN", "YIELD", "PRINT", "UNKNOWN")
+
     
 class _ToVerilogMixin(object):
     

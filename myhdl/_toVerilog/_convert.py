@@ -40,8 +40,9 @@ from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._util import _flatten
 from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _ToVerilogMixin, _Label
+from myhdl._toVerilog import _error, _access, _kind,_context, \
+                             _ToVerilogMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc
-from myhdl._toVerilog._analyze import ALWAYS, INITIAL
             
 _converting = 0
 _profileFunc = None
@@ -175,9 +176,9 @@ def _convertGens(genlist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for ast in genlist:
-        if ast.kind == ALWAYS:
+        if ast.kind == _kind.ALWAYS:
             Visitor = _ConvertAlwaysVisitor
-        elif ast.kind == INITIAL:
+        elif ast.kind == _kind.INITIAL:
             Visitor = _ConvertInitialVisitor
         else: # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
@@ -185,8 +186,6 @@ def _convertGens(genlist, vfile):
         compiler.walk(ast, v)
     vfile.write(funcBuf.getvalue()); funcBuf.close()
     vfile.write(blockBuf.getvalue()); blockBuf.close()
-
-YIELD, PRINT = range(2)
 
 class _ConvertVisitor(_ToVerilogMixin):
     
@@ -243,7 +242,7 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitLeftShift(self, node, *args):
         self.binaryOp(node, '<<')
     def visitMod(self, node, context=None, *args):
-        if context == PRINT:
+        if context == _context.PRINT:
             self.visit(node.left)
             self.write(", ")
             self.visit(node.right)
@@ -387,7 +386,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write(")")
 
     def visitConst(self, node, context=None, *args):
-        if context == PRINT:
+        if context == _context.PRINT:
             assert type(node.value) is str
             self.write('"Verilog %s"' % node.value)
         else:
@@ -538,7 +537,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         assert len(node.nodes) == 1
         s = node.nodes[0]
         self.write('$display(')
-        self.visit(s, PRINT)
+        self.visit(s, _context.PRINT)
         self.write(');')
     
     def visitPrint(self, node, *args):
@@ -594,7 +593,7 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def visitTuple(self, node, context=None, *args):
         assert context != None
-        if context == PRINT:
+        if context == _context.PRINT:
             sep = ", "
         else:
             sep = " or "
@@ -628,7 +627,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         
     def visitYield(self, node, *args):
         self.write("@ (")
-        self.visit(node.value, YIELD)
+        self.visit(node.value, _context.YIELD)
         self.write(");")
 
         
@@ -643,7 +642,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         assert isinstance(w.body.nodes[0], astNode.Yield)
         sl = w.body.nodes[0].value
         self.write("always @(")
-        self.visit(sl, YIELD)
+        self.visit(sl, _context.YIELD)
         self.write(") begin: %s" % self.ast.name)
         self.indent()
         self.writeDeclarations()

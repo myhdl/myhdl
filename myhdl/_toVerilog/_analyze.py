@@ -39,13 +39,9 @@ from myhdl import ToVerilogError
 from myhdl._unparse import _unparse
 from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
-from myhdl._toVerilog import _error, _ToVerilogMixin, _Label
+from myhdl._toVerilog import _error, _access, _kind,_context, \
+                             _ToVerilogMixin, _Label
 
-INPUT, OUTPUT, INOUT, \
-UNKNOWN, \
-NORMAL, DECLARATION, \
-ALWAYS, INITIAL, ALWAYS_COMB, \
-BOOLEAN = range(10)
    
 def _analyzeSigs(hierarchy):
     curlevel = 0
@@ -158,15 +154,15 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitTryFinally(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
 
-    def visitAnd(self, node, context=UNKNOWN):
-        if not context == BOOLEAN:
+    def visitAnd(self, node, context=_context.UNKNOWN):
+        if not context == _context.BOOLEAN:
             self.raiseError(node, _error.NotSupported, "shortcutting logical and in non-boolean context")
-        self.visitChildNodes(node, BOOLEAN)
+        self.visitChildNodes(node, _context.BOOLEAN)
             
-    def visitOr(self, node, context=UNKNOWN):
-        if not context == BOOLEAN:
+    def visitOr(self, node, context=_context.UNKNOWN):
+        if not context == _context.BOOLEAN:
             self.raiseError(node, _error.NotSupported, "shortcutting logical or in non-boolean context")
-        self.visitChildNodes(node, BOOLEAN)
+        self.visitChildNodes(node, _context.BOOLEAN)
         
     def visitAssign(self, node, *args):
         if len(node.nodes) > 1:
@@ -174,10 +170,10 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         self.visit(node.nodes[0], *args)
         self.visit(node.expr, *args)
         
-    def visitCallFunc(self, node, context=UNKNOWN):
+    def visitCallFunc(self, node, context=_context.UNKNOWN):
         f = eval(_unparse(node.node), self.ast.symdict)
         if f is bool:
-            context = BOOLEAN
+            context = _context.BOOLEAN
         self.visitChildNodes(node, context)
                 
     def visitCompare(self, node, *args):
@@ -193,10 +189,10 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         
     def visitIf(self, node, *args):
         for test, suite in node.tests:
-            self.visit(test, BOOLEAN)
-            self.visit(suite, UNKNOWN)
+            self.visit(test, _context.BOOLEAN)
+            self.visit(suite, _context.UNKNOWN)
         if node.else_:
-            self.visit(node.else_, UNKNOWN)
+            self.visit(node.else_, _context.UNKNOWN)
 
 
 def getNrBits(obj):
@@ -284,16 +280,16 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.expr)
         node.obj = int()
         
-    def visitAssAttr(self, node, access=OUTPUT, *args):
+    def visitAssAttr(self, node, access=_access.OUTPUT, *args):
         self.ast.isTask = True
-        self.visit(node.expr, OUTPUT)
+        self.visit(node.expr, _access.OUTPUT)
         
-    def visitAssign(self, node, access=OUTPUT, *args):
+    def visitAssign(self, node, access=_access.OUTPUT, *args):
         target, expr = node.nodes[0], node.expr
-        self.visit(target, OUTPUT)
+        self.visit(target, _access.OUTPUT)
         if isinstance(target, astNode.AssName):
-            self.visit(expr, INPUT, DECLARATION)
-            node.kind = DECLARATION
+            self.visit(expr, _access.INPUT, _kind.DECLARATION)
+            node.kind = _kind.DECLARATION
             n = target.name
             obj = self.getObj(expr)
             if obj is None:
@@ -313,7 +309,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             else:
                 self.ast.vardict[n] = obj
         else:
-            self.visit(expr, INPUT)
+            self.visit(expr, _access.INPUT)
 
     def visitAssName(self, node, *args):
         n = node.name
@@ -322,9 +318,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             self.raiseError(node, _error.UnboundLocal, n)
         self.refStack.add(n)
         
-    def visitAugAssign(self, node, access=INPUT, *args):
-        self.visit(node.node, INOUT)
-        self.visit(node.expr, INPUT)
+    def visitAugAssign(self, node, access=_access.INPUT, *args):
+        self.visit(node.node, _access.INOUT)
+        self.visit(node.expr, _access.INPUT)
 
     def visitBreak(self, node, *args):
         self.labelStack[-2].isActive = True
@@ -332,7 +328,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
     def visitCallFunc(self, node, *args):
         self.visit(node.node)
         for arg in node.args:
-            self.visit(arg, UNKNOWN)
+            self.visit(arg, _access.UNKNOWN)
         argsAreInputs = True
         f = self.getObj(node.node)
         if type(f) is type and issubclass(f, intbv):
@@ -372,12 +368,12 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 else: # Name
                     n = ast.argnames[i]
                 if n in ast.outputs:
-                    self.visit(arg, OUTPUT)
+                    self.visit(arg, _access.OUTPUT)
                 if n in ast.inputs:
-                    self.visit(arg, INPUT)
+                    self.visit(arg, _access.INPUT)
         if argsAreInputs:
             for arg in node.args:
-                self.visit(arg, INPUT)
+                self.visit(arg, _access.INPUT)
             
     def visitCompare(self, node, *args):
         node.obj = bool()
@@ -430,19 +426,19 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             self.visit(node.else_, *args)
             self.refStack.pop()
 
-    def visitName(self, node, access=INPUT, *args):
+    def visitName(self, node, access=_access.INPUT, *args):
         n = node.name
         if n not in self.refStack:
             if n in self.ast.vardict:
                 self.raiseError(node, _error.UnboundLocal, n)
             self.globalRefs.add(n)
         if n in self.ast.sigdict:
-            if access == INPUT:
+            if access == _access.INPUT:
                 self.ast.inputs.add(n)
-            elif access == OUTPUT:
+            elif access == _access.OUTPUT:
                 self.ast.isTask = True
                 self.ast.outputs.add(n)
-            elif access == UNKNOWN:
+            elif access == _access.UNKNOWN:
                 pass
             else: 
                 raise AssertionError
@@ -459,15 +455,15 @@ class _AnalyzeVisitor(_ToVerilogMixin):
     def visitReturn(self, node, *args):
         self.raiseError(node, _error.NotSupported, "return statement")
             
-    def visitSlice(self, node, access=INPUT, kind=NORMAL, *args):
+    def visitSlice(self, node, access=_access.INPUT, kind=_kind.NORMAL, *args):
         self.visit(node.expr, access)
         node.obj = self.getObj(node.expr)
         if node.lower:
-            self.visit(node.lower, INPUT)
+            self.visit(node.lower, _access.INPUT)
         if node.upper:
-            self.visit(node.upper, INPUT)
+            self.visit(node.upper, _access.INPUT)
         if isinstance(node.obj , intbv):
-            if kind == DECLARATION:
+            if kind == _kind.DECLARATION:
                 self.require(node.lower, "Expected leftmost index")
                 leftind = self.getVal(node.lower)
                 if node.upper:
@@ -477,10 +473,10 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 node.obj = intbv()[leftind:rightind]
             
  
-    def visitSubscript(self, node, access=INPUT, *args):
+    def visitSubscript(self, node, access=_access.INPUT, *args):
         self.visit(node.expr, access)
         for n in node.subs:
-            self.visit(n, INPUT)
+            self.visit(n, _access.INPUT)
         node.obj = bool() # XXX 
 
     def visitWhile(self, node, *args):
@@ -495,7 +491,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         if isinstance(node.test, astNode.Const) and \
            node.test.value == True and \
            isinstance(node.body.nodes[0], astNode.Yield):
-            node.kind = ALWAYS
+            node.kind = _kind.ALWAYS
         self.require(node, node.else_ is None, "while-else not supported")
         self.labelStack.pop()
         self.labelStack.pop()
@@ -512,15 +508,15 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
     def visitFunction(self, node, *args):
         self.refStack.push()
         self.visit(node.code)
-        self.ast.kind = ALWAYS
+        self.ast.kind = _kind.ALWAYS
         for n in node.code.nodes[:-1]:
-            if not self.getKind(n) == DECLARATION:
-                self.ast.kind = INITIAL
+            if not self.getKind(n) == _kind.DECLARATION:
+                self.ast.kind = _kind.INITIAL
                 break
-        if self.ast.kind == ALWAYS:
+        if self.ast.kind == _kind.ALWAYS:
             w = node.code.nodes[-1]
-            if not self.getKind(w) == ALWAYS:
-                self.ast.kind = INITIAL
+            if not self.getKind(w) == _kind.ALWAYS:
+                self.ast.kind = _kind.INITIAL
         self.refStack.pop()
                 
     def visitModule(self, node, *args):
@@ -551,7 +547,7 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
     def visitFunction(self, node, *args):
           self.refStack.push()
           self.visit(node.code)
-          self.ast.kind = ALWAYS_COMB
+          self.ast.kind = _kind.ALWAYS_COMB
           self.refStack.pop()
             
 
@@ -581,7 +577,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         self.refStack.pop()
         
     def visitReturn(self, node, *args):
-        self.visit(node.value, INPUT, DECLARATION, *args)
+        self.visit(node.value, _access.INPUT, _kind.DECLARATION, *args)
         if isinstance(node.value, astNode.Const) and node.value.value is None:
             obj = None
         elif isinstance(node.value, astNode.Name) and node.value.name is None:
