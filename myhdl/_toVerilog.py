@@ -36,7 +36,7 @@ from cStringIO import StringIO
 import myhdl
 from myhdl import Signal, intbv
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
-from myhdl._Error import Error
+from myhdl._Error import Error as _Error
 
 def _flatten(*args):
     l = []
@@ -44,7 +44,8 @@ def _flatten(*args):
         if type(arg) is GeneratorType:
             l.append(arg)
         elif isinstance(arg, (list, tuple)):
-            l.extend(flatten(arg))
+            for item in arg:
+                l.extend(_flatten(item))
         else:
             raise ArgumentError
     return l
@@ -52,7 +53,8 @@ def _flatten(*args):
 _converting = 0
 _profileFunc = None
 
-class ToVerilogError(Error):
+# define Error class here for clearer reporting
+class Error(_Error):
     pass
 class _error:
     pass
@@ -70,7 +72,7 @@ def toVerilog(func, *args, **kwargs):
     if _converting:
         return func(*args, **kwargs) # skip
     if not callable(func):
-        raise ArgTypeError("got %s" % type(func))
+        raise Error(_error.ArgType, "got %s" % type(func))
     _converting = 1
     try:
         outer = inspect.getouterframes(inspect.currentframe())[1]
@@ -120,12 +122,12 @@ def _analyzeSigs(hierarchy):
         for n, s in sigdict.items():
             if s._name is None:
                 if len(prefixes) > 1:
-                    s._name = '_'.join(prefixes) + '_' + n
+                    s._name = '_'.join(prefixes[1:]) + '_' + n
                 else:
                     s._name = n
                 siglist.append(s)
             if not s._nrbits:
-                raise UndefinedBitWidthError(s._name)
+                raise Error(_error.UndefinedBitWidth, s._name)
     return siglist
 
 
@@ -184,7 +186,7 @@ class _ToVerilogMixin(object):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
               (self.sourcefile, self.lineoffset+lineno)
-        raise ToVerilogError(kind, msg, info)
+        raise Error(kind, msg, info)
 
     def require(self, node, test, msg=""):
         if not test:
@@ -374,6 +376,7 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             self.visit(node.code)
             
     def visitGetattr(self, node, *args):
+        self.visit(node.expr, *args)
         assert isinstance(node.expr, ast.Name)
         assert node.expr.name in self.symdict
         obj = self.symdict[node.expr.name]
@@ -500,13 +503,11 @@ def _writeSigDecls(f, intf, siglist):
         if s._driven:
             print >> f, "reg %s%s;" % (r, s._name)
         else:
-            raise UndrivenSignalError(s._name)
+            raise Error(_error.UndrivenSignal, s._name)
     print >> f
             
 
 def _writeModuleFooter(f):
-    print >> f
-    print >> f
     print >> f, "endmodule"
     
 
@@ -600,7 +601,6 @@ class _ConvertGenVisitor(_ToVerilogMixin):
                 self.write("reg [%s-1:0] %s;" % (obj._nrbits, name))
             else:
                 raise AssertionError("unexpected type")
-        self.writeline()
                 
     def indent(self):
         self.ind += ' ' * 4
@@ -740,7 +740,6 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         assert w.else_ is None
         assert isinstance(w.body.nodes[0], ast.Yield)
         sl = w.body.nodes[0].value
-        assert isinstance(sl, (ast.Tuple, ast.Name))
         self.inYield = True
         self.write("always @(")
         self.visit(sl)
@@ -756,6 +755,7 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         self.dedent()
         self.writeline()
         self.write("end")
+        self.writeline()
         self.writeline()
 
     def visitGetattr(self, node):
