@@ -68,12 +68,10 @@ def always_comb(func):
         raise ScopeError
     varnames = func.func_code.co_varnames
     sigdict = {}
-    for n, v in f.f_locals.items():
-        if isinstance(v, Signal) and n not in varnames:
-            sigdict[n] = v
-    for n, v in f.f_globals.items():
-        if isinstance(v, Signal) and n not in varnames:
-            sigdict[n] = v
+    for dict in (f.f_locals, f.f_globals):
+        for n, v in dict.items():
+            if isinstance(v, Signal) and n not in varnames:
+                sigdict[n] = v
     c = _AlwaysComb(func, sigdict)
     return c.genfunc()
    
