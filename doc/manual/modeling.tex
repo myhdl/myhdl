@@ -304,7 +304,6 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     reset_n -- active low reset
     
     """
-    
     index = Signal(0) # position in frame
 
     def FSM():
@@ -315,24 +314,29 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
                 SOF.next = 0
                 index.next = 0
                 state.next = t_State.SEARCH
+
             else:
                 index.next = (index + 1) % FRAME_SIZE
                 SOF.next = 0
+
                 if state == t_State.SEARCH:
                     index.next = 1
                     if syncFlag:
                         state.next = t_State.CONFIRM
+
                 elif state == t_State.CONFIRM:
                     if index == 0:
                         if syncFlag:
                             state.next = t_State.SYNC
                         else:
                             state.next = t_State.SEARCH
+
                 elif state == t_State.SYNC:
                     if index == 0:
                         if not syncFlag:
                             state.next = t_State.SEARCH
                     SOF.next = (index == FRAME_SIZE-1)
+
                 else:
                     raise ValueError("Undefined state")
 
@@ -438,11 +442,11 @@ only.
 
 \begin{quote}
 \em 
-This section on high level modeling should become an exciting part of
-the manual, but it doesn't contain a lot of material just yet. One
-reason is that I concentrated on the groundwork first. Moreover,
-though I expect Python to offer some very powerful capabilities in
-this domain, I'm just starting to experiment and learn myself. 
+High level modeling is the true vocation of \myhdl{}.
+The possibilities are vast. 
+This section should be seen as a starting point for experiments
+and exploration. Over time, more techniques that prove useful will
+be added.
 \end{quote}
 
 \subsection{Modeling memories with built-in types \label{model-mem}}
@@ -629,3 +633,4 @@ overflow error is detected by a regular check on the length of the
 list.
 
 
+\subsection{Object-oriented modeling \label{model-obj}}

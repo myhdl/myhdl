@@ -68,10 +68,7 @@ is modeled as a natural integer.
 In the previous section, we simulated a single generator. Of course,
 real hardware descriptions are not like that: in fact, they are
 typically massively concurrent. \myhdl\ supports this by allowing an
-arbitrary number of concurrent generators. More specifically, a
-\class{Simulation} constructor can take an arbitrary number of
-arguments, each of which can be a generator or a nested sequence of
-generators.
+arbitrary number of concurrent generators. 
 
 With concurrency comes the problem of deterministic
 communication. Hardware languages use special objects to
@@ -170,11 +167,15 @@ def sayHello(clock, to="World!"):
 \end{verbatim}
 
 We can create any number of generators by calling generator functions
-with the appropriate parameters. This is very similar to the concept of
-\dfn{instantiation} in hardware description languages and we will use
-the same terminology in \myhdl{}. Hierarchy can be modeled by defining
-the instances in a higher-level function, and returning them. For
-example: 
+with the appropriate parameters. This is very similar to the concept
+of \dfn{instantiation} in hardware description languages and we will use
+the same terminology in \myhdl{}. A \myhdl\ \dfn{instance} is
+recursively defined as being either a sequence of instances, or a
+generator.  Hierarchy can be modeled by defining the instances in a
+higher-level function, and returning them. 
+A \class{Simulation} constructor takes an arbitrary number of
+instances as its arguments.
+For example:
 
 \begin{verbatim}
 def greetings():
@@ -185,6 +186,9 @@ def greetings():
     sayHello1 = sayHello(clock=clk1)
     sayHello2 = sayHello(to="MyHDL", clock=clk2)
     return clkGen1, clkGen2, sayHello1, sayHello2
+
+sim = Simulation(greetings())
+sim.run(50)
 \end{verbatim}
 
 As in standard Python, positional or named parameter association can
@@ -195,17 +199,7 @@ languages, named association can be very useful if there are a lot of
 parameters, as the parameter order in the call does not matter in that
 case.
 
-To support hierarchy, \class{Simulation} constructor arguments can be
-sequences of generators. More specifically, the return value of a
-higher-level instantiating function can be used as an argument of the
-constructor. For example:
-
-\begin{verbatim}
-sim = Simulation(greetings())
-sim.run(50)
-\end{verbatim}
-
-This produces the following output:
+The simulation produces the following output:
 
 \begin{verbatim}
 % python greetings.py
