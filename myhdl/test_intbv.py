@@ -49,8 +49,10 @@ class TestIntbvConcat(TestCase):
         for base in self.bases:
             for exts in self.extslist:
                 bv = concat(intbv(base), *exts)
+                # bv2 = concat(int(base, 2), *exts)
                 ref = long(base + reduce(operator.add, exts), 2)
                 self.assertEqual(bv, ref)
+                # self.assertEqual(bv2, ref)
 
     def testIntbvConcatIntbv(self):
         for base in self.bases:

@@ -44,24 +44,40 @@ class _WaiterList(list):
     pass
 
 def posedge(sig):
+    """ Return a posedge trigger object """
     return sig.posedge
 
 def negedge(sig):
+    """ Return a negedge trigger object """
     return sig.negedge
 
 class Signal(object):
+
+    """ Signal class.
+
+    Properties:
+    val -- current value (read-only)
+    next -- next value (read-write)
+
+    """
 
     __slots__ = ('_next', '_val', '_type',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                 )
 
     def __new__(cls, val, delay=0):
+        """ Return a new Signal (default or delay 0) or DelayedSignal """
         if delay:
             return object.__new__(DelayedSignal)
         else:
             return object.__new__(cls)
 
     def __init__(self, val):
+        """ Construct a signal.
+
+        val -- initial value
+        
+        """
         self._next = self._val = val
         if type(val) in (int, long, intbv):
             self._type = (int, long, intbv)
@@ -122,6 +138,12 @@ class DelayedSignal(Signal):
                 )
 
     def __init__(self, val, delay):
+        """ Construct a new DelayedSignal.
+
+        Automatically invoked through the Signal new method.
+        val -- initial value
+        delay -- non-zero delay value
+        """
         Signal.__init__(self, val)
         self._nextZ = val
         self._delay = delay
@@ -130,14 +152,12 @@ class DelayedSignal(Signal):
     def _update(self):
         if self._next != self._nextZ:
             self._timeStamp = _simulator._time
-            # print "Update timestamp %s" % now()
         self._nextZ = self._next
         t = _simulator._time + self._delay
         _schedule((t, _SignalWrap(self, self._next, self._timeStamp)))
         return []
 
     def _apply(self, next, timeStamp):
-        # print "Apply %s %s %s" % (now(), timeStamp, self._timeStamp)
         if timeStamp == self._timeStamp and self._val != next:
             waiters = self._eventWaiters[:]
             del self._eventWaiters[:]
