@@ -1,0 +1,253 @@
+\chapter{MyHDL as a hardware verification language}
+
+\section{Introduction}
+
+One of the most exciting possibilities of \myhdl\
+is to use it as a hardware verification language (HVL).
+A HVL is a language used to write test benches and
+verification environments, and to control simulations.
+
+Nowadays, it is generally acknowledged that HVL's 
+should be equipped with modern software techniques,
+such as object orientation. The reason is that verification
+it the most complex and time-consuming task of the
+design process: consequently every useful technique
+is welcome. Moreover, test benches need not be 
+implementable; therefore there are no implementability
+constraints on creativity. 
+
+Technically, verification of a design implemented in
+another language requires cosimulation. \myhdl\ is 
+enabled for cosimulation with any HDL simulator that
+has a procedural language interface (PLI). The \myhdl\
+side is designed to be independent of a particular
+simulator; however, for each HDL simulator a specific
+PLI module will have to be written in C. Currently,
+the \myhdl\ release contains a PLI module to interface
+to the Icarus Verilog simulator. This interface will
+be used in the examples in the present chapter.
+
+\section{The HDL side}
+
+To introduce cosimulation, we will continue to use the Gray encoder
+example from the previous chapters where we have designed it and
+written unit tests for it in \myhdl{}. Now suppose that we want to
+synthesize it and write it in Verilog for that purpose. Clearly we would
+like to reuse our unit test verification environment. This is exactly
+what \myhdl\ offers.
+
+To start, let's recall the Gray encoder written in \myhdl{}:
+
+\begin{verbatim}
+def bin2gray(B, G, width):
+    """ Gray encoder.
+
+    B -- input intbv signal, binary encoded
+    G -- output intbv signal, gray encoded
+    width -- bit width
+    """
+    while 1:
+        yield B
+        for i in range(width):
+            G.next[i] = B[i+1] ^ B[i]
+
+\end{verbatim}
+
+To show the cosimulation flow, we don't need the Verilog
+implementation yet, but only the interface.  Our Gray encoder in
+Verilog would have the following interface:
+
+\begin{verbatim}
+module bin2gray(B, G);
+
+   parameter width = 8;
+   input [width-1:0]  B;     
+
+   output [width-1:0] G;
+
+   ....
+
+\end{verbatim}
+
+To write a test bench, one creates a new module that instantiates the
+design under test (DUT).  The test bench declares nets and
+regs (or signals in VHDL) that are attached to the DUT, and to
+stimulus generators and response checkers. In an all HDL flow, the
+generators and checkers are written in the HDL itself, but we will
+want to write them in \myhdl{}. To make the connection, we need to
+declare which regs \& nets are driven and read by the \myhdl\
+simulator. For our example, this is done as follows:
+
+\begin{verbatim}
+module dut_bin2gray;
+
+   reg [`width-1:0] B;
+   wire [`width-1:0] G;
+
+   initial begin
+      $from_myhdl(B);
+      $to_myhdl(G);
+   end
+
+   bin2gray dut (.B(B), .G(G));
+   defparam dut.width = `width;
+
+endmodule
+
+\end{verbatim}
+
+The \code{\$from_myhdl} call declares which regs are driven by
+\myhdl{}, and the \code{\$to_myhdl} call which regs \& nets are read
+by it. These calls can have an arbitrary number of arguments.  They
+are defined in a PLI module written in C. They are made available to
+the simulation in a simulator-dependent manner.'  In Icarus Verilog,
+the commands are defined in a \code{myhdl.vpi} module that is compiled
+from C source code.
+
+\section{The \myhdl\ side}
+
+\myhdl\ supports cosimulation by a \code{Cosimulation} object. 
+A \code{Cosimulation} object must know how to run a HDL cosimulation.
+Therefore, the first argument to its constructor is a command string
+to run the simulator executable. The way to generate and run such an
+executable is simulator dependent.
+For example, in Icarus Verilog, a simulation executable for our
+example can be obtained obtained by running the \code{iverilog}
+compiler as follows:
+
+\begin{verbatim}
+% iverilog -o bin2gray -Dwidth=4 bin2gray.v dut_bin2gray.v
+
+\end{verbatim}
+
+This generates a \code{bin2gray} executable for a parameter \var{width}
+of 4, by compiling the contributing verilog files.
+
+The simulation itself is run by the \code{vvp} command:
+
+\begin{verbatim}
+% vvp -m ./myhdl.vpi bin2gray
+
+\end{verbatim}
+
+This runs the \code{bin2gray} simulation, and specifies to use the
+\code{myhdl.vpi} PLI module present in the current directory. (This is 
+just an example of the command line usage of \code{vvp}; actually
+simulating with the \code{myhdl.vpi} module is only meaningful from a
+\code{Cosimulation} object.
+
+We can use a \code{Cosimulation} object to provide a HDL simulation
+version of a design to the \myhdl\ simulator. Instead of returning
+generators, we return a \code{Cosimulation} object. For our example
+and the Icarus Verilog simulator, this is done as follows:
+
+\begin{verbatim}
+import os
+
+from myhdl import Cosimulation
+
+cmd = "iverilog -o bin2gray -Dwidth=%s bin2gray.v dut_bin2gray.v"
+      
+def bin2gray(B, G, width):
+    os.system(cmd % width)
+    return Cosimulation("vvp -m ./myhdl.vpi bin2gray", B=B, G=G)
+
+\end{verbatim}
+
+After the executable command argument, the \code{Cosimulation}
+constructor takes an arbitrary number of keyword arguments. Those
+arguments make the links between \myhdl\ Signals and HDL nets, regs,
+or signals. The keyword is the name of the argument in a 
+\code{\$to_myhdl} or \code{\$from_myhdl} call; the argument is the
+\myhdl\ Signal.
+
+With all this in place, we can now use the \emph{same} unit test
+to verify Verilog implementations. Let's quickly try it just to be
+sure:
+
+\begin{verbatim}
+module bin2gray(B, G);
+
+   parameter width = 8;
+   input [width-1:0]  B;
+   output [width-1:0] G;
+   reg [width-1:0] G;
+   integer i;
+
+   always @(B) begin
+      for (i=0; i < width-1; i=i+1)
+        G[i] <= B[i+1] ^ B[i];
+   end
+
+endmodule
+
+\end{verbatim}
+
+If we run our unit test we get:
+
+\begin{verbatim}
+
+% python test_bin2gray.py   
+Check that only one bit changes in successive codewords ... ERROR
+Check that all codewords occur exactly once ... FAIL
+Check that the code is an original Gray code ... ERROR
+...
+
+\end{verbatim}
+
+Oops! It seems we still have a bug! Oh yes, but of course, 
+we need to zero-extend the input to get the msb output bit
+correctly:
+
+\begin{verbatim}
+module bin2gray(B, G);
+
+   parameter width = 8;
+   input [width-1:0]  B;
+   output [width-1:0] G;
+   reg [width-1:0] G;
+   integer i;
+   wire [width:0] extB;
+
+   assign extB = {1'b0, B};
+
+   always @(extB) begin
+      for (i=0; i < width; i=i+1)
+        G[i] <= extB[i+1] ^ extB[i];
+   end
+
+endmodule
+
+\end{verbatim}
+
+And now:
+
+\begin{verbatim}
+% python test_all.py 
+Check that only one bit changes in successive codewords ... ok
+Check that all codewords occur exactly once ... ok
+Check that the code is an original Gray code ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 2.729s
+
+OK
+
+\end{verbatim}
+
+
+\section{Restrictions}
+
+
+
+
+
+
+\section{Implementation notes}
+
+
+
+
+
+ 
+
