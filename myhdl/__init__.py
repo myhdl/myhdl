@@ -48,7 +48,6 @@ from join import join
 from Signal import posedge, negedge, Signal
 from _simulator import now
 from delay import delay
-from intbv import intbv
 from Cosimulation import Cosimulation
 from util import downrange, bin, Error, StopSimulation
 
