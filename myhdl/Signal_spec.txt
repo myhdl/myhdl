@@ -35,10 +35,10 @@ In the following, a "sig" denotes an instance of the Signal class.
 * A sig should have a read-only attribute 'val' that represents its
   current value.
 
-* The Signal contructor should have one mandatory parameter 'val' to
+* The Signal constructor should have one mandatory parameter 'val' to
   initialize its current value and future value.
 
-* The Signal contructor should have an optional parameter 'delay' to
+* The Signal contractor should have an optional parameter 'delay' to
   specify an initial delay value for the signal. The default value is
   0, meaning no delay.
 
@@ -51,7 +51,7 @@ In the following, a "sig" denotes an instance of the Signal class.
   access. (Read access is required to support mutable values.)
 
 * In principle, any object could be assigned to sig.next; however, for
-  meaningful modelling its type should be "compatible" with the type
+  meaningful modeling its type should be "compatible" with the type
   of the current value. Python's ultra-dynamic nature is not useful in
   this case, and could in fact be the source of hard-to-trace
   bugs. Therefore, there should be a check that the type of the object

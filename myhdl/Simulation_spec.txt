@@ -88,7 +88,7 @@ Specification for the Simulation class
     any of the trigger argument described int this list.
   - a generator. In this case, the generator is dynamically added to
     the list of generators to be run in the timestep. When the
-    generator completes, the orginal generator is triggered.
+    generator completes, the original generator is triggered.
 
 * When there are no further events, the Simulation.run method raises
   the StopSimulation exception.
