@@ -233,9 +233,6 @@ class ReferenceStack(list):
 # auxiliary types to aid type checking
 class _EdgeDetector(object):
     pass
-class _Generator(object):
-    pass
-   
 
 class _AnalyzeVisitor(_ToVerilogMixin):
     
