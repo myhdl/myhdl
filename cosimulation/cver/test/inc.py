@@ -2,7 +2,7 @@ import os
 
 from myhdl import Cosimulation
 
-cmd = "cver -q +loadvpi=../myhdl:vpi_compat_bootstrap +define+n=%s " + \
+cmd = "cver -q +loadvpi=../myhdl_vpi:vpi_compat_bootstrap +define+n=%s " + \
       "../../test/verilog/inc.v " + \
       "../../test/verilog/dut_inc.v "
 

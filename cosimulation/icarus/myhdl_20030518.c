@@ -1,10 +1,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
-#include <string.h>
-#include <stdio.h>
 #include "vpi_user.h"
-#include "cv_vpi_user.h"
+#include <string.h>
 
 #define MAXLINE 4096
 #define MAXWIDTH 10
@@ -38,6 +36,7 @@ static char bufcp[MAXLINE];
 static myhdl_time64_t myhdl_time;
 static myhdl_time64_t verilog_time;
 static myhdl_time64_t pli_time;
+static myhdl_time64_t delay;
 static int delta;
 
 /* prototypes */
@@ -182,11 +181,10 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   delta = 0;
 
   time_s.type = vpiSuppressTime;
-  value_s.format = vpiSuppressVal;
   cb_data_s.reason = cbValueChange;
   cb_data_s.cb_rtn = change_callback;
   cb_data_s.time = &time_s;
-  cb_data_s.value = &value_s;
+  cb_data_s.value = NULL;
   // value_s.format = vpiHexStrVal;
   i = 0;
   to_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
@@ -211,7 +209,6 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   n = write(wpipe, buf, strlen(buf));
 
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
-    vpi_printf("ABORT from $to_myhdl\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
@@ -249,7 +246,9 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 
 static PLI_INT32 readonly_callback(p_cb_data cb_data)
 {
+  vpiHandle systf_handle;
   vpiHandle net_iter, net_handle;
+  vpiHandle reg_iter, reg_handle;
   s_cb_data cb_data_s;
   s_vpi_time verilog_time_s;
   s_vpi_value value_s;
@@ -265,9 +264,7 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   if (start_flag) {
     start_flag = 0;
     n = write(wpipe, "START", 5);  
-    // vpi_printf("INFO: RO cb at start-up\n");
     if ((n = read(rpipe, buf, MAXLINE)) == 0) {
-      vpi_printf("ABORT from RO cb at start-up\n");
       vpi_control(vpiFinish, 1);  /* abort simulation */
     }  
     assert(n > 0);
@@ -277,10 +274,10 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   verilog_time_s.type = vpiSimTime;
   vpi_get_time(NULL, &verilog_time_s);
   verilog_time = timestruct_to_time(&verilog_time_s);
-   if (verilog_time != (pli_time * 1000 + delta)) {
-     vpi_printf("%u %u\n", verilog_time_s.high, verilog_time_s.low );
-     vpi_printf("%llu %llu %d\n", verilog_time, pli_time, delta);
-   }
+/*    if (verilog_time != (pli_time * 1000 + delta)) { */
+/*      vpi_printf("%u %u\n", verilog_time_s.high, verilog_time_s.low ); */
+/*      vpi_printf("%llu %llu %d", verilog_time, pli_time, delta); */
+/*    }  */
   /* Icarus 0.7 fails on this assertion beyond 32 bits due to a bug */
   // assert(verilog_time == pli_time * 1000 + delta);
   assert( (verilog_time & 0xFFFFFFFF) == ( (pli_time * 1000 + delta) & 0xFFFFFFFF ) );
@@ -301,7 +298,6 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   }
   n = write(wpipe, buf, strlen(buf));
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
-    // vpi_printf("ABORT from RO cb\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
@@ -319,11 +315,9 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   if (delay > 0) { // schedule cbAfterDelay callback
     assert(delay > delta);
     delay -= delta;
-    /* Icarus 20030518 runs RO callbacks when time has already advanced */
-    /* Therefore, one had to compensate for the prescheduled delta callback */
-    /* delay -= 1; */
-    /* Icarus 20031009 has a different scheduler, more correct I believe */
-    /* compensation is no longer necessary */
+    /* Icarus runs RO callbacks when time has already advanced */
+    /* Therefore, compensate for the prescheduled delta callback */
+    delay -= 1;
     delta = 0;
     pli_time = myhdl_time;
 
@@ -381,6 +375,7 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 {
   s_cb_data cb_data_s;
   s_vpi_time time_s;
+  vpiHandle systf_handle;
   vpiHandle reg_iter, reg_handle;
   s_vpi_value value_s;
 
@@ -431,12 +426,14 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 
 static PLI_INT32 change_callback(p_cb_data cb_data)
 {
+  s_cb_data cb_data_s;
+  s_vpi_time time_s;
+  s_vpi_time verilog_time;
+  vpiHandle systf_handle;
   int *id;
 
-  // vpi_printf("change callback");
   id = (int *)cb_data->user_data;
   changeFlag[*id] = 1;
-  return(0);
 }
 
 
@@ -460,22 +457,4 @@ void myhdl_register()
   tf_data.sizetf    = NULL;
   tf_data.user_data = "$from_myhdl";
   vpi_register_systf(&tf_data);
-}
-
-void (*vlog_startup_routines[])() = {
-      myhdl_register,
-      0
-};
-
-/* dummy +loadvpi= boostrap routine - mimics old style exec all routines */
-/* in standard PLI vlog_startup_routines table */
-void vpi_compat_bootstrap(void)
-{
- int i;
-
- for (i = 0;; i++) 
-  {
-   if (vlog_startup_routines[i] == NULL) break; 
-   vlog_startup_routines[i]();
-  }
 }

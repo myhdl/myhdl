@@ -10,12 +10,12 @@ LFLAGS= -G -shared -export-dynamic
 # change to your compiler
 CC=gcc
 
-all: myhdl.so
+all: myhdl_vpi.so
 
-myhdl.o:	myhdl.c 
-	$(CC) $(CFLAGS) -c myhdl.c
+myhdl_vpi.o:	myhdl_vpi.c 
+	$(CC) $(CFLAGS) -c myhdl_vpi.c
 
 # make rules for dynamic libaries
-myhdl.so:	myhdl.o
-	$(LD) $(LFLAGS) myhdl.o -o myhdl.so
+myhdl_vpi.so:	myhdl_vpi.o
+	$(LD) $(LFLAGS) myhdl_vpi.o -o myhdl_vpi.so
 

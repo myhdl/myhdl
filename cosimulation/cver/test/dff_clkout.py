@@ -3,7 +3,7 @@ import os.path as path
 
 from myhdl import Cosimulation
 
-cmd = "cver -q +loadvpi=../myhdl:vpi_compat_bootstrap " + \
+cmd = "cver -q +loadvpi=../myhdl_vpi:vpi_compat_bootstrap " + \
       "../../test/verilog/dff_clkout.v " + \
       "../../test/verilog/dut_dff_clkout.v "
       
