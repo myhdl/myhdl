@@ -43,7 +43,8 @@ __date__ = "$Date$"
 
 # import intbv as a class first; it's used in other classes
 from intbv import intbv
-from Simulation import StopSimulation, join, Simulation
+from Simulation import StopSimulation, Simulation
+from join import join
 from Signal import posedge, negedge, Signal
 from _simulator import now
 from delay import delay
