@@ -837,17 +837,21 @@ class _ConvertVisitor(_ToVerilogMixin):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
 
+    def writeDeclaration(self, obj, name, dir):
+        if dir: dir = dir + ' '
+        if type(obj) is bool:
+            self.write("%s%s;" % (dir, name))
+        elif isinstance(obj, int):
+            self.write("integer %s;" % name)
+        elif hasattr(obj, '_nrbits'):
+            self.write("%s[%s-1:0] %s;" % (dir, obj._nrbits, name))
+        else:
+            raise AssertionError("unexpected type")
+
     def writeDeclarations(self):
         for name, obj in self.ast.vardict.items():
             self.writeline()
-            if type(obj) is bool:
-                self.write("reg %s;" % name)
-            elif isinstance(obj, int):
-                self.write("integer %s;" % name)
-            elif hasattr(obj, '_nrbits'):
-                self.write("reg [%s-1:0] %s;" % (obj._nrbits, name))
-            else:
-                raise AssertionError("unexpected type")
+            self.writeDeclaration(obj, name, "reg")
                 
     def indent(self):
         self.ind += ' ' * 4
@@ -1290,32 +1294,17 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
 
     def writeOutputDeclaration(self):
         obj = self.ast.returnObj
-        if type(obj) is bool:
-            pass
-        elif isinstance(obj, int):
-            self.write("integer")
-        elif hasattr(obj, '_nrbits'):
-            self.write("[%s-1:0]" % obj._nrbits)
-        else:
-             raise AssertionError("unexpected type")
+        self.writeDeclaration(obj, self.ast.name, dir='')
 
     def writeInputDeclarations(self):
         for name in self.ast.argnames:
             obj = self.ast.symdict[name]
             self.writeline()
-            if type(obj) is bool:
-                self.write("input %s;" % name)
-            elif isinstance(obj, int):
-                self.write("integer %s;" % name)
-            elif hasattr(obj, '_nrbits'):
-                self.write("input [%s-1:0] %s;" % (obj._nrbits, name))
-            else:
-                raise AssertionError("unexpected type")
+            self.writeDeclaration(obj, name, "input")
             
     def visitFunction(self, node):
         self.write("function ")
         self.writeOutputDeclaration()
-        self.write(" %s;" % self.ast.name)
         self.indent()
         self.writeInputDeclarations()
         self.writeDeclarations()
@@ -1351,16 +1340,9 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             output = name in self.ast.outputs
             input = name in self.ast.inputs
             inout = input and output
-            dir = inout and "inout" or output and "output" or input and "input"
+            dir = (inout and "inout") or (output and "output") or (input and "input")
             self.writeline()
-            if type(obj) is bool:
-                self.write("%s %s;" % (dir, name))
-            elif isinstance(obj, int):
-                self.write("integer %s;" % name)
-            elif hasattr(obj, '_nrbits'):
-                self.write("%s [%s-1:0] %s;" % (dir, obj._nrbits, name))
-            else:
-                raise AssertionError("unexpected type")
+            self.writeDeclaration(obj, name, dir)
             
     def visitFunction(self, node):
         self.write("task %s;" % self.ast.name)
