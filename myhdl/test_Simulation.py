@@ -37,7 +37,8 @@ class Shared:
 ##     def testJoinMix(self):
 ##         Simulation(self.bench()).run()
 
-class TestYieldJoinedGen(TestCase):
+class JoinedGen(TestCase):
+    
     """ Basic test of yielding joined concurrent generators """
     
     def bench(self):
@@ -64,14 +65,16 @@ class TestYieldJoinedGen(TestCase):
             self.assertEqual(sig2.val, 1)
             self.assertEqual(now(), offset + td * max(n0, n1, n2))
 
-        raise StopSimulation, "Test joined concurrent generator yield"
+        raise StopSimulation, "Joined concurrent generator yield"
 
     def testYieldJoinedGen(self):
         Simulation(self.bench()).run()
         
 
-class TestSignalUpdateFirst(TestCase):
+class SignalUpdateFirst(TestCase):
+    
     """ Check that signal updates are done first, as in VHDL """
+    
     def bench(self):
 
         Q = Signal(0, delay=9)
@@ -102,7 +105,8 @@ class TestSignalUpdateFirst(TestCase):
         Simulation(self.bench()).run()
         
         
-class TestYieldZeroDelay(TestCase):
+class YieldZeroDelay(TestCase):
+    
     """ Basic test of yielding a zero delay """
     
     def bench(self):
@@ -131,13 +135,14 @@ class TestYieldZeroDelay(TestCase):
             yield posedge(sig2)
             self.assertEqual(now(), offset + n2*td)
         
-        raise StopSimulation, "Test zero delay yield"
+        raise StopSimulation, "Zero delay yield"
 
     def testYieldZeroDelay(self):
         Simulation(self.bench()).run()
 
 
-class TestYieldConcurrentGen(TestCase):
+class YieldConcurrentGen(TestCase):
+    
     """ Basic test of yielding concurrent generators """
     
     def bench(self):
@@ -166,14 +171,15 @@ class TestYieldConcurrentGen(TestCase):
             yield posedge(sig2)
             self.assertEqual(now(), offset + n2*td)
 
-        raise StopSimulation, "Test concurrent generator yield"
+        raise StopSimulation, "Concurrent generator yield"
 
     def testYieldConcurrentGen(self):
         Simulation(self.bench()).run()
 
         
 
-class TestYieldGen(TestCase):
+class YieldGen(TestCase):
+    
     """ Basic test of yielding generators """
     
     def bench(self):
@@ -215,7 +221,7 @@ class TestYieldGen(TestCase):
             for nlist in nlists:
                 yield task(nlist)
             self.assertEqual(shared.cnt, expected[-1])
-            raise StopSimulation, "Generator yield test"
+            raise StopSimulation, "Generator yield"
 
         return(module(), clkGen())
 
@@ -236,11 +242,8 @@ class DeltaCycleOrder(TestCase):
         d = Signal(0)
         z = Signal(0)
         delta = [Signal(0) for i in range(4)]
-        inputs = Signal(0)
-
+        inputs = Signal(intbv(0))
         s = [a, b, c, d]
-
-        
         vectors = [intbv(j) for i in range(8) for j in range(16)]
         random.shuffle(vectors)
         index = range(4)
@@ -268,7 +271,6 @@ class DeltaCycleOrder(TestCase):
             while 1:
                 yield a, b, c, d
                 z.next = function(a.val, b.val, c.val, d.val)
-                # print hex(z.next)
 
         def stimulus():
             for v in vectors:
@@ -277,7 +279,7 @@ class DeltaCycleOrder(TestCase):
                 yield posedge(clk)
                 yield negedge(clk)
                 self.assertEqual(z.val, function(v[0], v[1], v[2], v[3]))
-            raise StopSimulation
+            raise StopSimulation, "Delta cycle order"
 
         inputGen = [inGen(i) for i in range(4)]
         instance = [clkGen(), deltaGen(), logic(), stimulus(), inputGen]
@@ -305,6 +307,11 @@ class DeltaCycleOrder(TestCase):
             else:
                 return b
         Simulation(self.bench(muxFunction)).run()
+
+    def testLogic(self):
+        def function(a, b, c, d):
+            return not (a & (not b)) | ((not c) & d)
+        Simulation(self.bench(function)).run()
     
 
 class DeltaCycleRace(TestCase):
@@ -373,7 +380,7 @@ class DeltaCycleRace(TestCase):
         Simulation(bench).run(quiet=1)
 
 
-class DelayLineTest(TestCase):
+class DelayLine(TestCase):
     
     """ Check that delay lines work properly """
 
@@ -474,7 +481,7 @@ def getExpectedTimes(waveform, eventCheck):
     return expected
 
 
-class WaveformTest(TestCase):
+class Waveform(TestCase):
     
     """ Test of all sorts of event response in a waveform """
 
@@ -584,7 +591,7 @@ class WaveformTest(TestCase):
         self.assert_(self.duration <= now())
 
         
-class WaveformTestSigDelay(WaveformTest):
+class WaveformSigDelay(Waveform):
     
     """ Repeat waveform tests with a delayed signal """
 
@@ -599,7 +606,7 @@ class WaveformTestSigDelay(WaveformTest):
         duration += interval
         
 
-class WaveformTestInertialDelay(WaveformTest):
+class WaveformInertialDelay(Waveform):
     
     """ Repeat waveform tests to check inertial delay """
 
@@ -613,9 +620,9 @@ class WaveformTestInertialDelay(WaveformTest):
         waveform.append((interval, val, sigdelay))
         duration += interval
 
-class WaveformTestInertialDelayStress(WaveformTest):
+class WaveformInertialDelayStress(Waveform):
     
-    """ Repeat waveform tests to stress check inertial delay """
+    """ Repeat waveform tests to stress inertial delay """
 
     waveform = []
     duration = 0
@@ -627,7 +634,7 @@ class WaveformTestInertialDelayStress(WaveformTest):
         waveform.append((interval, val, sigdelay))
         duration += interval
 
-class TestSimulationRunMethod(WaveformTest):
+class SimulationRunMethod(Waveform):
     
     """ Basic test of run method of Simulation object """
     
@@ -637,7 +644,7 @@ class TestSimulationRunMethod(WaveformTest):
             duration = randrange(1, 300)
 
       
-class TimeZeroEventsTest(TestCase):
+class TimeZeroEvents(TestCase):
 
     """ Check events at time 0 """
 
