@@ -167,30 +167,6 @@ class Signal(object):
         return self._min
     min = property(_get_min, None)
 
-    # check methods
-    def _checkBool(self, val):
-        if not val in (0, 1):
-            raise ValueError("Expected value 0 or 1, got %s" % val)
-
-    def _checkInt(self, val):
-        if not isinstance(val, (int, long, intbv)):
-            raise TypeError("Expected int or intbv, got %s" % type(val))
-
-    def _checkIntbvBounds(self, val):
-        if not isinstance(val, (int, long, intbv)):
-            raise TypeError("Expected int or intbv, got %s" % type(val))
-        if self._max is not None and val >= self._max:
-            raise ValueError("Expected value < %s, got %s" % (self._max, val))
-        if self._min is not None and val < self._min:
-            raise ValueError("Expected value >= %s, got %s" % (self._min, val))
-
-    def _checkType(self, val):
-        if not isinstance(val, self._type):
-            raise TypeError("Expected %s, got %s" % (self._type, type(val)))
-        
-    def _checkNone(self, val):
-        pass
-
     # set next methods
     def _setNextBool(self, val):
         if not val in (0, 1):
