@@ -434,8 +434,8 @@ We use the bus functional procedure call as a clause in the
 \code{yield} statement: using a generator as a clause. Although this is
 a more dynamic usage than in the previous cases, the meaning is
 actually very similar. When the calling generator \code{stimulus()}
-encounters the \code{yield} statement, it suspends exectution, and the
-clause specifieds when it should resume. In this case, the generator
+encounters the \code{yield} statement, it suspends execution, and the
+clause specifies when it should resume. In this case, the generator
 \code{rs232_tx(tx, txData)} is \dfn{forked}, and the caller resumes
 when the forked generator returns.
 
