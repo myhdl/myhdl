@@ -29,7 +29,6 @@ import os
 import exceptions
 
 from myhdl._intbv import intbv
-from myhdl._Signal import Signal
 from myhdl import _simulator
 
 _MAXLINE = 4096
