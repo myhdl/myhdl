@@ -66,6 +66,17 @@ class TestIntbvBounds(TestCase):
                 pass
             else:
                 self.fail()
+        a = intbv(5)[8:]
+        a[:] = 0
+        a[:] = 2**8-1
+        try:
+            a[:] = -1
+            a[:] = 2**8
+        except ValueError:
+            pass
+        else:
+            self.fail()
+            
 
 
     def checkBounds(self, i, j, op):

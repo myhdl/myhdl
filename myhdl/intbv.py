@@ -82,10 +82,10 @@ class intbv(object):
                 width += w
             else:
                 raise TypeError
-        res = intbv(v)
         if basewidth:
-            res._len = basewidth + width
-        return res
+            return intbv(v, _len=basewidth + width)
+        else:
+            return intbv(v)
 
     # hash
     def __hash__(self):
@@ -113,8 +113,7 @@ class intbv(object):
     # indexing and slicing methods
 
     def __getitem__(self, i):
-        res = intbv((self._val >> i) & 0x1)
-        res._len = 1
+        res = intbv((self._val >> i) & 0x1, _len=1)
         return res
 
     def __getslice__(self, i, j):
@@ -128,8 +127,7 @@ class intbv(object):
         if i <= j:
             raise ValueError, "intbv[i:j] requires i > j\n" \
                   "            i, j == %s, %s" % (i, j)
-        res = intbv((self._val & 2**i-1) >> j)
-        res._len = i-j
+        res = intbv((self._val & 2**i-1) >> j, _len=i-j)
         return res
         
     def __setitem__(self, i, val):
