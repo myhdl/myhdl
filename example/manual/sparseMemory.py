@@ -54,7 +54,7 @@ def sparseMemory2(dout, din, addr, we, en, clk):
             try:
                 dout.next = memory[addr]
             except KeyError:
-                raise Error, "Unitialized address %s" % hex(addr)
+                raise Error, "Uninitialized address %s" % hex(addr)
 
 
 dout, din, addr, we, en, clk = args = [Signal(0) for i in range(6)]
