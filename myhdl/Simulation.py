@@ -37,6 +37,7 @@ from Cosimulation import Cosimulation
 from join import join
 from _Waiter import _Waiter
 from util import StopSimulation, SuspendSimulation
+import simrun
 
 schedule = _futureEvents.append
 
@@ -191,6 +192,8 @@ class Simulation(object):
             except:
                 self._finalize()
                 raise
+
+    run = simrun.run
 
 
 def printExcInfo():
