@@ -351,7 +351,7 @@ index 0. This is only possible for \class{intbv} objects with a
 defined bit width.
 
 
-\section{Co-simulation support \label{ref-cosim}}
+\section{Co-simulation\label{ref-cosim}}
 \declaremodule{}{myhdl}
 
 \subsection{\myhdl\ \label{ref-cosim-myhdl}}
@@ -389,3 +389,19 @@ This task should be called at the start of the simulation.
 \subsection{VHDL \label{ref-cosim-vhdl}}
 
 Not implemented yet.
+
+\section{Conversion to Verilog\label{ref-conv}}
+\declaremodule{}{myhdl}
+
+\begin{funcdesc}{toVerilog}{func \optional{, *args} \optional{, **kwargs}}
+Converts a \myhdl\ design instance to equivalent Verilog
+code, and a test bench to verify it.
+\var{func} is a function that returns an instance.
+\function{toVerilog()} calls \var{func} under its control
+and passes \var{*args} and \var{**kwargs} to the call. In this way, it
+finds the hierarchy and the signals to be traced.
+\end{funcdesc}
+
+For more information on the restrictions of convertible
+\myhdl\ code, see section~\ref{conv-subset} in
+Chapter~\ref{conv}.
