@@ -52,8 +52,11 @@ there is a \code{delay} clause, that specifies the required delay.
 
 To make sure that the generator runs ``forever'', we wrap its behavior
 in a \code{while 1} loop. This is a standard Python idiom, and it is
-the \myhdl\ equivalent of the implicit looping behavior of a Verilog
-\keyword{always} block and a VHDL \keyword{process}.
+the \myhdl\ equivalent of the implicit looping behavior of a 
+    \index{Verilog!always block}% 
+Verilog \keyword{always} block
+    \index{VHDL!process}%
+and a VHDL \keyword{process}.
 
 In \myhdl{}, the basic simulation objects are generators. Generators
 are created by calling generator functions. For example, variable
@@ -95,9 +98,11 @@ The \code{clk} signal is constructed with an initial value
 \code{0}. In the clock generator function \code{clkGen}, it is
 continuously assigned a new value after a certain delay. In \myhdl{},
 the new value of a signal is specified by assigning to its
-\code{next} attribute. This is the \myhdl\ equivalent of the VHDL signal
-assignment \index{VHDL!signal assignment} and the Verilog non-blocking
-assignment \index{Verilog!non-blocking assignment}.
+\code{next} attribute. This is the \myhdl\ equivalent of 
+    \index{VHDL!signal assignment}%
+the VHDL signal assignment and the 
+    \index{Verilog!non-blocking assignment}%
+Verilog non-blocking assignment.
 
 The \code{sayHello} generator function is modified to wait for a
 rising edge of the clock instead of a delay:
@@ -240,7 +245,7 @@ def bin2gray(B, G, width):
     G -- output intbv signal, Gray encoded
     width -- bit width
 
-    """
+    """xc
     while 1:
         yield B
         for i in range(width):
@@ -253,7 +258,9 @@ Python practice for structured documentation of code. Moreover, we
 use a third form of the \keyword{yield} statement:
 \samp{yield \var{signal}}. This specifies that the generator should
 resume whenever \var{signal} changes value. This is typically used to
-describe combinatorial logic.
+describe 
+    \index{combinatorial logic}%
+combinatorial logic.
 Finally, the code contains bit indexing operations and an exclusive-or
 operator as required for a Gray encoder. By convention, the lsb of an
 \class{intbv} object has index~\code{0}.
@@ -455,6 +462,7 @@ Until now, the \code{yield} statements had a single clause. However,
 they can have multiple clauses as well. In that case, the calling
 generator is triggered as soon as the condition corresponding to one
 of the clauses is satisfied. This corresponds to the functionality of
+    \index{sensitivity list}%
 sensitivity lists in Verilog and VHDL.
 
 For example, suppose we want to design an UART receive procedure with
@@ -694,8 +702,6 @@ everything in Python until the application is stable, and (only) then
 rewrite performance critical modules in C if necessary.
 
 \end{itemize}
-
-
 
 
 

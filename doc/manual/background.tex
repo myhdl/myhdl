@@ -19,9 +19,8 @@ or VHDL is helpful.
 
 \section{A small tutorial on generators \label{tutorial}}
 
-Generators are a recent feature in Python. They were introduced in
-Python 2.2, which is the most recent stable version at the time of
-this writing. Therefore, there isn't a lot of tutorial material
+Generators are a recent Python feature, introduced in
+Python 2.2. Therefore, there isn't a lot of tutorial material
 available yet. Because generators are the key concept in
 \myhdl{}, I include a small tutorial here.
 
@@ -105,7 +104,9 @@ The use of generators to model concurrency is the first key concept in
 \myhdl{}. The second key concept is a related one: in \myhdl{}, the
 yielded values are used to define the condition upon which the
 generator should resume. In other words, \keyword{yield}
-statements work as generalized sensitivity lists. 
+statements work as generalized 
+    \index{sensitivity list}%
+sensitivity lists. 
 
 If you want to know more about generators, consult the on-line Python
 documentation, e.g. at \url{http://www.python.org/doc/2.2.2/whatsnew}. 
