@@ -7,36 +7,34 @@ is to use it as a hardware verification language (HVL).
 A HVL is a language used to write test benches and
 verification environments, and to control simulations.
 
-Nowadays, it is generally acknowledged that HVL's 
-should be equipped with modern software techniques,
-such as object orientation. The reason is that verification
-it the most complex and time-consuming task of the
-design process: consequently every useful technique
-is welcome. Moreover, test benches need not be 
-implementable; therefore there are no implementation
-constraints on creativity. 
+Nowadays, it is generally acknowledged that HVLs should be equipped
+with modern software techniques, such as object orientation. The
+reason is that verification it the most complex and time-consuming
+task of the design process: consequently every useful technique is
+welcome. Moreover, test benches are not required to be
+implementable. Therefore, unlike synthesizable code, there
+are no constraints on creativity.
 
 Technically, verification of a design implemented in
 another language requires cosimulation. \myhdl\ is 
 enabled for cosimulation with any HDL simulator that
 has a procedural language interface (PLI). The \myhdl\
 side is designed to be independent of a particular
-simulator; however, for each HDL simulator a specific
+simulator, On the other hand, for each HDL simulator a specific
 PLI module will have to be written in C. Currently,
 the \myhdl\ release contains a PLI module to interface
 to the Icarus Verilog simulator. This interface will
-be used in the examples in the present chapter.
+be used in the examples.
 
 \section{The HDL side}
 
 To introduce cosimulation, we will continue to use the Gray encoder
-example from the previous chapters; recall that we have designed it and
-written unit tests for it in \myhdl{}. Now suppose that we want to
+example from the previous chapters. Suppose that we want to
 synthesize it and write it in Verilog for that purpose. Clearly we would
 like to reuse our unit test verification environment. This is exactly
 what \myhdl\ offers.
 
-To start, let's recall the Gray encoder written in \myhdl{}:
+To start, let's recall how the Gray encoder in \myhdl{} looks like:
 
 \begin{verbatim}
 def bin2gray(B, G, width):
@@ -70,7 +68,7 @@ module bin2gray(B, G);
 To write a test bench, one creates a new module that instantiates the
 design under test (DUT).  The test bench declares nets and
 regs (or signals in VHDL) that are attached to the DUT, and to
-stimulus generators and response checkers. In an all HDL flow, the
+stimulus generators and response checkers. In an all-HDL flow, the
 generators and checkers are written in the HDL itself, but we will
 want to write them in \myhdl{}. To make the connection, we need to
 declare which regs \& nets are driven and read by the \myhdl\
@@ -94,12 +92,12 @@ endmodule
 
 \end{verbatim}
 
-The \code{\$from_myhdl} call declares which regs are driven by
-\myhdl{}, and the \code{\$to_myhdl} call which regs \& nets are read
-by it. These calls can have an arbitrary number of arguments.  They
+The \code{\$from_myhdl} task call declares which regs are driven by
+\myhdl{}, and the \code{\$to_myhdl} task call which regs \& nets are read
+by it. These tasks take an arbitrary number of arguments.  They
 are defined in a PLI module written in C. They are made available to
-the simulation in a simulator-dependent manner.'  In Icarus Verilog,
-the commands are defined in a \code{myhdl.vpi} module that is compiled
+the simulation in a simulator-dependent manner.  In Icarus Verilog,
+the tasks are defined in a \code{myhdl.vpi} module that is compiled
 from C source code.
 
 \section{The \myhdl\ side}
@@ -107,8 +105,8 @@ from C source code.
 \myhdl\ supports cosimulation by a \code{Cosimulation} object. 
 A \code{Cosimulation} object must know how to run a HDL cosimulation.
 Therefore, the first argument to its constructor is a command string
-to run the simulator executable. The way to generate and run such an
-executable is simulator dependent.
+to execute a simulation. The way to generate and run an
+simulation executable is simulator dependent.
 For example, in Icarus Verilog, a simulation executable for our
 example can be obtained obtained by running the \code{iverilog}
 compiler as follows:
@@ -130,14 +128,15 @@ The simulation itself is run by the \code{vvp} command:
 
 This runs the \code{bin2gray} simulation, and specifies to use the
 \code{myhdl.vpi} PLI module present in the current directory. (This is 
-just an example of the command line usage of \code{vvp}; actually
-simulating with the \code{myhdl.vpi} module is only meaningful from a
-\code{Cosimulation} object.
+just a command line usage example; actually simulating with the
+\code{myhdl.vpi} module is only meaningful from a
+\code{Cosimulation} object.)
 
-We can use a \code{Cosimulation} object to provide a HDL simulation
-version of a design to the \myhdl\ simulator. Instead of returning
-generators, we return a \code{Cosimulation} object. For our example
-and the Icarus Verilog simulator, this is done as follows:
+We can use a \code{Cosimulation} object to provide a HDL cosimulation
+version of a design to the \myhdl\ simulator. Instead of a generator
+function, we write a function that returns a \code{Cosimulation}
+object. For our example and the Icarus Verilog simulator, this is done
+as follows:
 
 \begin{verbatim}
 import os
@@ -154,14 +153,18 @@ def bin2gray(B, G, width):
 
 After the executable command argument, the \code{Cosimulation}
 constructor takes an arbitrary number of keyword arguments. Those
-arguments make the links between \myhdl\ Signals and HDL nets, regs,
-or signals. The keyword is the name of the argument in a 
-\code{\$to_myhdl} or \code{\$from_myhdl} call; the argument is the
-\myhdl\ Signal.
+arguments make the link between \myhdl\ Signals and HDL nets, regs, or
+signals, by named association. The keyword is the name of the argument
+in a \code{\$to_myhdl} or \code{\$from_myhdl} call; the argument is
+the \myhdl\ Signal.
 
-With all this in place, we can now use the \emph{same} unit test
-to verify Verilog implementations. Let's quickly try it just to be
-sure:
+With all this in place, we can now use the existing unit test
+to verify the Verilog implementation. Note that we kept the
+same name and parameters for the the \code{bin2gray} function:
+all we need to do is to provide this alternative definition
+to the existing unit test.
+
+Let's quickly try it just to be sure:
 
 \begin{verbatim}
 module bin2gray(B, G);
@@ -221,7 +224,7 @@ endmodule
 And now:
 
 \begin{verbatim}
-% python test_all.py 
+% python test_bin2gray.py 
 Check that only one bit changes in successive codewords ... ok
 Check that all codewords occur exactly once ... ok
 Check that the code is an original Gray code ... ok
@@ -236,10 +239,93 @@ OK
 
 \section{Restrictions}
 
+In the ideal case, it should be possible to simulate
+any HDL description seamlessly with \myhdl{}. Moreover
+the communicating signals at each side should act
+transparently as a single one, enabling fully racefree
+operation.
 
+For various reasons, it may not be possible or desirable
+to achieve full generality. As anyone that has developed
+applications with the Verilog PLI can testify, the
+restrictions in a particular simulator, and the 
+differences over various simulators, can be quite 
+frustrating. Moreover, full generality may require
+a disproportiate amount of development work compared
+to a slightly less general solution that may
+be sufficient for the target application.
 
+Consequently, I have tried to achieve a solution
+which is simple enough so that one can reasonably 
+expect that any PLI-enabled simulator can support it,
+and that is relatively easy to verify and maintain.
+At the same time, the solution is sufficiently general 
+to cover the target application space.
 
+The result is a compromise that places certain restrictions
+on the HDL code. In this section, these restrictions 
+are presented.
 
+\subsection{Only passive HDL can be cosimulated}
+
+The most important restriction of the \myhdl\ cosimulation solution is
+that only ``passive'' HDL can be cosimulated.  This means that the HDL
+code should not contain any statements with time delays. In other
+words, the \myhdl\ simulator should be the master of time; in
+particular, any clock signal should be generated at the \myhdl\ side.
+
+At first this may seem like an important restriction, but if one
+considers the target application for cosimulation, it probably
+isn't. 
+
+\myhdl\ support cosimulations so that test benches for HDL
+designs can be written in Python.
+Let's consider the nature of the targetHDL designs. For high-level,
+behavioral models that are not intended for implementation, it should
+come as no surprize that I would recommend to write them in \myhdl\
+directly; that is exactly the target of the \myhdl\ effort. Likewise,
+gate level designs with annotated timing are not the target
+application: static timing analysis is a much better verification
+method for such designs.
+
+Rather, the targetted HDL designs are naturally models that are
+intended for implementation.  Most likely, this will be through
+synthesis. As time delays are meaningless in synthesizable code, the
+restriction is compatible with the target application.
+
+\subsection{Race sensitivity}
+
+In a typical RTL code, some events cause other events to occur in the
+same timestep. For example, when a clock signal triggers some signals
+may change in the same time step. For race-free operation, an HDL
+must differentiate between such events within a timestep. This is done
+by the concept of ``delta'' cycles. In a fully general, racefree
+cosimulation, the cosimulators would communicate at the level of delta
+cycles. However, in \myhdl\ cosimulation, this is not entirely the
+case.  Due to this restriction, racefree operation at the cosimulation
+interface may require some precautions.
+
+At the \myhdl\ side, delta cycles toward the HDL cosimulator are
+preserved. However, at the HDL side, they are not. The signals are
+only returned to the \myhdl\ simulator after all delta cycles have
+been performed.
+
+What does this mean? Let's start with the good news. As explained in
+the previous section, the logic of the \myhdl\ cosimulation implies
+that clocks are generated at the \myhdl\ side.  \emph{When using a
+\myhdl\ clock and its corresponding HDL signal directly as a clock
+signal, cosimulation operation is racefree.} In other words, the case
+that most closely follows the \myhdl\ cosimulation logic, is racefree.
+
+It is only when you want to use a HDL-driven signal, and its
+corresponding \myhdl\ signal, as a clock, that care must be taken. In
+general, communication triggered by such a clock is not racefree. The
+solution is to treat such an interface as a chip interface, not a HDL
+interface.  For example, when data is triggered at positive clock
+edges, it can safely be sampled at negative clock edges.
+Alternatively, the \myhdl\ data signals can be declared with a delay
+value, so that they are guaranteed to change later than the clock
+edge.
 
 
 \section{Implementation notes}
