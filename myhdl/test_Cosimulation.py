@@ -50,14 +50,17 @@ exe = "python test_Cosimulation.py CosimulationTest"
 
 fromSignames = ['a', 'bb', 'ccc']
 fromSizes = [1, 11, 63]
+fromVals = [0x2, 0x43, 0x24]
 fromSigs = {}
-for s in fromSignames:
-    fromSigs[s] = Signal(0)
+for s, v in zip(fromSignames, fromVals):
+    fromSigs[s] = Signal(v)
 toSignames = ['d', 'ee', 'fff', 'g']
 toSizes = [32, 12, 3, 6]
 toSigs = {}
 for s in toSignames:
     toSigs[s] = Signal(0)
+toVals = [0x3, 0x45, 0x14, 0x12]
+toXVals = ["X00", "FZ3", "34XZ", "56U"]
 allSigs = fromSigs.copy()
 allSigs.update(toSigs)
 
@@ -193,6 +196,68 @@ class CosimulationTest(TestCase):
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
         buf += "fff 6"
+        os.write(wt, buf)
+
+    def testFromSignalVals(self):
+        cosim = Cosimulation(exe + ".cosimFromSignalVals", **allSigs)
+        os.read(cosim._rt, MAXLINE)
+        cosim._put()
+
+    def cosimFromSignalVals(self):
+        wt = int(os.environ['MYHDL_TO_PIPE'])
+        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        buf = "FROM 00 "
+        for s, w in zip(fromSignames, fromSizes):
+            buf += "%s %s " % (s, w)
+        os.write(wt, buf)
+        os.read(rf, MAXLINE)
+        os.write(wt, "TO 0000 a 1")
+        os.read(rf, MAXLINE)
+        os.write(wt, "START")
+        os.read(rf, MAXLINE)
+        os.write(wt, "DUMMY")
+        s = os.read(rf, MAXLINE)
+        vals = [long(e, 16) for e in s.split()[1:]]
+        self.assertEqual(vals, fromVals)
+
+    def testToSignalVals(self):
+        cosim = Cosimulation(exe + ".cosimToSignalVals", **allSigs)
+        for n in toSignames:
+            self.assertEqual(toSigs[n].next, 0)
+        cosim._get()
+        for n, v in zip(toSignames, toVals):
+            self.assertEqual(toSigs[n].next, v)
+        os.write(cosim._wf, "DUMMY")
+        cosim._get()
+        for n in toSignames:
+            self.assertEqual(toSigs[n].next, None)
+        
+
+    def cosimToSignalVals(self):
+        wt = int(os.environ['MYHDL_TO_PIPE'])
+        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        buf = "FROM 00 "
+        for s, w in zip(fromSignames, fromSizes):
+            buf += "%s %s " % (s, w)
+        os.write(wt, buf)
+        os.read(rf, MAXLINE)
+        buf = "TO 00 "
+        for s, w in zip(toSignames, toSizes):
+            buf += "%s %s " % (s, w)
+        os.write(wt, buf)
+        os.read(rf, MAXLINE)
+        os.write(wt, "START")
+        os.read(rf, MAXLINE)
+        buf = "0 "
+        for v in toVals:
+            buf += hex(v)[2:]
+            buf += " "
+        os.write(wt, buf)
+        os.read(rf, MAXLINE)
+        buf = "0 "
+        for v in toXVals:
+            buf += v
+            buf += " "
         os.write(wt, buf)
 
                    

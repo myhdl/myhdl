@@ -31,6 +31,7 @@ import exceptions
 from Signal import Signal
 import myhdl
 import _simulator
+from myhdl import intbv
 
 
 _flag = 0
@@ -75,8 +76,8 @@ class Cosimulation(object):
         _flag = 1
         _simulator._cosim = self
 
-        self.rt, self.wt = rt, wt = os.pipe()
-        self.rf, self.wf = rf, wf = os.pipe()
+        self._rt, self._wt = rt, wt = os.pipe()
+        self._rf, self._wf = rf, wf = os.pipe()
 
         self._fromSignames = fromSignames = []
         self._fromSizes = fromSizes = []
@@ -139,20 +140,25 @@ class Cosimulation(object):
                 else:
                     raise Error, "Unexpected cosim input"
 
-    def get(self):
-        s = os.read(self.rt, MAXLINE)
+    def _get(self):
+        s = os.read(self._rt, _MAXLINE)
+        if not s:
+            raise SimulationEndError
         e = s.split()
         vals = e[1:]
-        for s, v in zip(self.toSigs, vals):
-            s.next = long(v, 16)
+        for s, v in zip(self._toSigs, vals):
+            try:
+                s.next = long(v, 16)
+            except ValueError:
+                s.next = intbv(None)
 
-    def put(self):
-        buf = hex(_simulator._time)
+    def _put(self):
+        buf = hex(_simulator._time)[2:]
         buf += " "
-        for s in self.fromSigs:
-            buf += hex(s)
+        for s in self._fromSigs:
+            buf += hex(s)[2:]
             buf += " "
-        os.write(wf, buf)
+        os.write(self._wf, buf)
             
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """
