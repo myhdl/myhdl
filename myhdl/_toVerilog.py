@@ -25,7 +25,6 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-from inspect import currentframe, getouterframes
 import inspect
 import compiler
 from compiler import ast
@@ -58,9 +57,10 @@ class Error(Exception):
     def __init__(self, arg=""):
         self.arg = arg
     def __str__(self):
-        msg = self.__doc__
-        if self.arg:
-            msg = msg + ": " + str(self.arg)
+        if self.__doc__ and self.arg:
+            msg = self.__doc__ + ": " + str(self.arg)
+        else:
+            msg = self.__doc__ or self.arg
         return msg
 
 class TopLevelNameError(Error):
@@ -87,7 +87,7 @@ def toVerilog(func, *args, **kwargs):
         raise ArgTypeError("got %s" % type(func))
     _converting = 1
     try:
-        outer = getouterframes(currentframe())[1]
+        outer = inspect.getouterframes(inspect.currentframe())[1]
         name = _findInstanceName(outer)
         if name is None:
             raise TopLevelNameError
@@ -158,22 +158,24 @@ def _analyzeGens(top, gennames):
         f = g.gi_frame
         s = inspect.getsource(f)
         s = s.lstrip()
-        ast = compiler.parse(s)
+        gen = compiler.parse(s)
+        gen.sourcefile = inspect.getsourcefile(f)
+        gen.lineoffset = inspect.getsourcelines(f)[1]-1
         symdict = f.f_globals.copy()
         symdict.update(f.f_locals)
         sigdict = {}
         for n, v in symdict.items():
             if isinstance(v, Signal):
                 sigdict[n] = v
-        ast.sigdict = sigdict
-        ast.symdict = symdict
+        gen.sigdict = sigdict
+        gen.symdict = symdict
         if gennames.has_key(id(g)):
-            ast.name = gennames[id(g)]
+            gen.name = gennames[id(g)]
         else:
-            ast.name = genLabel.next()
+            gen.name = genLabel.next()
         v = _AnalyzeGenVisitor(sigdict)
-        compiler.walk(ast, v)
-        genlist.append(ast)
+        compiler.walk(gen, v)
+        genlist.append(gen)
     return genlist
 
 
@@ -183,9 +185,7 @@ class SignalAsInoutError(Error):
 class SignalMultipleDrivenError(Error):
     """signal has multiple drivers"""
 
-class EmbeddedFunctionError(Error):
-    """embedded functions not supported"""
-   
+  
 INPUT, OUTPUT, INOUT = range(3)
 
 class _AnalyzeGenVisitor(object):
@@ -212,9 +212,6 @@ class _AnalyzeGenVisitor(object):
             self.toplevel = 0
             print node.code
             self.visit(node.code)
-            isAlways = True
-        else:
-            raise EmbeddedFunctionError
 
     def visitName(self, node, access=INPUT):
         n = node.name
@@ -261,9 +258,9 @@ class _AnalyzeGenVisitor(object):
 def _analyzeTopFunc(func, *args, **kwargs):
     s = inspect.getsource(func)
     s = s.lstrip()
-    ast = compiler.parse(s)
+    funcast = compiler.parse(s)
     v = _AnalyzeTopFuncVisitor(*args, **kwargs)
-    compiler.walk(ast, v)
+    compiler.walk(funcast, v)
     return v
       
     
@@ -288,6 +285,7 @@ class _AnalyzeTopFuncVisitor(object):
             raise AssertionError("unsupported function type")
         self.name = node.name
         argnames = node.argnames
+        i=-1
         for i, arg in enumerate(self.args):
             if isinstance(arg, Signal):
                 n = argnames[i]
@@ -388,13 +386,17 @@ def _getRangeString(s):
         raise AssertionError
     
 
-    
+class ToVerilogError(Error):
+    pass
+   
     
 class _convertGenVisitor(object):
     
-    def __init__(self, f, sigdict, symdict, name):
+    def __init__(self, f, sigdict, symdict, name, sourcefile, lineoffset):
         self.buf = self.fileBuf = f
         self.name = name
+        self.sourcefile = sourcefile
+        self.lineoffset = lineoffset
         self.declBuf = StringIO()
         self.codeBuf = StringIO()
         self.sigdict = sigdict
@@ -402,6 +404,19 @@ class _convertGenVisitor(object):
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
+        self.toplevel = 1
+
+    def raiseError(self, msg, node):
+        lineno = node.lineno
+        if lineno is None:
+            for n in node.getChildNodes():
+                if n.lineno is not None:
+                    lineno = n.lineno
+                    break
+        lineno = lineno or 0
+        msg = "in file %s, line %s:\n    %s" % \
+              (self.sourcefile, self.lineoffset+lineno, msg)
+        raise ToVerilogError(msg)
 
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -437,9 +452,16 @@ class _convertGenVisitor(object):
         self.multiOp(node, '&&')
 
     def visitAssAttr(self, node):
-        assert node.attrname == 'next'
+        # if not node.a
+        # assert node.attrname == 'next'
+        if node.attrname != 'next':
+            self.raiseError("attribute assignment not supported", node)
         self.isSigAss = True
         self.visit(node.expr)
+
+    def visitAssert(self, node):
+        # XXX
+        pass
 
     def visitAssign(self, node):
         self.writeline()
@@ -453,6 +475,23 @@ class _convertGenVisitor(object):
         self.visit(node.expr)
         self.write(';')
 
+    def visitAssList(self, node):
+        self.raiseError("list assignment not supported", node)
+
+    def visitAssName(self, node):
+        # XXX
+        pass
+
+    def visitAssTuple(self, node):
+        self.raiseError("tuple assignment not supported", node)
+
+    def visitAugAssign(self, node):
+        # XXX
+        pass
+
+    def visitBackquote(self, node):
+        self.raiseError("backquote not supported", node)
+
     def visitBitand(self, node):
         self.multiOp(node, '&')
         
@@ -461,6 +500,9 @@ class _convertGenVisitor(object):
          
     def visitBitxor(self, node):
         self.multiOp(node, '^')
+
+    def visitBreak(self, node):
+        self.raiseError("break statement not supported", node)
 
     def visitCallFunc(self, node):
         f = node.node
@@ -484,7 +526,9 @@ class _convertGenVisitor(object):
             if node.args:
                 self.visit(node.args[0])
                 # XXX
-        
+
+    def visitClass(self, node):
+        self.raiseError("class statement not supported", node)
 
     def visitCompare(self, node):
         self.write("(")
@@ -497,6 +541,24 @@ class _convertGenVisitor(object):
 
     def visitConst(self, node):
         self.write(node.value)
+
+    def visitContinue(self, node):
+        self.raiseError("continue statement not supported", node)
+
+    def visitDict(self, node):
+        self.raiseError("dictionaries not supported", node)
+
+    def visitDiv(self, node):
+        self.raiseError("true division not supported - consider '//'", node)
+
+    def visitEllipsis(self, node):
+        self.raiseError("ellipsis not supported", node)
+
+    def visitExec(self, node):
+        self.raiseError("exec not supported", node)
+
+    def visitExpression(self, node):
+        self.raiseError("Expression node not supported", node)
 
     def visitFloorDiv(self, node):
         self.binaryOp(node, '/')
@@ -526,9 +588,14 @@ class _convertGenVisitor(object):
         self.writeline()
         self.write("end")
         assert node.else_ is None
-         
+
+    def visitFrom(self, node):
+        self.raiseError("from statement not supported", node)
 
     def visitFunction(self, node):
+        if not self.toplevel:
+            self.raiseError("embedded function definition not supported", node)
+        self.toplevel = 0
         w = node.code.nodes[-1]
         assert isinstance(w, ast.While)
         assert isinstance(w.test, ast.Const)
@@ -567,6 +634,9 @@ class _convertGenVisitor(object):
             assert hasattr(obj, node.attrname)
             e = getattr(obj, node.attrname)
             self.write("%d'b%s" % (obj._nrbits, e._val))
+
+    def visitGlobal(self, node):
+        self.raiseError("global statement not supported", node)
         
     def visitIf(self, node):
         ifstring = "if ("
@@ -589,6 +659,30 @@ class _convertGenVisitor(object):
             self.dedent()
             self.writeline()
             self.write("end")
+
+    def visitImport(self, node):
+        self.raiseError("import statement not supported", node)
+
+    def visitInvert(self, node):
+        # XXX
+        pass
+
+    def visitKeyword(self, node):
+        # XXX
+        pass
+
+    def visitLambda(self, node):
+        self.raiseError("lambda statement not supported", node)
+
+    def visitLeftShift(self, node):
+        # XXX
+        pass
+
+    def visitListComp(self, node):
+        self.raiseError("list comprehensions not supported", node)
+        
+    def visitList(self, node):
+        self.raiseError("lists not supported", node)
 
     def visitMod(self, node):
         self.write("(")
@@ -620,6 +714,23 @@ class _convertGenVisitor(object):
     def visitOr(self, node):
         self.multiOp(node, '||')
 
+
+    def visitPass(self, node):
+        # XXX
+        pass
+    
+    def visitPower(self, node):
+        # XXX
+        pass
+
+    def visitPrint(self, node):
+        # XXX
+        pass
+
+    def visitPrintnl(self, node):
+        # XXX
+        pass
+    
     def visitRaise(self, node):
         self.writeline()
         self.write('$display("')
@@ -627,6 +738,17 @@ class _convertGenVisitor(object):
         self.write('");')
         self.writeline()
         self.write("$finish;")
+
+    def visitReturn(self, node):
+        self.raiseError("return statement not supported", node)
+
+    def visitSlice(self, node):
+        # XXX
+        pass
+
+    def visitSliceObj(self, node):
+        # XXX
+        pass
             
     def visitSub(self, node):
         self.binaryOp(node, "-")
@@ -656,10 +778,13 @@ class _convertGenVisitor(object):
 
         
 
-def _convertGens(astlist, vfile):
-    for ast in astlist:
-           v = _convertGenVisitor(vfile, ast.sigdict, ast.symdict, ast.name)
-           compiler.walk(ast, v)
+def _convertGens(genlist, vfile):
+    for gen in genlist:
+        print gen.sourcefile
+        print gen.lineoffset
+        v = _convertGenVisitor(vfile, gen.sigdict, gen.symdict, gen.name,
+                               gen.sourcefile, gen.lineoffset )
+        compiler.walk(gen, v)
  
 
     
