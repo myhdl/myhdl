@@ -204,21 +204,6 @@ class Signal(object):
 
     ### operators for which delegation to current value is appropriate ###
         
-    # hashing (?)
-    def __hash__(self):
-        return hash(self._val)
-        
-    
-    def __nonzero__(self):
-        if self._val:
-            return 1
-        else:
-            return 0
-
-    # length
-    def __len__(self):
-        return len(self._val)
-
     # indexing and slicing methods
 
     def __getitem__(self, i):
@@ -226,140 +211,154 @@ class Signal(object):
 
     def __getslice__(self, i, j):
         return self._val[i:j]
-    
+        
+    # hashing (?)
+    def __hash__(self):
+        return hash(self.val)
+        
+    # truth testing
+    def __nonzero__(self):
+        if self.val:
+            return 1
+        else:
+            return 0
+
+    # length
+    def __len__(self):
+        return len(self.val)
         
     # integer-like methods
 
     def __add__(self, other):
         if isinstance(other, Signal):
-            return self._val + other._val
+            return self.val + other._val
         else:
-            return self._val + other
+            return self.val + other
     def __radd__(self, other):
-        return other + self._val
+        return other + self.val
     
     def __sub__(self, other):
         if isinstance(other, Signal):
-            return self._val - other._val
+            return self.val - other._val
         else:
-            return self._val - other
+            return self.val - other
     def __rsub__(self, other):
-        return other - self._val
+        return other - self.val
 
     def __mul__(self, other):
         if isinstance(other, Signal):
-            return self._val * other._val
+            return self.val * other._val
         else:
-            return self._val * other
+            return self.val * other
     def __rmul__(self, other):
-        return other * self._val
+        return other * self.val
 
     def __div__(self, other):
         if isinstance(other, Signal):
-            return self._val / other._val
+            return self.val / other._val
         else:
-            return self._val / other
+            return self.val / other
     def __rdiv__(self, other):
-        return other / self._val
+        return other / self.val
     
     def __mod__(self, other):
         if isinstance(other, Signal):
-            return self._val % other._val
+            return self.val % other._val
         else:
-            return self._val % other
+            return self.val % other
     def __rmod__(self, other):
-        return other % self._val
+        return other % self.val
 
     # XXX divmod
     
     def __pow__(self, other):
         if isinstance(other, Signal):
-            return self._val ** other._val
+            return self.val ** other._val
         else:
-            return self._val ** other
+            return self.val ** other
     def __rpow__(self, other):
-        return other ** self._val
+        return other ** self.val
 
     def __lshift__(self, other):
         if isinstance(other, Signal):
-            return self._val << other._val
+            return self.val << other._val
         else:
-            return self._val << other
+            return self.val << other
     def __rlshift__(self, other):
-        return other << self._val
+        return other << self.val
             
     def __rshift__(self, other):
         if isinstance(other, Signal):
-            return self._val >> other._val
+            return self.val >> other._val
         else:
-            return self._val >> other
+            return self.val >> other
     def __rrshift__(self, other):
-        return other >> self._val
+        return other >> self.val
            
     def __and__(self, other):
         if isinstance(other, Signal):
-            return self._val & other._val
+            return self.val & other._val
         else:
-            return self._val & other
+            return self.val & other
     def __rand__(self, other):
-        return other & self._val
+        return other & self.val
 
     def __or__(self, other):
         if isinstance(other, Signal):
-            return self._val | other._val
+            return self.val | other._val
         else:
-            return self._val | other
+            return self.val | other
     def __ror__(self, other):
-        return other | self._val
+        return other | self.val
     
     def __xor__(self, other):
         if isinstance(other, Signal):
-            return self._val ^ other._val
+            return self.val ^ other._val
         else:
-            return self._val ^ other
+            return self.val ^ other
     def __rxor__(self, other):
-        return other ^ self._val
+        return other ^ self.val
     
     def __neg__(self):
-        return -self._val
+        return -self.val
 
     def __pos__(self):
-        return +self._val
+        return +self.val
 
     def __abs__(self):
-        return abs(self._val)
+        return abs(self.val)
 
     def __invert__(self):
-        return ~self._val
+        return ~self.val
         
     # conversions
     
     def __int__(self):
-        return int(self._val)
+        return int(self.val)
         
     def __long__(self):
-        return long(self._val)
+        return long(self.val)
 
     def __float__(self):
-        return float(self._val)
+        return float(self.val)
     
     def __oct__(self):
-        return oct(self._val)
+        return oct(self.val)
     
     def __hex__(self):
-        return hex(self._val)
+        return hex(self.val)
 
 
     # comparison
     def __cmp__(self, other):
-        return cmp(self._val, other)
+        return cmp(self.val, other)
 
     # representation 
     def __str__(self):
-        return str(self._val)
+        return str(self.val)
 
     def __repr__(self):
-        return "Signal(" + repr(self._val) + ")"
+        return "Signal(" + repr(self.val) + ")"
 
     # augmented assignment not supported
     def _augm(self):
