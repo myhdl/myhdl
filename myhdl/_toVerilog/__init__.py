@@ -17,7 +17,7 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl toVerilog module.
+""" myhdl toVerilog package.
 
 """
 
@@ -33,8 +33,6 @@ from myhdl import *
 from myhdl import ToVerilogError
 from myhdl._util import _flatten
 from myhdl._unparse import _unparse
-            
-print "To Verilog, the package"
 
 class _error:
     pass
