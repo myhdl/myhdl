@@ -36,7 +36,7 @@ def enum(*args, **kwargs):
     argdict = {}
     codedict = {}
     if encoding == "binary":
-        nrbits = len(bin(len(args)))
+        nrbits = len(bin(len(args)-1))
     elif encoding in ("one_hot", "one_cold"):
         nrbits = len(args)
     else:
