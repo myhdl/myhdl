@@ -15,8 +15,7 @@ probably the best choice for an on-line tutorial. For alternatives,
 see \url{http://www.python.org/doc/Newbies.html}.
 
 A working knowledge of a hardware description language such as Verilog
-or VHDL is helpful. Chances are that you know one of those anyway, if
-you are interested in \myhdl{}.
+or VHDL is helpful. 
 
 \section{A small tutorial on generators}
 
@@ -89,19 +88,19 @@ StopIteration
 
 \end{verbatim}
 
-Now we can generate the subsequent values from the for
-loop on demand, until they are exhausted. What happens is that the
+Now we can generate the subsequent values from the for loop on demand,
+until they are exhausted. What happens is that the
 \keyword{yield} statement is like a
 \keyword{return}, except that it is non-fatal: the generator remembers
 its state and the point in the code when it yielded. A higher order
 agent can decide when to get a further value by calling the
-generator's \function{next()} method. We say that generators are
+generator's \function{next()} method. We can say that generators are
 \dfn{resumable functions}.
 
-If you are familiar with hardware description languages, this may
-ring a bell. In hardware simulations, there is also a higher order
-agent, the Simulator tool, that interacts with such resumable
-functions; they are called processes in VHDL and always blocks in
+If you are familiar with hardware description languages, this may ring
+a bell. In hardware simulations, there is also a higher order agent,
+the Simulator, that interacts with such resumable functions; they are
+called \dfn{processes} in VHDL and \dfn{always blocks} in
 Verilog. Like in those languages, Python generators provide an elegant
 and efficient method to model concurrency, without having to resort to
 some form of threading.
