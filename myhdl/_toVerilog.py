@@ -34,9 +34,9 @@ from types import GeneratorType, ClassType
 from cStringIO import StringIO
 
 import myhdl
-from myhdl import Signal, intbv
-from myhdl._extractHierarchy import _HierExtr, _findInstanceName
+from myhdl import *
 from myhdl import ToVerilogError
+from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._util import _flatten
 from myhdl._unparse import _unparse
             
@@ -177,6 +177,10 @@ class _ToVerilogMixin(object):
         lineno = lineno or 0
         return lineno
     
+    def getVal(self, node):
+        val = eval(_unparse(node), self.symdict)
+        return val
+    
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
@@ -184,6 +188,7 @@ class _ToVerilogMixin(object):
         raise ToVerilogError(kind, msg, info)
 
     def require(self, node, test, msg=""):
+        assert isinstance(node, ast.Node)
         if not test:
             self.raiseError(node, _error.Requirement, msg)
    
@@ -251,7 +256,12 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitTryFinally(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
 
-    
+
+def getObj(node):
+    if hasattr(node, 'obj'):
+        return node.obj
+    return None
+
   
 INPUT, OUTPUT, INOUT = range(3)
 NORMAL, DECLARATION = range(2)
@@ -335,8 +345,9 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         self.visit(node.assign)
         var = node.assign.name
         self.vardict[var] = int()
-        self.visit(node.body)
-        self.require(node.else_ is None, "for-else not supported")
+        self.visit(node.list)
+        self.visit(node.body, *args)
+        self.require(node, node.else_ is None, "for-else not supported")
         
     def visitFunction(self, node, *args):
         if not self.toplevel:
@@ -390,7 +401,7 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         node.obj = None
         if n in self.vardict:
             node.obj = self.vardict[n]
-        if n in self.symdict:
+        elif n in self.symdict:
             node.obj = self.symdict[n]
         elif n in __builtins__:
             node.obj = __builtins__[n]
@@ -417,6 +428,7 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         self.visit(node.expr, access)
         for n in node.subs:
             self.visit(n, INPUT)
+        node.obj = bool() # XXX 
 
     def visitWhile(self, node, *args):
         self.visit(node.test, *args)
@@ -425,7 +437,7 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
            node.test.value == True and \
            isinstance(node.body.nodes[0], ast.Yield):
             node.kind = ALWAYS
-        self.require(node.else_ is None, "while-else not supported")
+        self.require(node, node.else_ is None, "while-else not supported")
 
        
                 
@@ -490,7 +502,7 @@ def _writeModuleHeader(f, intf):
         if s._driven:
             print >> f, "output %s%s;" % (r, portname)
             print >> f, "reg %s%s;" % (r, portname)
-        else:
+        elif s._read:
             print >> f, "input %s%s;" % (r, portname)
     print >> f
 
@@ -502,7 +514,7 @@ def _writeSigDecls(f, intf, siglist):
         r = _getRangeString(s)
         if s._driven:
             print >> f, "reg %s%s;" % (r, s._name)
-        else:
+        elif s._read:
             raise ToVerilogError(_error.UndrivenSignal, s._name)
     print >> f
             
@@ -673,27 +685,34 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         self.multiOp(node, '^')
 
     def visitCallFunc(self, node):
-        f = node.node
-        assert isinstance(f, ast.Name)
-        if f.name == 'bool':
+        fn = node.node
+        assert isinstance(fn, ast.Name)
+        f = getObj(fn)
+        opening, closing = '(', ')'
+        if f is bool:
             self.write("(")
             self.visit(node.args[0])
             self.write(" ? 1'b1 : 1'b0)")
+            return
+        elif f is len:
+            val = self.getVal(node)
+            self.require(node, val is not None, "cannot calculate len")
+            self.write(`val`)
+            return
+        elif type(f)  in (ClassType, type) and issubclass(f, Exception):
+            self.write(f.__name__)
+            self.write(": ")
+        elif f is concat:
+            opening, closing = '{', '}'
         else:
-            self.visit(f)
-            if f.name in self.symdict:
-                obj = self.symdict[f.name]
-            elif f.name in __builtins__:
-                obj = __builtins__[f.name]
-            else:
-                raise AssertionError
-            if type(obj) in (ClassType, type) and issubclass(obj, Exception):
-                self.write(": ")
-            else:
-                self.write(' ')
-            if node.args:
-                self.visit(node.args[0])
-                # XXX
+            self.write(f.__name__)
+        self.write(opening)
+        if node.args:
+            self.visit(node.args[0])
+            for arg in node.args[1:]:
+                self.write(", ")
+                self.visit(arg)
+        self.write(closing)
 
     def visitCompare(self, node):
         self.write("(")
@@ -711,29 +730,60 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         self.binaryOp(node, '/')
 
     def visitFor(self, node):
-        # print node.lineno
-        assert isinstance(node.assign, ast.AssName)
         var = node.assign.name
         self.buf = self.codeBuf
         cf = node.list
-        assert isinstance(cf, ast.CallFunc)
-        assert isinstance(cf.node, ast.Name)
-        assert cf.node.name == 'range'
-        assert len(cf.args) == 1
-        d = {'var' : var}
+        self.require(node, isinstance(cf, ast.CallFunc), "Expected (down)range call")
+        f = getObj(cf.node)
+        self.require(node, f in (range, downrange), "Expected (down)range call")
+        args = cf.args
+        assert len(args) <= 3
+        if f is range:
+            cmp = '<'
+            op = '+'
+            oneoff = ''
+            if len(args) == 1:
+                start, stop, step = None, args[0], None
+            elif len(args) == 2:
+                start, stop, step = args[0], args[1], None
+            else:
+                start, stop, step = args
+        else: # downrange
+            cmp = '>='
+            op = '-'
+            oneoff ='-1'
+            if len(args) == 1:
+                start, stop, step = args[0], None, None
+            elif len(args) == 2:
+                start, stop, step = args[0], args[1], None
+            else:
+                start, stop, step = args
         self.writeline()
-        self.write("for (%(var)s=0; %(var)s<" % d)
-        self.visit(cf.args[0])
-        self.write("; %(var)s=%(var)s+1) begin" % d)
+        self.write("for (%s=" % var)
+        if start is None:
+            self.write("0")
+        else:
+            self.visit(start)
+        self.write("%s; %s%s" % (oneoff, var, cmp))
+        if stop is None:
+            self.write("0")
+        else:
+            self.visit(stop)
+        self.write("; %s=%s%s" % (var, var, op))
+        if step is None:
+            self.write("1")
+        else:
+            self.visit(step)
+        self.write(") begin")
         self.indent()
         self.visit(node.body)
         self.dedent()
         self.writeline()
         self.write("end")
-        assert node.else_ is None
+        
 
     def visitFunction(self, node):
-        raise AssertionError
+        raise AssertionError("To be implemented in subclass")
 
     def visitGetattr(self, node):
         assert isinstance(node.expr, ast.Name)

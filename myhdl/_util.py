@@ -43,9 +43,9 @@ from compiler.consts import CO_GENERATOR
 
 from myhdl._Cosimulation import Cosimulation
 
-def downrange(start, stop=0):
+def downrange(start, stop=0, step=1):
     """ Return a downward range. """
-    return range(start-1, stop-1, -1)
+    return range(start-1, stop-1, -step)
         
 class StopSimulation(exceptions.Exception):
     """ Basic exception to stop a Simulation """

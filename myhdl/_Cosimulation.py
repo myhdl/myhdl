@@ -141,15 +141,19 @@ class Cosimulation(object):
         self._getMode = 0
 
     def _put(self, time):
+        buflist = []
         buf = repr(time)
         if buf[-1] == 'L':
             buf = buf[:-1] # strip trailing L
+        buflist.append(buf)
         if self._hasChange:
             self._hasChange = 0
             for s in self._fromSigs:
-                buf += " "
-                buf += hex(s)[2:]
-        os.write(self._wf, buf)
+                buf = hex(s)[2:]
+                if buf[-1] == 'L':
+                    buf = buf[:-1] # strip trailing L
+                buflist.append(buf)
+        os.write(self._wf, " ".join(buflist))
         self._getMode = 1
 
     def _waiter(self):
