@@ -2,20 +2,18 @@
 
 \section{Introduction}
 
-It is the present author's opinion that many aspects in the design
-flow of modern digital hardware design can be viewed as a special kind
-of software development. From that viewpoint, it is a natural question
-whether advances in software design techniques can not also be applied
-to hardware design.
+Many aspects in the design flow of modern digital hardware design can
+be viewed as a special kind of software development. From that
+viewpoint, it is a natural question whether advances in software
+design techniques can not also be applied to hardware design.
 
-One software design approach that is in the news lately is
+One software design approach that gets a lot of attention recently is
 \emph{Extreme Programming} (XP). It is a fascinating set of techniques and
 guidelines that often seems to go against the conventional wisdom. On
 other occasions, XP just seems to emphasize the common sense, which
 doesn't always coincide with common practice. For example, XP stresses
-the importance of normal, non-overtime workweeks, if we are to have the
-fresh mind needed for good software development. Refreshing to hear,
-if you ask me, although hardly surprising.
+the importance of normal workweeks, if we are to have the
+fresh mind needed for good software development.
 
 It is not my intention nor qualification to present a tutorial on
 Extreme Programming. Instead, in this section I will highlight one XP
@@ -39,10 +37,10 @@ simulator. On the other hand, it may be easy to verify it exhaustively
 in a unit test, even on the slowest simulator.
 
 It is clear that unit tests have compelling advantages. On the other
-hand, if we need to test everything, we are going to have to write
-lots and lots of unit tests. So it will have to be easy and pleasant
+hand, if we need to test everything, we have to write
+lots of unit tests. So it should be easy and pleasant
 to create, manage and run them. Therefore, XP emphasizes the need for
-a unit test framework to support these tasks. In the following,
+a unit test framework that supports these tasks. In this chapter,
 we will explore the use of the \code{unittest} module from
 the standard Python library for creating unit tests for hardware
 designs.
@@ -57,7 +55,7 @@ section~\ref{gray}.
 
 \subsection{Defining the requirements}
 
-We start by defining our requirements. For a Gray encoder, we want to
+We start by defining the requirements. For a Gray encoder, we want to
 the output to comply with Gray code characteristics. Let's define a
 \dfn{code} as a list of \dfn{codewords}, where a codeword is a bit
 string. A code of order \code{n} has \code{2**n} codewords.
@@ -84,23 +82,22 @@ With the requirements written down we can proceed.
 
 \subsection{Writing the test first}
 
-A very fascinating guideline in the XP world is to write the unit test
+A fascinating guideline in the XP world is to write the unit test
 first. That is, before implementing something, first write the test
 that will verify it. This seems to go against our natural inclination,
 and certainly against common practices. Many engineers like to
 implement first and think about verification afterwards.
 
-But if you think about it, it makes a lot of sense to deal
-with verification first. Verification is about the requirements only
---- so your thoughts are not yet cluttered with implementation
-details. The unit tests are an executable description of the
-requirements, so it will be very clear what needs to be done and they
-will be better understood. It follows that the implementation should
-go smoother. Perhaps most importantly, the test is available when you
-are done implementing and can be run at any time by anybody to verify
-changes by anybody else.
+But if you think about it, it makes a lot of sense to deal with
+verification first. Verification is about the requirements only --- so
+your thoughts are not yet cluttered with implementation details. The
+unit tests are an executable description of the requirements, so they
+will be better understood and it will be very clear what needs to be
+done. Consequently, the implementation should go smoother. Perhaps
+most importantly, the test is available when you are done
+implementing, and can be run anytime by anybody to verify changes.
 
-Python has a standard \code{unittest} module to facilitate writing,
+Python has a standard \code{unittest} module that facilitates writing,
 managing and running unit tests. With \code{unittest}, test case are
 written by creating a class that inherits from
 \code{unittest.TestCase}. Individual tests are created by methods of
@@ -229,7 +226,7 @@ Check that all codewords occur exactly once ... FAIL
 
 \end{verbatim}
 
-As expected, this fails completely. Let's now try an incorrect
+As expected, this fails completely. Let us try an incorrect
 implementation, that puts the lsb of in the input on the output:
 
 \begin{verbatim}
@@ -327,7 +324,7 @@ prefixing all codewords of Ln with '1', and reversing their
 order. Ln+1 is the concatenation of Ln0 and Ln1.
 \end{enumerate}
 
-Python is well-known for its support for elegant algorithmic
+Python is well-known  for its elegant algorithmic
 descriptions, and this is a good example. We can write the algorithm
 in Python as follows:
 
@@ -345,7 +342,7 @@ The code \samp{['0' + codeword for ...]} is called a \dfn{list
 comprehension}. It is a concise way to describe lists built by short
 computations in a for loop.
 
-The requirement is now simply that the output code matches the
+The requirement is now that the output code matches the
 expected code Ln. We use the \code{nextLn} function to compute the
 expected result. The new test case code is as follows:
 

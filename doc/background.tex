@@ -2,8 +2,8 @@
 
 \section{Prerequisites}
 
-You need a basic understanding of Python to understand the \myhdl\
-manual. If you don't know Python, you will take comfort in knowing
+You need a basic understanding of Python to use \myhdl\.
+If you don't know Python, you will take comfort in knowing
 that it is probably one of the easiest programming languages to
 learn \footnote{You must be bored by such claims, but in Python's
 case it's true.}. Learning Python is also one of the better time
@@ -26,7 +26,7 @@ this writing. Therefore, there isn't a lot of tutorial material
 available yet. Because generators are the key concept in
 \myhdl{}, I include a small tutorial here.
 
-Consider the following function:
+Consider the following nonsensical function:
 
 \begin{verbatim}
 def function():
@@ -35,7 +35,7 @@ def function():
 
 \end{verbatim}
 
-You can see that it doesn't make a lot of sense. As soon as the first
+You can see why it doesn't make a lot of sense. As soon as the first
 loop iteration is entered, the function returns:
 
 \begin{verbatim}
@@ -89,8 +89,8 @@ StopIteration
 
 \end{verbatim}
 
-You see that you can now generate the subsequent values from the for
-loop, until they are exhausted. What happens is that the
+Now we can generate the subsequent values from the for
+loop on demand, until they are exhausted. What happens is that the
 \keyword{yield} statement is like a
 \keyword{return}, except that it is non-fatal: the generator remembers
 its state and the point in the code when it yielded. A higher order
@@ -113,12 +113,12 @@ should be resumed. In other words, the \keyword{yield} statements work
 as generalized sensitivity lists. If by now you are still interested,
 read on to learn more!
 
-If you want to know more about generators, you can consult.
-\url{http://www.python.org/doc/2.2.2/whatsnew}. 
+If you want to know more about generators, consult the on-line Python
+documentation, e.g. at \url{http://www.python.org/doc/2.2.2/whatsnew}. 
 
 \begin{notice}[warning]
 At the beginning of this section I said that generators were
-introduced in Python 2.2. This is not completely correct: in fact,
+introduced in Python 2.2. This is not entirely correct: in fact,
 generators will only be enabled as a standard feature in Python 2.3.
 However, a stable version of Python 2.3 has not been released yet at
 the time of this writing. So, what to do?
@@ -133,7 +133,7 @@ from __future__ import generators
 
 \end{verbatim}
 
-From Python 2.3. on, this line may still be in the code, though it
+From Python 2.3 on, this line may still be in the code, though it
 will not have an effect anymore.
 \end{notice}
 

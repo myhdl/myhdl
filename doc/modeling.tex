@@ -169,7 +169,7 @@ def monitor():
         yield delay(1)
         print "   %s      %s" % (enable, count)
         
-Simulation(clockGen(), stimulus(), INC_1, monitor(), INC_1).run()
+Simulation(clockGen(), stimulus(), monitor(), INC_1).run()
 
 \end{verbatim}
 

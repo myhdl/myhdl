@@ -48,14 +48,15 @@ there is a \code{delay} clause, that specifies the required delay.
 
 To make sure that the generator runs ``forever'', we wrap its behavior
 in a \code{while 1} loop. This is a standard Python idiom, and it is
-the \myhdl\ equivalent of a Verilog \keyword{always} block or a
-VHDL \keyword{process}.
+the \myhdl\ equivalent of the implicit looping behavior of a Verilog
+\keyword{always} block and a VHDL \keyword{process}.
 
 In \myhdl\, the basic simulation objects are generators. Generators
 are created by calling generator functions. For example, variable
 \code{gen} refers to a generator. To simulate this generator, we pass
 it as an argument to a \class{Simulation} object constructor.  We then
-run the simulation for the desired amount of time.
+run the simulation for the desired amount of time. In \myhdl\, time
+is modeled by a natural integer.
 
 
 \section{Concurrent generators and signals}
@@ -190,13 +191,13 @@ def greetings():
     return clkGen1, clkGen2, sayHello1, sayHello2
 
 \end{verbatim}
-Like in standard Python, positional or named parameter association can
-be used in instantiations, or a mix of both\footnote{All
-positional parameters have to come before any named parameter.}. All
-these styles are demonstrated in the example above. Like in hardware
-description languages, named association can be very useful if there
-are a lot of parameters, as the parameter order does not matter in
-that case.
+As in standard Python, positional or named parameter association can
+be used in instantiations, or a mix of both\footnote{All positional
+parameters have to come before any named parameter.}. All these styles
+are demonstrated in the example above. As in hardware description
+languages, named association can be very useful if there are a lot of
+parameters, as the parameter order in the call does not matter in that
+case.
 
 \class{Simulation} constructor arguments can also be sequences of
 generators. In this way, they support hierarchy: the return value of a
@@ -230,7 +231,7 @@ StopSimulation: Simulated for duration 50
 Hardware design involves dealing with bits and bit-oriented
 operations. The standard Python \class{int} has most of the desired
 features, but lacks support for indexing and slicing. Therefore,
-\myhdl\ provides a \class{intbv} class. It works
+\myhdl\ provides the \class{intbv} class. It works
 transparently as an integer and with integers, and like \class{int},
 offers access to the underlying a 2's complement representation for
 bitwise operations. In addition, it is a mutable type that provides
@@ -262,13 +263,8 @@ use a third form of the \keyword{yield} statement:
 \samp{yield \var{signal}}. This specifies that the generator should
 resume whenever \var{signal} changes value. This is typically used to
 describe combinatorial logic.
-
-The actual code contains bit indexing operations and an exclusive-or
-operator as required for a Gray encoder. Moreover, the code shows how
-the actual value of a signal is accessed through the signal's
-\var{val} attribute. In \myhdl{}, unlike traditional hardware
-description languages, signals are explicitly modeled as composite
-objects whose current and next values are accessed through attributes.
+Finally, the code contains bit indexing operations and an exclusive-or
+operator as required for a Gray encoder. 
 
 To verify the Gray encoder, we write a test bench that prints input
 and output for all possible input values:
@@ -291,9 +287,9 @@ def testBench(width):
 
 \end{verbatim}
 
-Note how we use the conversion function \code{bin} to get a binary
+We use the conversion function \code{bin} to get a binary
 string representation of the signal values. This function is exported
-by the \code{myhdl} packages and complements the standard Python
+by the \code{myhdl} package and complements the standard Python
 \code{hex} and \code{oct} conversion functions.
 
 To demonstrate, we set up a simulation for a small width: 

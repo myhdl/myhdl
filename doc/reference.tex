@@ -29,12 +29,27 @@ value to \var{val}. Optionally, a delay can be specified.
 
 A \class{Signal} object has the following attributes:
 
-\begin{memberdesc}[Signal]{val}
-Read-only attribute that represents the current value of the signal. 
-\end{memberdesc}
 \begin{memberdesc}[Signal]{next}
 Read-write attribute that represents the next value of the signal.
 \end{memberdesc}
+
+\begin{memberdesc}[Signal]{val}
+Read-only attribute that represents the current value of the signal.
+
+This attribute is always available to access the current value;
+however in many practical case it will not be needed. Whenever there
+is no ambiguity, the Signal object's current value is used
+implicitly. In particular, all Python's standard numeric, bit-wise,
+logical and comparison operators are implemented on a Signal object by
+delegating to its current value. The exception is augmented
+assignment. These operators are not implemented as they would break
+the rule that the current value should be a read-only attribute. In
+addition, when a Signal object is directly assigned to the \code{next}
+attribute of another Signal object, its current value is assigned
+instead.
+\end{memberdesc}
+
+
 
 \section{\myhdl\ generators and trigger objects}
 \label{myhdl-generators}
@@ -57,8 +72,7 @@ that the same \keyword{yield} statement is invoked again, and that a
 subsequent trigger still triggers the generator.)
 
 In this section, the trigger objects and their functionality will be
-described. When referring to ``the generator'' we mean the generator
-to which the \keyword{yield} statement belongs.
+described. 
 
 \begin{funcdesc}{posedge}{signal}
 Return a trigger object that specifies that the generator should
@@ -69,7 +83,7 @@ from false to true.
 \begin{funcdesc}{negedge}{signal}
 Return a trigger object that specifies that the generator should
 resume on a falling edge on the signal. A falling edge means a change
-from false to true.
+from true to false.
 \end{funcdesc}
 
 \begin{funcdesc}{delay}{t}
@@ -78,7 +92,7 @@ resume after a delay \var{t}.
 \end{funcdesc}
 
 \begin{funcdesc}{join}{arg \optional{, arg \moreargs}}
-Joins a number of trigger objects together and return a new joined
+Join a number of trigger objects together and return a joined
 trigger object.  The effect is that the joined trigger object will
 trigger when \emph{all} of its arguments have triggered.
 \end{funcdesc}
@@ -131,8 +145,8 @@ Return the current simulation time.
 \begin{funcdesc}{downrange}{high \optional{, low=0}}
 Generates a downward range list of integers. Modeled after the
 standard \code{range} function, but works in the downward
-direction. The returned interval is half-open, with \var{high} not
-being included. \var{low} is optional and defaults to zero.
+direction. The returned interval is half-open, with the \var{high}
+index not included. \var{low} is optional and defaults to zero.
 
 This function is especially useful with the \class{intbv} class, that
 also works with downward indexing.
@@ -140,7 +154,7 @@ also works with downward indexing.
 
 \begin{funcdesc}{bin}{num \optional{, width}}
 Return a representation as a bit string.  If \var{width} is provided,
-and if it is larger that the width of the default representation, the
+and if it is larger than the width of the default representation, the
 bit string is padded with the sign bit.
 
 This function complements the standard Python conversion functions
@@ -205,7 +219,7 @@ operations:
 	  are downward, in contrast to standard Python. However, the
 	  Python convention of half-open ranges is followed. In
 	  accordance with standard Python, the high index is not
-	  included, however, it is the \emph{leftmost} index in this
+	  included. However, it is the \emph{leftmost} index in this
 	  case. As in standard Python, this takes care of one-off
 	  issues in many practical cases: in particular,
 	  \code{bv[\var{i}:]} returns \var{i} bits;
@@ -228,21 +242,22 @@ operations:
 In addition, \class{intbv} objects support a concatenation method:
 
 \begin{methoddesc}[intbv]{concat}{\optional{arg \moreargs}}
-Concatenate the arguments to an \class{intbv} object. Concatenation
-occurs at the lsb (rightmost) side. Logically, the concatenation
-arguments need to have a defined bit width. Therefore, if they are
-\class{intbv} objects, they have to be the return values of a slicing
-operation. Alternatively, they may be bit strings.
+Concatenate the arguments to an \class{intbv} object. Naturally, the
+concatenation arguments need to have a defined bit width. Therefore,
+if they are \class{intbv} objects, they have to be the return values
+of a slicing operation. Alternatively, they may be bit strings.
 
 In contrast to all other arguments, the implicit \var{self} argument
-doesn't need to have a defined bit with.  It may be clearer to call
-this method as an unbound method with an explicit first \class{intbv}
-argument.
+doesn't need to have a defined bit with. This relaxed restriction is
+due to the fact that concatenation occurs at the lsb (rightmost) side.
+
+It may be clearer to call this method as an unbound method with an
+explicit first \class{intbv} argument.
 \end{methoddesc}
 
 In addition, an \class{intbv} object supports the iterator protocol. This
 makes it possible to iterate over all its bits, from the high index to
-index 0. Again, this is only possible for \class{intbv} objects with a
+index 0. This is only possible for \class{intbv} objects with a
 defined bit width.
 
 
