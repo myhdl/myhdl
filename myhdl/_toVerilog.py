@@ -366,6 +366,8 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
                 self.visit(arg, INPUT)
             
     def visitCompare(self, node, *args):
+        if len(node.ops) != 1:
+            self.raiseError(node, _error.NotSupported, "chained comparison")
         node.obj = bool()
 
     def visitConst(self, node, *args):

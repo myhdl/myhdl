@@ -217,25 +217,16 @@ class TestNotSupported(unittest.TestCase):
                     pass
         self.check(g, z, a)
 
-##     def testUnaryAdd(self):
-##         a = Signal(bool())
-##         z = Signal(bool())
-##         def g(z, a):
-##             while 1:
-##                 yield a
-##                 z.next = +a
-##         self.check(g, z, a)
+    def testChainedCompare(self):
+        a, b, c = [Signal(bool()) for i in range(3)]
+        z = Signal(bool())
+        def g(z, a, b, c):
+            while 1:
+                yield a, b, c
+                z.next = a <= b < c
+        self.check(g, z, a, b, c)
+        
 
-##     def testUnarySub(self):
-##         a = Signal(bool())
-##         z = Signal(bool())
-##         def g(z, a):
-##             while 1:
-##                 yield a
-##                 z.next = -a
-##                 return
-##         self.check(g, z, a)
-            
 
 if __name__ == '__main__':
     unittest.main()
