@@ -144,9 +144,11 @@ class _UnparseVisitor(object):
     def visitSlice(self, node):
         self.visit(node.expr)
         self.write('[')
-        self.visit(node.lower)
+        if node.lower is not None:
+            self.visit(node.lower)
         self.write(':')
-        self.visit(node.upper)
+        if node.upper is not None:
+            self.visit(node.upper)
         self.write(']')
         
     def visitSub(self, node):
