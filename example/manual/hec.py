@@ -17,9 +17,9 @@ def calculateHec(header):
     return hec ^ COSET
 
 
-headers = ( 0x00000000,
-            0x01234567,
-            0xbac6f4ca
+headers = ( 0x00000000L,
+            0x01234567L,
+            0xbac6f4caL
           )
 
 def main():
