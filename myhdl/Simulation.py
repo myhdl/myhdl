@@ -27,12 +27,12 @@ from __future__ import generators
 import sys
 import os
 from warnings import warn
+from types import GeneratorType
 
 import _simulator
 from _simulator import _siglist, _futureEvents
-from Signal import Signal, _SignalWrap, _WaiterList
+from Signal import Signal, _WaiterList
 from delay import delay
-from types import GeneratorType
 from Cosimulation import Cosimulation
 from join import join
 from _Waiter import _Waiter
