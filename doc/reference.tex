@@ -22,7 +22,7 @@ Run the simulation forever (by default) or for a specified duration.
 
 \section{The \class{Signal} class}
 \label{signal}
-\begin{classdesc}{Signal}{val, \optional{delay}}
+\begin{classdesc}{Signal}{val \optional{, delay}}
 This class is used to construct a new signal and to initialize its
 value to \var{val}. Optionally, a delay can be specified.
 \end{classdesc}
@@ -128,7 +128,7 @@ stop a simulation. Can be subclassed and raised in generator code.
 Return the current simulation time.
 \end{funcdesc}
 
-\begin{funcdesc}{downrange}{high, \optional{low=0}}
+\begin{funcdesc}{downrange}{high \optional{, low=0}}
 Generates a downward range list of integers. Modeled after the
 standard \code{range} function, but works in the downward
 direction. The returned interval is half-open, with \var{high} not
@@ -137,6 +137,17 @@ being included. \var{low} is optional and defaults to zero.
 This function is especially useful with the \class{intbv} class, that
 also works with downward indexing.
 \end{funcdesc}
+
+\begin{funcdesc}{bin}{num \optional{, width}}
+Return a representation as a bit string.  If \var{width} is provided,
+and if it is larger that the width of the default representation, the
+bit string is padded with the sign bit.
+
+This function complements the standard Python conversion functions
+\code{hex} and \code{oct}. A binary string representation is often
+needed in hardware design.
+\end{funcdesc}
+
 
 \section{The \class{intbv} class}
 
@@ -227,17 +238,6 @@ In contrast to all other arguments, the implicit \var{self} argument
 doesn't need to have a defined bit with.  It may be clearer to call
 this method as an unbound method with an explicit first \class{intbv}
 argument.
-\end{methoddesc}
-
-\class{intbv} objects support the standary Python \code{hex} and
-\code{oct} conversions to a string representation. In hardware design, a
-binary string representation is often needed. Therefore, they also
-have a method that converts to a binary string:
-
-\begin{methoddesc}[intbv]{bin}{\optional{width}}
-Return a representation as a bit string.  If \var{width} is provided,
-and if it is larger that the width of the default representation, the
-bit string is padded with the sign bit.
 \end{methoddesc}
 
 In addition, an \class{intbv} object supports the iterator protocol. This
