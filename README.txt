@@ -6,7 +6,7 @@ INTRODUCTION
 
 MyHDL is a Python package for using Python as a hardware description
 language. Popular hardware description languages, like Verilog and
-VHDL, are compiled languages. MyHDL with Python can be viewed as a
+VHDL, are compiled languages. Python with MyHDL can be viewed as a
 "scripting language" counterpart of such languages. However, Python is
 more accurately described as a very high level language
 (VHLL). MyHDL users have access to the amazing power and elegance of
