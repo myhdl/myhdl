@@ -8,11 +8,11 @@ from myhdl import *
 # SEARCH, CONFIRM, SYNC = range(3)
 ACTIVE_LOW = 0
 FRAME_SIZE = 8
-t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding='one_cold')
+t_State_b = enum('SEARCH', 'CONFIRM', 'SYNC')
+t_State_oh = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
+t_State_oc = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_cold")
 
-
-
-def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n):
+def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
     
     """ Framing control FSM.
 
@@ -58,7 +58,7 @@ def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n):
     return FSM_1
 
 
-def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n):
+def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
     
     """ Framing control FSM.
 
@@ -80,9 +80,10 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n):
                 SOF.next = 0
                 index[:] = 0
                 state_var = t_State.SEARCH
+                state.next = t_State.SEARCH
             else:
                 SOF_var = 0
-                if state_var == t_State.SEARCH:
+                if state == t_State.SEARCH:
                     index[:] = 0
                     if syncFlag:
                         state_var = t_State.CONFIRM
@@ -124,7 +125,7 @@ def FramerCtrl_v(SOF, state, syncFlag, clk, reset_n):
 
 class FramerCtrlTest(TestCase):
     
-    def bench(self, FramerCtrl):
+    def bench(self, FramerCtrl, t_State):
 
         SOF = Signal(bool(0))
         SOF_v = Signal(bool(0))
@@ -134,8 +135,8 @@ class FramerCtrlTest(TestCase):
         state = Signal(t_State.SEARCH)
         state_v = Signal(intbv(0)[8:])
 
-        framerctrl_ref_inst = FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n)
-        framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
+        framerctrl_ref_inst = FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State)
+        framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n, t_State)
         framerctrl_v_inst = FramerCtrl_v(SOF_v, state_v, syncFlag, clk, reset_n)
 
         def clkgen():
@@ -172,15 +173,16 @@ class FramerCtrlTest(TestCase):
 
 
     def testRef(self):
-        tb_fsm = self.bench(FramerCtrl_ref)
-        sim = Simulation(tb_fsm)
-        sim.run()
+        for t_State in (t_State_b, t_State_oh, t_State_oc):
+            tb_fsm = self.bench(FramerCtrl_ref, t_State)
+            sim = Simulation(tb_fsm)
+            sim.run()
         
     def testAlt(self):
-        tb_fsm = self.bench(FramerCtrl_alt)
-        sim = Simulation(tb_fsm)
-        sim.run()
-        
+        for t_State in (t_State_b, t_State_oh, t_State_oc):
+            tb_fsm = self.bench(FramerCtrl_alt, t_State)
+            sim = Simulation(tb_fsm)
+            sim.run()
 
 if __name__ == '__main__':
     unittest.main()
