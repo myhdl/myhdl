@@ -345,6 +345,7 @@ static PLI_INT32 delay_callback(p_cb_data cb_data)
   s_vpi_time verilog_time;
   s_cb_data cb_data_s;
 
+  verilog_time.type = vpiSimTime;
   vpi_get_time(NULL, &verilog_time);
   // register readonly callback //
   time_s.type = vpiSimTime;
@@ -391,6 +392,7 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 
   reg_iter = vpi_iterate(vpiArgument, from_myhdl_systf_handle);
 
+  value_s.format = vpiHexStrVal;
   while ((value_s.value.str = strtok(NULL, " ")) != NULL) {
     reg_handle = vpi_scan(reg_iter);
     vpi_put_value(reg_handle, &value_s, NULL, vpiNoDelay);
@@ -399,6 +401,7 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
     vpi_free_object(reg_iter);
   }
 
+  verilog_time.type = vpiSimTime;
   vpi_get_time(NULL, &verilog_time);
 
   // register readonly callback //

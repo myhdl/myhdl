@@ -3,6 +3,10 @@ from __future__ import generators
 from myhdl import Signal, Simulation, Cosimulation
 from myhdl import delay, intbv, now
 
+import os
+cmd = "iverilog -o tb_test ./tb_test.v "
+os.system(cmd)
+      
 a = Signal(intbv(1))
 b = Signal(intbv(2))
 c = Signal(intbv(3))
