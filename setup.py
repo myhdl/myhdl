@@ -1,3 +1,5 @@
+""" myhdl's distutils distribution and installation script. """
+
 from distutils.core import setup
 
 setup(name="myhdl",

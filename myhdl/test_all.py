@@ -36,6 +36,10 @@ def suite():
         alltests.addTest(tl.loadTestsFromModule(m))
     return alltests
 
-if __name__ == '__main__':
+def main():
     unittest.main(defaultTest='suite',
                   testRunner=unittest.TextTestRunner(verbosity=2))
+    
+
+if __name__ == '__main__':
+    main()
