@@ -7,6 +7,6 @@ original Samples is held by Janick Bergeron.
 
 I added a test bench, test_rs232.py, to verify the translation into
 myhdl/Python, and to demonstrate some possibilities of myhdl and the
-Python unittest framework. Run the testbench as follows:
+Python unit test framework. Run the test bench as follows:
 
     python test_rs232.py

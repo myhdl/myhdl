@@ -12,6 +12,8 @@ from rs232_util import Config, EVEN, ODD, ParityError, Error
 
 class rs232Test(TestCase):
 
+    """ rs232 functional unit test """
+
     def default(self):
         tx = Signal(intbv(0))
         rx = tx
@@ -76,6 +78,8 @@ class rs232Test(TestCase):
 
 class rs232Characterize(TestCase):
 
+    """ rs232 baud rate characterization test """
+
     def bench(self, tx_baud_rate):
         tx = Signal(intbv(0))
         rx = tx
@@ -89,7 +93,7 @@ class rs232Characterize(TestCase):
                 raise Error
 
     def testCharacterize(self):
-        """ Characterize baud rate tolerance """
+        """ Find min/max tx baud rate tolerance by simulation """
         coarseOffset = 100
         fineOffset = 5
         tx_baud_rate = 9600
