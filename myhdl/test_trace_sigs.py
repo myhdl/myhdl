@@ -49,6 +49,11 @@ def fun():
     inst = gen(clk)
     return inst
 
+def fun2():
+    clk = Signal(bool(0))
+    inst = gen(clk)
+    return inst
+
 def dummy():
     clk = Signal(bool(0))
     inst = gen(clk)

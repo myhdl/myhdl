@@ -98,15 +98,15 @@ def _isGenSeq(obj):
     return 1
 
 def _isgeneratorfunction(obj):
-   if type(obj) is FunctionType:
-       s = inspect.getsource(obj)
-       s = s.lstrip()
-       s = 'from __future__ import generators\n' + s # for 2.2 ...
-       tree = compiler.parse(s)
-       v = _YieldVisitor()
-       compiler.walk(tree, v)
-       return v.isgenfunc
-   return 0
+    if type(obj) is FunctionType:
+        s = inspect.getsource(obj)
+        s = s.lstrip()
+        s = 'from __future__ import generators\n' + s # for 2.2 ...
+        tree = compiler.parse(s)
+        v = _YieldVisitor()
+        compiler.walk(tree, v)
+        return v.isgenfunc
+    return 0
 
 class _YieldVisitor(object):
     

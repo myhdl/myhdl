@@ -63,12 +63,12 @@ re_assname = re.compile(r"^\s*(?P<assname>\w[\w\d]*)\s*=")
 
 def trace_sigs(dut, *args, **kwargs):
     global _tracing
+    if _tracing:
+        return dut(*args, **kwargs) # skip
     if not callable(dut):
         raise ArgTypeError("got %s" % type(dut))
     if _isgeneratorfunction(dut):
         raise ArgTypeError("got generator function")
-    if _tracing:
-         return dut(*args, **kwargs) # skip
     _tracing = 1
     try:
         o = getouterframes(currentframe())[1]
