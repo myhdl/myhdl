@@ -69,7 +69,10 @@ class intbv(object):
             res._len = basewidth + width
         return res
 
-
+    # hash
+    def __hash__(self):
+        raise TypeError, "intbv objects are unhashable"
+        
     # copy methods
     def __copy__(self):
         return intbv(self._val)

@@ -77,6 +77,7 @@ separate type.
   addition, literal bit strings are accepted in concatenations, just as
   they are in intbv constructors.
 
-
 * intbv supports the iterator protocol to iterate on its bits; again,
   this requires a known length.
+
+* intbv objects are unhashable

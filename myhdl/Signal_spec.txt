@@ -102,3 +102,5 @@ In the following, a "sig" denotes an instance of the Signal class.
 * A sig should have no other public attributes than those described
   above.
 
+* Signal objects are unhashable.
+

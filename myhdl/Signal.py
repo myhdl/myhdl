@@ -132,6 +132,10 @@ class Signal(object):
     negedge = property(_get_negedge, None, None, "'posedge' access methodes")
     
 
+    # hashing not supported
+    def __hash__(self):
+        assert TypeError, "Signal objects are unhashable"
+        
     ### operators for which delegation to current value is appropriate ###
     
     def __nonzero__(self):

@@ -30,6 +30,11 @@ from Signal import Signal
 from _simulator import _siglist
 from intbv import intbv
 
+class TestSignalUnhashable(TestCase):
+
+    def testSignalUnhashable(self):
+        self.assertRaises(TypeError, hash, Signal(3))
+        
 class SigTest(TestCase):
 
     def setUp(self):
