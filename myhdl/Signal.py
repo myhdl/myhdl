@@ -66,6 +66,7 @@ class Signal(object):
 
     __slots__ = ('_next', '_val', '_type',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
+                 '_codeName',
                 )
 
     def __new__(cls, val, delay=0):
@@ -89,6 +90,7 @@ class Signal(object):
         self._eventWaiters = _WaiterList()
         self._posedgeWaiters = _WaiterList()
         self._negedgeWaiters = _WaiterList()
+        self._codeName = ""
         
     def _update(self):
         if self._val != self._next:
