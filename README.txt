@@ -47,7 +47,8 @@ If necessary, consult the distutils documentation in the standard
 Python library if necessary for more details; or contact me.
 
 You can test the installation as follows:
-
+   
+    cd test
     python test.py
 
 DOCUMENTATION
