@@ -50,6 +50,8 @@ class Error(Exception):
 
 class MultipleCosimError(Error):
     """Only a single cosimulator argument allowed"""
+class ArgTypeError(Error):
+    """Inappriopriate argument type"""
 
             
 class Simulation(object):
@@ -228,12 +230,14 @@ def _flatten(*args):
                 raise MultipleCosimError
             cosim = arg
             waiters.append(_Waiter(cosim._waiter()))
-        else:
+        elif isinstance(arg, (list, tuple)):
             for item in arg:
                 w, c = _flatten(item)
                 if cosim and c:
                     raise MultipleCosimError
                 cosim = c
                 waiters.extend(w)
+        else:
+            raise ArgTypeError(str(type(arg)))
     return waiters, cosim
 
