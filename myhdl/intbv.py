@@ -37,31 +37,29 @@ class intbv(object):
     __slots__ = ('_val', '_min', '_max', '_len', '_nrbits')
     
     def __init__(self, val=0, min=None, max=None, _len=0):
-        self._len = _len
         nrbits = 0
         if _len:
             self._min = 0
             self._max = 2**_len
-            nrbits = _len
         else:
             self._min = min
             if min is not None:
-                nrbits = len(bin(min))
+                _len = len(bin(min))
             self._max = max
             if max is not None:
-                nrbits = maxfunc(len(bin(max-1)), nrbits)
-        self._nrbits = nrbits
+                _len = maxfunc(len(bin(max-1)), _len)
         if isinstance(val, (int, long)):
             self._val = val
         elif type(val) is StringType:
             self._val = long(val, 2)
-            self._len = len(val)
+            _len = len(val)
         elif isinstance(val, intbv):
             self._val = val._val
         elif val is None:
             self._val = None # for Cosimulation and X, Z support perhaps
         else:
             raise TypeError("intbv constructor arg should be int or string")
+        self._len = _len
         self._checkBounds()
 
     def _checkBounds(self):
@@ -119,6 +117,10 @@ class intbv(object):
             return 1
         else:
             return 0
+
+    # length
+    def __len__(self):
+        return self._len
 
     # indexing and slicing methods
 

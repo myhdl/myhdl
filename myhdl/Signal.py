@@ -92,7 +92,7 @@ class Signal(object):
         elif isinstance(val, intbv):
             self._min = val._min
             self._max = val._max
-            self._nrbits = val._nrbits
+            self._nrbits = val._len
             if self._nrbits:
                 self._checkVal = self._checkIntbvBounds
                 self._printVcd = self._printVcdVec
@@ -203,6 +203,10 @@ class Signal(object):
             return 1
         else:
             return 0
+
+    # length defined as bit width
+    def __len__(self):
+        return self._nrbits
 
     # indexing and slicing methods
 
@@ -327,6 +331,7 @@ class Signal(object):
 
     def __float__(self):
         return float(self._val)
+    
     def __oct__(self):
         return oct(self._val)
     
