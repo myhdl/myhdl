@@ -5,6 +5,12 @@ global-include *.ps
 global-include *.c
 global-include *.v
 global-include Makefile
-prune doc/tools
+global-exclude .cvsignore
 prune dist
-exclude doc/Makefile
+prune doc
+graft doc/html
+exclude doc/html/.cvsignore
+include doc/paper-a4/*.pdf
+include doc/paper-a4/*.ps
+include doc/paper-letter/*.pdf
+include doc/paper-letter/*.ps
