@@ -34,20 +34,6 @@ from myhdl._Error import Error
 
 _MAXLINE = 4096
 
-
-class MultipleCosimError(Error):
-    """Only a single cosimulator allowed"""
-class DuplicateSigNamesError(Error):
-    """Duplicate signal name in myhdl vpi call"""
-class SigNotFoundError(Error):
-    """Signal not found in Cosimulation arguments"""
-class TimeZeroError(Error):
-    """myhdl vpi call when not at time 0"""
-class NoCommunicationError(Error):
-    """No signals communicating to myhdl"""
-class SimulationEndError(Error):
-    """Premature simulation end"""
-
 class CosimulationError(Error):
     pass
 class _error:
