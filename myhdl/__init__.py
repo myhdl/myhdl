@@ -45,9 +45,6 @@ __date__ = "$Date$"
 
 __version__ = "0.3"
 
-# Because exported objects often have the same name as the internal
-# module that defines them, the import order here matters.  Objects
-# that are used by others are exported first.
 from _bin import bin
 from _intbv import intbv
 from _join import join
