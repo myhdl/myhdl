@@ -364,8 +364,8 @@ same name, an access error is now reported as follows:
 Traceback (most recent call last):
 ...
   File "sparseMemory.py", line 57, in sparseMemory
-    raise Error, "Initialize address %s" % hex(addr)
-sparseMemory.Error: Initializes address 0x33
+    raise Error, "Uninitialized address %s" % hex(addr)
+__main__.Error: Uninitialized address 0x33
 
 \end{verbatim}
 
