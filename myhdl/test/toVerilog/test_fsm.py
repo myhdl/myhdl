@@ -73,6 +73,7 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n):
  
     def FSM():
         index = intbv(0)[8:] # position in frame
+        state_var = t_State.SEARCH
         while 1:
             yield posedge(clk), negedge(reset_n)
             if reset_n == ACTIVE_LOW:

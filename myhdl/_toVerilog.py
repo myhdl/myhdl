@@ -59,6 +59,11 @@ _error.SigMultipleDriven = "Signal has multiple drivers"
 _error.UndefinedBitWidth = "Signal has undefined bit width"
 _error.UndrivenSignal = "Signal is not driven"
 _error.Requirement = "Requirement violation"
+_error.UnboundLocal="Local variable may be referenced before assignment"
+_error.TypeMismatch="Type mismatch with earlier assignment"
+_error.NrBitsMismatch="Nr of bits mismatch with earlier assignment"
+_error.ReturnTypeMismatch="Return type mismatch"
+_error.ReutrnNrBitsMismatch="Returned nr of bits mismatch"
     
 def _checkArgs(arglist):
     for arg in arglist:
@@ -299,6 +304,19 @@ def getNrBits(obj):
         return obj._nrbits
     return None
 
+
+class ReferenceStack(list):
+    def push(self):
+        self.append(Set())
+    def add(self, item):
+        self[-1].add(item)
+    def __contains__(self, item):
+        for s in self:
+            if item in s:
+                return True
+        return False
+    
+
 class _AnalyzeVisitor(_ToVerilogMixin):
     
     def __init__(self, symdict, sourcefile, lineoffset):
@@ -310,6 +328,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.outputs = Set()
         self.used = Set()
         self.labelStack = []
+        self.refStack = ReferenceStack()
+        self.globalRefs = Set()
 
     def getObj(self, node):
         if hasattr(node, 'obj'):
@@ -346,19 +366,27 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             obj = self.getObj(expr)
             if obj is None:
                 self.raiseError(node, "Cannot infer type or bit width of %s" % n)
-            self.vardict[n] = obj
-            # XXX if n is already in vardict
+            if n in self.vardict:
+                curObj = self.vardict[n]
+                if isinstance(obj, type(curObj)):
+                    pass
+                elif isinstance(curObj, type(obj)):
+                    self.vardict[n] = obj
+                else:
+                    self.raiseError(node, _error.TypeMismatch, n)
+                if getNrBits(obj) != getNrBits(curObj):
+                    self.raiseError(node, _error.NrBitsMismatch, n)
+            else:
+                self.vardict[n] = obj
         else:
             self.visit(expr, INPUT)
 
     def visitAssName(self, node, *args):
         n = node.name
         # XXX ?
-        if n in self.vardict:
-            return
-        if n in self.used:
-            self.require(node, n not in self.symdict,
-                         "Previously used external symbol cannot be locally redeclared: %s" % n)
+        if n in self.globalRefs:
+            self.raiseError(node, _error.UnboundLocal, n)
+        self.refStack.add(n)
         
     def visitAugAssign(self, node, access=INPUT, *args):
         self.visit(node.node, INOUT)
@@ -377,6 +405,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = intbv()
         elif func is len:
             node.obj = int() # XXX
+        elif func is bool:
+            node.obj = bool()
         elif func in myhdl.__dict__.values():
             pass
         elif func in __builtin__.__dict__.values():
@@ -422,9 +452,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.obj = bool()
 
     def visitConst(self, node, *args):
-        if isinstance(node.value, bool):
-            node.obj = bool()
-        elif isinstance(node.value, int):
+##         if isinstance(node.value, bool): # bool constants are names ???
+##             node.obj = bool()
+        if isinstance(node.value, int):
             node.obj = int()
         else:
             node.obj = None
@@ -437,11 +467,13 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.loopLabel = Label("LOOP")
         self.labelStack.append(node.breakLabel)
         self.labelStack.append(node.loopLabel)
+        self.refStack.push()
         self.visit(node.assign)
         var = node.assign.name
         self.vardict[var] = int()
         self.visit(node.list)
         self.visit(node.body, *args)
+        self.refStack.pop()
         self.require(node, node.else_ is None, "for-else not supported")
         self.labelStack.pop()
         self.labelStack.pop()
@@ -457,10 +489,25 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         if str(type(obj)) == "<class 'myhdl._enum.Enum'>":
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
+            
+    def visitIf(self, node, *args):
+        for test, suite in node.tests:
+            self.visit(test, *args)
+            self.refStack.push()
+            self.visit(suite, *args)
+            self.refStack.pop()
+        if node.else_:
+            self.refStack.push()
+            self.visit(node.else_, *args)
+            self.refStack.pop()
 
     def visitName(self, node, access=INPUT, *args):
         n = node.name
         self.used.add(n)
+        if n not in self.refStack:
+            if n in self.vardict:
+                self.raiseError(node, _error.UnboundLocal, n)
+            self.globalRefs.add(n)
         if n in self.sigdict:
             if access == INPUT:
                 self.inputs.add(n)
@@ -475,8 +522,10 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = self.vardict[n]
         elif n in self.symdict:
             node.obj = self.symdict[n]
-        else:
+        elif n in __builtin__.__dict__:
             node.obj = __builtins__[n]
+        else:
+            pass
 
     def visitReturn(self, node, *args):
         self.visit(node.value)       
@@ -511,7 +560,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.labelStack.append(node.breakLabel)
         self.labelStack.append(node.loopLabel)
         self.visit(node.test, *args)
+        self.refStack.push()
         self.visit(node.body, *args)
+        self.refStack.pop()
         if isinstance(node.test, ast.Const) and \
            node.test.value == True and \
            isinstance(node.body.nodes[0], ast.Yield):
@@ -531,6 +582,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
                 sigdict[n] = v
         
     def visitFunction(self, node, *args):
+        self.refStack.push()
         print node.code
         self.visit(node.code)
         self.kind = ALWAYS
@@ -542,6 +594,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             w = node.code.nodes[-1]
             if not self.getKind(w) == ALWAYS:
                 self.kind = INITIAL
+        self.refStack.pop()
                 
     def visitModule(self, node, *args):
         self.visit(node.node)
@@ -571,6 +624,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         self.returnObj = None
 
     def visitFunction(self, node, *args):
+        self.refStack.push()
         argnames = node.argnames
         for i, arg in enumerate(self.args):
             if isinstance(arg, ast.Keyword):
@@ -584,7 +638,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             if isinstance(v, (Signal, intbv)):
                 self.sigdict[n] = v
         self.visit(node.code)
-        
+        self.refStack.pop()
         
     def visitReturn(self, node, *args):
         self.visit(node.value)
@@ -598,14 +652,14 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             self.raiseError(node, "Can't derive return type")
         if self.hasReturn:
             returnObj = self.returnObj
-            if getNrBits(obj) != getNrBits(returnObj):
-                self.raiseError(node, "Returned nr of bits is different from before")
             if isinstance(obj, type(returnObj)):
                 pass
             elif isinstance(returnObj, type(obj)):
-                self.returnObj = type(obj)
+                self.returnObj = obj
             else:
-                self.raiseError(node, "Incompatible return type")
+                self.raiseError(node, _error.ReturnTypeMismatch)
+            if getNrBits(obj) != getNrBits(returnObj):
+                self.raiseError(node, _error.ReturnNrBitsMismatch)
         else:
             self.returnObj = obj
             self.hasReturn = True
@@ -664,7 +718,7 @@ def _writeModuleHeader(f, intf):
         if s._driven:
             print >> f, "output %s%s;" % (r, portname)
             print >> f, "reg %s%s;" % (r, portname)
-        elif s._read:
+        else:
             print >> f, "input %s%s;" % (r, portname)
     print >> f
 
@@ -1060,7 +1114,11 @@ class _ConvertVisitor(_ToVerilogMixin):
        
     def visitName(self, node):
         n = node.name
-        if n in self.vardict:
+        if n == 'False':
+            self.write("1'b0")
+        elif n == 'True':
+            self.write("1'b1")
+        elif n in self.vardict:
             self.write(n)
         elif node.name in self.symdict:
             obj = self.symdict[n]
@@ -1163,7 +1221,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         
     def visitYield(self, node):
         self.inYield = True
-        self.writeline()
         self.write("@ (")
         self.visit(node.value)
         self.write(");")
@@ -1230,6 +1287,8 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         elif hasattr(obj, '_nrbits'):
             self.write("[%s-1:0]" % obj._nrbits)
         else:
+            print "HERE"
+            print type(obj)
             raise AssertionError("unexpected type")
 
     def writeInputDeclarations(self):
