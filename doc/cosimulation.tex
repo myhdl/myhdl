@@ -293,7 +293,7 @@ intended for implementation.  Most likely, this will be through
 synthesis. As time delays are meaningless in synthesizable code, the
 restriction is compatible with the target application.
 
-\subsection{Race sensitivity}
+\subsection{Race sensitivity issues}
 
 In a typical RTL code, some events cause other events to occur in the
 same timestep. For example, when a clock signal triggers some signals
@@ -302,37 +302,113 @@ must differentiate between such events within a timestep. This is done
 by the concept of ``delta'' cycles. In a fully general, racefree
 cosimulation, the cosimulators would communicate at the level of delta
 cycles. However, in \myhdl\ cosimulation, this is not entirely the
-case.  Due to this restriction, racefree operation at the cosimulation
-interface may require some precautions.
+case.
 
-At the \myhdl\ side, delta cycles toward the HDL cosimulator are
-preserved. However, at the HDL side, they are not. The signals are
-only returned to the \myhdl\ simulator after all delta cycles have
-been performed.
+Delta cycles from the \myhdl\ simulator toward the HDL cosimulator are
+preserved. However, in the opposite direction, they are not. The
+signals changes are only returned to the \myhdl\ simulator after all delta
+cycles have been performed in the HDL cosimulator.
 
 What does this mean? Let's start with the good news. As explained in
 the previous section, the logic of the \myhdl\ cosimulation implies
 that clocks are generated at the \myhdl\ side.  \emph{When using a
-\myhdl\ clock and its corresponding HDL signal directly as a clock
-signal, cosimulation operation is racefree.} In other words, the case
-that most closely follows the \myhdl\ cosimulation logic, is racefree.
+\myhdl\ clock and its corresponding HDL signal directly as a clock,
+cosimulation operation is racefree.} In other words, the case
+that most closely reflects the \myhdl\ cosimulation approach, is racefree.
 
-It is only when you want to use a HDL-driven signal, and its
-corresponding \myhdl\ signal, as a clock, that care must be taken. In
-general, communication triggered by such a clock is not racefree. The
-solution is to treat such an interface as a chip interface, not a HDL
+The situation is different when you want to use a signal driven by the
+HDL (and the corresponding MyHDL signal) as a clock. 
+Communication triggered by such a clock is not racefree. The solution
+is to treat such an interface as a chip interface instead of an RTL
 interface.  For example, when data is triggered at positive clock
 edges, it can safely be sampled at negative clock edges.
 Alternatively, the \myhdl\ data signals can be declared with a delay
-value, so that they are guaranteed to change later than the clock
+value, so that they are guaranteed to change after the clock
 edge.
 
 
 \section{Implementation notes}
 
+\begin{quote}
+\em
+This section requires some knowledge of PLI terminology.
+\end{quote}
 
+Enabling a simulator for cosimulation requires a PLI module
+written in C. In Verilog, the PLI is part of the ``standard''.
+However, different simulators implement different versions 
+and portions of the standard. Worse yet, the behavior of
+certain PLI callbacks is not defined on some essential points. 
+As a result, one should plan to write a specific PLI module
+for any simulator.
 
+The present release contains a PLI module for the 
+open source Icarus simulator. I would like to add
+modules for any popular simulator in the future,
+either from external contributions, or by getting
+access to them myself. The same holds for VHDL
+simulators: it would be great to have an interface
+to the Modelsim VHDL simulator.
 
+This section documents
+the current approach and status of the PLI module
+implementation in Icarus, and some reflections
+on future implementations in other simulators.
 
- 
+\subsection{Icarus Verilog}
 
+To make cosimulation work, a specific type of PLI callback is
+needed. The callback should be run when all pending events have been
+processed, while allowing the creation of new events in the current
+timestep (e.g. by the \myhdl\ simulator).  In some Verilog simulators,
+the \code{cbReadWriteSync} callback does exactly that. However,
+in others, including Icarus, it does not. The callback's behavior is
+not fully standardized; some simulators run the callback before
+non-blocking assignment events have been processed.
+
+Consequently, I had to look for a workaround. One half of the solution
+is to use the \code{cbReadOnlySync} callback.  This callback runs
+after all pending events have been processed.  However, it does not
+permit to create new events in the current timestep.  The second half
+of the solution is to map \myhdl\ delta cycles onto Verilog timesteps.
+Note that there is some freedom here because of the restriction that
+only passive HDL code can be cosimulated.
+
+I chose to make the time granularity in the Verilog simulator a 1000
+times finer than in the \myhdl{} simulator. For each \myhdl\ timestep,
+1000 Verilog timesteps are available for  \myhdl\ delta cycles. In practice,
+only a few delta cycles per timestep should be needed. More than 1000
+almost certainly indicates an error. This limit is checked at
+run-time. The factor 1000 also makes it easy to distinguish ``real''
+time from delta cycle time when printing out the Verilog time.
+
+\subsection{Other Verilog simulators}
+
+The Icarus module is written with VPI calls, which are provided by the
+most recent generation of the Verilog PLI. Some simulators may only
+support TF/ACC calls, requiring a complete redesign of the interface
+module.
+
+If the simulator supports VPI, the Icarus module should be reusable to
+a large extent. However, it may be possible to improve on it.  The
+workaround described in the previous section may not be necessary. In
+some simulators, the \code{cbReadWriteSync} callback occurs after all
+events (including non-blocking assignments) have been processed. In
+that case, the functionality can be supported without a finer time
+granularity in the Verilog simulator.
+
+There are also Verilog standardization efforts underway to resolve the
+ambiguity of the \code{cbReadWriteSync} callback. The solution will be
+to introduce new, well defined callbacks. From reading some proposals,
+I conclude that the \code{cbEndOfSimTime} callback would provide the
+required functionality.
+
+\subsection{VHDL}
+
+It would be great to have an interface to the Modelsim VHDL
+simulator. This will require a redesign from scratch with the
+appropriate PLI.  One feature which I would like to keep if possible
+is the way to declare the communicating signals.  In the Verilog
+solution, it is not necessary to define and instantiate any special
+entity (module). Rather, the participating signals can be declared
+directly in the \code{to_myhdl} and \code{from_myhdl} task calls.

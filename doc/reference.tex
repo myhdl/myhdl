@@ -12,6 +12,9 @@ sequence is defined as a sequence in which each item may itself be a
 nested sequence.) See section~\ref{myhdl-generators} for the
 definition of \myhdl\ generators and their interaction with a
 \class{Simulation} object.
+
+As a special case, exactly one of the ``generators'' may be
+a \class{Cosimulation} object (see Section~\ref{cosimulation}).
 \end{classdesc}
 
 A \class{Simulation} object has the following method:
@@ -263,12 +266,43 @@ index 0. This is only possible for \class{intbv} objects with a
 defined bit width.
 
 
+\section{Cosimulation support}
+
+\subsection{\myhdl\ }
+\label{cosimulation}
+
+\begin{classdesc}{Cosimulation}{exe, **kwargs}
+Class to construct a new cosimulation object. 
+
+The \var{exe} argument is a command string to
+execute an HDL simulation. The \var{kwargs} keyword
+arguments provide a named association between signals
+(regs \& nets) in the HDL simulator and signals in the
+\myhdl\ simulator. Each keyword should be a name listed
+in a \code{\$to_myhdl} or \code{\$from_myhdl} call in
+the HDL code. Each argument should be a \class{Signal}
+declared in the \myhdl\ code.
+
+\end{classdesc}
+
+\subsection{Verilog}
+
+\begin{funcdesc}{\$to_myhdl}{arg, \optional{, arg \moreargs}}
+Task that defines which signals (regs \& nets) should be
+read by the \myhdl\ simulator.
+
+This task should be called at the start of the simulation.
+\end{funcdesc}
+
+\begin{funcdesc}{\$from_myhdl}{arg, \optional{, arg \moreargs}}
+Task that defines which signals should be
+driven by the \myhdl\ simulator. In Verilog, only regs
+can be specified.
+
+This task should be called at the start of the simulation.
+\end{funcdesc}
 
 
+\subsection{VHDL}
 
-
-
-
-
-
-
+Not implemented yet.
