@@ -27,11 +27,9 @@ class TestOriginalGrayCode(TestCase):
         
         """ Check that the code is an original Gray code """
 
-        B = Signal(intbv(1))
-        G = Signal(intbv(0))
         Rn = []
         
-        def stimulus(n):
+        def stimulus(B, G, n):
             for i in range(2**n):
                 B.next = intbv(i)
                 yield delay(10)
@@ -41,8 +39,11 @@ class TestOriginalGrayCode(TestCase):
         for n in range(2, MAX_WIDTH):
             Ln = nextLn(Ln)
             del Rn[:]
+            B = Signal(intbv(1))
+            G = Signal(intbv(0))
             dut = bin2gray(B, G, n)
-            sim = Simulation(dut, stimulus(n))
+            stim = stimulus(B, G, n)
+            sim = Simulation(dut, stim)
             sim.run(quiet=1)
             self.assertEqual(Ln, Rn)
 
@@ -53,11 +54,8 @@ class TestGrayCodeProperties(TestCase):
         
         """ Check that only one bit changes in successive codewords """
 
-        B = Signal(intbv(1))
-        G = Signal(intbv(0))
-        G_Z = Signal(intbv(0))
         
-        def test(width):
+        def test(B, G, G_Z, width):
             B.next = intbv(0)
             yield delay(10)
             for i in range(1, 2**width):
@@ -67,9 +65,13 @@ class TestGrayCodeProperties(TestCase):
                 diffcode = bin(G ^ G_Z)
                 self.assertEqual(diffcode.count('1'), 1)
         
-        for width in range(1, MAX_WIDTH):
+        for width in range(2, MAX_WIDTH):
+            B = Signal(intbv(1))
+            G = Signal(intbv(0))
+            G_Z = Signal(intbv(0))
             dut = bin2gray(B, G, width)
-            sim = Simulation(dut, test(width))
+            check = test(B, G, G_Z, width)
+            sim = Simulation(dut, check)
             sim.run(quiet=0)
 
 
@@ -77,10 +79,7 @@ class TestGrayCodeProperties(TestCase):
         
         """ Check that all codewords occur exactly once """
 
-        B = Signal(intbv(1))
-        G = Signal(intbv(0))
-
-        def test(width):
+        def test(B, G, width):
             actual = []
             for i in range(2**width):
                 B.next = intbv(i)
@@ -91,8 +90,11 @@ class TestGrayCodeProperties(TestCase):
             self.assertEqual(actual, expected)
        
         for width in range(1, MAX_WIDTH):
+            B = Signal(intbv(1))
+            G = Signal(intbv(0))
             dut = bin2gray(B, G, width)
-            sim = Simulation(dut, test(width))
+            check = test(B, G, width)
+            sim = Simulation(dut, check)
             sim.run(quiet=1)
             
 
