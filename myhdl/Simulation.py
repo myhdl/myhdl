@@ -77,7 +77,7 @@ class Simulation(object):
         del _siglist[:]
         
 
-    def finalize(self):
+    def _finalize(self):
         cosim = self._cosim
         if cosim:
             _simulator._cosim = 0
@@ -184,11 +184,11 @@ class Simulation(object):
             except StopSimulation:
                 if not quiet:
                     printExcInfo()
-                self.finalize()
+                self._finalize()
                 return 0
 
             except:
-                self.finalize()
+                self._finalize()
                 raise
 
 
