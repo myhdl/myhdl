@@ -32,8 +32,10 @@ sequence of generators. For example:
 tb_fsm = testbench()
 \end{verbatim}
 
-To enable VCD tracing, the instance should be created as 
-follows instead:
+The \code{tb_fsm} variable is subsequently passed 
+as an argument to a \class{Simulation} object constructor
+for simulation. To enable VCD tracing, the instance should 
+be created as follows instead:
 
 \begin{verbatim}
 tb_fsm = trace_sigs(testbench)
@@ -44,14 +46,25 @@ traced in an output VCD file called \file{tb_fsm.vcd}. Note that the
 argument of \function{trace_sigs()} consists of the uncalled
 function. By calling the function under its control,
 \function{trace_sigs()} gathers information about the hierarchy and
-the signals to be traced.
+the signals to be traced.  In addition to a function argument,
+\function{trace_sigs()} accepts an arbitrary number of non-keyword and
+keyword arguments that will be passed to the function call.
 
-In addition, \function{trace_sigs()} accepts an arbitrary number of
-additional non-keyword and keyword arguments that will be passed
-to the function call.
+The restrictions on VCD tracing are as follows. First, only
+\class{Signal} objects can be traced. Second, only a hierarchy of
+instances returned by a pre-simulation top level function call can be
+traced. Also, all instances to be traced should have a name: this is
+done by assigning the result of an instantiating function call to a
+local variable (instead of using it directly.)
 
-
-
+Signals are dumped in a suitable format. This format is inferred at
+the \class{Signal} construction time, from the type of the initial
+value. In particular, \class{bool} signals are dumped as single
+bits. (This only works starting with Python2.3, when \class{bool} has
+become a separate type).  Likewise, \class{intbv} signals with a
+defined bit width are dumped as bit vectors. To support the general
+case, other types of signals are dumped as a string representation, as
+returned by the standard \function{str()} function.
 
 
 \end{document}
