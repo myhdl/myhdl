@@ -59,6 +59,41 @@ def InferError3(a, out):
     d = 4
     out.next = b
 
+def InferError4(a, out):
+    h = intbv(0)
+    yield a
+    out.next = h
+
+def InferError5Func(a):
+    h = intbv(0)[5:]
+    if a:
+        return h
+    else:
+        return 1
+
+def InferError5(a, out):
+    yield a
+    out.next = InferError5Func(a)
+    
+def InferError6Func(a):
+    if a:
+        return intbv(0)
+    else:
+        return intbv(1)
+
+def InferError6(a, out):
+    yield a
+    out.next = InferError6Func(a)
+    
+def InferError7Func(a):
+    if a:
+        return intbv(0)[5:]
+    else:
+        return intbv(0xff)[7:2]
+
+def InferError7(a, out):
+    yield a
+    out.next = InferError7Func(a)
 
 
 class TestErrors(unittest.TestCase):
@@ -114,6 +149,17 @@ class TestErrors(unittest.TestCase):
     def testInferError3(self):
         sim = self.check(InferError3, _error.TypeMismatch)
 
+    def testInferError4(self):
+        sim = self.check(InferError4, _error.IntbvBitWidth)
+        
+    def testInferError5(self):
+        sim = self.check(InferError5, _error.ReturnTypeMismatch)
+        
+    def testInferError6(self):
+        sim = self.check(InferError6, _error.ReturnIntbvBitWidth)
+        
+    def testInferError7(self):
+        sim = self.nocheck(InferError7, _error.ReturnIntbvBitWidth)
         
 
 
@@ -123,6 +169,7 @@ def Infer1(a, out):
     c = a < 4
     c = bool(0)
     c = False
+    c = not a
     c = True
     out.next = c
     
@@ -131,6 +178,7 @@ def Infer2(a, out):
     c = a < 4
     c = bool(0)
     c = False
+    c = not a
     c = True
     c = 5
     out.next = c
@@ -154,6 +202,25 @@ def Infer4Func(a):
 def Infer4(a, out):
     yield a
     out.next = Infer4Func(a)
+
+def Infer5(a, out):
+    yield a
+    c = a + 1
+    c = a - 1
+    c = a * 3
+    c = a // 2
+    c = a << 2
+    c = a >> 2
+    c = a % 16
+    c = + a
+    c = -( - a)
+    c = ~(-3)
+    c = not a
+    c = 5 & 4
+    c = 5 | 2
+    c = 6 ^ 3
+    c = bool(a and 1)
+    out.next = c
 
 
      
@@ -187,22 +254,25 @@ class TestInfer(unittest.TestCase):
 
         return stimulus(), infertest_inst, infertest_v_inst
 
-##     def testInfer1(self):
-##         sim = self.bench(Infer1)
-##         Simulation(sim).run()
+    def testInfer1(self):
+        sim = self.bench(Infer1)
+        Simulation(sim).run()
         
-##     def testInfer2(self):
-##         sim = self.bench(Infer2)
-##         Simulation(sim).run()
+    def testInfer2(self):
+        sim = self.bench(Infer2)
+        Simulation(sim).run()
         
-##     def testInfer3(self):
-##         sim = self.bench(Infer3)
-##         Simulation(sim).run()
+    def testInfer3(self):
+        sim = self.bench(Infer3)
+        Simulation(sim).run()
 
     def testInfer4(self):
         sim = self.bench(Infer4)
         Simulation(sim).run()
-
+        
+    def testInfer5(self):
+        sim = self.bench(Infer5)
+        Simulation(sim).run()
 
         
 if __name__ == '__main__':

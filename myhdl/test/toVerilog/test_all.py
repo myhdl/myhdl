@@ -17,17 +17,17 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" Run all myhdl unit tests. """
+""" Run all myhdl toVerilog unit tests. """
 
 __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
 import test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
-       test_inc_initial, test_hec, test_loops
+       test_inc_initial, test_hec, test_loops, test_infer
 
 modules = (test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
-           test_inc_initial, test_hec, test_loops
+           test_inc_initial, test_hec, test_loops, test_infer
            )
 
 import unittest

@@ -59,11 +59,16 @@ _error.SigMultipleDriven = "Signal has multiple drivers"
 _error.UndefinedBitWidth = "Signal has undefined bit width"
 _error.UndrivenSignal = "Signal is not driven"
 _error.Requirement = "Requirement violation"
-_error.UnboundLocal="Local variable may be referenced before assignment"
-_error.TypeMismatch="Type mismatch with earlier assignment"
-_error.NrBitsMismatch="Nr of bits mismatch with earlier assignment"
-_error.ReturnTypeMismatch="Return type mismatch"
-_error.ReutrnNrBitsMismatch="Returned nr of bits mismatch"
+_error.UnboundLocal = "Local variable may be referenced before assignment"
+_error.TypeMismatch = "Type mismatch with earlier assignment"
+_error.NrBitsMismatch = "Nr of bits mismatch with earlier assignment"
+_error.IntbvBitWidth = "intbv instance should have bit width"
+_error.TypeInfer = "Can't infer type"
+_error.ReturnTypeMismatch = "Return type mismatch"
+_error.ReturnNrBitsMismatch = "Returned nr of bits mismatch"
+_error.ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
+_error.ReturnTypeInfer = "Can't infer return type"
+
     
 def _checkArgs(arglist):
     for arg in arglist:
@@ -349,9 +354,53 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.left)
         self.visit(node.right)
         node.obj = int()
-        
     visitAdd = binaryOp
+    visitFloorDiv = binaryOp
+    visitLeftShift = binaryOp
+    visitMul = binaryOp
+    visitPow = binaryOp
+    visitMod = binaryOp
+    visitRightShift = binaryOp
     visitSub = binaryOp
+    
+    def multiBitOp(self, node, *args):
+        for n in node.nodes:
+            self.visit(n)
+        node.obj = None
+        for n in node.nodes:
+            if node.obj is None:
+                node.obj = n.obj
+            elif isinstance(node.obj, type(n.obj)):
+                node.obj = n.obj
+    def visitBitand(self, node, *args):
+        self.multiBitOp(node, *args)
+    def visitBitor(self, node, *args):
+        self.multiBitOp(node, *args)
+    def visitBitxor(self, node, *args):
+        self.multiBitOp(node, *args)
+    def multiLogicalOp(self, node, *args):
+        for n in node.nodes:
+            self.visit(n, *args)
+        node.obj = None
+    def visitAnd(self, node, *args):
+        self.multiLogicalOp(node, *args)
+    def visitOr(self, node, *args):
+        self.multiLogicalOp(node, *args)
+
+    # unaryOp's
+    def visitInvert(self, node, *args):
+        self.visit(node.expr)
+        node.obj = node.expr.obj
+    def visitNot(self, node, *args):
+        self.visit(node.expr)
+        node.obj = bool()
+    def visitUnaryAdd(self, node, *args):
+        self.visit(node.expr)
+        node.obj = int()
+    def visitUnarySub(self, node, *args):
+        self.visit(node.expr)
+        node.obj = int()
+    
         
     def visitAssAttr(self, node, access=OUTPUT, *args):
         self.visit(node.expr, OUTPUT)
@@ -365,7 +414,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             n = target.name
             obj = self.getObj(expr)
             if obj is None:
-                self.raiseError(node, "Cannot infer type or bit width of %s" % n)
+                self.raiseError(node, _error.TypeInfer, n)
+            if isinstance(obj, intbv) and len(obj) == 0:
+                self.raiseError(node, _error.IntbvBitWidth, n)
             if n in self.vardict:
                 curObj = self.vardict[n]
                 if isinstance(obj, type(curObj)):
@@ -528,7 +579,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             pass
 
     def visitReturn(self, node, *args):
-        self.visit(node.value)       
+        self.visit(node.value, *args)       
             
     def visitSlice(self, node, access=INPUT, kind=NORMAL, *args):
         self.visit(node.expr, access)
@@ -641,7 +692,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         self.refStack.pop()
         
     def visitReturn(self, node, *args):
-        self.visit(node.value)
+        self.visit(node.value, INPUT, DECLARATION, *args)
         if isinstance(node.value, ast.Const) and node.value.value is None:
             obj = None
         elif isinstance(node.value, ast.Name) and node.value.name is None:
@@ -649,7 +700,9 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         elif node.value.obj is not None:
             obj = node.value.obj
         else:
-            self.raiseError(node, "Can't derive return type")
+            self.raiseError(node, error._ReturnTypeInfer)
+        if isinstance(obj, intbv) and len(obj) == 0:
+            self.raiseError(node, _error.ReturnIntbvBitWidth)
         if self.hasReturn:
             returnObj = self.returnObj
             if isinstance(obj, type(returnObj)):
