@@ -761,7 +761,7 @@ higher level approach.
 As an example, we will design a synchronized queue object. 
 Such an object can be filled by producer, and independently
 read by a consumer. When the queue is empty, the consumer
-waits until an item is available. The queue can be modeled
+should wait until an item is available. The queue can be modeled
 as an object with a \method{put(item)} and a \method{get()}
 method, as follows:
 
@@ -812,7 +812,7 @@ def Producer(q):
     for i in range(5):
         print "%s: PUT item %s" % (now(), i)
         q.put(i)
-        yield delay(45 - 10*i)
+        yield delay(max(5, 45 - 10*i))
 
 def Consumer(q):
     yield delay(100)
@@ -831,12 +831,10 @@ sim = Simulation(main())
 sim.run()
 \end{verbatim}
 
-Note that the generator method \method{get()} is called to create a
-generator in a \code{yield} statement in the \function{Consumer}
-function. This new generator will take over from \function{Consumer},
-until it is done.  Note that in \myhdl{}, there is a single way to
-consume time: with an explicit \code{yield} statement.  Running this
-produces the following output:
+Note that the generator method \method{get()} is called in a
+\code{yield} statement in the \function{Consumer} function. The new
+generator will take over from \function{Consumer}, until it is done.
+Running this test bench produces the following output:
 
 \begin{verbatim}
 % python queue.py
