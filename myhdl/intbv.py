@@ -140,7 +140,7 @@ class intbv(object):
     # integer-like methods
     
     def __add__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val + other._val
         else:
             return self._val + other
@@ -148,7 +148,7 @@ class intbv(object):
         return other + self._val
     
     def __sub__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val - other._val
         else:
             return self._val - other
@@ -156,7 +156,7 @@ class intbv(object):
         return other - self._val
 
     def __mul__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val * other._val
         else:
             return self._val * other
@@ -164,7 +164,7 @@ class intbv(object):
         return other * self._val
 
     def __div__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val / other._val
         else:
             return self._val / other
@@ -172,7 +172,7 @@ class intbv(object):
         return other / self._val
     
     def __mod__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val % other._val
         else:
             return self._val % other
@@ -182,7 +182,7 @@ class intbv(object):
     # divmod
     
     def __pow__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val ** other._val
         else:
             return self._val ** other
@@ -190,7 +190,7 @@ class intbv(object):
         return other ** self._val
 
     def __lshift__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val << other._val
         else:
             return self._val << other
@@ -198,7 +198,7 @@ class intbv(object):
         return other << self._val
             
     def __rshift__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return self._val >> other._val
         else:
             return self._val >> other
@@ -206,7 +206,7 @@ class intbv(object):
         return other >> self._val
            
     def __and__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return intbv(self._val & other._val, max(self._len, other._len))
         else:
             return intbv(self._val & other, self._len)
@@ -214,7 +214,7 @@ class intbv(object):
         return intbv(other & self._val, self._len)
 
     def __or__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return intbv(self._val | other._val, max(self._len, other._len))
         else:
             return intbv(self._val | other, self._len)
@@ -222,7 +222,7 @@ class intbv(object):
         return intbv(other | self._val, self._len)
     
     def __xor__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return intbv(self._val ^ other._val, max(self._len, other._len))
         else:
             return intbv(self._val ^ other, self._len)
@@ -230,35 +230,35 @@ class intbv(object):
         return intbv(other ^ self._val, self._len)
 
     def __iadd__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val += other._val
         else:
             self._val += other
         return self
         
     def __isub__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val -= other._val
         else:
             self._val -= other
         return self
         
     def __imul__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val *= other._val
         else:
             self._val *= other
         return self
         
     def __idiv__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val /= other._val
         else:
             self._val /= other
         return self
     
     def __imod__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val %= other._val
         else:
             self._val %= other
@@ -267,42 +267,42 @@ class intbv(object):
     def __ipow__(self, other, modulo=None):
         # XXX why 3rd param required?
         # unused but needed in 2.2, not in 2.3 
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val **= other._val
         else:
             self._val **= other
         return self
         
     def __iand__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val &= other._val
         else:
             self._val &= other
         return self
 
     def __ior__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val |= other._val
         else:
             self._val |= other
         return self
 
     def __ixor__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val ^= other._val
         else:
             self._val ^= other
         return self
 
     def __ilshift__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val <<= other._val
         else:
             self._val <<= other
         return self
 
     def __irshift__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             self._val >>= other._val
         else:
             self._val >>= other
@@ -342,7 +342,7 @@ class intbv(object):
       
         
     def __cmp__(self, other):
-        if type(other) is intbv:
+        if isinstance(other, intbv):
             return cmp(self._val, other._val)
         else:
             return cmp(self._val, other)
