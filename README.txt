@@ -18,11 +18,11 @@ recent Python feature, MyHDL requires Python 2.2.2 or higher.
 
 MyHDL can be used to experiment with high level modeling, and with
 verification techniques such as unit testing. The most important
-practical applicaton however, is to use it as a hardware verification
-language by cosimulation with Verilog and VHDL.
+practical application however, is to use it as a hardware verification
+language by co-simulation with Verilog and VHDL.
 
 The present release, MyHDL 0.2, enables MyHDL for
-cosimulation. The MyHDL side is designed to work with any simulator
+co-simulation. The MyHDL side is designed to work with any simulator
 that has a PLI. For each simulator, an appropriate PLI module in C
 needs to be provided. The release contains such a module for the
 Icarus Verilog simulator.
@@ -54,11 +54,11 @@ You can test the installation as follows:
     cd test
     python test.py
 
-To install cosimulation support:
+To install co-simulation support:
 
-Go to the directory cosimulation/<platform> for your target platform
+Go to the directory co-simulation/<platform> for your target platform
 and following the instructions in the README.txt file. Currently, the
-only supported platfrom is Icarus.
+only supported platform is Icarus.
 
 
 DOCUMENTATION
