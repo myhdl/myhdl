@@ -28,12 +28,12 @@ import unittest
 
 import test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
        test_inc_initial, test_hec, test_loops, test_infer, test_errors, \
-       test_RandomScrambler, test_beh, test_GrayInc
+       test_RandomScrambler, test_beh, test_GrayInc, test_misc
        
 
 modules = (test_bin2gray, test_inc, test_fsm, test_ops, test_NotSupported, \
            test_inc_initial, test_hec, test_loops, test_infer, test_errors, \
-           test_RandomScrambler, test_beh, test_GrayInc
+           test_RandomScrambler, test_beh, test_GrayInc, test_misc
            )
 
 
