@@ -25,6 +25,7 @@ __date__ = "$Date$"
 
 from __future__ import generators
 import sys
+import os
 import exceptions
 from warnings import warn
 
@@ -128,15 +129,19 @@ class Simulation(object):
 
                 if cosim:
                     cosim._get()
-                    cosim._put()
-
-                if _siglist: continue
+                    if _siglist or cosim._hasChange:
+                        cosim._put(t)
+                        continue
+                elif _siglist:
+                    continue
                 if t == maxTime:
                     raise StopSimulation, "Simulated for duration %s" % duration
 
                 if _futureEvents:
                     _futureEvents.sort()
                     t = sim._time = _futureEvents[0][0]
+                    if cosim:
+                        cosim._put(t)
                     while _futureEvents:
                         newt, event = _futureEvents[0]
                         if newt == t:
@@ -148,6 +153,10 @@ class Simulation(object):
                         else:
                             break
                 else:
+                    if cosim:
+                        os.close(cosim._rt)
+                        os.close(cosim._wf)
+                        os.waitpid(cosim._child_pid, 0)
                     raise StopSimulation, "No more events"
                 
             except StopSimulation, e:

@@ -69,7 +69,6 @@ class Cosimulation(object):
         if _simulator._cosim:
             raise MultipleCosimError
         _simulator._cosim = 1
-        print _simulator._cosim
         
         self._rt, self._wt = rt, wt = os.pipe()
         self._rf, self._wf = rf, wf = os.pipe()
@@ -81,9 +80,9 @@ class Cosimulation(object):
         self._toSizes = toSizes = []
         self._toSigs = toSigs = []
 
-        self._changeFlag = 0
+        self._hasChange = 0
 
-        child_pid = os.fork()
+        child_pid = self._child_pid = os.fork()
 
         if child_pid == 0:
             os.close(rt)
@@ -136,6 +135,7 @@ class Cosimulation(object):
                     break
                 else:
                     raise Error, "Unexpected cosim input"
+            # os.waitpid(child_pid, 0)
 
     def _get(self):
         s = os.read(self._rt, _MAXLINE)
@@ -151,8 +151,8 @@ class Cosimulation(object):
             if s.val != next:
                 s.next = next
 
-    def _put(self):
-        t = hex(_simulator._time)[2:]
+    def _put(self, time):
+        t = hex(time)[2:]
         if t[-1] == 'L':
             t = t[:-1] # strip trailing L
         t = (9 - len(t)) * '0' + t # zero-extend to more than 32 bits
@@ -160,14 +160,14 @@ class Cosimulation(object):
         for s in self._fromSigs:
             buf += hex(s)[2:]
             buf += " "
-        self._changeFlag = 0
+        self._hasChange = 0
         os.write(self._wf, buf)
 
     def _waiter(self):
         sigs = tuple(self._fromSigs)
         while 1:
             yield sigs
-            self._changeFlag = 1
+            self._hasChange = 1
             
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """

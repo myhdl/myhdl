@@ -201,7 +201,7 @@ class CosimulationTest(TestCase):
     def testFromSignalVals(self):
         cosim = Cosimulation(exe + ".cosimFromSignalVals", **allSigs)
         os.read(cosim._rt, MAXLINE)
-        cosim._put()
+        cosim._put(0)
 
     def cosimFromSignalVals(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
