@@ -40,7 +40,6 @@ from myhdl._intbv import intbv
 from myhdl._bin import bin
 
 _schedule = _futureEvents.append
-
         
 
 def posedge(sig):
@@ -406,6 +405,8 @@ class DelayedSignal(Signal):
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
             self._val = copy(next)
+            if self._tracing:
+                self._printVcd()
             return waiters            
         else:
             return []
