@@ -75,9 +75,9 @@ class CosimulationTest(TestCase):
     def cosimNotUnique(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        os.write(wt, "TO a 1")
+        os.write(wt, "TO 00 a 1")
         os.read(rf, MAXLINE)
-        os.write(wt, "FROM d 1")
+        os.write(wt, "FROM 00 d 1")
         os.read(rf, MAXLINE)
         os.write(wt, "0000")
         os.read(rf, MAXLINE)
@@ -92,7 +92,7 @@ class CosimulationTest(TestCase):
     def cosimFromSignals(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        buf = "FROM "
+        buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
         os.write(wt, buf)
@@ -110,7 +110,7 @@ class CosimulationTest(TestCase):
     def cosimToSignals(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        buf = "TO "
+        buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
         os.write(wt, buf)
@@ -128,12 +128,12 @@ class CosimulationTest(TestCase):
     def cosimFromToSignals(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        buf = "FROM "
+        buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
         os.write(wt, buf)
         os.read(rf, MAXLINE)
-        buf = "TO "
+        buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
         os.write(wt, buf)
@@ -148,13 +148,15 @@ class CosimulationTest(TestCase):
     def cosimTimeZero(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        buf = "FROM "
+        buf = "FROM 01 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
         os.write(wt, buf)
         os.read(rf, MAXLINE)
-        os.write(wt, "0001")
-        os.read(rf, MAXLINE)
+        try:
+            os.write(wt, "0000")
+        except:
+            pass
 
     def testNoComm(self):
         self.assertRaises(NoCommunicationError, \
@@ -173,7 +175,7 @@ class CosimulationTest(TestCase):
     def cosimFromSignalsDupl(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        buf = "FROM "
+        buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
         buf += "bb 5"
@@ -191,7 +193,7 @@ class CosimulationTest(TestCase):
     def cosimToSignalsDupl(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        buf = "TO "
+        buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
         buf += "fff 6"

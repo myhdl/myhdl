@@ -102,7 +102,9 @@ class Cosimulation(object):
                     raise SimulationEndError
                 e = s.split()
                 if e[0] == "FROM":
-                    for i in range(1, len(e)-1, 2):
+                    if long(e[1]) != 0:
+                        raise TimeZeroError, "$from_myhdl"
+                    for i in range(2, len(e)-1, 2):
                         if e[i] in fromSignames:
                             raise DuplicateSigNamesError, e[i]
                         if not e[i] in kwargs:
@@ -111,7 +113,9 @@ class Cosimulation(object):
                         fromSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 elif e[0] == "TO":
-                    for i in range(1, len(e)-1, 2):
+                    if long(e[1]) != 0:
+                        raise TimeZeroError, "$to_myhdl"
+                    for i in range(2, len(e)-1, 2):
                         if e[i] in toSignames:
                             raise DuplicateSigNamesError, e[i]
                         if not e[i] in kwargs:
@@ -122,8 +126,6 @@ class Cosimulation(object):
                 else:
                     self.buf = e
                     break
-            if long(e[0]) != 0:
-                raise TimeZeroError
             if not fromSignames and not toSignames:
                 raise NoCommunicationError
             
