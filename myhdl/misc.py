@@ -32,9 +32,10 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 
 import inspect
+from types import GeneratorType
 
-from types import GeneratorType, ListType, TupleType
 from myhdl import Cosimulation
+
 from util import _isgeneratorfunction, _isGenSeq
     
                         

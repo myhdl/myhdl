@@ -36,7 +36,9 @@ import exceptions
 import sys
 import inspect
 import re
-from types import FunctionType
+from types import FunctionType, GeneratorType, ListType, TupleType
+
+from myhdl import Cosimulation
 
 
 def downrange(start, stop=0):
