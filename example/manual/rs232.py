@@ -18,7 +18,7 @@ def rs232_tx(tx, data, duration=T_9600):
     duration -- transmit bit duration
     
     """
-
+    
     print "-- Transmitting %s --" % hex(data)
     print "TX: start bit"      
     tx.next = 0
@@ -45,8 +45,6 @@ def rs232_rx(rx, data, duration=T_9600, timeout=MAX_TIMEOUT):
     duration -- receive bit duration
     
     """
-
-
 
     # wait on start bit until timeout
     yield negedge(rx), delay(timeout)
