@@ -281,7 +281,7 @@ width = 8
 graycnt = Signal(intbv()[width:])
 enable, clock, reset = [Signal(bool()) for i in range(3)]
 
-GRAY_INC_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+GRAY_INC_REG_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
 \end{verbatim}
 
 The Verilog output module looks as follows:
