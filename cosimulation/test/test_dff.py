@@ -9,19 +9,21 @@ random.seed(2)
 from myhdl import Simulation, StopSimulation, Signal, \
                   delay, intbv, negedge, posedge, now
 
-from inc import inc
+from dff import dff
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-class TestInc(TestCase):
+class TestDff(TestCase):
 
     def bench(self):
+        
+        """ Check D flip-flop operation """
 
-        n = 253
+        q, d, clock, reset = [Signal(intbv(0)) for i in range(4)]
 
-        count, enable, clock, reset = [Signal(intbv(0)) for i in range(4)]
+        DFF_1 = dff(q, d, clock, reset)
 
-        INC_1 = inc(count, enable, clock, reset, n=n)
+        vals = [randrange(2) for i in range(1000)]
         
         def clockGen():
             while 1:
@@ -32,38 +34,32 @@ class TestInc(TestCase):
             reset.next = ACTIVE_LOW
             yield negedge(clock)
             reset.next = INACTIVE_HIGH
-            for i in range(1000):
-                enable.next = min(1, randrange(5))
+            for v in vals:
+                d.next = v
                 yield negedge(clock)
             raise StopSimulation
             
         def check():
-            expect = 0
             yield posedge(reset)
-            self.assertEqual(count, expect)
-            while 1:
+            for v in vals:
                 yield posedge(clock)
-                if enable:
-                    expect = (expect + 1) % n
                 yield delay(1)
-                # print "%d count %s expect %s" % (now(), count, expect)
-                self.assertEqual(count, expect)
+                self.assertEqual(q, v)
 
-        sim = Simulation(clockGen(), stimulus(), INC_1, check())
+        sim = Simulation(clockGen(), stimulus(), DFF_1, check())
         return sim
 
     def test1(self):
-        """ Check increment operation """
+        """ Basic dff test """
         sim = self.bench()
         sim.run(quiet=1)
         
     def test2(self):
-        """ Check increment operation with suspended simulation runs """
+        """ dff test with simulation suspends """
         sim = self.bench()
-        while sim.run(duration=randrange(1, 6), quiet=1):
+        while sim.run(duration=randrange(1,5), quiet=1):
             pass
 
-          
 if __name__ == '__main__':
     unittest.main()
 
