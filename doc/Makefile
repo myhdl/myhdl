@@ -95,25 +95,26 @@ WHATSNEW=whatsnew23
 # what's what
 MANDVIFILES=	paper-$(PAPER)/MyHDL.dvi
 
-HOWTODVIFILES=	paper-$(PAPER)/doc.dvi 
+HOWTODVIFILES=	paper-$(PAPER)/whatsnew03.dvi 
 
 MANPDFFILES=	paper-$(PAPER)/MyHDL.pdf 
 
-HOWTOPDFFILES=	paper-$(PAPER)/doc.pdf 
+HOWTOPDFFILES=	paper-$(PAPER)/whatsnew03.pdf 
 
 MANPSFILES=	paper-$(PAPER)/MyHDL.ps 
 
-HOWTOPSFILES=	paper-$(PAPER)/doc.ps 
+HOWTOPSFILES=	paper-$(PAPER)/whatsnew03.ps 
 
-DVIFILES=	$(MANDVIFILES) 
-PDFFILES=	$(MANPDFFILES) 
-PSFILES=	$(MANPSFILES) 
+DVIFILES=	$(MANDVIFILES) $(HOWTODVIFILES)
+PDFFILES=	$(MANPDFFILES) $(HOWTOPDFFILES)
+PSFILES=	$(MANPSFILES) $(HOWTOPSFILES)
 
 HTMLCSSFILES=html/manual/MyHDL.css 
 
 ALLCSSFILES=$(HTMLCSSFILES) 
 
-INDEXFILES=html/manual/MyHDL.html 
+INDEXFILES=html/manual/MyHDL.html \
+           html/whatsnew03/whatsnew03.html
 
 ALLHTMLFILES=$(INDEXFILES)
 
@@ -148,13 +149,6 @@ world:	ps pdf html distfiles
 # Targets for each document:
 
 
-# Documenting Python
-paper-$(PAPER)/doc.dvi: $(DOCFILES)
-	cd paper-$(PAPER) && $(MKDVI) ../doc/doc.tex
-
-paper-$(PAPER)/doc.pdf: $(DOCFILES)
-	cd paper-$(PAPER) && $(MKPDF) ../doc/doc.tex
-
 
 # MyHDL Manual
 paper-$(PAPER)/MyHDL.dvi: $(MANUALFILES)
@@ -163,6 +157,14 @@ paper-$(PAPER)/MyHDL.dvi: $(MANUALFILES)
 paper-$(PAPER)/MyHDL.pdf: $(MANUALFILES)
 	cd paper-$(PAPER) && $(MKPDF) ../manual/MyHDL.tex
 
+
+# What's new
+# in 0.3
+paper-$(PAPER)/whatsnew03.dvi: whatsnew03/whatsnew03.tex
+	cd paper-$(PAPER) && $(MKDVI) ../whatsnew03/whatsnew03.tex
+
+paper-$(PAPER)/whatsnew03.pdf: whatsnew03/whatsnew03.tex
+	cd paper-$(PAPER) && $(MKPDF) ../whatsnew03/whatsnew03.tex
 
 # The remaining part of the Makefile is concerned with various
 # conversions, as described above.  See also the README file.
@@ -215,15 +217,15 @@ html/modindex.html:
 html:	$(ALLHTMLFILES) $(HTMLCSSFILES)
 
 
-doc: html/doc/doc.html html/doc/doc.css
-html/doc/doc.html: $(DOCFILES)
-	$(MKHTML) --dir html/doc doc/doc.tex
 
 
 manual: html/manual/MyHDL.html html/manual/MyHDL.css
 html/manual/MyHDL.html: $(MANUALFILES)
 	$(MKHTML) --dir html/manual manual/MyHDL.tex
 
+whatsnew03: html/whatsnew03/whatsnew03.html
+html/whatsnew03/whatsnew03.html: whatsnew03/whatsnew03.tex
+	$(MKHTML) --dir html/whatsnew03 whatsnew03/whatsnew03.tex
 
 
 
@@ -392,6 +394,7 @@ clobber:
 	rm -f paper-$(PAPER)/*.tex paper-$(PAPER)/*.ind paper-$(PAPER)/*.idx
 	rm -f paper-$(PAPER)/*.l2h paper-$(PAPER)/*.how paper-$(PAPER)/README
 	rm -rf html/index.html html/modindex.html html/acks.html
-	rm -rf html/manual/ html/doc/ 
+	rm -rf html/manual/ 
+	rm -rf html/whatsnew03/
 
 realclean distclean:  clobber
