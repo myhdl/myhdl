@@ -1,3 +1,19 @@
+Release 0.3 25-Aug-2003
+-----------------------
+
+* VCD output for waveform viewing
+* Enumeration types support
+* Inferring the sensitivitiy list for combinatorial logic
+* Inferring the list of instances
+* Inferring the list of processes
+* Class intbv enhancements
+* Function concat()
+* Python 2.3 support
+
+For details, consult the whatsnew03.* documents available
+in various formats under doc/.
+
+
 Release 0.2 19-May-2003
 -----------------------
 * Added cosimulation support to MyHDL.
