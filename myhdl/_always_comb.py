@@ -130,6 +130,12 @@ class _SigNameVisitor(object):
 
     def visitExec(self, node):
         pass # skip
+
+    def visitPrintnl(self, node):
+        pass # skip
+    
+    def visitPrint(self, node):
+        pass # skip
         
 
 class _AlwaysComb(object):
