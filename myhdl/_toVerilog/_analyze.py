@@ -114,7 +114,7 @@ def _analyzeGens(top, genNames):
             ast.symdict = f.f_globals.copy()
             ast.symdict.update(f.f_locals)
             ast.callstack = []
-            ast.name = genNames.get(id(g), _Label("_BLOCK"))
+            ast.name = genNames.get(id(g), _Label("BLOCK"))
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
             v = _AnalyzeBlockVisitor(ast)
