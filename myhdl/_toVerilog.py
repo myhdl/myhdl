@@ -350,7 +350,6 @@ class _AnalyzeVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             ast.returnObj = v.returnObj
             ast.kind = v.kind
             node.ast = ast
-            print "FUNCTION inputs %s outputs %s" % (ast.inputs, ast.outputs)
             for i, arg in enumerate(node.args):
                 if isinstance(arg, compiler.ast.Keyword):
                     n = arg.name
@@ -565,7 +564,6 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             self.hasReturn = True
 
        
-                
 def _analyzeTopFunc(func, *args, **kwargs):
     s = inspect.getsource(func)
     s = s.lstrip()
@@ -574,14 +572,6 @@ def _analyzeTopFunc(func, *args, **kwargs):
     compiler.walk(ast, v)
     return v
       
-    
-#Masks for co_flags
-#define CO_OPTIMIZED	0x0001
-#define CO_NEWLOCALS	0x0002
-#define CO_VARARGS	0x0004
-#define CO_VARKEYWORDS	0x0008
-#define CO_NESTED       0x0010
-#define CO_GENERATOR    0x0020
     
 class _AnalyzeTopFuncVisitor(object):
 
@@ -702,10 +692,6 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertInitialVisitor
         v = Visitor(ast, blockBuf, funcBuf)
         compiler.walk(ast, v)
-    #print "FUNC"
-    #print funcBuf.getvalue()
-    #print "BLOCK"
-    #print blockBuf.getvalue()
     vfile.write(funcBuf.getvalue()); funcBuf.close()
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
@@ -773,8 +759,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.multiOp(node, '&&')
 
     def visitAssAttr(self, node):
-        # if not node.a
-        # assert node.attrname == 'next'
         if node.attrname != 'next':
             self.raiseError(node, _error.NotSupported, "attribute assignment")
         self.isSigAss = True
@@ -1075,8 +1059,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.binaryOp(node, '>>')
 
     def visitSlice(self, node):
-        # print dir(node)
-        # print node.obj
         if isinstance(node.expr, ast.CallFunc) and \
            node.expr.node.obj is intbv:
             c = self.getVal(node)
@@ -1306,4 +1288,3 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.writeline()
         self.write("endtask")
         self.writeline(2)
-
