@@ -129,7 +129,7 @@ include Makefile.deps
 
 
 # Main target
-default:	html
+default:	all
 all:		html dvi ps pdf 
 
 dvi:	$(DVIFILES)
@@ -140,10 +140,13 @@ world:	ps pdf html distfiles
 
 
 # Rules to build PostScript and PDF formats
-.SUFFIXES: .dvi .ps
+.SUFFIXES: .pdf .dvi .ps
 
-.dvi.ps:
-	$(DVIPS) -o $@ $<
+#.dvi.ps:
+#	$(DVIPS) -o $@ $<
+
+.pdf.ps:
+	pdf2ps $< $@
 
 
 # Targets for each document:
