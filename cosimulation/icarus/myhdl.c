@@ -10,15 +10,15 @@
 // #define DEBUG 1
 
 /* Sized variables */
-#ifndef PLI_TYPES
-#define PLI_TYPES
-typedef int             PLI_INT32;
-typedef unsigned int    PLI_UINT32;
-typedef short           PLI_INT16;
-typedef unsigned short  PLI_UINT16;
-typedef char            PLI_BYTE8;
-typedef unsigned char   PLI_UBYTE8;
-#endif
+/*  #ifndef PLI_TYPES */
+/*  #define PLI_TYPES */
+/*  typedef int             PLI_INT32; */
+/*  typedef unsigned int    PLI_UINT32; */
+/*  typedef short           PLI_INT16; */
+/*  typedef unsigned short  PLI_UINT16; */
+/*  typedef char            PLI_BYTE8; */
+/*  typedef unsigned char   PLI_UBYTE8; */
+/*  #endif */
 
 /* 64 bit type for time calculations */
 typedef unsigned long long myhdl_time64_t;
