@@ -11,4 +11,4 @@ module dut_bin2gray;
    bin2gray dut (.B(B), .G(G));
    defparam dut.width = `width;
 
-endmodule // bin2gray
+endmodule
