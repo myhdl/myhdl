@@ -39,22 +39,22 @@ explain the \samp{import *} syntax}.
 
 Next, we define a generator function called
 \code{sayHello}. This is a generator function (as opposed to
-a classic Python function) because it contains a \code{yield}
-statement (instead of \code{return} statement). In \myhdl\, a
-\code{yield} statement has a similar purpose as a \code{wait}
+a classic Python function) because it contains a \keyword{yield}
+statement (instead of \keyword{return} statement). In \myhdl\, a
+\keyword{yield} statement has a similar purpose as a \keyword{wait}
 statement in VHDL: the statement suspends execution of the function,
 and its clauses specify when the function should resume. In this case,
 there is a \code{delay} clause, that specifies the required delay.
 
 To make sure that the generator runs ``forever'', we wrap its behavior
 in a \code{while 1} loop. This is as standard Python idiom, and it is
-the \myhdl\ equivalent to a Verilog \code{always} block or a
-VHDL \code{process}.
+the \myhdl\ equivalent to a Verilog \keyword{always} block or a
+VHDL \keyword{process}.
 
 In \myhdl\, the basic simulation objects are generators. Generators
-are created by calling a generator function. For example, variable
+are created by calling generator functions. For example, variable
 \code{gen} refers to a generator. To simulate this generator, we pass
-it as an argument to a code{Simulation} object constructor.  We then
+it as an argument to a \class{Simulation} object constructor.  We then
 run the simulation for the desired amount of time.
 
 
@@ -64,14 +64,15 @@ In the previous section, we simulated a single generator. Of course,
 real hardware descriptions are not like that: in fact, they are
 typically massively concurrent. \myhdl\ supports this by allowing an
 arbitrary number of concurrent generators. More specifically, a
-\code{Simulation} constructor can take an arbitrary number of
+\class{Simulation} constructor can take an arbitrary number of
 arguments, each of which can be a generator or a nested list of
 generators.
 
-With concurrency comes the problem of determinism. Therefore, hardware
-languages use special objects to support deterministic communication
-between concurrent regions. \myhdl\ has as \code{Signal} object which
-is roughly modelled after VHDL signals.
+With concurrency comes the problem of deterministic
+communication. Therefore, hardware languages use special objects to
+support deterministic communication between concurrent
+regions. \myhdl\ has as \class{Signal} object which is roughly modelled
+after VHDL signals.
 
 We will demonstrate these concepts by extending our first example. We
 introduce a clock signal, driven by a second generator. The
@@ -120,21 +121,22 @@ attribute. This is the \myhdl\ equivalent of VHDL signal assignments
 and Verilog's non-blocking assignments.
 
 The \code{sayHello} generator function shows a second form of a
-\code{yield} statement: \samp{yield posedge(\var{aSignal})}. Again,
+\keyword{yield} statement: \samp{yield posedge(\var{aSignal})}. Again,
 the generator will suspend execution at that point, but in this case
 it specifies that it should resume when there is a rising edge on the
 signal.
 
-The \code{Simulation} constructor now takes two generator arguments
+The \class{Simulation} constructor now takes two generator arguments
 that run concurrently throughout the simulation.
 
 \section{Parameters and instantiations}
 
-So far, the generator function examples had no parameters. The signals
-they operated on were defined in their enclosing scope. However, 
-to make the code reusable we will want to pass arguments through a
-parameter list. For example, we can change the clock generator
-function as follows to make it more general and reusable:
+So far, the generator function examples had no parameters. For
+example, the \code{clk} signal was defined in the enclosing scope of
+the generator functions. However, to make the code reusable we will
+want to pass arguments through a parameter list. For example, we can
+change the clock generator function to make it more general
+and reusable, as follows:
 
 \begin{verbatim}
 def clkGen(clock, period=20):

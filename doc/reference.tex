@@ -2,7 +2,7 @@
 
 
 \myhdl\ is implemented as a Python package called \code{myhdl}. This
-chapter describes all objects that are expored by this package.
+chapter describes the objects that are expored by this package.
 
 \section{The \class{Simulation} class}
 \begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
@@ -17,7 +17,7 @@ object.
 A \class{Simulation} instance has the following method:
 
 \begin{methoddesc}[Simulation]{run}{\optional{duration}}
-Run the simulation forever or for a specified duration.
+Run the simulation forever (by default) or for a specified duration.
 \end{methoddesc}
 
 \section{The \class{Signal} class}
@@ -44,16 +44,16 @@ statements are called \emph{sensitivity lists}. The general format is:
 
 \keyword{yield} \var{clause \optional{, clause ...}}
 
-After a simulator executes a \keyword{yield} statement, it suspends
-execution of the generator. At the same time, each \var{clause} is a
-\emph{trigger object} which defines the condition upon which the
-generator should be resumed. However, per invocation of a \keyword{yield}
-statement, the generator is resumed exactly once, regardless of the
-number of clauses. This happens when the \emph{first} trigger object
-triggers; subsequent triggers are neglected. (However, as a result of
-the resumption, it is possible that the same \keyword{yield} statement
-is invoked again, and that a subsequent trigger still triggers the
-generator.)
+After a simulation object executes a \keyword{yield} statement, it
+suspends execution of the generator. At the same time, each
+\var{clause} is a \emph{trigger object} which defines the condition
+upon which the generator should be resumed. However, per invocation of a
+\keyword{yield} statement, the generator is resumed exactly once,
+regardless of the number of clauses. This happens when the
+\emph{first} trigger object triggers; subsequent triggers are
+neglected. (However, as a result of the resumption, it is possible
+that the same \keyword{yield} statement is invoked again, and that a
+subsequent trigger still triggers the generator.)
 
 In this section, the trigger objects and their functionality will be
 described. When referring to ``the generator'' we mean the generator
@@ -139,10 +139,10 @@ assignment to indexes and slices, as is common in hardware design. For
 the same reason, \class{intbv} is not a subclass from \class{int},
 even though \class{int} provides most of the desired
 functionality. (It is not possible to derive a mutable subtype from
-and immutable type.)
+an immutable base type.)
 
-An \class{intbv} object supports all comparison, numberic, bitwise,
-and logical operations as \class{int} objects. See
+An \class{intbv} object supports the same comparison, numberic,
+bitwise, logical, and conversion operations as \class{int} objects. See
 \url{http://www.python.org/doc/current/lib/typesnumeric.html} for more
 information on such operations. In all binary operations,
 \class{intbv} objects can work together with \class{int} objects; in
@@ -153,7 +153,7 @@ operations:
 
 \begin{tableiii}{clc}{code}{Operation}{Result}{Notes}
   \lineiii{\var{bv}[\var{i}]}
-	  {\var{i}'th item of \var{bv}}
+	  {item \var{i} of \var{bv}}
 	  {(1)}
   \lineiii{\var{bv}[\var{i}] = \var{x}}  
 	  {item \var{i} of \var{bv} is replaced by \var{x}} 
@@ -162,7 +162,7 @@ operations:
           {slice of \var{bv} from \var{i} downto \var{j}} 
           {(2)(3)}
   \lineiii{\var{bv}[\var{i}:\var{j}] = \var{t}} 
-  	  {slice of \var{bv} from \var{i} downto to \var{j} is replaced
+  	  {slice of \var{bv} from \var{i} downto \var{j} is replaced
           by \var{t}} 
           {(2)(4)}
 \end{tableiii}
@@ -171,14 +171,29 @@ operations:
 \item[(1)] Indexing follows the most common hardware design
 	  conventions: the lsb bit is the rightmost bit, and it has
 	  index 0. This has the following desirable property: if the
-	  value is decomposed as a sum of powers of 2, the bit with
-	  index \var{i} corresponds to the term \code{2**i}. 
+	  \class{intbv} value is decomposed as a sum of powers of 2,
+	  the bit with index \var{i} corresponds to the term
+	  \code{2**i}.
 
-\item[(2)] slicing
+\item[(2)] It follows from the indexing convention that slicing ranges
+	  are downward, in contrast to standard Python. However, the
+	  Python convention of half-open ranges is followed. In
+	  accordance with standard Python, the high index is not
+	  included, however, it is the \emph{leftmost} index in this
+	  case. As in standard Python, this takes care of one-off
+	  issues in many practical cases: in particular,
+	  \code{bv[\var{i}:]} returns \var{i} bits;
+	  \code{bv[\var{i}:\var{j}]} has \code{\var{i}-\var{j}}
+	  bits. As \class{intbv} objects have an undefined bit width,
+	  the high index \var{j} has no default value and cannot be
+	  ommitted, while the low index \var{j} defaults to \code{0}.
 
-\item[(3)] positive return
+\item[(3)] The value returned from a slicing operation is always
+	  positive; higher order bits are implicitly assumed to be
+	  zero.
 
-\item[(4)] value check
+\item[(4)] In setting a slice, it is checked whether the slice is wide
+	  enough to accept all significant bits of the value.
 
 \end{description}
 
