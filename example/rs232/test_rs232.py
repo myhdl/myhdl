@@ -23,7 +23,8 @@ class rs232Test(TestCase):
             self.assertEqual(data, actual)
 
     def testDefault(self):
-        Simulation(self.default()).run()
+        Simulation(self.default()).run(quiet=1)
+
 
     def oddParity(self):
         tx = Signal(intbv(0))
@@ -36,8 +37,22 @@ class rs232Test(TestCase):
             self.assertEqual(data, actual)
         
     def testOddParity(self):
-        Simulation(self.oddParity()).run()
+        Simulation(self.oddParity()).run(quiet=1)
 
+    def sevenBitsEvenParity(self):
+        tx = Signal(intbv(0))
+        rx = tx
+        actual = intbv(0)
+        cfg = Config(parity=EVEN, n_bits=7)
+        cfg_rx = Config(parity=EVEN, n_bits=7)
+        for i in range(256):
+            data = intbv(i)
+            yield join(rs232_tx(tx, data, cfg), rs232_rx(rx, actual, cfg_rx))
+            self.assertEqual(data, actual)
+        
+    def testSevenBitsEvenParity(self):
+        Simulation(self.sevenBitsEvenParity()).run(quiet=1)
+        
     def ParityError(self):
         tx = Signal(intbv(0))
         rx = tx
@@ -50,7 +65,7 @@ class rs232Test(TestCase):
             
     def testParityError(self):
         try:
-            Simulation(self.ParityError()).run()
+            Simulation(self.ParityError()).run(quiet=1)
         except ParityError:
             pass
         else:
@@ -72,28 +87,45 @@ class rs232Characterize(TestCase):
                 raise Error
 
     def testCharacterize(self):
-        # brute force approach: start reasonable guess, then incremental check
-        tx_baud_rate = 9600 + 400
-        offset = 10
+        coarseOffset = 100
+        fineOffset = 5
+        tx_baud_rate = 9600
         try:
             while 1:
+                tx_baud_rate += coarseOffset
                 Simulation(self.bench(tx_baud_rate)).run(quiet=1)
-                tx_baud_rate += offset
         except Error:
-            print "Max characterize ended with %s" % sys.exc_type
-            print "Max tx baudrate: %s" % (tx_baud_rate - offset)
-        tx_baud_rate = 9600 - 400
+            pass
+        while 1:
+            try:
+                tx_baud_rate -= fineOffset
+                Simulation(self.bench(tx_baud_rate)).run(quiet=1)
+            except Error:
+                continue
+            else:
+                print "Max tx baudrate: %s" % tx_baud_rate
+                break
+        tx_baud_rate = 9600
         try:
             while 1:
+                tx_baud_rate -= coarseOffset
                 Simulation(self.bench(tx_baud_rate)).run(quiet=1)
-                tx_baud_rate -= offset
         except Error:
-            print "Min characterize ended with %s" % sys.exc_type
-            print "Min tx baudrate: %s" % (tx_baud_rate + offset)
+            pass
+        while 1:
+            try:
+                tx_baud_rate += fineOffset
+                Simulation(self.bench(tx_baud_rate)).run(quiet=1)
+            except Error:
+                continue
+            else:
+                print "Min tx baudrate: %s" % tx_baud_rate
+                break
 
                 
 if __name__ == "__main__":
-    unittest.main()
+    testRunner = unittest.TextTestRunner(verbosity=2)
+    unittest.main(testRunner=testRunner)
        
 
         
