@@ -29,7 +29,7 @@ from __future__ import generators
 
 import sys
 from inspect import currentframe, getframeinfo, getouterframes
-import compiler
+import inspect
 import re
 import string
 import time
@@ -37,6 +37,9 @@ from types import FunctionType
 import os
 path = os.path
 import shutil
+import compiler
+from compiler import ast
+import linecache
 
 from myhdl import _simulator, Signal, __version__
 from myhdl._util import _isGenSeq, _isgeneratorfunction
@@ -105,13 +108,41 @@ def traceSignals(dut, *args, **kwargs):
         _writeVcdSigs(vcdfile, h.instances)
     finally:
         _tracing = 0
+    linecache.clearcache()
     return h.m
 
+_filelinemap = {}
+
+class _CallFuncVisitor(object):
+
+    def __init__(self):
+        self.linemap = {}
+    
+    def visitAssign(self, node):
+        if isinstance(node.expr, ast.CallFunc):
+            self.lineno = None
+            self.visit(node.expr)
+            self.linemap[self.lineno] = node.lineno
+
+    def visitName(self, node):
+        self.lineno = node.lineno
 
 def _findInstanceName(framerec):
-    f = framerec[0]
-    c = framerec[4][0]
-    m = rex_assign.match(c)
+    fr = framerec[0]
+    fn = framerec[1]
+    ln = framerec[2]
+    if not _filelinemap.has_key(fn):
+        tree = compiler.parseFile(fn)
+        v = _CallFuncVisitor()
+        compiler.walk(tree, v)
+        linemap = _filelinemap[fn] = v.linemap
+    else:
+        linemap = _filelinemap[fn]
+    if not linemap.has_key(ln):
+        return None
+    nln = linemap[ln]
+    cl = linecache.getline(fn, nln)
+    m = rex_assign.match(cl)
     name = None
     if m:
         basename, index = m.groups()
@@ -119,7 +150,7 @@ def _findInstanceName(framerec):
             il = []
             for i in index[1:-1].split("]["):
                 try:
-                    s = str(eval(i, f.f_globals, f.f_locals))
+                    s = str(eval(i, fr.f_globals, fr.f_locals))
                 except:
                     break
                 il.append(s)
