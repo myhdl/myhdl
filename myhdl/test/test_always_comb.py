@@ -37,8 +37,7 @@ from myhdl import Signal, Simulation, instances, processes, \
                   intbv, posedge, negedge, delay, StopSimulation
 
 from myhdl._always_comb import always_comb, _AlwaysComb, \
-                               ScopeError, ArgumentError, NrOfArgsError, \
-                               SignalAsInoutError, EmbeddedFunctionError
+                               CosimulationError, _error
 
 
 QUIET=1
@@ -55,7 +54,8 @@ class AlwaysCombCompilationTest(TestCase):
         h = 5
         try:
             always_comb(h)
-        except ArgumentError:
+        except CosimulationError, e:
+            self.assertEqual(e.kind, _error.ArgType)
             pass
         else:
             self.fail()
@@ -65,8 +65,8 @@ class AlwaysCombCompilationTest(TestCase):
             yield None
         try:
             always_comb(h)
-        except ArgumentError:
-            pass
+        except CosimulationError, e:
+            self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
 
@@ -75,16 +75,16 @@ class AlwaysCombCompilationTest(TestCase):
             return n
         try:
             always_comb(h)
-        except NrOfArgsError:
-            pass
+        except CosimulationError, e:
+            self.assertEqual(e.kind, _error.NrOfArgs)
         else:
             self.fail()
 
     def testScope(self):
         try:
             always_comb(g)
-        except ScopeError:
-            pass
+        except CosimulationError, e:
+            self.assertEqual(e.kind, _error.Scope)
         else:
             self.fail()
 
@@ -141,8 +141,8 @@ class AlwaysCombCompilationTest(TestCase):
             a = 1
         try:
             g = always_comb(h)
-        except SignalAsInoutError:
-            pass
+        except CosimulationError, e:
+            self.assertEqual(e.kind, _error.SignalAsInout)
         else:
             self.fail()
 
@@ -153,8 +153,8 @@ class AlwaysCombCompilationTest(TestCase):
             x.next = c
         try:
             g = always_comb(h)
-        except SignalAsInoutError:
-            pass
+        except CosimulationError, e:
+            self.assertEqual(e.kind, _error.SignalAsInout)
         else:
             self.fail()
 
@@ -209,8 +209,8 @@ class AlwaysCombCompilationTest(TestCase):
             g = a
         try:
             g = always_comb(h)
-        except EmbeddedFunctionError:
-            pass
+        except CosimulationError, e:
+            self.assertEqual(e.kind, _error.EmbeddedFunction)
         else:
             self.fail()
         
