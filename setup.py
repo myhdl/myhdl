@@ -24,6 +24,7 @@ setup(name="myhdl",
       author="Jan Decaluwe",
       author_email="jan@jandecaluwe.com",
       url="www.jandecaluwe.com",
-      packages=['myhdl']
+      packages=['myhdl'],
+      license="LGPL"
       )
       
