@@ -31,13 +31,6 @@ def _int2bitstring(num):
         return '0'
     if abs(num) == 1:
         return '1'
-    return _int2bitstring(num // 2) + _int2bitstring(num % 2)
-
-def _int2bitstring(num):
-    if num == 0:
-        return '0'
-    if abs(num) == 1:
-        return '1'
     bits = []
     p, q = divmod(num, 2)
     bits.append(str(q))
