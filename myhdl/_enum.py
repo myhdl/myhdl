@@ -29,27 +29,42 @@ from types import StringType
 
 from myhdl._bin import bin
 
-def enum(*args):
+def enum(*args, **kwargs):
 
     # args = args
-    # only default encoding for now
+    encoding = kwargs.get('encoding', 'binary')
     argdict = {}
-    encoding = {}
-    nrbits = len(bin(len(args)))
+    codedict = {}
+    if encoding == 'binary':
+        nrbits = len(bin(len(args)))
+    elif encoding in ('one_hot', 'one_cold'):
+        nrbits = len(args)
+    else:
+        raise ValueError("Unsupported enum encoding: %s \n    Supported encodings:" + \
+                         "    'binary', 'one_hot', 'one_cold'" % encoding)
+    
     i = 0
     for arg in args:
         if type(arg) is not StringType:
             raise TypeError
-        if encoding.has_key(arg):
+        if codedict.has_key(arg):
             raise ValueError("enum literals should be unique")
         argdict[i] = arg
-        encoding[arg] = bin(i, nrbits)
+        if encoding == 'binary':
+            code = bin(i, nrbits)
+        elif encoding == 'one_hot':
+            code = bin(1<<i, nrbits)
+        else: # one_cold
+            code = bin(~(1<<i), nrbits)
+        if len(code) > nrbits:
+            code = code[-nrbits:]
+        codedict[arg] = code
         i += 1
        
     class EnumItem(object):
         def __init__(self, index, arg):
             self._index = index
-            self._val = encoding[arg]
+            self._val = codedict[arg]
             self._nrbits = nrbits
         def __repr__(self):
             return argdict[self._index]

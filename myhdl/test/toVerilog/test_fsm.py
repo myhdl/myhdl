@@ -8,7 +8,7 @@ from myhdl import *
 # SEARCH, CONFIRM, SYNC = range(3)
 ACTIVE_LOW = 0
 FRAME_SIZE = 8
-t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
+t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding='one_cold')
 
 
 
@@ -132,7 +132,7 @@ class FramerCtrlTest(TestCase):
         clk = Signal(bool(0))
         reset_n = Signal(bool(1))
         state = Signal(t_State.SEARCH)
-        state_v = Signal(intbv(0)[2:])
+        state_v = Signal(intbv(0)[8:])
 
         framerctrl_ref_inst = FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n)
         framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
