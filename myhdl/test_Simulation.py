@@ -418,8 +418,6 @@ class DeltaCycleOrder(TestCase):
         random.shuffle(vectors)
         index = range(4)
 
-        f = open("tmp1", "w")
-
         def clkGen():
             while 1:
                 yield delay(10)
