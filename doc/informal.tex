@@ -245,7 +245,7 @@ def bin2gray(width, B, G):
 
     width -- bit width
     B -- input intbv signal, binary encoded
-    G -- output intbv signal, gray encoded
+    G -- output intbv signal, Gray encoded
     """
     while 1:
         yield B
@@ -254,10 +254,10 @@ def bin2gray(width, B, G):
 
 \end{verbatim}
 
-This code introduces a few new concepts. The string in triple
-quotes at the start of the function is a \dfn{doc string}. This is
-standard Python practice to document function and other
-code. Also, we use a third form of the \keyword{yield} statement:
+This code introduces a few new concepts. The string in triple quotes
+at the start of the function is a \dfn{doc string}. This is standard
+Python practice for the structured documentation of code. Moreover, we
+use a third form of the \keyword{yield} statement:
 \samp{yield \var{signal}}. This specifies that the generator should
 resume whenever \var{signal} changes value. This is typically used to
 describe combinatorial logic.

@@ -26,7 +26,13 @@ __date__ = "$Date$"
 import sys
 maxint = sys.maxint
 from types import StringType
-   
+
+def _int2bitstring(num):
+    if num == 0:
+        return "0"
+    if num == 1:
+        return "1"
+    return _int2bitstring(num // 2) + _int2bitstring(num % 2) 
 
 class intbv(object):
     __slots__ = ('_val', '_len')
@@ -72,6 +78,11 @@ class intbv(object):
         if basewidth:
             res._len = basewidth + width
         return res
+
+    # conversion to binary string
+    def bin(self):
+        return _int2bitstring(self._val)
+        
 
     # copy methods
     def __copy__(self):
