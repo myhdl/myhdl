@@ -17,6 +17,7 @@ def bin2gray(B, G, width):
         for i in range(width):
             G.next[i] = B[i] ^ B[i]
             
+            
 analyze_cmd = "iverilog -o bin2gray bin2gray_1.v tb_bin2gray_1.v"
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi bin2gray"
       
