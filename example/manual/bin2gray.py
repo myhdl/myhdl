@@ -25,7 +25,7 @@ def testBench(width):
         for i in range(2**width):
             B.next = intbv(i)
             yield delay(10)
-            print "B: %s | G: %s" % (bin(B.val, width), bin(G.val, width))
+            print "B: " + bin(B.val, width) + "| G: " + bin(G.val, width)
 
     return (dut, stimulus())
 

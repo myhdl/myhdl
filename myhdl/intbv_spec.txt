@@ -77,5 +77,9 @@ separate type.
   addition, literal bit strings are accepted in concatenations, just as
   they are in intbv constructors.
 
+* intbv has a bin(width) method that returns a binary string
+  representation. The optional width specifies the desired string
+  width: padding of the sign-bit is used.
+
 * intbv supports the iterator protocol to iterate on its bits; again,
   this requires a known length.
