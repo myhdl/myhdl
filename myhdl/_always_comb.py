@@ -53,6 +53,11 @@ class ScopeError(Error):
     
 class SignalAsInoutError(Error):
     """signal used as inout in always_comb function argument"""
+
+class EmbeddedFunctionError(Error):
+    """embedded functions in always_comb function argument not supported"""
+
+
     
 
 def always_comb(func):
@@ -81,6 +86,7 @@ class _SigNameVisitor(object):
     def __init__(self, sigdict):
         self.inputs = []
         self.outputs = []
+        self.toplevel = 1
         self.sigdict = sigdict
 
     def visitModule(self, node):
@@ -91,7 +97,15 @@ class _SigNameVisitor(object):
             if n in outputs:
                 raise SignalAsInoutError(n)
 
+    def visitFunction(self, node):
+        if self.toplevel:
+            self.toplevel = 0 # skip embedded functions
+            self.visit(node.code)
+        else:
+            raise EmbeddedFunctionError
+
     def visitName(self, node, access=INPUT):
+        print node.name
         if node.name not in self.sigdict:
             return
         if access == INPUT:
@@ -126,6 +140,12 @@ class _SigNameVisitor(object):
     def visitAugAssign(self, node, access=INPUT):
         self.visit(node.node, INOUT)
         self.visit(node.expr, INPUT)
+        
+    def visitClass(self, node):
+        pass # skip
+
+    def visitExec(self, node):
+        pass # skip
         
 
 class _AlwaysComb(object):

@@ -37,7 +37,7 @@ from myhdl import Signal, Simulation, instances, processes, \
 
 from myhdl._always_comb import always_comb, _AlwaysComb, \
                                ScopeError, ArgumentError, NrOfArgsError, \
-                               SignalAsInoutError
+                               SignalAsInoutError, EmbeddedFunctionError
 
 
 QUIET=1
@@ -48,6 +48,7 @@ def g():
 x = Signal(0)
 
 class AlwaysCombCompilationTest(TestCase):
+    
 
     def testArgIsFunction(self):
         h = 5
@@ -93,7 +94,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next = a
             v = u
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['a']
         self.assertEqual(i.inputs, expected)
         
@@ -104,7 +105,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next = x
             g = a
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['a', 'x']
         expected.sort()
         self.assertEqual(i.inputs, expected)
@@ -117,7 +118,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next = a + x + u
             a = 1
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['x']
         self.assertEqual(i.inputs, expected)
 
@@ -128,7 +129,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next = a + x + u
             x = 1
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['a']
         self.assertEqual(i.inputs, expected)
         
@@ -162,7 +163,7 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             c.next[a:0] = x[b:0]
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['a', 'b', 'x']
         expected.sort()
         self.assertEqual(i.inputs, expected)
@@ -174,7 +175,7 @@ class AlwaysCombCompilationTest(TestCase):
             v = 2
             c.next[8:1+a+v] = x[4:b*3+u]
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['a', 'b', 'x']
         expected.sort()
         self.assertEqual(i.inputs, expected)
@@ -184,7 +185,7 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             c.next[a-1] = x[b-1]
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['a', 'b', 'x']
         expected.sort()
         self.assertEqual(i.inputs, expected)
@@ -196,11 +197,27 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             c.next = f(a, 2*b, d*x)
         g = always_comb(h)
-        i= g.gi_frame.f_locals['self']
+        i = g.gi_frame.f_locals['self']
         expected = ['a', 'b', 'd', 'x']
         expected.sort()
         self.assertEqual(i.inputs, expected)
 
+    def testEmbeddedFunction(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        u = 1
+        def h():
+            def g():
+                e = b
+                return e
+            c.next = x
+            g = a
+        try:
+            g = always_comb(h)
+        except EmbeddedFunctionError:
+            pass
+        else:
+            self.fail()
+        
 
 class AlwaysCombSimulationTest(TestCase):
 
