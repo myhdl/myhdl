@@ -27,11 +27,11 @@ def rs232_rx(rx, actual, cfg):
         
     if cfg.parity is not None:
         yield delay(period)
-        if rx.val != parity(data, cfg.parity):
+        if rx != parity(data, cfg.parity):
             raise ParityError
         
     yield delay(period)
-    if rx.val != 0:
+    if rx != 0:
         raise StopBitError
     
     actual[8:] = data

@@ -42,7 +42,7 @@ class DecTest(TestCase):
             for i in vals:
                 A.next = intbv(i)
                 yield delay(10)
-                self.assertEqual(ZS.val, ZB.val)
+                self.assertEqual(ZS, ZB)
 
         return (beh, str, stimulus())
 

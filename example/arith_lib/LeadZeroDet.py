@@ -20,7 +20,7 @@ def LeadZeroDet(width, speed, A, Z, architecture=BEHAVIOR):
             yield A
             zv = intbv(0)
             for i in downrange(width):
-                if A.val[i] == 1:
+                if A[i] == 1:
                     zv[i] = 1
                     break
             Z.next = zv
@@ -34,12 +34,12 @@ def LeadZeroDet(width, speed, A, Z, architecture=BEHAVIOR):
         def logic():
             while 1:
                 yield PI, POT, PO, A
-                PI.next = ~A.val
+                PI.next = ~A
                 for i in downrange(width):
-                    PIT.next[i] = PI.val[width-i-1]
-                    PO.next[i] = POT.val[width-i-1]
-                Z.next[width-1] = A.val[width-1]
-                Z.next[width-1:] = PO.val[width:1] & A.val[width-1:]
+                    PIT.next[i] = PI[width-i-1]
+                    PO.next[i] = POT[width-i-1]
+                Z.next[width-1] = A[width-1]
+                Z.next[width-1:] = PO[width:1] & A[width-1:]
         return [prefix, logic()]
 
     if architecture == BEHAVIOR:

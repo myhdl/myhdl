@@ -20,20 +20,20 @@ def PrefixAnd(width, speed, PI, PO):
                     for i in range(2**(l-1)):
                         if (k*2**l + i) < n:
                             PT.next[l*n + k*2**l + i] = \
-                                PT.val[(l-1)*n + k*2**l + i]
+                                PT[(l-1)*n + k*2**l + i]
                         if (k*2**l + 2**(l-1) + i) < n:
                             PT.next[l*n + k*2**l + 2**(l-1) + i] = \
-                                PT.val[(l-1)*n + k*2**l + 2**(l-1) + i] & \
-                                PT.val[(l-1)*n + k*2**l + 2**(l-1) - 1]
-            PO.next = PT.val[(m+1)*n:m*n]
+                                PT[(l-1)*n + k*2**l + 2**(l-1) + i] & \
+                                PT[(l-1)*n + k*2**l + 2**(l-1) - 1]
+            PO.next = PT[(m+1)*n:m*n]
 
     def slowPrefix():
         PT = Signal(intbv())
         while 1:
             yield PI, PT
-            PT.next[0] = PI.val[0]
+            PT.next[0] = PI[0]
             for i in range(1, n):
-                PT.next[i] = PI.val[i] & PT.val[i-1]
+                PT.next[i] = PI[i] & PT[i-1]
             PO.next = PT.val
 
     if speed == SLOW:
