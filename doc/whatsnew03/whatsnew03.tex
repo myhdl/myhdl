@@ -30,16 +30,15 @@ loaded and viewed in a waveform viewer tool such as \program{gtkwave}.
 The user interface of this feature consists of a single function,
 \function{trace_sigs()}.  To explain how it works, recall that in
 \myhdl{}, an instance is created by calling a function that returns a
-sequence of generators. For example:
+sequence of generators and assigning the result to an instance
+name. For example:
 
 \begin{verbatim}
 tb_fsm = testbench()
 \end{verbatim}
 
-The \code{tb_fsm} instance is subsequently passed 
-as an argument to a \class{Simulation} object constructor
-for simulation. To enable VCD tracing, the instance should 
-be created as follows instead:
+To enable VCD tracing, the instance should be created as follows
+instead:
 
 \begin{verbatim}
 tb_fsm = trace_sigs(testbench)
@@ -57,9 +56,7 @@ passed to the function call.
 The restrictions on VCD tracing are as follows. First, only
 \class{Signal} objects can be traced. Second, only a hierarchy of
 instances returned by a pre-simulation top level function call can be
-traced. Also, all instances to be traced should have a name: this is
-done by assigning the result of an instantiating function call to a
-local variable (instead of using it directly.)
+traced.
 
 Signals are dumped in a suitable format. This format is inferred at
 the \class{Signal} construction time, from the type of the initial
@@ -69,6 +66,12 @@ become a separate type).  Likewise, \class{intbv} signals with a
 defined bit width are dumped as bit vectors. To support the general
 case, other types of signals are dumped as a string representation, as
 returned by the standard \function{str()} function.
+
+\begin{notice}[warning]
+Dumping string representations is not part of the VCD standard and is
+specific to \program{gtkwave}. If you need to generate a standard VCD
+file, you need to use signals with a defined bit width only.
+\end{notice}
 
 \section{An enumeration type\label{section-enum}}
 
