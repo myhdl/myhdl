@@ -2,9 +2,9 @@
 
 \section{A basic \myhdl\ simulation}
 
-Let's introduce \myhdl\ with a classical \code{Hello World} example
-under the form of a \myhdl\ simulation run.  Here are the contents of
-a \file{Hello1.py} script:
+Let's introduce \myhdl\ with a classical \code{Hello World} style
+example Here are the contents of a simulation script called
+\file{Hello1.py}:
 
 \begin{verbatim}
 from myhdl import delay, now, Simulation
@@ -31,12 +31,11 @@ StopSimulation: Simulated for duration 30
 
 \end{verbatim}
 
-To explain what happened, we will go through the script line by
-line. The first line imports a number of objects from the \myhdl\
-package. In good Python style, and unlike most other languages, we can
-only use identifiers that are \emph{literally} defined in the source
-file \footnote{I don't want to explain the \code{ from package import
-* } syntax}.
+The first line of the script imports a
+number of objects from the \myhdl\ package. In good Python style, and
+unlike most other languages, we can only use identifiers that are
+\emph{literally} defined in the source file \footnote{I don't want to
+explain the \samp{import *} syntax}.
 
 Next, we define a generator function called
 \code{sayHello}. This is a generator function (as opposed to
@@ -53,29 +52,84 @@ the \myhdl\ equivalent to a Verilog \code{always} block or a
 VHDL \code{process}.
 
 In hardware language terms, the generator function corresponds to a
-hardware module. To simulate a module, we need to pass an
-\emph{instance} of it to a simulator. In \myhdl{}, the equivalence of
-instantiating is calling a generator function to create an actual
-generator. For example, variable \code{gen} in the script refers a
-generator that can be simulated. To do this, we first create a
-\code{Simulation} object that takes the generator as its argument. We
-then run the simulation for the desired amount of time.
+hardware module. To simulate a module, we need to pass a module
+\emph{instance} to a simulator. In \myhdl{}, the equivalence of
+a module instance is a generator. We create a generator by calling a
+generator function; thus, variable \code{gen} refers to a
+generator. To simulate this generator, we pass it as an argument to a
+\code{Simulation} object constructor.  We then run the simulation for
+the desired amount of time.
 
+ 
 \section{Concurrent generators and signals}
 
+In the previous section, we simulated a single generator. Of course,
+real hardware descriptions are not like that: in fact, they are
+typically massively concurrent. \myhdl\ supports this by allowing an
+arbitrary number of concurrent generators. More specifically, a
+\code{Simulation} constructor can take an arbitrary number of
+arguments, each of which can be a generator or a nested list of
+generators.
 
+With concurrency comes the problem of determinism. Therefore, hardware
+languages use special objects to support deterministic communication
+between concurrent regions. \myhdl\ has as \code{Signal} object which
+is roughly modelled after VHDL signals.
 
-Then, we create a clock \code{Signal} named \code{clk}, with initial
-value \code{0}. We also define a generator function \code{clkGen},
-that operates on clock \code{clk}. 
+We will demonstrate these concepts by extending our first example. We
+introduce a clock signal, driven by a second generator. The
+\code{sayHello} generator function is modified to wait for a rising
+edge (\code{posedge}) of the clock instead of a delay. The resulting
+script is as follows:
 
-After each delay, the clock is assigned a new value, by
-assigning to its \code{next} attribute. Assigning to the 
-\code{next} attribute of a signal is the \myhdl\ equivalent to signal
-assignments in VHDL and non-blocking assignments in Verilog.
+\begin{verbatim}
+from myhdl import Signal, delay, posedge, now, Simulation
 
+clk = Signal(0)
 
+def clkGen():
+    while 1:
+        yield delay(10)
+        clk.next = 1
+        yield delay(10)
+        clk.next = 0
 
+def sayHello():
+    while 1:
+        yield posedge(clk)
+        print "%s Hello World!" % now()
+
+sim = Simulation(clkGen(), sayHello())
+sim.run(50)
+
+\end{verbatim}
+
+When we run this script, we get:
+
+\begin{verbatim}
+% python Hello2.py
+10 Hello World!
+30 Hello World!
+50 Hello World!
+StopSimulation: Simulated for duration 50
+
+\end{verbatim}
+
+The \code{clk} signal is constructed with an initial value
+\code{0}. In the clock generator function \code{clkGen}, it is then
+continuously toggled after a certain delay. In \myhdl{}, a the next
+value of a signal is specified by assigning to its \code{next}
+attribute. This is the \myhdl\ equivalent of VHDL signal assignments
+and Verilog's non-blocking assignments.
+
+The \code{sayHello} generator function shows a second form of a
+\code{yield} statement: \samp{yield posedge(\var{aSignal})}. Again,
+the generator will suspend execution at that point, but in this case
+it specifies that it should resume when there is a rising edge on the
+signal.
+
+The \code{Simulation} constructor now takes two generator arguments
+that run concurrently throughout the simulation.
 
 
 
