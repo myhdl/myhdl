@@ -21,7 +21,7 @@ class Simulation:
         waiters = self._waiters
         maxTime = None
         if duration:
-            stop = _WaiterWrap(None)
+            stop = _Waiter(None)
             stop.hasRun = 1
             maxTime = sim._time + duration
             schedule((maxTime, stop))
@@ -51,7 +51,9 @@ class Simulation:
                         elif type(clause) is delay:
                             schedule((t + clause._time, clone))
                         elif type(clause) is GeneratorType:
-                            waiters.append(_WaiterWrap(clause, clone))
+                            waiters.append(_Waiter(clause, clone))
+                        elif type(clause) is join:
+                            waiters.append(_Waiter(clause._generator(), clone))
                         else:
                             raise TypeError, "Incorrect yield clause type"
 
@@ -65,7 +67,7 @@ class Simulation:
                     while _futureEvents:
                         newt, event = _futureEvents[0]
                         if newt == t:
-                            if type(event) is _WaiterWrap:
+                            if type(event) is _Waiter:
                                 waiters.append(event)
                             else:
                                 waiters.extend(event.apply())
@@ -87,14 +89,14 @@ def _flatten(*args):
     res = []
     for arg in args:
         if type(arg) is GeneratorType:
-            res.append(_WaiterWrap(arg))
+            res.append(_Waiter(arg))
         else:
             for item in arg:
                 res.extend(_flatten(item))
     return res
 
 
-class _WaiterWrap(object):
+class _Waiter(object):
     
     def __init__(self, generator, caller=None, semaphore=None):
         self.generator = generator
@@ -104,7 +106,7 @@ class _WaiterWrap(object):
         
     def next(self):
         self.hasRun = 1
-        clone = _WaiterWrap(self.generator, self.caller, self.semaphore)
+        clone = _Waiter(self.generator, self.caller, self.semaphore)
         clause = self.generator.next()
         if type(clause) is tuple:
             return clause, clone
@@ -123,7 +125,7 @@ class _WaiterWrap(object):
         return 1
     
     def clone(self):
-        return _WaiterWrap(self.generator, self.caller, self.semaphore)
+        return _Waiter(self.generator, self.caller, self.semaphore)
     
         
 class _Semaphore(object):
@@ -139,5 +141,5 @@ class join(object):
         self._args = args
         
     def _generator(self):
-        yield join(*args)
+        yield join(*self._args)
         

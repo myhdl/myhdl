@@ -17,29 +17,108 @@ from _simulator import _siglist
 class Shared:
     pass
 
-class TestJoinMix(TestCase):
+class JoinMix(TestCase):
     """ Test of joins mixed with other clauses """
-    
-    def bench(self):
+         
+    def test1(self):
+        def stimulus():
+            a = Signal(0)
+            def gen():
+                yield join(delay(10), delay(20))
+            yield gen(), delay(5)
+            self.assertEqual(now(), 5)
+            yield a
+            self.fail("Incorrect run") # should not get here
+        Simulation(stimulus()).run()
+        
+    def test2(self):
+        def stimulus():
+            a = Signal(0)
+            yield join(delay(10), delay(20)), delay(5)
+            self.assertEqual(now(), 5)
+            yield a
+            self.fail("Incorrect run") # should not get here
+        Simulation(stimulus()).run()
 
-        A = Signal(0)
+    def stimulus(self, a, b, c, d):
+        yield delay(5)
+        a.next = 1
+        yield delay(5)
+        a.next = 0
+        b.next = 1
+        yield delay(5)
+        a.next = 1
+        b.next = 0
+        c.next = 1
+        yield delay(5)
+        a.next = 0
+        b.next = 1
+        c.next = 0
+        d.next = 1
+        
+    def test3(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, b, c, d)
+            self.assertEqual(now(), 20)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
+        
+    def test4(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, b), join(c, d)
+            self.assertEqual(now(), 10)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
+        
+    def test5(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a), b, join(c, d)
+            self.assertEqual(now(), 5)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
+        
+    def test6(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, delay(20)), b, join(c, d)
+            self.assertEqual(now(), 10)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
 
-        def test():
-            yield join(delay(10), delay(20))
+    def test7(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, delay(30)), join(c, d)
+            self.assertEqual(now(), 20)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
 
-        #yield join(delay(10), delay(20)), delay(5)
-        yield test(), delay(5)
+    def test8(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, negedge(a))
+            self.assertEqual(now(), 10)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
 
-        self.assertEqual(now(), 5)
+    def test9(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, negedge(a), posedge(c))
+            self.assertEqual(now(), 15)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
 
-        yield A
-
-        # self.assertEqual(now(), 20)
-        self.fail("incorrect run") # should not get here
-
-
-    def testJoinMix(self):
-        Simulation(self.bench()).run()
+    def test10(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, a)
+            self.assertEqual(now(), 5)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
+        
+    def test11(self):
+        a, b, c, d = [Signal(0) for i in range(4)]
+        def response():
+            yield join(a, posedge(b), negedge(b), a)
+            self.assertEqual(now(), 15)
+        Simulation(self.stimulus(a, b, c, d), response()).run()
+          
 
 class JoinedGen(TestCase):
     
