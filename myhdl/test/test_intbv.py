@@ -465,8 +465,10 @@ class TestIntbvBounds(TestCase):
     def testSliceAssign(self):
         a = intbv(min=-24, max=34)
         for i in (-24, -2, 13, 33):
-            for k in (0, 9, 10):
+            for k in (6, 9, 10):
+                a[:] = 0
                 a[k:] = i
+                self.assertEqual(a, i)
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
                 try:

@@ -608,8 +608,10 @@ class TestSignalIntbvBounds(TestCase):
     def testSliceAssign(self):
         s = Signal(intbv(min=-24, max=34))
         for i in (-24, -2, 13, 33):
-            for k in (0, 9, 10):
+            for k in (6, 9, 10):
+                s.next[:] = 0
                 s.next[k:] = i
+                self.assertEqual(s.next, i)
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
                 try:

@@ -235,12 +235,8 @@ class Signal(object):
 
     # indexing and slicing methods
 
-    def __getitem__(self, i):
-        return self._val[i]
-
-    def __getslice__(self, i, j):
-        return self._val[i:j]
-    
+    def __getitem__(self, key):
+        return self._val[key]
         
     # integer-like methods
 
@@ -399,11 +395,8 @@ class Signal(object):
     __ior__ = __iand__ = __ixor__ = __irshift__ = __ilshift__ = _augm
 
     # index and slice assignment not supported
-    def __setitem__(self, i, val):
-        raise TypeError, "Signal object doesn't support item assignment"
-
-    def __setslice__(self, i, j, val):
-        raise TypeError, "Signal object doesn't support slice assignment"
+    def __setitem__(self, key, val):
+        raise TypeError, "Signal object doesn't support item/slice assignment"
 
 
 class DelayedSignal(Signal):

@@ -110,57 +110,66 @@ class intbv(object):
 
     # indexing and slicing methods
 
-    def __getitem__(self, i):
-        res = intbv((self._val >> i) & 0x1, _nrbits=1)
-        return res
-
-    def __getslice__(self, i, j):
-        if j == maxint: # default
-            j = 0
-        if j < 0:
-            raise ValueError, "intbv[i:j] requires j >= 0\n" \
-                  "            j == %s" % j
-        if i == 0: # default
-            return intbv(self._val >> j)
-        if i <= j:
-            raise ValueError, "intbv[i:j] requires i > j\n" \
-                  "            i, j == %s, %s" % (i, j)
-        res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
-        return res
-        
-    def __setitem__(self, i, val):
-        if val not in (0, 1):
-            raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
-                  "            i == %s " % i
-        if val:
-            self._val |= (1L << i)
+    def __getitem__(self, key):
+        if type(key) is int:
+            i = key
+            res = intbv((self._val >> i) & 0x1, _nrbits=1)
+            return res
+        elif type(key) is slice:
+            i, j = key.start, key.stop
+            if j is None: # default
+                j = 0
+            if j < 0:
+                raise ValueError, "intbv[i:j] requires j >= 0\n" \
+                      "            j == %s" % j
+            if i is None: # default
+                return intbv(self._val >> j)
+            if i <= j:
+                raise ValueError, "intbv[i:j] requires i > j\n" \
+                      "            i, j == %s, %s" % (i, j)
+            res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
+            return res
         else:
-            self._val &= ~(1L << i)
+            raise TypeError("intbv item/slice indices should be integers")
 
-    def __setslice__(self, i, j, val):
-        if j == maxint: # default
-            j = 0
-        if j < 0:
-            raise ValueError, "intbv[i:j] = v requires j >= 0\n" \
-                  "            j == %s" % j
-        if i == 0: # default
-            q = self._val % (1L << j)
-            self._val = val * (1L << j) + q
+       
+    def __setitem__(self, key, val):
+        if type(key) is int:
+            i = key
+            if val not in (0, 1):
+                raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
+                      "            i == %s " % i
+            if val:
+                self._val |= (1L << i)
+            else:
+                self._val &= ~(1L << i)
+        elif type(key) is slice:
+            i, j = key.start, key.stop
+            if j is None: # default
+                j = 0
+            if j < 0:
+                raise ValueError, "intbv[i:j] = v requires j >= 0\n" \
+                      "            j == %s" % j
+            if i is None: # default
+                q = self._val % (1L << j)
+                self._val = val * (1L << j) + q
+                self._checkBounds()
+                return
+            if i <= j:
+                raise ValueError, "intbv[i:j] = v requires i > j\n" \
+                      "            i, j, v == %s, %s, %s" % (i, j, val)
+            lim = (1L << (i-j))
+            if val >= lim or val < -lim:
+                raise ValueError, "intbv[i:j] = v abs(v) too large\n" \
+                      "            i, j, v == %s, %s, %s" % (i, j, val)
+            mask = (1L << (i-j))-1
+            mask *= (1L << j)
+            self._val &= ~mask
+            self._val |= val * (1L << j)
             self._checkBounds()
-            return
-        if i <= j:
-            raise ValueError, "intbv[i:j] = v requires i > j\n" \
-                  "            i, j, v == %s, %s, %s" % (i, j, val)
-        lim = (1L << (i-j))
-        if val >= lim or val < -lim:
-            raise ValueError, "intbv[i:j] = v abs(v) too large\n" \
-                  "            i, j, v == %s, %s, %s" % (i, j, val)
-        mask = (1L << (i-j))-1
-        mask *= (1L << j)
-        self._val &= ~mask
-        self._val |= val * (1L << j)
-        self._checkBounds()
-              
+        else:
+            raise TypeError("intbv item/slice indices should be integers")
+
         
     # integer-like methods
     
