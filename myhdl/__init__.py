@@ -40,6 +40,7 @@ processes -- function that returns all processes defined in a function
 always_comb -- function that returns an input-sensitive generator
 enum -- function that returns an enumeration type
 traceSignals -- function that enables signal tracing in a VCD file
+toVerilog -- function that converts a design to Verilog
 
 """
 
@@ -96,7 +97,7 @@ from _misc import instances, processes
 from _always_comb import always_comb
 from _enum import enum
 from _traceSignals import traceSignals
-from _toVerilog import toVerilog
+from _toVerilog._convert import toVerilog
 
 __all__ = ["bin",
            "concat",
