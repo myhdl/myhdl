@@ -18,7 +18,7 @@ def Dec(width, speed, A, Z, architecture=BEHAVIOR):
     def Behavioral():
         while 1:
             yield A
-            Z.next = A.val - 1
+            Z.next = A - 1
 
     def Structural():
         AI = Signal(intbv())
@@ -27,8 +27,8 @@ def Dec(width, speed, A, Z, architecture=BEHAVIOR):
         def logic():
             while 1:
                 yield A, PO
-                AI.next = ~A.val
-                Z.next = A.val ^ intbv.concat(PO.val[width-1:], '1')
+                AI.next = ~A
+                Z.next = A ^ intbv.concat(PO[width-1:], '1')
         return [prefix, logic()]
 
     if architecture == BEHAVIOR:

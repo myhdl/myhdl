@@ -114,6 +114,8 @@ class Signal(object):
         _siglist.append(self)
         return self._next
     def _set_next(self, val):
+        if isinstance(val, Signal):
+            val = val._val
         if not isinstance(val, self._type):
             raise TypeError, "Incompatible type(v) for sig.next = v\n" \
                   "           Expected %s, got %s" % (self._type, type(val))
