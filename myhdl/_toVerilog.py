@@ -186,16 +186,13 @@ class _ToVerilogMixin(object):
               (self.sourcefile, self.lineoffset+lineno)
         raise ToVerilogError(kind, msg, info)
 
-    def _require(self, node, test, msg=""):
+    def require(self, node, test, msg=""):
         if not test:
             self.raiseError(node, _error.Requirement, msg)
    
 
 class _NotSupportedVisitor(_ToVerilogMixin):
 
-    def visitAssign(self, node, *args):
-        if len(node.nodes) > 1:
-            self.raiseError(node, _error.NotSupported, "multiple assignments")
     
     def visitAssList(self, node, *args):
         self.raiseError(node, _error.NotSupported, "list assignment")
@@ -324,7 +321,8 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         self.visit(node.expr, OUTPUT)
         
     def visitAssign(self, node, access=OUTPUT):
-        assert len(node.nodes) == 1
+        if len(node.nodes) > 1:
+            self.raiseError(node, _error.NotSupported, "multiple assignments")
         target, expr = node.nodes[0], node.expr
         self.visit(target, OUTPUT)
         self.visit(expr, INPUT)
@@ -332,12 +330,12 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             n = target.name
             obj = self.getObj(expr)
             if obj is None:
-                self.raiseError(node, "cannot infer type")
+                self.raiseError(node, "Cannot infer type of %s" % n)
             self.vardict[n] = obj
 
     def visitAssName(self, node, *args):
         n = node.name
-        self._require(node, n not in self.symdict, "Illegal redeclaration: %s" % n)
+        self.require(node, n not in self.symdict, "Illegal redeclaration: %s" % n)
         
     def visitAugAssign(self, node, access=INPUT):
         self.visit(node.node, INOUT)
@@ -351,6 +349,17 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
         if type(f) is type and issubclass(f, intbv):
             node.obj = intbv()
             
+    def visitCompare(self, node, *args):
+        node.obj = bool()
+
+    def visitConst(self, node, *args):
+        if isinstance(node.value, bool):
+            node.obj = bool()
+        elif isinstance(node.value, int):
+            node.obj = int()
+        else:
+            node.obj = None
+            
     def visitFor(self, node):
         assert isinstance(node.assign, ast.AssName)
         self.visit(node.assign)
@@ -363,6 +372,14 @@ class _AnalyzeGenVisitor(_NotSupportedVisitor, _ToVerilogMixin):
             self.toplevel = 0
             print node.code
             self.visit(node.code)
+            
+    def visitGetattr(self, node, *args):
+        assert isinstance(node.expr, ast.Name)
+        assert node.expr.name in self.symdict
+        obj = self.symdict[node.expr.name]
+        if str(type(obj)) == "<class 'myhdl._enum.Enum'>":
+            assert hasattr(obj, node.attrname)
+            node.obj = getattr(obj, node.attrname)
 
     def visitModule(self, node):
         self.visit(node.node)
@@ -558,7 +575,7 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         self.sigdict = sigdict
         self.symdict = symdict
         self.vardict = vardict
-        # print vardict
+        print vardict
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
@@ -579,6 +596,8 @@ class _ConvertGenVisitor(_ToVerilogMixin):
                 self.write("integer %s;" % name)
             elif isinstance(obj, intbv):
                 self.write("reg [%s-1:0] %s;" % (obj._len, name))
+            elif hasattr(obj, '_nrbits'):
+                self.write("reg [%s-1:0] %s;" % (obj._nrbits, name))
             else:
                 raise AssertionError("unexpected type")
         self.writeline()
@@ -634,11 +653,8 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         self.visit(node.expr)
         self.write(';')
 
-##     def visitAssName(self, node):
-##         n = node.name
-##         assert n in self.vardict
-##         if n in self.toDeclare:
-            
+    def visitAssName(self, node):
+        self.write(node.name)
 
     def visitAugAssign(self, node):
         # XXX

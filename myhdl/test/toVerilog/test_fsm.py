@@ -12,7 +12,7 @@ t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
 
 
 
-def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
+def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.
 
@@ -29,42 +29,88 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     def FSM():
         while 1:
             yield posedge(clk), negedge(reset_n)
-            
             if reset_n == ACTIVE_LOW:
                 SOF.next = 0
                 index.next = 0
                 state.next = t_State.SEARCH
-                
             else:
                 index.next = (index + 1) % FRAME_SIZE
                 SOF.next = 0
-                
                 if state == t_State.SEARCH:
                     index.next = 1
                     if syncFlag:
                         state.next = t_State.CONFIRM
-                        
                 elif state == t_State.CONFIRM:
                     if index == 0:
                         if syncFlag:
                             state.next = t_State.SYNC
                         else:
                             state.next = t_State.SEARCH
-                            
                 elif state == t_State.SYNC:
                     if index == 0:
                         if not syncFlag:
                             state.next = t_State.SEARCH
                     SOF.next = (index == FRAME_SIZE-1)
-                    
                 else:
                     raise ValueError("Undefined state")
 
     FSM_1 = FSM()
     return FSM_1
 
+
+def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n):
+    
+    """ Framing control FSM.
+
+    SOF -- start-of-frame output bit
+    state -- FramerState output
+    syncFlag -- sync pattern found indication input
+    clk -- clock input
+    reset_n -- active low reset
+    
+    """
+    
+ 
+    def FSM():
+        index = intbv(0)[8:] # position in frame
+        while 1:
+            yield posedge(clk), negedge(reset_n)
+            if reset_n == ACTIVE_LOW:
+                SOF.next = 0
+                index[:] = 0
+                state_var = t_State.SEARCH
+            else:
+                SOF_var = 0
+                if state_var == t_State.SEARCH:
+                    index[:] = 0
+                    if syncFlag:
+                        state_var = t_State.CONFIRM
+                elif state == t_State.CONFIRM:
+                    if index == 0:
+                        if syncFlag:
+                            state_var = t_State.SYNC
+                        else:
+                            state_var = t_State.SEARCH
+                elif state == t_State.SYNC:
+                    if index == 0:
+                        if not syncFlag:
+                            state_var = t_State.SEARCH
+                    SOF_var = (index == FRAME_SIZE-1)
+                else:
+                    raise ValueError("Undefined state")
+                index[:]= (index + 1) % FRAME_SIZE
+                SOF.next = SOF_var
+                state.next = state_var
+
+    FSM_1 = FSM()
+    return FSM_1
+
+
+
+
+
 objfile = "framerctrl.o"
-analyze_cmd = "iverilog -o %s framerctrl.v tb_framerctrl.v" % objfile
+analyze_cmd = "iverilog -o %s framerctrl_inst.v tb_framerctrl_inst.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
 
 
@@ -77,7 +123,7 @@ def FramerCtrl_v(SOF, state, syncFlag, clk, reset_n):
 
 class FramerCtrlTest(TestCase):
     
-    def bench(self):
+    def bench(self, FramerCtrl):
 
         SOF = Signal(bool(0))
         SOF_v = Signal(bool(0))
@@ -87,8 +133,9 @@ class FramerCtrlTest(TestCase):
         state = Signal(t_State.SEARCH)
         state_v = Signal(intbv(0)[2:])
 
-        framerctrl = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
-        framerctrl_v = FramerCtrl_v(SOF_v, state_v, syncFlag, clk, reset_n)
+        framerctrl_ref_inst = FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n)
+        framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
+        framerctrl_v_inst = FramerCtrl_v(SOF_v, state_v, syncFlag, clk, reset_n)
 
         def clkgen():
             reset_n.next = 1
@@ -120,11 +167,16 @@ class FramerCtrlTest(TestCase):
                 # print "MyHDL: %s %s" % (SOF, hex(state))
                 # print "Verilog: %s %s" % (SOF_v, hex(state_v))
 
-        return framerctrl, framerctrl_v, clkgen(), stimulus(), check()
+        return framerctrl_ref_inst, framerctrl_v_inst, clkgen(), stimulus(), check()
 
 
-    def test(self):
-        tb_fsm = self.bench()
+    def testRef(self):
+        tb_fsm = self.bench(FramerCtrl_ref)
+        sim = Simulation(tb_fsm)
+        sim.run()
+        
+    def testAlt(self):
+        tb_fsm = self.bench(FramerCtrl_alt)
         sim = Simulation(tb_fsm)
         sim.run()
         
