@@ -173,10 +173,84 @@ def _analyzeGens(top, gennames):
             gen.name = gennames[id(g)]
         else:
             gen.name = genLabel.next()
-        v = _AnalyzeGenVisitor(sigdict)
+        v = _AnalyzeGenVisitor(sigdict, gen.sourcefile, gen.lineoffset)
         compiler.walk(gen, v)
         genlist.append(gen)
     return genlist
+
+
+
+class ToVerilogError(Error):
+    pass
+   
+
+class _ToVerilogBaseVisitor(object):
+    
+    def raiseError(self, msg, node):
+        lineno = node.lineno
+        if lineno is None:
+            for n in node.getChildNodes():
+                if n.lineno is not None:
+                    lineno = n.lineno
+                    break
+        lineno = lineno or 0
+        msg = "in file %s, line %s:\n    %s" % \
+              (self.sourcefile, self.lineoffset+lineno, msg)
+        raise ToVerilogError(msg)
+
+    def visitAssList(self, node, *args):
+        self.raiseError("list assignment not supported", node)
+
+    def visitAssTuple(self, node, *args):
+        self.raiseError("tuple assignment not supported", node)
+
+    def visitBackquote(self, node, *args):
+        self.raiseError("backquote not supported", node)
+
+    def visitBreak(self, node, *args):
+        self.raiseError("break statement not supported", node)
+
+    def visitClass(self, node, *args):
+        self.raiseError("class statement not supported", node)
+
+    def visitContinue(self, node, *args):
+        self.raiseError("continue statement not supported", node)
+
+    def visitDict(self, node, *args):
+        self.raiseError("dictionaries not supported", node)
+
+    def visitDiv(self, node, *args):
+        self.raiseError("true division not supported - consider '//'", node)
+
+    def visitEllipsis(self, node, *args):
+        self.raiseError("ellipsis not supported", node)
+
+    def visitExec(self, node, *args):
+        self.raiseError("exec not supported", node)
+
+    def visitExpression(self, node, *args):
+        self.raiseError("Expression node not supported", node)
+
+    def visitFrom(self, node, *args):
+        self.raiseError("from statement not supported", node)
+        
+    def visitGlobal(self, node, *args):
+        self.raiseError("global statement not supported", node)
+
+    def visitImport(self, node, *args):
+        self.raiseError("import statement not supported", node)
+
+    def visitLambda(self, node, *args):
+        self.raiseError("lambda statement not supported", node)
+
+    def visitListComp(self, node, *args):
+        self.raiseError("list comprehensions not supported", node)
+        
+    def visitList(self, node, *args):
+        self.raiseError("lists not supported", node)
+
+    def visitReturn(self, node, *args):
+        self.raiseError("return statement not supported", node)
 
 
 class SignalAsInoutError(Error):
@@ -188,9 +262,11 @@ class SignalMultipleDrivenError(Error):
   
 INPUT, OUTPUT, INOUT = range(3)
 
-class _AnalyzeGenVisitor(object):
+class _AnalyzeGenVisitor(_ToVerilogBaseVisitor):
     
-    def __init__(self, sigdict):
+    def __init__(self, sigdict, sourcefile, lineoffset):
+        self.sourcefile = sourcefile
+        self.lineoffset = lineoffset
         self.inputs = Set()
         self.outputs = Set()
         self.toplevel = 1
@@ -227,7 +303,9 @@ class _AnalyzeGenVisitor(object):
     def visitAssign(self, node, access=OUTPUT):
         for n in node.nodes:
             self.visit(n, OUTPUT)
+        print node.expr
         self.visit(node.expr, INPUT)
+
 
     def visitAssAttr(self, node, access=OUTPUT):
         self.visit(node.expr, OUTPUT)
@@ -248,12 +326,6 @@ class _AnalyzeGenVisitor(object):
         self.visit(node.node, INOUT)
         self.visit(node.expr, INPUT)
         
-    def visitClass(self, node):
-        pass # skip
-
-    def visitExec(self, node):
-        pass # skip
-           
                 
 def _analyzeTopFunc(func, *args, **kwargs):
     s = inspect.getsource(func)
@@ -386,11 +458,8 @@ def _getRangeString(s):
         raise AssertionError
     
 
-class ToVerilogError(Error):
-    pass
-   
     
-class _convertGenVisitor(object):
+class _ConvertGenVisitor(object):
     
     def __init__(self, f, sigdict, symdict, name, sourcefile, lineoffset):
         self.buf = self.fileBuf = f
@@ -475,22 +544,13 @@ class _convertGenVisitor(object):
         self.visit(node.expr)
         self.write(';')
 
-    def visitAssList(self, node):
-        self.raiseError("list assignment not supported", node)
-
     def visitAssName(self, node):
         # XXX
         pass
 
-    def visitAssTuple(self, node):
-        self.raiseError("tuple assignment not supported", node)
-
     def visitAugAssign(self, node):
         # XXX
         pass
-
-    def visitBackquote(self, node):
-        self.raiseError("backquote not supported", node)
 
     def visitBitand(self, node):
         self.multiOp(node, '&')
@@ -500,9 +560,6 @@ class _convertGenVisitor(object):
          
     def visitBitxor(self, node):
         self.multiOp(node, '^')
-
-    def visitBreak(self, node):
-        self.raiseError("break statement not supported", node)
 
     def visitCallFunc(self, node):
         f = node.node
@@ -527,9 +584,6 @@ class _convertGenVisitor(object):
                 self.visit(node.args[0])
                 # XXX
 
-    def visitClass(self, node):
-        self.raiseError("class statement not supported", node)
-
     def visitCompare(self, node):
         self.write("(")
         self.visit(node.expr)
@@ -541,24 +595,6 @@ class _convertGenVisitor(object):
 
     def visitConst(self, node):
         self.write(node.value)
-
-    def visitContinue(self, node):
-        self.raiseError("continue statement not supported", node)
-
-    def visitDict(self, node):
-        self.raiseError("dictionaries not supported", node)
-
-    def visitDiv(self, node):
-        self.raiseError("true division not supported - consider '//'", node)
-
-    def visitEllipsis(self, node):
-        self.raiseError("ellipsis not supported", node)
-
-    def visitExec(self, node):
-        self.raiseError("exec not supported", node)
-
-    def visitExpression(self, node):
-        self.raiseError("Expression node not supported", node)
 
     def visitFloorDiv(self, node):
         self.binaryOp(node, '/')
@@ -588,9 +624,6 @@ class _convertGenVisitor(object):
         self.writeline()
         self.write("end")
         assert node.else_ is None
-
-    def visitFrom(self, node):
-        self.raiseError("from statement not supported", node)
 
     def visitFunction(self, node):
         if not self.toplevel:
@@ -634,9 +667,6 @@ class _convertGenVisitor(object):
             assert hasattr(obj, node.attrname)
             e = getattr(obj, node.attrname)
             self.write("%d'b%s" % (obj._nrbits, e._val))
-
-    def visitGlobal(self, node):
-        self.raiseError("global statement not supported", node)
         
     def visitIf(self, node):
         ifstring = "if ("
@@ -660,9 +690,6 @@ class _convertGenVisitor(object):
             self.writeline()
             self.write("end")
 
-    def visitImport(self, node):
-        self.raiseError("import statement not supported", node)
-
     def visitInvert(self, node):
         # XXX
         pass
@@ -671,18 +698,9 @@ class _convertGenVisitor(object):
         # XXX
         pass
 
-    def visitLambda(self, node):
-        self.raiseError("lambda statement not supported", node)
-
     def visitLeftShift(self, node):
         # XXX
         pass
-
-    def visitListComp(self, node):
-        self.raiseError("list comprehensions not supported", node)
-        
-    def visitList(self, node):
-        self.raiseError("lists not supported", node)
 
     def visitMod(self, node):
         self.write("(")
@@ -714,7 +732,6 @@ class _convertGenVisitor(object):
     def visitOr(self, node):
         self.multiOp(node, '||')
 
-
     def visitPass(self, node):
         # XXX
         pass
@@ -738,9 +755,6 @@ class _convertGenVisitor(object):
         self.write('");')
         self.writeline()
         self.write("$finish;")
-
-    def visitReturn(self, node):
-        self.raiseError("return statement not supported", node)
 
     def visitSlice(self, node):
         # XXX
@@ -782,7 +796,7 @@ def _convertGens(genlist, vfile):
     for gen in genlist:
         print gen.sourcefile
         print gen.lineoffset
-        v = _convertGenVisitor(vfile, gen.sigdict, gen.symdict, gen.name,
+        v = _ConvertGenVisitor(vfile, gen.sigdict, gen.symdict, gen.name,
                                gen.sourcefile, gen.lineoffset )
         compiler.walk(gen, v)
  

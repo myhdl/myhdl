@@ -36,7 +36,7 @@ class TestNotSupported(unittest.TestCase):
             while 1:
                 yield a
                 z.next = 1
-                [p, q] = [1, 2]
+                [p, q] = 1, 2
         self.check(g, z, a)
             
     def testAssTuple(self):
