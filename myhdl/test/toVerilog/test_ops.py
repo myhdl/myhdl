@@ -383,6 +383,171 @@ class TestUnaryOps(TestCase):
             Simulation(sim).run()
 
 
+def augmOps(
+              Bitand,
+              Bitor,
+              Bitxor,
+              FloorDiv,
+              LeftShift,
+              Mod,
+              Mul,
+              RightShift,
+              Sub,
+              Sum,
+              left, right):
+    var = intbv(0)[max(64, len(left) + len(right)):]
+    while 1:
+        yield left, right
+        var[:] = left
+        var &= right
+        Bitand.next = var
+        var[:] = left
+        var |= right
+        Bitor.next = var
+        var[:] = left
+        var ^= left
+        Bitxor.next = var
+        if right != 0:
+            var[:] = left
+            var //= right
+            FloorDiv.next = var
+        if left < 256 and right < 40:
+            var[:] = left
+            var <<= right
+            LeftShift.next = var
+        if right != 0:
+            var[:] = left
+            var %= right
+            Mod.next = var
+        var[:] = left
+        var *= right
+        Mul.next = var
+        var[:] = left
+        var >>= right
+        RightShift.next = var
+        if left >= right:
+            var[:] = left
+            var -= right
+            Sub.next = var
+        var[:] = left
+        var += right
+        Sum.next = var
+
+
+def augmOps_v(
+                Bitand,
+                Bitor,
+                Bitxor,
+                FloorDiv,
+                LeftShift,
+                Mod,
+                Mul,
+                RightShift,
+                Sub,
+                Sum,
+                left, right):
+    objfile = "augmops.o"
+    analyze_cmd = "iverilog -o %s augmops.v tb_augmops.v" % objfile
+    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+    if path.exists(objfile):
+        os.remove(objfile)
+    os.system(analyze_cmd)
+    return Cosimulation(simulate_cmd, **locals())
+
+class TestAugmOps(TestCase):
+
+    def augmBench(self, m, n):
+
+        M = 2**m
+        N = 2**n
+
+        left = Signal(intbv(0)[m:])
+        right = Signal(intbv(0)[n:])
+        Bitand = Signal(intbv(0)[max(m, n):])
+        Bitand_v = Signal(intbv(0)[max(m, n):])
+        Bitor = Signal(intbv(0)[max(m, n):])
+        Bitor_v = Signal(intbv(0)[max(m, n):])
+        Bitxor = Signal(intbv(0)[max(m, n):])
+        Bitxor_v = Signal(intbv(0)[max(m, n):])
+        FloorDiv = Signal(intbv(0)[m:])
+        FloorDiv_v = Signal(intbv(0)[m:])
+        LeftShift = Signal(intbv(0)[64:])
+        LeftShift_v = Signal(intbv(0)[64:])
+        Mod = Signal(intbv(0)[m:])
+        Mod_v = Signal(intbv(0)[m:])
+        Mul = Signal(intbv(0)[m+n:])
+        Mul_v = Signal(intbv(0)[m+n:])
+        RightShift = Signal(intbv(0)[m:])
+        RightShift_v = Signal(intbv(0)[m:])
+        Sub = Signal(intbv(0)[max(m, n):])
+        Sub_v = Signal(intbv(0)[max(m, n):])
+        Sum = Signal(intbv(0)[max(m, n)+1:])
+        Sum_v = Signal(intbv(0)[max(m, n)+1:])
+
+        augmops = toVerilog(augmOps,
+                           Bitand,
+                           Bitor,
+                           Bitxor,
+                           FloorDiv,
+                           LeftShift,
+                           Mod,
+                           Mul,
+                           RightShift,
+                           Sub,
+                           Sum,
+                           left, right)
+        augmops_v = augmOps_v(
+                               Bitand_v,
+                               Bitor_v,
+                               Bitxor_v,
+                               FloorDiv_v,
+                               LeftShift_v,
+                               Mod_v,
+                               Mul_v,
+                               RightShift_v,
+                               Sub_v,
+                               Sum_v,
+                               left, right)
+
+        def stimulus():
+            for i in range(min(M, N)):
+                # print i
+                left.next = intbv(i)
+                right.next = intbv(i)
+                yield delay(10)
+            for i in range(100):
+                left.next = randrange(M)
+                right.next = randrange(N)
+                yield delay(10)
+            for j, k in ((0, 0), (0, N-1), (M-1, 0), (M-1, N-1)):
+                left.next = j
+                right.next = k
+                yield delay(10)
+
+        def check():
+            while 1:
+                yield left, right
+                yield delay(1)
+                # print "%s %s %s %s" % (left, right, Or, Or_v)
+                self.assertEqual(Bitand, Bitand_v)
+                self.assertEqual(Bitor, Bitor_v)
+                self.assertEqual(Bitxor, Bitxor_v)
+                self.assertEqual(FloorDiv, FloorDiv_v)
+                self.assertEqual(LeftShift, LeftShift_v)
+                self.assertEqual(Mod, Mod_v)
+                self.assertEqual(Mul, Mul_v)
+                self.assertEqual(RightShift, RightShift_v)
+                self.assertEqual(Sub, Sub_v)
+                self.assertEqual(Sum, Sum_v)
+
+        return augmops, augmops_v, stimulus(), check()
+    
+
+    def testAugmOps(self):
+        for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
+            sim = self.augmBench(m, n)
+            Simulation(sim).run()
+
 if __name__ == '__main__':
     unittest.main()
 
