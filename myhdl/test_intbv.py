@@ -35,6 +35,10 @@ import operator
 from intbv import intbv
 concat = intbv.concat
 
+class TestIntbvInit(TestCase):
+    def testDefaultValue(self):
+        self.assertEqual(intbv(), 0)
+
 
 class TestIntbvConcat(TestCase):
 
