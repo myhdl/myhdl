@@ -29,7 +29,7 @@ class JoinMix(TestCase):
             self.assertEqual(now(), 5)
             yield a
             self.fail("Incorrect run") # should not get here
-        Simulation(stimulus()).run()
+        Simulation(stimulus()).run(quiet=1)
         
     def test2(self):
         def stimulus():
@@ -38,7 +38,7 @@ class JoinMix(TestCase):
             self.assertEqual(now(), 5)
             yield a
             self.fail("Incorrect run") # should not get here
-        Simulation(stimulus()).run()
+        Simulation(stimulus()).run(quiet=1)
 
     def stimulus(self, a, b, c, d):
         yield delay(5)
@@ -61,63 +61,63 @@ class JoinMix(TestCase):
         def response():
             yield join(a, b, c, d)
             self.assertEqual(now(), 20)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
         
     def test4(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, b), join(c, d)
             self.assertEqual(now(), 10)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
         
     def test5(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a), b, join(c, d)
             self.assertEqual(now(), 5)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
         
     def test6(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, delay(20)), b, join(c, d)
             self.assertEqual(now(), 10)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
 
     def test7(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, delay(30)), join(c, d)
             self.assertEqual(now(), 20)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
 
     def test8(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, negedge(a))
             self.assertEqual(now(), 10)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
 
     def test9(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, negedge(a), posedge(c))
             self.assertEqual(now(), 15)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
 
     def test10(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, a)
             self.assertEqual(now(), 5)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
         
     def test11(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, posedge(b), negedge(b), a)
             self.assertEqual(now(), 15)
-        Simulation(self.stimulus(a, b, c, d), response()).run()
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
           
 
 class JoinedGen(TestCase):
@@ -151,7 +151,7 @@ class JoinedGen(TestCase):
         raise StopSimulation, "Joined concurrent generator yield"
 
     def testYieldJoinedGen(self):
-        Simulation(self.bench()).run()
+        Simulation(self.bench()).run(quiet=1)
         
 
 class SignalUpdateFirst(TestCase):
@@ -185,7 +185,7 @@ class SignalUpdateFirst(TestCase):
         return process()
 
     def testSignalUpdateFirst(self):
-        Simulation(self.bench()).run()
+        Simulation(self.bench()).run(quiet=1)
         
         
 class YieldZeroDelay(TestCase):
@@ -221,7 +221,7 @@ class YieldZeroDelay(TestCase):
         raise StopSimulation, "Zero delay yield"
 
     def testYieldZeroDelay(self):
-        Simulation(self.bench()).run()
+        Simulation(self.bench()).run(quiet=1)
 
 
 class YieldConcurrentGen(TestCase):
@@ -257,7 +257,7 @@ class YieldConcurrentGen(TestCase):
         raise StopSimulation, "Concurrent generator yield"
 
     def testYieldConcurrentGen(self):
-        Simulation(self.bench()).run()
+        Simulation(self.bench()).run(quiet=1)
 
         
 
@@ -309,7 +309,7 @@ class YieldGen(TestCase):
         return(module(), clkGen())
 
     def testYieldGen(self):
-        Simulation(self.bench()).run()
+        Simulation(self.bench()).run(quiet=1)
 
 
 class DeltaCycleOrder(TestCase):
@@ -371,17 +371,17 @@ class DeltaCycleOrder(TestCase):
     def testAnd(self):
         def andFunction(a, b, c, d):
             return a & b & c & d
-        Simulation(self.bench(andFunction)).run()
+        Simulation(self.bench(andFunction)).run(quiet=1)
         
     def testOr(self):
         def orFunction(a, b, c, d):
             return a | b | c | d
-        Simulation(self.bench(orFunction)).run()
+        Simulation(self.bench(orFunction)).run(quiet=1)
         
     def testXor(self):
         def xorFunction(a, b, c, d):
             return a ^ b ^ c ^ d
-        Simulation(self.bench(xorFunction)).run()
+        Simulation(self.bench(xorFunction)).run(quiet=1)
 
     def testMux(self):
         def muxFunction(a, b, c, d):
@@ -389,12 +389,12 @@ class DeltaCycleOrder(TestCase):
                 return a
             else:
                 return b
-        Simulation(self.bench(muxFunction)).run()
+        Simulation(self.bench(muxFunction)).run(quiet=1)
 
     def testLogic(self):
         def function(a, b, c, d):
             return not (a & (not b)) | ((not c) & d)
-        Simulation(self.bench(function)).run()
+        Simulation(self.bench(function)).run(quiet=1)
     
 
 class DeltaCycleRace(TestCase):

@@ -12,4 +12,5 @@ def suite():
     return alltests
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest.main(defaultTest='suite',
+                  testRunner=unittest.TextTestRunner(verbosity=2))

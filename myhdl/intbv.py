@@ -57,6 +57,12 @@ class intbv(object):
     def __deepcopy__(self, visit):
         return intbv(self._val)
 
+    # iterator method
+    def __iter__(self):
+        if not self._len:
+            raise TypeError, "Cannot iterate for unsized intbv"
+        return iter([self[i] for i in range(self._len, -1, -1)])
+
     # logical testing
     def __nonzero__(self):
         if self._val:
