@@ -54,6 +54,12 @@ You can test the installation as follows:
     cd test
     python test.py
 
+To install cosimulation support:
+
+Go to the directory cosimulation/<platform> for your target platform
+and following the instructions in the README.txt file. Currently, the
+only supported platfrom is Icarus.
+
 
 DOCUMENTATION
 -------------
