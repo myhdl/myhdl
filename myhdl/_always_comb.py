@@ -31,13 +31,10 @@ from types import FunctionType
 import compiler
 from sets import Set
 
-from myhdl import Signal
+from myhdl import Signal, AlwaysCombError
 from myhdl._util import _isGenFunc
-from myhdl._Error import Error
 
 
-class AlwaysCombError(Error):
-    pass
 class _error:
     pass
 _error.ArgType = "always_comb argument should be a classic function"

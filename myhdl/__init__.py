@@ -60,6 +60,9 @@ class Error(Exception):
             s += ": %s" % self.msg
         return s
 
+class AlwaysCombError(Error):
+    pass
+
 class ToVerilogError(Error):
     pass
 
