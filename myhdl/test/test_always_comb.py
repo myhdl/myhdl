@@ -25,7 +25,7 @@ __date__ = "$Date$"
 
 import random
 from random import randrange
-random.seed(1) # random, but deterministic
+# random.seed(3) # random, but deterministic
 
 import unittest
 from unittest import TestCase
@@ -33,7 +33,7 @@ import inspect
 from sets import Set
 
 from myhdl import Signal, Simulation, instances, processes, \
-                  intbv, posedge, negedge, delay, StopSimulation
+                  intbv, posedge, negedge, delay, StopSimulation, now
 
 from myhdl._always_comb import always_comb, _AlwaysComb, \
                                AlwaysCombError, _error
@@ -212,7 +212,7 @@ class AlwaysCombCompilationTest(TestCase):
             self.fail()
 
 
-class AlwaysCombSimulationTest(TestCase):
+class AlwaysCombSimulationTest1(TestCase):
 
     def bench(self, function):
 
@@ -222,16 +222,16 @@ class AlwaysCombSimulationTest(TestCase):
         c = Signal(0)
         d = Signal(0)
         z = Signal(0)
-        vectors = [intbv(j) for i in range(8) for j in range(16)]
+        vectors = [intbv(j) for i in range(32) for j in range(16)]
         random.shuffle(vectors)
 
         
-        def combfunc():
+        def combFunc():
             if __debug__:
                 f = x
             x.next = function(a, b, c, d)
 
-        comb = always_comb(combfunc)
+        comb = always_comb(combFunc)
 
         def clkGen():
             while 1:
@@ -284,6 +284,87 @@ class AlwaysCombSimulationTest(TestCase):
         def function(a, b, c, d):
             return not (a & (not b)) | ((not c) & d)
         Simulation(self.bench(function)).run(quiet=QUIET)
+
+        
+class AlwaysCombSimulationTest2(TestCase):
+
+    def bench(self, funcName="and"):
+
+        clk = Signal(0)
+        a = Signal(0)
+        b = Signal(0)
+        c = Signal(0)
+        d = Signal(0)
+        k = Signal(0)
+        z = Signal(0)
+        x = Signal(0)
+        vectors = [intbv(j) for i in range(32) for j in range(16)]
+        random.shuffle(vectors)
+
+        def andFunc():
+            x.next = a & b & c & d
+        def andGenFunc():
+            while 1:
+                z.next =  a & b & c & d
+                yield a, b, c, d
+            
+        def orFunc():
+            x.next = a | b | c | d
+        def orGenFunc():
+            while 1:
+                z.next = a | b | c | d
+                yield a, b, c, d
+            
+        def logicFunc():
+            x.next = not (a & (not b)) | ((not c) & d)
+        def logicGenFunc():
+            while 1:
+                z.next = not (a & (not b)) | ((not c) & d)
+                yield a, b, c, d
+
+        def incFunc():
+            x.next = k + 1
+        def incGenFunc():
+            while 1:
+                z.next = k + 1
+                yield k
+       
+        combFunc = eval(funcName + "Func")
+        comb = always_comb(combFunc)
+        genFunc = eval(funcName + "GenFunc")
+        gen = genFunc()
+
+        def clkGen():
+            while 1:
+                yield delay(10)
+                clk.next ^= 1
+
+        def stimulus():
+            for v in vectors:
+                a.next = v[0]
+                b.next = v[1]
+                c.next = v[2]
+                d.next = v[3]
+                k.next = v
+                yield posedge(clk)
+                yield negedge(clk)
+                self.assertEqual(x, z)
+            raise StopSimulation, "always_comb simulation test"
+
+        return comb, gen, clkGen(), stimulus()
+        
+
+    def testAnd(self):
+        Simulation(self.bench("and")).run(quiet=QUIET)
+        
+    def testOr(self):
+        Simulation(self.bench("or")).run(quiet=QUIET)
+        
+    def testLogic(self):
+        Simulation(self.bench("logic")).run(quiet=QUIET)
+        
+    def testInc(self):
+        Simulation(self.bench("inc")).run(quiet=QUIET)
 
 
 if __name__ == "__main__":

@@ -207,7 +207,10 @@ def _checkArgs(arglist):
         if isinstance(arg, GeneratorType):
             waiters.append(_inferWaiter(arg))
         elif isinstance(arg, _AlwaysComb):
-            waiters.append(_SignalTupleWaiter(arg.gen))
+            if isinstance(arg.senslist, tuple):
+                waiters.append(_SignalTupleWaiter(arg.gen))
+            else:
+                waiters.append(_SignalWaiter(arg.gen))
         elif isinstance(arg, Cosimulation):
             if cosim is not None:
                 raise SimulationError(_error.MultipleCosim)

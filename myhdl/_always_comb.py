@@ -168,6 +168,8 @@ class _AlwaysComb(object):
         self.inputs = v.inputs
         self.outputs = v.outputs
         self.senslist = tuple([self.sigdict[n] for n in self.inputs])
+        if len(self.senslist) == 1:
+            self.senslist = self.senslist[0]
         self.gen = self.genfunc()
 
     def genfunc(self):
