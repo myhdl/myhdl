@@ -106,7 +106,7 @@ def traceSignals(dut, *args, **kwargs):
         _simulator._tracing = 1
         _simulator._tf = vcdfile
         _writeVcdHeader(vcdfile)
-        _writeVcdSigs(vcdfile, h.instances)
+        _writeVcdSigs(vcdfile, h.hierarchy)
     finally:
         _tracing = 0
         linecache.clearcache()
@@ -169,7 +169,7 @@ class _HierExtr(object):
         self.skipNames = ('always_comb', 'instances', 'processes')
         self.skip = 0
         self.names = [name]
-        self.instances = instances = []
+        self.hierarchy = hierarchy = []
         self.level = 0
         _profileFunc = self.extractor
         sys.setprofile(_profileFunc)
@@ -177,11 +177,11 @@ class _HierExtr(object):
             _top = dut(*args, **kwargs)
         finally:
             sys.setprofile(None)
-        if not instances:
+        if not hierarchy:
             raise NoInstancesError
         self.m = _top
-        instances.reverse()
-        instances[0][1] = name
+        hierarchy.reverse()
+        hierarchy[0][1] = name
 
     def extractor(self, frame, event, arg):
         if event == "call":
@@ -205,7 +205,7 @@ class _HierExtr(object):
                                 if isinstance(v, Signal):
                                     sigdict[n] = v
                         i = [self.level, name, sigdict]
-                        self.instances.append(i)
+                        self.hierarchy.append(i)
                     self.level -= 1
             func_name = frame.f_code.co_name
             if func_name in self.skipNames:
@@ -244,11 +244,11 @@ def _writeVcdHeader(f):
     print >> f, "$end"
     print >> f
 
-def _writeVcdSigs(f, instances):
+def _writeVcdSigs(f, hierarchy):
     curlevel = 0
     namegen = _genNameCode()
     siglist = []
-    for level, name, sigdict in instances:
+    for level, name, sigdict in hierarchy:
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
