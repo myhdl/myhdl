@@ -34,6 +34,8 @@ Error -- myhdl Error exception
 bin -- returns a binary string representation.
        The optional width specifies the desired string
        width: padding of the sign-bit is used.
+instances -- function that returns all instances defined in a function
+always_comb -- function that returns an input-sensitive generator
 
 """
 
@@ -51,4 +53,5 @@ from delay import delay
 from Cosimulation import Cosimulation
 from util import downrange, bin, Error, StopSimulation
 from misc import instances, processes
+from always_comb import always_comb
 
