@@ -13,6 +13,4 @@ graft doc/html/icons
 graft doc/html/whatsnew*
 exclude doc/html/.cvsignore
 include doc/paper-a4/*.pdf
-include doc/paper-a4/*.ps
 include doc/paper-letter/*.pdf
-include doc/paper-letter/*.ps
