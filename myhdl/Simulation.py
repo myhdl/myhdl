@@ -134,10 +134,11 @@ class Simulation(object):
                         continue
                 elif _siglist:
                     continue
-                if t == maxTime:
-                    raise StopSimulation, "Simulated for duration %s" % duration
 
                 if _futureEvents:
+                    if t == maxTime:
+                        raise SuspendSimulation, \
+                              "Simulated for duration %s" % duration
                     _futureEvents.sort()
                     t = sim._time = _futureEvents[0][0]
                     if cosim:
@@ -155,11 +156,14 @@ class Simulation(object):
                 else:
                     raise StopSimulation, "No more events"
                 
+            except SuspendSimulation:
+                if not quiet:
+                    printExcInfo()
+                return 1
+            
             except StopSimulation:
                 if not quiet:
                     printExcInfo()
-                if _futureEvents:
-                    return 1
                 if cosim:
                     os.close(cosim._rt)
                     os.close(cosim._wf)
@@ -237,6 +241,10 @@ class _Semaphore(object):
         
 class StopSimulation(exceptions.Exception):
     """ Basic exception to stop a Simulation """
+    pass
+
+class SuspendSimulation(exceptions.Exception):
+    """ Basic exception to suspend a Simulation """
     pass
 
 class join(object):
