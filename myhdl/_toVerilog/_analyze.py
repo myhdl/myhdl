@@ -91,6 +91,7 @@ def _analyzeGens(top, genNames):
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
+            ast.callstack = []
             # handle free variables
             if f.func_code.co_freevars:
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
@@ -112,6 +113,7 @@ def _analyzeGens(top, genNames):
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
             ast.symdict.update(f.f_locals)
+            ast.callstack = []
             ast.name = genNames.get(id(g), _Label("_BLOCK"))
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
@@ -374,10 +376,15 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            ast.name = _Label(f.__name__)
+            fname = f.__name__
+            ast.name = _Label(fname)
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
+            if fname in self.ast.callstack:
+                self.raiseError(node, _error.NotSupported, "Recursive call")
+            ast.callstack = self.ast.callstack[:]
+            ast.callstack.append(fname)
             # handle free variables
             if f.func_code.co_freevars:
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):

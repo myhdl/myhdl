@@ -130,6 +130,42 @@ def yieldObject2(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
+
+def f1(n):
+    if n == 0:
+        return 0
+    else:
+        return f1(n-1)
+
+def f2(n):
+    if n == 0:
+        return 1
+    else:
+        return f3(n-1)
+    
+def f3(n):
+    if n == 0:
+        return 1
+    else:
+        return f2(n-1)
+      
+def recursion1(count, enable, clock, reset, n):
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = f1(n)
+                
+def recursion2(count, enable, clock, reset, n):
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = f2(n)
       
 
 objfile = "inc_inst.o"
@@ -253,6 +289,22 @@ class TestInc(TestCase):
     def testYield2(self):
         try:
             self.bench(yieldObject2)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.NotSupported)
+        else:
+            self.fail()
+            
+    def testRecursion1(self):
+        try:
+            self.bench(recursion1)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.NotSupported)
+        else:
+            self.fail()
+            
+    def testRecursion2(self):
+        try:
+            self.bench(recursion2)
         except ToVerilogError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
