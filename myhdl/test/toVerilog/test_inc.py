@@ -54,6 +54,9 @@ class TestInc(TestCase):
         yield negedge(clock)
         reset.next = INACTIVE_HIGH
         for i in range(1000):
+            enable.next = 1
+            yield negedge(clock)
+        for i in range(1000):
             enable.next = min(1, randrange(5))
             yield negedge(clock)
         raise StopSimulation
