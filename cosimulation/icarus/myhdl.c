@@ -190,6 +190,10 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   to_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
   while ((net_handle = vpi_scan(net_iter)) != NULL) {
+    if (i == MAXARGS) {
+      vpi_printf("ERROR: $to_myhdl max #args (%d) exceeded\n", MAXARGS);
+      vpi_control(vpiFinish, 1);  /* abort simulation */
+    }
     strcat(buf, vpi_get_str(vpiName, net_handle));
     strcat(buf, " ");
     sprintf(s, "%d ", vpi_get(vpiSize, net_handle));
