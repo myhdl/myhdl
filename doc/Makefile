@@ -112,7 +112,9 @@ DVIFILES=	$(MANDVIFILES) $(HOWTODVIFILES)
 PDFFILES=	$(MANPDFFILES) $(HOWTOPDFFILES)
 PSFILES=	$(MANPSFILES) $(HOWTOPSFILES)
 
-HTMLCSSFILES=html/manual/MyHDL.css 
+HTMLCSSFILES=html/manual/MyHDL.css \
+             html/whatsnew03/whatsnew03.css \
+             html/whatsnew04/whatsnew04.css
 
 ALLCSSFILES=$(HTMLCSSFILES) 
 
