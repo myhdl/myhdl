@@ -53,7 +53,8 @@ from Signal import posedge, negedge, Signal
 from _simulator import now
 from delay import delay
 from Cosimulation import Cosimulation
-from util import downrange, bin, Error, StopSimulation
+from util import downrange, Error, StopSimulation
+from bin import bin
 from misc import instances, processes
 from always_comb import always_comb
 from trace_sigs import trace_sigs

@@ -36,6 +36,7 @@ from copy import deepcopy as copy
 import _simulator
 from _simulator import _siglist, _futureEvents, now
 from myhdl import intbv
+from bin import bin
 
 _schedule = _futureEvents.append
 
@@ -66,7 +67,7 @@ class Signal(object):
 
     __slots__ = ('_next', '_val', '_type',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
-                 '_codeName',
+                 '_codeName', '_tracing', 
                 )
 
     def __new__(cls, val, delay=0):
@@ -91,6 +92,7 @@ class Signal(object):
         self._posedgeWaiters = _WaiterList()
         self._negedgeWaiters = _WaiterList()
         self._codeName = ""
+        self._tracing = 0
         
     def _update(self):
         if self._val != self._next:
@@ -103,6 +105,8 @@ class Signal(object):
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
             self._val = self._next
+            if self._tracing:
+                print >> _simulator.tracefile, "b%s" % bin(self._val, 8)
             return waiters
         else:
             return []

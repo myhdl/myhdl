@@ -36,6 +36,7 @@ import time
 
 from util import _isGenSeq
 from myhdl import Signal, __version__
+import _simulator
 
 _tracing = 0
 
@@ -63,6 +64,8 @@ def trace_sigs(dut, *args, **kwargs):
     _writeVcdHeader(vcdfile)
     _writeVcdSigs(vcdfile, h.instances)
     _tracing = 0
+    _simulator._tracing = 1
+    _simulator._tracefile = vcdfile
     return h.m
  
 
