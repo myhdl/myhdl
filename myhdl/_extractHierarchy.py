@@ -133,12 +133,10 @@ class _HierExtr(object):
         else:
             _profileFunc = self.extractor
             sys.setprofile(_profileFunc)
-            try:
-                _top = dut(*args, **kwargs)
-            finally:
-                sys.setprofile(None)
-                if not hierarchy:
-                    raise ExtractHierarchyError(_error.NoInstances)
+            _top = dut(*args, **kwargs)
+            sys.setprofile(None)
+            if not hierarchy:
+                raise ExtractHierarchyError(_error.NoInstances)
         self.top = _top
         hierarchy.reverse()
         hierarchy[0][1] = name

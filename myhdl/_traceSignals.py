@@ -25,6 +25,7 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
+import sys
 from inspect import currentframe, getouterframes
 import time
 import os
@@ -51,10 +52,17 @@ def traceSignals(dut, *args, **kwargs):
     global _tracing
     if _tracing:
         return dut(*args, **kwargs) # skip
+    else:
+        # clean start
+        sys.setprofile(None)
+    from myhdl._toVerilog import _convert
+    if _convert._converting:
+        raise TraceSignalsError("Cannot use traceSignals while converting to Verilog")
     if not callable(dut):
         raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
     if _simulator._tracing:
         raise TraceSignalsError(_error.MultipleTraces)
+    
     _tracing = 1
     try:
         outer = getouterframes(currentframe())[1]
@@ -74,6 +82,7 @@ def traceSignals(dut, *args, **kwargs):
         _writeVcdSigs(vcdfile, h.hierarchy)
     finally:
         _tracing = 0
+        
     return h.top
 
 

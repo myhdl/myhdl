@@ -25,6 +25,7 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
+import sys
 import inspect
 import compiler
 from compiler import ast as astNode
@@ -56,17 +57,25 @@ def toVerilog(func, *args, **kwargs):
     global _converting
     if _converting:
         return func(*args, **kwargs) # skip
+    else:
+        # clean start
+        sys.setprofile(None)
+    from myhdl import _traceSignals
+    if _traceSignals._tracing:
+        raise ToVerilogError("Cannot use toVerilog while tracing signals")
     if not callable(func):
         raise ToVerilogError(_error.FirstArgType, "got %s" % type(func))
+    
     _converting = 1
     try:
         outer = inspect.getouterframes(inspect.currentframe())[1]
         name = _findInstanceName(outer)
         if name is None:
-            raise TopLevelNameError
+            raise ToVerilogError(_error.TopLevelName)
         h = _HierExtr(name, func, *args, **kwargs)
     finally:
         _converting = 0
+        
     vpath = name + ".v"
     vfile = open(vpath, 'w')
     tbpath = "tb_" + vpath
@@ -87,6 +96,10 @@ def toVerilog(func, *args, **kwargs):
 
     vfile.close()
     tbfile.close()
+
+    # clean up signal names
+    for sig in siglist:
+        sig._name = None
     
     return h.top
 
@@ -103,6 +116,8 @@ def _writeModuleHeader(f, intf):
     for portname in intf.argnames:
         s = intf.argdict[portname]
         if s._name != portname:
+            print s._name
+            print portname
             raise ToVerilogError(_error.ShadowingSignal, portname)
         r = _getRangeString(s)
         if s._driven:
