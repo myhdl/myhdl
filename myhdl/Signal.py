@@ -284,8 +284,13 @@ class Signal(object):
 
     def __repr__(self):
         return "Signal(" + repr(self._val) + ")"
-    
-        
+
+    # augmented assignment not supported
+    def _augm(self):
+        raise TypeError, "Signal objects don't support augmented assignment"
+
+    __iadd__ = __isub__ = __idiv__ = __imul__ = __ipow__ = __imod__ = _augm
+    __ior__ = __iand__ = __ixor__ = __irshift__ = __ilshift__ = _augm
 
 
 class DelayedSignal(Signal):

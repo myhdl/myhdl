@@ -23,6 +23,13 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
+import operator
+import random
+from random import randrange
+random.seed(1) # random, but deterministic
+import sys
+maxint = sys.maxint
+
 import unittest
 from unittest import TestCase
 
@@ -233,7 +240,222 @@ class SigTest(TestCase):
         s[3].next = 3
         for i in range(len(s)):
             self.assertEqual(_siglist.count(s[i]), i)
+            
     
+class TestSignalAsNum(TestCase):
+
+    def seqSetup(self, imin, imax, jmin=0, jmax=None):
+        seqi = [imin, imin,   12, 34]
+        seqj = [jmin, 12  , jmin, 34]
+        if not imax and not jmax:
+            l = 2222222222222222222222222222
+            seqi.append(l)
+            seqj.append(l)
+        # first some smaller ints
+        for n in range(100):
+            ifirstmax = jfirstmax = 100000
+            if imax:
+                ifirstmax = min(imax, ifirstmax)
+            if jmax:
+                jfirstmax = min(jmax, jfirstmax)
+            i = randrange(imin, ifirstmax)
+            j = randrange(jmin, jfirstmax)
+            seqi.append(i)
+            seqj.append(j)
+        # then some potentially longs
+        for n in range(100):
+            if not imax:
+                i = randrange(maxint) + randrange(maxint)
+            else:
+                i = randrange(imin, imax)
+            if not jmax:
+                j = randrange(maxint) + randrange(maxint)
+            else:
+                j = randrange(jmin, jmax)
+            seqi.append(i)
+            seqj.append(j)
+        self.seqi = seqi
+        self.seqj = seqj
+        
+    def binaryCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
+        self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
+        for i, j in zip(self.seqi, self.seqj):
+            bi = Signal(i)
+            bj = Signal(j)
+            ref = op(i, j)
+            r1 = op(bi, j)
+            r2 = op(i, bj)
+            r3 = op(bi, bj)
+            self.assertEqual(type(r1), type(ref))
+            self.assertEqual(type(r2), type(ref))
+            self.assertEqual(type(r3), type(ref))
+            self.assertEqual(r1, ref)
+            self.assertEqual(r2, ref)
+            self.assertEqual(r3, ref)
+
+    def augmentedAssignCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
+        self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
+        for i, j in zip(self.seqi, self.seqj):
+            bj = Signal(j)
+            ref = i
+            exec("ref %s j" % op)
+            r1 = bi1 = Signal(i)
+            try:
+                exec("r1 %s j" % op)
+            except TypeError:
+                pass
+            else:
+                self.fail()
+            r2 = i 
+            exec("r2 %s bj" % op)
+            r3 = bi3 = Signal(i)
+            try:
+                exec("r3 %s bj" % op)
+            except TypeError:
+                pass
+            else:
+                self.fail()
+            self.assertEqual(r2, ref)
+            
+    def unaryCheck(self, op, imin=0, imax=None):
+        self.seqSetup(imin=imin, imax=imax)
+        for i in self.seqi:
+            bi = Signal(i)
+            ref = op(i)
+            r1 = op(bi)
+            self.assertEqual(type(r1), type(ref))
+            self.assertEqual(r1, ref)
+            
+    def conversionCheck(self, op, imin=0, imax=None):
+        self.seqSetup(imin=imin, imax=imax)
+        for i in self.seqi:
+            bi = Signal(i)
+            ref = op(i)
+            r1 = op(bi)
+            self.assertEqual(type(r1), type(ref))
+            self.assertEqual(r1, ref)
+            
+    def comparisonCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
+        self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
+        for i, j in zip(self.seqi, self.seqj):
+            bi = Signal(i)
+            bj = Signal(j)
+            exec("ref = i %s j" % op)
+            exec("r1 = bi %s j" % op)
+            exec("r2 = i %s bj" % op)
+            exec("r3 = bi %s bj" % op)
+            self.assertEqual(r1, ref)
+            self.assertEqual(r2, ref)
+            self.assertEqual(r3, ref)
+
+    def testAdd(self):
+        self.binaryCheck(operator.add)
+
+    def testSub(self):
+        self.binaryCheck(operator.sub)
+
+    def testMul(self):
+        self.binaryCheck(operator.mul, imax=maxint) # XXX doesn't work for long i???
+
+    def testDiv(self):
+        self.binaryCheck(operator.div, jmin=1)
+        
+    def testMod(self):
+        self.binaryCheck(operator.mod, jmin=1)
+
+    def testPow(self):
+        self.binaryCheck(pow, jmax=64)
+
+    def testLShift(self):
+        self.binaryCheck(operator.lshift, jmax=256)
+        
+    def testRShift(self):
+        self.binaryCheck(operator.rshift, jmax=256)
+
+    def testAnd(self):
+        self.binaryCheck(operator.and_)
+
+    def testOr(self):
+        self.binaryCheck(operator.or_)
+        
+    def testXor(self):
+        self.binaryCheck(operator.xor)
+
+    def testIAdd(self):
+        self.augmentedAssignCheck("+=")
+
+    def testISub(self):
+        self.augmentedAssignCheck("-=")
+        
+    def testIMul(self):
+        self.augmentedAssignCheck("*=", imax=maxint) #XXX doesn't work for long i???
+        
+    def testIDiv(self):
+        self.augmentedAssignCheck("/=", jmin=1)
+        
+    def testIMod(self):
+        self.augmentedAssignCheck("%=", jmin=1)
+
+    def testIPow(self):
+        self.augmentedAssignCheck("**=", jmax=64)
+
+    def testIAnd(self):
+        self.augmentedAssignCheck("&=")
+        
+    def testIOr(self):
+        self.augmentedAssignCheck("|=")
+        
+    def testIXor(self):
+        self.augmentedAssignCheck("^=")
+        
+    def testILShift(self):
+        self.augmentedAssignCheck("<<=", jmax=256)
+        
+    def testIRShift(self):
+        self.augmentedAssignCheck(">>=", jmax=256)
+
+    def testNeg(self):
+        self.unaryCheck(operator.neg)
+        
+    def testNeg(self):
+        self.unaryCheck(operator.pos)
+
+    def testAbs(self):
+        self.unaryCheck(operator.abs)
+
+    def testInvert(self):
+        self.unaryCheck(operator.inv)
+
+    def testInt(self):
+        self.conversionCheck(int, imax=maxint)
+        
+    def testLong(self):
+        self.conversionCheck(long)
+        
+    def testFloat(self):
+        self.conversionCheck(float)
+
+    # XXX __complex__ seems redundant ??? (complex() works as such?)
+  
+    def testOct(self):
+        self.conversionCheck(oct)
+        
+    def testHex(self):
+        self.conversionCheck(hex)
+
+    def testLt(self):
+        self.comparisonCheck("<")
+    def testLe(self):
+        self.comparisonCheck("<=")
+    def testGt(self):
+        self.comparisonCheck(">")
+    def testGe(self):
+        self.comparisonCheck(">=")
+    def testEq(self):
+        self.comparisonCheck("==")
+    def testNe(self):
+        self.comparisonCheck("!=")
+              
 
 if __name__ == "__main__":
     unittest.main()
