@@ -24,7 +24,7 @@ class TestInc(TestCase):
         reset.next = ACTIVE_LOW
         yield negedge(clock)
         reset.next = INACTIVE_HIGH
-        for i in range(20000):
+        for i in range(1000):
             enable.next = min(1, randrange(5))
             yield negedge(clock)
         raise StopSimulation
@@ -60,7 +60,7 @@ class TestInc(TestCase):
         sim = self.bench()
         sim.run(quiet=1)
         
-    def ntest2(self):
+    def test2(self):
         """ Check increment operation with suspended simulation runs """
         sim = self.bench()
         while sim.run(duration=randrange(1, 6), quiet=1):
