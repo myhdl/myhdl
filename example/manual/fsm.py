@@ -86,7 +86,11 @@ def testbench():
         
     return framectrl, clkgen(), stimulus()
 
-tb_fsm = traceSignals(testbench)
 
-sim = Simulation(tb_fsm)
-sim.run()
+def main():
+    tb_fsm = traceSignals(testbench)
+    sim = Simulation(tb_fsm)
+    sim.run()
+
+if __name__ == '__main__':
+    main()
