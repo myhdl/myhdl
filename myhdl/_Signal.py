@@ -198,11 +198,12 @@ class Signal(object):
     def _printVcdVec(self):
         print >> sim._tf, "b%s %s" % (bin(self._val, self._nrbits), self._code)
 
-    # hashing not supported
+    ### operators for which delegation to current value is appropriate ###
+        
+    # hashing (?)
     def __hash__(self):
         return hash(self._val)
         
-    ### operators for which delegation to current value is appropriate ###
     
     def __nonzero__(self):
         if self._val:
@@ -210,9 +211,9 @@ class Signal(object):
         else:
             return 0
 
-    # length defined as bit width
+    # length
     def __len__(self):
-        return self._nrbits
+        return len(self._val)
 
     # indexing and slicing methods
 
