@@ -64,7 +64,7 @@ class Signal(object):
 
     __slots__ = ('_next', '_val', '_min', '_max', '_type', 
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
-                 '_code', '_tracing', '_nrbits', '_checkVal',
+                 '_code', '_tracing', '_nrbits', '_checkVal', '_setNextVal',
                  '_printVcd', '_info',
                 )
 
@@ -89,29 +89,24 @@ class Signal(object):
         self._printVcd = self._printVcdStr
         if type(val) is bool:
             self._type = bool
-            self._checkVal = self._checkBool
+            self._setNextVal = self._setNextBool
             self._printVcd = self._printVcdBit
             self._nrbits = 1
         elif isinstance(val, (int, long)):
             self._type = (int, long)
-            self._checkVal = self._checkInt
+            self._setNextVal = self._setNextInt
         elif isinstance(val, intbv):
             self._type = intbv
             self._min = val._min
             self._max = val._max
             self._nrbits = val._len
-            if self._nrbits:
-                self._checkVal = self._checkIntbvBounds
-                self._printVcd = self._printVcdVec
-            else:
-                self._checkVal = self._checkInt
-                self._printVcd = self._printVcdHex
+            self._setNextVal = self._setNextIntbv
         elif val is None:
             self._type = None
-            self._checkVal = self._checkNone
+            self._setNextVal = self._setNext
         else:
             self._type = type(val)
-            self._checkVal = self._checkType
+            self._setNextVal = self._setNextType
         self._eventWaiters = _WaiterList()
         self._posedgeWaiters = _WaiterList()
         self._negedgeWaiters = _WaiterList()
@@ -150,8 +145,7 @@ class Signal(object):
     def _set_next(self, val):
         if isinstance(val, Signal):
             val = val._val
-        self._checkVal(val)
-        self._next = val
+        self._setNextVal(val)
         _siglist.append(self)
     next = property(_get_next, _set_next, None, "'next' access methods")
 
@@ -196,6 +190,33 @@ class Signal(object):
         
     def _checkNone(self, val):
         pass
+
+    # set next methods
+    def _setNextBool(self, val):
+        if not val in (0, 1):
+            raise ValueError("Expected value 0 or 1, got %s" % val)
+        self._next = val
+
+    def _setNextInt(self, val):
+        if not isinstance(val, (int, long, intbv)):
+            raise TypeError("Expected int or intbv, got %s" % type(val))
+        self._next = val
+
+    def _setNextIntbv(self, val):
+        if isinstance(val, intbv):
+            val = val._val
+        elif not isinstance(val, (int, long)):
+            raise TypeError("Expected int or intbv, got %s" % type(val))
+        self._next._val = val
+        self._next._checkBounds()
+
+    def _setNextType(self, val):
+        if not isinstance(val, self._type):
+            raise TypeError("Expected %s, got %s" % (self._type, type(val)))
+        self._next = val
+        
+    def _setNext(self, val):
+        self._next = val
 
     # vcd print methods
     def _printVcdStr(self):
