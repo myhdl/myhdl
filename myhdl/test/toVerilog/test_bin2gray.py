@@ -47,7 +47,7 @@ class TestBin2Gray(TestCase):
                 yield delay(10)
                 #print "B: " + bin(B, width) + "| G_v: " + bin(G_v, width)
                 #print bin(G, width)
-                print bin(G_v, width)
+                #print bin(G_v, width)
                 self.assertEqual(G, G_v)
 
         return bin2gray_v_inst, stimulus(), bin2gray_inst

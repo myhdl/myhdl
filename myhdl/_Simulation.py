@@ -211,6 +211,7 @@ def _checkArgs(arglist):
             if cosim is not None:
                 raise MultipleCosimError
             cosim = arg
+            waiters.append(_Waiter(cosim._waiter()))
         else:
             raise ArgTypeError(str(type(arg)))
     return waiters, cosim
