@@ -357,6 +357,9 @@ class _ConvertVisitor(_ToVerilogMixin):
             return
         elif type(f)  in (ClassType, type) and issubclass(f, Exception):
             self.write(f.__name__)
+        elif f in (posedge, negedge):
+            opening, closing = ' ', ''
+            self.write(f.__name__)
         elif f is concat:
             opening, closing = '{', '}'
         elif hasattr(node, 'ast'):
