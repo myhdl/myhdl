@@ -1,0 +1,2 @@
+global-include *.py
+global-include *.txt
