@@ -40,6 +40,7 @@ _error.SigNotFound = "Signal not found in Cosimulation arguments"
 _error.TimeZero = "myhdl vpi call when not at time 0"
 _error.NoCommunication = "No signals communicating to myhdl"
 _error.SimulationEnd = "Premature simulation end"
+_error.OSError = "OSError"
 
 class Cosimulation(object):
 
@@ -80,7 +81,7 @@ class Cosimulation(object):
             try:
                 os.execvp(p, arglist)
             except OSError, e:
-                raise CosimulationError(str(e))
+                raise CosimulationError(_error.OSError, str(e))
         else:
             os.close(wt)
             os.close(rf)
