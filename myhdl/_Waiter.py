@@ -36,7 +36,7 @@ class _Waiter(object):
         self.generator = generator
         self.hasRun = 0
         self.caller = caller
-        self.semaphore = None
+        self.semaphore = 0
         
     def next(self):
         self.hasRun = 1
@@ -49,23 +49,18 @@ class _Waiter(object):
                 return (None,), clone
         elif type(clause) is join:
             n = len(clause._args)
-            clone.semaphore = _Semaphore(n)
+            clone.semaphore = n-1
             return clause._args, clone
         else:
             return (clause,), clone
     
     def hasGreenLight(self):
         if self.semaphore:
-            self.semaphore.val -= 1
-            if self.semaphore.val != 0:
-                return 0
-        return 1
+            self.semaphore -= 1
+            return 0
+        else:
+            return 1
     
-           
-class _Semaphore(object):
-    def __init__(self, val=1):
-        self.val = val
-        
        
 class _WaiterList(list):
 
