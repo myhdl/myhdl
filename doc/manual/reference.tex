@@ -403,8 +403,13 @@ code, and also generates a test bench to verify it.
 \var{func} is a function that returns an instance.
 \function{toVerilog()} calls \var{func} under its control
 and passes \var{*args} and \var{**kwargs} to the call.
-\end{funcdesc}
+
+The return value is the same as would be returned by the call
+\code{func(*args, **kwargs)}. It should be assigned
+to an instance name.
 
 For more information about the restrictions on convertible
 \myhdl\ code, see section~\ref{conv-subset} in
 Chapter~\ref{conv}.
+\end{funcdesc}
+
