@@ -33,7 +33,8 @@ import shutil
 from sets import Set
 
 from myhdl import _simulator, Signal, __version__
-from myhdl._util import _isGenSeq, _isGenFunc
+from myhdl._util import _isGenFunc
+from myhdl._isGenSeq import _isGenSeq
 from myhdl._extractHierarchy import _findInstanceName, _HierExtr
 from myhdl import TraceSignalsError
 

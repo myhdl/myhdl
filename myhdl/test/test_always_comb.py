@@ -92,7 +92,7 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             c.next = a
             v = u
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['a'])
         self.assertEqual(i.inputs, expected)
@@ -103,7 +103,7 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             c.next = x
             g = a
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['a', 'x'])
         self.assertEqual(i.inputs, expected)
@@ -115,7 +115,7 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             c.next = a + x + u
             a = 1
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['x'])
         self.assertEqual(i.inputs, expected)
@@ -126,7 +126,7 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             c.next = a + x + u
             x = 1
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['a'])
         self.assertEqual(i.inputs, expected)
@@ -138,7 +138,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next += 1
             a = 1
         try:
-            g = always_comb(h).genfunc()
+            g = always_comb(h).gen
         except AlwaysCombError, e:
             self.assertEqual(e.kind, _error.SignalAsInout)
         else:
@@ -150,7 +150,7 @@ class AlwaysCombCompilationTest(TestCase):
             c.next = a
             x.next = c
         try:
-            g = always_comb(h).genfunc()
+            g = always_comb(h).gen
         except AlwaysCombError, e:
             self.assertEqual(e.kind, _error.SignalAsInout)
         else:
@@ -160,7 +160,7 @@ class AlwaysCombCompilationTest(TestCase):
         a, b, c, d = [Signal(0) for i in range(4)]
         def h():
             c.next[a:0] = x[b:0]
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['a', 'b', 'x'])
         self.assertEqual(i.inputs, expected)
@@ -171,7 +171,7 @@ class AlwaysCombCompilationTest(TestCase):
         def h():
             v = 2
             c.next[8:1+a+v] = x[4:b*3+u]
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['a', 'b', 'x'])
         self.assertEqual(i.inputs, expected)
@@ -180,7 +180,7 @@ class AlwaysCombCompilationTest(TestCase):
         a, b, c, d = [Signal(0) for i in range(4)]
         def h():
             c.next[a-1] = x[b-1]
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['a', 'b', 'x'])
         self.assertEqual(i.inputs, expected)
@@ -191,7 +191,7 @@ class AlwaysCombCompilationTest(TestCase):
             return 0
         def h():
             c.next = f(a, 2*b, d*x)
-        g = always_comb(h).genfunc()
+        g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = Set(['a', 'b', 'd', 'x'])
         self.assertEqual(i.inputs, expected)

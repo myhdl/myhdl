@@ -41,6 +41,7 @@ from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._util import _flatten
 from myhdl._unparse import _unparse
 from myhdl._cell_deref import _cell_deref
+from myhdl._always_comb import _AlwaysComb
             
 _converting = 0
 _profileFunc = None
@@ -48,12 +49,13 @@ _profileFunc = None
 INPUT, OUTPUT, INOUT, \
 UNKNOWN, \
 NORMAL, DECLARATION, \
-ALWAYS, INITIAL, \
-BOOLEAN = range(9)
+ALWAYS, INITIAL, ALWAYS_COMB, \
+BOOLEAN = range(10)
 
 class _error:
     pass
-_error.ArgType = "toVerilog first argument should be a classic function"
+_error.FirstArgType = "first argument should be a classic function"
+_error.ArgType = "leaf cell type error"
 _error.NotSupported = "Not supported"
 _error.TopLevelName = "Result of toVerilog call should be assigned to a top level name"
 _error.SigMultipleDriven = "Signal has multiple drivers"
@@ -73,15 +75,15 @@ _error.ReturnTypeInfer = "Can't infer return type"
     
 def _checkArgs(arglist):
     for arg in arglist:
-        if not type(arg) is GeneratorType:
-            raise ArgumentError
+        if not type(arg) in (GeneratorType, _AlwaysComb):
+            raise ToVerilogError(_error.ArgType, arg)
         
 def toVerilog(func, *args, **kwargs):
     global _converting
     if _converting:
         return func(*args, **kwargs) # skip
     if not callable(func):
-        raise ToVerilogError(_error.ArgType, "got %s" % type(func))
+        raise ToVerilogError(_error.FirstArgType, "got %s" % type(func))
     _converting = 1
     try:
         outer = inspect.getouterframes(inspect.currentframe())[1]
@@ -145,7 +147,7 @@ def _analyzeSigs(hierarchy):
 def LabelGenerator():
     i = 1
     while 1:
-        yield "__MYHDL%s" % i
+        yield "_MYHDL%s" % i
         i += 1
         
 genLabel = LabelGenerator()
@@ -161,19 +163,39 @@ class Label(object):
 def _analyzeGens(top, genNames):
     genlist = []
     for g in top:
-        f = g.gi_frame
-        s = inspect.getsource(f)
-        s = s.lstrip()
-        ast = compiler.parse(s)
-        ast.sourcefile = inspect.getsourcefile(f)
-        ast.lineoffset = inspect.getsourcelines(f)[1]-1
-        ast.symdict = f.f_globals.copy()
-        ast.symdict.update(f.f_locals)
-        ast.name = genNames.get(id(g), genLabel.next() + "_BLOCK")
-        v = _NotSupportedVisitor(ast)
-        compiler.walk(ast, v)
-        v = _AnalyzeBlockVisitor(ast)
-        compiler.walk(ast, v)
+        if type(g) is _AlwaysComb:
+            f = g.func
+            s = inspect.getsource(f)
+            s = s.lstrip()
+            ast = compiler.parse(s)
+            ast.sourcefile = inspect.getsourcefile(f)
+            ast.lineoffset = inspect.getsourcelines(f)[1]-1
+            ast.symdict = f.func_globals.copy()
+            # handle free variables
+            if f.func_code.co_freevars:
+                for n, c in zip(f.func_code.co_freevars, f.func_closure):
+                    obj = _cell_deref(c)
+                    assert isinstance(obj, (int, long, Signal))
+                    ast.symdict[n] = obj
+            ast.name = genNames.get(id(g.gen), genLabel.next() + "_BLOCK")
+            v = _NotSupportedVisitor(ast)
+            compiler.walk(ast, v)
+            v = _AnalyzeAlwaysCombVisitor(ast, g.senslist)
+            compiler.walk(ast, v)
+        else:
+            f = g.gi_frame
+            s = inspect.getsource(f)
+            s = s.lstrip()
+            ast = compiler.parse(s)
+            ast.sourcefile = inspect.getsourcefile(f)
+            ast.lineoffset = inspect.getsourcelines(f)[1]-1
+            ast.symdict = f.f_globals.copy()
+            ast.symdict.update(f.f_locals)
+            ast.name = genNames.get(id(g), genLabel.next() + "_BLOCK")
+            v = _NotSupportedVisitor(ast)
+            compiler.walk(ast, v)
+            v = _AnalyzeBlockVisitor(ast)
+            compiler.walk(ast, v)
         genlist.append(ast)
     return genlist
 
@@ -439,30 +461,30 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         for arg in node.args:
             self.visit(arg, UNKNOWN)
         argsAreInputs = True
-        func = self.getObj(node.node)
-        if type(func) is type and issubclass(func, intbv):
+        f = self.getObj(node.node)
+        if type(f) is type and issubclass(f, intbv):
             node.obj = intbv()
-        elif func is len:
+        elif f is len:
             node.obj = int() # XXX
-        elif func is bool:
+        elif f is bool:
             node.obj = bool()
-        elif func in myhdl.__dict__.values():
+        elif f in myhdl.__dict__.values():
             pass
-        elif func in __builtin__.__dict__.values():
+        elif f in __builtin__.__dict__.values():
             pass
-        elif type(func) is FunctionType:
+        elif type(f) is FunctionType:
             argsAreInputs = False
-            s = inspect.getsource(func)
+            s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
-            ast.name = genLabel.next() + "_" + func.__name__
-            ast.sourcefile = inspect.getsourcefile(func)
-            ast.lineoffset = inspect.getsourcelines(func)[1]-1
-            ast.symdict = func.func_globals.copy()
+            # print ast
+            ast.name = genLabel.next() + "_" + f.__name__
+            ast.sourcefile = inspect.getsourcefile(f)
+            ast.lineoffset = inspect.getsourcelines(f)[1]-1
+            ast.symdict = f.func_globals.copy()
             # handle free variables
-            if func.func_code.co_freevars:
-                for n, c in zip(func.func_code.co_freevars, func.func_closure):
+            if f.func_code.co_freevars:
+                for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
                     assert isinstance(obj, (int, long, Signal))
                     ast.symdict[n] = obj
@@ -562,7 +584,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             pass
 
     def visitReturn(self, node, *args):
-        self.visit(node.value, *args)       
+        self.raiseError(node, _error.NotSupported, "return statement")
             
     def visitSlice(self, node, access=INPUT, kind=NORMAL, *args):
         self.visit(node.expr, access)
@@ -616,7 +638,6 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
         
     def visitFunction(self, node, *args):
         self.refStack.push()
-        # print node.code
         self.visit(node.code)
         self.ast.kind = ALWAYS
         for n in node.code.nodes[:-1]:
@@ -643,6 +664,22 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
     def visitReturn(self, node, *args):
         ### value should be None
         self.raiseError(node, _error.NotSupported, "return statement")
+        
+
+class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
+    
+    def __init__(self, ast, senslist):
+        _AnalyzeVisitor.__init__(self, ast)
+        self.ast.senslist = senslist
+        for n, v in self.ast.symdict.items():
+            if isinstance(v, Signal):
+                self.ast.sigdict[n] = v
+
+    def visitFunction(self, node, *args):
+          self.refStack.push()
+          self.visit(node.code)
+          self.ast.kind = ALWAYS_COMB
+          self.refStack.pop()
             
 
 class _AnalyzeFuncVisitor(_AnalyzeVisitor):
@@ -821,8 +858,10 @@ def _convertGens(genlist, vfile):
     for ast in genlist:
         if ast.kind == ALWAYS:
             Visitor = _ConvertAlwaysVisitor
-        else:
+        elif ast.kind == INITIAL:
             Visitor = _ConvertInitialVisitor
+        else: # ALWAYS_COMB
+            Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(ast, blockBuf, funcBuf)
         compiler.walk(ast, v)
     vfile.write(funcBuf.getvalue()); funcBuf.close()
@@ -1297,6 +1336,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.writeline()
         self.write("end")
         self.writeline(2)
+        
     
 class _ConvertInitialVisitor(_ConvertVisitor):
     
@@ -1314,6 +1354,29 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         self.write("end")
         self.writeline(2)
 
+
+class _ConvertAlwaysCombVisitor(_ConvertVisitor):
+    
+    def __init__(self, ast, blockBuf, funcBuf):
+        _ConvertVisitor.__init__(self, ast, blockBuf)
+        self.funcBuf = funcBuf
+
+    def visitFunction(self, node, *args):
+        self.write("always @(")
+        assert self.ast.senslist
+        for s in self.ast.senslist[:-1]:
+            self.write(s._name)
+            self.write(', ')
+        self.write(self.ast.senslist[-1]._name)
+        self.write(") begin: %s" % self.ast.name)
+        self.indent()
+        self.writeDeclarations()
+        self.visit(node.code)
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        self.writeline(2)
+        
     
 class _ConvertFunctionVisitor(_ConvertVisitor):
     

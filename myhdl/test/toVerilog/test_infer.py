@@ -249,7 +249,7 @@ class TestInfer(unittest.TestCase):
         def stimulus():
             a.next = 1
             yield delay(10)
-            print "%s %s" % (out, out_v)
+            # print "%s %s" % (out, out_v)
             self.assertEqual(out, out_v)
 
         return stimulus(), infertest_inst, infertest_v_inst

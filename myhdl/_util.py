@@ -41,7 +41,6 @@ import compiler
 # hope this will always work ...
 from compiler.consts import CO_GENERATOR
 
-from myhdl._Cosimulation import Cosimulation
 
 def downrange(start, stop=0, step=1):
     """ Return a downward range. """
@@ -62,16 +61,6 @@ def _printExcInfo():
     if str(value):
         msg += ": %s" % value
         print msg
-       
-def _isGenSeq(obj):
-    if type(obj) in (GeneratorType, Cosimulation):
-        return 1
-    if not isinstance(obj, (ListType, TupleType)):
-        return 0
-    for e in obj:
-        if not _isGenSeq(e):
-            return 0
-    return 1
 
 def _isGenFunc(obj):
     if type(obj) is FunctionType:

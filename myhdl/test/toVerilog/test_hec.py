@@ -133,7 +133,7 @@ class TestHec(unittest.TestCase):
                 header.next = h
                 yield delay(10)
                 hec_ref = calculateHecRef(header)
-                print "hec: %s hec_v: %s" % (hex(hec), hex(hec_v))
+                # print "hec: %s hec_v: %s" % (hex(hec), hex(hec_v))
                 self.assertEqual(hec, hec_ref)
                 self.assertEqual(hec, hec_v)
 

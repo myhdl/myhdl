@@ -17,13 +17,7 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl miscellaneous objects.
-
-This module provides the following myhdl objects:
-instances -- function that returns instances in a generator function
-             these are all generators in the local namespace
-processes -- function that returns processes in a generator function
-             these are generators obtained by calling local generator functions
+""" module with isGenSeq test.
 
 """
 
@@ -31,34 +25,19 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-import sys
-import inspect
+from sets import Set
+from types import GeneratorType, ListType, TupleType
 
-from types import GeneratorType
-
-from myhdl import Cosimulation
-from myhdl._util import _isGenFunc
-from myhdl._isGenSeq import _isGenSeq
+from myhdl._Cosimulation import Cosimulation
 from myhdl._always_comb import _AlwaysComb
+      
+def _isGenSeq(obj):
+    if type(obj) in (GeneratorType, Cosimulation, _AlwaysComb):
+        return 1
+    if not isinstance(obj, (ListType, TupleType, Set)):
+        return 0
+    for e in obj:
+        if not _isGenSeq(e):
+            return 0
+    return 1
 
-    
-def instances():
-    f = inspect.currentframe()
-    d = inspect.getouterframes(f)[1][0].f_locals
-    l = []
-    for v in d.values():
-      if type(v) in (GeneratorType, Cosimulation, _AlwaysComb):
-         l.append(v)
-      elif _isGenSeq(v):
-         l.append(v)
-    return l
-    
-     
-def processes():
-    f = inspect.currentframe()
-    d = inspect.getouterframes(f)[1][0].f_locals
-    l = []
-    for v in d.values():
-      if _isGenFunc(v):
-         l.append(v()) # call it
-    return l

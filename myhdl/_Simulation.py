@@ -210,7 +210,7 @@ def _checkArgs(arglist):
         if type(arg) is GeneratorType:
             waiters.append(_Waiter(arg))
         elif type(arg) is _AlwaysComb:
-            waiters.append(_Waiter(arg.genfunc()))
+            waiters.append(_Waiter(arg.gen))
         elif type(arg) is Cosimulation:
             if cosim is not None:
                 raise SimulationError(_error.MultipleCosim)

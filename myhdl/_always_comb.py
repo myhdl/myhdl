@@ -145,6 +145,7 @@ class _AlwaysComb(object):
         self.inputs = v.inputs
         self.outputs = v.outputs
         self.senslist = tuple([self.sigdict[n] for n in self.inputs])
+        self.gen = self.genfunc()
 
     def genfunc(self):
         senslist = self.senslist

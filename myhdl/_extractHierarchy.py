@@ -36,7 +36,9 @@ import linecache
 from sets import Set
 
 from myhdl import Signal, ExtractHierarchyError
-from myhdl._util import _isGenSeq, _isGenFunc
+from myhdl._util import _isGenFunc
+from myhdl._isGenSeq import _isGenSeq
+from myhdl._always_comb import _AlwaysComb
 
 
 _profileFunc = None
@@ -172,6 +174,9 @@ class _HierExtr(object):
                         instNames = self.instNamesStack[-1]
                         gens = _getGens(arg)
                         for gname, g in frame.f_locals.items():
+                            if type(g) is _AlwaysComb:
+                                print "YES"
+                                g = g.gen
                             if type(g) is GeneratorType and \
                                g in gens and gname not in instNames:
                                 gsigdict = {}
@@ -198,8 +203,16 @@ class _HierExtr(object):
 def _getGens(arg):
     if type(arg) is GeneratorType:
         return [arg]
+    elif type(arg) is _AlwaysComb:
+        return [arg.gen]
     else:
-        return [g for g in arg if type(g) is GeneratorType]
+        l = []
+        for elt in arg:
+            if type(arg) is GeneratorType:
+                l.append(arg)
+            elif type(arg) is _AlwaysComb:
+                l.append(arg.gen)
+        return l
 
 
     

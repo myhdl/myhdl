@@ -19,7 +19,7 @@ def bin2gray(B, G, width):
         for i in range(width):
             G.next[i] = Bext[i+1] ^ Bext[i]
 
-def bin2gray2(B, G, width):
+def bin2gray(B, G, width):
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
@@ -56,6 +56,7 @@ class TestBin2Gray(TestCase):
         G_v = Signal(intbv(0)[8:])
 
         bin2gray_inst = toVerilog(bin2gray, B, G, width)
+        # bin2gray_inst = bin2gray(B, G, width)
         bin2gray_v_inst = bin2gray_v(B, G_v)
 
         def stimulus():
