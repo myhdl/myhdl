@@ -16,5 +16,5 @@ def sayHello():
         print "%s Hello World!" % now()
 
 sim = Simulation(clkGen(), sayHello())
-sim.run(100)
+sim.run(50)
 
