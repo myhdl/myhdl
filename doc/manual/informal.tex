@@ -398,6 +398,7 @@ included, and the bit with index \code{j} is the last bit included.
 
 \section{Bus-functional procedures \label{intro-bfm}}
 
+\index{bus-functional procedure}%
 A \dfn{bus-functional procedure} is a reusable encapsulation of the
 low-level operations needed to implement some abstract transaction on
 a physical interface. Bus-functional procedures are typically used in
@@ -442,7 +443,7 @@ def rs232_tx(tx, data, duration=T_9600):
 \end{verbatim}
 
 This looks exactly like the generator functions in previous sections. It
-becomes a bus functional procedure when we use it differently. Suppose
+becomes a bus-functional procedure when we use it differently. Suppose
 that in a test bench, we want to generate a number of data bytes to be
 transmitted. This can be modeled as follows:
 
@@ -457,7 +458,7 @@ def stimulus():
         yield rs232_tx(tx, txData)
 \end{verbatim}
 
-We use the bus functional procedure call as a clause in a
+We use the bus-functional procedure call as a clause in a
 \code{yield} statement. This introduces a fourth form of the
 \code{yield} statement: using a generator as a clause. Although this is
 a more dynamic usage than in the previous cases, the meaning is
