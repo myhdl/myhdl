@@ -60,20 +60,20 @@ class Simulation:
                         elif type(clause) is join:
                             joinclauses = clause._args
                             n = len(joinclauses)
-                            clone = waiter.clone()
-                            clone.semaphore = _Semaphore(n)
+                            joinclone = waiter.clone()
+                            joinclone.semaphore = _Semaphore(n)
                             for clause in joinclauses:
                                 if type(clause) is _WaiterList:
-                                    clause.append(clone)
+                                    clause.append(joinclone)
                                 elif isinstance(clause, Signal):
-                                    clause._eventWaiters.append(clone)
+                                    clause._eventWaiters.append(joinclone)
                                 elif type(clause) is delay:
                                     if delay:
-                                        schedule((t + clause._time, clone))
+                                        schedule((t + clause._time, joinclone))
                                     else:
-                                        waiters.append(clone)
+                                        waiters.append(joinclone)
                                 elif type(clause) is GeneratorType:
-                                    waiters.append(_WaiterWrap(clause, clone))
+                                    waiters.append(_WaiterWrap(clause, joinclone))
                                 else:
                                     raise TypeError
                         else:
@@ -117,23 +117,29 @@ def _flatten(*args):
                 res.extend(_flatten(item))
     return res
 
+
 class _WaiterWrap(object):
+    
     def __init__(self, generator, caller=None, semaphore=None):
         self.generator = generator
         self.hasRun = 0
         self.caller = caller
         self.semaphore = None
+        
     def next(self):
         self.hasRun = 1
         return self.generator.next()
+    
     def hasGreenLight(self):
         if self.semaphore:
             self.semaphore.val -= 1
             if self.semaphore.val != 0:
                 return 0
         return 1
+    
     def clone(self):
         return _WaiterWrap(self.generator, self.caller, self.semaphore)
+    
         
 class _Semaphore(object):
     def __init__(self, val=1):

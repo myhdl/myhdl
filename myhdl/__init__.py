@@ -13,7 +13,6 @@ negedge = Signal.negedge
 Signal = Signal.Signal
 now = _simulator.now
 delay = delay.delay
-concat = intbv.concat
 intbv = intbv.intbv
 
 def downrange(start, stop=0):

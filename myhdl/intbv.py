@@ -4,46 +4,52 @@ import sys
 maxint = sys.maxint
 from types import StringType
 
-def concat(val, *args):
-    basewidth = width = 0
-    if type(val) is intbv:
-        v = val._val
-        basewidth = width = val._len
-    else:
-        v = val
-    for a in args:
-        if type(a) is intbv:
-            w = a._len
-            if not w:
-                raise TypeError, "intbv arg should have length in concat"
-            else:
-                v = v * (2**w) + a._val
-                width += w
-        elif type(a) is StringType:
-            w = len(a)
-            v= v*(2**w) + long(a, 2)
-            width += w
-        else:
-            raise TypeError
-    try:
-        v = int(v)
-    except:
-        pass
-    res = intbv(v)
-    if basewidth:
-        res._len = basewidth + width
-    return res
    
 
 class intbv(object):
     __slots__ = ('_val', '_len')
     
     def __init__(self, val=0):
+        self._len = 0
         if type(val) is intbv:
             self._val = val._val
+        elif type(val) is StringType:
+            self._val = long(val, 2)
+            self._len = len(val)
         else:
             self._val = val
-        self._len = 0
+
+    # concat method
+    def concat(self, *args):
+        val = self._val
+        basewidth = width = 0
+        if type(val) is intbv:
+            v = val._val
+            basewidth = width = val._len
+        else:
+            v = val
+        for a in args:
+            if type(a) is intbv:
+                w = a._len
+                if not w:
+                    raise TypeError, "intbv arg to concat should have length"
+                else:
+                    v = v * (2**w) + a._val
+                    width += w
+            elif type(a) is StringType:
+                w = len(a)
+                v= v*(2**w) + long(a, 2)
+                width += w
+            else:
+                raise TypeError
+        try:
+            v = int(v)
+        except:
+            pass
+        res = intbv(v)
+        if basewidth:
+            res._len = basewidth + width
+        return res
 
     # copy methods
     def __copy__(self):
