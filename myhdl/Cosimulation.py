@@ -81,7 +81,7 @@ class Cosimulation(object):
         self._toSigs = toSigs = []
 
         self._hasChange = 0
-        self._isActive = 0
+        self._getMode = 1
 
         child_pid = self._child_pid = os.fork()
 
@@ -138,6 +138,8 @@ class Cosimulation(object):
                     raise Error, "Unexpected cosim input"
 
     def _get(self):
+        if not self._getMode:
+            return
         s = os.read(self._rt, _MAXLINE)
         if not s:
             raise SimulationEndError
@@ -150,6 +152,7 @@ class Cosimulation(object):
                 next = intbv(None)
             if s.val != next:
                 s.next = next
+        self._getMode = 0
 
     def _put(self, time):
         buf = repr(time)
@@ -161,6 +164,7 @@ class Cosimulation(object):
                 buf += " "
                 buf += hex(s)[2:]
         os.write(self._wf, buf)
+        self._getMode = 1
 
     def _waiter(self):
         sigs = tuple(self._fromSigs)
