@@ -43,7 +43,7 @@ class Error(Exception):
         return msg
 
 class ArgumentError(Error):
-    """ always_comb argument should be a normal (non-generator) function"""
+    """ always_comb argument should be a classic function"""
     
 class NrOfArgsError(Error):
     """ always_comb argument should be a function without arguments"""
