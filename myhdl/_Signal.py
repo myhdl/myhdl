@@ -65,7 +65,7 @@ class Signal(object):
     __slots__ = ('_next', '_val', '_min', '_max', '_type', 
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                  '_code', '_tracing', '_nrbits', '_checkVal', '_setNextVal',
-                 '_printVcd', '_driven', '_name'
+                 '_printVcd', '_driven' ,'_read', '_name'
                 )
 
     def __new__(cls, val=None, delay=None):
@@ -84,7 +84,8 @@ class Signal(object):
         
         """
         self._next = self._val = val
-        self._min = self._max = self._name = self._driven = None
+        self._min = self._max = None
+        self._name = self._read = self._driven = None
         self._nrbits = 0
         self._printVcd = self._printVcdStr
         if type(val) is bool:
