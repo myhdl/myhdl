@@ -62,6 +62,13 @@ In the following, a "sig" denotes an instance of the Signal class.
   and intbv are not subtypes of each other, but they are designed to
   work together.
 
+* A sig has 'min' and a 'max' read-only attributes that default to
+  None. They are possibly set to numeric values according to the
+  initial sig constructor object. In particular, the attributes are
+  inherited from an intbv object, and they are set for a bool
+  object. These attributes are used to implement or complement the
+  checks on the object assigned to sig.next.
+
 * A sig should have a number of private list attributes that can hold
   generators that are waiting for a particular change on the sig's value:
   - '_eventWaiters': generators waiting for a value change

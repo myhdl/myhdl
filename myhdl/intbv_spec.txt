@@ -35,12 +35,20 @@ has indexing and slicing operations and a few other bit-oriented
 features. As it is mutable, it cannot be a subtype of int; so it is a
 separate type.
 
-* an intbv(arg) constructor takes and int, long, intbv, or bit string
-  as its argument. The bit string works as in int(bit string, 2).
+* an intbv() constructor takes and int, long, intbv, or bit string
+  as its first argument, called 'val'. The bit string works as in
+  int(bit string, 2).
+
+* an intbv() constructor takes optional 'min' and 'max' parameters.
+  The meaning is that the intbv's value should be in the range
+  range(min, max). Note that the Python conventions for range
+  bounds are followed. The 'min' and 'max' parameters default to
+  None and are available as read-only attributes.
 
 * an intbv supports the same the numeric, comparison, bitwise and
   conversion operators as ints and longs. It supports mixed-type
-  operations with ints and longs, that always return an intbv.
+  operations with ints and longs. Mixed-type numeric operations return
+  an int or a long. Mixed-type bitwise operations return an intbv.
 
 * an intbv supports indexing operations, both to get and set a bit.
 
@@ -58,24 +66,20 @@ separate type.
   to look at it.
 
 * As in standard Python, ranges are half-open; however, the
-  not-included index is the left index. Only the right index can be
-  left unspecified and defaults to zero: in that case the left index
-  is equals the number of bits taken. Provided the downward range
+  not-included index is the left index. Provided the downward range
   concept is accepted, this seems like the Pythonic way to do it. Just
   like with sequences, this convention avoids one-off issues in a lot
-  of practical cases.
+  of practical cases. Both indices can be left unspecified. The right
+  index defaults to zero. The left index default means "all" bits.
 
 * When setting slices, there should be check on the input value to
   verify that all significant bits can be accepted by the slice.
 
-* intbv has a concat method that can concatenate intbv arguments. It
-  may be clearest to use this as an unbound method. The first argument
-  can be any intbv. However, for subsequent arguments there has to be
-  some way to derive the amount of bits. Therefore, the intbv returned
-  by an indexing or slicing operation should remember how many bits
-  were taken, so that they can be using in concatenations. In
-  addition, literal bit strings are accepted in concatenations, just as
-  they are in intbv constructors.
+* When getting as slice, the result is a new intbv instance. Its
+  value is always positive or zero, regardless of the sign of the
+  original intbv instances. When the left index is specified, the
+  new intbv has a defined bitwidth w=i-j. The min and max attributes
+  of the new intbv are implicitly set to 0 and 2**w respectively.
 
 * intbv supports the iterator protocol to iterate on its bits; again,
   this requires a known length.
