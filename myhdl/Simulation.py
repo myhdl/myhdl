@@ -87,6 +87,9 @@ class Simulation(object):
             os.close(cosim._rt)
             os.close(cosim._wf)
             os.waitpid(cosim._child_pid, 0)
+        if _simulator._tracing:
+            _simulator._tracing = 0
+            _simulator._tf.close()
             
         
     def runc(self, duration=0, quiet=0):
