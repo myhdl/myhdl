@@ -166,6 +166,8 @@ class _HierExtr(object):
     
     def __init__(self, name, dut, *args, **kwargs):
         global _profileFunc
+        self.skipNames = ('always_comb', 'instances', 'processes')
+        self.skip = 0
         self.names = [name]
         self.instances = instances = []
         self.level = 0
@@ -183,23 +185,32 @@ class _HierExtr(object):
 
     def extractor(self, frame, event, arg):
         if event == "call":
-            outer = getouterframes(frame)[1]
-            name = _findInstanceName(outer)
-            self.names.append(name)
-            if name:
-                self.level += 1
+            func_name = frame.f_code.co_name
+            if func_name in self.skipNames:
+                self.skip = 1
+            if not self.skip:
+                outer = getouterframes(frame)[1]
+                name = _findInstanceName(outer)
+                self.names.append(name)
+                if name:
+                    self.level += 1
         elif event == "return":
-            name = self.names.pop()
-            if name:
-                if _isGenSeq(arg):
-                    sigdict = {}
-                    for dict in (frame.f_locals, frame.f_globals):
-                        for n, v in dict.items():
-                            if isinstance(v, Signal):
-                                sigdict[n] = v
-                    i = [self.level, name, sigdict]
-                    self.instances.append(i)
-                self.level -= 1
+            if not self.skip:
+                name = self.names.pop()
+                if name:
+                    if _isGenSeq(arg):
+                        sigdict = {}
+                        for dict in (frame.f_locals, frame.f_globals):
+                            for n, v in dict.items():
+                                if isinstance(v, Signal):
+                                    sigdict[n] = v
+                        i = [self.level, name, sigdict]
+                        self.instances.append(i)
+                    self.level -= 1
+            func_name = frame.f_code.co_name
+            if func_name in self.skipNames:
+                self.skip = 0
+          
 
 
 _codechars = ""
