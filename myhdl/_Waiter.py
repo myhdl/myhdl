@@ -30,28 +30,37 @@ from myhdl._simulator import _siglist, _futureEvents
 
 class _Waiter(object):
 
-    __slots__ = ('caller', 'generator', 'hasRun', 'semaphore')
+    __slots__ = ('caller', 'generator', 'hasRun', 'nrTriggers', 'semaphore')
     
     def __init__(self, generator, caller=None):
+        self.caller = caller
         self.generator = generator
         self.hasRun = 0
-        self.caller = caller
+        self.nrTriggers = 1
         self.semaphore = 0
         
     def next(self):
-        self.hasRun = 1
-        clone = _Waiter(self.generator, self.caller)
         clause = self.generator.next()
         if type(clause) in (tuple, list):
+            self.hasRun = 1
+            clone = _Waiter(self.generator, self.caller)
+            clone.nrTriggers = len(clause)
             if clause:
                 return clause, clone
             else:
                 return (None,), clone
         elif type(clause) is join:
+            self.hasRun = 1
+            clone = _Waiter(self.generator, self.caller)
             clone.semaphore = len(clause._args)-1
             return clause._args, clone
         else:
-            return (clause,), clone
+            if self.nrTriggers == 1:
+                return (clause,), self
+            else:
+                self.hasRun = 1
+                clone = _Waiter(self.generator, self.caller)
+                return (clause,), clone
     
     def hasGreenLight(self):
         if self.semaphore:
