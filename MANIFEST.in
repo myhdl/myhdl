@@ -4,6 +4,8 @@ global-include *.pdf
 global-include *.ps
 global-include *.c
 global-include Makefile
+global-include makefile
+global-include makefile.*
 global-include *.v
 global-exclude .cvsignore
 prune dist
