@@ -40,6 +40,7 @@ from myhdl import ToVerilogError
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._util import _flatten
 from myhdl._unparse import _unparse
+from myhdl._cell_deref import _cell_deref
             
 _converting = 0
 _profileFunc = None
@@ -328,7 +329,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         ast.vardict = {}
         ast.inputs = Set()
         ast.outputs = Set()
+        ast.argnames = []
         ast.kind = None
+        ast.isTask = False
         self.ast = ast
         self.labelStack = []
         self.refStack = ReferenceStack()
@@ -387,6 +390,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.obj = int()
         
     def visitAssAttr(self, node, access=OUTPUT, *args):
+        self.ast.isTask = True
         self.visit(node.expr, OUTPUT)
         
     def visitAssign(self, node, access=OUTPUT, *args):
@@ -451,11 +455,17 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             s = inspect.getsource(func)
             s = s.lstrip()
             ast = compiler.parse(s)
-            # print ast
+            print ast
             ast.name = genLabel.next() + "_" + func.__name__
             ast.sourcefile = inspect.getsourcefile(func)
             ast.lineoffset = inspect.getsourcelines(func)[1]-1
             ast.symdict = func.func_globals.copy()
+            # handle free variables
+            if func.func_code.co_freevars:
+                for n, c in zip(func.func_code.co_freevars, func.func_closure):
+                    obj = _cell_deref(c)
+                    assert isinstance(obj, (int, long, Signal))
+                    ast.symdict[n] = obj
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
             v = _AnalyzeFuncVisitor(ast, node.args)
@@ -535,6 +545,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if access == INPUT:
                 self.ast.inputs.add(n)
             elif access == OUTPUT:
+                self.ast.isTask = True
                 self.ast.outputs.add(n)
             elif access == UNKNOWN:
                 pass
@@ -639,7 +650,6 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
     def __init__(self, ast, args):
         _AnalyzeVisitor.__init__(self, ast)
         self.args = args
-        self.ast.argnames = []
         self.ast.hasReturn = False
         self.ast.returnObj = None
 
@@ -818,6 +828,7 @@ def _convertGens(genlist, vfile):
     vfile.write(funcBuf.getvalue()); funcBuf.close()
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
+YIELD, PRINT = range(2)
 
 class _ConvertVisitor(_ToVerilogMixin):
     
@@ -826,7 +837,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.buf = buf
         self.returnLabel = ast.name
         self.ind = ''
-        self.inYield = False
         self.isSigAss = False
         self.labelStack = []
  
@@ -842,11 +852,14 @@ class _ConvertVisitor(_ToVerilogMixin):
         if type(obj) is bool:
             self.write("%s%s;" % (dir, name))
         elif isinstance(obj, int):
+            if dir == "input ":
+                self.write("input %s;" % name)
+                self.writeline()
             self.write("integer %s;" % name)
         elif hasattr(obj, '_nrbits'):
             self.write("%s[%s-1:0] %s;" % (dir, obj._nrbits, name))
         else:
-            raise AssertionError("unexpected type")
+            raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
 
     def writeDeclarations(self):
         for name, obj in self.ast.vardict.items():
@@ -865,21 +878,26 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write(" %s " % op)
         self.visit(node.right)
         self.write(")")
-    def visitAdd(self, node):
+    def visitAdd(self, node, *args):
         self.binaryOp(node, '+')
-    def visitFloorDiv(self, node):
+    def visitFloorDiv(self, node, *args):
         self.binaryOp(node, '/')
-    def visitLeftShift(self, node):
+    def visitLeftShift(self, node, *args):
         self.binaryOp(node, '<<')
-    def visitMod(self, node):
-        self.binaryOp(node, '%')        
-    def visitMul(self, node):
+    def visitMod(self, node, context=None, *args):
+        if context == PRINT:
+            self.visit(node.left)
+            self.write(", ")
+            self.visit(node.right)
+        else:
+            self.binaryOp(node, '%')        
+    def visitMul(self, node, *args):
         self.binaryOp(node, '*')
-    def visitPower(self, node):
+    def visitPower(self, node, *args):
          self.binaryOp(node, '**')
-    def visitSub(self, node):
+    def visitSub(self, node, *args):
         self.binaryOp(node, "-")
-    def visitRightShift(self, node):
+    def visitRightShift(self, node, *args):
         self.binaryOp(node, '>>')
         
     def multiOp(self, node, op):
@@ -889,41 +907,41 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write(" %s " % op)
             self.visit(node)
         self.write(")")
-    def visitAnd(self, node):
+    def visitAnd(self, node, *args):
         self.multiOp(node, '&&')
-    def visitBitand(self, node):
+    def visitBitand(self, node, *args):
         self.multiOp(node, '&')
-    def visitBitor(self, node):
+    def visitBitor(self, node, *args):
         self.multiOp(node, '|')
-    def visitBitxor(self, node):
+    def visitBitxor(self, node, *args):
         self.multiOp(node, '^')
-    def visitOr(self, node):
+    def visitOr(self, node, *args):
         self.multiOp(node, '||')
 
     def unaryOp(self, node, op):
         self.write("(%s" % op)
         self.visit(node.expr)
         self.write(")")
-    def visitInvert(self, node):
+    def visitInvert(self, node, *args):
         self.unaryOp(node, '~')
-    def visitNot(self, node):
+    def visitNot(self, node, *args):
         self.unaryOp(node, '!')
     def visitUnaryAdd(self, node, *args):
         self.unaryOp(node, '+')
     def visitUnarySub(self, node, *args):
         self.unaryOp(node, '-')
 
-    def visitAssAttr(self, node):
+    def visitAssAttr(self, node, *args):
         if node.attrname != 'next':
             self.raiseError(node, _error.NotSupported, "attribute assignment")
         self.isSigAss = True
         self.visit(node.expr)
 
-    def visitAssert(self, node):
+    def visitAssert(self, node, *args):
         # XXX
         pass
 
-    def visitAssign(self, node):
+    def visitAssign(self, node, *args):
         assert len(node.nodes) == 1
         self.visit(node.nodes[0])
         if self.isSigAss:
@@ -934,10 +952,10 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.visit(node.expr)
         self.write(';')
 
-    def visitAssName(self, node):
+    def visitAssName(self, node, *args):
         self.write(node.name)
 
-    def visitAugAssign(self, node):
+    def visitAugAssign(self, node, *args):
         opmap = {"+=" : "+",
                  "-=" : "-",
                  "*=" : "*",
@@ -961,10 +979,10 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.visit(node.expr)
         self.write(";")
          
-    def visitBreak(self, node):
+    def visitBreak(self, node, *args):
         self.write("disable %s;" % self.labelStack[-2])
 
-    def visitCallFunc(self, node):
+    def visitCallFunc(self, node, *args):
         fn = node.node
         assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
@@ -981,29 +999,28 @@ class _ConvertVisitor(_ToVerilogMixin):
             return
         elif type(f)  in (ClassType, type) and issubclass(f, Exception):
             self.write(f.__name__)
-            self.write(": ")
         elif f is concat:
             opening, closing = '{', '}'
         elif hasattr(node, 'ast'):
             self.write(node.ast.name)
         else:
             self.write(f.__name__)
-        self.write(opening)
         if node.args:
+            self.write(opening)
             self.visit(node.args[0])
             for arg in node.args[1:]:
                 self.write(", ")
                 self.visit(arg)
-        self.write(closing)
+            self.write(closing)
         if hasattr(node, 'ast'):
-            if node.ast.outputs:
+            if node.ast.isTask:
                 Visitor = _ConvertTaskVisitor
             else:
                 Visitor = _ConvertFunctionVisitor
             v = Visitor(node.ast, self.funcBuf)
             compiler.walk(node.ast, v)
 
-    def visitCompare(self, node):
+    def visitCompare(self, node, *args):
         self.write("(")
         self.visit(node.expr)
         op, code = node.ops[0]
@@ -1011,20 +1028,24 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.visit(code)
         self.write(")")
 
-    def visitConst(self, node):
-        self.write(node.value)
+    def visitConst(self, node, context=None, *args):
+        if context == PRINT:
+            assert type(node.value) is str
+            self.write('"Verilog %s"' % node.value)
+        else:
+            self.write(node.value)
 
-    def visitContinue(self, node):
+    def visitContinue(self, node, *args):
         self.write("disable %s;" % self.labelStack[-1])
 
-    def visitDiscard(self, node):
+    def visitDiscard(self, node, *args):
         expr = node.expr
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, astNode.CallFunc) and hasattr(expr, 'ast'):
             self.write(';')
 
-    def visitFor(self, node):
+    def visitFor(self, node, *args):
         self.labelStack.append(node.breakLabel)
         self.labelStack.append(node.loopLabel)
         var = node.assign.name
@@ -1086,10 +1107,10 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.labelStack.pop()
         self.labelStack.pop()
 
-    def visitFunction(self, node):
+    def visitFunction(self, node, *args):
         raise AssertionError("To be implemented in subclass")
 
-    def visitGetattr(self, node):
+    def visitGetattr(self, node, *args):
         assert isinstance(node.expr, astNode.Name)
         assert node.expr.name in self.ast.symdict
         obj = self.ast.symdict[node.expr.name]
@@ -1102,7 +1123,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             e = getattr(obj, node.attrname)
             self.write("%d'b%s" % (obj._nrbits, e._val))
         
-    def visitIf(self, node):
+    def visitIf(self, node, *args):
         first = True
         for test, suite in node.tests:
             if first:
@@ -1128,16 +1149,18 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.writeline()
             self.write("end")
 
-    def visitKeyword(self, node):
+    def visitKeyword(self, node, *args):
         self.visit(node.expr)
        
-    def visitName(self, node):
+    def visitName(self, node, *args):
         n = node.name
         if n == 'False':
             self.write("1'b0")
         elif n == 'True':
             self.write("1'b1")
         elif n in self.ast.vardict:
+            self.write(n)
+        elif n in self.ast.argnames:
             self.write(n)
         elif node.name in self.ast.symdict:
             obj = self.ast.symdict[n]
@@ -1148,28 +1171,35 @@ class _ConvertVisitor(_ToVerilogMixin):
             else:
                 self.write(n)
         else:
-            raise AssertionError
+            raise AssertionError("name ref: %s" % n)
 
-    def visitPass(self, node):
+    def visitPass(self, node, *args):
         self.write("// pass")
-    
-    def visitPrint(self, node):
-        pass # XXX
 
-    def visitPrintnl(self, node):
-        pass # XXX
+    def handlePrint(self, node):
+        assert len(node.nodes) == 1
+        s = node.nodes[0]
+        self.write('$display(')
+        self.visit(s, PRINT)
+        self.write(');')
     
-    def visitRaise(self, node):
+    def visitPrint(self, node, *args):
+        self.handlePrint(node)
+
+    def visitPrintnl(self, node, *args):
+        self.handlePrint(node)
+    
+    def visitRaise(self, node, *args):
         self.write('$display("Verilog: ')
         self.visit(node.expr1)
         self.write('");')
         self.writeline()
         self.write("$finish;")
         
-    def visitReturn(self, node):
+    def visitReturn(self, node, *args):
         self.write("disable %s;" % self.returnLabel)
 
-    def visitSlice(self, node):
+    def visitSlice(self, node, *args):
         if isinstance(node.expr, astNode.CallFunc) and \
            node.expr.node.obj is intbv:
             c = self.getVal(node)
@@ -1189,7 +1219,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.visit(node.upper)
         self.write("]")
 
-    def visitStmt(self, node):
+    def visitStmt(self, node, *args):
         for stmt in node.nodes:
             self.writeline()
             self.visit(stmt)
@@ -1197,22 +1227,26 @@ class _ConvertVisitor(_ToVerilogMixin):
             if isinstance(stmt, astNode.CallFunc) and hasattr(stmt, 'ast'):
                 self.write(';')
 
-    def visitSubscript(self, node):
+    def visitSubscript(self, node, *args):
         self.visit(node.expr)
         self.write("[")
         assert len(node.subs) == 1
         self.visit(node.subs[0])
         self.write("]")
 
-    def visitTuple(self, node):
-        assert self.inYield
+    def visitTuple(self, node, context=None, *args):
+        assert context != None
+        if context == PRINT:
+            sep = ", "
+        else:
+            sep = " or "
         tpl = node.nodes
         self.visit(tpl[0])
         for elt in tpl[1:]:
-            self.write(" or ")
+            self.write(sep)
             self.visit(elt)
 
-    def visitWhile(self, node):
+    def visitWhile(self, node, *args):
         self.labelStack.append(node.breakLabel)
         self.labelStack.append(node.loopLabel)
         if node.breakLabel.isActive:
@@ -1234,12 +1268,10 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.labelStack.pop()
         self.labelStack.pop()
         
-    def visitYield(self, node):
-        self.inYield = True
+    def visitYield(self, node, *args):
         self.write("@ (")
-        self.visit(node.value)
+        self.visit(node.value, YIELD)
         self.write(");")
-        self.inYield = False
 
         
 class _ConvertAlwaysVisitor(_ConvertVisitor):
@@ -1248,14 +1280,12 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         _ConvertVisitor.__init__(self, ast, blockBuf)
         self.funcBuf = funcBuf
 
-    def visitFunction(self, node):
+    def visitFunction(self, node, *args):
         w = node.code.nodes[-1]
         assert isinstance(w.body.nodes[0], astNode.Yield)
         sl = w.body.nodes[0].value
-        self.inYield = True
         self.write("always @(")
-        self.visit(sl)
-        self.inYield = False
+        self.visit(sl, YIELD)
         self.write(") begin: %s" % self.ast.name)
         self.indent()
         self.writeDeclarations()
@@ -1274,7 +1304,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         _ConvertVisitor.__init__(self, ast, blockBuf)
         self.funcBuf = funcBuf
 
-    def visitFunction(self, node):
+    def visitFunction(self, node, *args):
         self.write("initial begin: %s" % self.ast.name) 
         self.indent()
         self.writeDeclarations()
@@ -1302,7 +1332,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
             self.writeline()
             self.writeDeclaration(obj, name, "input")
             
-    def visitFunction(self, node):
+    def visitFunction(self, node, *args):
         self.write("function ")
         self.writeOutputDeclaration()
         self.indent()
@@ -1320,7 +1350,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.write("endfunction")
         self.writeline(2)
 
-    def visitReturn(self, node):
+    def visitReturn(self, node, *args):
         self.write("%s = " % self.ast.name)
         self.visit(node.value)
         self.write(";")
@@ -1340,11 +1370,11 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             output = name in self.ast.outputs
             input = name in self.ast.inputs
             inout = input and output
-            dir = (inout and "inout") or (output and "output") or (input and "input")
+            dir = (inout and "inout") or (output and "output") or "input"
             self.writeline()
             self.writeDeclaration(obj, name, dir)
             
-    def visitFunction(self, node):
+    def visitFunction(self, node, *args):
         self.write("task %s;" % self.ast.name)
         self.indent()
         self.writeInterfaceDeclarations()

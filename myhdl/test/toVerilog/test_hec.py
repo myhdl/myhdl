@@ -139,20 +139,18 @@ class TestHec(unittest.TestCase):
 
         return stimulus(), heccalc_inst, heccalc_v_inst
 
-##     def testPlain(self):
-##         sim = self.bench(HecCalculatorPlain)
-##         Simulation(sim).run()
+    def testPlain(self):
+        sim = self.bench(HecCalculatorPlain)
+        Simulation(sim).run()
 
     def testFunc(self):
         sim = self.bench(HecCalculatorFunc)
         Simulation(sim).run()
 
-##     def testTask(self):
-##         sim = self.bench(HecCalculatorTask)
-##         Simulation(sim).run()
+    def testTask(self):
+        sim = self.bench(HecCalculatorTask)
+        Simulation(sim).run()
        
-        
-
         
 if __name__ == '__main__':
     unittest.main()
