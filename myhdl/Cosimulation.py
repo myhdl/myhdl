@@ -71,6 +71,7 @@ class Cosimulation(object):
         if _simulator._cosim:
             raise MultipleCosimError
         _simulator._cosim = 1
+        print _simulator._cosim
         
         self._rt, self._wt = rt, wt = os.pipe()
         self._rf, self._wf = rf, wf = os.pipe()

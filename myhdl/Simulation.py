@@ -29,6 +29,7 @@ import exceptions
 from warnings import warn
 
 import _simulator as sim
+import _simulator
 from _simulator import _siglist, _futureEvents
 from Signal import Signal, _SignalWrap, _WaiterList
 from delay import delay
@@ -71,8 +72,6 @@ class Simulation(object):
         self._waiters, self._cosim = _flatten(*args)
         if not self._cosim and sim._cosim:
             warn("Cosimulation not registered as Simulation argument")
-        print self._cosim
-        print sim._cosim
         del _futureEvents[:]
         del _siglist[:]
 
