@@ -77,14 +77,17 @@ def run(sim, duration=None, quiet=0):
                     if waiter.caller:
                         waiters.append(waiter.caller)
                     continue
+                nr = len(clauses)
                 for clause in clauses:
                     if type(clause) is _WaiterList:
                         clause.append(clone)
-                        actives[id(clause)] = clause
+                        if nr > 1:
+                            actives[id(clause)] = clause
                     elif isinstance(clause, Signal):
                         wl = clause._eventWaiters
                         wl.append(clone)
-                        actives[id(wl)] = wl
+                        if nr > 1:
+                            actives[id(wl)] = wl
                     elif type(clause) is delay:
                         schedule((t + clause._time, clone))
                     elif type(clause) is GeneratorType:
@@ -104,10 +107,10 @@ def run(sim, duration=None, quiet=0):
             elif _siglist:
                 continue
 
-            # print actives
-            for wl in actives.values():
-                wl.purge()
-            actives = {}
+            if actives:
+                for wl in actives.values():
+                    wl.purge()
+                actives = {}
 
             if _futureEvents:
                 if t == maxTime:
