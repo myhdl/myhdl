@@ -273,6 +273,13 @@ class Signal(object):
     # comparison
     def __cmp__(self, other):
         return cmp(self._val, other)
+
+    # representation 
+    def __str__(self):
+        return str(self._val)
+
+    def __repr__(self):
+        return "Signal(" + repr(self._val) + ")"
     
         
 

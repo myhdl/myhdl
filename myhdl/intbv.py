@@ -332,8 +332,6 @@ class intbv(object):
     def __hex__(self):
         return hex(self._val)
       
-    def __repr__(self):
-        return repr(self._val)
         
     def __cmp__(self, other):
         if type(other) is intbv:
@@ -341,3 +339,10 @@ class intbv(object):
         else:
             return cmp(self._val, other)
 
+    # representation 
+    def __str__(self):
+        return str(self._val)
+
+    def __repr__(self):
+        return "intbv(" + repr(self._val) + ")"
+ 
