@@ -32,6 +32,8 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
+import exceptions
+
 
 def downrange(start, stop=0):
     """ Return a downward range. """
@@ -60,6 +62,14 @@ def bin(num, width=0):
 
 class Error(Exception):
     pass
+        
+class StopSimulation(exceptions.Exception):
+    """ Basic exception to stop a Simulation """
+    pass
 
+class SuspendSimulation(exceptions.Exception):
+    """ Basic exception to suspend a Simulation """
+    pass
 
+       
 

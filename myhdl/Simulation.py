@@ -26,7 +26,6 @@ __date__ = "$Date$"
 from __future__ import generators
 import sys
 import os
-import exceptions
 from warnings import warn
 
 import _simulator
@@ -37,6 +36,7 @@ from types import GeneratorType
 from Cosimulation import Cosimulation
 from join import join
 from _Waiter import _Waiter
+from util import StopSimulation, SuspendSimulation
 
 schedule = _futureEvents.append
 
@@ -222,13 +222,3 @@ def _flatten(*args):
                 waiters.extend(w)
     return waiters, cosim
 
-        
-class StopSimulation(exceptions.Exception):
-    """ Basic exception to stop a Simulation """
-    pass
-
-class SuspendSimulation(exceptions.Exception):
-    """ Basic exception to suspend a Simulation """
-    pass
-
-       
