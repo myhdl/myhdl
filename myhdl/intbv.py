@@ -103,14 +103,17 @@ class intbv(object):
         if j == maxint: # default if not supplied
             j = 0
         if i <= j or i < 1 or j < 0:
-            raise ValueError, "intbv[i:j]: requires i > j >= 0"
+            raise ValueError, "intbv[i:j]: requires i > j >= 0" \
+                  "            i, j ,v == %s, %s %s" % (i, j, val)
         res = intbv((self._val & 2**i-1) >> j)
         res._len = i-j
         return res
         
     def __setitem__(self, i, val):
         if val not in (0, 1):
-            raise ValueError, "intbv[i] = v: requires v in (0, 1)"
+            raise ValueError, "intbv[i] = v: requires v in (0, 1)" \
+                  "            i == %s " % i
+                  
         if val:
             self._val |= (2**i)
         else:
@@ -120,11 +123,12 @@ class intbv(object):
         if j == maxint: # default if not supplied
             j = 0
         if i <= j or i < 1 or j < 0:
-            raise ValueError, "intbv[i:j] = v: requires i > j >= 0"
-        if val >= 2**(i-j):
-            raise ValueError, "intbv[i:j] = v: v too large"
-        if val < 0:
-            raise ValueError, "intbv[i:j] = v: v should be >= 0"
+            raise ValueError, "intbv[i:j] = v: requires i > j >= 0" \
+                  "            i, j ,v == %s, %s %s" % (i, j, val)
+        if val >= 2**(i-j) or val < -2**(i-j):
+            print val, abs(val), i, j
+            raise ValueError, "intbv[i:j] = v: abs(v) too large\n" \
+                  "            i, j ,v == %s, %s %s" % (i, j, val)
         mask = (2**(i-j))-1
         mask *= 2**j
         self._val &= ~mask

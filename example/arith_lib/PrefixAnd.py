@@ -14,7 +14,7 @@ def PrefixAnd(width, speed, PI, PO):
         PT = Signal(intbv())
         while 1:
             yield PI, PT
-            PT.next[n:] = PI.val[n:]
+            PT.next[n:] = PI.val
             for l in range(1, m+1):
                 for k in range(2**(m-l)):
                     for i in range(2**(l-1)):
