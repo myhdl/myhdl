@@ -49,6 +49,20 @@ __date__ = "$Date$"
 
 __version__ = "0.3"
 
+class Error(Exception):
+    def __init__(self, kind, msg="", info=""):
+        self.kind = kind
+        self.msg = msg
+        self.info = info
+    def __str__(self):
+        s = "%s%s" % (self.info, self.kind)
+        if self.msg:
+            s += ": %s" % self.msg
+        return s
+
+class ToVerilogError(Error):
+    pass
+
 from _bin import bin
 from _concat import concat
 from _intbv import intbv
@@ -64,4 +78,26 @@ from _always_comb import always_comb
 from _enum import enum
 from _traceSignals import traceSignals
 from _toVerilog import toVerilog
+
+__all__ = ["bin",
+           "concat",
+           "intbv",
+           "join",
+           "posedge",
+           "negedge",
+           "Signal",
+           "now",
+           "delay",
+           "downrange",
+           "StopSimulation",
+           "Cosimulation",
+           "Simulation",
+           "instances",
+           "processes",
+           "always_comb",
+           "enum",
+           "traceSignals",
+           "toVerilog",
+           ]
+
 

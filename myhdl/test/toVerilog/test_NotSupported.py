@@ -200,14 +200,14 @@ class TestNotSupported(unittest.TestCase):
                 l = [1, 2, 3]
         self.check(g, z, a)
 
-    def testPower(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            while 1:
-                yield a
-                z.next = 2 ** 8
-        self.check(g, z, a)
+##     def testPower(self):
+##         a = Signal(bool())
+##         z = Signal(bool())
+##         def g(z, a):
+##             while 1:
+##                 yield a
+##                 z.next = 2 ** 8
+##         self.check(g, z, a)
 
     def testReturn(self):
         a = Signal(bool())
@@ -245,24 +245,24 @@ class TestNotSupported(unittest.TestCase):
                     pass
         self.check(g, z, a)
 
-    def testUnaryAdd(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            while 1:
-                yield a
-                z.next = +a
-        self.check(g, z, a)
+##     def testUnaryAdd(self):
+##         a = Signal(bool())
+##         z = Signal(bool())
+##         def g(z, a):
+##             while 1:
+##                 yield a
+##                 z.next = +a
+##         self.check(g, z, a)
 
-    def testUnarySub(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            while 1:
-                yield a
-                z.next = -a
-                return
-        self.check(g, z, a)
+##     def testUnarySub(self):
+##         a = Signal(bool())
+##         z = Signal(bool())
+##         def g(z, a):
+##             while 1:
+##                 yield a
+##                 z.next = -a
+##                 return
+##         self.check(g, z, a)
             
 
 if __name__ == '__main__':

@@ -36,7 +36,7 @@ from cStringIO import StringIO
 import myhdl
 from myhdl import Signal, intbv
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
-from myhdl._Error import Error as _Error
+from myhdl import ToVerilogError as Error
 
 def _flatten(*args):
     l = []
@@ -53,9 +53,6 @@ def _flatten(*args):
 _converting = 0
 _profileFunc = None
 
-# define Error class here for clearer reporting
-class Error(_Error):
-    pass
 class _error:
     pass
 _error.ArgType = "toVerilog first argument should be a classic function"
@@ -246,9 +243,6 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         
     def visitList(self, node, *args):
         self.raiseError(node, _error.NotSupported, "list")
-        
-    def visitPower(self, node, *args):
-        self.raiseError(node, _error.NotSupported, "power operator")
 
     def visitReturn(self, node, *args):
         self.raiseError(node, _error.NotSupported, "return statement")
@@ -259,19 +253,12 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitTryFinally(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
 
-    def visitUnaryAdd(self, node, *args):
-        self.raiseError(node, _error.NotSupported, "unary addition")
-        
-    def visitUnarySub(self, node, *args):
-        self.raiseError(node, _error.NotSupported, "unary subtraction")
         
 
-class _EvalIntExprVisitor(_ToVerilogMixin):
+class _EvalIntExprVisitor(object):
     
-    def __init__(self, symdict, sourcefile, lineoffset):
+    def __init__(self, symdict, sourceFile=None, lineOffset=None):
         self.symdict = symdict
-        self.sourcefile = sourcefile
-        self.lineoffset = lineoffset
         
     def binaryOp(self, node, op):
         self.visit(node.left)
@@ -280,9 +267,44 @@ class _EvalIntExprVisitor(_ToVerilogMixin):
             node.val = op(node.left.val, node.right.val)
         except:
             node.val = None
+
+    def unaryOp(self, node, op):
+        self.visit(node.expr)
+        try:
+            node.val = op(node.expr.val)
+        except:
+            node.val = None
+
+    def multiOp(self, node, op):
+        vals = []
+        for n in node.nodes:
+            self.visit(n)
+            vals.append(n.val)
+        node.val = op(*vals)
             
     def visitAdd(self, node):
         self.binaryOp(node, operator.add)
+
+##     def visitAnd(self, node):
+##         node.val = None
+##         for n in node.nodes:
+##             self.visit(n)
+##             if n.val:
+##                 node.val = n.val
+##                 return
+
+
+##     def visitCallFunc(self, node):
+##         self.visit(node.node)
+##         vals = []
+##         kwvals = {}
+##         for arg in node.args:
+##             self.visit(arg)
+##             if isinstance(arg, ast.Keyword):
+##                 kwvals[arg.name] = arg.expr.val
+##             else:
+##                 vals.append(arg.val)
+##         node.val = node.node.val(*vals, **kwvals)
         
     def visitConst(self, node):
         val = node.value
@@ -290,13 +312,45 @@ class _EvalIntExprVisitor(_ToVerilogMixin):
             node.val = val
         else:
             node.val = None
+
+##     # trick for testing
+##     def visitDiscard(self, node):
+##         self.visit(node.expr)
+##         self.val = node.expr.val
+
+##     def visitFloorDiv(self, node):
+##         self.binaryOp(node, operator.floordiv)
+
+##     def visitLeftShift(self, node):
+##         self.binaryOp(node, operator.lshift)
+        
+##     def visitMod(self, node):
+##         self.binaryOp(node, operator.mod)
+  
+##     def visitMul(self, node):
+##         self.binaryOp(node, operator.mul)
   
     def visitName(self, node):
         node.val = None
         if node.name in self.symdict:
-            val = self.symdict[node.name]
-            if isinstance(val, int):
-                node.val = val
+            node.val = self.symdict[node.name]
+        elif node.name in __builtins__:
+            node.val = __builtins__[node.name]
+
+##     def visitPower(self, node):
+##         self.binaryOp(node, operator.pow)
+        
+##     def visitRightShift(self, node):
+##         self.binaryOp(node, operator.rshift)
+                 
+##     def visitSub(self, node):
+##         self.binaryOp(node, operator.sub)
+
+##     def visitUnaryAdd(self, node):
+##         self.unaryOp(node, operator.pos)
+        
+##     def visitUnarySub(self, node):
+##         self.unaryOp(node, operator.neg)
 
   
 INPUT, OUTPUT, INOUT = range(3)
@@ -839,6 +893,10 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         # XXX
         pass
     
+    def visitPower(self, node):
+        # XXX
+        pass
+    
     def visitPrint(self, node):
         # XXX
         pass
@@ -895,6 +953,14 @@ class _ConvertGenVisitor(_ToVerilogMixin):
         for elt in tpl[1:]:
             self.write(" or ")
             self.visit(elt)
+            
+    def visitUnaryAdd(self, node, *args):
+        # XXX
+        pass
+        
+    def visitUnarySub(self, node, *args):
+        # XXX
+        pass
 
     def visitWhile(self, node):
         # XXX
