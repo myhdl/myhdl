@@ -14,3 +14,4 @@ graft doc/html/whatsnew*
 exclude doc/html/.cvsignore
 include doc/paper-a4/*.pdf
 include doc/paper-letter/*.pdf
+prune myhdl/experiments
