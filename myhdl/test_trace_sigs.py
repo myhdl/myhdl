@@ -29,6 +29,8 @@ import random
 from random import randrange
 random.seed(1) # random, but deterministic
 import sys
+import os
+path = os.path
 
 import unittest
 from unittest import TestCase
@@ -52,11 +54,18 @@ def dummy():
     inst = gen(clk)
     return 1
 
+def top():
+    inst = trace_sigs(fun)
+    return inst
+
 
 class TestTraceSigs(TestCase):
 
     def testTopName(self):
-        top = trace_sigs(fun)
+        p = "dut.vcd"
+        if path.exists(p):
+            os.remove(p)
+        dut = trace_sigs(fun)
         try:
             trace_sigs(fun)
         except TopLevelNameError:
@@ -65,28 +74,58 @@ class TestTraceSigs(TestCase):
             self.fail()
 
     def testArgType1(self):
+        p = "dut.vcd"
+        if path.exists(p):
+            os.remove(p)
         try:
-            top = trace_sigs([1, 2])
+            dut = trace_sigs([1, 2])
         except ArgTypeError:
             pass
         else:
             self.fail()
             
     def testArgType2(self):
+        p = "dut.vcd"
+        if path.exists(p):
+            os.remove(p)
         try:
-            top = trace_sigs(gen, Signal(0))
+            dut = trace_sigs(gen, Signal(0))
         except ArgTypeError:
             pass
         else:
             self.fail()
 
     def testReturnVal(self):
+        p = "dut.vcd"
+        if path.exists(p):
+            os.remove(p)
         try:
-            top = trace_sigs(dummy)
+            dut = trace_sigs(dummy)
         except NoInstancesError:
             pass
         else:
             self.fail()
+
+    def testHierarchicalTrace1(self):
+        p = "inst.vcd"
+        if path.exists(p):
+            os.remove(p)
+        top()
+        self.assert_(path.exists(p))
+        
+    def testHierarchicalTrace2(self):
+        pdut = "dut.vcd"
+        psub = "inst.vcd"
+        for p in (pdut, psub):
+            if path.exists(p):
+                os.remove(p)
+        dut = trace_sigs(top)
+        self.assert_(path.exists(pdut))
+        self.assert_(not path.exists(psub))
+
+    
+        
+        
        
        
 

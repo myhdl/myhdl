@@ -68,7 +68,7 @@ def trace_sigs(dut, *args, **kwargs):
     if _isgeneratorfunction(dut):
         raise ArgTypeError("got generator function")
     if _tracing:
-        return dut(*args, **kwargs) # skip
+         return dut(*args, **kwargs) # skip
     _tracing = 1
     try:
         o = getouterframes(currentframe())[1]
