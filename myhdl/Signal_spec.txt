@@ -58,9 +58,9 @@ In the following, a "sig" denotes an instance of the Signal class.
   assigned to sig.next is compatible with the type of the initial
   value. "Compatible" means that the type should either be a subtype
   of the initial type, or that the types have been designed to work
-  transparently together by other means. In particular, int
-  (and long) and intbv are not subtypes of each other, but they are
-  designed to work together.
+  transparently together by other means. In particular, int (and long)
+  and intbv are not subtypes of each other, but they are designed to
+  work together.
 
 * A sig should have a number of private list attributes that can hold
   generators that are waiting for a particular change on the sig's value:
