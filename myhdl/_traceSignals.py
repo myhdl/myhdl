@@ -266,7 +266,7 @@ def _writeVcdSigs(f, instances):
                 if w == 1:
                     print >> f, "$var reg 1 %s %s $end" % (s._code, n)
                 else:
-                    print >> f, "$var reg %s %s %s $end" % (w, s.code, n)
+                    print >> f, "$var reg %s %s %s $end" % (w, s._code, n)
             else:
                 print >> f, "$var real 1 %s %s $end" % (s._code, n)
     for i in range(curlevel):

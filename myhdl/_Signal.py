@@ -101,6 +101,10 @@ class Signal(object):
             self._max = val._max
             self._nrbits = val._len
             self._setNextVal = self._setNextIntbv
+            if self._nrbits:
+                self._printVcd = self._printVcdVec
+            else:
+                self._printVcd = self._printVcdHex
         elif val is None:
             self._type = None
             self._setNextVal = self._setNext
