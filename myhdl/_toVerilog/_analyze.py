@@ -295,8 +295,11 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             obj = self.getObj(expr)
             if obj is None:
                 self.raiseError(node, _error.TypeInfer, n)
-            if isinstance(obj, intbv) and len(obj) == 0:
-                self.raiseError(node, _error.IntbvBitWidth, n)
+            if isinstance(obj, intbv):
+                if len(obj) == 0:
+                    self.raiseError(node, _error.IntbvBitWidth, n)
+                if obj._min < 0:
+                    self.raiseError(node, _error.IntbvSign, n)
             if n in self.ast.vardict:
                 curObj = self.ast.vardict[n]
                 if isinstance(obj, type(curObj)):
@@ -333,7 +336,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         argsAreInputs = True
         f = self.getObj(node.node)
         if type(f) is type and issubclass(f, intbv):
-            node.obj = intbv()
+            node.obj = self.getVal(node)
         elif f is len:
             node.obj = int() # XXX
         elif f is bool:
@@ -499,7 +502,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                     rightind = self.getVal(node.upper)
                 else:
                     rightind = 0
-                node.obj = intbv()[leftind:rightind]
+                node.obj = node.obj[leftind:rightind]
             
  
     def visitSubscript(self, node, access=_access.INPUT, *args):

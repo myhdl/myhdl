@@ -116,6 +116,11 @@ class _UnparseVisitor(object):
 
     def visitInvert(self, node):
         self.unaryOp(node, '~')
+
+    def visitKeyword(self, node):
+        self.write(node.name)
+        self.write('=')
+        self.visit(node.expr)
         
     def visitLeftShift(self, node):
         self.binaryOp(node, '<<')

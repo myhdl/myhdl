@@ -97,7 +97,17 @@ def internalSignal(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
-     
+                
+def negIntbv(count, enable, clock, reset, n):
+    a = intbv(0, min=-2, max=45)
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+      
 
 objfile = "inc_inst.o"
 analyze_cmd = "iverilog -o %s inc_inst.v tb_inc_inst.v" % objfile
@@ -201,8 +211,13 @@ class TestInc(TestCase):
         else:
             self.fail()
         
-
-        
+    def testNegIntbv(self):
+        try:
+            self.bench(negIntbv)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.IntbvSign)
+        else:
+            self.fail()
 
 if __name__ == '__main__':
     unittest.main()
