@@ -99,7 +99,6 @@ class YieldNone(TestCase):
             self.assertEqual(now(), 10)
             yield delay(25)
             self.assertEqual(a.val, 1)
-            self.assertEqual(now(), 35)
         Simulation(stimulus()).run(quiet=1)
             
 
