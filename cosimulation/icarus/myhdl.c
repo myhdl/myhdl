@@ -19,15 +19,22 @@ typedef char            PLI_BYTE8;
 typedef unsigned char   PLI_UBYTE8;
 #endif
 
+/* 64 bit type for time calculations */
+typedef unsigned long long myhdl_time64_t;
+
 static int rpipe;
 static int wpipe;
 
 static vpiHandle from_myhdl_systf_handle = NULL;
 static vpiHandle to_myhdl_systf_handle = NULL;
 
-typedef struct cb_user_data {
-  char buf[MAXLINE];
-} s_cb_user_data, *p_cb_user_data;
+static char bufcp[MAXLINE];
+
+static myhdl_time64_t myhdl_time;
+static myhdl_time64_t verilog_time;
+static myhdl_time64_t pli_time;
+static myhdl_time64_t delay;
+static int delta;
 
 /* prototypes */
 static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data);
@@ -37,6 +44,17 @@ static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data);
 static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data);
 
 static int init_pipes();
+
+static myhdl_time64_t timestruct_to_time(const struct t_vpi_time*ts);
+
+/* stolen from Icarus */
+static myhdl_time64_t timestruct_to_time(const struct t_vpi_time*ts)
+{
+      myhdl_time64_t ti = ts->high;
+      ti <<= 32;
+      ti += ts->low & 0xffffffff;
+      return ti;
+}
 
 static int init_pipes()
 {
@@ -67,13 +85,11 @@ static int init_pipes()
 
 static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
 {
-  vpiHandle net_iter, net_handle;
-  vpiHandle cb_h;
-  s_vpi_time current_time;
+  vpiHandle reg_iter, reg_handle;
+  s_vpi_time verilog_time_s;
   char buf[MAXLINE];
   char s[MAXWIDTH];
   int n;
-  vpiHandle q;
 
   static int from_myhdl_flag = 0;
 
@@ -86,29 +102,40 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
 
   init_pipes();
 
-#ifdef DEBUG
-  vpi_printf("Hello from $from_myhdl %d %d\n", rpipe, wpipe);
-#endif
+  verilog_time_s.type = vpiSimTime;
+  vpi_get_time(NULL, &verilog_time_s);
+  verilog_time = timestruct_to_time(&verilog_time_s);
+  if (verilog_time != 0) {
+    vpi_printf("ERROR: $from_myhdl should be called at time 0\n");
+    vpi_control(vpiFinish, 1);  /* abort simulation */
+    return(0);
+  }
+  sprintf(buf, "FROM 0 ");
+  pli_time = 0;
+  delta = 0;
+
   from_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
-  net_iter = vpi_iterate(vpiArgument, from_myhdl_systf_handle);
-
-  current_time.type = vpiSimTime;
-  vpi_get_time(NULL, &current_time);
-  sprintf(buf, "FROM %x%08x ", current_time.high, current_time.low);
-
-  while ((net_handle = vpi_scan(net_iter)) != NULL) {
-    strcat(buf, vpi_get_str(vpiName, net_handle));
+  reg_iter = vpi_iterate(vpiArgument, from_myhdl_systf_handle);
+  while ((reg_handle = vpi_scan(reg_iter)) != NULL) {
+    if (vpi_get(vpiType, reg_handle) != vpiReg) {
+      vpi_printf("ERROR: $from_myhdl argument %s should be a reg\n",
+		 vpi_get_str(vpiName, reg_handle));
+      vpi_control(vpiFinish, 1);  /* abort simulation */
+      return(0);
+    }
+    strcat(buf, vpi_get_str(vpiName, reg_handle));
     strcat(buf, " ");
-    sprintf(s, "%d ", vpi_get(vpiSize, net_handle));
+    sprintf(s, "%d ", vpi_get(vpiSize, reg_handle));
     strcat(buf, s);
   }
-  write(wpipe, buf, strlen(buf));
+  n = write(wpipe, buf, strlen(buf));
 
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
     vpi_printf("Info: MyHDL simulator down\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
+  assert(n > 0);
   buf[n] = '\0';
 
   return(0);
@@ -117,12 +144,11 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
 static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 {
   vpiHandle net_iter, net_handle;
-  vpiHandle cb_h;
   char buf[MAXLINE];
   char s[MAXWIDTH];
   int n;
-  s_vpi_time current_time;
   s_cb_data cb_data_s;
+  s_vpi_time verilog_time_s;
   s_vpi_time time_s;
   s_vpi_value value_s;
   static int to_myhdl_flag = 0;
@@ -136,31 +162,34 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 
   init_pipes();
 
-#ifdef DEBUG
-  vpi_printf("Hello from $to_myhdl %d %d\n", rpipe, wpipe);
-#endif
+  verilog_time_s.type = vpiSimTime;
+  vpi_get_time(NULL, &verilog_time_s);
+  verilog_time = timestruct_to_time(&verilog_time_s);
+  if (verilog_time != 0) {
+    vpi_printf("ERROR: $to_myhdl should be called at time 0\n");
+    vpi_control(vpiFinish, 1);  /* abort simulation */
+    return(0);
+  }
+  sprintf(buf, "TO 0 ");
+  pli_time = 0;
+  delta = 0;
+
   to_myhdl_systf_handle = vpi_handle(vpiSysTfCall, NULL);
-
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
-
-  current_time.type = vpiSimTime;
-  vpi_get_time(NULL, &current_time);
-  sprintf(buf, "TO %x%08x ", current_time.high, current_time.low);
-
   while ((net_handle = vpi_scan(net_iter)) != NULL) {
     strcat(buf, vpi_get_str(vpiName, net_handle));
     strcat(buf, " ");
     sprintf(s, "%d ", vpi_get(vpiSize, net_handle));
     strcat(buf, s);
   }
-  write(wpipe, buf, strlen(buf));
+  n = write(wpipe, buf, strlen(buf));
 
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
-    vpi_printf("Info: MyHDL simulator down\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
   buf[n] = '\0';
+  assert(n > 0);
 
   // register read-only callback //
   time_s.type = vpiSimTime;
@@ -169,6 +198,19 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   cb_data_s.reason = cbReadOnlySynch;
   cb_data_s.user_data = NULL;
   cb_data_s.cb_rtn = to_myhdl_readonly_callback;
+  cb_data_s.obj = NULL;
+  cb_data_s.time = &time_s;
+  cb_data_s.value = NULL;
+  vpi_register_cb(&cb_data_s);
+
+  // pre-register delta cycle callback //
+  delta = 0;
+  time_s.type = vpiSimTime;
+  time_s.high = 0;
+  time_s.low = 1;
+  cb_data_s.reason = cbAfterDelay;
+  cb_data_s.user_data = NULL;
+  cb_data_s.cb_rtn = to_myhdl_delta_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
@@ -183,75 +225,66 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
   vpiHandle systf_handle;
   vpiHandle net_iter, net_handle;
   vpiHandle reg_iter, reg_handle;
-  s_vpi_time current_time;
-  s_vpi_value value_s;
   s_cb_data cb_data_s;
+  s_vpi_time verilog_time;
+  s_vpi_value value_s;
   s_vpi_time time_s;
   char buf[MAXLINE];
-  p_cb_user_data cb_user_data;
-  char bufcp[MAXLINE];
   int n;
-  char *time_high_string;
-  char *time_low_string;
-  PLI_UINT32 time_low;
-  PLI_UINT32 time_high;
-  PLI_UINT32 delay;
+  char *myhdl_time_string;
+  myhdl_time64_t delay;
 
   static int start_flag = 1;
 
-
   if (start_flag) {
     start_flag = 0;
-    write(wpipe, "START", 5);
+    n = write(wpipe, "START", 5);  
     if ((n = read(rpipe, buf, MAXLINE)) == 0) {
-      vpi_printf("Info: MyHDL simulator down\n");
       vpi_control(vpiFinish, 1);  /* abort simulation */
-      buf[n] = '\0';
-    }
+    }  
+    assert(n > 0);
   }
 
   net_iter = vpi_iterate(vpiArgument, to_myhdl_systf_handle);
   buf[0] = '\0';
-  current_time.type = vpiSimTime;
-  vpi_get_time(systf_handle, &current_time);
-  sprintf(buf, "%xd%08x ", current_time.high, current_time.low);
-  vpi_printf("%d: RW trigger\n", current_time.low);
+  verilog_time.type = vpiSimTime;
+  vpi_get_time(systf_handle, &verilog_time);
+  sprintf(buf, "%xd%08x ", verilog_time.high, verilog_time.low);
   value_s.format = vpiHexStrVal;
   while ((net_handle = vpi_scan(net_iter)) != NULL) {
     vpi_get_value(net_handle, &value_s);
-    vpi_printf("val %s\n", value_s.value.str);
     strcat(buf, value_s.value.str);
     strcat(buf, " ");
   }
-  write(wpipe, buf, strlen(buf));
+  n = write(wpipe, buf, strlen(buf));
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
-    vpi_printf("Info: MyHDL simulator down\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
+  assert(n > 0);
   buf[n] = '\0';
 
   /* save copy for later callback */
-  cb_user_data = (p_cb_user_data)malloc(sizeof(s_cb_user_data));
-  strcpy(cb_user_data->buf, buf);
+  strcpy(bufcp, buf);
 
-  time_high_string = strtok(buf, " ");
-  time_low_string = strtok(NULL, " ");
-  time_high = (PLI_UINT32) strtoul(time_high_string, (char **) NULL, 16);
-  time_low = (PLI_UINT32) strtoul(time_low_string, (char **) NULL, 16);
+  myhdl_time_string = strtok(buf, " ");
+  myhdl_time = (myhdl_time64_t) strtoull(myhdl_time_string, (char **) NULL, 10);
+  delay = (myhdl_time - pli_time) * 1000;
+  assert(delay >= 0);
+  assert(delay <= 0xFFFFFFFF);
+  if (delay > 0) { // schedule cbAfterDelay callback
+    assert(delay > delta);
+    delay -= delta;
+    /* Icarus runs RO callbacks when time has already advanced */
+    /* Therefore, compensate for the prescheduled delta callback */
+    delay -= 1;
+    delta = 0;
+    pli_time = myhdl_time;
 
-  assert(time_high == current_time.high);
-  if (time_low != current_time.low) { // schedule cbAfterDelay callback
-    if (time_low < current_time.low) {
-      delay = 0xFFFFFFFF - current_time.low + time_low;
-    } else {
-      delay = time_low - current_time.low;
-    }
-    vpi_printf("schedule delay callback\n");
     // register cbAfterDelay callback //
     time_s.type = vpiSimTime;
     time_s.high = 0;
-    time_s.low = delay;
+    time_s.low = (PLI_UINT32) delay;
     cb_data_s.reason = cbAfterDelay;
     cb_data_s.user_data = NULL;
     cb_data_s.cb_rtn = to_myhdl_delay_callback;
@@ -259,46 +292,44 @@ static PLI_INT32 to_myhdl_readonly_callback(p_cb_data cb_data)
     cb_data_s.time = &time_s;
     cb_data_s.value = NULL;
     vpi_register_cb(&cb_data_s);
-    return(0);
+  } else {
+    delta++;
+    assert(delta < 1000);
   }
-
-  /* hack: emulate cbEndOfTimeSync by cbAfterDelay */
-
-  // register callback //
-  vpi_printf("schedule delta callback\n");
-  time_s.type = vpiSimTime;
-  time_s.high = 0;
-  time_s.low = 1;
-  cb_data_s.reason = cbAfterDelay;
-  cb_data_s.user_data = (PLI_BYTE8 *) cb_user_data;
-  cb_data_s.cb_rtn = to_myhdl_delta_callback;
-  cb_data_s.obj = NULL;
-  cb_data_s.time = &time_s;
-  cb_data_s.value = NULL;
-  vpi_register_cb(&cb_data_s);
-  vpi_printf("scheduled delta callback\n");
   return(0);
 }
 
 static PLI_INT32 to_myhdl_delay_callback(p_cb_data cb_data)
 {
-  s_cb_data cb_data_s;
   s_vpi_time time_s;
-  s_vpi_time current_time;
-  vpi_printf("Got here delta \n");
+  s_vpi_time verilog_time;
+  s_cb_data cb_data_s;
 
-  vpi_get_time(NULL, &current_time);
+  vpi_get_time(NULL, &verilog_time);
   // register readonly callback //
   time_s.type = vpiSimTime;
   time_s.high = 0;
   time_s.low = 0;
-  cb_data_s.reason = cbReadWriteSynch;
+  cb_data_s.reason = cbReadOnlySynch;
   cb_data_s.user_data = NULL;
   cb_data_s.cb_rtn = to_myhdl_readonly_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
   vpi_register_cb(&cb_data_s);
+
+  // register delta callback //
+  time_s.type = vpiSimTime;
+  time_s.high = 0;
+  time_s.low = 1;
+  cb_data_s.reason = cbAfterDelay;
+  cb_data_s.user_data = NULL;
+  cb_data_s.cb_rtn = to_myhdl_delta_callback;
+  cb_data_s.obj = NULL;
+  cb_data_s.time = &time_s;
+  cb_data_s.value = NULL;
+  vpi_register_cb(&cb_data_s);
+
   return(0);
 }
 
@@ -306,18 +337,17 @@ static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data)
 {
   s_cb_data cb_data_s;
   s_vpi_time time_s;
-  s_vpi_time current_time;
-  p_cb_user_data cb_user_data;
+  s_vpi_time verilog_time;
   vpiHandle systf_handle;
   vpiHandle reg_iter, reg_handle;
   s_vpi_value value_s;
 
-  vpi_printf("Got here delta \n");
-  cb_user_data = (p_cb_user_data)cb_data->user_data;
+  if (delta == 0) {
+    return(0);
+  }
 
-  /* skip time values */
-  strtok(cb_user_data->buf, " ");
-  strtok(NULL, " ");
+  /* skip time value */
+  strtok(bufcp, " ");
 
   reg_iter = vpi_iterate(vpiArgument, from_myhdl_systf_handle);
 
@@ -329,18 +359,32 @@ static PLI_INT32 to_myhdl_delta_callback(p_cb_data cb_data)
     vpi_free_object(reg_iter);
   }
 
-  vpi_get_time(NULL, &current_time);
+  vpi_get_time(NULL, &verilog_time);
+
   // register readonly callback //
   time_s.type = vpiSimTime;
   time_s.high = 0;
   time_s.low = 0;
-  cb_data_s.reason = cbReadWriteSynch;
+  cb_data_s.reason = cbReadOnlySynch;
   cb_data_s.user_data = NULL;
   cb_data_s.cb_rtn = to_myhdl_readonly_callback;
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
   vpi_register_cb(&cb_data_s);
+
+  // register delta callback //
+  time_s.type = vpiSimTime;
+  time_s.high = 0;
+  time_s.low = 1;
+  cb_data_s.reason = cbAfterDelay;
+  cb_data_s.user_data = NULL;
+  cb_data_s.cb_rtn = to_myhdl_delta_callback;
+  cb_data_s.obj = NULL;
+  cb_data_s.time = &time_s;
+  cb_data_s.value = NULL;
+  vpi_register_cb(&cb_data_s);
+
   return(0);
 }
 

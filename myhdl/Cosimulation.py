@@ -140,7 +140,7 @@ class Cosimulation(object):
 
     def _get(self):
         s = os.read(self._rt, _MAXLINE)
-        print "Reading " + s
+        # print "Reading " + s
         if not s:
             raise SimulationEndError
         e = s.split()
@@ -154,12 +154,9 @@ class Cosimulation(object):
                 s.next = next
 
     def _put(self, time):
-        t = hex(time)[2:]
-        if t[-1] == 'L':
-            t = t[:-1] # strip trailing L
-        t = (9 - len(t)) * '0' + t # zero-extend to more than 32 bits
-        buf = t[:-8] + " " + t[-8:] # high and low time
-        # print "clear change"
+        buf = repr(time)
+        if buf[-1] == 'L':
+            buf = buf[:-1] # strip trailing L
         if self._isActive:
             self._isActive -= 1
         if self._hasChange:
@@ -175,9 +172,8 @@ class Cosimulation(object):
         while 1:
             yield sigs
             # print sigs
-            # print "detected change"
             self._hasChange = 1
-            self._isActive = 3
+            self._isActive = 1
             
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """

@@ -127,12 +127,9 @@ class Simulation(object):
                         else:
                             raise TypeError, "Incorrect yield clause type"
 
-                # print _siglist
                 if cosim:
                     cosim._get()
-                    if _siglist or cosim._isActive:
-##                         if cosim._isActive:
-                        print "CA:" + ` cosim._isActive` + " S:" + `_siglist`
+                    if _siglist or cosim._hasChange:
                         cosim._put(t)
                         continue
                 elif _siglist:
@@ -140,7 +137,6 @@ class Simulation(object):
                 if t == maxTime:
                     raise StopSimulation, "Simulated for duration %s" % duration
 
-                # print _futureEvents
                 if _futureEvents:
                     _futureEvents.sort()
                     t = sim._time = _futureEvents[0][0]

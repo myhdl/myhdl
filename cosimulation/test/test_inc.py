@@ -34,8 +34,8 @@ class TestInc(TestCase):
             reset.next = ACTIVE_LOW
             yield negedge(clock)
             reset.next = INACTIVE_HIGH
-            for i in range(1000):
-                enable.next = min(1, randrange(7))
+            for i in range(20):
+                enable.next = min(1, randrange(5))
                 yield negedge(clock)
             raise StopSimulation
             
@@ -49,7 +49,7 @@ class TestInc(TestCase):
                     expect = (expect + 1) % n
                 yield delay(1)
                 print "%d count %s expect %s" % (now(), count, expect)
-                # self.assertEqual(count, expect)
+                self.assertEqual(count, expect)
 
         Simulation(clockGen(), stimulus(), INC_1, check()).run(quiet=1)        
 

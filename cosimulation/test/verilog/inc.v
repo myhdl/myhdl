@@ -12,7 +12,7 @@ module inc(count, enable, clock, reset);
    
 
    always @(posedge clock or negedge reset) begin
-      $display("Always triggered: count %d", count);
+      // $display("Always triggered: count %d", count);
       if (reset == 0) begin
 	 count <= 0;
       end
