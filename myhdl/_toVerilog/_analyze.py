@@ -211,6 +211,13 @@ class _NotSupportedVisitor(_ToVerilogMixin):
             self.visit(suite, _context.UNKNOWN)
         if node.else_:
             self.visit(node.else_, _context.UNKNOWN)
+        
+    def visitPrintnl(self, node, *args):
+        if node.dest is not None:
+            self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
+        self.visitChildNodes(node, *args)
+        
+    visitPrint = visitPrintnl
 
 
 def getNrBits(obj):

@@ -145,6 +145,29 @@ def taskReturnVal(count, enable, clock, reset, n):
                 h2(cnt)
                 count.next = count + 1
 
+
+def printnlToFile(count, enable, clock, reset, n):
+    cnt = intbv()[8:]
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                print >> f, count
+                count.next = count + 1
+
+def printToFile(count, enable, clock, reset, n):
+    cnt = intbv()[8:]
+    while 1:
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                print >> f, count,
+                count.next = count + 1
+
        
 
 objfile = "inc_inst.o"
@@ -291,7 +314,21 @@ class TestErr(TestCase):
         else:
             self.fail()
 
-            
+    def testPrintnlToFile(self):
+        try:
+            self.bench(printnlToFile)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.NotSupported)
+        else:
+            self.fail()
+
+    def testPrintToFile(self):
+        try:
+            self.bench(printToFile)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.NotSupported)
+        else:
+            self.fail()
 
 
 if __name__ == '__main__':
