@@ -395,13 +395,12 @@ Not implemented yet.
 
 \begin{funcdesc}{toVerilog}{func \optional{, *args} \optional{, **kwargs}}
 Converts a \myhdl\ design instance to equivalent Verilog
-code, and a test bench to verify it.
+code, and also generates a test bench to verify it.
 \var{func} is a function that returns an instance.
 \function{toVerilog()} calls \var{func} under its control
-and passes \var{*args} and \var{**kwargs} to the call. In this way, it
-finds the hierarchy and the signals to be traced.
+and passes \var{*args} and \var{**kwargs} to the call.
 \end{funcdesc}
 
-For more information on the restrictions of convertible
+For more information abuut the restrictions on convertible
 \myhdl\ code, see section~\ref{conv-subset} in
 Chapter~\ref{conv}.
