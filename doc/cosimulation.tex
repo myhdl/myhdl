@@ -1,4 +1,4 @@
-\chapter{MyHDL as a hardware verification language}
+\chapter{Co-simulation with Verilog and VHDL}
 
 \section{Introduction}
 
@@ -31,8 +31,7 @@ be used in the examples.
 To introduce co-simulation, we will continue to use the Gray encoder
 example from the previous chapters. Suppose that we want to
 synthesize it and write it in Verilog for that purpose. Clearly we would
-like to reuse our unit test verification environment. This is exactly
-what \myhdl\ offers.
+like to reuse our unit test verification environment. 
 
 To start, let's recall how the Gray encoder in \myhdl{} looks like:
 
@@ -94,22 +93,22 @@ endmodule
 
 The \code{\$from_myhdl} task call declares which regs are driven by
 \myhdl{}, and the \code{\$to_myhdl} task call which regs \& nets are read
-by it. These tasks take an arbitrary number of arguments.  They
-are defined in a PLI module written in C. They are made available to
-the simulation in a simulator-dependent manner.  In Icarus Verilog,
-the tasks are defined in a \code{myhdl.vpi} module that is compiled
-from C source code.
+by it. These tasks take an arbitrary number of arguments.  They are
+defined in a PLI module written in C and made available to in a
+simulator-dependent manner.  In Icarus Verilog, the tasks are defined
+in a \code{myhdl.vpi} module that is compiled from C source code.
 
 \section{The \myhdl\ side}
 
-\myhdl\ supports co-simulation by a \code{Co-Simulation} object. 
-A \code{Co-Simulation} object must know how to run a HDL co-simulation.
+\myhdl\ supports co-simulation by a \code{Cosimulation} object. 
+A \code{Cosimulation} object must know how to run a HDL co-simulation.
 Therefore, the first argument to its constructor is a command string
-to execute a simulation. The way to generate and run an
-simulation executable is simulator dependent.
-For example, in Icarus Verilog, a simulation executable for our
-example can be obtained obtained by running the \code{iverilog}
-compiler as follows:
+to execute a simulation.
+
+The way to generate and run an simulation executable is simulator
+dependent.  For example, in Icarus Verilog, a simulation executable
+for our example can be obtained obtained by running the
+\code{iverilog} compiler as follows:
 
 \begin{verbatim}
 % iverilog -o bin2gray -Dwidth=4 bin2gray.v dut_bin2gray.v
@@ -130,33 +129,33 @@ This runs the \code{bin2gray} simulation, and specifies to use the
 \code{myhdl.vpi} PLI module present in the current directory. (This is 
 just a command line usage example; actually simulating with the
 \code{myhdl.vpi} module is only meaningful from a
-\code{Co-Simulation} object.)
+\code{Cosimulation} object.)
 
-We can use a \code{Co-Simulation} object to provide a HDL co-simulation
+We can use a \code{Cosimulation} object to provide a HDL co-simulation
 version of a design to the \myhdl\ simulator. Instead of a generator
-function, we write a function that returns a \code{Co-Simulation}
+function, we write a function that returns a \code{Cosimulation}
 object. For our example and the Icarus Verilog simulator, this is done
 as follows:
 
 \begin{verbatim}
 import os
 
-from myhdl import Co-Simulation
+from myhdl import Cosimulation
 
 cmd = "iverilog -o bin2gray -Dwidth=%s bin2gray.v dut_bin2gray.v"
       
 def bin2gray(B, G, width):
     os.system(cmd % width)
-    return Co-Simulation("vvp -m ./myhdl.vpi bin2gray", B=B, G=G)
+    return Cosimulation("vvp -m ./myhdl.vpi bin2gray", B=B, G=G)
 
 \end{verbatim}
 
-After the executable command argument, the \code{Co-Simulation}
+After the executable command argument, the \code{Cosimulation}
 constructor takes an arbitrary number of keyword arguments. Those
 arguments make the link between \myhdl\ Signals and HDL nets, regs, or
-signals, by named association. The keyword is the name of the argument
+signals, by named association. The keyword is the name of an argument
 in a \code{\$to_myhdl} or \code{\$from_myhdl} call; the argument is
-the \myhdl\ Signal.
+a \myhdl\ Signal.
 
 With all this in place, we can now use the existing unit test
 to verify the Verilog implementation. Note that we kept the
@@ -278,24 +277,23 @@ At first this may seem like an important restriction, but if one
 considers the target application for co-simulation, it probably
 isn't. 
 
-\myhdl\ support co-simulations so that test benches for HDL
-designs can be written in Python.
-Let's consider the nature of the target HDL designs. For high-level,
-behavioral models that are not intended for implementation, it should
-come as no surprise that I would recommend to write them in \myhdl\
-directly; that is one of the goals of the \myhdl\ effort. Likewise,
-gate level designs with annotated timing are not the target
-application: static timing analysis is a much better verification
-method for such designs.
+\myhdl\ supports co-simulation so that test benches for HDL
+designs can be written in Python.  Let's consider the nature of the
+target HDL designs. For high-level, behavioral models that are not
+intended for implementation, it should come as no surprise that I
+would recommend to write them in \myhdl\ directly; that is one of the
+goals of the \myhdl\ effort. Likewise, gate level designs with
+annotated timing are not the target application: static timing
+analysis is a much better verification method for such designs.
 
 Rather, the targeted HDL designs are naturally models that are
-intended for implementation.  Most likely, this will be through
-synthesis. As time delays are meaningless in synthesizable code, the
-restriction is compatible with the target application.
+intended for implementation, most likely through synthesis. As time
+delays are meaningless in synthesizable code, the restriction is
+compatible with the target application.
 
 \subsection{Race sensitivity issues}
 
-In a typical TTL code, some events cause other events to occur in the
+In a typical RTL code, some events cause other events to occur in the
 same time step. For example, when a clock signal triggers some signals
 may change in the same time step. For race-free operation, an HDL
 must differentiate between such events within a time step. This is done
@@ -313,7 +311,7 @@ What does this mean? Let's start with the good news. As explained in
 the previous section, the concept behind \myhdl\ co-simulation implies
 that clocks are generated at the \myhdl\ side.  \emph{When using a
 \myhdl\ clock and its corresponding HDL signal directly as a clock,
-co-simulation operation is race free.} In other words, the case
+co-simulation is race free.} In other words, the case
 that most closely reflects the \myhdl\ co-simulation approach, is race free.
 
 The situation is different when you want to use a signal driven by the
@@ -334,26 +332,21 @@ edge.
 This section requires some knowledge of PLI terminology.
 \end{quote}
 
-Enabling a simulator for co-simulation requires a PLI module
-written in C. In Verilog, the PLI is part of the ``standard''.
-However, different simulators implement different versions 
-and portions of the standard. Worse yet, the behavior of
-certain PLI callbacks is not defined on some essential points. 
-As a result, one should plan to write a specific PLI module
-for any simulator.
+Enabling a simulator for co-simulation requires a PLI module written
+in C. In Verilog, the PLI is part of the ``standard''.  However,
+different simulators implement different versions and portions of the
+standard. Worse yet, the behavior of certain PLI callbacks is not
+defined on some essential points.  As a result, one should plan to
+write a specific PLI module for any simulator.
 
-The present release contains a PLI module for the 
-open source Icarus simulator. I would like to add
-modules for any popular simulator in the future,
-either from external contributions, or by getting
-access to them myself. The same holds for VHDL
-simulators: it would be great to have an interface
-to the Modelsim VHDL simulator.
+The present release contains a PLI module for the open source Icarus
+simulator. I would like to add modules for other simulators in the
+future, either from external contributions, or by getting access to
+them myself.
 
-This section documents
-the current approach and status of the PLI module
-implementation in Icarus, and some reflections
-on future implementations in other simulators.
+This section documents the current approach and status of the PLI
+module implementation in Icarus, and some reflections on future
+implementations in other simulators.
 
 \subsection{Icarus Verilog}
 
@@ -381,8 +374,8 @@ I chose to make the time granularity in the Verilog simulator a 1000
 times finer than in the \myhdl{} simulator. For each \myhdl\ time
 step, 1000 Verilog time steps are available for \myhdl\ delta
 cycles. In practice, only a few delta cycles per time step should be
-needed. Exceeding this limit almost certainly indicates a design error
-and his limit is checked at run-time. The factor 1000 also makes it
+needed. Exceeding this limit almost certainly indicates a design error;
+the limit is checked at run-time. The factor 1000 also makes it
 easy to distinguish ``real'' time from delta cycle time when printing
 out the Verilog time.
 
@@ -390,13 +383,13 @@ out the Verilog time.
 
 As explained before, co-simulated Verilog should not contain delay
 statements. Ideally, there should be a run-time check to flag
-non-compliant code. However, there is currently no such check in the Icarus
-module.
+non-compliant code. However, there is currently no such check in the
+Icarus module.
 
 The check can be written using the \code{cbNextSimTime} VPI callback
-in Verilog. However, Icarus 0.7 doesn't support this callback. In
-the meantime, it has been added to the Icarus development branch.  When
-Icarus 0.8 is released, a check will be added.
+in Verilog. However, Icarus 0.7 doesn't support this callback. In the
+meantime, support for it has been added to the Icarus development
+branch.  When Icarus 0.8 is released, a check will be added.
 
 In the mean time, just don't do this. It may appear to ``work'' but it
 really won't as events will be missed over the co-simulation
@@ -416,7 +409,7 @@ relevant issue with modern operating systems. So I left it
 at that for the moment, and added assertions that should trigger
 when this situation occurs.
 
-Whenever you see an assertion fire in the PLI module, let me
+Whenever an assertion fires in the PLI module, let me
 know. The same holds for Python exceptions that you cannot
 easily explain.
 

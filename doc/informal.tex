@@ -2,7 +2,7 @@
 
 \section{A basic \myhdl\ simulation}
 
-We will introduce \myhdl\ with a classical \code{Hello World} style
+We will introduce \myhdl\ with a classic \code{Hello World} style
 example. Here are the contents of a \myhdl\ simulation script called
 \file{hello1.py}:
 
@@ -192,7 +192,7 @@ def greetings():
 \end{verbatim}
 As in standard Python, positional or named parameter association can
 be used in instantiations, or a mix of both\footnote{All positional
-parameters have to come before any named parameter.}. All these styles
+parameters have to go before any named parameter.}. All these styles
 are demonstrated in the example above. As in hardware description
 languages, named association can be very useful if there are a lot of
 parameters, as the parameter order in the call does not matter in that
@@ -647,7 +647,7 @@ It is more likely that we want to characterize the design on a byte
 by byte basis, and align the two generators before transmitting each
 byte. In \myhdl{}, this is done with the \function{join} function. By
 joining clauses together in a \code{yield} statement, we create a new
-clause that triggers only when all of its argument clauses have
+clause that triggers only when all of its clause arguments have
 triggered. For example, we can adapt the test bench as follows:
 
 \begin{verbatim}
@@ -686,7 +686,7 @@ RX: 0
 \section{\myhdl\ and Python}
 
 To conclude this introductory chapter, it is useful to stress that
-\myhdl\ is not a language. The language is Python, and \myhdl\ is
+\myhdl\ is not a language in itself. The language is Python, and \myhdl\ is
 implemented as a Python package called \code{myhdl}.  Moreover, it is
 a design goal to keep the \code{myhdl} package as minimalistic as
 possible, so that \myhdl\ descriptions are very much ``pure Python''.
