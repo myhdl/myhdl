@@ -1,0 +1,69 @@
+\chapter{An informal introduction}
+
+Let's introduce \myhdl\ with a classical \code{Hello World}
+example. Here are the contents of a
+\file{HelloWorld.py} script:
+
+\begin{verbatim}
+from myhdl import Signal, delay, posedge, now, Simulation
+
+clk = Signal(0)
+def clkGen():
+    while 1:
+        yield delay(10)
+        clk.next = 1
+        yield delay(10)
+        clk.next = 0
+
+def sayHello():
+    while 1:
+        yield posedge(clk)
+        print "%s Hello World!" % now()
+
+sim = Simulation(clkGen(), sayHello())
+sim.run(50)
+
+\end{verbatim}
+
+When we run this script, we get the following output: 
+
+\begin{verbatim}
+jand> python HelloWorld.py
+10 Hello World!
+30 Hello World!
+50 Hello World!
+StopSimulation: Simulated for duration 50
+
+\end{verbatim}
+
+To explain what happened, we will go over every line in the
+script. The first line imports a number of objects from the myhdl
+package. In good Python style, and unlike most other languages, we can
+only use identifiers that are \emph{literally} defined in the source
+file. \footnote{I don't want to explain the \code{ from package import
+* } syntax}
+
+Then, we create a clock \code{Signal} named \code{clk}, with initial
+value \code{0}. We also define a generator function \code{clkGen},
+that operates on clock \code{clk}. \code{clkGen} is a generator
+function (as opposed to a classic Python function) because it contains
+\code{yield} statements (instead of \code{return} statements). In
+myhdl, a \code{yield} statement has a similar purpose as a
+\code{wait} statement in VHDL: the statement suspends execution of the function, 
+and its clauses specify when the function should resume.
+
+In \code{clkGen}, the \code{yield} statements have \code{delay}
+clauses; this means the function should sleep for the specified amount
+of time. After each delay, the clock is assigned a new value, by
+assigning to its \code{next} attribute. Assigning to a
+\code{Signal}'s \code{next} attribute is \myhdl\'s equivalent to signal
+assignments in VHDL and non-blocking assignments in Verilog.
+
+To make sure that the clock generator runs ``forever'', we wrap
+everything in a \code{while 1} loop. This is Python's idiomatic
+equivalent to a Verilog \code{always} block or a VHDL \code{process}.
+
+
+
+
+
