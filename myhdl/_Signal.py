@@ -183,6 +183,8 @@ class Signal(object):
             val = val._val
         elif not isinstance(val, (int, long)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
+        if self._next is self._val:
+            self._next = copy(self._val)
         self._next._val = val
         self._next._checkBounds()
 
