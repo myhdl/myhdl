@@ -87,8 +87,6 @@ def traceSignals(dut, *args, **kwargs):
         return dut(*args, **kwargs) # skip
     if not callable(dut):
         raise ArgTypeError("got %s" % type(dut))
-    if _isGenFunc(dut):
-        raise ArgTypeError("got generator function")
     if _simulator._tracing:
         raise MultipleTracesError()
     _tracing = 1
@@ -173,14 +171,25 @@ class _HierExtr(object):
         self.instNamesStack = [Set()]
         self.hierarchy = hierarchy = []
         self.level = 0
-        _profileFunc = self.extractor
-        sys.setprofile(_profileFunc)
-        try:
+        # handle special case of a top-level generator separately
+        if _isGenFunc(dut):
             _top = dut(*args, **kwargs)
-        finally:
-            sys.setprofile(None)
-        if not hierarchy:
-            raise NoInstancesError
+            gsigdict = {}
+            for dict in (_top.gi_frame.f_globals, _top.gi_frame.f_locals):
+                for n, v in dict.items():
+                    if isinstance(v, Signal):
+                        gsigdict[n] = v
+            inst = [1, name, gsigdict]
+            self.hierarchy.append(inst)
+        else:
+            _profileFunc = self.extractor
+            sys.setprofile(_profileFunc)
+            try:
+                _top = dut(*args, **kwargs)
+            finally:
+                sys.setprofile(None)
+                if not hierarchy:
+                    raise NoInstancesError
         self.m = _top
         hierarchy.reverse()
         hierarchy[0][1] = name
@@ -211,7 +220,7 @@ class _HierExtr(object):
                         # check locally named generators
                         # those are not visited by the profiler mechanism
                         instNames = self.instNamesStack[-1]
-                        gens = getGens(arg)
+                        gens = _getGens(arg)
                         for gname, g in frame.f_locals.items():
                             if type(g) is GeneratorType and \
                                g in gens and gname not in instNames:
@@ -232,7 +241,7 @@ class _HierExtr(object):
                 self.skip = 0
                 
 
-def getGens(arg):
+def _getGens(arg):
     if type(arg) is GeneratorType:
         return [arg]
     else:

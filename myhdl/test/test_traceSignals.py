@@ -119,13 +119,6 @@ class TestTraceSigs(TestCase):
         else:
             self.fail()
 
-    def testArgType2(self):
-        try:
-            dut = traceSignals(gen, Signal(0))
-        except ArgTypeError:
-            pass
-        else:
-            self.fail()
 
     def testReturnVal(self):
         try:
