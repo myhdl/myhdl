@@ -252,10 +252,7 @@ FAIL: Check that all codewords occur exactly once
 Traceback (most recent call last):
   File "test_gray.py", line 109, in testUniqueCodeWords
     sim.run(quiet=1)
-  File "/home/jand/project/myhdl/myhdl/Simulation.py", line 87, in run
-    clauses, clone = waiter.next()
-  File "/home/jand/project/myhdl/myhdl/Simulation.py", line 161, in next
-    clause = self.generator.next()
+...
   File "test_gray.py", line 104, in test
     self.assertEqual(actual, expected)
   File "/usr/local/lib/python2.2/unittest.py", line 286, in failUnlessEqual
@@ -293,7 +290,7 @@ OK
 In the previous section, we concentrated on the general requirements
 of a Gray code. It is possible to specify these without specifying the
 actual code. It is easy to see that there are several codes
-that satisfy these requirements. In good XP style, we only tested for
+that satisfy these requirements. In good XP style, we only tested
 the requirements and nothing more.
 
 It may be that more control is needed. For example, the requirement
@@ -382,6 +379,9 @@ Check that the code is an original Gray code ... ok
 
 ----------------------------------------------------------------------
 Ran 1 tests in 3.091s
+
+OK
+
 \end{verbatim}
 
 
