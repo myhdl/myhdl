@@ -47,7 +47,7 @@ class Simulation:
     def __init__(self, *args):
         """ Construct a simulation object.
 
-        *args -- list of arguments. Each argument a generator or
+        *args -- list of arguments. Each argument is a generator or
                  a nested sequence of generators.
 
         """
@@ -188,7 +188,7 @@ class _Semaphore(object):
         
         
 class StopSimulation(exceptions.Exception):
-    """ Basic expection to stop a Simulation """
+    """ Basic exception to stop a Simulation """
     pass
 
 

@@ -19,7 +19,7 @@ if sys.version_info[:3] < (2, 2, 2):
 from distutils.core import setup
     
 setup(name="myhdl",
-      version="0.1",
+      version="0.2",
       description="myhdl python library",
       author="Jan Decaluwe",
       author_email="jan@jandecaluwe.com",
