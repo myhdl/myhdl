@@ -18,7 +18,7 @@ def rs232_rx(rx, actual, cfg):
     period = int(1*sec / cfg.baud_rate)
     
     yield posedge(rx)
-    yield delay(period / 2)
+    yield delay(period // 2)
     
     data[7] = 0
     for i in downrange(cfg.n_bits):

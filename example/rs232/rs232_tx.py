@@ -10,7 +10,7 @@ def rs232_tx(tx, data, cfg):
     """ rs232 transmitter.
 
     tx -- serial output data
-    data -- input data to be transmitted
+    data -- input data byte to be transmitted
     cfg -- rs232_util.Config configuration object
 
     """
