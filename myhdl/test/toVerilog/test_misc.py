@@ -109,23 +109,6 @@ def adderDebug(a, b, c):
             import string
         c.next = a + b
 
-translateOn = False
-def adderTranslateOn(a, b, c):
-    while 1:
-        yield a, b
-        if translateOn:
-            import string
-        c.next = a + b
-
-def adderLocal(a, b, c):
-    debug = False
-    while 1:
-        yield a, b
-        if debug:
-            c.next = a + b
-        debug = not debug
-        
-
         
 def Ignorecode_v(a, b, c):
     objfile = "ignorecode.o"           
@@ -166,13 +149,6 @@ class TestIgnoreCode(unittest.TestCase):
         sim = self.bench(adderDebug)
         Simulation(sim).run()
         
-    def testAdderTranslateOn(self):
-        sim = self.bench(adderTranslateOn)
-        Simulation(sim).run()
-
-    def testAdderLocal(self):
-        sim = self.bench(adderLocal)
-        Simulation(sim).run()
 
         
 if __name__ == '__main__':

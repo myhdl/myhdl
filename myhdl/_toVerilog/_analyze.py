@@ -213,12 +213,6 @@ class _NotSupportedVisitor(_ToVerilogMixin):
                 if test.name == '__debug__':
                     node.ignore = True
                     return # skip
-                if test.name in self.ast.symdict:
-                    obj = self.ast.symdict[test.name]
-                    # test for identity with False, not equality
-                    if obj is False:
-                        node.ignore = True
-                        return # skip
         for test, suite in node.tests:
             self.visit(test, _context.BOOLEAN)
             self.visit(suite, _context.UNKNOWN)
