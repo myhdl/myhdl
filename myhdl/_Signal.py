@@ -35,7 +35,7 @@ from copy import deepcopy as copy
 
 from myhdl import _simulator as sim
 from myhdl._simulator import _siglist, _futureEvents, now
-from myhdl._Waiter import _WaiterList
+from myhdl._Waiter import _WaiterList, _Waiter
 from myhdl._intbv import intbv
 from myhdl._bin import bin
 
@@ -201,6 +201,71 @@ class Signal(object):
 
     def _printVcdVec(self):
         print >> sim._tf, "b%s %s" % (bin(self._val, self._nrbits), self._code)
+
+
+    # experimental item and slice proxy signals through call interface
+    def _listener(self, sig, *args):
+        if len(args) == 1:
+            index = args[0]
+            while 1:
+                self.next[index] = sig.val
+                yield sig
+        elif len(args) == 2:
+            high, low = args
+            if low is None:
+                low = 0
+            if high is None:
+                while 1:
+                    self.next[:low] = sig.val
+                    yield sig
+            else:
+                while 1:
+                    self.next[high:low] = sig.val
+                    yield sig
+        else:
+            raise TypeError
+
+    def _driver(self, sig, *args):
+        if len(args) == 1:
+            index = args[0]
+            while 1:
+                sig.next = self.val[index]
+                yield self
+        elif len(args) == 2:
+            high, low = args
+            if low is None:
+                low = 0
+            if high is None:
+                while 1:
+                    sig.next = self.val[:low]
+                    yield self
+            else:
+                while 1:
+                    sig.next = self.val[high:low]
+                    yield self
+        else:
+            raise TypeError
+
+    def __call__(self, *args):
+        if len(args) == 1:
+            index = args[0]
+            sig = Signal(self[index])
+        elif len(args) == 2:
+            high, low = args
+            if low is None:
+                low = 0
+            if high is None:
+                sig = Signal(self[:low])
+            else:
+                sig = Signal(self[high:low])
+        else:
+            raise TypeError
+        listener = self._listener(sig, *args)
+        sig._eventWaiters.append(_Waiter(listener))
+        driver = self._driver(sig, *args)
+        self._eventWaiters.append(_Waiter(driver))
+        return sig
+       
 
     ### operators for which delegation to current value is appropriate ###
         
@@ -435,4 +500,6 @@ class _SignalWrap(object):
     def apply(self):
         return self.sig._apply(self.next, self.timeStamp)
 
-   
+
+
+  
