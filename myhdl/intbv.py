@@ -51,7 +51,6 @@ class intbv(object):
         else:
             raise TypeError("intbv constructor arg should be int or string")
         self._checkBounds()
-        
 
     def _checkBounds(self):
         if self._max is not None:
@@ -62,7 +61,6 @@ class intbv(object):
             if self._val < self._min:
                 raise ValueError("intbv value %s < minimum %s" %
                                  (self._val, self._min))
-        
 
     # concat method
     def concat(self, *args):

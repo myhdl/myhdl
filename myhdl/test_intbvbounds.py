@@ -56,26 +56,26 @@ class TestIntbvBounds(TestCase):
     def testSliceAssign(self):
         a = intbv(min=-24, max=34)
         for i in (-24, -2, 13, 33):
-            a[:] = i
-            a[10:] = i
+            for k in (0, 9, 10):
+                a[k:] = i
         for i in (-25, -128, 34, 35, 229):
+            for k in (0, 9, 10):
+                try:
+                    a[k:] = i
+                except ValueError:
+                    pass
+                else:
+                    self.fail()
+        a = intbv(5)[8:]
+        for v in (0, 2**8-1, 100):
+            a[:] = v
+        for v in (-1, 2**8, -10, 1000):
             try:
-                a[:] = i
-                a[10:] = i
+                a[:] = v
             except ValueError:
                 pass
             else:
                 self.fail()
-        a = intbv(5)[8:]
-        a[:] = 0
-        a[:] = 2**8-1
-        try:
-            a[:] = -1
-            a[:] = 2**8
-        except ValueError:
-            pass
-        else:
-            self.fail()
             
 
 
