@@ -90,20 +90,23 @@ EMACS=     emacs
 
 # The end of this should reflect the major/minor version numbers of
 # the release:
-WHATSNEW=whatsnew23
+WHATSNEW=whatsnew04
 
 # what's what
 MANDVIFILES=	paper-$(PAPER)/MyHDL.dvi
 
-HOWTODVIFILES=	paper-$(PAPER)/whatsnew03.dvi 
+HOWTODVIFILES=	paper-$(PAPER)/whatsnew03.dvi \
+                paper-$(PAPER)/whatsnew04.dvi
 
 MANPDFFILES=	paper-$(PAPER)/MyHDL.pdf 
 
-HOWTOPDFFILES=	paper-$(PAPER)/whatsnew03.pdf 
+HOWTOPDFFILES=	paper-$(PAPER)/whatsnew03.pdf \
+                paper-$(PAPER)/whatsnew04.pdf
 
 MANPSFILES=	paper-$(PAPER)/MyHDL.ps 
 
-HOWTOPSFILES=	paper-$(PAPER)/whatsnew03.ps 
+HOWTOPSFILES=	paper-$(PAPER)/whatsnew03.ps \
+                paper-$(PAPER)/whatsnew04.ps
 
 DVIFILES=	$(MANDVIFILES) $(HOWTODVIFILES)
 PDFFILES=	$(MANPDFFILES) $(HOWTOPDFFILES)
@@ -114,7 +117,8 @@ HTMLCSSFILES=html/manual/MyHDL.css
 ALLCSSFILES=$(HTMLCSSFILES) 
 
 INDEXFILES=html/manual/MyHDL.html \
-           html/whatsnew03/whatsnew03.html
+           html/whatsnew03/whatsnew03.html \
+           html/whatsnew04/whatsnew04.html 
 
 ALLHTMLFILES=$(INDEXFILES)
 
@@ -171,6 +175,14 @@ paper-$(PAPER)/whatsnew03.dvi: whatsnew03/whatsnew03.tex
 
 paper-$(PAPER)/whatsnew03.pdf: whatsnew03/whatsnew03.tex
 	cd paper-$(PAPER) && $(MKPDF) ../whatsnew03/whatsnew03.tex
+
+# What's new
+# in 0.4
+paper-$(PAPER)/whatsnew04.dvi: whatsnew04/whatsnew04.tex
+	cd paper-$(PAPER) && $(MKDVI) ../whatsnew04/whatsnew04.tex
+
+paper-$(PAPER)/whatsnew04.pdf: whatsnew04/whatsnew04.tex
+	cd paper-$(PAPER) && $(MKPDF) ../whatsnew04/whatsnew04.tex
 
 # The remaining part of the Makefile is concerned with various
 # conversions, as described above.  See also the README file.
@@ -232,6 +244,10 @@ html/manual/MyHDL.html: $(MANUALFILES)
 whatsnew03: html/whatsnew03/whatsnew03.html
 html/whatsnew03/whatsnew03.html: whatsnew03/whatsnew03.tex
 	$(MKHTML) --dir html/whatsnew03 whatsnew03/whatsnew03.tex
+
+whatsnew04: html/whatsnew04/whatsnew04.html
+html/whatsnew04/whatsnew04.html: whatsnew04/whatsnew04.tex
+	$(MKHTML) --dir html/whatsnew04 whatsnew04/whatsnew04.tex
 
 
 
@@ -402,5 +418,6 @@ clobber:
 	rm -rf html/index.html html/modindex.html html/acks.html
 	rm -rf html/manual/ 
 	rm -rf html/whatsnew03/
+	rm -rf html/whatsnew04/
 
 realclean distclean:  clobber
