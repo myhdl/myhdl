@@ -1243,12 +1243,14 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.indent()
         self.writeInputDeclarations()
         self.writeDeclarations()
+        self.dedent()
         self.writeline()
         self.write("begin: %s" % self.returnLabel)
+        self.indent()
         self.visit(node.code)
+        self.dedent()
         self.writeline()
         self.write("end")
-        self.dedent()
         self.writeline()
         self.write("endfunction")
         self.writeline(2)
@@ -1268,6 +1270,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.argnames = ast.argnames
         self.inputs = ast.inputs
         self.outputs = ast.outputs
+        self.returnLabel = Label("RETURN")
 
 
     def writeInterfaceDeclarations(self):
@@ -1292,12 +1295,14 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.indent()
         self.writeInterfaceDeclarations()
         self.writeDeclarations()
+        self.dedent()
         self.writeline()
         self.write("begin")
+        self.indent()
         self.visit(node.code)
+        self.dedent()
         self.writeline()
         self.write("end")
-        self.dedent()
         self.writeline()
         self.write("endtask")
         self.writeline(2)
