@@ -46,13 +46,8 @@ class intbv(object):
 
     # concat method
     def concat(self, *args):
-        val = self._val
-        basewidth = width = 0
-        if type(val) is intbv:
-            v = val._val
-            basewidth = width = val._len
-        else:
-            v = val
+        v = self._val
+        basewidth = width = self._len
         for a in args:
             if type(a) is intbv:
                 w = a._len
@@ -103,8 +98,10 @@ class intbv(object):
         return res
 
     def __getslice__(self, i, j):
-        if j == maxint: # default if not supplied
+        if j == maxint: # default
             j = 0
+        #if i == 0: # default
+        #    return intbv(self._val >> j)
         if i <= j or i < 1 or j < 0:
             raise ValueError, "intbv[i:j]: requires i > j >= 0" \
                   "            i, j == %s, %s" % (i, j)
@@ -116,15 +113,18 @@ class intbv(object):
         if val not in (0, 1):
             raise ValueError, "intbv[i] = v: requires v in (0, 1)" \
                   "            i == %s " % i
-                  
         if val:
             self._val |= (2**i)
         else:
             self._val &= ~(2**i)
 
     def __setslice__(self, i, j, val):
-        if j == maxint: # default if not supplied
+        if j == maxint: # default
             j = 0
+##         if i == 0: # default
+##             q = self._val % (2**j)
+##             self._val = val * 2**j + q
+##             return
         if i <= j or i < 1 or j < 0:
             raise ValueError, "intbv[i:j] = v: requires i > j >= 0" \
                   "            i, j ,v == %s, %s %s" % (i, j, val)

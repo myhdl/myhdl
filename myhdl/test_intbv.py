@@ -152,7 +152,7 @@ class TestIntBvIndexing(TestCase):
             n = long(s, 2)
             bv = intbv(n)
             bvi = intbv(~n)
-            for i in range(0, len(s)+20):
+            for i in range(1, len(s)+20):
                 for j in range(0,len(s)+20):
                     try:
                         res = bv[i:j]
@@ -196,7 +196,7 @@ class TestIntBvIndexing(TestCase):
         toggle = 0 
         for s in self.seqs:
             n = long(s, 2)
-            for i in range(0, len(s)+5):
+            for i in range(1, len(s)+5):
                 for j in range(0, len(s)+5):
                     for v in self.seqv:
                         ext = '0' * (i-j -len(v))
