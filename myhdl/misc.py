@@ -17,18 +17,9 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl package initialization.
+""" myhdl misc objects.
 
 This module provides the following myhdl objects:
-Simulation -- simulation class
-StopStimulation -- exception that stops a simulation
-now -- function that returns the current time
-Signal -- class to model hardware signals
-delay -- callable to model delay in a yield statement
-posedge -- callable to model a rising edge on a signal in a yield statement
-negedge -- callable to model a falling edge on a signal in a yield statement
-join -- callable to join clauses in a yield statement
-intbv -- mutable integer class with bit vector facilities
 downrange -- function that returns a downward range
 Error -- myhdl Error exception
 bin -- returns a binary string representation.
@@ -41,14 +32,44 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 
-# import intbv as a class first; it's used in other classes
-from intbv import intbv
-from Simulation import Simulation
-from join import join
-from Signal import posedge, negedge, Signal
-from _simulator import now
-from delay import delay
-from Cosimulation import Cosimulation
-from util import downrange, bin, Error, StopSimulation
-from misc import instances, processes
+import re
+import inspect
 
+from types import GeneratorType, FunctionType, ListType, TupleType
+from myhdl import Cosimulation
+    
+def _isGenSeq(seq):
+   if not isinstance(seq, (ListType, TupleType)):
+      return 0
+   for e in seq:
+      if type(e) in (GeneratorType, Cosimulation):
+         continue
+      if _isGenSeq(e):
+         continue
+      return 0
+   return 1
+
+                        
+def instances():
+   f = inspect.currentframe()
+   d = inspect.getouterframes(f)[1][0].f_locals
+   l = []
+   for v in d.values():
+      if type(v) in (GeneratorType, Cosimulation):
+         l.append(v)
+      elif _isGenSeq(v):
+         l.append(v)
+   return l
+
+
+def processes():
+   f = inspect.currentframe()
+   d = inspect.getouterframes(f)[1][0].f_locals
+   l = []
+   for v in d.values():
+      if type(v) is FunctionType:
+         s = inspect.getsource(v)
+         # check whether this is a generator function
+         if re.search(r"\byield\b", s):
+             l.append(v()) # call it
+   return l
