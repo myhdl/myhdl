@@ -270,7 +270,7 @@ resume whenever \var{signal} changes value. This is typically used to
 describe combinatorial logic.
 Finally, the code contains bit indexing operations and an exclusive-or
 operator as required for a Gray encoder. By convention, the lsb of an
-\class{intbv} object has index \code{0}.
+\class{intbv} object has index~\code{0}.
 
 To verify the Gray encoder, we write a test bench that prints input
 and output for all possible input values:
@@ -366,5 +366,238 @@ to avoid one-off count issues in practice. For example, the slice
 \code{hex[7:2]} has \code{7-2=5} bits. You can think about it as
 follows: for a slice \code{[i:j]}, only bits below index \code{i} are
 included, and the bit with index \code{j} is the last bit included.
+
+
+\section{Bus-functional procedures}
+
+A \dfn{bus-functional procedure} is a reusable encapsulation of the
+low-level operations needed to implement some abstract transaction on
+a physical interface. They are typically used in flexible verification
+environments.
+
+Once again, \myhdl\ supports bus-functional procedures by generator
+functions. In \myhdl\, the difference between instances and
+bus-functional procedure calls comes from the way in which a generator
+function is used.
+
+As an example, we will use a bus-functional procedure of a simplified UART
+transmitter. We assume 8 data bits, no parity bit, and a single stop
+bit, and we add print statements to follow the simulation behavior:
+
+\begin{verbatim}
+DURATION_9600 = int(1e9 / 9600)
+
+def rs232_tx(tx, data, duration=DURATION_9600):
+    
+    """ Simple rs232 transmitter procedure.
+
+    tx -- serial output data
+    data -- input data byte to be transmitted
+    duration -- transmit bit duration
+    
+    """
+
+    print "-- Transmitting %s --" % hex(data)
+    print "TX: start bit"      
+    tx.next = 0
+    yield delay(duration)
+
+    for i in range(8):
+        print "TX: %s" % data[i]
+        tx.next = data[i]
+        yield delay(duration)
+
+    print "TX: stop bit"      
+    tx.next = 1
+    yield delay(duration)
+
+\end{verbatim}
+
+This looks exactly like the generator functions in previous sections. It
+becomes a bus functional procedure when we use it differently. Suppose
+that in a test bench, we want to generate a number of data bytes to be
+transmitted. This can be modeled as follows:
+
+
+\begin{verbatim}
+def stimulus():
+    tx = Signal(1)
+    for val in (0xc5, 0x5c, 0xd2):
+        txData = intbv(val)
+        yield rs232_tx(tx, txData)
+
+\end{verbatim}
+
+We use the bus functional procedure call as a clause in the
+\code{yield} statement. This introduces a fourth form of the
+\code{yield} statement: using a generator as a clause. Although this is
+a more dynamic usage than in the previous cases, the meaning is
+actually very similar. When the calling generator \code{stimulus()}
+encounters the \code{yield} statement, the Simulator suspends its
+execution and looks to the clause to know when it should resume. In
+this case, it \dfn{spawns} the generator \code{rs232_tx(tx, txData)},
+and resumes the caller when the spawned generator returns.
+
+When simulating this, we get:
+
+\begin{verbatim}
+% python rs232.py
+-- Transmitting 0xc5 --
+TX: start bit
+TX: 1
+TX: 0
+TX: 1
+TX: 0
+TX: 0
+TX: 0
+TX: 1
+TX: 1
+TX: stop bit
+-- Transmitting 0x5c --
+TX: start bit
+TX: 0
+TX: 0
+TX: 1
+TX: 1
+...
+
+\end{verbatim}
+
+We will continue with this example by designing the corresponding UART
+receiver bus-functional procedure. This will allow us to introduce
+further capabilities of \myhdl\ and its use of the \code{yield}
+statement. 
+
+Until now, the \code{yield} statements had a single clause. However,
+they can have multiple clauses as well. In that case, the calling
+generator is triggered as soon as the condition corresponding to one
+of the clauses is satisfied. This corresponds to the functionality of
+sensitivity lists in Verilog and VHDL.
+
+For example, suppose we want to design an UART receive procedure with
+a timeout. We can specify the timeout condition while waiting for the
+start bit, as in the following generator function:
+
+\begin{verbatim}
+def rs232_rx(rx, data, duration=DURATION_9600, timeout=MAX_TIMEOUT):
+    
+    """ Simple rs232 receiver procedure.
+
+    rx -- serial input data
+    data -- data received
+    duration -- receive bit duration
+    
+    """
+
+    # wait on start bit until timeout
+    yield negedge(rx), delay(timeout)
+    if rx == 1:
+        raise StopSimulation, "RX time out error"
+
+    # sample in the middle of the bit duration
+    yield delay(duration // 2)
+    print "RX: start bit"
+
+    for i in range(8):
+        yield delay(duration)
+        print "RX: %s" % rx
+        data[i] = rx
+
+    yield delay(duration)
+    print "RX: stop bit"
+    print "-- Received %s --" % hex(data)
+
+\end{verbatim}
+
+If the timeout condition is triggered, the receive bit \code{rx}
+will still be \code{1}. In that case, we raise an exception to stop
+the simulation. The \code{StopSimulation} exception is predefined in
+\myhdl\ for such purposes. In the other case, we proceed by
+positioning the sample point in the middle of the bit duration, and
+sampling the received data bits.
+
+When a \code{yield} statement has multiple clauses, they can be of any
+type that is supported as a single clause, including generators. For
+example, we can verify the transmitter and receiver generator against
+each other by yielding them together, as follows:
+
+\begin{verbatim}
+def test():
+    tx = Signal(1)
+    rx = tx
+    rxData = intbv(0)
+    for val in (0xc5, 0x5c, 0xd2):
+        txData = intbv(val)
+        yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
+
+\end{verbatim}
+
+Both spawned generators will run concurrently, and the calling
+generator will resume as soon as one of them finishes (which will be
+the transmitter in this case).  The simulation output shows how
+the UART procedures run in lockstep:
+
+\begin{verbatim}
+-- Transmitting 0xc5 --
+TX: start bit
+RX: start bit
+TX: 1
+RX: 1
+TX: 0
+RX: 0
+TX: 1
+RX: 1
+TX: 0
+RX: 0
+TX: 0
+RX: 0
+TX: 0
+RX: 0
+TX: 1
+RX: 1
+TX: 1
+RX: 1
+TX: stop bit
+RX: stop bit
+-- Received 0xc5 --
+-- Transmitting 0x5c --
+TX: start bit
+RX: start bit
+TX: 0
+RX: 0
+...
+
+\end{verbatim}
+
+For completeness, we will verify the timeout behavior with a test
+bench that disconnects the \code{rx} from the \code{tx} signal, and we
+specify a small timeout for the receive procedure:
+
+\begin{verbatim}
+def testTimeout():
+    tx = Signal(1)
+    rx = Signal(1)
+    rxData = intbv(0)
+    for val in (0xc5, 0x5c, 0xd2):
+        txData = intbv(val)
+        yield rs232_rx(rx, rxData, timeout=4*DURATION_9600-1), rs232_tx(tx, txData)
+
+\end{verbatim}
+ 
+The simulation now stops on a timeout exception after a few
+transmit cycles:
+
+\begin{verbatim}
+-- Transmitting 0xc5 --
+TX: start bit
+TX: 1
+TX: 0
+TX: 1
+StopSimulation: RX time out error
+
+\end{verbatim}
+
+
+
 
 

@@ -1,5 +1,6 @@
 from __future__ import generators
 
+import sys
 from random import randrange
 
 from myhdl import Signal, Simulation, StopSimulation, \
@@ -17,22 +18,24 @@ def rs232_tx(tx, data, duration=DURATION_9600):
     
     """
 
-    print 'TX: start bit'      
+    print "-- Transmitting %s --" % hex(data)
+    print "TX: start bit"      
     tx.next = 0
     yield delay(duration)
 
     for i in range(8):
-        print 'TX: %s' % data[i]
+        print "TX: %s" % data[i]
         tx.next = data[i]
         yield delay(duration)
 
-    print 'TX: stop bit'       
+    print "TX: stop bit"      
     tx.next = 1
     yield delay(duration)
 
-    
+
+MAX_TIMEOUT = sys.maxint
         
-def rs232_rx(rx, data, duration=DURATION_9600, timeout=None):
+def rs232_rx(rx, data, duration=DURATION_9600, timeout=MAX_TIMEOUT):
     
     """ Simple rs232 receiver procedure.
 
@@ -42,59 +45,54 @@ def rs232_rx(rx, data, duration=DURATION_9600, timeout=None):
     
     """
 
-    # wait on start bit, possibly with a timeout
-    if timeout:
-        yield negedge(rx), delay(timeout)
-        if rx == 1:
-            raise StopSimulation, "Time out error"
-    else:
-        yield negedge(rx)
+    # wait on start bit until timeout
+    yield negedge(rx), delay(timeout)
+    if rx == 1:
+        raise StopSimulation, "RX time out error"
 
-    # sample in the middle
+    # sample in the middle of the bit duration
     yield delay(duration // 2)
-    print 'RX: start bit'
+    print "RX: start bit"
 
-    # receive data bits
     for i in range(8):
         yield delay(duration)
-        print 'RX: %s' % rx
+        print "RX: %s" % rx
         data[i] = rx
 
-    # stop bit
     yield delay(duration)
-    print 'RX: stop bit'
+    print "RX: stop bit"
+    print "-- Received %s --" % hex(data)
 
 
 
 
-def test1():
+def stimulus():
     tx = Signal(1)
-    for i in range(1, 5):
-        print "-- Call %s --" % i
-        txData = intbv(randrange(2**8))
+    for val in (0xc5, 0x5c, 0xd2):
+        txData = intbv(val)
         yield rs232_tx(tx, txData)
 
         
-def test2():
-    tx = Signal(1)
-    rx = Signal(1)
-    rxData = intbv(0)
-    txData = intbv(randrange(2**8))
-    yield rs232_rx(rx, rxData, timeout=3*DURATION_9600-1), rs232_tx(tx, txData)
-    
-
-def test3():
+def test():
     tx = Signal(1)
     rx = tx
     rxData = intbv(0)
-    txData = intbv(randrange(2**8))
-    yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
-    # yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
-    # yield join(rs232_rx(rx, rxData), rs232_tx(tx, txData))
+    for val in (0xc5, 0x5c, 0xd2):
+        txData = intbv(val)
+        yield rs232_rx(rx, rxData), rs232_tx(tx, txData)
+    
+def testTimeout():
+    tx = Signal(1)
+    rx = Signal(1)
+    rxData = intbv(0)
+    for val in (0xc5, 0x5c, 0xd2):
+        txData = intbv(val)
+        yield rs232_rx(rx, rxData, timeout=4*DURATION_9600-1), rs232_tx(tx, txData)
+    
 
-Simulation(test1()).run()
+Simulation(stimulus()).run()
 print
-Simulation(test2()).run()
+Simulation(test()).run()
 print
-Simulation(test3()).run()
+Simulation(testTimeout()).run()
     
