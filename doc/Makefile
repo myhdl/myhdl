@@ -1,4 +1,4 @@
-NAME = manual
+NAME = MyHDL
 
 default: $(NAME).dvi $(NAME).ps $(NAME).pdf
 
