@@ -75,6 +75,16 @@ class Simulation(object):
             warn("Cosimulation not registered as Simulation argument")
         del _futureEvents[:]
         del _siglist[:]
+        
+
+    def finalize(self):
+        cosim = self._cosim
+        if cosim:
+            _simulator._cosim = 0
+            os.close(cosim._rt)
+            os.close(cosim._wf)
+            os.waitpid(cosim._child_pid, 0)
+        
 
     def run(self, duration=None, quiet=0):
         
@@ -165,19 +175,11 @@ class Simulation(object):
             except StopSimulation:
                 if not quiet:
                     printExcInfo()
-                if cosim:
-                    _simulator._cosim = 0
-                    os.close(cosim._rt)
-                    os.close(cosim._wf)
-                    os.waitpid(cosim._child_pid, 0)
+                self.finalize()
                 return 0
 
             except:
-                if cosim:
-                    _simulator._cosim = 0
-                    os.close(cosim._rt)
-                    os.close(cosim._wf)
-                    os.waitpid(cosim._child_pid, 0)
+                self.finalize()
                 raise
 
 
