@@ -35,6 +35,8 @@ from myhdl import Signal, posedge, negedge, intbv
 
 from _simulator import _siglist
 
+QUIET=1
+
 class Shared:
     pass
 
@@ -52,7 +54,7 @@ class YieldNone(TestCase):
             yield delay(0)
             self.assertEqual(a.val, 1)
             self.assertEqual(now(), 10)
-        Simulation(stimulus()).run(quiet=1)
+        Simulation(stimulus()).run(quiet=QUIET)
 
     def test2(self):
         def stimulus():
@@ -72,7 +74,7 @@ class YieldNone(TestCase):
             yield delay(0)
             self.assertEqual(a.val, 1)
             self.assertEqual(now(), 10)
-        Simulation(stimulus()).run(quiet=1)
+        Simulation(stimulus()).run(quiet=QUIET)
 
     def test3(self):
         def stimulus():
@@ -85,7 +87,7 @@ class YieldNone(TestCase):
             yield delay(0)
             self.assertEqual(a.val, 1)
             self.assertEqual(now(), 10)
-        Simulation(stimulus()).run(quiet=1)
+        Simulation(stimulus()).run(quiet=QUIET)
 
     def test4(self):
         def stimulus():
@@ -99,7 +101,7 @@ class YieldNone(TestCase):
             self.assertEqual(now(), 10)
             yield delay(25)
             self.assertEqual(a.val, 1)
-        Simulation(stimulus()).run(quiet=1)
+        Simulation(stimulus()).run(quiet=QUIET)
             
 
 class JoinMix(TestCase):
@@ -114,7 +116,7 @@ class JoinMix(TestCase):
             self.assertEqual(now(), 5)
             yield a
             self.fail("Incorrect run") # should not get here
-        Simulation(stimulus()).run(quiet=1)
+        Simulation(stimulus()).run(quiet=QUIET)
         
     def test2(self):
         def stimulus():
@@ -123,7 +125,7 @@ class JoinMix(TestCase):
             self.assertEqual(now(), 5)
             yield a
             self.fail("Incorrect run") # should not get here
-        Simulation(stimulus()).run(quiet=1)
+        Simulation(stimulus()).run(quiet=QUIET)
 
     def stimulus(self, a, b, c, d):
         yield delay(5)
@@ -146,63 +148,63 @@ class JoinMix(TestCase):
         def response():
             yield join(a, b, c, d)
             self.assertEqual(now(), 20)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
         
     def test4(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, b), join(c, d)
             self.assertEqual(now(), 10)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
         
     def test5(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a), b, join(c, d)
             self.assertEqual(now(), 5)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
         
     def test6(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, delay(20)), b, join(c, d)
             self.assertEqual(now(), 10)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test7(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, delay(30)), join(c, d)
             self.assertEqual(now(), 20)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test8(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, negedge(a))
             self.assertEqual(now(), 10)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test9(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, negedge(a), posedge(c))
             self.assertEqual(now(), 15)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test10(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, a)
             self.assertEqual(now(), 5)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
         
     def test11(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
             yield join(a, posedge(b), negedge(b), a)
             self.assertEqual(now(), 15)
-        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=1)
+        Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
           
 
 class JoinedGen(TestCase):
@@ -236,7 +238,7 @@ class JoinedGen(TestCase):
         raise StopSimulation, "Joined concurrent generator yield"
 
     def testYieldJoinedGen(self):
-        Simulation(self.bench()).run(quiet=1)
+        Simulation(self.bench()).run(quiet=QUIET)
         
 
 class SignalUpdateFirst(TestCase):
@@ -270,7 +272,7 @@ class SignalUpdateFirst(TestCase):
         return process()
 
     def testSignalUpdateFirst(self):
-        Simulation(self.bench()).run(quiet=1)
+        Simulation(self.bench()).run(quiet=QUIET)
         
         
 class YieldZeroDelay(TestCase):
@@ -306,7 +308,7 @@ class YieldZeroDelay(TestCase):
         raise StopSimulation, "Zero delay yield"
 
     def testYieldZeroDelay(self):
-        Simulation(self.bench()).run(quiet=1)
+        Simulation(self.bench()).run(quiet=QUIET)
 
 
 class YieldConcurrentGen(TestCase):
@@ -342,7 +344,7 @@ class YieldConcurrentGen(TestCase):
         raise StopSimulation, "Concurrent generator yield"
 
     def testYieldConcurrentGen(self):
-        Simulation(self.bench()).run(quiet=1)
+        Simulation(self.bench()).run(quiet=QUIET)
 
         
 
@@ -394,7 +396,7 @@ class YieldGen(TestCase):
         return(module(), clkGen())
 
     def testYieldGen(self):
-        Simulation(self.bench()).run(quiet=1)
+        Simulation(self.bench()).run(quiet=QUIET)
 
 
 class DeltaCycleOrder(TestCase):
@@ -456,17 +458,17 @@ class DeltaCycleOrder(TestCase):
     def testAnd(self):
         def andFunction(a, b, c, d):
             return a & b & c & d
-        Simulation(self.bench(andFunction)).run(quiet=1)
+        Simulation(self.bench(andFunction)).run(quiet=QUIET)
         
     def testOr(self):
         def orFunction(a, b, c, d):
             return a | b | c | d
-        Simulation(self.bench(orFunction)).run(quiet=1)
+        Simulation(self.bench(orFunction)).run(quiet=QUIET)
         
     def testXor(self):
         def xorFunction(a, b, c, d):
             return a ^ b ^ c ^ d
-        Simulation(self.bench(xorFunction)).run(quiet=1)
+        Simulation(self.bench(xorFunction)).run(quiet=QUIET)
 
     def testMux(self):
         def muxFunction(a, b, c, d):
@@ -474,12 +476,12 @@ class DeltaCycleOrder(TestCase):
                 return a
             else:
                 return b
-        Simulation(self.bench(muxFunction)).run(quiet=1)
+        Simulation(self.bench(muxFunction)).run(quiet=QUIET)
 
     def testLogic(self):
         def function(a, b, c, d):
             return not (a & (not b)) | ((not c) & d)
-        Simulation(self.bench(function)).run(quiet=1)
+        Simulation(self.bench(function)).run(quiet=QUIET)
     
 
 class DeltaCycleRace(TestCase):
@@ -545,7 +547,7 @@ class DeltaCycleRace(TestCase):
     def testDeltaCycleRace(self):
         """ Check delta cycle races """
         bench = self.bench()
-        Simulation(bench).run(quiet=1)
+        Simulation(bench).run(quiet=QUIET)
 
 
 class DelayLine(TestCase):
@@ -589,7 +591,7 @@ class DelayLine(TestCase):
     def testZeroDelay(self):
         """ Zero delay behavior """
         bench = self.bench()
-        Simulation(bench).run(quiet=1)
+        Simulation(bench).run(quiet=QUIET)
 
 
 
@@ -681,7 +683,7 @@ class Waveform(TestCase):
         self.sig = initSignal(self.waveform)
 
     def run(self, sim):
-        sim.run(quiet=1)
+        sim.run(quiet=QUIET)
                  
     def testPosedge(self):
         """ Posedge waveform test """
@@ -808,7 +810,7 @@ class SimulationRunMethod(Waveform):
     
     def run(self, sim):
         duration = randrange(1, 300)
-        while sim.run(duration, quiet=1):
+        while sim.run(duration, quiet=QUIET):
             duration = randrange(1, 300)
 
       
@@ -831,19 +833,19 @@ class TimeZeroEvents(TestCase):
         """ Event at time 0 """
         s = Signal(0)
         testBench = self.bench(sig=s, next=1, clause=s)
-        Simulation(testBench).run(quiet=1)
+        Simulation(testBench).run(quiet=QUIET)
 
     def testPosedge(self):
         """ Posedge at time 0 """
         s = Signal(0)
         testBench = self.bench(sig=s, next=1, clause=posedge(s))
-        Simulation(testBench).run(quiet=1)
+        Simulation(testBench).run(quiet=QUIET)
         
     def testNegedge(self):
         """ Negedge at time 0 """
         s = Signal(1)
         testBench = self.bench(sig=s, next=0, clause=negedge(s))
-        Simulation(testBench).run(quiet=1)
+        Simulation(testBench).run(quiet=QUIET)
 
 
         
