@@ -8,6 +8,7 @@ random.seed(2)
 
 from myhdl import *
 
+
 def binaryOps(
               Bitand,
               Bitor,
@@ -28,7 +29,7 @@ def binaryOps(
               And,
               Or,
               left, right):
-   while 1:
+    while 1:
         yield left, right
         Bitand.next = left & right
         Bitor.next = left | right
@@ -36,7 +37,7 @@ def binaryOps(
         if right != 0:
             FloorDiv.next = left // right
         if left < 256 and right < 40:
-           LeftShift.next = left << right
+            LeftShift.next = left << right
         if right != 0:
             Mod.next = left % right
         Mul.next = left * right
@@ -52,9 +53,9 @@ def binaryOps(
         GE.next = left >= right
         And.next = bool(left and right)
         Or.next = bool(left or right)
-        
-            
- 
+
+
+
 def binaryOps_v(
                 Bitand,
                 Bitor,
@@ -75,11 +76,12 @@ def binaryOps_v(
                 And,
                 Or,
                 left, right):
-    analyze_cmd = "iverilog -o binops binops.v tb_binops.v"
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi binops"
-    if path.exists("binops"):
-        os.remove("binops")
-    os.system(analyze_cmd)
+    objfile = "binops.o"
+    analyze_cmd = "iverilog -o %s binops.v tb_binops.v" % objfile
+    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+    if path.exists(objfile):
+        os.remove(objfile)
+        os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 
 class TestBinaryOps(TestCase):
@@ -116,7 +118,7 @@ class TestBinaryOps(TestCase):
         EQ_v, NE_v, LT_v, GT_v, LE_v, GE_v = [Signal(bool()) for i in range(6)]
         And, Or = [Signal(bool()) for i in range(2)]
         And_v, Or_v, = [Signal(bool()) for i in range(2)]
-                      
+
         binops = toVerilog(binaryOps,
                            Bitand,
                            Bitor,
@@ -199,11 +201,11 @@ class TestBinaryOps(TestCase):
 
         return binops, binops_v, stimulus(), check()
 
-    def testBinaryOps(self):
-        for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
-            sim = self.binaryBench(m, n)
-            Simulation(sim).run()
-            
+        def testBinaryOps(self):
+            for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
+                sim = self.binaryBench(m, n)
+                Simulation(sim).run()
+
 
 
 def multiOps(
@@ -213,15 +215,15 @@ def multiOps(
               And,
               Or,
               argm, argn, argp):
-   while 1:
+    while 1:
         yield argm, argn, argp
         Bitand.next = argm & argn & argp
         Bitor.next = argm | argn | argp
         Bitxor.next = argm ^ argn ^ argp
         And.next = bool(argm and argn and argp)
         Or.next = bool(argm and argn and argp)
-        
- 
+
+
 def multiOps_v(
                 Bitand,
                 Bitor,
@@ -229,10 +231,12 @@ def multiOps_v(
                 And,
                 Or,
                 argm, argn, argp):
-    analyze_cmd = "iverilog -o multiops multiops.v tb_multiops.v"
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi multiops"
-    if path.exists("multiops"):
-        os.remove("multiops")
+
+    objfile = "multiops.o"
+    analyze_cmd = "iverilog -o %s multiops.v tb_multiops.v" % objfile
+    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+    if path.exists(objfile):
+        os.remove(objfile)
     os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 
@@ -255,7 +259,7 @@ class TestMultiOps(TestCase):
         Bitxor_v = Signal(intbv(0)[max(m, n, p):])
         And, Or = [Signal(bool()) for i in range(2)]
         And_v, Or_v, = [Signal(bool()) for i in range(2)]
-                      
+
         multiops = toVerilog(multiOps,
                            Bitand,
                            Bitor,
@@ -315,23 +319,24 @@ def unaryOps(
              Not,
              Invert,
              arg):
-   while 1:
+    while 1:
         yield arg
         Not.next = not arg
         Invert.next = ~arg
- 
+
 def unaryOps_v(
                Not,
                Invert,
                arg):
-    analyze_cmd = "iverilog -o unaryops unaryops.v tb_unaryops.v"
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi unaryops"
-    if path.exists("unaryops"):
-        os.remove("unaryops")
+    objfile = "unaryops.o"
+    analyze_cmd = "iverilog -o %s unaryops.v tb_unaryops.v" % objfile
+    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+    if path.exists(objfile):
+        os.remove(objfile)
     os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 
- 
+
 
 class TestUnaryOps(TestCase):
 
@@ -344,7 +349,7 @@ class TestUnaryOps(TestCase):
         Not_v = Signal(bool(0))
         Invert = Signal(intbv(0)[m:])
         Invert_v = Signal(intbv(0)[m:])
-                      
+
         unaryops = toVerilog(unaryOps,
                              Not,
                              Invert,
@@ -372,12 +377,12 @@ class TestUnaryOps(TestCase):
         return unaryops, unaryops_v, stimulus(), check()
 
     def testUnaryOps(self):
-       for m in (4, 7):
-          sim = self.unaryBench(m)
-          Simulation(sim).run()
-    
+        for m in (4, 7):
+            sim = self.unaryBench(m)
+            Simulation(sim).run()
+
 
 if __name__ == '__main__':
     unittest.main()
-    
+
 

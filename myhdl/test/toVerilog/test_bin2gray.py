@@ -18,14 +18,14 @@ def bin2gray(B, G, width):
         for i in range(width):
             G.next[i] = B[i+1] ^ B[i]
             
-            
-analyze_cmd = "iverilog -o bin2gray bin2gray_1.v tb_bin2gray_1.v"
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi bin2gray"
+objfile = "bin2gray.o"           
+analyze_cmd = "iverilog -o %s bin2gray_1.v tb_bin2gray_1.v" % objfile
+simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
  
 def bin2gray_v(B, G):
-    if path.exists("bin2gray"):
-        os.remove("bin2gray")
+    if path.exists(objfile):
+        os.remove(objfile)
     os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 

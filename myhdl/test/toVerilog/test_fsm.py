@@ -10,6 +10,8 @@ ACTIVE_LOW = 0
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
 
+
+
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.
@@ -61,14 +63,14 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     FSM_1 = FSM()
     return FSM_1
 
-
-analyze_cmd = "iverilog -o framerctrl framerctrl.v tb_framerctrl.v"
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi framerctrl"
+objfile = "framerctrl.o"
+analyze_cmd = "iverilog -o %s framerctrl.v tb_framerctrl.v" % objfile
+simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
 
 
 def FramerCtrl_v(SOF, state, syncFlag, clk, reset_n):
-    if path.exists("framectrl"):
-        os.remove("framectrl")
+    if path.exists(objfile):
+        os.remove(objfile)
     os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
     

@@ -27,15 +27,15 @@ def inc(count, enable, clock, reset, n):
             if enable:
                 count.next = (count + 1) % n
 
-
-analyze_cmd = "iverilog -o inc_1 inc_1.v tb_inc_1.v"
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi inc_1"
+objfile = "inc_1.o"
+analyze_cmd = "iverilog -o %s inc_1.v tb_inc_1.v" % objfile
+simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
  
 def top(count, enable, clock, reset, n, arch="myhdl"):
     if arch == "verilog":
-        if path.exists("inc_1"):
-            os.remove("inc_1")
+        if path.exists(objfile):
+            os.remove(objfile)
         os.system(analyze_cmd)
         return Cosimulation(simulate_cmd, **locals())
     else:
