@@ -34,13 +34,15 @@ class intbv(object):
     
     def __init__(self, val=0, _len=0):
         self._len = _len
-        if type(val) is intbv:
-            self._val = val._val
+        if isinstance(val, (int, long)):
+            self._val = val
         elif type(val) is StringType:
             self._val = long(val, 2)
             self._len = len(val)
+        elif isinstance(val, intbv):
+            self._val = val._val
         else:
-            self._val = val
+            raise TypeError("intbv constructor arg should be int or string")
 
     # concat method
     def concat(self, *args):
