@@ -1,0 +1,22 @@
+# could add to CFLAGS to turn on warnings if you are using gcc
+WARNS=-Wall
+
+# change path if not running test from installed directory location
+INCS=-I$(HOME)/gplcver-1.10f.src/pli_incs
+# maybe want -O<something> and/or -g
+CFLAGS= -fPIC -Wall -g $(INCS)
+LFLAGS= -G -shared -export-dynamic
+
+# change to your compiler
+CC=gcc
+
+all: myhdl.so
+
+myhdl.o:	myhdl.c 
+	$(CC) $(CFLAGS) -c myhdl.c
+ 
+
+# make rules for dynamic libaries
+myhdl.so:	myhdl.o
+	$(LD) $(LFLAGS) myhdl.o -o myhdl.so
+
