@@ -57,5 +57,6 @@ from util import downrange, Error, StopSimulation
 from bin import bin
 from misc import instances, processes
 from always_comb import always_comb
+from enum import enum
 from trace_sigs import trace_sigs
 
