@@ -1,0 +1,86 @@
+#  This file is part of the myhdl library, a Python package for using
+#  Python as a Hardware Description Language.
+#
+#  Copyright (C) 2003 Jan Decaluwe
+#
+#  The myhdl library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public License as
+#  published by the Free Software Foundation; either version 2.1 of the
+#  License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+__author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
+__revision__ = "$Revision$"
+__date__ = "$Date$"
+
+Specification for the intbv class
+---------------------------------
+
+Hardware description languages need bit-oriented data types. The
+standard Python int and long types have most of the desired features,
+including bitwise operations and an underlying 2-s complement
+representation, except one: mutability. Hardware designers want to be
+able to set bits and slices of a bit vector. The intbv class provides
+such a mutable number. It is designed to work transparently as a
+number, with other intbv's and with ints and longs. In addition, it
+has indexing and slicing operations and a few other bit-oriented
+features. As it is mutable, it cannot be a subtype of int; so it is a
+separate type.
+
+* an intbv() constructor takes and int, long, intbv, or bit string
+  as its first argument, called 'val'. The bit string works as in
+  int(bit string, 2).
+
+* an intbv() constructor takes optional 'min' and 'max' parameters.
+  The meaning is that the intbv's value should be in the range
+  range(min, max). Note that the Python conventions for range
+  bounds are followed. The 'min' and 'max' parameters default to
+  None and are available as read-only attributes.
+
+* an intbv supports the same the numeric, comparison, bitwise and
+  conversion operators as ints and longs. It supports mixed-type
+  operations with ints and longs. Mixed-type numeric operations return
+  an int or a long. Mixed-type bitwise operations return an intbv.
+
+* an intbv supports indexing operations, both to get and set a bit.
+
+* an intbv supports slicing operations, both to get and set a
+  slice. As is customary in hardware design, and unlike Python
+  sequences, the rightmost bit has index 0, and a slice is taken by a
+  downward range; in other words, in [i:j], i has to be larger than
+  j. People may object to this as it departs from standard Python
+  sequence conventions. However, an intbv should not be seen as a
+  sequence, but as a number in the first place: the indexing/slicing
+  operations are borrowed to get/set individual bits in a number. It
+  seems natural that the index of a bit should equal the power of the
+  corresponding 2**i term in a representation of the number's value as
+  a sum of powers of 2. This is also the standard hardware design way
+  to look at it.
+
+* As in standard Python, ranges are half-open; however, the
+  not-included index is the left index. Provided the downward range
+  concept is accepted, this seems like the Pythonic way to do it. Just
+  like with sequences, this convention avoids one-off issues in a lot
+  of practical cases. Both indices can be left unspecified. The right
+  index defaults to zero. The left index default means "all" bits.
+
+* When setting slices, there should be check on the input value to
+  verify that all significant bits can be accepted by the slice.
+
+* When getting as slice, the result is a new intbv object. Its
+  value is always positive or zero, regardless of the sign of the
+  original intbv object. When the left index is specified, the
+  new intbv has a defined bitwidth w=i-j. The min and max attributes
+  of the new intbv are implicitly set to 0 and 2**w respectively.
+
+* intbv supports the iterator protocol to iterate on its bits; again,
+  this requires a known length.
+

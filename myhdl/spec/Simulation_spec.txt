@@ -1,0 +1,89 @@
+#  This file is part of the myhdl library, a Python package for using
+#  Python as a Hardware Description Language.
+#
+#  Copyright (C) 2003 Jan Decaluwe
+#
+#  The myhdl library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public License as
+#  published by the Free Software Foundation; either version 2.1 of the
+#  License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  Lesser General Public License for more details.
+
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+__author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
+__revision__ = "$Revision$"
+__date__ = "$Date$"
+
+Specification for the Simulation class
+--------------------------------------
+
+* The Simulation object constructor has an arbitrary number of
+  arguments with each argument being a generator, or a nested sequence
+  of generators. A nested sequence means a sequence whose elements may
+  themselves be sequences, and so on, down to an arbitrary level.
+
+* A Simulation object has a 'run(duration=None)' method. If a duration
+  is specified, it should be a positive integer that indicates that
+  the simulation should run for that amount of time. If not, it should
+  run until there are no further events. Consecutive runs for a number
+  of durations t1, t2, ... tn should give exactly the same behavior as
+  a single run for duration t1+t2+...+ tn. The 'run' method returns
+  None if there are no further events, and 1 otherwise. When the
+  simulation has run for the specified duration, the SuspendSimulation
+  exception is raised.
+
+* A Simulation run interacts with a list of signals that need updating
+  and a list of generators that need to run. At Simulation
+  construction time, the signal list is empty and the generator list
+  contains all generators that were passed as constructor parameters.
+
+* In a given timestep, all signals in the signal list are first
+  updated. This may cause the need to run some additional
+  generators. Then, the generators are run and the return values from
+  their yield clauses are inspected. This may cause the need to update
+  signals in the same timestep. As long as the signal list is not
+  empty, the procedure is repeated. Once it is empty, the Simulation
+  moves to the next timestep where some action may be required. Again
+  the action may be a signal update, or a generator run. All actions
+  from the same time step are first collected before any generator is
+  run in the new timestep. In the new timestep, the update/run
+  procedure is repeated as described before.
+
+* The yield clauses recognized by as Simulation may contain a number
+  of different objects. The general format is:
+
+      yield arg1, arg2, .... argn
+
+  Each argument defines a trigger. When any trigger is satisfied, the
+  generator is run again. However, any subsequent triggers that were
+  originate from the same invocation of the yield clause, have no
+  effect. In other words: the first trigger wins, and the others are
+  neglected. (Note however, that another trigger could still have an
+  effect in another invocation of that same yield clause.)
+
+  Each trigger argument may be one of the following:
+  - a delay(t) object. This specifies that the generator should run at
+    time now() + t 
+  - a signal object. This specifies that the generator should run when
+    the signal value changes
+  - a posedge(signal) or negedge(signal) object. This specifies that
+    the generator should run at the rising or falling edge on a
+    signal.
+  - a join object. This specifies that the generator should run when
+    all arguments of the join have triggered. A join argument can be
+    any of the trigger argument described int this list.
+  - a generator. In this case, the generator is dynamically added to
+    the list of generators to be run in the timestep. When the
+    generator completes, the original generator is triggered.
+
+* When there are no further events, the Simulation.run method raises
+  the StopSimulation exception.
+
+
