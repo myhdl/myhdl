@@ -153,8 +153,8 @@ class Simulation(object):
                         elif clause is None:
                             waiters.append(clone)
                         else:
-                            raise TypeError, "Incorrect yield clause type"
-
+                            raise TypeError, "yield clause '%s'" % `clause`
+ 
                 if cosim:
                     cosim._get()
                     if _siglist or cosim._hasChange:
