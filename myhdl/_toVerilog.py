@@ -28,7 +28,7 @@ __date__ = "$Date$"
 import inspect
 import operator
 import compiler
-from compiler import ast
+from compiler import ast as astNode
 from sets import Set
 from types import GeneratorType, FunctionType, ClassType
 from cStringIO import StringIO
@@ -166,13 +166,12 @@ def _analyzeGens(top, genNames):
         ast = compiler.parse(s)
         ast.sourcefile = inspect.getsourcefile(f)
         ast.lineoffset = inspect.getsourcelines(f)[1]-1
-        symdict = f.f_globals.copy()
-        symdict.update(f.f_locals)
-        ast.symdict = symdict
+        ast.symdict = f.f_globals.copy()
+        ast.symdict.update(f.f_locals)
         ast.name = genNames.get(id(g), genLabel.next() + "_BLOCK")
         v = _NotSupportedVisitor(ast)
         compiler.walk(ast, v)
-        v = _AnalyzeBlockVisitor(ast.symdict, ast.sourcefile, ast.lineoffset)
+        v = _AnalyzeBlockVisitor(ast)
         compiler.walk(ast, v)
         ast.sigdict = v.sigdict
         ast.vardict = v.vardict
@@ -204,7 +203,7 @@ class _ToVerilogMixin(object):
         raise ToVerilogError(kind, msg, info)
 
     def require(self, node, test, msg=""):
-        assert isinstance(node, ast.Node)
+        assert isinstance(node, astNode.Node)
         if not test:
             self.raiseError(node, _error.Requirement, msg)
 
@@ -324,10 +323,10 @@ class ReferenceStack(list):
 
 class _AnalyzeVisitor(_ToVerilogMixin):
     
-    def __init__(self, symdict, sourcefile, lineoffset):
-        self.sourcefile = sourcefile
-        self.lineoffset = lineoffset
-        self.symdict = symdict
+    def __init__(self, ast):
+        self.sourcefile = ast.sourcefile
+        self.lineoffset = ast.lineoffset
+        self.symdict = ast.symdict
         self.vardict = {}
         self.inputs = Set()
         self.outputs = Set()
@@ -408,7 +407,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
     def visitAssign(self, node, access=OUTPUT, *args):
         target, expr = node.nodes[0], node.expr
         self.visit(target, OUTPUT)
-        if isinstance(target, ast.AssName):
+        if isinstance(target, astNode.AssName):
             self.visit(expr, INPUT, DECLARATION)
             node.kind = DECLARATION
             n = target.name
@@ -467,14 +466,14 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             s = inspect.getsource(func)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            # print ast
             ast.name = genLabel.next() + "_" + func.__name__
             ast.sourcefile = inspect.getsourcefile(func)
             ast.lineoffset = inspect.getsourcelines(func)[1]-1
             ast.symdict = func.func_globals.copy()
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
-            v = _AnalyzeFuncVisitor(ast.symdict, ast.sourcefile, ast.lineoffset, node.args)
+            v = _AnalyzeFuncVisitor(ast, node.args)
             compiler.walk(ast, v)
             ast.sigdict = v.sigdict
             ast.vardict = v.vardict
@@ -485,13 +484,11 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             ast.kind = v.kind
             node.ast = ast
             for i, arg in enumerate(node.args):
-                if isinstance(arg, compiler.ast.Keyword):
+                if isinstance(arg, astNode.Keyword):
                     n = arg.name
                 else: # Name
                     n = ast.argnames[i]
                 if n in ast.outputs:
-                    print "ARG"
-                    print arg
                     self.visit(arg, OUTPUT)
                 if n in ast.inputs:
                     self.visit(arg, INPUT)
@@ -534,7 +531,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
            
     def visitGetattr(self, node, *args):
         self.visit(node.expr, *args)
-        assert isinstance(node.expr, ast.Name)
+        assert isinstance(node.expr, astNode.Name)
         assert node.expr.name in self.symdict
         obj = self.symdict[node.expr.name]
         if str(type(obj)) == "<class 'myhdl._enum.Enum'>":
@@ -614,9 +611,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.refStack.push()
         self.visit(node.body, *args)
         self.refStack.pop()
-        if isinstance(node.test, ast.Const) and \
+        if isinstance(node.test, astNode.Const) and \
            node.test.value == True and \
-           isinstance(node.body.nodes[0], ast.Yield):
+           isinstance(node.body.nodes[0], astNode.Yield):
             node.kind = ALWAYS
         self.require(node, node.else_ is None, "while-else not supported")
         self.labelStack.pop()
@@ -625,16 +622,16 @@ class _AnalyzeVisitor(_ToVerilogMixin):
 
 class _AnalyzeBlockVisitor(_AnalyzeVisitor):
     
-    def __init__(self, symdict, sourcefile, lineoffset):
-        _AnalyzeVisitor.__init__(self, symdict, sourcefile, lineoffset)
+    def __init__(self, ast):
+        _AnalyzeVisitor.__init__(self, ast)
         self.sigdict = sigdict = {}
-        for n, v in symdict.items():
+        for n, v in self.symdict.items():
             if isinstance(v, Signal):
                 sigdict[n] = v
         
     def visitFunction(self, node, *args):
         self.refStack.push()
-        print node.code
+        # print node.code
         self.visit(node.code)
         self.kind = ALWAYS
         for n in node.code.nodes[:-1]:
@@ -665,8 +662,8 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
 
 class _AnalyzeFuncVisitor(_AnalyzeVisitor):
     
-    def __init__(self, symdict, sourcefile, lineoffset, args):
-        _AnalyzeVisitor.__init__(self, symdict, sourcefile, lineoffset)
+    def __init__(self, ast, args):
+        _AnalyzeVisitor.__init__(self, ast)
         self.sigdict = sigdict = {}
         self.args = args
         self.argnames = []
@@ -678,7 +675,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         self.refStack.push()
         argnames = node.argnames
         for i, arg in enumerate(self.args):
-            if isinstance(arg, ast.Keyword):
+            if isinstance(arg, astNode.Keyword):
                 n = arg.name
                 self.symdict[n] = getObj(arg.expr)
             else: # Name
@@ -693,9 +690,9 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         
     def visitReturn(self, node, *args):
         self.visit(node.value, INPUT, DECLARATION, *args)
-        if isinstance(node.value, ast.Const) and node.value.value is None:
+        if isinstance(node.value, astNode.Const) and node.value.value is None:
             obj = None
-        elif isinstance(node.value, ast.Name) and node.value.name is None:
+        elif isinstance(node.value, astNode.Name) and node.value.name is None:
             obj = None
         elif node.value.obj is not None:
             obj = node.value.obj
@@ -998,7 +995,7 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def visitCallFunc(self, node):
         fn = node.node
-        assert isinstance(fn, ast.Name)
+        assert isinstance(fn, astNode.Name)
         f = getObj(fn)
         opening, closing = '(', ')'
         if f is bool:
@@ -1054,7 +1051,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         expr = node.expr
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
-        if isinstance(expr, ast.CallFunc) and hasattr(expr, 'ast'):
+        if isinstance(expr, astNode.CallFunc) and hasattr(expr, 'ast'):
             self.write(';')
 
     def visitFor(self, node):
@@ -1062,7 +1059,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.labelStack.append(node.loopLabel)
         var = node.assign.name
         cf = node.list
-        self.require(node, isinstance(cf, ast.CallFunc), "Expected (down)range call")
+        self.require(node, isinstance(cf, astNode.CallFunc), "Expected (down)range call")
         f = getObj(cf.node)
         self.require(node, f in (range, downrange), "Expected (down)range call")
         args = cf.args
@@ -1123,7 +1120,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         raise AssertionError("To be implemented in subclass")
 
     def visitGetattr(self, node):
-        assert isinstance(node.expr, ast.Name)
+        assert isinstance(node.expr, astNode.Name)
         assert node.expr.name in self.symdict
         obj = self.symdict[node.expr.name]
         if type(obj) is Signal:
@@ -1208,7 +1205,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write("disable %s;" % self.returnLabel)
 
     def visitSlice(self, node):
-        if isinstance(node.expr, ast.CallFunc) and \
+        if isinstance(node.expr, astNode.CallFunc) and \
            node.expr.node.obj is intbv:
             c = self.getVal(node)
             self.write("%s'h" % c._nrbits)
@@ -1232,7 +1229,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.writeline()
             self.visit(stmt)
             # ugly hack to detect an orphan "task" call
-            if isinstance(stmt, ast.CallFunc) and hasattr(stmt, 'ast'):
+            if isinstance(stmt, astNode.CallFunc) and hasattr(stmt, 'ast'):
                 self.write(';')
 
     def visitSubscript(self, node):
@@ -1288,7 +1285,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
 
     def visitFunction(self, node):
         w = node.code.nodes[-1]
-        assert isinstance(w.body.nodes[0], ast.Yield)
+        assert isinstance(w.body.nodes[0], astNode.Yield)
         sl = w.body.nodes[0].value
         self.inYield = True
         self.write("always @(")
@@ -1297,7 +1294,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.write(") begin: %s" % self.name)
         self.indent()
         self.writeDeclarations()
-        assert isinstance(w.body, ast.Stmt)
+        assert isinstance(w.body, astNode.Stmt)
         for stmt in w.body.nodes[1:]:
             self.writeline()
             self.visit(stmt)
@@ -1340,9 +1337,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         elif hasattr(obj, '_nrbits'):
             self.write("[%s-1:0]" % obj._nrbits)
         else:
-            print "HERE"
-            print type(obj)
-            raise AssertionError("unexpected type")
+             raise AssertionError("unexpected type")
 
     def writeInputDeclarations(self):
         for name in self.argnames:
