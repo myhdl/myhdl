@@ -55,7 +55,6 @@ class AlwaysCombCompilationTest(TestCase):
             always_comb(h)
         except AlwaysCombError, e:
             self.assertEqual(e.kind, _error.ArgType)
-            pass
         else:
             self.fail()
     
