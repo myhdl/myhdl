@@ -30,6 +30,7 @@ from __future__ import generators
 import sys
 from inspect import currentframe, getframeinfo, getouterframes
 import re
+import string
 from types import GeneratorType
 import compiler
 from compiler import ast
@@ -123,9 +124,10 @@ class _HierExtr(object):
         global _profileFunc
         self.skipNames = ('always_comb', 'instances', 'processes')
         self.skip = 0
-        self.names = [name]
+        self.names = []
         self.instNamesStack = [Set()]
         self.hierarchy = hierarchy = []
+        self.gennames = gennames = {}
         self.level = 0
         # handle special case of a top-level generator separately
         if _isGenFunc(dut):
@@ -165,6 +167,8 @@ class _HierExtr(object):
                     self.level += 1
                     self.instNamesStack.append(Set())
         elif event == "return":
+            truenames = [n for n in self.names[1:] if n is not None]
+            prefix = '_'.join(truenames)
             if not self.skip:
                 name = self.names.pop()
                 if name:
@@ -189,6 +193,10 @@ class _HierExtr(object):
                                             gsigdict[n] = v
                                 inst = [self.level+1, gname, gsigdict]
                                 self.hierarchy.append(inst)
+                                absgname = gname
+                                if prefix:
+                                    absgname = prefix + "_" + gname
+                                self.gennames[id(g)] = absgname
                         inst = [self.level, name, sigdict]       
                         self.hierarchy.append(inst)
                     self.level -= 1

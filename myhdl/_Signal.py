@@ -112,6 +112,8 @@ class Signal(object):
         else:
             self._type = type(val)
             self._setNextVal = self._setNextType
+            if hasattr(val, '_nrbits'):
+                self._nrbits = val._nrbits
         self._eventWaiters = _WaiterList()
         self._posedgeWaiters = _WaiterList()
         self._negedgeWaiters = _WaiterList()

@@ -27,6 +27,7 @@ __date__ = "$Date$"
 
 from types import StringType
 
+from myhdl._util import bin
 
 def enum(*args):
 
@@ -34,6 +35,7 @@ def enum(*args):
     # only default encoding for now
     argdict = {}
     encoding = {}
+    nrbits = len(bin(len(args)))
     i = 0
     for arg in args:
         if type(arg) is not StringType:
@@ -41,20 +43,25 @@ def enum(*args):
         if encoding.has_key(arg):
             raise ValueError("enum literals should be unique")
         argdict[i] = arg
-        encoding[arg] = i
+        encoding[arg] = bin(i, nrbits)
         i += 1
-        
+       
     class EnumItem(object):
-        def __init__(self, arg):
+        def __init__(self, index, arg):
+            self._index = index
             self._val = encoding[arg]
+            self._nrbits = nrbits
         def __repr__(self):
-            return argdict[self._val]
+            return argdict[self._index]
+        def __hex__(self):
+            return hex(int(self._val, 2))
         __str__ = __repr__
 
     class Enum(object):
         def __init__(self):
-            for slot in args:
-                self.__dict__[slot] = EnumItem(slot)
+            for index, slot in enumerate(args):
+                self.__dict__[slot] = EnumItem(index, slot)
+            self.__dict__['_nrbits'] = nrbits
         def __setattr__(self, attr, val):
             raise AttributeError("Cannot assign to enum attributes")
         def __len__(self):

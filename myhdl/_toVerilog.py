@@ -30,8 +30,9 @@ import inspect
 import compiler
 from compiler import ast
 from sets import Set
-from types import GeneratorType
+from types import GeneratorType, ClassType
 from cStringIO import StringIO
+
 
 from myhdl import Signal, intbv
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
@@ -99,13 +100,13 @@ def toVerilog(func, *args, **kwargs):
     tbfile = open(tbpath, 'w')
     
     siglist = _analyzeSigs(h.hierarchy)
-    astlist = _analyzeGens(_flatten(h.top))
+    genlist = _analyzeGens(_flatten(h.top), h.gennames)
     intf = _analyzeTopFunc(func, *args, **kwargs)
     intf.name = name
     
     _writeModuleHeader(vfile, intf)
     _writeSigDecls(vfile, intf, siglist)
-    _convertGens(astlist, vfile)
+    _convertGens(genlist, vfile)
     _writeModuleFooter(vfile)
     _writeTestBench(tbfile, intf)
 
@@ -143,15 +144,21 @@ def _analyzeSigs(hierarchy):
     return siglist
 
 
-def _analyzeGens(top):
+def LabelGenerator():
+    i = 1
+    while 1:
+        yield "_MYHDL_LABEL_%s" % i
+        i += 1
+        
+
+def _analyzeGens(top, gennames):
+    genLabel = LabelGenerator()
     genlist = []
     for g in top:
         f = g.gi_frame
         s = inspect.getsource(f)
         s = s.lstrip()
         ast = compiler.parse(s)
-        ast.locals = f.f_locals
-        ast.globals = f.f_globals
         symdict = f.f_globals.copy()
         symdict.update(f.f_locals)
         sigdict = {}
@@ -160,6 +167,10 @@ def _analyzeGens(top):
                 sigdict[n] = v
         ast.sigdict = sigdict
         ast.symdict = symdict
+        if gennames.has_key(id(g)):
+            ast.name = gennames[id(g)]
+        else:
+            ast.name = genLabel.next()
         v = _AnalyzeGenVisitor(sigdict)
         compiler.walk(ast, v)
         genlist.append(ast)
@@ -371,6 +382,8 @@ def _getRangeString(s):
         return ''
     elif s._type is intbv:
         return "[%s:0] " % (s._nrbits-1)
+    elif s._nrbits is not None:
+        return "[%s:0] " % (s._nrbits-1)
     else:
         raise AssertionError
     
@@ -379,8 +392,9 @@ def _getRangeString(s):
     
 class _convertGenVisitor(object):
     
-    def __init__(self, f, sigdict, symdict):
+    def __init__(self, f, sigdict, symdict, name):
         self.buf = self.fileBuf = f
+        self.name = name
         self.declBuf = StringIO()
         self.codeBuf = StringIO()
         self.sigdict = sigdict
@@ -388,13 +402,7 @@ class _convertGenVisitor(object):
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
-        self.genLabel = self.LabelGenerator()
 
-    def LabelGenerator(self):
-        i = 1
-        while 1:
-            yield "LABEL_%s" % i
-            i += 1
 
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -442,17 +450,32 @@ class _convertGenVisitor(object):
 
 
     def visitCallFunc(self, node):
-        self.visit(node.node)
-        self.write(' ')
-        self.visit(node.args[0])
+        f = node.node
+        assert isinstance(f, ast.Name)
+        self.visit(f)
+        if f.name in self.symdict:
+            obj = self.symdict[f.name]
+        elif f.name in __builtins__:
+            obj = __builtins__[f.name]
+        else:
+            raise AssertionError
+        if type(obj) in (ClassType, type) and issubclass(obj, Exception):
+            self.write(": ")
+        else:
+            self.write(' ')
+        if node.args:
+            self.visit(node.args[0])
+            # XXX
         
 
     def visitCompare(self, node):
+        self.write("(")
         self.visit(node.expr)
         assert len(node.ops) == 1
         op, code = node.ops[0]
         self.write(" %s " % op)
         self.visit(code)
+        self.write(")")
 
     def visitConst(self, node):
         self.write(node.value)
@@ -497,7 +520,7 @@ class _convertGenVisitor(object):
         self.write("always @(")
         self.visit(sl)
         self.inYield = False
-        self.write(") begin: %s" % self.genLabel.next())
+        self.write(") begin: %s" % self.name)
         self.indent()
         self.buf = self.codeBuf
         for s in w.body.nodes[1:]:
@@ -512,21 +535,31 @@ class _convertGenVisitor(object):
         self.writeline()
 
     def visitGetattr(self, node):
-        if node.attrname == 'next':
-            self.isSigAss = True
-        self.visit(node.expr)
+        assert isinstance(node.expr, ast.Name)
+        assert node.expr.name in self.symdict
+        obj = self.symdict[node.expr.name]
+        if type(obj) is Signal:
+            if node.attrname == 'next':
+                self.isSigAss = True
+            self.visit(node.expr)
+        elif str(type(obj)) == "<class 'myhdl._enum.Enum'>":
+            assert hasattr(obj, node.attrname)
+            e = getattr(obj, node.attrname)
+            self.write("%d'b%s" % (obj._nrbits, e._val))
         
     def visitIf(self, node):
-        self.writeline()
-        self.write("if (")
-        test, suite = node.tests[0]
-        self.visit(test)
-        self.write(") begin")
-        self.indent()
-        self.visit(suite)
-        self.dedent()
-        self.writeline()
-        self.write("end")
+        ifstring = "if ("
+        for test, suite in node.tests:
+            self.writeline()
+            self.write(ifstring)
+            self.visit(test)
+            self.write(") begin")
+            self.indent()
+            self.visit(suite)
+            self.dedent()
+            self.writeline()
+            self.write("end")
+            ifstring = "else if ("
         if node.else_:
             self.writeline()
             self.write("else begin")
@@ -537,10 +570,12 @@ class _convertGenVisitor(object):
             self.write("end")
 
     def visitMod(self, node):
+        self.write("(")
         self.visit(node.left)
         self.write(" % ")
         self.visit(node.right)
-        
+        self.write(")")
+       
     def visitName(self, node):
         if node.name in self.symdict:
             obj = self.symdict[node.name]
@@ -552,6 +587,27 @@ class _convertGenVisitor(object):
                 self.write(node.name)
         else:
             self.write(node.name)
+
+    def visitNot(self, node):
+        self.write("(!")
+        self.visit(node.expr)
+        self.write(")")
+
+    def visitRaise(self, node):
+        self.writeline()
+        self.write('$display("')
+        self.visit(node.expr1)
+        self.write('");')
+        self.writeline()
+        self.write("$finish;")
+
+            
+    def visitSub(self, node):
+        self.write("(")
+        self.visit(node.left)
+        self.write(" - ")
+        self.visit(node.right)
+        self.write(")")
 
     def visitSubscript(self, node):
         self.visit(node.expr)
@@ -580,7 +636,7 @@ class _convertGenVisitor(object):
 
 def _convertGens(astlist, vfile):
     for ast in astlist:
-           v = _convertGenVisitor(vfile, ast.sigdict, ast.symdict)
+           v = _convertGenVisitor(vfile, ast.sigdict, ast.symdict, ast.name)
            compiler.walk(ast, v)
  
 
