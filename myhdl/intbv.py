@@ -121,10 +121,10 @@ class intbv(object):
     def __setslice__(self, i, j, val):
         if j == maxint: # default
             j = 0
-##         if i == 0: # default
-##             q = self._val % (2**j)
-##             self._val = val * 2**j + q
-##             return
+        if i == 0: # default
+            q = self._val % (2**j)
+            self._val = val * 2**j + q
+            return
         if i <= j or i < 1 or j < 0:
             raise ValueError, "intbv[i:j] = v: requires i > j >= 0" \
                   "            i, j ,v == %s, %s %s" % (i, j, val)

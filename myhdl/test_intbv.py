@@ -123,6 +123,14 @@ def setSlice(s, i, j, val):
     si = len(exts)-i
     sj = len(exts)-j
     return exts[:si] + val[si-sj:] + exts[sj:]
+
+def setSliceLeftOpen(s, j, val):
+    ext = '0' * (j-len(s)+1)
+    exts = ext + s
+    if j:
+        return val + exts[-j:]
+    else:
+        return val
     
 
 class TestIntBvIndexing(TestCase):
@@ -249,6 +257,27 @@ class TestIntBvIndexing(TestCase):
                         else:
                             refi = ~long(setSlice(s, i, j, extv), 2)
                             self.assertEqual(bvi, refi)
+                            
+    def testSetSliceLeftOpen(self):
+        self.seqsSetup()
+        toggle = 0 
+        for s in self.seqs:
+            n = long(s, 2)
+            for j in range(0, len(s)+5):
+                for v in self.seqv:
+                    bv = intbv(n)
+                    bvi = intbv(~n)
+                    val = long(v, 2)
+                    toggle ^= 1
+                    if toggle:
+                        val = intbv(val)
+                    bv[:j] = val
+                    bvi[:j] = -1-val
+                    ref = long(setSliceLeftOpen(s, j, v), 2)
+                    self.assertEqual(bv, ref)
+                    refi = ~long(setSliceLeftOpen(s, j, v), 2)
+                    self.assertEqual(bvi, refi)
+    
                             
 
 class TestIntBvAsInt(TestCase):
