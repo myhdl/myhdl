@@ -36,19 +36,9 @@ from cStringIO import StringIO
 import myhdl
 from myhdl import Signal, intbv
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
-from myhdl import ToVerilogError as Error
-
-def _flatten(*args):
-    l = []
-    for arg in args:
-        if type(arg) is GeneratorType:
-            l.append(arg)
-        elif isinstance(arg, (list, tuple)):
-            for item in arg:
-                l.extend(_flatten(item))
-        else:
-            raise ArgumentError
-    return l
+from myhdl import ToVerilogError
+from myhdl._util import _flatten
+            
 
 _converting = 0
 _profileFunc = None
@@ -64,12 +54,18 @@ _error.UndrivenSignal = "Signal is not driven"
 _error.Requirement = "Requirement violation"
     
 
+def _checkArgs(arglist):
+    for arg in arglist:
+        if not type(arg) is GeneratorType:
+            raise ArgumentError
+        
+
 def toVerilog(func, *args, **kwargs):
     global _converting
     if _converting:
         return func(*args, **kwargs) # skip
     if not callable(func):
-        raise Error(_error.ArgType, "got %s" % type(func))
+        raise ToVerilogError(_error.ArgType, "got %s" % type(func))
     _converting = 1
     try:
         outer = inspect.getouterframes(inspect.currentframe())[1]
@@ -85,7 +81,9 @@ def toVerilog(func, *args, **kwargs):
     tbfile = open(tbpath, 'w')
     
     siglist = _analyzeSigs(h.hierarchy)
-    genlist = _analyzeGens(_flatten(h.top), h.gennames)
+    arglist = _flatten(h.top)
+    _checkArgs(arglist)
+    genlist = _analyzeGens(arglist, h.gennames)
     intf = _analyzeTopFunc(func, *args, **kwargs)
     intf.name = name
     
@@ -124,7 +122,7 @@ def _analyzeSigs(hierarchy):
                     s._name = n
                 siglist.append(s)
             if not s._nrbits:
-                raise Error(_error.UndefinedBitWidth, s._name)
+                raise ToVerilogError(_error.UndefinedBitWidth, s._name)
     return siglist
 
 
@@ -183,7 +181,7 @@ class _ToVerilogMixin(object):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
               (self.sourcefile, self.lineoffset+lineno)
-        raise Error(kind, msg, info)
+        raise ToVerilogError(kind, msg, info)
 
     def require(self, node, test, msg=""):
         if not test:
@@ -558,7 +556,7 @@ def _writeSigDecls(f, intf, siglist):
         if s._driven:
             print >> f, "reg %s%s;" % (r, s._name)
         else:
-            raise Error(_error.UndrivenSignal, s._name)
+            raise ToVerilogError(_error.UndrivenSignal, s._name)
     print >> f
             
 
