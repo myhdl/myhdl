@@ -23,14 +23,16 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
     int quiet = 0;
     static char *argnames[] = {"sim", "duration", "quiet", NULL};
 
-    PyObject *waiters, *waiter, *clauses, *clone, *clause, *type, *newtO, *event;
+    PyObject *waiters, *waiter, *clauses, *clone, *clause;
+    PyObject *type, *newtO, *event, *id;
+    PyObject *actives, *values;
     long long int maxTime = -1;
     long long int t = 0;
     long long int ct = 0;
     long long int newt = 0;
     int nr;
     int len, i, j;
-    PyObject *tO, *extl, *s, *hr, *hgl, *nt, *c, *wl, *ev, *ctO, *r;
+    PyObject *tO, *extl, *s, *hr, *hgl, *nt, *c, *wl, *ev, *ctO, *r, *it;
 
 
 
@@ -42,6 +44,7 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
     tO = PyObject_GetAttrString(_simulator, "_time");
     t = PyLong_AsLongLong(tO);
     Py_DECREF(tO);
+    actives = PyDict_New();
 
     for (;;) {
 
@@ -49,7 +52,7 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 	for (i = 0; i < len; i++) {
 	    s = PyList_GetItem(_siglist, i);
 	    extl = PyObject_CallMethod(s, "_update", NULL);
-	    for (j = 0; j < PyList_Size(extl); j++) {
+	    for (j = 0; j < PyList_Size(extl) ; j++) {
 		PyList_Append(waiters, PyList_GetItem(extl, j));
 	    }
 	    Py_DECREF(extl);
@@ -79,15 +82,17 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 		if (PyErr_ExceptionMatches(PyExc_StopIteration)) {
 		    c = PyObject_GetAttrString(waiter, "caller");
 		    if (c != Py_None) {
-			PyList_Append(waiters, c);
+			PyList_Append(waiters, c);	  
 		    }
 		    Py_DECREF(waiter);
 		    Py_DECREF(c);
 		    continue;
 		} else {
+		    Py_DECREF(waiter);
 		    goto exception;
 		}
 	    }
+	    Py_DECREF(waiter);
 	    clauses = PyTuple_GetItem(nt, 0);
 	    clone = PyTuple_GetItem(nt, 1);
 	    nr = PyTuple_Size(clauses);
@@ -95,10 +100,21 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 		clause = PySequence_GetItem(clauses, i);
 		type = PyObject_Type(clause);
 		if (type == _WaiterList) {
+		    // PyObject_Print(clause, stdout, 0);
 		    PyList_Append(clause, clone);
+		    if (nr > 1) {
+			id = PyLong_FromVoidPtr(clause);
+			PyDict_SetItem(actives, id, clause);
+			Py_DECREF(id);
+		    }
 		} else if (PyObject_IsInstance(clause, Signal)) {
 		    wl = PyObject_GetAttrString(clause, "_eventWaiters");
 		    PyList_Append(wl, clone);
+		    if (nr > 1) {
+			id = PyLong_FromVoidPtr(wl);
+			PyDict_SetItem(actives, id, wl);
+			Py_DECREF(id);
+		    }
 		    Py_DECREF(wl);
 		} else if (type == delay) {
 		    ctO = PyObject_GetAttrString(clause, "_time");
@@ -114,6 +130,8 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 		} else {
 		    assert(0);
 		}
+		// Py_DECREF(clone);
+		Py_DECREF(type);
 		Py_DECREF(clause);
 	    }
 	    Py_DECREF(nt);
@@ -124,8 +142,21 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 	    continue;
 	}
 
+	if (PyDict_Size(actives) > 0) {
+	    values = PyDict_Values(actives);
+	    for (i = 0; i < PyList_Size(values); i++) {
+		wl = PyList_GetItem(values, i);
+		r = PyObject_CallMethod(wl, "purge", NULL);
+		Py_DECREF(r);
+	    }
+	    Py_DECREF(values);
+	    PyDict_Clear(actives);
+	}
+	// PyObject_Print(actives, stdout, 0);
+
 	if (PyList_Size(_futureEvents) > 0) {
-	    PyObject_CallMethod(_futureEvents, "sort", NULL);
+	    r = PyObject_CallMethod(_futureEvents, "sort", NULL);
+	    Py_DECREF(r);
 	    newtO = PyTuple_GetItem(PyList_GetItem(_futureEvents, 0), 0);
 	    PyObject_SetAttrString(_simulator, "_time", newtO);
 	    t = PyLong_AsLongLong(newtO);
@@ -135,7 +166,8 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 		newt = PyLong_AsLongLong(newtO);
 		event = PyTuple_GetItem(ev, 1);
 		if (newt == t) {
-		    if (PyObject_Type(event) == _Waiter) {
+		    type = PyObject_Type(event);
+		    if (type == _Waiter) {
 			PyList_Append(waiters, event);
 		    } else {
 			extl = PyObject_CallMethod(event, "apply", NULL);
@@ -144,6 +176,7 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 			}
 			Py_DECREF(extl);
 		    }
+		    Py_DECREF(type);
 		    PySequence_DelItem(_futureEvents, 0);
 		} else {
 		    break;
@@ -165,8 +198,12 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 	PyErr_Clear();
 	r = PyObject_CallMethod(sim, "_finalize", NULL);
 	Py_DECREF(r);
+	Py_DECREF(actives);
+	Py_DECREF(waiters);
 	return PyInt_FromLong(0);
     }
+    Py_DECREF(actives);
+    Py_DECREF(waiters);
     return Py_BuildValue("");
 }
 

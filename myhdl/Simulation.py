@@ -89,7 +89,7 @@ class Simulation(object):
         
     def run(self, duration=0, quiet=0):
         simrunc.run(sim=self, duration=duration, quiet=quiet)
-        
+         
     runpy = simrun.run
 
 

@@ -42,7 +42,8 @@ _schedule = _futureEvents.append
 class _WaiterList(list):
 
     def purge(self):
-        self[:] = [w for w in self if not w.hasRun]
+        if self:
+            self[:] = [w for w in self if not w.hasRun]
         
 
 def posedge(sig):
