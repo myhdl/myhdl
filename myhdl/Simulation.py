@@ -36,6 +36,7 @@ from delay import delay
 from types import GeneratorType
 from Cosimulation import Cosimulation
 from join import join
+from _Waiter import _Waiter
 
 schedule = _futureEvents.append
 
@@ -221,40 +222,6 @@ def _flatten(*args):
                 waiters.extend(w)
     return waiters, cosim
 
-
-class _Waiter(object):
-    
-    def __init__(self, generator, caller=None, semaphore=None):
-        self.generator = generator
-        self.hasRun = 0
-        self.caller = caller
-        self.semaphore = None
-        
-    def next(self):
-        self.hasRun = 1
-        clone = _Waiter(self.generator, self.caller, self.semaphore)
-        clause = self.generator.next()
-        if type(clause) is tuple:
-            return clause, clone
-        elif type(clause) is join:
-            n = len(clause._args)
-            clone.semaphore = _Semaphore(n)
-            return clause._args, clone
-        else:
-            return (clause,), clone
-    
-    def hasGreenLight(self):
-        if self.semaphore:
-            self.semaphore.val -= 1
-            if self.semaphore.val != 0:
-                return 0
-        return 1
-    
-           
-class _Semaphore(object):
-    def __init__(self, val=1):
-        self.val = val
-        
         
 class StopSimulation(exceptions.Exception):
     """ Basic exception to stop a Simulation """
