@@ -120,7 +120,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
     
     """
     
-    index = (intbv(0)[8:]) # position in frame
+    index = intbv(0, min=0, max=8) # position in frame
     while 1:
         yield posedge(clk), negedge(reset_n)
         if reset_n == ACTIVE_LOW:
@@ -208,7 +208,7 @@ class FramerCtrlTest(TestCase):
                 # print "Verilog: %s %s" % (SOF_v, hex(state_v))
 
         return framerctrl_ref_inst, framerctrl_v_inst, clkgen(), stimulus(), check()
-
+    
 
     def testRef(self):
         for t_State in (t_State_b, t_State_oc, t_State_oh):
