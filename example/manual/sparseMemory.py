@@ -7,6 +7,7 @@ class Error(Exception):
     pass
 
 def sparseMemory(dout, din, addr, we, en, clk):
+    
     """ Sparse memory model based on a dictionary.
 
     Ports:
@@ -18,7 +19,6 @@ def sparseMemory(dout, din, addr, we, en, clk):
     clk -- clock input
     
     """
-    
     memory = {}
     while 1:
         yield posedge(clk)
@@ -27,17 +27,39 @@ def sparseMemory(dout, din, addr, we, en, clk):
         if we:
             memory[addr] = din.val
         else:
-            # dout.next = memory[addr]
+            dout.next = memory[addr]
+            
+        
+def sparseMemory2(dout, din, addr, we, en, clk):
+    
+    """ Sparse memory model based on a dictionary.
+
+    Ports:
+    dout -- data out
+    din -- data in
+    addr -- address bus
+    we -- write enable: write if 1, read otherwise
+    en -- interface enable: enabled if 1
+    clk -- clock input
+    
+    """
+    memory = {}
+    while 1:
+        yield posedge(clk)
+        if not en:
+            continue
+        if we:
+            memory[addr] = din.val
+        else:
             try:
                 dout.next = memory[addr]
             except KeyError:
                 raise Error, "Unitialized address %s" % hex(addr)
-        # print memory 
 
 
 dout, din, addr, we, en, clk = args = [Signal(0) for i in range(6)]
 
-dut = sparseMemory(*args)
+dut = sparseMemory2(*args)
 
 def clkGen():
     while 1:
@@ -71,7 +93,7 @@ def test():
     yield read(0x77)
     print hex(dout)
     yield read(0x55)
-    print hex(din)
+    print hex(dout)
     yield read(0x33)
     
 
