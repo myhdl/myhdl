@@ -3,8 +3,8 @@ global-include *.txt
 global-include *.pdf
 global-include *.ps
 global-include *.c
-global-include *.v
 global-include Makefile
+global-exclude *.v
 global-exclude .cvsignore
 prune dist
 prune doc
