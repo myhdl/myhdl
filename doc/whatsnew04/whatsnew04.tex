@@ -264,7 +264,7 @@ input clock;
 input reset;
 
 
-always @(posedge clock or negedge reset) begin: _MYHDL1__BLOCK
+always @(posedge clock or negedge reset) begin: _MYHDL1_BLOCK
     if ((reset == 0)) begin
         count <= 0;
     end
@@ -326,7 +326,7 @@ input [7:0] B;
 output [7:0] G;
 reg [7:0] G;
 
-always @(B) begin: _MYHDL1__BLOCK
+always @(B) begin: _MYHDL1_BLOCK
     integer i;
     reg [9-1:0] Bext;
     Bext[9-1:0] = B;
@@ -413,7 +413,7 @@ input reset;
 reg [7:0] graycnt_comb;
 reg [7:0] _GRAY_INC_1_bincnt;
 
-always @(posedge clock or negedge reset) begin: _MYHDL1__BLOCK
+always @(posedge clock or negedge reset) begin: _MYHDL1_BLOCK
     if ((reset == 0)) begin
         _GRAY_INC_1_bincnt <= 0;
     end
@@ -424,7 +424,7 @@ always @(posedge clock or negedge reset) begin: _MYHDL1__BLOCK
     end
 end
 
-always @(_GRAY_INC_1_bincnt) begin: _MYHDL4__BLOCK
+always @(_GRAY_INC_1_bincnt) begin: _MYHDL4_BLOCK
     integer i;
     reg [9-1:0] Bext;
     Bext[9-1:0] = _GRAY_INC_1_bincnt;
@@ -433,7 +433,7 @@ always @(_GRAY_INC_1_bincnt) begin: _MYHDL4__BLOCK
     end
 end
 
-always @(posedge clock) begin: _MYHDL9__BLOCK
+always @(posedge clock) begin: _MYHDL9_BLOCK
     graycnt <= graycnt_comb;
 end
 
@@ -473,6 +473,8 @@ As an example, consider the following finite state machine, whose
 state variable used the enumeration type defined above:
 
 \begin{verbatim}
+FRAME_SIZE = 8
+
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.
@@ -485,7 +487,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """
     
-    index = intbv(0)[8:] # position in frame
+    index = intbv(0, min=0, max=8) # position in frame
     while 1:
         yield posedge(clk), negedge(reset_n)
         if reset_n == ACTIVE_LOW:
@@ -534,7 +536,7 @@ module framerctrl_inst (
     state,
     syncFlag,
     clk,
-    reset_n 
+    reset_n
 );
 output SOF;
 reg SOF;
@@ -544,11 +546,11 @@ input syncFlag;
 input clk;
 input reset_n;
 
-always @(posedge clk or negedge reset_n) begin: _MYHDL1__BLOCK
-    reg [8-1:0] index;
+always @(posedge clk or negedge reset_n) begin: _MYHDL1_BLOCK
+    reg [3-1:0] index;
     if ((reset_n == 0)) begin
         SOF <= 0;
-        index[8-1:0] = 0;
+        index[3-1:0] = 0;
         state <= 3'b001;
     end
     else begin
@@ -556,7 +558,7 @@ always @(posedge clk or negedge reset_n) begin: _MYHDL1__BLOCK
         // synthesis parallel_case full_case
         casez (state)
             3'b??1: begin
-                index[8-1:0] = 0;
+                index[3-1:0] = 0;
                 if (syncFlag) begin
                     state <= 3'b010;
                 end
@@ -584,7 +586,7 @@ always @(posedge clk or negedge reset_n) begin: _MYHDL1__BLOCK
                 $finish;
             end
         endcase
-        index[8-1:0] = ((index + 1) % 8);
+        index[3-1:0] = ((index + 1) % 8);
     end
 end
 endmodule
