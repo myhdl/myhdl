@@ -189,6 +189,16 @@ class _ToVerilogMixin(object):
         lineno = lineno or 0
         return lineno
     
+    def getObj(self, node):
+        if hasattr(node, 'obj'):
+            return node.obj
+        return None
+
+    def getKind(self, node):
+        if hasattr(node, 'kind'):
+            return node.kind
+        return None
+
     def getVal(self, node):
         val = eval(_unparse(node), self.ast.symdict)
         return val
@@ -293,11 +303,6 @@ class _NotSupportedVisitor(_ToVerilogMixin):
             self.visit(node.else_, UNKNOWN)
 
 
-def getObj(node):
-    if hasattr(node, 'obj'):
-        return node.obj
-    return None
-
 def getNrBits(obj):
     if hasattr(obj, '_nrbits'):
         return obj._nrbits
@@ -329,19 +334,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.refStack = ReferenceStack()
         self.globalRefs = Set()
 
-    def getObj(self, node):
-        if hasattr(node, 'obj'):
-            return node.obj
-        return None
-
-    def getKind(self, node):
-        if hasattr(node, 'kind'):
-            return node.kind
-        return None
-
-    def getVal(self, node):
-        val = eval(_unparse(node), self.ast.symdict)
-        return val
 
     def binaryOp(self, node, *args):
         self.visit(node.left)
@@ -657,10 +649,10 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         for i, arg in enumerate(self.args):
             if isinstance(arg, astNode.Keyword):
                 n = arg.name
-                self.ast.symdict[n] = getObj(arg.expr)
+                self.ast.symdict[n] = self.getObj(arg.expr)
             else: # Name
                 n = argnames[i]
-                self.ast.symdict[n] = getObj(arg)
+                self.ast.symdict[n] = self.getObj(arg)
             self.ast.argnames.append(n)
         for n, v in self.ast.symdict.items():
             if isinstance(v, (Signal, intbv)):
@@ -971,7 +963,7 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitCallFunc(self, node):
         fn = node.node
         assert isinstance(fn, astNode.Name)
-        f = getObj(fn)
+        f = self.getObj(fn)
         opening, closing = '(', ')'
         if f is bool:
             self.write("(")
@@ -1034,7 +1026,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         var = node.assign.name
         cf = node.list
         self.require(node, isinstance(cf, astNode.CallFunc), "Expected (down)range call")
-        f = getObj(cf.node)
+        f = self.getObj(cf.node)
         self.require(node, f in (range, downrange), "Expected (down)range call")
         args = cf.args
         assert len(args) <= 3
