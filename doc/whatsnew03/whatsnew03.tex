@@ -105,8 +105,9 @@ type. For example:
 CONFIRM
 \end{verbatim}
 
-In the waveform in Section~\ref{section-wave}, you see a
-\class{Signal} called \code{state} which as been constructed with an
+Enumeration types are often used for the state variable in a finite
+state machine.  In the waveform in Section~\ref{section-wave}, you see
+a \class{Signal} called \code{state} which as been constructed with an
 enumeration type identifier as initial value, as follows:
 
 \begin{verbatim}
@@ -115,6 +116,58 @@ state = Signal(t_State.SEARCH)
 
 Note that the waveforms show the string representation of the
 enumeration type identifiers. 
+
+\section{Inferring a list of all instances\label{section-instances}}
+
+In \myhdl{}, the instances defined in a top level function
+need to be returned explicitly, according
+the following template:
+
+\begin{verbatim}
+def top(...):
+
+    instance_1 = module_1(...)
+    instance_2 = module_2(...)
+    ...
+    instance_n = module_n(...)
+
+    return instance_1, instance_2, ... , instance_n
+\end{verbatim}
+
+
+This permits fine grained control: for example, it
+is possible to return a different set of instances
+under parameter control. 
+
+However, having to return instances explicitly can be inconvenient,
+expecially if there are a large number of them. Therefore, \myhdl\ 0.3
+provides a function \function{instances()} which assembles a list of
+all instances automatically. It is used as follows:
+
+\begin{verbatim}
+from myhdl import instances
+
+def top(...):
+
+    instance_1 = module_1(...)
+    instance_2 = module_2(...)
+    ...
+    instance_n = module_n(...)
+
+    return instances()
+\end{verbatim}
+
+Function \function{instances()} uses introspection to
+inspect the local variables defined by the calling
+function. In \myhdl {}, an instance is defined as
+a nested sequence of generators: all such variables
+are looked up and assembled in a list.
+
+
+\section{Inferring a list of all processes\label{section-processes}}
+
+
+
 
 \section{Python 2.3 support\label{section-Python}}
 
@@ -135,7 +188,7 @@ statements are no longer required.
 
 Second, Python 2.3 has a \class{bool} type, which is implemented as a
 subtype of \class{int}. For general Python use, the implications are
-rather limited - the main difference is that logical results will
+rather limited - the main difference is that logical result values will
 print as \code{False} and \code{True} instead of \code{0} and
 \code{1}. However, in \myhdl{}, I can use the \class{bool} type to infer
 a bit width.  If a \class{Signal} is constructed with a \class{bool}
