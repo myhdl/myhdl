@@ -49,9 +49,7 @@ class intbv(object):
                 nrbits = len(bin(min))
             self._max = max
             if max is not None:
-                n = len(bin(max))
-                if n > nrbits:
-                    nrbits = n
+                nrbits = maxfunc(len(bin(max-1)), nrbits)
         self._nrbits = nrbits
         if isinstance(val, (int, long)):
             self._val = val

@@ -67,7 +67,7 @@ class Signal(object):
 
     __slots__ = ('_next', '_val', '_min', '_max', '_type', 
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
-                 '_code', '_tracing', '_nrbits', '_hasBounds',
+                 '_code', '_tracing', '_nrbits', '_checkVal',
                  '_printVcd'
                 )
 
@@ -89,27 +89,24 @@ class Signal(object):
         self._type = (int, long, intbv)
         self._printVcd = self._printVcdStr
         if type(val) is bool:
-            self._min = 0
-            self._max = 1
+            self._checkVal = self._checkBool
             self._nrbits = 1
         elif isinstance(val, (int, long)):
+            self._checkVal = self._checkInt
             self._printVcd = self._printVcdHex
         elif isinstance(val, intbv):
-            self._printVcd = self._printVcdHex
             self._min = val._min
             self._max = val._max
-            if val._len:
-                self._nrbits = val._len
-            elif val._min is not None and val._max is not None:
-                self._nrbits = max(len(bin(val._min)), len(bin(val._max-1)))
+            self._nrbits = val._nrbits
+            if self._nrbits:
+                self._checkVal = self._checkIntbvBounds
+                self._printVcd = self._printVcdVec
+            else:
+                self._checkVal = self._checkInt
+                self._printVcd = self._printVcdHex
         else:
             self._type = type(val)
-        if self._nrbits:
-            if self._nrbits == 1:
-                self._printVcd = self._printVcdBit
-            else:
-                self._printVcd = self._printVcdVec
-        self._hasBounds = (self._min is not None) or (self._max is not None)
+            self._checkVal = self._checkType
         self._eventWaiters = _WaiterList()
         self._posedgeWaiters = _WaiterList()
         self._negedgeWaiters = _WaiterList()
@@ -147,10 +144,11 @@ class Signal(object):
     def _set_next(self, val):
         if isinstance(val, Signal):
             val = val._val
+        self._checkVal(val)
         # print self._type
-        if not isinstance(val, self._type):
-            raise TypeError, "Incompatible type(v) for sig.next = v\n" \
-                  "           Expected %s, got %s" % (self._type, type(val))
+##         if not isinstance(val, self._type):
+##             raise TypeError, "Incompatible type(v) for sig.next = v\n" \
+##                   "           Expected %s, got %s" % (self._type, type(val))
         self._next = val
         _siglist.append(self)
     next = property(_get_next, _set_next, None, "'next' access methods")
@@ -165,6 +163,28 @@ class Signal(object):
         return self._negedgeWaiters
     negedge = property(_get_negedge, None, None, "'posedge' access methodes")
 
+    # check methods
+    def _checkBool(self, val):
+        if not val in (0, 1):
+            raise ValueError("Expected value 0 or 1, got %s" % val)
+
+    def _checkInt(self, val):
+        if not isinstance(val, (int, long, intbv)):
+            raise TypeError("Expected int or intbv, got %s" % type(val))
+
+    def _checkIntbvBounds(self, val):
+        if not isinstance(val, (int, long, intbv)):
+            raise TypeError("Expected int or intbv, got %s" % type(val))
+        if self._max is not None and val >= self._max:
+            raise ValueError("Expected value < %s, got %s" % self._max, val)
+        if self._min is not None and val < self._min:
+            raise ValueError("Expected value >= %s, got %s" % self._min, val)
+
+    def _checkType(self, val):
+        if not isinstance(val, self._type):
+            raise TypeError("Expected %s, got %s" % (self._type, type(val)))
+
+    # vcd print methods
     def _printVcdStr(self):
         print >> sim._tf, "s%s %s" % (str(self._val), self._code)
         
