@@ -31,6 +31,8 @@ __revision__ = "$Revision$"
 __date__ = "$Date$"
 
 from __future__ import generators
+
+from inspect import currentframe, getouterframes
 from copy import deepcopy as copy
 
 from myhdl import _simulator as sim
@@ -63,10 +65,10 @@ class Signal(object):
     __slots__ = ('_next', '_val', '_min', '_max', '_type', 
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                  '_code', '_tracing', '_nrbits', '_checkVal',
-                 '_printVcd'
+                 '_printVcd', '_info',
                 )
 
-    def __new__(cls, val, delay=None):
+    def __new__(cls, val=None, delay=None):
         """ Return a new Signal (default or delay 0) or DelayedSignal """
         if delay is not None:
             if delay < 0:
@@ -75,7 +77,7 @@ class Signal(object):
         else:
             return object.__new__(cls)
 
-    def __init__(self, val):
+    def __init__(self, val=None):
         """ Construct a signal.
 
         val -- initial value
@@ -104,6 +106,9 @@ class Signal(object):
             else:
                 self._checkVal = self._checkInt
                 self._printVcd = self._printVcdHex
+        elif val is None:
+            self._type = None
+            self._checkVal = self._checkNone
         else:
             self._type = type(val)
             self._checkVal = self._checkType
@@ -124,7 +129,6 @@ class Signal(object):
             elif not next and val:
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
-            self._checkVal(next)
             self._val = next
             if self._tracing:
                 self._printVcd()
@@ -134,7 +138,8 @@ class Signal(object):
 
     # support for the 'val' attribute
     def _get_val(self):
-         return self._val
+        self._checkVal(self._val)
+        return self._val
     val = property(_get_val, None, None, "'val' access methods")
 
     # support for the 'next' attribute
@@ -146,6 +151,7 @@ class Signal(object):
     def _set_next(self, val):
         if isinstance(val, Signal):
             val = val._val
+        self._checkVal(val)
         self._next = val
         _siglist.append(self)
     next = property(_get_next, _set_next, None, "'next' access methods")
@@ -188,6 +194,9 @@ class Signal(object):
     def _checkType(self, val):
         if not isinstance(val, self._type):
             raise TypeError("Expected %s, got %s" % (self._type, type(val)))
+        
+    def _checkNone(self, val):
+        pass
 
     # vcd print methods
     def _printVcdStr(self):
@@ -206,160 +215,160 @@ class Signal(object):
         
     # hashing (?)
     def __hash__(self):
-        return hash(self._val)
+        return hash(self.val)
         
     
     def __nonzero__(self):
-        if self._val:
+        if self.val:
             return 1
         else:
             return 0
 
     # length
     def __len__(self):
-        return len(self._val)
+        return len(self.val)
 
     # indexing and slicing methods
 
     def __getitem__(self, i):
-        return self._val[i]
+        return self.val[i]
 
     def __getslice__(self, i, j):
-        return self._val[i:j]
+        return self.val[i:j]
     
         
     # integer-like methods
 
     def __add__(self, other):
         if isinstance(other, Signal):
-            return self._val + other._val
+            return self.val + other.val
         else:
-            return self._val + other
+            return self.val + other
     def __radd__(self, other):
-        return other + self._val
+        return other + self.val
     
     def __sub__(self, other):
         if isinstance(other, Signal):
-            return self._val - other._val
+            return self.val - other.val
         else:
-            return self._val - other
+            return self.val - other
     def __rsub__(self, other):
-        return other - self._val
+        return other - self.val
 
     def __mul__(self, other):
         if isinstance(other, Signal):
-            return self._val * other._val
+            return self.val * other.val
         else:
-            return self._val * other
+            return self.val * other
     def __rmul__(self, other):
-        return other * self._val
+        return other * self.val
 
     def __div__(self, other):
         if isinstance(other, Signal):
-            return self._val / other._val
+            return self.val / other.val
         else:
-            return self._val / other
+            return self.val / other
     def __rdiv__(self, other):
-        return other / self._val
+        return other / self.val
     
     def __mod__(self, other):
         if isinstance(other, Signal):
-            return self._val % other._val
+            return self.val % other.val
         else:
-            return self._val % other
+            return self.val % other
     def __rmod__(self, other):
-        return other % self._val
+        return other % self.val
 
     # XXX divmod
     
     def __pow__(self, other):
         if isinstance(other, Signal):
-            return self._val ** other._val
+            return self.val ** other.val
         else:
-            return self._val ** other
+            return self.val ** other
     def __rpow__(self, other):
-        return other ** self._val
+        return other ** self.val
 
     def __lshift__(self, other):
         if isinstance(other, Signal):
-            return self._val << other._val
+            return self.val << other.val
         else:
-            return self._val << other
+            return self.val << other
     def __rlshift__(self, other):
-        return other << self._val
+        return other << self.val
             
     def __rshift__(self, other):
         if isinstance(other, Signal):
-            return self._val >> other._val
+            return self.val >> other.val
         else:
-            return self._val >> other
+            return self.val >> other
     def __rrshift__(self, other):
-        return other >> self._val
+        return other >> self.val
            
     def __and__(self, other):
         if isinstance(other, Signal):
-            return self._val & other._val
+            return self.val & other.val
         else:
-            return self._val & other
+            return self.val & other
     def __rand__(self, other):
-        return other & self._val
+        return other & self.val
 
     def __or__(self, other):
         if isinstance(other, Signal):
-            return self._val | other._val
+            return self.val | other.val
         else:
-            return self._val | other
+            return self.val | other
     def __ror__(self, other):
-        return other | self._val
+        return other | self.val
     
     def __xor__(self, other):
         if isinstance(other, Signal):
-            return self._val ^ other._val
+            return self.val ^ other.val
         else:
-            return self._val ^ other
+            return self.val ^ other
     def __rxor__(self, other):
-        return other ^ self._val
+        return other ^ self.val
     
     def __neg__(self):
-        return -self._val
+        return -self.val
 
     def __pos__(self):
-        return +self._val
+        return +self.val
 
     def __abs__(self):
-        return abs(self._val)
+        return abs(self.val)
 
     def __invert__(self):
-        return ~self._val
+        return ~self.val
         
     # conversions
     
     def __int__(self):
-        return int(self._val)
+        return int(self.val)
         
     def __long__(self):
-        return long(self._val)
+        return long(self.val)
 
     def __float__(self):
-        return float(self._val)
+        return float(self.val)
     
     def __oct__(self):
-        return oct(self._val)
+        return oct(self.val)
     
     def __hex__(self):
-        return hex(self._val)
+        return hex(self.val)
 
 
     # comparison
     def __cmp__(self, other):
-        return cmp(self._val, other)
+        return cmp(self.val, other)
 
     # representation 
     def __str__(self):
-        return str(self._val)
+        return str(self.val)
 
     def __repr__(self):
-        return "Signal(" + repr(self._val) + ")"
+        return "Signal(" + repr(self.val) + ")"
 
     # augmented assignment not supported
     def _augm(self):
@@ -381,7 +390,7 @@ class DelayedSignal(Signal):
     __slots__ = ('_nextZ', '_delay', '_timeStamp',
                 )
 
-    def __init__(self, val, delay):
+    def __init__(self, val=None, delay=1):
         """ Construct a new DelayedSignal.
 
         Automatically invoked through the Signal new method.
@@ -412,7 +421,6 @@ class DelayedSignal(Signal):
             elif not next and val:
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
-            self._checkVal(next)
             self._val = copy(next)
             if self._tracing:
                 self._printVcd()

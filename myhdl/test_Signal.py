@@ -96,9 +96,10 @@ class SigTest(TestCase):
         else:
             self.fail()
 
-    def testInitParamRequired(self):
-        """ a Signal constructor has a required parameter """
-        self.assertRaises(TypeError, Signal)
+    def testInitDefault(self):
+        """ initial value is None by default """
+        s1 = Signal()
+        self.assertEqual(s1, None)
 
     def testInitialization(self):
         """ initial val and next should be equal """
@@ -113,7 +114,7 @@ class SigTest(TestCase):
             self.assert_(s.val == n)
 
     def testNextType(self):
-        """ sig.next = n should fail on update if type(n) incompatible """
+        """ sig.next = n should fail on access if type(n) incompatible """
         i = 0
         for s in (self.sigs + self.incompatibleSigs):
             for n in (self.vals + self.incompatibleVals):
@@ -125,9 +126,14 @@ class SigTest(TestCase):
                 if not isinstance(n, t):
                     i += 1
                     try:
+                        oldval = s.val
                         s.next = n
-                        s._update()
+                        #s._update()
+                        #s.val
                     except TypeError:
+                        # restore
+                        #s.next = oldval
+                        #s._update()
                         pass
                     else:
                         self.fail()
@@ -588,7 +594,8 @@ class TestSignalBoolBounds(TestCase):
         for v in (-1, -8, 2, 5):
             try:
                 s.next = v
-                s._update()
+                #s._update()
+                #s.val
             except ValueError:
                 pass
             else:

@@ -26,7 +26,7 @@ __date__ = "$Date$"
 from __future__ import generators
 
 from myhdl._join import join
-from myhdl._simulator import _siglist, _futureEvents;
+from myhdl._simulator import _siglist, _futureEvents
 
 
 class _Waiter(object):
@@ -41,7 +41,7 @@ class _Waiter(object):
         self.hasRun = 1
         clone = _Waiter(self.generator, self.caller, self.semaphore)
         clause = self.generator.next()
-        if type(clause) is tuple:
+        if type(clause) in (tuple, list):
             return clause, clone
         elif type(clause) is join:
             n = len(clause._args)
