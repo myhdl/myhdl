@@ -391,7 +391,7 @@ inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
 \end{verbatim}
 
 Again, this creates an instance that can be simulated, but as a side
-effect, it also generates an equivalent Verilog module in file \file{inc_inst.v},
+effect, it also generates an equivalent Verilog module in file \file{inc_inst.v}.
 The Verilog code looks as follows:
 
 \begin{verbatim}
@@ -459,7 +459,7 @@ G = Signal(intbv(0)[width:])
 bin2gray_inst = toVerilog(bin2gray, B, G, width)
  \end{verbatim}
 
-The generate Verilog code looks as follows:
+The generated Verilog code looks as follows:
 
 \begin{verbatim}
 module bin2gray_inst (
