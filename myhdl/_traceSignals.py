@@ -112,7 +112,7 @@ def _writeVcdHeader(f):
     print >> f, "$version"
     print >> f, "    MyHDL %s" % __version__
     print >> f, "$end"
-    print >> f, "$timesscale"
+    print >> f, "$timescale"
     print >> f, "    1ns"
     print >> f, "$end"
     print >> f
