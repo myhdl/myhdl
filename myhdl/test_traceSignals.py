@@ -35,10 +35,11 @@ path = os.path
 import unittest
 from unittest import TestCase
 import shutil
+import glob
 
-from myhdl import delay, Signal, Simulation
+from myhdl import delay, Signal, Simulation, _simulator
 from myhdl._traceSignals import traceSignals, TopLevelNameError, ArgTypeError, \
-                              NoInstancesError
+                                NoInstancesError, MultipleTracesError
 
 QUIET=1
 
@@ -67,23 +68,34 @@ def top2():
     inst[j-2]['key'] = traceSignals(fun)
     return inst
 
+def top3():
+    inst_1 = traceSignals(fun)
+    inst_2 = traceSignals(fun)
+    return inst_1, inst_2
+
+
+
 
 class TestTraceSigs(TestCase):
 
     def setUp(self):
-        self.paths = paths = ["dut.vcd", "inst.vcd"]
+        paths = glob.glob("*.vcd") + glob.glob("*.vcd.*")
         for p in paths:
-            if path.exists(p):
-                os.remove(p)
+            os.remove(p)
 
     def tearDown(self):
-        for p in self.paths:
-            if path.exists(p):
-                os.remove(p)
+        paths = glob.glob("*.vcd") + glob.glob("*.vcd.*")
+        for p in paths:
+            os.remove(p)
+        if _simulator._tracing:
+            _simulator._tf.close()
+            _simulator._tracing = 0
 
     def testTopName(self):
         p = "dut.vcd"
         dut = traceSignals(fun)
+        _simulator._tf.close()
+        _simulator._tracing = 0
         try:
             traceSignals(fun)
         except TopLevelNameError:
@@ -91,8 +103,15 @@ class TestTraceSigs(TestCase):
         else:
             self.fail()
 
+    def testMultipleTraces(self):
+        try:
+            dut = top3()
+        except MultipleTracesError:
+            pass
+        else:
+            self.fail()
+ 
     def testArgType1(self):
-        p = "dut.vcd"
         try:
             dut = traceSignals([1, 2])
         except ArgTypeError:
@@ -101,7 +120,6 @@ class TestTraceSigs(TestCase):
             self.fail()
             
     def testArgType2(self):
-        p = "dut.vcd"
         try:
             dut = traceSignals(gen, Signal(0))
         except ArgTypeError:
@@ -110,7 +128,6 @@ class TestTraceSigs(TestCase):
             self.fail()
 
     def testReturnVal(self):
-        p = "dut.vcd"
         try:
             dut = traceSignals(dummy)
         except NoInstancesError:
@@ -136,13 +153,11 @@ class TestTraceSigs(TestCase):
         i, j = 0, 2
         dut[i+1][j-2] = traceSignals(top)
         self.assert_(path.exists(p))
-        os.remove(p)
 
     def testIndexedName2(self):
         p = "inst[1][key].vcd"
         top2()
         self.assert_(path.exists(p))
-        os.remove(p)
 
     def testBackupOutputFile(self):
         p = "dut.vcd"
@@ -151,12 +166,15 @@ class TestTraceSigs(TestCase):
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
         self.assert_(not path.exists(pbak))
+        _simulator._tf.close()
+        _simulator._tracing = 0
         dut = traceSignals(fun)
         self.assert_(path.exists(p))
         self.assert_(path.exists(pbak))
         self.assert_(path.getsize(pbak) == size)
         self.assert_(path.getsize(p) < size)
-        os.remove(pbak)
+
+        
        
 if __name__ == "__main__":
     unittest.main()

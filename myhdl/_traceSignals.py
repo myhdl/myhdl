@@ -62,6 +62,9 @@ class ArgTypeError(Error):
 class NoInstancesError(Error):
     """traceSignals returned no instances"""
 
+class MultipleTracesError(Error):
+    """Cannot trace multiple instances simultaneously"""
+
 re_assign = r"""^
                 \s*
                 (?P<name>\w[\w\d]*)
@@ -81,6 +84,8 @@ def traceSignals(dut, *args, **kwargs):
         raise ArgTypeError("got %s" % type(dut))
     if _isgeneratorfunction(dut):
         raise ArgTypeError("got generator function")
+    if _simulator._tracing:
+        raise MultipleTracesError()
     _tracing = 1
     try:
         outer = getouterframes(currentframe())[1]
