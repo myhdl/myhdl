@@ -213,7 +213,7 @@ are supported, as well as signals of such objects.
 \end{funcdesc}
 
 \begin{funcdesc}{downrange}{high \optional{, low=0}}
-Generate a downward range list of integers.
+Generates a downward range list of integers.
 
 This function is modeled after the standard \code{range} function, but
 works in the downward direction. The returned interval is half-open,
@@ -223,29 +223,56 @@ with the \class{intbv} class, that also works with downward indexing.
 \end{funcdesc}
 
 \begin{funcdesc}{enum}{arg \optional{, arg \moreargs}}
+Returns an enumeration type.
 
+The arguments should be string literals that represent the desired
+names of the enumeration type attributes.  The returned type should be
+assigned to a type name.  For example:
+\begin{verbatim}
+t_EnumType = enum('ATTR_NAME_1', 'ATTR_NAME_2', ...)
+\end{verbatim}
+The enumeration type identifiers are available as attributes of
+the typename, for example: \code{t_EnumType.ATTR_NAME_1}
 \end{funcdesc}
 
 \begin{funcdesc}{instances}{}
+Looks up all instances in the local namespace and returns them as a
+list.  In \myhdl{}, an instance is defined as a nested sequence of
+generators.
 
 \end{funcdesc}
-
 \begin{funcdesc}{processes}{}
-
+Looks up all processes in the local namespace, calls each of them,
+returns the resulting generators as a list.  In \myhdl{}, a process is
+defined as a locally defined generator function,
 \end{funcdesc}
-
-
 
 \section{The \class{intbv} class \label{ref-intbv}}
 \declaremodule{}{myhdl}
 
-\begin{classdesc}{intbv}{arg}
+\begin{classdesc}{intbv}{val \optional{, min=None} \optional{, max=None}}
 This class represents \class{int}-like objects with some additional
-features that make it suitable for hardware design. The constructor
+features that make it suitable for hardware design. The \var{val}
 argument can be an \class{int}, a \class{long}, an \class{intbv} or a
 bit string (a string with only '0's or '1's). For a bit string
 argument, the value is calculated as in \code{int(\var{bitstring}, 2)}. 
+The optional \var{min} and \var{max} arguments can be used to specify
+the minimum and maximum value of the \class{intbv} object. As in
+standard Python practice for ranges, the minimum value is inclusive
+and the maximum value is exclusive.
 \end{classdesc}
+
+The minimum and maximum values are available as attributes:
+
+\begin{memberdesc}[intbv]{min}
+Read-only attribute that is the minimum value (inclusive) of an
+\class{intbv}, or \var{None} for no minimum.
+\end{memberdesc}
+\begin{memberdesc}[intbv]{max}
+Read-only attribute that is the maximum value
+(exclusive) of an \class{intbv}, or \var{None} for no 
+maximum.
+\end{memberdesc}
 
 Unlike \class{int} objects, \class{intbv} objects are mutable; this is
 also the reason for their existence. Mutability is needed to support
@@ -259,8 +286,10 @@ An \class{intbv} object supports the same comparison, numeric,
 bitwise, logical, and conversion operations as \class{int} objects. See
 \url{http://www.python.org/doc/current/lib/typesnumeric.html} for more
 information on such operations. In all binary operations,
-\class{intbv} objects can work together with \class{int} objects; in
-those cases the return type is an \class{intbv} object.
+\class{intbv} objects can work together with \class{int} objects.
+For mixed-type numeric operations, the result type is an \class{int}
+or a \class{long}. For mixed-type bitwise operations, the result
+type is an \class{intbv}.
 
 In addition, \class{intbv} objects support indexing and slicing
 operations:
@@ -300,22 +329,21 @@ operations:
 	  issues in many practical cases: in particular,
 	  \code{bv[\var{i}:]} returns \var{i} bits;
 	  \code{bv[\var{i}:\var{j}]} has \code{\var{i}-\var{j}}
-	  bits. As \class{intbv} objects have no explicitly defined
-	  bit width, the high index \var{j} has no default value and
-	  cannot be omitted, while the low index \var{j} defaults to
-	  \code{0}.
+	  bits. When the low index \var{j} is omitted, it defaults
+          to \code{0}. When the high index \var{i} is omitted, it
+          means ``all'' higher order bits.
 
 \item[(3)] The value returned from a slicing operation is always
 	  positive; higher order bits are implicitly assumed to be
 	  zero. The bit width is implicitly stored in the returned bit
 	  width, so that the returned object can be used in
-	  concatenations and as an iterator.
+	  concatenations and as an iterator. In addition, for a bit width
+          w, the \var{min} and \var{max} attributes are implicitly set
+          to \code{0} and \code{2**w}, respectively.
 
 \item[(4)] In setting a slice, it is checked whether the slice is wide
 	  enough to accept all significant bits of the value.
 \end{description}
-
-
 
 In addition, an \class{intbv} object supports the iterator protocol. This
 makes it possible to iterate over all its bits, from the high index to
