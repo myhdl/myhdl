@@ -1,10 +1,16 @@
 \chapter{Modeling techniques \label{model}}
 
+\section{Structural modeling \label{model-structure}}
+
+\subsection{Configurations \label{model-conf}}
+
+\subsection{Arrays of instances \label{model-instarray}}
+
+\subsection{Inferring the list of all instances \label{model-infer-instlist}}
+
 \section{RTL modeling \label{model-rtl}}
 The present section describes how \myhdl\ supports RTL style modeling
-as is typically used for synthesizable models in Verilog or VHDL. This
-section is included mainly for illustrative purposes, as this modeling
-style is well known and understood.
+as is typically used for synthesizable models in Verilog or VHDL. 
 
 \subsection{Combinatorial logic \label{model-comb}}
 
@@ -16,14 +22,33 @@ follows:
 \begin{verbatim}
 def combinatorialLogic(<arguments>)
     while 1:
-        yield <input signal arguments>
+        yield <input signals>
         <functional code>
 \end{verbatim}
 
 The overall code is wrapped in a \code{while 1} statement to keep the
 generator alive. All input signals are clauses in the \code{yield}
 statement, so that the generator resumes whenever one of the inputs
-changes. 
+changes.
+
+Note that the input signals are listed explicitly in the
+template. Alternatively, \myhdl\ provides the \function{always_comb()}
+function to infer the input signals automatically. The name refers to
+a construct with similar semantics in SystemVerilog.  The argument of
+\function{always_comb()} is a local function that specifies
+what happens when one of the input signals
+changes. It returns a generator that is
+sensitive to all inputs, and that will run the function argument
+whenever an input changes. Using \function{always_comb}, the template
+can be rewritten as follows:
+
+\begin{verbatim}
+def combinatorialLogic(<arguments>)
+    def logicFunction():
+        <functional code>
+    return always_comb(logicFunction)
+\end{verbatim}
+
 
 \subsubsection{Example \label{model-comb-ex}}
 
@@ -193,15 +218,12 @@ StopSimulation
 \section{High level modeling \label{model-hl}}
 
 \begin{quote}
-\em
+\em 
 This section on high level modeling should become an exciting part of
 the manual, but it doesn't contain a lot of material just yet. One
 reason is that I concentrated on the groundwork first. Moreover,
 though I expect Python to offer some very powerful capabilities in
-this domain, I'm just starting to experiment and learn myself. For
-example, note that so far we haven't used classes (nor meta-classes
-:-)) yet, even though Python has a very powerful object-oriented
-model.
+this domain, I'm just starting to experiment and learn myself. 
 \end{quote}
 
 \subsection{Modeling memories with built-in types \label{model-mem}}
@@ -388,7 +410,3 @@ overflow error is detected by a regular check on the length of the
 list.
 
 
-\begin{quote}
-\em
-A lot to be added ...
-\end{quote}

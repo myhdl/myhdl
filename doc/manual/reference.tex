@@ -8,15 +8,15 @@ chapter describes the objects that are exported by this package.
 \declaremodule{}{myhdl}
 
 \begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
-Class to construct a new simulation. Each argument is either be a
-\myhdl\ generator, or a nested sequence of such generators. (A nested
-sequence is defined as a sequence in which each item may itself be a
-nested sequence.) See section~\ref{ref-gen} for the
-definition of \myhdl\ generators and their interaction with a
-\class{Simulation} object.
+Class to construct a new simulation. Each argument should be a
+\myhdl\ instance. In \myhdl{}, an instance is recursively defined
+as being either a sequence of instances, or a \myhdl\ generator, or a
+Cosimulation object. See section~\ref{ref-gen} for the definition of
+\myhdl\ generators and their interaction with a
+\class{Simulation} object.  See Section~\ref{ref-cosim}
+for the \class{Cosimulation} object.  At most one \class{Cosimulation}
+object can be passed to a \class{Simulation} constructor.
 
-As a special case, exactly one of the arguments may be
-a \class{Cosimulation} object (see Section~\ref{ref-cosim}).
 \end{classdesc}
 
 A \class{Simulation} object has the following method:
@@ -38,16 +38,15 @@ Base exception that is caught by the \code{Simulation.run()} method to
 stop a simulation.
 \end{excclassdesc}
 
-\begin{funcdesc}{traceSignals}{func \optional{, *args} \optional{, *kwargs}}
+\begin{funcdesc}{traceSignals}{func \optional{, *args} \optional{, **kwargs}}
 Enables signal tracing to a VCD file for waveform viewing.
-\var{func} is a function that returns a nested sequence of
-generators that represents an instance
-hierarchy. \function{traceSignals()} call \var{func} under its control
+\var{func} is a function that returns an instance.
+\function{traceSignals()} call \var{func} under its control
 and passes \var{*args} and \var{**kwargs} to the call. In this way, it
 finds the hierarchy and the signals to be traced.
 
 The return value is the same as would be returned by the call
-\code{func(*args, *kwargs)}. It should be assigned
+\code{func(*args, **kwargs)}. It should be assigned
 to a top level instance name. For example:
 \begin{verbatim}
 topname = traceSignals(func, ...)
@@ -84,7 +83,7 @@ logical and comparison operators are implemented on a Signal object by
 delegating to its current value. The exception is augmented
 assignment. These operators are not implemented as they would break
 the rule that the current value should be a read-only attribute. In
-addition, when a Signal object is directly assigned to the \code{next}
+addition, when a Signal object is assigned to the \code{next}
 attribute of another Signal object, its current value is assigned
 instead.
 \end{memberdesc}
@@ -158,7 +157,8 @@ generator is triggered.
 
 \item[\class{GeneratorType}]
 \myhdl\ generators can be used as clauses in \code{yield}
-statements. Such a generator is forked, while the original generator
+statements. Such a generator is forked, and starts operating
+while the original generator
 waits for it to complete. The original generator resumes when the
 forked generator returns.
 \end{description}
@@ -195,7 +195,7 @@ representation, the bit string is padded with the sign bit.
 
 This function complements the standard Python conversion functions
 \code{hex} and \code{oct}. A binary string representation is often
-needed in hardware design.
+useful in hardware design.
 \end{funcdesc}
 
 \begin{funcdesc}{concat}{base \optional{, arg \moreargs}}
@@ -206,7 +206,7 @@ a defined bit width, \class{bool} objects, signals of the previous
 objects, and bit strings. All these objects have a defined bit
 width. The first argument \var{base} is special as it doesn't need to
 have a defined bit width. In addition to the previously mentioned
-objects, \class{intbv}, \class{int} and \class{long} objects
+objects, unsized \class{intbv}, \class{int} and \class{long} objects
 are supported, as well as signals of such objects.
 \end{funcdesc}
 
@@ -234,15 +234,14 @@ the typename, for example: \code{t_EnumType.ATTR_NAME_1}
 \end{funcdesc}
 
 \begin{funcdesc}{instances}{}
-Looks up all instances in the local namespace and returns them as a
-list.  In \myhdl{}, an instance is defined as a nested sequence of
-generators.
+Looks up all \myhdl\ instances in the local namespace and returns them
+in a list.
 
 \end{funcdesc}
 \begin{funcdesc}{processes}{}
 Looks up all processes in the local namespace, calls each of them,
-returns the resulting generators as a list.  In \myhdl{}, a process is
-defined as a locally defined generator function,
+returns the resulting generators in a list.  In \myhdl{}, a process is
+defined as a local generator function with no parameters.
 \end{funcdesc}
 
 \section{The \class{intbv} class \label{ref-intbv}}
@@ -331,13 +330,13 @@ operations:
           to \code{0}. When the high index \var{i} is omitted, it
           means ``all'' higher order bits.
 
-\item[(3)] The value returned from a slicing operation is always
-	  positive; higher order bits are implicitly assumed to be
-	  zero. The bit width is implicitly stored in the returned bit
-	  width, so that the returned object can be used in
-	  concatenations and as an iterator. In addition, for a bit width
-          w, the \var{min} and \var{max} attributes are implicitly set
-          to \code{0} and \code{2**w}, respectively.
+\item[(3)] The object returned from a slicing access operation is always a
+	  positive \class{intbv}; higher order bits are implicitly
+	  assumed to be zero. The bit width is implicitly stored in
+	  the return object, so that it can be used in concatenations
+	  and as an iterator. In addition, for a bit width w, the
+	  \var{min} and \var{max} attributes are implicitly set to
+	  \code{0} and \code{2**w}, respectively.  
 
 \item[(4)] In setting a slice, it is checked whether the slice is wide
 	  enough to accept all significant bits of the value.
