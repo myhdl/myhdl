@@ -232,17 +232,17 @@ class intbv(object):
 
     def __lshift__(self, other):
         if isinstance(other, intbv):
-            return self._val << other._val
+            return intbv(self._val << other._val)
         else:
-            return self._val << other
+            return intbv(self._val << other)
     def __rlshift__(self, other):
         return other << self._val
             
     def __rshift__(self, other):
         if isinstance(other, intbv):
-            return self._val >> other._val
+            return intbv(self._val >> other._val)
         else:
-            return self._val >> other
+            return intbv(self._val >> other)
     def __rrshift__(self, other):
         return other >> self._val
            
