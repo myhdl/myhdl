@@ -89,15 +89,14 @@ class intbv(object):
                 w = a._len
                 if not w:
                     raise TypeError, "intbv arg to concat should have length"
-                else:
-                    v = v * (2**w) + a._val
-                    width += w
+                val = a._val
             elif type(a) is StringType:
                 w = len(a)
-                v= v*(2**w) + long(a, 2)
-                width += w
+                val = long(a, 2)
             else:
                 raise TypeError
+            v= v*(2**w) + val
+            width += w
         if basewidth:
             return intbv(v, _len=basewidth + width)
         else:

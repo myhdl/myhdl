@@ -25,7 +25,7 @@ __date__ = "$Date$"
 
 from __future__ import generators
 
-from myhdl import join
+from myhdl._join import join
 from myhdl._simulator import _siglist, _futureEvents;
 
 

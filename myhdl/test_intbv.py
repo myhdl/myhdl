@@ -33,7 +33,7 @@ maxint = sys.maxint
 import operator
 from copy import copy, deepcopy
 
-from myhdl import intbv
+from myhdl._intbv import intbv
 concat = intbv.concat
 
 class TestIntbvInit(TestCase):
