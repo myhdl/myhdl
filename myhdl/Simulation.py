@@ -38,6 +38,7 @@ from join import join
 from _Waiter import _Waiter
 from util import StopSimulation, SuspendSimulation
 import simrun
+import simrunc
 
 schedule = _futureEvents.append
 
@@ -86,7 +87,10 @@ class Simulation(object):
             os.close(cosim._wf)
             os.waitpid(cosim._child_pid, 0)
         
-    run = simrun.run
+    def run(self, duration=0, quiet=0):
+        simrunc.run(sim=self, duration=duration, quiet=quiet)
+        
+    runpy = simrun.run
 
 
 def printExcInfo():

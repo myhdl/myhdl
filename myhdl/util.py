@@ -33,6 +33,7 @@ __version__ = "$Revision$"
 __date__ = "$Date$"
 
 import exceptions
+import sys
 
 
 def downrange(start, stop=0):
@@ -71,5 +72,12 @@ class SuspendSimulation(exceptions.Exception):
     """ Basic exception to suspend a Simulation """
     pass
 
+def printExcInfo():
+    kind, value  = sys.exc_info()[:2]
+    msg = str(kind)
+    msg = msg[msg.rindex('.')+1:]
+    if str(value):
+        msg += ": %s" % value
+        print msg
        
 

@@ -36,6 +36,7 @@ from types import GeneratorType
 from join import join
 from _Waiter import _Waiter
 from util import StopSimulation, SuspendSimulation
+from util import printExcInfo
 
 schedule = _futureEvents.append
 

@@ -27,6 +27,8 @@ from __future__ import generators
 
 from join import join
 
+from _simulator import _siglist, _futureEvents;
+
 
 class _Waiter(object):
     

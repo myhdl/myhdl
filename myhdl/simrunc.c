@@ -1,6 +1,7 @@
 #include "Python.h"
 
 #include <assert.h>
+#include <stdio.h>
 
 static PyObject *_simulator;
 static PyObject *_siglist;
@@ -42,9 +43,7 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
     t = PyLong_AsLongLong(tO);
     Py_DECREF(tO);
 
-
     for (;;) {
-
 
 	len = PyList_Size(_siglist);
 	for (i = 0; i < len; i++) {
@@ -108,6 +107,7 @@ run(PyObject *self, PyObject *args, PyObject *kwargs)
 		    ev = PyTuple_New(2);
 		    newtO = PyLong_FromLongLong(t + ct);
 		    PyTuple_SetItem(ev, 0, newtO);
+		    Py_INCREF(clone);
 		    PyTuple_SetItem(ev, 1, clone);
 		    PyList_Append(_futureEvents, ev);
 		    Py_DECREF(ev);
