@@ -85,11 +85,11 @@ class TestTraceSigs(TestCase):
 
     def tearDown(self):
         paths = glob.glob("*.vcd") + glob.glob("*.vcd.*")
-        for p in paths:
-            os.remove(p)
         if _simulator._tracing:
             _simulator._tf.close()
             _simulator._tracing = 0
+        for p in paths:
+            os.remove(p)
 
     def testTopName(self):
         p = "dut.vcd"
@@ -110,7 +110,7 @@ class TestTraceSigs(TestCase):
             pass
         else:
             self.fail()
- 
+
     def testArgType1(self):
         try:
             dut = traceSignals([1, 2])
@@ -118,7 +118,7 @@ class TestTraceSigs(TestCase):
             pass
         else:
             self.fail()
-            
+
     def testArgType2(self):
         try:
             dut = traceSignals(gen, Signal(0))
@@ -134,12 +134,12 @@ class TestTraceSigs(TestCase):
             pass
         else:
             self.fail()
-            
+
     def testHierarchicalTrace1(self):
         p = "inst.vcd"
         top()
         self.assert_(path.exists(p))
-        
+
     def testHierarchicalTrace2(self):
         pdut = "dut.vcd"
         psub = "inst.vcd"
@@ -163,18 +163,20 @@ class TestTraceSigs(TestCase):
         p = "dut.vcd"
         dut = traceSignals(fun)
         Simulation(dut).run(1000, quiet=QUIET)
+        _simulator._tf.close()
+        _simulator._tracing = 0
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
         self.assert_(not path.exists(pbak))
+        dut = traceSignals(fun)
         _simulator._tf.close()
         _simulator._tracing = 0
-        dut = traceSignals(fun)
         self.assert_(path.exists(p))
         self.assert_(path.exists(pbak))
         self.assert_(path.getsize(pbak) == size)
         self.assert_(path.getsize(p) < size)
 
-        
-       
+
+
 if __name__ == "__main__":
     unittest.main()
