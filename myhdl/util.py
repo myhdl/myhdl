@@ -37,6 +37,7 @@ import sys
 import inspect
 import re
 from types import FunctionType, GeneratorType, ListType, TupleType
+import compiler
 
 from myhdl import Cosimulation
 
@@ -85,12 +86,6 @@ def printExcInfo():
         msg += ": %s" % value
         print msg
        
-def _isgeneratorfunction(obj):
-   if type(obj) is FunctionType:
-         s = inspect.getsource(obj)
-         if re.search(r"\byield\b", s):
-            return 1
-   return 0
 
 def _isGenSeq(obj):
     if type(obj) in (GeneratorType, Cosimulation):
@@ -101,3 +96,35 @@ def _isGenSeq(obj):
         if not _isGenSeq(e):
             return 0
     return 1
+
+def _isgeneratorfunction(obj):
+   if type(obj) is FunctionType:
+       s = inspect.getsource(obj)
+       s = s.lstrip()
+       s = 'from __future__ import generators\n' + s # for 2.2 ...
+       tree = compiler.parse(s)
+       v = _YieldVisitor()
+       compiler.walk(tree, v)
+       return v.isgenfunc
+   return 0
+
+class _YieldVisitor(object):
+    
+    def __init__(self):
+        self.toplevel = 1
+        self.isgenfunc = 0
+
+    def visitYield(self, node):
+        self.isgenfunc = 1
+
+    def visitFunction(self, node):
+        if self.toplevel:
+            self.toplevel = 0 # skip embedded functions
+            self.visit(node.code)
+
+    def visitClass(self, node):
+        pass # skip
+
+    def visitExec(self, node):
+        pass # skip
+        
