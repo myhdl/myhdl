@@ -29,9 +29,9 @@ from types import StringType
 
 def _int2bitstring(num):
     if num == 0:
-        return "0"
+        return '0'
     if num == 1:
-        return "1"
+        return '1'
     return _int2bitstring(num // 2) + _int2bitstring(num % 2) 
 
 class intbv(object):
@@ -80,8 +80,9 @@ class intbv(object):
         return res
 
     # conversion to binary string
-    def bin(self):
-        return _int2bitstring(self._val)
+    def bin(self, width=0):
+        s = _int2bitstring(self._val)
+        return (width - len(s)) * '0' + s
         
 
     # copy methods

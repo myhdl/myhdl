@@ -14,9 +14,8 @@ def bin2gray(width, B, G):
             G.next[i] = B.val[i+1] ^ B.val[i]
 
 bin = intbv.bin # shorthand alias
-def test():
+def testBench(width):
     
-    width = 4
     B = Signal(intbv(0))
     G = Signal(intbv(0))
     
@@ -26,11 +25,11 @@ def test():
         for i in range(2**width):
             B.next = intbv(i)
             yield delay(10)
-            print "input: %4s | output: %4s" % (bin(B.val), bin(G.val))
+            print "B: %s | G: %s" % (bin(B.val, width), bin(G.val, width))
 
     return (dut, stimulus())
 
-Simulation(test()).run()
+if __name__ == '__main__':
+    Simulation(testBench(width=3)).run()
     
 
-            
