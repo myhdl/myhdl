@@ -17,6 +17,7 @@ def binaryOps(
               LeftShift,
               Mod,
               Mul,
+              Pow,
               RightShift,
               Sub,
               Sum,
@@ -41,6 +42,10 @@ def binaryOps(
         if right != 0:
             Mod.next = left % right
         Mul.next = left * right
+        # Icarus doesn't support ** yet
+        #if left < 256 and right < 40:
+        #    Pow.next = left ** right
+        Pow.next = 0
         RightShift.next = left >> right
         if left >= right:
             Sub.next = left - right
@@ -64,6 +69,7 @@ def binaryOps_v(
                 LeftShift,
                 Mod,
                 Mul,
+                Pow,
                 RightShift,
                 Sub,
                 Sum,
@@ -107,6 +113,8 @@ class TestBinaryOps(TestCase):
         Mod_v = Signal(intbv(0)[m:])
         Mul = Signal(intbv(0)[m+n:])
         Mul_v = Signal(intbv(0)[m+n:])
+        Pow = Signal(intbv(0)[64:])
+        Pow_v = Signal(intbv(0)[64:])
         RightShift = Signal(intbv(0)[m:])
         RightShift_v = Signal(intbv(0)[m:])
         Sub = Signal(intbv(0)[max(m, n):])
@@ -126,6 +134,7 @@ class TestBinaryOps(TestCase):
                            LeftShift,
                            Mod,
                            Mul,
+                           Pow,
                            RightShift,
                            Sub,
                            Sum,
@@ -146,6 +155,7 @@ class TestBinaryOps(TestCase):
                                LeftShift_v,
                                Mod_v,
                                Mul_v,
+                               Pow_v,
                                RightShift_v,
                                Sub_v,
                                Sum_v,
@@ -186,6 +196,7 @@ class TestBinaryOps(TestCase):
                 self.assertEqual(LeftShift, LeftShift_v)
                 self.assertEqual(Mod, Mod_v)
                 self.assertEqual(Mul, Mul_v)
+                # self.assertEqual(Pow, Pow_v)
                 self.assertEqual(RightShift, RightShift_v)
                 self.assertEqual(Sub, Sub_v)
                 self.assertEqual(Sum, Sum_v)
@@ -319,15 +330,21 @@ class TestMultiOps(TestCase):
 def unaryOps(
              Not,
              Invert,
+             UnaryAdd,
+             UnarySub,
              arg):
     while 1:
         yield arg
         Not.next = not arg
         Invert.next = ~arg
+        UnaryAdd.next = +arg
+        UnarySub.next = --arg
 
 def unaryOps_v(
                Not,
                Invert,
+               UnaryAdd,
+               UnarySub,
                arg):
     objfile = "unaryops.o"
     analyze_cmd = "iverilog -o %s unaryops.v tb_unaryops.v" % objfile
@@ -350,14 +367,22 @@ class TestUnaryOps(TestCase):
         Not_v = Signal(bool(0))
         Invert = Signal(intbv(0)[m:])
         Invert_v = Signal(intbv(0)[m:])
+        UnaryAdd = Signal(intbv(0)[m:])
+        UnaryAdd_v = Signal(intbv(0)[m:])
+        UnarySub = Signal(intbv(0)[m:])
+        UnarySub_v = Signal(intbv(0)[m:])
 
         unaryops = toVerilog(unaryOps,
                              Not,
                              Invert,
+                             UnaryAdd,
+                             UnarySub,
                              arg)
         unaryops_v = unaryOps_v(
                                 Not_v,
                                 Invert_v,
+                                UnaryAdd_v,
+                                UnarySub_v,
                                 arg)
 
         def stimulus():
@@ -374,6 +399,8 @@ class TestUnaryOps(TestCase):
                 yield arg
                 self.assertEqual(Not, Not_v)
                 self.assertEqual(Invert, Invert_v)
+                self.assertEqual(UnaryAdd, UnaryAdd_v)
+                self.assertEqual(UnarySub, UnarySub_v)
 
         return unaryops, unaryops_v, stimulus(), check()
 

@@ -743,7 +743,23 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write(" %s " % op)
         self.visit(node.right)
         self.write(")")
-
+    def visitAdd(self, node):
+        self.binaryOp(node, '+')
+    def visitFloorDiv(self, node):
+        self.binaryOp(node, '/')
+    def visitLeftShift(self, node):
+        self.binaryOp(node, '<<')
+    def visitMod(self, node):
+        self.binaryOp(node, '%')        
+    def visitMul(self, node):
+        self.binaryOp(node, '*')
+    def visitPower(self, node):
+         self.binaryOp(node, '**')
+    def visitSub(self, node):
+        self.binaryOp(node, "-")
+    def visitRightShift(self, node):
+        self.binaryOp(node, '>>')
+        
     def multiOp(self, node, op):
         self.write("(")
         self.visit(node.nodes[0])
@@ -751,12 +767,29 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write(" %s " % op)
             self.visit(node)
         self.write(")")
-        
-    def visitAdd(self, node):
-        self.binaryOp(node, '+')
-        
     def visitAnd(self, node):
         self.multiOp(node, '&&')
+    def visitBitand(self, node):
+        self.multiOp(node, '&')
+    def visitBitor(self, node):
+        self.multiOp(node, '|')
+    def visitBitxor(self, node):
+        self.multiOp(node, '^')
+    def visitOr(self, node):
+        self.multiOp(node, '||')
+
+    def unaryOp(self, node, op):
+        self.write("(%s" % op)
+        self.visit(node.expr)
+        self.write(")")
+    def visitInvert(self, node):
+        self.unaryOp(node, '~')
+    def visitNot(self, node):
+        self.unaryOp(node, '!')
+    def visitUnaryAdd(self, node, *args):
+        self.unaryOp(node, '+')
+    def visitUnarySub(self, node, *args):
+        self.unaryOp(node, '-')
 
     def visitAssAttr(self, node):
         if node.attrname != 'next':
@@ -805,16 +838,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write(" %s " % op)
         self.visit(node.expr)
         self.write(";")
-        
-    def visitBitand(self, node):
-        self.multiOp(node, '&')
-        
-    def visitBitor(self, node):
-        self.multiOp(node, '|')
          
-    def visitBitxor(self, node):
-        self.multiOp(node, '^')
-        
     def visitBreak(self, node):
         self.write("disable %s;" % self.labelStack[-2])
 
@@ -878,9 +902,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.CallFunc) and hasattr(expr, 'ast'):
             self.write(';')
-
-    def visitFloorDiv(self, node):
-        self.binaryOp(node, '/')
 
     def visitFor(self, node):
         self.labelStack.append(node.breakLabel)
@@ -986,26 +1007,9 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.writeline()
             self.write("end")
 
-    def visitInvert(self, node):
-        self.write("(~")
-        self.visit(node.expr)
-        self.write(")")
 
     def visitKeyword(self, node):
         self.visit(node.expr)
-
-    def visitLeftShift(self, node):
-        self.binaryOp(node, '<<')
-
-    def visitMod(self, node):
-        self.write("(")
-        self.visit(node.left)
-        self.write(" % ")
-        self.visit(node.right)
-        self.write(")")
-        
-    def visitMul(self, node):
-        self.binaryOp(node, '*')
        
     def visitName(self, node):
         n = node.name
@@ -1022,20 +1026,10 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             raise AssertionError
 
-    def visitNot(self, node):
-        self.write("(!")
-        self.visit(node.expr)
-        self.write(")")
-        
-    def visitOr(self, node):
-        self.multiOp(node, '||')
 
     def visitPass(self, node):
         self.write("// pass")
     
-    def visitPower(self, node):
-        # XXX
-        pass
     
     def visitPrint(self, node):
         # XXX
@@ -1055,8 +1049,6 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitReturn(self, node):
         self.write("disable %s;" % self.returnLabel)
 
-    def visitRightShift(self, node):
-        self.binaryOp(node, '>>')
 
     def visitSlice(self, node):
         if isinstance(node.expr, ast.CallFunc) and \
@@ -1085,9 +1077,6 @@ class _ConvertVisitor(_ToVerilogMixin):
             # ugly hack to detect an orphan "task" call
             if isinstance(stmt, ast.CallFunc) and hasattr(stmt, 'ast'):
                 self.write(';')
-            
-    def visitSub(self, node):
-        self.binaryOp(node, "-")
 
     def visitSubscript(self, node):
         self.visit(node.expr)
@@ -1103,14 +1092,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         for elt in tpl[1:]:
             self.write(" or ")
             self.visit(elt)
-            
-    def visitUnaryAdd(self, node, *args):
-        # XXX
-        pass
-        
-    def visitUnarySub(self, node, *args):
-        # XXX
-        pass
 
     def visitWhile(self, node):
         self.labelStack.append(node.breakLabel)
