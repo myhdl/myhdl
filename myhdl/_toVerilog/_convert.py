@@ -371,7 +371,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.visit(arg)
             self.write(closing)
         if hasattr(node, 'ast'):
-            if node.ast.isTask:
+            if node.ast.kind == _kind.TASK:
                 Visitor = _ConvertTaskVisitor
             else:
                 Visitor = _ConvertFunctionVisitor

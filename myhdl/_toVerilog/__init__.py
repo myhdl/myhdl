@@ -57,10 +57,11 @@ _error.ReturnTypeInfer = "Can't infer return type"
 _error.ShadowingSignal = "Port is shadowed by internal signal"
 _error.FreeVarTypeError = "Free variable should be a Signal or an int"
 _error.ExtraArguments = "Extra positional or named arguments are not supported"
+_error.UnsupportedYield = "Unsupported yield statement"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
-_kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB")
+_kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB", "TASK")
 _context = enum("BOOLEAN", "YIELD", "PRINT", "UNKNOWN")
 
     

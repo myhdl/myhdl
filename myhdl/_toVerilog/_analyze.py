@@ -42,6 +42,10 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _access, _kind,_context, \
                              _ToVerilogMixin, _Label
 
+
+myhdlObjects = myhdl.__dict__.values()
+builtinObjects = __builtin__.__dict__.values()
+ 
    
 def _analyzeSigs(hierarchy):
     curlevel = 0
@@ -103,7 +107,7 @@ def _analyzeGens(top, genNames):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            # print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -223,7 +227,13 @@ class ReferenceStack(list):
             if item in s:
                 return True
         return False
-    
+
+# auxiliary types to aid type checking
+class _EdgeDetector(object):
+    pass
+class _Generator(object):
+    pass
+   
 
 class _AnalyzeVisitor(_ToVerilogMixin):
     
@@ -234,7 +244,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         ast.outputs = Set()
         ast.argnames = []
         ast.kind = None
-        ast.isTask = False
+        ast.isGen = False
         self.ast = ast
         self.labelStack = []
         self.refStack = ReferenceStack()
@@ -293,7 +303,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.obj = int()
         
     def visitAssAttr(self, node, access=_access.OUTPUT, *args):
-        self.ast.isTask = True
+        self.ast.kind = _kind.TASK
         self.visit(node.expr, _access.OUTPUT)
         
     def visitAssign(self, node, access=_access.OUTPUT, *args):
@@ -346,15 +356,18 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             self.visit(arg, _access.UNKNOWN)
         argsAreInputs = True
         f = self.getObj(node.node)
+        node.obj = None
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
         elif f is len:
             node.obj = int() # XXX
         elif f is bool:
             node.obj = bool()
-        elif f in myhdl.__dict__.values():
+        elif f in (posedge , negedge):
+            node.obj = _EdgeDetector()
+        elif f in myhdlObjects:
             pass
-        elif f in __builtin__.__dict__.values():
+        elif f in builtinObjects:
             pass
         elif type(f) is FunctionType:
             argsAreInputs = False
@@ -386,6 +399,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                     self.visit(arg, _access.OUTPUT)
                 if n in ast.inputs:
                     self.visit(arg, _access.INPUT)
+            if ast.isGen:
+                node.obj = _Generator()
         elif type(f) is MethodType:
             self.raiseError(node,_error.NotSupported, "method call: '%s'" % f.__name__)
         else:
@@ -482,7 +497,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if access == _access.INPUT:
                 self.ast.inputs.add(n)
             elif access == _access.OUTPUT:
-                self.ast.isTask = True
+                self.ast.kind = _kind.TASK
                 self.ast.outputs.add(n)
             elif access == _access.UNKNOWN:
                 pass
@@ -541,6 +556,18 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.require(node, node.else_ is None, "while-else not supported")
         self.labelStack.pop()
         self.labelStack.pop()
+
+    def visitYield(self, node, *args):
+        self.ast.isGen = True
+        n = node.value
+        self.visit(n)
+        if isinstance(n, astNode.Tuple):
+            for n in n.nodes:
+                if not type(n.obj) in (Signal, _EdgeDetector):
+                    self.raiseError(node, _error.UnsupportedYield)
+        else:
+            if not type(n.obj) in (Signal, _EdgeDetector, _Generator):
+                self.raiseError(node, _error.UnsupportedYield)
         
 
 class _AnalyzeBlockVisitor(_AnalyzeVisitor):
@@ -667,8 +694,6 @@ class _AnalyzeTopFuncVisitor(object):
         self.argdict = {}
     
     def visitFunction(self, node):
- ##        if node.flags != 0: # check flags
-##             raise AssertionError("unsupported function type")
         self.name = node.name
         argnames = node.argnames
         i=-1

@@ -107,6 +107,29 @@ def negIntbv(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
+
+def yieldObject1(count, enable, clock, reset, n):
+    while 1:
+        yield posedge(clock), delay(5)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+                
+def g1(clock):
+        yield posedge(clock)
+def g2(reset):
+        yield negedge(reset)
+      
+def yieldObject2(count, enable, clock, reset, n):
+    while 1:
+        yield g1(clock), g2(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
       
 
 objfile = "inc_inst.o"
@@ -218,6 +241,23 @@ class TestInc(TestCase):
             self.assertEqual(e.kind, _error.IntbvSign)
         else:
             self.fail()
+            
+    def testYield1(self):
+        try:
+            self.bench(yieldObject1)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UnsupportedYield)
+        else:
+            self.fail()
+            
+    def testYield2(self):
+        try:
+            self.bench(yieldObject2)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UnsupportedYield)
+        else:
+            self.fail()
+
 
 if __name__ == '__main__':
     unittest.main()

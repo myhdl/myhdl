@@ -77,6 +77,21 @@ def incTaskFreeVar(count, enable, clock, reset, n):
 
     return incTaskGen()
         
+def incGen(count, enable, clock, reset, n):
+
+    def gen():
+        yield posedge(clock), negedge(reset)
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+
+    def inc():
+        while 1:
+            yield gen()
+
+    return inc()
 
 objfile = "inc_inst.o"
 analyze_cmd = "iverilog -o %s inc_inst.v tb_inc_inst.v" % objfile
@@ -135,6 +150,7 @@ class TestInc(TestCase):
 
         inc_inst_ref = incRef(count, enable, clock, reset, n=n)
         inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
+        # inc_inst = inc(count, enable, clock, reset, n=n)
         inc_inst_v = inc_v(count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
@@ -155,6 +171,10 @@ class TestInc(TestCase):
     def testIncTaskFreeVar(self):
         sim = self.bench(incTaskFreeVar)
         sim.run(quiet=1)
+        
+##     def testIncGen(self):
+##         sim = self.bench(incGen)
+##         sim.run(quiet=1)
         
 
 if __name__ == '__main__':
