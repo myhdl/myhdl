@@ -55,6 +55,9 @@ class TopLevelNameError(Error):
 
 class ArgTypeError(Error):
     """trace_sigs first argument should be a classic function"""
+    
+class NoInstancesError(Error):
+    """trace_sigs returned no instances"""
 
 re_assname = re.compile(r"^\s*(?P<assname>\w[\w\d]*)\s*=")
 
@@ -99,6 +102,8 @@ class HierExtr(object):
             _top = dut(*args, **kwargs)
         finally:
             sys.setprofile(None)
+        if not instances:
+            raise NoInstancesError
         self.m = _top
         instances.reverse()
         # print instances

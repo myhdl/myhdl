@@ -34,7 +34,8 @@ import unittest
 from unittest import TestCase
 
 from myhdl import delay, Signal
-from trace_sigs import trace_sigs, TopLevelNameError, ArgTypeError
+from trace_sigs import trace_sigs, TopLevelNameError, ArgTypeError, \
+                       NoInstancesError
 
 def gen(clk):
     while 1:
@@ -45,6 +46,11 @@ def fun():
     clk = Signal(bool(0))
     inst = gen(clk)
     return inst
+
+def dummy():
+    clk = Signal(bool(0))
+    inst = gen(clk)
+    return 1
 
 
 class TestTraceSigs(TestCase):
@@ -67,13 +73,21 @@ class TestTraceSigs(TestCase):
             self.fail()
             
     def testArgType2(self):
-        top = trace_sigs(gen, Signal(0))
         try:
             top = trace_sigs(gen, Signal(0))
         except ArgTypeError:
             pass
         else:
             self.fail()
+
+    def testReturnVal(self):
+        try:
+            top = trace_sigs(dummy)
+        except NoInstancesError:
+            pass
+        else:
+            self.fail()
+       
        
 
 if __name__ == "__main__":
