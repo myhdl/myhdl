@@ -120,17 +120,21 @@ def toVerilog(func, *args, **kwargs):
         linecache.clearcache()
     vpath = name + ".v"
     vfile = open(vpath, 'w')
+    tbpath = "tb_" + vpath
+    tbfile = open(tbpath, 'w')
     
     siglist = _analyzeSigs(h.hierarchy)
-
     astlist = _analyzeGens(_flatten(h.top))
-
     intf = _analyzeTopFunc(func, *args, **kwargs)
     
-    _writeVerilogHeader(vfile, intf)
+    _writeModuleHeader(vfile, intf)
     _writeSigDecls(vfile, intf, siglist)
     _convertGens(astlist, vfile)
-    _writeVerilogFooter(vfile)
+    _writeModuleFooter(vfile)
+    _writeTestBench(tbfile, intf)
+
+    vfile.close()
+    tbfile.close()
     
     return h.top
 
@@ -297,7 +301,6 @@ class SignalMultipleDrivenError(Error):
 class EmbeddedFunctionError(Error):
     """embedded functions not supported"""
    
-        
 INPUT, OUTPUT, INOUT = range(3)
 
 class _AnalyzeGenVisitor(object):
@@ -321,7 +324,7 @@ class _AnalyzeGenVisitor(object):
            
     def visitFunction(self, node):
         if self.toplevel:
-            self.toplevel = 0 # skip embedded functions
+            self.toplevel = 0
             print node.code
             self.visit(node.code)
             isAlways = True
@@ -402,12 +405,13 @@ class _AnalyzeTopFuncVisitor(object):
         self.argnames = node.argnames
         for argname, arg in zip(node.argnames, self.args):
             self.argdict[argname] = arg
-        self.argdict.update(self.kwargs)           
-            
-        
+        self.argdict.update(self.kwargs)
 
-def _writeVerilogHeader(f, intf):
-    print >> f, "module %s (" %intf.name
+
+### Verilog output functions ###
+
+def _writeModuleHeader(f, intf):
+    print >> f, "module %s (" % intf.name
     b = StringIO()
     for portname in intf.argnames:
         print >> b, "    %s," % portname
@@ -439,10 +443,46 @@ def _writeSigDecls(f, intf, siglist):
     print >> f
             
 
-def _writeVerilogFooter(f):
+def _writeModuleFooter(f):
     print >> f
     print >> f
     print >> f, "endmodule"
+    
+
+def _writeTestBench(f, intf):
+    print >> f, "module tb_%s;" % intf.name
+    print >> f
+    fr = StringIO()
+    to = StringIO()
+    pm = StringIO()
+    for portname in intf.argnames:
+        s = intf.argdict[portname]
+        r = _getRangeString(s)
+        print >> f, "reg %s%s;" % (r, portname)
+        if s._driven:
+            bf = to
+        else:
+            bf = fr
+        print >> bf, "        %s," % portname
+        print >> pm, "    %s," % portname
+    print >> f
+    print >> f, "initial begin"
+    if fr.getvalue():
+        print >> f, "    $from_myhdl("
+        print >> f, fr.getvalue()[:-2]
+        print >> f, "    );"
+    if to.getvalue():
+        print >> f, "    $to_myhdl("
+        print >> f, to.getvalue()[:-2]
+        print >> f, "    );" 
+    print >> f, "end"
+    print >> f
+    print >> f, "%s dut(" % intf.name
+    print >> f, pm.getvalue()[:-2]
+    print >> f, ");"
+    print >> f
+    print >> f, "endmodule"
+
 
     
 def _getRangeString(s):
@@ -518,6 +558,29 @@ class _convertGenVisitor(object):
     def visitConst(self, node):
         self.write(node.value)
 
+    def visitFunction(self, node):
+        w = node.code.nodes[-1]
+        print type(w)
+        assert isinstance(w, ast.While)
+        assert isinstance(w.test, ast.Const)
+        assert w.test.value in ('1', True)
+        assert w.else_ is None
+        assert isinstance(w.body.nodes[0], ast.Yield)
+        sl = w.body.nodes[0].value
+        assert isinstance(sl, ast.Tuple)
+        self.inYield = True
+        self.write("always @(")
+        self.visit(sl)
+        self.inYield = False
+        self.write(") begin")
+        self.indent()
+        for s in w.body.nodes[1:]:
+            self.visit(s)
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        self.writeline()
+        
 
     def visitIf(self, node):
         self.writeline()
@@ -570,10 +633,6 @@ class _convertGenVisitor(object):
         self.write(");")
         self.inYield = False
 
-    
-
-    
-        
         
 
 def _convertGens(astlist, vfile):
