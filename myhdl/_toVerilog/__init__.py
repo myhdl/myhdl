@@ -56,6 +56,7 @@ _error.ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
 _error.ReturnTypeInfer = "Can't infer return type"
 _error.ShadowingSignal = "Port is shadowed by internal signal"
 _error.FreeVarTypeError = "Free variable should be a Signal or an int"
+_error.ExtraArguments = "Extra positional or named arguments are not supported"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")

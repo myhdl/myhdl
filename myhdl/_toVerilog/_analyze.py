@@ -172,6 +172,10 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         self.visit(node.expr, *args)
         
     def visitCallFunc(self, node, context=_context.UNKNOWN):
+        if node.star_args:
+            self.raiseError(node, _error.NotSupported, "extra positional arguments")
+        if node.dstar_args:
+            self.raiseError(node, _error.NotSupported, "extra named arguments")
         f = eval(_unparse(node.node), self.ast.symdict)
         if f is bool:
             context = _context.BOOLEAN
@@ -183,6 +187,8 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         self.visitChildNodes(node, *args)
         
     def visitFunction(self, node, *args):
+        if node.flags != 0: # check flags
+            self.raiseError(node, _error.NotSupported, "extra positional or named arguments")
         if not self.toplevel:
             self.raiseError(node, _error.NotSupported, "embedded function definition")
         self.toplevel = False
@@ -653,8 +659,8 @@ class _AnalyzeTopFuncVisitor(object):
         self.argdict = {}
     
     def visitFunction(self, node):
-        if node.flags != 0: # check flags
-            raise AssertionError("unsupported function type")
+ ##        if node.flags != 0: # check flags
+##             raise AssertionError("unsupported function type")
         self.name = node.name
         argnames = node.argnames
         i=-1

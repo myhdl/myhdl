@@ -249,18 +249,58 @@ class TestNotSupported(unittest.TestCase):
                 else:
                     z.next = a < (b or c)
         self.check(g, z, a, b)
-    
+
+    def testExtraArguments(self):
+        a, b, c = [Signal(bool()) for i in range(3)]
+        c = [1, 2]
+        def g(a, *args):
+            yield a
+        def f(a, b, c, *args):
+            return g(a, b)
+        self.check(f, a, b, c)
+
+    def testExtraPositionalArgsInCall(self):
+        a, b, c = [Signal(bool()) for i in range(3)]
+        c = [1]
+        d = {'b':2}
+        def h(b):
+            return b
+        def g(a):
+            h(*c)
+            yield a
+        def f(a, b, c):
+            return g(a)
+        x = self.check(f, a, b, c)
+        
+    def testExtraNamedArgsInCall(self):
+        a, b, c = [Signal(bool()) for i in range(3)]
+        c = [1]
+        d = {'b':2}
+        def h(b):
+            return b
+        def g(a):
+            h(**d)
+            yield a
+        def f(a, b, c):
+            return g(a)
+        x = self.check(f, a, b, c)
+   
 
 
 class TestMisc(unittest.TestCase):
     def test(self):
         a, b, c = [Signal(bool()) for i in range(3)]
-        c = [1, 2]
-        def g(a, b, c):
-            yield a 
-            a.next = b is c
-        x = g(a, b, c)
-        x = toVerilog(g,a, b, c)
+        c = [1]
+        d = {'a':2}
+        def h(b):
+            return b
+        def g(a):
+            h(a)
+            yield a
+        def f(a, b, c):
+            return g(a)
+        f(a, b, c)
+        x = toVerilog(f, a, b, c)
     
         
 
