@@ -33,7 +33,7 @@ random.seed(1) # random, but deterministic
 from myhdl import Simulation, now, delay, StopSimulation, join
 from myhdl import Signal, posedge, negedge, intbv
 
-from _simulator import _siglist
+from myhdl._simulator import _siglist
 
 QUIET=1
 

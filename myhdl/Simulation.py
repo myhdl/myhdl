@@ -29,14 +29,11 @@ import os
 from warnings import warn
 from types import GeneratorType
 
-import _simulator
-from _simulator import _siglist, _futureEvents
-from Signal import Signal, _WaiterList
-from delay import delay
-from Cosimulation import Cosimulation
-from join import join
-from _Waiter import _Waiter
-from util import StopSimulation, SuspendSimulation
+from myhdl import delay, Signal, Cosimulation, join
+from myhdl import _simulator
+from myhdl._simulator import _siglist, _futureEvents
+from myhdl._Waiter import _Waiter, _WaiterList
+from myhdl.util import StopSimulation, SuspendSimulation
 ## try:
 ##     import simrunc
 ## except:

@@ -64,3 +64,8 @@ class _Semaphore(object):
         self.val = val
         
        
+class _WaiterList(list):
+
+    def purge(self):
+        if self:
+            self[:] = [w for w in self if not w.hasRun]

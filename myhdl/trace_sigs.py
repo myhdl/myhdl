@@ -34,9 +34,8 @@ import re
 import string
 import time
 
-from util import _isGenSeq
-from myhdl import _simulator
-from myhdl import Signal, __version__
+from myhdl import _simulator, Signal, __version__
+from myhdl.util import _isGenSeq
 
 _tracing = 0
 

@@ -50,13 +50,13 @@ __version__ = "0.3"
 # that are used by others are exported first.
 from bin import bin
 from intbv import intbv
-from Simulation import Simulation
 from join import join
 from Signal import posedge, negedge, Signal
 from _simulator import now
 from delay import delay
-from Cosimulation import Cosimulation
 from util import downrange, Error, StopSimulation
+from Cosimulation import Cosimulation
+from Simulation import Simulation
 from misc import instances, processes
 from always_comb import always_comb
 from enum import enum
