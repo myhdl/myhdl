@@ -138,8 +138,10 @@ The most important restriction regards object types. Verilog is an
 almost typeless language, while Python is strongly (albeit
 dynamically) typed. The converter needs to infer the types of
 variables and map them to Verilog types. Therefore, it does type
-inferencing of object constructors and expressions.  Python
-\class{int} and \class{long} objects are mapped to Verilog
+inferencing of object constructors and expressions.
+
+Only a limited amount of types can be converted.
+Python \class{int} and \class{long} objects are mapped to Verilog
 integers. All other supported types are mapped to Verilog regs (or
 wires), and therefore need to have a defined bit width. The supported
 types are the Python \class{bool} type, the MyHDL \class{intbv} type,
@@ -148,7 +150,23 @@ latter objects can also be used as the base object of a
 \class{Signal}. 
 
 \class{intbv} objects need to be constructed so that a bit
-width can be inferred.
+width can be inferred. This can be done by specifying minimum
+and maximum values, e.g. as follows:
+
+\begin{verbatim}
+index = intbv(0, min=0, max=2**N)
+\end{verbatim}
+
+Alternatively, a slice can be taken from an \class{intbv} object
+as follows:
+
+\begin{verbatim}
+index = intbv(0)[N:]
+\end{verbatim}
+
+Such as slice returns a new \class{intbv} object, with minimum
+value \code{0} inclusive, and maximum value \code{2**N} exclusive.
+
 
 \subsection{Supported statements}
 
@@ -167,8 +185,11 @@ blocks in a design.
 \item[The \keyword{def} statement.]
 
 \item[The \keyword{for} statement.]
+The only supported iteration scheme is through lists of
+integers returned by builtin function \function{range}
+or \myhdl\ function \function{downrange} is supported.
 The optional \keyword{else}
-statement is not supported.
+clause is not supported.
 
 \item[The \keyword{if} statement.]
 \keyword{if}, \keyword{elif}, and \keyword{else} clauses
@@ -177,18 +198,32 @@ are fully supported.
 \item[The \keyword{pass} statement.]
 
 \item[The \keyword{print} statement.]
+The only supported expression for printing is
+a single literal string.
+The string can be interpolated, but the format specifiers
+are copied verbatim to the Verilog output.
+Print to a file with syntax \code{'>>'} is not supported.
 
 \item[The \keyword{raise} statement.]
+This statement is mapped to Verilog statements
+that end the simulation with an error message.
 
 \item[The \keyword{return} statement.]
 
 \item[The \keyword{yield} statement.] 
+The yielded expression can be a signal, a signal edge
+as specified by \myhdl\ functions \function{posedge}
+or \function{negedge}, or a tuple of signals and
+edge specifications.
 
 \item[The \keyword{while} statement.]
 The optional \keyword{else}
-statement is not supported.
+clause is not supported.
 
 \end{description}
+
+\section{Methodology notes}
+XXX
 
 \section{Converter usage}
 
