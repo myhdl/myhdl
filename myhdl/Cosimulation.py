@@ -92,8 +92,10 @@ class Cosimulation(object):
             os.environ['MYHDL_TO_PIPE'] = str(wt)
             os.environ['MYHDL_FROM_PIPE'] = str(rf)
             arglist = exe.split()
+            p = arglist[0]
+            arglist[0] = os.path.basename(p)
             try:
-                os.execvp(arglist[0], arglist)
+                os.execvp(p, arglist)
             except OSError, e:
                 raise Error, str(e)
         else:
