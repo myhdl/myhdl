@@ -328,9 +328,9 @@ IndexError: pop from empty list
 
 Instead of these low level errors, it may be preferable to define
 errors at the functional level. In Python, this is typically done by
-defining a custom \code{Error} exception at the module level, by
-subclassing the standard \code{Exception} class. This exception is
-then raised explicitly when an error condition occurs.
+defining a custom \code{Error} exception, by subclassing the standard
+\code{Exception} class. This exception is then raised explicitly when
+an error condition occurs.
 
 For example, we can change function \function{sparseMemory} as follows
 (with the doc string is omitted for brevity):
