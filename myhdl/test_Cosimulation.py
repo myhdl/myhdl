@@ -229,6 +229,7 @@ class CosimulationTest(TestCase):
         for n, v in zip(toSignames, toVals):
             self.assertEqual(toSigs[n].next, v)
         os.write(cosim._wf, "DUMMY")
+        cosim._getMode = 1
         cosim._get()
         for n in toSignames:
             self.assertEqual(toSigs[n].next, None)
@@ -250,13 +251,17 @@ class CosimulationTest(TestCase):
         os.write(wt, "START")
         os.read(rf, MAXLINE)
         buf = "0 "
-        for v in toVals:
+        for s, v in zip(toSignames, toVals):
+            buf += s
+            buf += " "
             buf += hex(v)[2:]
             buf += " "
         os.write(wt, buf)
         os.read(rf, MAXLINE)
         buf = "0 "
-        for v in toXVals:
+        for s, v in zip(toSignames, toXVals):
+            buf += s
+            buf += " "
             buf += v
             buf += " "
         os.write(wt, buf)
