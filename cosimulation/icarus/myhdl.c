@@ -274,10 +274,10 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   verilog_time_s.type = vpiSimTime;
   vpi_get_time(NULL, &verilog_time_s);
   verilog_time = timestruct_to_time(&verilog_time_s);
-/*    if (verilog_time != (pli_time * 1000 + delta)) { */
-/*      vpi_printf("%u %u\n", verilog_time_s.high, verilog_time_s.low ); */
-/*      vpi_printf("%llu %llu %d", verilog_time, pli_time, delta); */
-/*    }  */
+   if (verilog_time != (pli_time * 1000 + delta)) {
+     vpi_printf("%u %u\n", verilog_time_s.high, verilog_time_s.low );
+     vpi_printf("%llu %llu %d\n", verilog_time, pli_time, delta);
+   }
   /* Icarus 0.7 fails on this assertion beyond 32 bits due to a bug */
   // assert(verilog_time == pli_time * 1000 + delta);
   assert( (verilog_time & 0xFFFFFFFF) == ( (pli_time * 1000 + delta) & 0xFFFFFFFF ) );
@@ -315,9 +315,11 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   if (delay > 0) { // schedule cbAfterDelay callback
     assert(delay > delta);
     delay -= delta;
-    /* Icarus runs RO callbacks when time has already advanced */
-    /* Therefore, compensate for the prescheduled delta callback */
-    delay -= 1;
+    /* Icarus 20030518 runs RO callbacks when time has already advanced */
+    /* Therefore, one had to compensate for the prescheduled delta callback */
+    /* delay -= 1; */
+    /* Icarus 20031009 has a different scheduler, more correct I believe */
+    /* compensation is no longer necessary */
     delta = 0;
     pli_time = myhdl_time;
 
