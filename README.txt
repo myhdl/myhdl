@@ -22,8 +22,9 @@ MyHDL supports the classic hardware description concepts. It provides
 a signal class similar to the VHDL signal, a class for bit oriented
 operations, and support for enumeration types.  The Python yield
 statement is used as a general sensitivity list to wait on a signal
-change, an edge, a delay, or on another generator. MyHDL supports
-waveform viewing by tracing signal changes in a VCD file.
+change, an edge, a delay, or on the completion of another
+generator. MyHDL supports waveform viewing by tracing signal changes
+in a VCD file.
 
 Python's rare combination of power and clarity makes it ideal for high
 level modeling.  It can be expected that MyHDL users will often have
@@ -36,6 +37,10 @@ designs.  MyHDL can also be used as hardware verification language for
 VHDL and Verilog designs, by co-simulation with any simulator that has
 a PLI.  The distribution contains a PLI module for the Icarus Verilog
 simulator.
+
+Finally, a subset of MyHDL code can be converted automatically into
+synthesizable Verilog code. This feature provides a direct path from
+Python to an FPGA or ASIC implementation.
 
 The MyHDL software is open source software. It is licensed under the
 GNU Lesser General Public License (LGPL).
