@@ -5,6 +5,8 @@ COSET = 0x55
 
 def calculateHec(header):
     """ Return hec for an ATM header, represented as an intbv.
+
+    The hec polynomial is 1 + x + x**2 + x**8.
     """
     hec = intbv(0)
     for bit in header[32:]:
