@@ -105,7 +105,6 @@ class _SigNameVisitor(object):
             raise EmbeddedFunctionError
 
     def visitName(self, node, access=INPUT):
-        print node.name
         if node.name not in self.sigdict:
             return
         if access == INPUT:
