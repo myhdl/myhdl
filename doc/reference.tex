@@ -1,22 +1,64 @@
-\chapter{The \myhdl\ package reference}
+\chapter{Reference}
 
 
+\myhdl\ is implemented as a Python package called \code{myhdl}. This
+chapter describes all objects that are expored by this package.
+
+\section{The \class{Simulation} class}
 \begin{classdesc}{Simulation}{*args}
-Simulation object.
+Class to construct a new simulation. Each argument can either be a
+\myhdl\ generator, or a nested sequence of such generators. (A nested
+sequence means that each item in the sequence can itself be a
+sequence.) See section~\ref{myhdl-generators} for the definition of
+\myhdl\ generators.
+\end{classdesc}
+
+A \class{Simulation} instance has the following method:
 
 \begin{methoddesc}[Simulation]{run}{\optional{duration}}
-Run method.
+Run the simulation forever or for a specified duration.
 \end{methoddesc}
+
+\section{The \class{Signal} class}
+\begin{classdesc}{Signal}{val, \optional{delay}}
+
+A \class{Signal} has the following attributes:
+
+\begin{memberdesc}[Signal]{val}
+Read-only attribute that represents the current value of the signal. 
+
+\end{memberdesc}
+\begin{memberdesc}[Signal]{next}
+Read-write attribute.
+
+\end{memberdesc}
 
 \end{classdesc}
 
-\begin{excdesc}{StopStimulation}
-Exception that stops the simulation run. It is used internally but can
-be used externally as well.
-\end{excdesc}
+\section{\myhdl\ generators}
+\label{myhdl-generators}
+
+
+\section{Modeling convenience objects}
+
+\begin{excclassdesc}{StopStimulation}{}
+Base exception that is caught by the \code{Simulation.run} method to
+stop a simulation. Can be subclassed and raised in generator code.
+\end{excclassdesc}
 
 \begin{funcdesc}{now}{}
 Return the current simulation time.
 \end{funcdesc}
+
+\begin{funcdesc}{downrange}{high, \optional{low}}
+Generates a downward range list. Like the standard \code{range}
+function, but in the downward direction.
+\end{funcdesc}
+
+\section{The  \class{intbv} class}
+
+
+
+
 
 
