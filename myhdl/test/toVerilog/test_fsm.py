@@ -108,9 +108,47 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
     return FSM_1
 
 
+def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
+    
+    """ Framing control FSM.
 
+    SOF -- start-of-frame output bit
+    state -- FramerState output
+    syncFlag -- sync pattern found indication input
+    clk -- clock input
+    reset_n -- active low reset
+    
+    """
+    
+    index = (intbv(0)[8:]) # position in frame
+    while 1:
+        yield posedge(clk), negedge(reset_n)
+        if reset_n == ACTIVE_LOW:
+            SOF.next = 0
+            index[:] = 0
+            state.next = t_State.SEARCH
+        else:
+            SOF.next = 0
+            if state == t_State.SEARCH:
+                index[:] = 0
+                if syncFlag:
+                    state.next = t_State.CONFIRM
+            elif state == t_State.CONFIRM:
+                if index == 0:
+                    if syncFlag:
+                        state.next = t_State.SYNC
+                    else:
+                        state.next = t_State.SEARCH
+            elif state == t_State.SYNC:
+                if index == 0:
+                    if not syncFlag:
+                        state.next = t_State.SEARCH
+                SOF.next = (index == FRAME_SIZE-1)
+            else:
+                raise ValueError("Undefined state")
+            index[:]= (index + 1) % FRAME_SIZE
 
-
+ 
 objfile = "framerctrl.o"
 analyze_cmd = "iverilog -o %s framerctrl_inst.v tb_framerctrl_inst.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
@@ -173,16 +211,21 @@ class FramerCtrlTest(TestCase):
 
 
     def testRef(self):
-        for t_State in (t_State_b, t_State_oh, t_State_oc):
+        for t_State in (t_State_b, t_State_oc, t_State_oh):
             tb_fsm = self.bench(FramerCtrl_ref, t_State)
             sim = Simulation(tb_fsm)
             sim.run()
         
     def testAlt(self):
-        for t_State in (t_State_b, t_State_oh, t_State_oc):
+        for t_State in (t_State_b, t_State_oc, t_State_oh):
             tb_fsm = self.bench(FramerCtrl_alt, t_State)
             sim = Simulation(tb_fsm)
             sim.run()
+            
+    def testDoc(self):
+        tb_fsm = self.bench(FramerCtrl, t_State_oh)
+        sim = Simulation(tb_fsm)
+        sim.run()
 
 if __name__ == '__main__':
     unittest.main()
