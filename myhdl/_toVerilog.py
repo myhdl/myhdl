@@ -25,25 +25,16 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-import sys
-from inspect import currentframe, getsource, getouterframes
+from inspect import currentframe, getouterframes
 import inspect
-import re
-import string
-import time
-from types import FunctionType
-import os
-from os import path
-import shutil
 import compiler
 from compiler import ast
-import linecache
 from sets import Set
 from types import GeneratorType
 from cStringIO import StringIO
 
-from myhdl import _simulator, Signal, __version__, intbv
-from myhdl._util import _isGenSeq, _isGenFunc
+from myhdl import Signal, intbv
+from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 
 
 def _flatten(*args):
@@ -77,9 +68,6 @@ class TopLevelNameError(Error):
 class ArgTypeError(Error):
     """toVerilog first argument should be a classic function"""
     
-class NoInstancesError(Error):
-    """toVerilog returned no instances"""
-
 class MultipleTracesError(Error):
     """Cannot trace multiple instances simultaneously"""
 
@@ -88,16 +76,6 @@ class UndefinedBitWidthError(Error):
 
 class UndrivenSignalError(Error):
     """Signal is not driven"""
-
-re_assign = r"""^
-                \s*
-                (?P<name>\w[\w\d]*)
-                (?P<index>\[.*\])?
-                \s*
-                =
-                """
- 
-rex_assign = re.compile(re_assign, re.X)
 
 
 def toVerilog(func, *args, **kwargs):
@@ -115,7 +93,6 @@ def toVerilog(func, *args, **kwargs):
         h = _HierExtr(name, func, *args, **kwargs)
     finally:
         _converting = 0
-        linecache.clearcache()
     vpath = name + ".v"
     vfile = open(vpath, 'w')
     tbpath = "tb_" + vpath
@@ -138,118 +115,6 @@ def toVerilog(func, *args, **kwargs):
     return h.top
 
 
-_filelinemap = {}
-
-class _CallFuncVisitor(object):
-
-    def __init__(self):
-        self.linemap = {}
-    
-    def visitAssign(self, node):
-        if isinstance(node.expr, ast.CallFunc):
-            self.lineno = None
-            self.visit(node.expr)
-            self.linemap[self.lineno] = node.lineno
-
-    def visitName(self, node):
-        self.lineno = node.lineno
-        
-
-def _findInstanceName(framerec):
-    fr = framerec[0]
-    fn = framerec[1]
-    ln = framerec[2]
-    if not _filelinemap.has_key(fn):
-        tree = compiler.parseFile(fn)
-        v = _CallFuncVisitor()
-        compiler.walk(tree, v)
-        linemap = _filelinemap[fn] = v.linemap
-    else:
-        linemap = _filelinemap[fn]
-    if not linemap.has_key(ln):
-        return None
-    nln = linemap[ln]
-    cl = linecache.getline(fn, nln)
-    m = rex_assign.match(cl)
-    name = None
-    if m:
-        basename, index = m.groups()
-        if index:
-            il = []
-            for i in index[1:-1].split("]["):
-                try:
-                    s = str(eval(i, fr.f_globals, fr.f_locals))
-                except:
-                    break
-                il.append(s)
-            else:
-                name = basename + '[' + "][".join(il) + ']'
-        else:
-            name = basename
-    return name
- 
-
-class _HierExtr(object):
-    
-    def __init__(self, name, func, *args, **kwargs):
-        global _profileFunc
-        self.skipNames = ('always_comb', 'instances', 'processes')
-        self.skip = 0
-        self.names = [name]
-        self.hierarchy = hierarchy = []
-        self.level = 0
-        if _isGenFunc(func):
-            _top = func(*args, **kwargs)
-            gsigdict = {}
-            for dict in (_top.gi_frame.f_globals, _top.gi_frame.f_locals):
-                for n, v in dict.items():
-                    if isinstance(v, Signal):
-                        gsigdict[n] = v
-            inst = [1, name, gsigdict]
-            self.hierarchy.append(inst)
-        else:
-            _profileFunc = self.extractor
-            sys.setprofile(_profileFunc)
-            try:
-                _top = func(*args, **kwargs)
-            finally:
-                sys.setprofile(None)
-            if not hierarchy:
-                raise NoInstancesError
-        self.top = _top
-        hierarchy.reverse()
-        hierarchy[0][1] = name
-
-    def extractor(self, frame, event, arg):
-        if event == "call":
-            func_name = frame.f_code.co_name
-            if func_name in self.skipNames:
-                self.skip = 1
-            if not self.skip:
-                outer = getouterframes(frame)[1]
-                name = _findInstanceName(outer)
-                self.names.append(name)
-                if name:
-                    self.level += 1
-        elif event == "return":
-            if not self.skip:
-                name = self.names.pop()
-                if name:
-                    if _isGenSeq(arg):
-                        sigdict = {}
-                        for dict in (frame.f_globals, frame.f_locals):
-                            for n, v in dict.items():
-                                if isinstance(v, Signal):
-                                    sigdict[n] = v
-                        i = [self.level, name, sigdict]
-                        self.hierarchy.append(i)
-                    self.level -= 1
-            func_name = frame.f_code.co_name
-            if func_name in self.skipNames:
-                self.skip = 0
-          
-
-   
 
 def _analyzeSigs(hierarchy):
     curlevel = 0
@@ -523,6 +388,13 @@ class _convertGenVisitor(object):
         self.ind = ''
         self.inYield = False
         self.isSigAss = False
+        self.genLabel = self.LabelGenerator()
+
+    def LabelGenerator(self):
+        i = 1
+        while 1:
+            yield "LABEL_%s" % i
+            i += 1
 
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -625,7 +497,7 @@ class _convertGenVisitor(object):
         self.write("always @(")
         self.visit(sl)
         self.inYield = False
-        self.write(") begin")
+        self.write(") begin: %s" % self.genLabel.next())
         self.indent()
         self.buf = self.codeBuf
         for s in w.body.nodes[1:]:
@@ -670,15 +542,14 @@ class _convertGenVisitor(object):
         self.visit(node.right)
         
     def visitName(self, node):
-        # assert node.name in self.symdict
         if node.name in self.symdict:
             obj = self.symdict[node.name]
-            if type(obj) is int:
+            if isinstance(obj, int):
                 self.write(str(obj))
             elif type(obj) is Signal:
                 self.write(obj._name)
             else:
-                raise AssertionError
+                self.write(node.name)
         else:
             self.write(node.name)
 
