@@ -12,7 +12,7 @@ def bin2gray(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
-    Bext = intbv(0)[width+1:]
+    Bext = intbv(0, max=width)[width+1:]
     while 1:
         yield B
         Bext[:] = B
