@@ -94,8 +94,9 @@ The \code{clk} signal is constructed with an initial value
 \code{0}. In the clock generator function \code{clkGen}, it is
 continuously assigned a new value after a certain delay. In \myhdl{},
 the new value of a signal is specified by assigning to its
-\code{next} attribute. This is the \myhdl\ equivalent of VHDL signal
-assignments and Verilog's nonblocking assignments.
+\code{next} attribute. This is the \myhdl\ equivalent of the VHDL signal
+assignment \index{VHDL!signal assignment} and the Verilog non-blocking
+assignment \index{Verilog!non-blocking assignment}.
 
 The \code{sayHello} generator function is modified to wait for a
 rising edge of the clock instead of a delay:

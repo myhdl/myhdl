@@ -5,6 +5,8 @@
 chapter describes the objects that are exported by this package.
 
 \section{The \class{Simulation} class \label{ref-sim}}
+\declaremodule{}{myhdl}
+
 \begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
 Class to construct a new simulation. Each argument is either be a
 \myhdl\ generator, or a nested sequence of such generators. (A nested
@@ -24,6 +26,8 @@ Run the simulation forever (by default) or for a specified duration.
 \end{methoddesc}
 
 \section{The \class{Signal} class \label{ref-sig}}
+\declaremodule{}{myhdl}
+
 \begin{classdesc}{Signal}{val \optional{, delay}}
 This class is used to construct a new signal and to initialize its
 value to \var{val}. Optionally, a delay can be specified.
@@ -54,6 +58,7 @@ instead.
 
 
 \section{\myhdl\ generators and trigger objects \label{ref-gen}}
+\declaremodule{}{myhdl}
 
 \myhdl\ generators are standard Python generators with specialized
 \keyword{yield} statements. In hardware description languages, the equivalent
@@ -102,36 +107,36 @@ trigger when \emph{all} of its arguments have triggered.
 In addition, some objects can directly be used as trigger
 objects. These are the objects of the following types:
 
-\begin{datadesc}{Signal}
+\begin{description}
+\item[\class{Signal}]
 For the full description of the \class{Signal} class, see
 section~\ref{ref-sig}.
-
 A signal is a trigger object. Whenever a signal changes value, the
 generator is triggered.
-\end{datadesc}
 
-\begin{datadesc}{GeneratorType}
+\item[\class{GeneratorType}]
 \myhdl\ generators can be used as clauses in \code{yield}
 statements. Such a generator is forked, while the original generator
 waits for it to complete. The original generator resumes when the
 forked generator returns.
-\end{datadesc}
+\end{description}
 
 In addition, as a special case, the Python \code{None} object can be
 present in  a \code{yield} statement:
+\begin{description}
 
-\begin{datadesc}{None}
+\item[\code{None}]
 This is the do-nothing trigger object. The generator immediately
 resumes, as if no \code{yield} statement were present. This can be
 useful if the \code{yield} statement also has generator clauses: those
 generators are forked, while the original generator resumes
 immediately.
-
-\end{datadesc}
+\end{description}
 
 
 
 \section{Miscellaneous objects \label{ref-misc}}
+\declaremodule{}{myhdl}
 
 The following objects can be convenient in \myhdl\ modeling.
 
@@ -166,6 +171,7 @@ needed in hardware design.
 
 
 \section{The \class{intbv} class \label{ref-intbv}}
+\declaremodule{}{myhdl}
 
 \begin{classdesc}{intbv}{arg}
 This class represents \class{int}-like objects with some additional
@@ -266,6 +272,7 @@ defined bit width.
 
 
 \section{Co-simulation support \label{ref-cosim}}
+\declaremodule{}{myhdl}
 
 \subsection{\myhdl\ \label{ref-cosim-myhdl}}
 
