@@ -98,7 +98,8 @@ def _isGenSeq(obj):
     return 1
 
         
-def _isgeneratorfunction(obj):
+def _isGenFunc(obj):
     if type(obj) is FunctionType:
         return bool(obj.func_code.co_flags & CO_GENERATOR)
     return bool(0)
+

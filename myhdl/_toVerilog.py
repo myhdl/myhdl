@@ -43,7 +43,7 @@ from types import GeneratorType
 from cStringIO import StringIO
 
 from myhdl import _simulator, Signal, __version__, intbv
-from myhdl._util import _isGenSeq, _isgeneratorfunction
+from myhdl._util import _isGenSeq, _isGenFunc
 
 
 def _flatten(*args):
@@ -106,7 +106,7 @@ def toVerilog(func, *args, **kwargs):
         return func(*args, **kwargs) # skip
     if not callable(func):
         raise ArgTypeError("got %s" % type(func))
-    if _isgeneratorfunction(func):
+    if _isGenFunc(func):
         raise ArgTypeError("got generator function")
     _converting = 1
     try:
@@ -126,6 +126,7 @@ def toVerilog(func, *args, **kwargs):
     siglist = _analyzeSigs(h.hierarchy)
     astlist = _analyzeGens(_flatten(h.top))
     intf = _analyzeTopFunc(func, *args, **kwargs)
+    intf.name = name
     
     _writeModuleHeader(vfile, intf)
     _writeSigDecls(vfile, intf, siglist)
@@ -325,7 +326,7 @@ class _AnalyzeGenVisitor(object):
     def visitFunction(self, node):
         if self.toplevel:
             self.toplevel = 0
-            print node.code
+            # print node.code
             self.visit(node.code)
             isAlways = True
         else:
@@ -402,10 +403,17 @@ class _AnalyzeTopFuncVisitor(object):
         if node.flags != 0: # check flags
             raise AssertionError("unsupported function type")
         self.name = node.name
-        self.argnames = node.argnames
-        for argname, arg in zip(node.argnames, self.args):
-            self.argdict[argname] = arg
-        self.argdict.update(self.kwargs)
+        argnames = node.argnames
+        for i, arg in enumerate(self.args):
+            if isinstance(arg, Signal):
+                n = argnames[i]
+                self.argdict[n] = arg
+        for n in argnames[i+1:]:
+            if n in self.kwargs:
+                arg = self.kwargs[n]
+                if isinstance(arg, Signal):
+                    self.argdict[n] = arg
+        self.argnames = [n for n in argnames if n in self.argdict]
 
 
 ### Verilog output functions ###
@@ -458,12 +466,12 @@ def _writeTestBench(f, intf):
     for portname in intf.argnames:
         s = intf.argdict[portname]
         r = _getRangeString(s)
-        print >> f, "reg %s%s;" % (r, portname)
         if s._driven:
-            bf = to
+            print >> f, "wire %s%s;" % (r, portname)
+            print >> to, "        %s," % portname
         else:
-            bf = fr
-        print >> bf, "        %s," % portname
+            print >> f, "reg %s%s;" % (r, portname)
+            print >> fr, "        %s," % portname
         print >> pm, "    %s," % portname
     print >> f
     print >> f, "initial begin"
@@ -560,7 +568,6 @@ class _convertGenVisitor(object):
 
     def visitFunction(self, node):
         w = node.code.nodes[-1]
-        print type(w)
         assert isinstance(w, ast.While)
         assert isinstance(w.test, ast.Const)
         assert w.test.value in ('1', True)

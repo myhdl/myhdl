@@ -37,7 +37,7 @@ import inspect
 from types import GeneratorType
 
 from myhdl import Cosimulation
-from myhdl._util import _isgeneratorfunction, _isGenSeq
+from myhdl._util import _isGenFunc, _isGenSeq
 
     
 def instances():
@@ -57,6 +57,6 @@ def processes():
     d = inspect.getouterframes(f)[1][0].f_locals
     l = []
     for v in d.values():
-      if _isgeneratorfunction(v):
+      if _isGenFunc(v):
          l.append(v()) # call it
     return l

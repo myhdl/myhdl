@@ -32,7 +32,7 @@ import compiler
 from sets import Set
 
 from myhdl import Signal
-from myhdl._util import _isgeneratorfunction
+from myhdl._util import _isGenFunc
 
 class Error(Exception):
     """always_comb Error"""
@@ -65,7 +65,7 @@ def always_comb(func):
     f = inspect.getouterframes(inspect.currentframe())[1][0]
     if type(func) is not FunctionType:
         raise ArgumentError
-    if _isgeneratorfunction(func):
+    if _isGenFunc(func):
         raise ArgumentError
     if func.func_code.co_argcount:
         raise NrOfArgsError

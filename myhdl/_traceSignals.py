@@ -33,16 +33,17 @@ import inspect
 import re
 import string
 import time
-from types import FunctionType
+from types import FunctionType, GeneratorType
 import os
 path = os.path
 import shutil
 import compiler
 from compiler import ast
 import linecache
+from sets import Set
 
 from myhdl import _simulator, Signal, __version__
-from myhdl._util import _isGenSeq, _isgeneratorfunction
+from myhdl._util import _isGenSeq, _isGenFunc
 
 _tracing = 0
 _profileFunc = None
@@ -86,7 +87,7 @@ def traceSignals(dut, *args, **kwargs):
         return dut(*args, **kwargs) # skip
     if not callable(dut):
         raise ArgTypeError("got %s" % type(dut))
-    if _isgeneratorfunction(dut):
+    if _isGenFunc(dut):
         raise ArgTypeError("got generator function")
     if _simulator._tracing:
         raise MultipleTracesError()
@@ -169,6 +170,7 @@ class _HierExtr(object):
         self.skipNames = ('always_comb', 'instances', 'processes')
         self.skip = 0
         self.names = [name]
+        self.instNamesStack = [Set()]
         self.hierarchy = hierarchy = []
         self.level = 0
         _profileFunc = self.extractor
@@ -193,7 +195,9 @@ class _HierExtr(object):
                 name = _findInstanceName(outer)
                 self.names.append(name)
                 if name:
+                    self.instNamesStack[-1].add(name)
                     self.level += 1
+                    self.instNamesStack.append(Set())
         elif event == "return":
             if not self.skip:
                 name = self.names.pop()
@@ -204,13 +208,35 @@ class _HierExtr(object):
                             for n, v in dict.items():
                                 if isinstance(v, Signal):
                                     sigdict[n] = v
-                        i = [self.level, name, sigdict]
-                        self.hierarchy.append(i)
+                        # check locally named generators
+                        # those are not visited by the profiler mechanism
+                        instNames = self.instNamesStack[-1]
+                        gens = getGens(arg)
+                        for gname, g in frame.f_locals.items():
+                            if type(g) is GeneratorType and \
+                               g in gens and gname not in instNames:
+                                gsigdict = {}
+                                for dict in (g.gi_frame.f_globals,
+                                             g.gi_frame.f_locals):
+                                    for n, v in dict.items():
+                                        if isinstance(v, Signal):
+                                            gsigdict[n] = v
+                                inst = [self.level+1, gname, gsigdict]
+                                self.hierarchy.append(inst)
+                        inst = [self.level, name, sigdict]       
+                        self.hierarchy.append(inst)
                     self.level -= 1
+                    self.instNamesStack.pop()
             func_name = frame.f_code.co_name
             if func_name in self.skipNames:
                 self.skip = 0
-          
+                
+
+def getGens(arg):
+    if type(arg) is GeneratorType:
+        return [arg]
+    else:
+        return [g for g in arg if type(g) is GeneratorType]
 
 
 _codechars = ""
