@@ -34,15 +34,6 @@ from myhdl._Error import Error
 
 _MAXLINE = 4096
 
-## class Error(Exception):
-##     """Cosimulation Error"""
-##     def __init__(self, arg=""):
-##         self.arg = arg
-##     def __str__(self):
-##         msg = self.__doc__
-##         if self.arg:
-##             msg = msg + ": " + str(self.arg)
-##         return msg
 
 class MultipleCosimError(Error):
     """Only a single cosimulator allowed"""
@@ -57,6 +48,16 @@ class NoCommunicationError(Error):
 class SimulationEndError(Error):
     """Premature simulation end"""
 
+class CosimulationError(Error):
+    pass
+class _error:
+    pass
+_error.MultipleCosim = "Only a single cosimulator allowed"
+_error.DuplicateSigNames = "Duplicate signal name in myhdl vpi call"
+_error.SigNotFound = "Signal not found in Cosimulation arguments"
+_error.TimeZero = "myhdl vpi call when not at time 0"
+_error.NoCommunication = "No signals communicating to myhdl"
+_error.SimulationEnd = "Premature simulation end"
 
 class Cosimulation(object):
 
@@ -67,7 +68,7 @@ class Cosimulation(object):
         """ Construct a cosimulation object. """
         
         if _simulator._cosim:
-            raise MultipleCosimError
+            raise CosimulationError(_error.MultipleCosim)
         _simulator._cosim = 1
         
         self._rt, self._wt = rt, wt = os.pipe()
@@ -97,37 +98,37 @@ class Cosimulation(object):
             try:
                 os.execvp(p, arglist)
             except OSError, e:
-                raise Error, str(e)
+                raise CosimulationError(str(e))
         else:
             os.close(wt)
             os.close(rf)
             while 1:
                 s = os.read(rt, _MAXLINE)
                 if not s:
-                    raise SimulationEndError
+                    raise CosimulationError(_error.SimulationEnd)
                 e = s.split()
                 if e[0] == "FROM":
                     if long(e[1]) != 0:
-                        raise TimeZeroError, "$from_myhdl"
+                        raise CosimulationError(_error.TimeZero, "$from_myhdl")
                     for i in range(2, len(e)-1, 2):
                         n = e[i]
                         if n in fromSignames:
-                            raise DuplicateSigNamesError, n
+                            raise CosimulationError(_error.DuplicateSigNames, n)
                         if not n in kwargs:
-                            raise SigNotFoundError, n
+                            raise CosimulationError(_error.SigNotFound, n)
                         fromSignames.append(n)
                         fromSigs.append(kwargs[n])
                         fromSizes.append(int(e[i+1]))
                     os.write(wf, "OK")
                 elif e[0] == "TO":
                     if long(e[1]) != 0:
-                        raise TimeZeroError, "$to_myhdl"
+                        raise CosimulationError(_error.TimeZero, "$to_myhdl")
                     for i in range(2, len(e)-1, 2):
                         n = e[i]
                         if n in toSignames:
-                            raise DuplicateSigNamesError, n
+                            raise CosimulationError(_error.DuplicateSigNames, n)
                         if not n in kwargs:
-                            raise SigNotFoundError, n
+                            raise CosimulationError(_error.SigNotFound, n)
                         toSignames.append(n)
                         toSigs.append(kwargs[n])
                         toSigDict[n] = kwargs[n]
@@ -135,11 +136,11 @@ class Cosimulation(object):
                     os.write(wf, "OK")
                 elif e[0] == "START":
                     if not toSignames:
-                        raise NoCommunicationError
+                        raise CosimulationError(_error.NoCommunication)
                     os.write(wf, "OK")
                     break
                 else:
-                    raise Error, "Unexpected cosim input"
+                    raise CosimulationError("Unexpected cosim input")
 
     def _get(self):
         if not self._getMode:

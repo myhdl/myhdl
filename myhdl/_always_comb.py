@@ -35,33 +35,27 @@ from myhdl import Signal
 from myhdl._util import _isGenFunc
 from myhdl._Error import Error
 
-class ArgumentError(Error):
-    """ always_comb argument should be a classic function"""
-    
-class NrOfArgsError(Error):
-    """ always_comb argument should be a function without arguments"""
 
-class ScopeError(Error):
-    """always_comb argument should be a local function"""
-    
-class SignalAsInoutError(Error):
-    """signal used as inout in always_comb function argument"""
-
-class EmbeddedFunctionError(Error):
-    """embedded functions in always_comb function argument not supported"""
-
-
+class AlwaysCombError(Error):
+    pass
+class _error:
+    pass
+_error.ArgType = "always_comb argument should be a classic function"
+_error.NrOfArgs = "always_comb argument should be a function without arguments"
+_error.Scope = "always_comb argument should be a local function"
+_error.SignalAsInout = "signal used as inout in always_comb function argument"
+_error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
     
 def always_comb(func):
     f = inspect.getouterframes(inspect.currentframe())[1][0]
     if type(func) is not FunctionType:
-        raise ArgumentError
+        raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
-        raise ArgumentError
+        raise AlwaysCombError(_error.ArgType)
     if func.func_code.co_argcount:
-        raise NrOfArgsError
+        raise AlwaysCombError(_error.NrOfArgs)
     if func.func_name not in f.f_locals:
-        raise ScopeError
+        raise AlwaysCombError(_error.Scope)
     varnames = func.func_code.co_varnames
     sigdict = {}
     for dict in (f.f_locals, f.f_globals):
@@ -89,14 +83,14 @@ class _SigNameVisitor(object):
         self.visit(node.node)
         for n in inputs:
             if n in outputs:
-                raise SignalAsInoutError(n)
+                raise AlwaysCombError(_error.SignalAsInout)
 
     def visitFunction(self, node):
         if self.toplevel:
             self.toplevel = 0 # skip embedded functions
             self.visit(node.code)
         else:
-            raise EmbeddedFunctionError
+            raise AlwaysCombError(_error.EmbeddedFunction)
 
     def visitName(self, node, access=INPUT):
         if node.name not in self.sigdict:
@@ -106,9 +100,9 @@ class _SigNameVisitor(object):
         elif access == OUTPUT:
             self.outputs.add(node.name)
         elif access == INOUT:
-            raise SignalAsInoutError(node.name)
+            raise AlwaysCombError(_error.SignalAsInout)
         else:
-            raise Error
+            raise AlwaysCombError
             
     def visitAssign(self, node, access=OUTPUT):
         for n in node.nodes:

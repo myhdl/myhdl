@@ -39,3 +39,14 @@ class Error(Exception):
         else:
             msg = self.__doc__ or self.arg
         return msg
+    
+class Error(Exception):
+    def __init__(self, kind, msg="", info=""):
+        self.kind = kind
+        self.msg = msg
+        self.info = info
+    def __str__(self):
+        s = "%s%s" % (self.info, self.kind)
+        if self.msg:
+            s += ": %s" % self.msg
+        return s

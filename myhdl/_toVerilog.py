@@ -38,6 +38,21 @@ from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._Error import Error
 
 
+class ToVerilogError(Exception):
+    def __init__(self, kind, msg="", info=""):
+        self.kind = kind
+        self.msg = msg
+        self.info = info
+    def __str__(self):
+        s = "%s%s" % (self.info, self.kind)
+        if self.msg:
+            s += ": %s" % self.msg
+        return s
+
+class ToVerilogError(Error):
+    pass
+
+
 def _flatten(*args):
     l = []
     for arg in args:
@@ -54,20 +69,13 @@ _converting = 0
 _profileFunc = None
 
 
-class TopLevelNameError(Error):
-    """result of toVerilog call should be assigned to a top level name"""
-
-class ArgTypeError(Error):
-    """toVerilog first argument should be a classic function"""
-    
-class MultipleTracesError(Error):
-    """Cannot trace multiple instances simultaneously"""
-
-class UndefinedBitWidthError(Error):
-    """Signal has undefined bit width"""
-
-class UndrivenSignalError(Error):
-    """Signal is not driven"""
+class _error:
+    pass
+_error.TopLevelName = "result of toVerilog call should be assigned to a top level name"
+_error.ArgType = "toVerilog first argument should be a classic function"
+_error.UndefinedBitWidth = "Signal has undefined bit width"
+_error.UndrivenSignal = "Signal is not driven"
+_error.NotSupported = "Not supported"
 
 
 
@@ -173,8 +181,6 @@ def _analyzeGens(top, gennames):
 
 
 
-class ToVerilogError(Error):
-    pass
    
 
 class _ToVerilogBaseVisitor(object):
@@ -187,9 +193,9 @@ class _ToVerilogBaseVisitor(object):
                     lineno = n.lineno
                     break
         lineno = lineno or 0
-        msg = "in file %s, line %s:\n    %s" % \
-              (self.sourcefile, self.lineoffset+lineno, msg)
-        raise ToVerilogError(msg)
+        info = "in file %s, line %s:\n    " % \
+              (self.sourcefile, self.lineoffset+lineno)
+        raise ToVerilogError(_error.NotSupported, msg, info)
 
     def visitAssList(self, node, *args):
         self.raiseError("list assignment not supported", node)
@@ -482,7 +488,7 @@ class _ConvertGenVisitor(object):
         self.isSigAss = False
         self.toplevel = 1
 
-    def raiseError(self, msg, node):
+    def raiseError(self, kind, msg, node):
         lineno = node.lineno
         if lineno is None:
             for n in node.getChildNodes():
@@ -490,9 +496,10 @@ class _ConvertGenVisitor(object):
                     lineno = n.lineno
                     break
         lineno = lineno or 0
-        msg = "in file %s, line %s:\n    %s" % \
-              (self.sourcefile, self.lineoffset+lineno, msg)
-        raise ToVerilogError(msg)
+        info = "in file %s, line %s:\n    " % \
+              (self.sourcefile, self.lineoffset+lineno)
+        raise ToVerilogError(kind, msg, info)
+    
 
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -531,7 +538,7 @@ class _ConvertGenVisitor(object):
         # if not node.a
         # assert node.attrname == 'next'
         if node.attrname != 'next':
-            self.raiseError("attribute assignment not supported", node)
+            self.raiseError(_error.NotSupported, "attribute assignment", node)
         self.isSigAss = True
         self.visit(node.expr)
 
@@ -634,7 +641,7 @@ class _ConvertGenVisitor(object):
 
     def visitFunction(self, node):
         if not self.toplevel:
-            self.raiseError("embedded function definition not supported", node)
+            self.raiseError(_error.NotSupported, "embedded function definition", node)
         self.toplevel = 0
         w = node.code.nodes[-1]
         assert isinstance(w, ast.While)
