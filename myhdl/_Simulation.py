@@ -159,7 +159,7 @@ class Simulation(object):
                             if not exc:
                                 exc = clause
                         else:
-                            raise TypeError("type of yield clause %s is %s" %
+                            raise TypeError("yield clause %s has type %s" %
                                             (repr(clause), type(clause)))
  
                 if cosim:
