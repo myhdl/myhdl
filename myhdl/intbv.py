@@ -269,7 +269,7 @@ class intbv(object):
            
     def __and__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val & other._val, _len=max(self._len, other._len))
+            return intbv(self._val & other._val, _len=self._len)
         else:
             return intbv(self._val & other, _len=self._len)
     def __rand__(self, other):
@@ -277,7 +277,7 @@ class intbv(object):
 
     def __or__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val | other._val, _len=max(self._len, other._len))
+            return intbv(self._val | other._val, _len=self._len)
         else:
             return intbv(self._val | other, _len=self._len)
     def __ror__(self, other):
@@ -285,7 +285,7 @@ class intbv(object):
     
     def __xor__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val ^ other._val, _len=max(self._len, other._len))
+            return intbv(self._val ^ other._val, _len=self._len)
         else:
             return intbv(self._val ^ other, _len=self._len)
     def __rxor__(self, other):
