@@ -27,6 +27,7 @@ __date__ = "$Date$"
 import sys
 maxint = sys.maxint
 from types import StringType
+import operator
 
 
 class intbv(object):
@@ -49,10 +50,10 @@ class intbv(object):
             self._val = val._val
         else:
             raise TypeError("intbv constructor arg should be int or string")
-        self._boundCheck()
+        self._checkBounds()
         
 
-    def _boundCheck(self):
+    def _checkBounds(self):
         if self._max is not None:
             if self._val >= self._max:
                 raise ValueError("intbv value %s >= maximum %s" %
@@ -149,7 +150,7 @@ class intbv(object):
         if i == 0: # default
             q = self._val % (2**j)
             self._val = val * 2**j + q
-            self._boundCheck()
+            self._checkBounds()
             return
         if i <= j:
             raise ValueError, "intbv[i:j] = v requires i > j\n" \
@@ -161,7 +162,7 @@ class intbv(object):
         mask *= 2**j
         self._val &= ~mask
         self._val |= val * 2**j
-        self._boundCheck()
+        self._checkBounds()
               
         
     # integer-like methods
@@ -197,6 +198,22 @@ class intbv(object):
             return self._val / other
     def __rdiv__(self, other):
         return other / self._val
+    
+    def __truediv__(self, other):
+        if isinstance(other, intbv):
+            return operator.truediv(self._val, other._val)
+        else:
+            return operator.truediv(self._val, other)
+    def __rtruediv__(self, other):
+        return operator.truediv(other, self._val)
+    
+    def __floordiv__(self, other):
+        if isinstance(other, intbv):
+            return self._val // other._val
+        else:
+            return self._val // other
+    def __rfloordiv__(self, other):
+        return other //  self._val
     
     def __mod__(self, other):
         if isinstance(other, intbv):
@@ -261,6 +278,7 @@ class intbv(object):
             self._val += other._val
         else:
             self._val += other
+        self._checkBounds()
         return self
         
     def __isub__(self, other):
@@ -268,6 +286,7 @@ class intbv(object):
             self._val -= other._val
         else:
             self._val -= other
+        self._checkBounds()
         return self
         
     def __imul__(self, other):
@@ -275,20 +294,28 @@ class intbv(object):
             self._val *= other._val
         else:
             self._val *= other
+        self._checkBounds()
         return self
-        
-    def __idiv__(self, other):
+    
+    def __ifloordiv__(self, other):
         if isinstance(other, intbv):
-            self._val /= other._val
+            self._val //= other._val
         else:
-            self._val /= other
+            self._val //= other
+        self._checkBounds()
         return self
+
+    def __idiv__(self, other):
+        raise TypeError("intbv: Augmented classic division not supported")
+    def __itruediv__(self, other):
+        raise TypeError("intbv: Augmented true division not supported")
     
     def __imod__(self, other):
         if isinstance(other, intbv):
             self._val %= other._val
         else:
             self._val %= other
+        self._checkBounds()
         return self
         
     def __ipow__(self, other, modulo=None):
@@ -298,6 +325,9 @@ class intbv(object):
             self._val **= other._val
         else:
             self._val **= other
+        if not isinstance(self._val, (int, long)):
+            raise ValueError("intbv value should be integer")
+        self._checkBounds()
         return self
         
     def __iand__(self, other):
@@ -305,6 +335,7 @@ class intbv(object):
             self._val &= other._val
         else:
             self._val &= other
+        self._checkBounds()
         return self
 
     def __ior__(self, other):
@@ -312,6 +343,7 @@ class intbv(object):
             self._val |= other._val
         else:
             self._val |= other
+        self._checkBounds()
         return self
 
     def __ixor__(self, other):
@@ -319,6 +351,7 @@ class intbv(object):
             self._val ^= other._val
         else:
             self._val ^= other
+        self._checkBounds()
         return self
 
     def __ilshift__(self, other):
@@ -326,6 +359,7 @@ class intbv(object):
             self._val <<= other._val
         else:
             self._val <<= other
+        self._checkBounds()
         return self
 
     def __irshift__(self, other):
@@ -333,6 +367,7 @@ class intbv(object):
             self._val >>= other._val
         else:
             self._val >>= other
+        self._checkBounds()
         return self
 
     def __neg__(self):

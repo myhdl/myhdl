@@ -394,6 +394,9 @@ class TestIntBvAsInt(TestCase):
     def testDiv(self):
         self.binaryCheck(operator.div, jmin=1)
         
+    def testFloorDiv(self):
+        self.binaryCheck(operator.floordiv, jmin=1)
+        
     def testMod(self):
         self.binaryCheck(operator.mod, jmin=1)
 
@@ -424,8 +427,8 @@ class TestIntBvAsInt(TestCase):
     def testIMul(self):
         self.augmentedAssignCheck("*=", imax=maxint) #XXX doesn't work for long i???
         
-    def testIDiv(self):
-        self.augmentedAssignCheck("/=", jmin=1)
+    def testIFloorDiv(self):
+        self.augmentedAssignCheck("//=", jmin=1)
         
     def testIMod(self):
         self.augmentedAssignCheck("%=", jmin=1)

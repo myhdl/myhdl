@@ -30,7 +30,6 @@ from types import FunctionType
 import compiler
 
 from util import _isgeneratorfunction
-from pprint import pprint
 
 from myhdl import Signal
 
