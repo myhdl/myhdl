@@ -106,7 +106,7 @@ class Signal(object):
                 del self._negedgeWaiters[:]
             self._val = self._next
             if self._tracing:
-                print >> _simulator.tracefile, "b%s" % bin(self._val, 8)
+                print >> _simulator._tracefile, "b%s %s" % (bin(self._val, 8), self._codeName)
             return waiters
         else:
             return []

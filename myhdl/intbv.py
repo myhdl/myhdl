@@ -23,6 +23,9 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
+#import psyco
+#psyco.full()
+
 import sys
 maxint = sys.maxint
 from types import StringType
@@ -138,69 +141,69 @@ class intbv(object):
     
     def __add__(self, other):
         if type(other) is intbv:
-            return intbv(self._val + other._val)
+            return self._val + other._val
         else:
-            return intbv(self._val + other)
+            return self._val + other
     def __radd__(self, other):
-        return intbv(other + self._val)
+        return other + self._val
     
     def __sub__(self, other):
         if type(other) is intbv:
-            return intbv(self._val - other._val)
+            return self._val - other._val
         else:
-            return intbv(self._val - other)
+            return self._val - other
     def __rsub__(self, other):
-        return intbv(other - self._val)
+        return other - self._val
 
     def __mul__(self, other):
         if type(other) is intbv:
-            return intbv(self._val * other._val)
+            return self._val * other._val
         else:
-            return intbv(self._val * other)
+            return self._val * other
     def __rmul__(self, other):
-        return intbv(other * self._val)
+        return other * self._val
 
     def __div__(self, other):
         if type(other) is intbv:
-            return intbv(self._val / other._val)
+            return self._val / other._val
         else:
-            return intbv(self._val / other)
+            return self._val / other
     def __rdiv__(self, other):
-        return intbv(other / self._val)
+        return other / self._val
     
     def __mod__(self, other):
         if type(other) is intbv:
-            return intbv(self._val % other._val)
+            return self._val % other._val
         else:
-            return intbv(self._val % other)
+            return self._val % other
     def __rmod__(self, other):
-        return intbv(other % self._val)
+        return other % self._val
 
     # divmod
     
     def __pow__(self, other):
         if type(other) is intbv:
-            return intbv(self._val ** other._val)
+            return self._val ** other._val
         else:
-            return intbv(self._val ** other)
+            return self._val ** other
     def __rpow__(self, other):
-        return intbv(other ** self._val)
+        return other ** self._val
 
     def __lshift__(self, other):
         if type(other) is intbv:
-            return intbv(self._val << other._val)
+            return self._val << other._val
         else:
-            return intbv(self._val << other)
+            return self._val << other
     def __rlshift__(self, other):
-        return intbv(other << self._val)
+        return other << self._val
             
     def __rshift__(self, other):
         if type(other) is intbv:
-            return intbv(self._val >> other._val)
+            return self._val >> other._val
         else:
-            return intbv(self._val >> other)
+            return self._val >> other
     def __rrshift__(self, other):
-        return intbv(other >> self._val)
+        return other >> self._val
            
     def __and__(self, other):
         if type(other) is intbv:
@@ -306,13 +309,13 @@ class intbv(object):
         return self
 
     def __neg__(self):
-        return intbv(-self._val)
+        return -self._val
 
     def __pos__(self):
-        return intbv(+self._val)
+        return +self._val
 
     def __abs__(self):
-        return intbv(abs(self._val))
+        return abs(self._val)
 
     def __invert__(self):
         if self._len:

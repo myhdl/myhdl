@@ -82,6 +82,7 @@ class HierExtr(object):
             sys.setprofile(None)
         self.m = _top
         instances.reverse()
+        print instances
         instances[0][1] = name
 
     def extractor(self, frame, event, arg):
@@ -152,7 +153,8 @@ def _writeVcdSigs(f, instances):
                 print >> f, "$upscope $end"
         print >> f, "$scope module %s $end" % name
         for n, s in sigdict.items():
-            if not s._codeName:
+            if not s._tracing:
+                s._tracing = 1
                 s._codeName = namegen.next()
             print >> f, "$var reg 8 %s %s $end" % (s._codeName, n)
     for i in range(curlevel):

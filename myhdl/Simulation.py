@@ -115,6 +115,8 @@ class Simulation(object):
         cosim = self._cosim
         t = _simulator._time
         actives = {}
+        tracing = _simulator._tracing
+        tracefile = _simulator._tracefile
 
         while 1:
             try:
@@ -174,6 +176,8 @@ class Simulation(object):
                               "Simulated for duration %s" % duration
                     _futureEvents.sort()
                     t = _simulator._time = _futureEvents[0][0]
+                    if tracing:
+                        print >> tracefile, "#%s" % t
                     if cosim:
                         cosim._put(t)
                     while _futureEvents:
