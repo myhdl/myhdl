@@ -5,6 +5,8 @@ from random import randrange
 
 from myhdl import *
 
+### test of constant wire support ###
+
 # example from Frank Palazollo
 def or_gate(a,b,c):
     while 1:
@@ -33,13 +35,12 @@ def ConstWire3(p, q):
     t = Signal(intbv(17)[5:])
     adder_inst = adder(p, t, q)
     return instances()
-    
 
-objfile = "constwire.o"           
-analyze_cmd = "iverilog -o %s constwire_inst.v tb_constwire_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
         
 def ConstWire_v(p, q):
+    objfile = "constwire.o"           
+    analyze_cmd = "iverilog -o %s constwire_inst.v tb_constwire_inst.v" % objfile
+    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
     if path.exists(objfile):
         os.remove(objfile)
     os.system(analyze_cmd)
@@ -92,7 +93,73 @@ class TestConstWires(unittest.TestCase):
     def testConstWire3(self):
         sim = self.benchIntbv(ConstWire3)
         Simulation(sim).run()
+
+
+### tests of code ignore facility during translation ###
+
+def adderRef(a, b, c):
+    while 1:
+        yield a, b
+        c.next = a + b
         
+def adderDebug(a, b, c):
+    while 1:
+        yield a, b
+        if __debug__:
+            import string
+        c.next = a + b
+
+translateOn = False
+def adderTranslateOn(a, b, c):
+    while 1:
+        yield a, b
+        if translateOn:
+            import string
+        c.next = a + b
+
+        
+def Ignorecode_v(a, b, c):
+    objfile = "ignorecode.o"           
+    analyze_cmd = "iverilog -o %s ignorecode_inst.v tb_ignorecode_inst.v" % objfile
+    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+    if path.exists(objfile):
+        os.remove(objfile)
+    os.system(analyze_cmd)
+    return Cosimulation(simulate_cmd, **locals())
+
+class TestIgnoreCode(unittest.TestCase):
+
+    def bench(self, adder):
+
+        a = Signal(intbv(0)[8:])
+        b = Signal(intbv(0)[8:])
+        c = Signal(intbv(0)[9:])
+        c_v = Signal(intbv(0)[9:])
+
+        ignorecode_inst = toVerilog(adder, a, b, c)
+        ignorecode_v_inst = Ignorecode_v(a, b, c_v)
+
+        def stimulus():
+            for i in range(100):
+                a.next = randrange(2**8)
+                b.next = randrange(2**8)
+                yield delay(10)
+                self.assertEqual(c, c_v)
+                
+        return stimulus(), ignorecode_inst, ignorecode_v_inst
+        
+    def testAdderRef(self):
+        sim = self.bench(adderRef)
+        Simulation(sim).run()
+        
+    def testAdderDebug(self):
+        sim = self.bench(adderDebug)
+        Simulation(sim).run()
+        
+    def testAdderTranslateOn(self):
+        sim = self.bench(adderTranslateOn)
+        Simulation(sim).run()
+
         
 if __name__ == '__main__':
     unittest.main()

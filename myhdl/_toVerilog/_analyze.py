@@ -206,6 +206,19 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         self.visitChildNodes(node, *args)
         
     def visitIf(self, node, *args):
+        node.ignore = False
+        if len(node.tests) == 1 and not node.else_:
+            test = node.tests[0][0]
+            if isinstance(test, compiler.ast.Name):
+                if test.name == '__debug__':
+                    node.ignore = True
+                    return # skip
+                if test.name in self.ast.symdict:
+                    obj = self.ast.symdict[test.name]
+                    # test for identity with False, not equality
+                    if obj is False:
+                        node.ignore = True
+                        return # skip
         for test, suite in node.tests:
             self.visit(test, _context.BOOLEAN)
             self.visit(suite, _context.UNKNOWN)
@@ -466,6 +479,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = getattr(obj, node.attrname)
             
     def visitIf(self, node, *args):
+        if node.ignore:
+            return
         for test, suite in node.tests:
             self.visit(test, *args)
             self.refStack.push()

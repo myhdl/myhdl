@@ -515,6 +515,8 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write(e._toVerilog())
 
     def visitIf(self, node, *args):
+        if node.ignore:
+            return
         if node.isCase:
             self.mapToCase(node, *args)
         else:
