@@ -42,7 +42,10 @@ class _Waiter(object):
         clone = _Waiter(self.generator, self.caller, self.semaphore)
         clause = self.generator.next()
         if type(clause) in (tuple, list):
-            return clause, clone
+            if clause:
+                return clause, clone
+            else:
+                return (None,), clone
         elif type(clause) is join:
             n = len(clause._args)
             clone.semaphore = _Semaphore(n)
