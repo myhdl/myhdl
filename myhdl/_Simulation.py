@@ -29,10 +29,10 @@ from warnings import warn
 from types import GeneratorType
 from sets import Set
 
-from myhdl import delay, Signal, Cosimulation, join,  StopSimulation, _SuspendSimulation
+from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._simulator import _siglist, _futureEvents
-from myhdl._Waiter import _Waiter, _WaiterList
+from myhdl._Waiter import _Waiter, _inferWaiter
 from myhdl._util import _flatten, _printExcInfo
 from myhdl._always_comb import _AlwaysComb
 
@@ -113,7 +113,7 @@ class Simulation(object):
         actives = {}
         tracing = _simulator._tracing
         tracefile = _simulator._tf
-        exc = None
+        exc = []
         _pop = waiters.pop
         _append = waiters.append
         _extend = waiters.extend
@@ -127,41 +127,13 @@ class Simulation(object):
 
                 while waiters:
                     waiter = _pop()
-                    if waiter.hasRun or not waiter.hasGreenLight():
-                        continue
+                    #if waiter.hasRun or not waiter.hasGreenLight():
+                    #    continue
                     try:
-                        clauses, clone = waiter.next()
+                        waiter.next(waiters, actives, exc)
                     except StopIteration:
-                        if waiter.caller:
-                            _append(waiter.caller)
                         continue
-                    nr = len(clauses)
-                    for clause in clauses:
-                        if isinstance(clause, _WaiterList):
-                            clause.append(clone)
-                            if nr > 1:
-                                actives[id(clause)] = clause
-                        elif isinstance(clause, Signal):
-                            wl = clause._eventWaiters
-                            wl.append(clone)
-                            if nr > 1:
-                                actives[id(wl)] = wl
-                        elif isinstance(clause, delay):
-                            schedule((t + clause._time, clone))
-                        elif isinstance(clause, GeneratorType):
-                            _append(_Waiter(clause, clone))
-                        elif isinstance(clause, join):
-                            _append(_Waiter(clause._generator(), clone))
-                        elif clause is None:
-                            _append(clone)
-                        elif isinstance(clause, Exception):
-                            _append(clone)
-                            if not exc:
-                                exc = clause
-                        else:
-                            raise TypeError("yield clause %s has type %s" %
-                                            (repr(clause), type(clause)))
- 
+
                 if cosim:
                     cosim._get()
                     if _siglist or cosim._hasChange:
@@ -177,7 +149,7 @@ class Simulation(object):
 
                 # at this point it is safe to potentially suspend a simulation
                 if exc:
-                    raise exc
+                    raise exc[0]
 
                 # future events
                 if _futureEvents:
@@ -221,7 +193,7 @@ class Simulation(object):
                 if tracing:
                     tracefile.flusch
                 # if the exception came from a yield, make sure we can resume
-                if e is exc:
+                if exc and e is exc[0]:
                     pass # don't finalize
                 else:
                     self._finalize()
@@ -235,7 +207,7 @@ def _checkArgs(arglist):
     cosim = None
     for arg in arglist:
         if isinstance(arg, GeneratorType):
-            waiters.append(_Waiter(arg))
+            waiters.append(_inferWaiter(arg))
         elif isinstance(arg, _AlwaysComb):
             waiters.append(_Waiter(arg.gen))
         elif isinstance(arg, Cosimulation):
@@ -243,6 +215,8 @@ def _checkArgs(arglist):
                 raise SimulationError(_error.MultipleCosim)
             cosim = arg
             waiters.append(_Waiter(cosim._waiter()))
+        elif isinstance(arg, _Waiter):
+            waiters.append(arg)
         else:
             raise SimulationError(_error.ArgType, str(type(arg)))
         if id(arg) in ids:
