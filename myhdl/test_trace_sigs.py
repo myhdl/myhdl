@@ -40,6 +40,8 @@ from myhdl import delay, Signal, Simulation
 from trace_sigs import trace_sigs, TopLevelNameError, ArgTypeError, \
                        NoInstancesError
 
+QUIET=1
+
 def gen(clk):
     while 1:
         yield delay(10)
@@ -132,7 +134,7 @@ class TestTraceSigs(TestCase):
     def testBackupOutputFile(self):
         p = "dut.vcd"
         dut = trace_sigs(fun)
-        Simulation(dut).run(1000)
+        Simulation(dut).run(1000, quiet=QUIET)
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
         self.assert_(not path.exists(pbak))
