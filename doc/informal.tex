@@ -20,7 +20,9 @@ sim.run(30)
 
 \end{verbatim}
 
-When we run this simulation, we get the following output: 
+All example code can be found in the distribution directory under
+\file{example/manual}.  When we run this simulation, we get the
+following output:
 
 \begin{verbatim}
 % python hello1.py
@@ -179,15 +181,12 @@ example:
 
 \begin{verbatim}
 def greetings():
-
     clk1 = Signal(0)
     clk2 = Signal(0)
-    
     clkGen1 = clkGen(clk1)
     clkGen2 = clkGen(clock=clk2, period=19)
     sayHello1 = sayHello(clock=clk1)
     sayHello2 = sayHello(to="MyHDL", clock=clk2)
-
     return clkGen1, clkGen2, sayHello1, sayHello2
 
 \end{verbatim}
