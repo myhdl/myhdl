@@ -62,6 +62,7 @@ def _analyzeSigs(hierarchy):
             prefixes.append(name)
         else:
             prefixes = prefixes[:curlevel]
+        # print sigdict
         for n, s in sigdict.items():
             if s._name is None:
                 if len(prefixes) > 1:

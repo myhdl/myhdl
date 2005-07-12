@@ -74,12 +74,14 @@ v7, v6, v5, v4, v3, v2, v1, v0 = [Signal(bool()) for i in range(N)]
 objfile = "rs.o"         
 analyze_cmd = "iverilog -o %s rs.v tb_rs.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+cmd = "cver -q +loadvpi=../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap rs.v tb_rs.v"
       
  
 def RandomScrambler_v(o7, o6, o5, o4, o3, o2, o1, o0,
                       i7, i6, i5, i4, i3, i2, i1, i0):
     if path.exists(objfile):
         os.remove(objfile)
+    # return Cosimulation(cmd, **locals())
     os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 
@@ -91,6 +93,7 @@ class TestRandomScrambler(TestCase):
         output = intbv()
         output_v = intbv()
         for i in range(100):
+        # while 1:
             input[:] = randrange(M)
             i7.next = input[7]
             i6.next  = input[6]
