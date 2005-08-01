@@ -41,10 +41,10 @@ from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import _HierExtr, _findInstanceName
 from myhdl._util import _flatten
 from myhdl._always_comb import _AlwaysComb
-from myhdl._toVerilog import _error, _ToVerilogMixin, _Label
 from myhdl._toVerilog import _error, _access, _kind,_context, \
-                             _ToVerilogMixin, _Label
-from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc
+     _ToVerilogMixin, _Label
+from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
+     _Memory
             
 _converting = 0
 _profileFunc = None
@@ -243,12 +243,14 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.write("input %s;" % name)
                 self.writeline()
             self.write("integer %s" % name)
+        elif isinstance(obj, _Memory):
+            self.write("reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth))
         elif hasattr(obj, '_nrbits'):
             self.write("%s[%s-1:0] %s" % (dir, obj._nrbits, name))
         else:
             raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
         # initialize regs
-        if dir == 'reg ':
+        if dir == 'reg ' and not isinstance(obj, _Memory):
             if str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
                 inival = obj._toVerilog()
             else:
@@ -657,6 +659,9 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write("%x" % c._val)
             return
         self.visit(node.expr)
+        # special shortcut case for [:] slice
+        if node.lower is None and node.upper is None:
+            return
         self.write("[")
         if node.lower is None:
             self.write("%s" % node.obj._nrbits)

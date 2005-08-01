@@ -178,7 +178,35 @@ def printToFile(count, enable, clock, reset, n):
                 print >> f, count,
                 count.next = count + 1
 
-       
+def listComp1(count, enable, clock, reset, n):
+    mem = [intbv()[8:] for i in range(4) for j in range(5)]
+    while 1:
+        yield posedge(clock), negedge(reset)
+        count.next = count + 1
+
+def listComp2(count, enable, clock, reset, n):
+    mem = [intbv()[8:] for i in downrange(4)]
+    while 1:
+        yield posedge(clock), negedge(reset)
+        count.next = count + 1
+
+def listComp3(count, enable, clock, reset, n):
+    mem = [intbv()[8:] for i in range(1, 4)]
+    while 1:
+        yield posedge(clock), negedge(reset)
+        count.next = count + 1
+        
+def listComp4(count, enable, clock, reset, n):
+    mem = [intbv() for i in range(4)]
+    while 1:
+        yield posedge(clock), negedge(reset)
+        count.next = count + 1
+
+def listComp5(count, enable, clock, reset, n):
+    mem = [i for i in range(4)]
+    while 1:
+        yield posedge(clock), negedge(reset)
+        count.next = count + 1       
 
 objfile = "inc_inst.o"
 analyze_cmd = "iverilog -o %s err_inst.v tb_err_inst.v" % objfile
@@ -347,6 +375,47 @@ class TestErr(TestCase):
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
+            
+    def testListComp1(self):
+        try:
+            self.bench(listComp1)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.NotSupported)
+        else:
+            self.fail()
+           
+    def testListComp2(self):
+        try:
+            self.bench(listComp2)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UnsupportedListComp)
+        else:
+            self.fail()
+           
+    def testListComp3(self):
+        try:
+            self.bench(listComp3)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UnsupportedListComp)
+        else:
+            self.fail()
+           
+    def testListComp4(self):
+        try:
+            self.bench(listComp4)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UnsupportedListComp)
+        else:
+            self.fail()
+           
+    def testListComp5(self):
+        try:
+            self.bench(listComp5)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UnsupportedListComp)
+        else:
+            self.fail()
+        
 
 
 if __name__ == '__main__':

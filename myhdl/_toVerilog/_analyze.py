@@ -89,6 +89,7 @@ def _analyzeGens(top, genNames):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -157,7 +158,11 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitLambda(self, node, *args):
         self.raiseError(node, _error.NotSupported, "lambda statement")
     def visitListComp(self, node, *args):
-        self.raiseError(node, _error.NotSupported, "list comprehension")
+        if len(node.quals) > 1:
+            self.raiseError(node, _error.NotSupported, "multiple for statements in list comprehension")
+        self.visitChildNodes(node)
+    def visitListCompIf(self, node, *args):
+        self.raiseError(node, _error.NotSupported, "if statement in list comprehension")
     def visitList(self, node, *args):
         self.raiseError(node, _error.NotSupported, "list")
     def visitSliceObj(self, node):
@@ -248,6 +253,9 @@ class ReferenceStack(list):
 # auxiliary types to aid type checking
 class _EdgeDetector(object):
     pass
+
+class _Memory(object):
+    __slots__ = ['elObj', 'depth']
 
 class _AnalyzeVisitor(_ToVerilogMixin):
     
@@ -377,6 +385,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = int() # XXX
         elif f is bool:
             node.obj = bool()
+        elif f is int:
+            node.obj = int()
         elif f in (posedge , negedge):
             node.obj = _EdgeDetector()
         elif f in myhdlObjects:
@@ -468,6 +478,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.expr, *args)
         assert isinstance(node.expr, astNode.Name)
         assert node.expr.name in self.ast.symdict
+        node.obj = None
         obj = self.ast.symdict[node.expr.name]
         if str(type(obj)) == "<class 'myhdl._enum.Enum'>":
             assert hasattr(obj, node.attrname)
@@ -506,6 +517,21 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.caseVar = name1
         if (len(choices) == item1._nritems) or (node.else_ is not None):
             node.isFullCase = True
+            
+    def visitListComp(self, node, *args):
+        mem = node.obj = _Memory()
+        self.visit(node.expr, _access.INPUT, _kind.DECLARATION)
+        mem.elObj = self.getObj(node.expr)
+        if not isinstance(mem.elObj, intbv) or not len(mem.elObj) > 0:
+            self.raiseError(node, _error.UnsupportedListComp)
+        cf = node.quals[0].list
+        self.visit(cf)
+        if not isinstance(cf, astNode.CallFunc):
+            self.raiseError(node, _error.UnsupportedListComp)
+        f = self.getObj(cf.node)
+        if f is not range or len(cf.args) != 1:
+            self.raiseError(node, _error.UnsupportedListComp)
+        mem.depth = cf.args[0].obj
 
     def visitName(self, node, access=_access.INPUT, *args):
         n = node.name
@@ -556,9 +582,15 @@ class _AnalyzeVisitor(_ToVerilogMixin):
  
     def visitSubscript(self, node, access=_access.INPUT, *args):
         self.visit(node.expr, access)
-        for n in node.subs:
-            self.visit(n, _access.INPUT)
-        node.obj = bool() # XXX 
+        assert len(node.subs) == 1
+        self.visit(node.subs[0], _access.INPUT)
+        if isinstance(node.expr.obj, _Memory):
+            if node.flags == 'OP_ASSIGN':
+                self.raiseError(node, _error.ListElementAssign)
+            else:
+                node.obj = node.expr.obj.elObj
+        else:
+            node.obj = bool() # XXX default
 
     def visitWhile(self, node, *args):
         node.breakLabel = _Label("BREAK")

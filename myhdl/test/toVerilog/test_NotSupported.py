@@ -152,7 +152,7 @@ class TestNotSupported(unittest.TestCase):
                 lambda: 1
         self.check(g, z, a)
 
-    def testListComp(self):
+    def testListCompIf(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):

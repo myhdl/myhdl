@@ -9,10 +9,15 @@ def ram(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """
   
     mem = [intbv(0)[8:] for i in range(depth)]
+    a = intbv(0)[8:]
+    # ad = 1
     while 1:
         yield posedge(clk)
         if we:
+            ad = int(addr)
             mem[int(addr)][:] = din
+            # a = din.val
+            # a[2] = din
         dout.next = mem[int(addr)]          
             
 objfile = "mem.o"           

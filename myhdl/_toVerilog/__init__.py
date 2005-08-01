@@ -58,6 +58,10 @@ _error.ShadowingSignal = "Port is shadowed by internal signal"
 _error.FreeVarTypeError = "Free variable should be a Signal or an int"
 _error.ExtraArguments = "Extra positional or named arguments are not supported"
 _error.UnsupportedYield = "Unsupported yield statement"
+_error.UnsupportedListComp = \
+    "Unsupported list comprehension form: should be [intbv()[n:] for i in range(m)]"
+_error.ListElementAssign = \
+     "Can't assign to list element; use slice assignment to change its value"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
