@@ -18,7 +18,26 @@ def ram(dout, din, addr, we, clk, depth=128):
             mem[int(addr)][:] = din
             # a = din.val
             # a[2] = din
-        dout.next = mem[int(addr)]          
+        dout.next = mem[int(addr)]
+
+
+def ram2(dout, din, addr, we, clk, depth=128):
+        
+    memL = [intbv(0,min=dout._min,max=dout._max) for i in range(depth)]
+    def wrLogic() :
+        while 1:
+            yield posedge(clk)
+            if we:
+                memL[int(addr)][:] = din
+
+    def rdLogic() :
+        while 1:
+            yield posedge(clk)
+            dout.next = memL[int(addr)]
+
+    WL = wrLogic()
+    RL = rdLogic()
+    return WL,RL
             
 objfile = "mem.o"           
 analyze_cmd = "iverilog -o %s mem_inst.v tb_mem_inst.v" % objfile
@@ -32,7 +51,7 @@ def ram_v(dout, din, addr, we, clk, depth=4):
 
 class TestMemory(TestCase):
 
-    def bench(self, depth=128):
+    def bench(self, ram, depth=128):
 
         dout = Signal(intbv(0)[8:])
         dout_v = Signal(intbv(0)[8:])
@@ -68,8 +87,12 @@ class TestMemory(TestCase):
 
         return clkgen(), stimulus(), mem_inst, mem_v_inst
 
-    def test(self):
-        sim = self.bench()
+##     def test1(self):
+##         sim = self.bench(ram)
+##         Simulation(sim).run()
+        
+    def test2(self):
+        sim = self.bench(ram2)
         Simulation(sim).run()
 
 if __name__ == '__main__':

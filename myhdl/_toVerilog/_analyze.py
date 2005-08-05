@@ -89,7 +89,7 @@ def _analyzeGens(top, genNames):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            #print ast
+            print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -110,7 +110,7 @@ def _analyzeGens(top, genNames):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            # print ast
+            print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -325,6 +325,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.obj = int()
         
     def visitAssAttr(self, node, access=_access.OUTPUT, *args):
+        if node.attrname != 'next':
+            self.raiseError(node, _error.NotSupported, "attribute assignment")
         self.ast.kind = _kind.TASK
         self.visit(node.expr, _access.OUTPUT)
         
@@ -544,6 +546,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 self.ast.inputs.add(n)
             elif access == _access.OUTPUT:
                 self.ast.kind = _kind.TASK
+                if n in self.ast.outputs:
+                    node.kind = _kind.REG
                 self.ast.outputs.add(n)
             elif access == _access.UNKNOWN:
                 pass
@@ -650,7 +654,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             s = self.ast.sigdict[n]
             if s._driven:
                 self.raiseError(node, _error.SigMultipleDriven, n)
-            s._driven = True
+            s._driven = "reg"
         for n in self.ast.inputs:
             s = self.ast.sigdict[n]
             s._read = True
@@ -668,17 +672,32 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
 class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
     
     def __init__(self, ast, senslist):
-        _AnalyzeVisitor.__init__(self, ast)
+        _AnalyzeBlockVisitor.__init__(self, ast)
         self.ast.senslist = senslist
-        for n, v in self.ast.symdict.items():
-            if isinstance(v, Signal):
-                self.ast.sigdict[n] = v
 
     def visitFunction(self, node, *args):
           self.refStack.push()
           self.visit(node.code)
-          self.ast.kind = _kind.ALWAYS_COMB
+          self.ast.kind = _kind.SIMPLE_ALWAYS_COMB
+          for n in node.code.nodes:
+              if isinstance(n, astNode.Assign) and \
+                 isinstance(n.nodes[0], astNode.AssAttr) and \
+                 self.getKind(n.nodes[0].expr) != _kind.REG:
+                  pass
+              else:
+                  self.ast.kind = _kind.ALWAYS_COMB
+                  return
           self.refStack.pop()
+
+    def visitModule(self, node, *args):
+        _AnalyzeBlockVisitor.visitModule(self, node, *args)
+        if self.ast.kind == _kind.SIMPLE_ALWAYS_COMB:
+            for n in self.ast.outputs:
+                s = self.ast.sigdict[n]
+                s._driven = "wire"
+        
+
+          
             
 
 class _AnalyzeFuncVisitor(_AnalyzeVisitor):

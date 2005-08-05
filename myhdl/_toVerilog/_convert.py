@@ -123,7 +123,7 @@ def _writeModuleHeader(f, intf):
         r = _getRangeString(s)
         if s._driven:
             print >> f, "output %s%s;" % (r, portname)
-            print >> f, "reg %s%s;" % (r, portname)
+            print >> f, "%s %s%s;" % (s._driven, r, portname)
         else:
             print >> f, "input %s%s;" % (r, portname)
     print >> f
@@ -137,8 +137,8 @@ def _writeSigDecls(f, intf, siglist):
         r = _getRangeString(s)
         if s._driven:
             # the following line implements initial value assignments
-            print >> f, "reg %s%s = %s;" % (r, s._name, int(s._val))
-            # print >> f, "reg %s%s;" % (r, s._name)
+            print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
+            # print >> f, "%s %s%s;" % (s._driven, r, s._name)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -210,6 +210,8 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertAlwaysVisitor
         elif ast.kind == _kind.INITIAL:
             Visitor = _ConvertInitialVisitor
+        elif ast.kind == _kind.SIMPLE_ALWAYS_COMB:
+            Visitor = _ConvertSimpleAlwaysCombVisitor
         else: # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(ast, blockBuf, funcBuf)
@@ -331,8 +333,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.unaryOp(node, '-')
 
     def visitAssAttr(self, node, *args):
-        if node.attrname != 'next':
-            self.raiseError(node, _error.NotSupported, "attribute assignment")
+        assert node.attrname == 'next'
         self.isSigAss = True
         self.visit(node.expr)
 
@@ -398,7 +399,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             return
         elif f in (int, long):
             opening, closing = '', ''
-        elif type(f)  in (ClassType, type) and issubclass(f, Exception):
+        elif type(f) is ClassType and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -618,8 +619,10 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.write(obj._name)
             elif str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
                 self.write(obj._toVerilog())
-            else:
+            elif type(obj) is ClassType and issubclass(obj, Exception):
                 self.write(n)
+            else:
+                self.raiseError(node, _error.NotASignal, n)
         else:
             raise AssertionError("name ref: %s" % n)
 
@@ -792,7 +795,22 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.writeline()
         self.write("end")
         self.writeline(2)
+
         
+class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
+    
+    def __init__(self, ast, blockBuf, funcBuf):
+        _ConvertVisitor.__init__(self, ast, blockBuf)
+        self.funcBuf = funcBuf
+
+    def visitAssAttr(self, node, *args):
+        self.write("assign ")
+        self.visit(node.expr)
+
+    def visitFunction(self, node, *args):
+        self.visit(node.code)
+        self.writeline()
+       
     
 class _ConvertFunctionVisitor(_ConvertVisitor):
     

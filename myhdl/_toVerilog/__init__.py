@@ -62,10 +62,11 @@ _error.UnsupportedListComp = \
     "Unsupported list comprehension form: should be [intbv()[n:] for i in range(m)]"
 _error.ListElementAssign = \
      "Can't assign to list element; use slice assignment to change its value"
+_error.NotASignal = "Non-local object should be a Signal"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
-_kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB", "TASK")
+_kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB", "SIMPLE_ALWAYS_COMB", "TASK", "REG")
 _context = enum("BOOLEAN", "YIELD", "PRINT", "UNKNOWN")
 
     
