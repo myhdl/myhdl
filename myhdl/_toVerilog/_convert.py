@@ -38,7 +38,7 @@ import warnings
 import myhdl
 from myhdl import *
 from myhdl import ToVerilogError, ToVerilogWarning
-from myhdl._extractHierarchy import _HierExtr, _findInstanceName
+from myhdl._extractHierarchy import _HierExtr, _findInstanceName, _isMem, _getMemInfo
 from myhdl._util import _flatten
 from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _access, _kind,_context, \
@@ -82,7 +82,7 @@ def toVerilog(func, *args, **kwargs):
     tbpath = "tb_" + vpath
     tbfile = open(tbpath, 'w')
     
-    siglist = _analyzeSigs(h.hierarchy)
+    siglist, memlist = _analyzeSigs(h.hierarchy)
     arglist = _flatten(h.top)
     _checkArgs(arglist)
     genlist = _analyzeGens(arglist, h.genNames)
@@ -90,7 +90,7 @@ def toVerilog(func, *args, **kwargs):
     intf.name = name
     
     _writeModuleHeader(vfile, intf)
-    _writeSigDecls(vfile, intf, siglist)
+    _writeSigDecls(vfile, intf, siglist, memlist)
     _convertGens(genlist, vfile)
     _writeModuleFooter(vfile)
     _writeTestBench(tbfile, intf)
@@ -123,13 +123,16 @@ def _writeModuleHeader(f, intf):
         r = _getRangeString(s)
         if s._driven:
             print >> f, "output %s%s;" % (r, portname)
-            print >> f, "%s %s%s;" % (s._driven, r, portname)
+            if s._driven == 'reg':
+                print >> f, "reg %s%s;" % (r, portname)
+            else:
+                print >> f, "wire %s%s;" % (r, portname)
         else:
             print >> f, "input %s%s;" % (r, portname)
     print >> f
 
 
-def _writeSigDecls(f, intf, siglist):
+def _writeSigDecls(f, intf, siglist, memlist):
     constwires = []
     for s in siglist:
         if s._name in intf.argnames:
@@ -137,8 +140,8 @@ def _writeSigDecls(f, intf, siglist):
         r = _getRangeString(s)
         if s._driven:
             # the following line implements initial value assignments
-            print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            # print >> f, "%s %s%s;" % (s._driven, r, s._name)
+            # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
+            print >> f, "%s %s%s;" % (s._driven, r, s._name)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -149,9 +152,14 @@ def _writeSigDecls(f, intf, siglist):
             constwires.append(s)
             print >> f, "wire %s%s;" % (r, s._name)
     print >> f
+    for m in memlist:
+        if not m.decl:
+            continue
+        r = _getRangeString(m.elObj)
+        print >> f, "reg %s%s [0:%s-1];" % (r, m.name, m.depth)
+    print >> f
     for s in constwires:
         print >> f, "assign %s = %s;" % (s._name, int(s._val))
-    print >> f
             
 
 def _writeModuleFooter(f):
@@ -617,6 +625,12 @@ class _ConvertVisitor(_ToVerilogMixin):
             elif type(obj) is Signal:
                 assert obj._name
                 self.write(obj._name)
+            elif _isMem(obj):
+                m = _getMemInfo(obj)
+                assert m.name
+                if not m.decl:
+                    self.raiseError(node, _error.ListElementNotUnique, m.name)
+                self.write(m.name)
             elif str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
                 self.write(obj._toVerilog())
             elif type(obj) is ClassType and issubclass(obj, Exception):
@@ -809,7 +823,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 
     def visitFunction(self, node, *args):
         self.visit(node.code)
-        self.writeline()
+        self.writeline(2)
        
     
 class _ConvertFunctionVisitor(_ConvertVisitor):

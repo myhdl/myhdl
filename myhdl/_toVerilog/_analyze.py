@@ -41,17 +41,27 @@ from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _access, _kind,_context, \
                              _ToVerilogMixin, _Label
-
+from myhdl._extractHierarchy import _getMemInfo, _isMem
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
  
-   
+
+def _makeName(n, prefixes):
+    if len(prefixes) > 1:
+        name = '_' + '_'.join(prefixes[1:]) + '_' + n
+    else:
+        name = n
+    if '[' in name or ']' in name:
+        name = "\\" + name + ' '
+    return name
+                    
 def _analyzeSigs(hierarchy):
     curlevel = 0
     siglist = []
+    memlist = []
     prefixes = []
-    for level, name, sigdict in hierarchy:
+    for level, name, sigdict, memdict in hierarchy:
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
@@ -62,22 +72,37 @@ def _analyzeSigs(hierarchy):
             prefixes.append(name)
         else:
             prefixes = prefixes[:curlevel]
-        # print sigdict
+        # lists of signals
+        for n, mem in memdict.items():
+            m = _getMemInfo(mem)
+            if m.name is not None:
+                continue
+            m.name = _makeName(n, prefixes)
+            m.depth = len(mem)
+            m.decl = True
+            s = mem[0]
+            m.elObj = s
+            for i, s in enumerate(mem):
+                r = "%s[%s]" % (m.name, i)
+                if not s._nrbits:
+                    raise ToVerilogError(_error.UndefinedBitWidth, r)
+                if type(s.val) != type(m.elObj.val):
+                    raise ToVerilogError(_error.InconsistentType, r)
+                if s._nrbits != m.elObj._nrbits:
+                    raise ToVerilogError(_error.InconsistentBitWidth, r)
+                if s._name is not None:
+                    m.decl = False
+                s._name = r
+            memlist.append(m)
+        # signals
         for n, s in sigdict.items():
-            if s._name is None:
-                if len(prefixes) > 1:
-                    name = '_' + '_'.join(prefixes[1:]) + '_' + n
-                else:
-                    name = n
-                if '[' in name or ']' in name:
-                    name = "\\" + name + ' '
-##                 name = name.replace('[', '_')
-##                 name = name.replace(']', '_')
-                s._name = name
-                siglist.append(s)
+            if s._name is not None:
+                continue
+            s._name = _makeName(n, prefixes)
             if not s._nrbits:
                 raise ToVerilogError(_error.UndefinedBitWidth, s._name)
-    return siglist
+            siglist.append(s)
+    return siglist, memlist
 
         
 
@@ -89,7 +114,7 @@ def _analyzeGens(top, genNames):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            # print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -98,7 +123,8 @@ def _analyzeGens(top, genNames):
             if f.func_code.co_freevars:
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
-                    assert isinstance(obj, (int, long, Signal))
+                    assert isinstance(obj, (int, long, Signal)) or \
+                           _isMem(obj)
                     ast.symdict[n] = obj
             ast.name = genNames.get(id(g.gen), _Label("BLOCK"))
             v = _NotSupportedVisitor(ast)
@@ -110,7 +136,7 @@ def _analyzeGens(top, genNames):
             s = inspect.getsource(f)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            # print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()

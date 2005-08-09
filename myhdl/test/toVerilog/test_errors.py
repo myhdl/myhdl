@@ -58,6 +58,18 @@ def internalSignal(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
+
+def undefinedBitWidthSignal(count, enable, clock, reset, n):
+    count = Signal(intbv(0))
+    def incTaskGen():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            if reset == ACTIVE_LOW:
+               count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return incTaskGen()
                 
 def negIntbv(count, enable, clock, reset, n):
     a = intbv(0, min=-2, max=45)
@@ -206,7 +218,45 @@ def listComp5(count, enable, clock, reset, n):
     mem = [i for i in range(4)]
     while 1:
         yield posedge(clock), negedge(reset)
-        count.next = count + 1       
+        count.next = count + 1
+
+def undefinedBitWidthMem(count, enable, clock, reset, n):
+    mem = [Signal(intbv(0)[8:]) for i in range(8)]
+    mem[7] = Signal(intbv(0))
+    def f():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            count.next = count + 1
+    return f()
+
+def inconsistentTypeMem(count, enable, clock, reset, n):
+    mem = [Signal(intbv(0)[8:]) for i in range(8)]
+    mem[3] = Signal(bool())
+    def f():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            count.next = count + 1
+    return f()
+
+def inconsistentBitWidthMem(count, enable, clock, reset, n):
+    mem = [Signal(intbv(0)[8:]) for i in range(8)]
+    mem[4] = Signal(intbv(0)[7:])
+    def f():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            count.next = count + 1
+    return f()
+
+
+def listElementNotUnique(count, enable, clock, reset, n):
+    mem = [Signal(intbv(0)[8:]) for i in range(8)]
+    mem2 = mem[4:]
+    def f():
+        while 1:
+            yield posedge(clock), negedge(reset)
+            count.next = mem[0] + mem2[1]
+    return f()
+
 
 objfile = "inc_inst.o"
 analyze_cmd = "iverilog -o %s err_inst.v tb_err_inst.v" % objfile
@@ -293,6 +343,14 @@ class TestErr(TestCase):
             self.bench(shadowingSignal)
         except ToVerilogError, e:
             self.assertEqual(e.kind, _error.ShadowingSignal)
+        else:
+            self.fail()
+
+    def testUndefinedBitWidthSignal(self):
+        try:
+            self.bench(undefinedBitWidthSignal)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UndefinedBitWidth)
         else:
             self.fail()
         
@@ -416,6 +474,37 @@ class TestErr(TestCase):
         else:
             self.fail()
         
+    def testUndefinedBitWidthMem(self):
+        try:
+            self.bench(undefinedBitWidthMem)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.UndefinedBitWidth)
+        else:
+            self.fail()
+            
+    def testInconsistentTypeMem(self):
+        try:
+            self.bench(inconsistentTypeMem)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.InconsistentType)
+        else:
+            self.fail()
+        
+    def testInconsistentBitWidthMem(self):
+        try:
+            self.bench(inconsistentBitWidthMem)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.InconsistentBitWidth)
+        else:
+            self.fail()
+            
+    def testListElementNotUnique(self):
+        try:
+            self.bench(listElementNotUnique)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.ListElementNotUnique)
+        else:
+            self.fail()
 
 
 if __name__ == '__main__':

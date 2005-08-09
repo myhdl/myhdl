@@ -4,7 +4,7 @@ import unittest
 from unittest import TestCase
 import random
 from random import randrange
-# random.seed(2)
+random.seed(2)
 
 from myhdl import *
 

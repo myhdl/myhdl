@@ -59,6 +59,32 @@ rex_assign = re.compile(re_assign, re.X)
 
 _filelinemap = {}
 
+_memInfoMap = {}
+
+class _memInfo(object):
+    __slots__ = ['name', 'elObj', 'depth', 'decl']
+    def __init__(self):
+        self.name = None
+
+def _registerMem(mem):
+    key = id(mem)
+    if key not in _memInfoMap:
+        _memInfoMap[key] = _memInfo()
+
+def _getMemInfo(mem):
+    return _memInfoMap[id(mem)]
+
+def _isMem(mem):
+    return id(mem) in _memInfoMap
+
+def _isListOfSigs(obj):
+    if isinstance(obj, list):
+        for e in obj:
+            if not isinstance(e, Signal):
+                return False
+        return True
+    else:
+        return False
 
 class _CallFuncVisitor(object):
 
@@ -113,6 +139,8 @@ class _HierExtr(object):
     
     def __init__(self, name, dut, *args, **kwargs):
         global _profileFunc
+        global _memInfoMap
+        _memInfoMap = {}
         self.skipNames = ('always_comb', 'instances', 'processes')
         self.skip = 0
         self.names = []
@@ -124,11 +152,15 @@ class _HierExtr(object):
         if _isGenFunc(dut):
             _top = dut(*args, **kwargs)
             gsigdict = {}
+            gmemdict = {}
             for dict in (_top.gi_frame.f_globals, _top.gi_frame.f_locals):
                 for n, v in dict.items():
                     if isinstance(v, Signal):
                         gsigdict[n] = v
-            inst = [1, name, gsigdict]
+                    if _isListOfSigs(v):
+                        gmemdict[n] = v
+                        _registerMem(v)
+            inst = [1, name, gsigdict, gmemdict]
             self.hierarchy.append(inst)
         else:
             _profileFunc = self.extractor
@@ -163,10 +195,14 @@ class _HierExtr(object):
                 if name:
                     if _isGenSeq(arg):
                         sigdict = {}
+                        memdict = {}
                         for dict in (frame.f_globals, frame.f_locals):
                             for n, v in dict.items():
                                 if isinstance(v, Signal):
                                     sigdict[n] = v
+                                if _isListOfSigs(v):
+                                    memdict[n] = v
+                                    _registerMem(v)
                         # check locally named generators
                         # those are not visited by the profiler mechanism
                         instNames = self.instNamesStack[-1]
@@ -177,18 +213,22 @@ class _HierExtr(object):
                             if type(g) is GeneratorType and \
                                g in gens and gname not in instNames:
                                 gsigdict = {}
+                                gmemdict = {}
                                 for dict in (g.gi_frame.f_globals,
                                              g.gi_frame.f_locals):
                                     for n, v in dict.items():
                                         if isinstance(v, Signal):
                                             gsigdict[n] = v
-                                inst = [self.level+1, gname, gsigdict]
+                                        if _isListOfSigs(v):
+                                            gmemdict[n] = v
+                                            _registerMem(v)
+                                inst = [self.level+1, gname, gsigdict, gmemdict]
                                 self.hierarchy.append(inst)
                                 absgname = gname
                                 if prefix:
                                     absgname = prefix + "_" + gname
                                 self.genNames[id(g)] = absgname
-                        inst = [self.level, name, sigdict]       
+                        inst = [self.level, name, sigdict, memdict]       
                         self.hierarchy.append(inst)
                     self.level -= 1
                     self.instNamesStack.pop()

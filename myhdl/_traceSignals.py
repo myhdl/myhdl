@@ -121,7 +121,7 @@ def _writeVcdSigs(f, hierarchy):
     curlevel = 0
     namegen = _genNameCode()
     siglist = []
-    for level, name, sigdict in hierarchy:
+    for level, name, sigdict, memdict in hierarchy:
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)

@@ -71,6 +71,7 @@ class intbv(object):
     min = property(_get_min, None)
 
     def _checkBounds(self):
+        if self._val is None: return
         if self._max is not None:
             if self._val >= self._max:
                 raise ValueError("intbv value %s >= maximum %s" %

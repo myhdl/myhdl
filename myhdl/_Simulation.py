@@ -189,7 +189,7 @@ class Simulation(object):
 
             except Exception, e:
                 if tracing:
-                    tracefile.flusch
+                    tracefile.flush()
                 # if the exception came from a yield, make sure we can resume
                 if exc and e is exc[0]:
                     pass # don't finalize

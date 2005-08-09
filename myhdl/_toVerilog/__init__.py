@@ -63,6 +63,9 @@ _error.UnsupportedListComp = \
 _error.ListElementAssign = \
      "Can't assign to list element; use slice assignment to change its value"
 _error.NotASignal = "Non-local object should be a Signal"
+_error.InconsistentType = "Signal elements should have the same base type"
+_error.InconsistentBitWidth = "Signal elements should have the same bit width"
+_error.ListElementNotUnique = "List contains Signals that are not unique to it"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
