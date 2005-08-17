@@ -61,19 +61,29 @@ _filelinemap = {}
 
 _memInfoMap = {}
 
-class _memInfo(object):
-    __slots__ = ['name', 'elObj', 'depth', 'decl']
-    def __init__(self):
+class _MemInfo(object):
+    __slots__ = ['mem', 'name', 'elObj', 'depth', 'decl']
+    def __init__(self, mem):
+        self.mem = mem
+        self.decl = True
         self.name = None
+        self.depth = len(mem)
+        self.elObj = mem[0]
 
-def _registerMem(mem):
-    key = id(mem)
-    if key not in _memInfoMap:
-        _memInfoMap[key] = _memInfo()
+## def _registerMem(mem):
+##     key = id(mem)
+##     if key not in _memInfoMap:
+##         _memInfoMap[key] = _memInfo()
 
 def _getMemInfo(mem):
     return _memInfoMap[id(mem)]
 
+def _makeMemInfo(mem):
+    key = id(mem)
+    if key not in _memInfoMap:
+        _memInfoMap[key] = _MemInfo(mem)
+    return _memInfoMap[key]
+    
 def _isMem(mem):
     return id(mem) in _memInfoMap
 
@@ -158,8 +168,7 @@ class _HierExtr(object):
                     if isinstance(v, Signal):
                         gsigdict[n] = v
                     if _isListOfSigs(v):
-                        gmemdict[n] = v
-                        _registerMem(v)
+                        gmemdict[n] = _makeMemInfo(v)
             inst = [1, name, gsigdict, gmemdict]
             self.hierarchy.append(inst)
         else:
@@ -201,8 +210,7 @@ class _HierExtr(object):
                                 if isinstance(v, Signal):
                                     sigdict[n] = v
                                 if _isListOfSigs(v):
-                                    memdict[n] = v
-                                    _registerMem(v)
+                                    memdict[n] = _makeMemInfo(v)
                         # check locally named generators
                         # those are not visited by the profiler mechanism
                         instNames = self.instNamesStack[-1]
@@ -220,8 +228,7 @@ class _HierExtr(object):
                                         if isinstance(v, Signal):
                                             gsigdict[n] = v
                                         if _isListOfSigs(v):
-                                            gmemdict[n] = v
-                                            _registerMem(v)
+                                            gmemdict[n] = _makeMemInfo(v)
                                 inst = [self.level+1, gname, gsigdict, gmemdict]
                                 self.hierarchy.append(inst)
                                 absgname = gname

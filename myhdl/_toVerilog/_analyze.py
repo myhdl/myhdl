@@ -41,7 +41,7 @@ from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _access, _kind,_context, \
                              _ToVerilogMixin, _Label
-from myhdl._extractHierarchy import _getMemInfo, _isMem
+from myhdl._extractHierarchy import _isMem
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
@@ -61,6 +61,7 @@ def _analyzeSigs(hierarchy):
     siglist = []
     memlist = []
     prefixes = []
+    
     for level, name, sigdict, memdict in hierarchy:
         delta = curlevel - level
         curlevel = level
@@ -72,28 +73,6 @@ def _analyzeSigs(hierarchy):
             prefixes.append(name)
         else:
             prefixes = prefixes[:curlevel]
-        # lists of signals
-        for n, mem in memdict.items():
-            m = _getMemInfo(mem)
-            if m.name is not None:
-                continue
-            m.name = _makeName(n, prefixes)
-            m.depth = len(mem)
-            m.decl = True
-            s = mem[0]
-            m.elObj = s
-            for i, s in enumerate(mem):
-                r = "%s[%s]" % (m.name, i)
-                if not s._nrbits:
-                    raise ToVerilogError(_error.UndefinedBitWidth, r)
-                if type(s.val) != type(m.elObj.val):
-                    raise ToVerilogError(_error.InconsistentType, r)
-                if s._nrbits != m.elObj._nrbits:
-                    raise ToVerilogError(_error.InconsistentBitWidth, r)
-                if s._name is not None:
-                    m.decl = False
-                s._name = r
-            memlist.append(m)
         # signals
         for n, s in sigdict.items():
             if s._name is not None:
@@ -102,6 +81,31 @@ def _analyzeSigs(hierarchy):
             if not s._nrbits:
                 raise ToVerilogError(_error.UndefinedBitWidth, s._name)
             siglist.append(s)
+        # list of signals
+        for n, m in memdict.items():
+            if m.name is not None:
+                continue
+            m.name = _makeName(n, prefixes)
+            memlist.append(m)
+
+    # handle the case where a named signal appears in a list also; such a list
+    # is not declared and references to it in a generator will be flagged as an error 
+    for m in memlist:
+        for s in m.mem:
+            if s._name is not None:
+                m.decl = False
+                break
+        if not m.decl:
+            continue
+        for i, s in enumerate(m.mem):
+            s._name = "%s[%s]" % (m.name, i)
+            if not s._nrbits:
+                raise ToVerilogError(_error.UndefinedBitWidth, s._name)
+            if type(s.val) != type(m.elObj.val):
+                raise ToVerilogError(_error.InconsistentType, s._name)
+            if s._nrbits != m.elObj._nrbits:
+                raise ToVerilogError(_error.InconsistentBitWidth, s._name)
+            
     return siglist, memlist
 
         
