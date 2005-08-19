@@ -263,6 +263,14 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     visitPrint = visitPrintnl
 
 
+def isTupleOfInts(obj):
+    if not isinstance(obj, tuple):
+        return False
+    for e in obj:
+        if not isinstance(e, int):
+            return False
+    return True
+
 def getNrBits(obj):
     if hasattr(obj, '_nrbits'):
         return obj._nrbits
@@ -284,8 +292,15 @@ class ReferenceStack(list):
 class _EdgeDetector(object):
     pass
 
-class _Memory(object):
+class _Ram(object):
     __slots__ = ['elObj', 'depth']
+
+
+class _Rom(object):
+    __slots__ = ['rom']
+    def __init__(self, rom):
+        self.rom = rom
+
 
 class _AnalyzeVisitor(_ToVerilogMixin):
     
@@ -551,7 +566,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.isFullCase = True
             
     def visitListComp(self, node, *args):
-        mem = node.obj = _Memory()
+        mem = node.obj = _Ram()
         self.visit(node.expr, _access.INPUT, _kind.DECLARATION)
         mem.elObj = self.getObj(node.expr)
         if not isinstance(mem.elObj, intbv) or not len(mem.elObj) > 0:
@@ -588,6 +603,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = self.ast.vardict[n]
         elif n in self.ast.symdict:
             node.obj = self.ast.symdict[n]
+            if isTupleOfInts(node.obj):
+                node.obj = _Rom(node.obj)
         elif n in __builtin__.__dict__:
             node.obj = __builtin__.__dict__[n]
         else:
@@ -618,11 +635,13 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.expr, access)
         assert len(node.subs) == 1
         self.visit(node.subs[0], _access.INPUT)
-        if isinstance(node.expr.obj, _Memory):
+        if isinstance(node.expr.obj, _Ram):
             if node.flags == 'OP_ASSIGN':
                 self.raiseError(node, _error.ListElementAssign)
             else:
                 node.obj = node.expr.obj.elObj
+        elif isinstance(node.expr.obj, intbv):
+            node.obj = bool()
         else:
             node.obj = bool() # XXX default
 

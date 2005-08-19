@@ -44,7 +44,7 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _access, _kind,_context, \
      _ToVerilogMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
-     _Memory
+     _Ram, _Rom
             
 _converting = 0
 _profileFunc = None
@@ -253,14 +253,14 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.write("input %s;" % name)
                 self.writeline()
             self.write("integer %s" % name)
-        elif isinstance(obj, _Memory):
+        elif isinstance(obj, _Ram):
             self.write("reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth))
         elif hasattr(obj, '_nrbits'):
             self.write("%s[%s-1:0] %s" % (dir, obj._nrbits, name))
         else:
             raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
         # initialize regs
-        if dir == 'reg ' and not isinstance(obj, _Memory):
+        if dir == 'reg ' and not isinstance(obj, _Ram):
             if str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
                 inival = obj._toVerilog()
             else:
@@ -351,6 +351,34 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def visitAssign(self, node, *args):
         assert len(node.nodes) == 1
+        # shortcut for expansion of ROM in case statement
+        if isinstance(node.expr, astNode.Subscript) and \
+               isinstance(node.expr.expr.obj, _Rom):
+            rom = node.expr.expr.obj.rom
+            self.write("// synthesis parallel_case full_case")
+            self.writeline()
+            self.write("case (")
+            self.visit(node.expr.subs[0])
+            self.write(")")
+            self.indent()
+            for i, n in enumerate(rom):
+                self.writeline()
+                if i == len(rom)-1:
+                    self.write("default: ")
+                else:
+                    self.write("%s: " % i)
+                self.visit(node.nodes[0])
+                if self.isSigAss:
+                    self.write(' <= ')
+                    self.isSigAss = False
+                else:
+                    self.write(' = ')
+                self.write("%s;" % n)
+            self.dedent()
+            self.writeline()
+            self.write("endcase")
+            return
+        # default behavior
         self.visit(node.nodes[0])
         if self.isSigAss:
             self.write(' <= ')
@@ -636,7 +664,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             elif type(obj) is ClassType and issubclass(obj, Exception):
                 self.write(n)
             else:
-                self.raiseError(node, _error.NotASignal, n)
+                self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:
             raise AssertionError("name ref: %s" % n)
 
