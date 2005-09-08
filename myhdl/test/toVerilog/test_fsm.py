@@ -5,6 +5,8 @@ from unittest import TestCase
 
 from myhdl import *
 
+from util import setupCosimulation
+
 # SEARCH, CONFIRM, SYNC = range(3)
 ACTIVE_LOW = 0
 FRAME_SIZE = 8
@@ -148,17 +150,10 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
                 raise ValueError("Undefined state")
             index[:]= (index + 1) % FRAME_SIZE
 
- 
-objfile = "framerctrl.o"
-analyze_cmd = "iverilog -o %s framerctrl_inst.v tb_framerctrl_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
 
 
-def FramerCtrl_v(SOF, state, syncFlag, clk, reset_n):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def FramerCtrl_v(name, SOF, state, syncFlag, clk, reset_n):
+    return setupCosimulation(**locals())
     
 
 class FramerCtrlTest(TestCase):
@@ -175,7 +170,8 @@ class FramerCtrlTest(TestCase):
 
         framerctrl_ref_inst = FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State)
         framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n, t_State)
-        framerctrl_v_inst = FramerCtrl_v(SOF_v, state_v, syncFlag, clk, reset_n)
+        framerctrl_v_inst = FramerCtrl_v(FramerCtrl.func_name,
+                                         SOF_v, state_v, syncFlag, clk, reset_n)
 
         def clkgen():
             reset_n.next = 1

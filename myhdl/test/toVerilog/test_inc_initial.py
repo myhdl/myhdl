@@ -8,6 +8,8 @@ random.seed(2)
 
 from myhdl import *
 
+from util import setupCosimulation
+
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 def inc_initial(count, enable, clock, reset, n):
@@ -33,8 +35,9 @@ analyze_cmd = "iverilog -o %s inc_initial_1.v tb_inc_initial_1.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
  
-def top(count, enable, clock, reset, n, arch="myhdl"):
+def top(name, count, enable, clock, reset, n, arch="myhdl"):
     if arch == "verilog":
+        return setupCosimulation(**locals())
         if path.exists(objfile):
             os.remove(objfile)
         os.system(analyze_cmd)
@@ -81,8 +84,8 @@ class TestInc_initial(TestCase):
         count_v = Signal(intbv(0)[m:])
         enable, clock, reset = [Signal(bool()) for i in range(3)]
 
-        inc_initial_1 = toVerilog(top, count, enable, clock, reset, n=n)
-        inc_initial_v = top(count_v, enable, clock, reset, n=n, arch='verilog')
+        inc_initial_1 = toVerilog(top, top.func_name, count, enable, clock, reset, n=n)
+        inc_initial_v = top(top.func_name, count_v, enable, clock, reset, n=n, arch='verilog')
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

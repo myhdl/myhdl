@@ -8,6 +8,8 @@ from myhdl import *
 from test_bin2gray import bin2gray
 from test_inc import incRef as inc
 
+from util import setupCosimulation
+
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 def GrayInc(graycnt, enable, clock, reset, width):
@@ -40,15 +42,8 @@ graycnt = Signal(intbv()[width:])
 enable, clock, reset = [Signal(bool()) for i in range(3)]
 # GrayIncReg(graycnt, enable, clock, reset, width)
 
-objfile = "grayinc_1.o"
-analyze_cmd = "iverilog -o %s GRAY_INC_REG_1.v tb_GRAY_INC_REG_1.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-
-def GrayIncReg_v(graycnt, enable, clock, reset, width):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def GrayIncReg_v(name, graycnt, enable, clock, reset, width):
+    return setupCosimulation(**locals())
 
 graycnt_v = Signal(intbv()[width:])
 
@@ -85,7 +80,7 @@ class TestGrayInc(unittest.TestCase):
                 
     def bench(self):
         GRAY_INC_REG_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
-        GRAY_INC_REG_v = GrayIncReg_v(graycnt_v, enable, clock, reset, width)
+        GRAY_INC_REG_v = GrayIncReg_v(GrayIncReg.func_name, graycnt_v, enable, clock, reset, width)
         clk_1 = self.clockGen()
         st_1 = self.stimulus()
         ch_1 = self.check()

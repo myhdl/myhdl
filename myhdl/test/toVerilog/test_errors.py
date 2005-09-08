@@ -258,16 +258,6 @@ def listElementNotUnique(count, enable, clock, reset, n):
     return f()
 
 
-objfile = "inc_inst.o"
-analyze_cmd = "iverilog -o %s err_inst.v tb_err_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-      
-def err_v(count, enable, clock, reset):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
-
 class TestErr(TestCase):
 
     def clockGen(self, clock):

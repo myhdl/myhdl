@@ -5,6 +5,8 @@ from unittest import TestCase
 
 from myhdl import *
 
+from util import setupCosimulation
+
 def ram(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """
   
@@ -61,17 +63,9 @@ def ram3(dout, din, addr, we, clk, depth=128):
     
     return WL,RL
 
-
-            
-objfile = "mem.o"           
-analyze_cmd = "iverilog -o %s mem_inst.v tb_mem_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-      
-def ram_v(dout, din, addr, we, clk, depth=4):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+  
+def ram_v(name, dout, din, addr, we, clk, depth=4):
+    return setupCosimulation(**locals())
 
 class TestMemory(TestCase):
 
@@ -86,7 +80,7 @@ class TestMemory(TestCase):
 
         # mem_inst = ram(dout, din, addr, we, clk, depth)
         mem_inst = toVerilog(ram, dout, din, addr, we, clk, depth)
-        mem_v_inst = ram_v(dout_v, din, addr, we, clk, depth)
+        mem_v_inst = ram_v(ram.func_name, dout_v, din, addr, we, clk, depth)
 
         def stimulus():
             for i in range(depth):

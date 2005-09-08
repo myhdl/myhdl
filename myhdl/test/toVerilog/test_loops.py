@@ -5,6 +5,8 @@ from random import randrange
 
 from myhdl import *
 
+from util import setupCosimulation
+
 def ForLoop1(a, out):
     while 1:
         yield a
@@ -197,15 +199,8 @@ def WhileBreakContinueLoop(a, out):
             break
     
         
-objfile = "looptest.o"           
-analyze_cmd = "iverilog -o %s looptest_inst.v tb_looptest_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-        
-def LoopTest_v(a, out):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def LoopTest_v(name, a, out):
+    return setupCosimulation(**locals())
 
 class TestLoops(unittest.TestCase):
 
@@ -217,7 +212,7 @@ class TestLoops(unittest.TestCase):
 
         looptest_inst = toVerilog(LoopTest, a, out)
         # looptest_inst = LoopTest(hec, header)
-        looptest_v_inst = LoopTest_v(a, out_v)
+        looptest_v_inst = LoopTest_v(LoopTest.func_name, a, out_v)
  
         def stimulus():
             for i in range(100):

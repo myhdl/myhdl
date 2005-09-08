@@ -6,6 +6,8 @@ from random import randrange
 from myhdl import *
 from myhdl._toVerilog import ToVerilogError, _error
 
+from util import setupCosimulation
+
 b = c = 2
 
 def UnboundError1(a, out):
@@ -223,16 +225,9 @@ def Infer5(a, out):
     out.next = c
 
 
-     
-objfile = "infertest.o"           
-analyze_cmd = "iverilog -o %s infertest_inst.v tb_infertest_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
         
-def Infertest_v(a, out):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def Infertest_v(name, a, out):
+    return setupCosimulation(**locals())
 
 class TestInfer(unittest.TestCase):
 
@@ -244,7 +239,7 @@ class TestInfer(unittest.TestCase):
 
         infertest_inst = toVerilog(Infertest, a, out)
         # infertest_inst = Infertest(hec, header)
-        infertest_v_inst = Infertest_v(a, out_v)
+        infertest_v_inst = Infertest_v(Infertest.func_name, a, out_v)
  
         def stimulus():
             a.next = 1

@@ -8,6 +8,8 @@ random.seed(2)
 
 from myhdl import *
 
+from util import setupCosimulation
+
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 def behRef(count, enable, clock, reset, n):
@@ -30,11 +32,8 @@ objfile = "beh_inst.o"
 analyze_cmd = "iverilog -o %s beh_inst.v tb_beh_inst.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
-def beh_v(count, enable, clock, reset):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def beh_v(name, count, enable, clock, reset):
+    return setupCosimulation(**locals())
 
 class TestBeh(TestCase):
 
@@ -78,7 +77,7 @@ class TestBeh(TestCase):
 
         beh_inst = toVerilog(beh, count, enable, clock, reset, n=n)
         # beh_inst = beh(count, enable, clock, reset, n=n)
-        beh_inst_v = beh_v(count_v, enable, clock, reset)
+        beh_inst_v = beh_v(beh.func_name, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

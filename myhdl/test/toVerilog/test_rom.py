@@ -6,6 +6,8 @@ from random import randrange
 
 from myhdl import *
 
+from util import setupCosimulation
+
 D = 256
 
 ROM = tuple([randrange(D) for i in range(D)])
@@ -47,17 +49,9 @@ def rom3(dout, addr, clk):
     RL = rdLogic()
     return RL
 
-
-    
-objfile = "rom.o"           
-analyze_cmd = "iverilog -o %s rom_inst.v tb_rom_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
-def rom_v(dout, addr, clk):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def rom_v(name, dout, addr, clk):
+    return setupCosimulation(**locals())
 
 class TestRom(TestCase):
 
@@ -70,7 +64,7 @@ class TestRom(TestCase):
 
         # rom_inst = rom(dout, din, addr, we, clk, depth)
         rom_inst = toVerilog(rom, dout, addr, clk)
-        rom_v_inst = rom_v(dout_v, addr, clk)
+        rom_v_inst = rom_v(rom.func_name, dout_v, addr, clk)
 
         def stimulus():
             for i in range(D):

@@ -8,6 +8,8 @@ random.seed(2)
 
 from myhdl import *
 
+from util import setupCosimulation
+
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 def incRef(count, enable, clock, reset, n):
@@ -84,16 +86,9 @@ def incTaskFreeVar(count, enable, clock, reset, n):
 
     return incTaskGen()
 
-
-objfile = "inc_inst.o"
-analyze_cmd = "iverilog -o %s inc_inst.v tb_inc_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
-def inc_v(count, enable, clock, reset):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def inc_v(name, count, enable, clock, reset):
+    return setupCosimulation(**locals())
 
 class TestInc(TestCase):
 
@@ -143,7 +138,7 @@ class TestInc(TestCase):
         inc_inst_ref = incRef(count, enable, clock, reset, n=n)
         inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
         # inc_inst = inc(count, enable, clock, reset, n=n)
-        inc_inst_v = inc_v(count_v, enable, clock, reset)
+        inc_inst_v = inc_v(inc.func_name, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

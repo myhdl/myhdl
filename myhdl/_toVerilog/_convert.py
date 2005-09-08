@@ -69,8 +69,9 @@ def toVerilog(func, *args, **kwargs):
     
     _converting = 1
     try:
-        outer = inspect.getouterframes(inspect.currentframe())[1]
-        name = _findInstanceName(outer)
+        # outer = inspect.getouterframes(inspect.currentframe())[1]
+        # name = _findInstanceName(outer)
+        name = func.func_name
         if name is None:
             raise ToVerilogError(_error.TopLevelName)
         h = _HierExtr(name, func, *args, **kwargs)
@@ -121,10 +122,11 @@ def _writeModuleHeader(f, intf):
         # make sure signal name is equal to its port name
         s._name = portname
         r = _getRangeString(s)
+        p = _getSignString(s)
         if s._driven:
             print >> f, "output %s%s;" % (r, portname)
             if s._driven == 'reg':
-                print >> f, "reg %s%s;" % (r, portname)
+                print >> f, "reg %s%s%s;" % (p, r, portname)
             else:
                 print >> f, "wire %s%s;" % (r, portname)
         else:
@@ -138,10 +140,11 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if s._name in intf.argnames:
             continue
         r = _getRangeString(s)
+        p = _getSignString(s)
         if s._driven:
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print >> f, "%s %s%s;" % (s._driven, r, s._name)
+            print >> f, "%s %s%s%s;" % (s._driven, p, r, s._name)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -208,6 +211,12 @@ def _getRangeString(s):
         return "[%s:0] " % (s._nrbits-1)
     else:
         raise AssertionError
+
+def _getSignString(s):
+    if s._min < 0:
+        return "signed "
+    else:
+        return ''
 
 
 def _convertGens(genlist, vfile):

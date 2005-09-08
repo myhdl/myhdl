@@ -5,6 +5,8 @@ from random import randrange
 
 from myhdl import *
 
+from util import setupCosimulation
+
 COSET = 0x55
 
 def calculateHecRef(header):
@@ -108,15 +110,8 @@ def HecCalculatorTask2(hec, header):
 
          
         
-objfile = "heccalc.o"           
-analyze_cmd = "iverilog -o %s heccalc_inst.v tb_heccalc_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-        
-def HecCalculator_v(hec, header):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def HecCalculator_v(name, hec, header):
+    return setupCosimulation(**locals())
 
 
 
@@ -137,7 +132,7 @@ class TestHec(unittest.TestCase):
 
         heccalc_inst = toVerilog(HecCalculator, hec, header)
         # heccalc_inst = HecCalculator(hec, header)
-        heccalc_v_inst = HecCalculator_v(hec_v, header)
+        heccalc_v_inst = HecCalculator_v(HecCalculator.func_name, hec_v, header)
  
         def stimulus():
             for h in headers:

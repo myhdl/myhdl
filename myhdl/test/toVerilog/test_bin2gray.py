@@ -5,6 +5,8 @@ from unittest import TestCase
 
 from myhdl import *
 
+from util import setupCosimulation
+
 def bin2gray(B, G, width):
     """ Gray encoder.
 
@@ -47,6 +49,10 @@ def bin2gray_v(B, G):
     os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 
+def bin2gray_v(name, B, G):
+    return setupCosimulation(**locals())
+
+
 class TestBin2Gray(TestCase):
 
     def bench(self, width, bin2gray):
@@ -57,7 +63,7 @@ class TestBin2Gray(TestCase):
 
         bin2gray_inst = toVerilog(bin2gray, B, G, width)
         # bin2gray_inst = bin2gray(B, G, width)
-        bin2gray_v_inst = bin2gray_v(B, G_v)
+        bin2gray_v_inst = bin2gray_v(bin2gray.func_name, B, G_v)
 
         def stimulus():
             for i in range(2**width):

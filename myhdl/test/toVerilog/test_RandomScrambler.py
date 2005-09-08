@@ -8,6 +8,8 @@ random.seed(2)
 
 from myhdl import *
 
+from util import setupCosimulation
+
 N = 8
 M = 2 ** N
 DEPTH = 5
@@ -70,20 +72,12 @@ o7, o6, o5, o4, o3, o2, o1, o0 = [Signal(bool()) for i in range(N)]
 i7, i6, i5, i4, i3, i2, i1, i0 = [Signal(bool()) for i in range(N)]
 v7, v6, v5, v4, v3, v2, v1, v0 = [Signal(bool()) for i in range(N)]
 
-        
-objfile = "rs.o"         
-analyze_cmd = "iverilog -o %s rs.v tb_rs.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-cmd = "cver -q +loadvpi=../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap rs.v tb_rs.v"
       
  
-def RandomScrambler_v(o7, o6, o5, o4, o3, o2, o1, o0,
+def RandomScrambler_v(name,
+                      o7, o6, o5, o4, o3, o2, o1, o0,
                       i7, i6, i5, i4, i3, i2, i1, i0):
-    if path.exists(objfile):
-        os.remove(objfile)
-    # return Cosimulation(cmd, **locals())
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+    return setupCosimulation(**locals())
 
 
 class TestRandomScrambler(TestCase):
@@ -130,7 +124,8 @@ class TestRandomScrambler(TestCase):
                        o7, o6, o5, o4, o3, o2, o1, o0,
                        i7, i6, i5, i4, i3, i2, i1, i0
                        )
-        rs_v = RandomScrambler_v(v7, v6, v5, v4, v3, v2, v1, v0,
+        rs_v = RandomScrambler_v(RandomScrambler.func_name,
+                                 v7, v6, v5, v4, v3, v2, v1, v0,
                                  i7, i6, i5, i4, i3, i2, i1, i0
                                  )
         sim = Simulation(rs, self.stimulus(), rs_v)

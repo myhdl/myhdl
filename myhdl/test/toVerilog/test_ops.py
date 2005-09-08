@@ -8,6 +8,8 @@ random.seed(2)
 
 from myhdl import *
 
+from util import setupCosimulation
+
 
 def binaryOps(
               Bitand,
@@ -61,7 +63,7 @@ def binaryOps(
 
 
 
-def binaryOps_v(
+def binaryOps_v(name,
                 Bitand,
                 Bitor,
                 Bitxor,
@@ -82,13 +84,7 @@ def binaryOps_v(
                 And,
                 Or,
                 left, right):
-    objfile = "binops.o"
-    analyze_cmd = "iverilog -o %s binops.v tb_binops.v" % objfile
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+    return setupCosimulation(**locals())
 
 class TestBinaryOps(TestCase):
 
@@ -147,7 +143,7 @@ class TestBinaryOps(TestCase):
                            And,
                            Or,
                            left, right)
-        binops_v = binaryOps_v(
+        binops_v = binaryOps_v(binaryOps.func_name,
                                Bitand_v,
                                Bitor_v,
                                Bitxor_v,
@@ -235,7 +231,7 @@ def multiOps(
         Or.next = bool(argm and argn and argp)
 
 
-def multiOps_v(
+def multiOps_v( name,
                 Bitand,
                 Bitor,
                 Bitxor,
@@ -243,13 +239,7 @@ def multiOps_v(
                 Or,
                 argm, argn, argp):
 
-    objfile = "multiops.o"
-    analyze_cmd = "iverilog -o %s multiops.v tb_multiops.v" % objfile
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+    return setupCosimulation(**locals())
 
 class TestMultiOps(TestCase):
 
@@ -278,13 +268,13 @@ class TestMultiOps(TestCase):
                            And,
                            Or,
                            argm, argn, argp)
-        multiops_v = multiOps_v(
-                               Bitand_v,
-                               Bitor_v,
-                               Bitxor_v,
-                               And_v,
-                               Or_v,
-                               argm, argn, argp)
+        multiops_v = multiOps_v(multiOps.func_name,
+                                Bitand_v,
+                                Bitor_v,
+                                Bitxor_v,
+                                And_v,
+                                Or_v,
+                                argm, argn, argp)
 
         def stimulus():
             for i in range(min(M, N, P)):
@@ -340,19 +330,13 @@ def unaryOps(
         UnaryAdd.next = +arg
         UnarySub.next = --arg
 
-def unaryOps_v(
+def unaryOps_v(name,
                Not,
                Invert,
                UnaryAdd,
                UnarySub,
                arg):
-    objfile = "unaryops.o"
-    analyze_cmd = "iverilog -o %s unaryops.v tb_unaryops.v" % objfile
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+   return setupCosimulation(**locals())
 
 
 
@@ -378,7 +362,7 @@ class TestUnaryOps(TestCase):
                              UnaryAdd,
                              UnarySub,
                              arg)
-        unaryops_v = unaryOps_v(
+        unaryops_v = unaryOps_v(unaryOps.func_name,
                                 Not_v,
                                 Invert_v,
                                 UnaryAdd_v,
@@ -461,7 +445,7 @@ def augmOps(
         Sum.next = var
 
 
-def augmOps_v(
+def augmOps_v(  name,
                 Bitand,
                 Bitor,
                 Bitxor,
@@ -473,13 +457,7 @@ def augmOps_v(
                 Sub,
                 Sum,
                 left, right):
-    objfile = "augmops.o"
-    analyze_cmd = "iverilog -o %s augmops.v tb_augmops.v" % objfile
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+    return setupCosimulation(**locals())
 
 class TestAugmOps(TestCase):
 
@@ -523,7 +501,7 @@ class TestAugmOps(TestCase):
                            Sub,
                            Sum,
                            left, right)
-        augmops_v = augmOps_v(
+        augmops_v = augmOps_v( augmOps.func_name,
                                Bitand_v,
                                Bitor_v,
                                Bitxor_v,

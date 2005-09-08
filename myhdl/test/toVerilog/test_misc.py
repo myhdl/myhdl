@@ -5,6 +5,8 @@ from random import randrange
 
 from myhdl import *
 
+from util import setupCosimulation
+
 ### test of constant wire support ###
 
 # example from Frank Palazollo
@@ -37,14 +39,8 @@ def ConstWire3(p, q):
     return instances()
 
         
-def ConstWire_v(p, q):
-    objfile = "constwire.o"           
-    analyze_cmd = "iverilog -o %s constwire_inst.v tb_constwire_inst.v" % objfile
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def ConstWire_v(name, p, q):
+    return setupCosimulation(**locals())
 
 class TestConstWires(unittest.TestCase):
 
@@ -55,7 +51,7 @@ class TestConstWires(unittest.TestCase):
         q_v = Signal(bool(0))
 
         constwire_inst = toVerilog(ConstWire, p, q)
-        constwire_v_inst = ConstWire_v(p, q_v)
+        constwire_v_inst = ConstWire_v(ConstWire.func_name, p, q_v)
 
         def stimulus():
             for i in range(100):
@@ -80,7 +76,7 @@ class TestConstWires(unittest.TestCase):
         q_v = Signal(intbv()[8:])
 
         constwire_inst = toVerilog(ConstWire, p, q)
-        constwire_v_inst = ConstWire_v(p, q_v)
+        constwire_v_inst = ConstWire_v(ConstWire.func_name, p, q_v)
 
         def stimulus():
             for i in range(100):
@@ -110,14 +106,8 @@ def adderDebug(a, b, c):
         c.next = a + b
 
         
-def Ignorecode_v(a, b, c):
-    objfile = "ignorecode.o"           
-    analyze_cmd = "iverilog -o %s ignorecode_inst.v tb_ignorecode_inst.v" % objfile
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def Ignorecode_v(name, a, b, c):
+    return setupCosimulation(**locals())
 
 class TestIgnoreCode(unittest.TestCase):
 
@@ -130,7 +120,7 @@ class TestIgnoreCode(unittest.TestCase):
 
         ignorecode_inst = toVerilog(adder, a, b, c)
         # ignorecode_inst = adder(a, b, c)
-        ignorecode_v_inst = Ignorecode_v(a, b, c_v)
+        ignorecode_v_inst = Ignorecode_v(adder.func_name, a, b, c_v)
 
         def stimulus():
             for i in range(100):
