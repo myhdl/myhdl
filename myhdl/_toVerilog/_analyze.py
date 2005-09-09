@@ -138,9 +138,11 @@ def _analyzeGens(top, genNames):
         else:
             f = g.gi_frame
             s = inspect.getsource(f)
+            #print s
             s = s.lstrip()
+            #print s
             ast = compiler.parse(s)
-            # print ast
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()

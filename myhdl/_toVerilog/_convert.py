@@ -38,7 +38,7 @@ import warnings
 import myhdl
 from myhdl import *
 from myhdl import ToVerilogError, ToVerilogWarning
-from myhdl._extractHierarchy import _HierExtr, _findInstanceName, _isMem, _getMemInfo
+from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo
 from myhdl._util import _flatten
 from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _access, _kind,_context, \
@@ -54,56 +54,70 @@ def _checkArgs(arglist):
         if not type(arg) in (GeneratorType, _AlwaysComb):
             raise ToVerilogError(_error.ArgType, arg)
         
-def toVerilog(func, *args, **kwargs):
-    global _converting
-    if _converting:
-        return func(*args, **kwargs) # skip
-    else:
-        # clean start
-        sys.setprofile(None)
-    from myhdl import _traceSignals
-    if _traceSignals._tracing:
-        raise ToVerilogError("Cannot use toVerilog while tracing signals")
-    if not callable(func):
-        raise ToVerilogError(_error.FirstArgType, "got %s" % type(func))
-    
-    _converting = 1
-    try:
-        # outer = inspect.getouterframes(inspect.currentframe())[1]
-        # name = _findInstanceName(outer)
-        name = func.func_name
-        if name is None:
-            raise ToVerilogError(_error.TopLevelName)
-        h = _HierExtr(name, func, *args, **kwargs)
-    finally:
-        _converting = 0
-        
-    vpath = name + ".v"
-    vfile = open(vpath, 'w')
-    tbpath = "tb_" + vpath
-    tbfile = open(tbpath, 'w')
-    
-    siglist, memlist = _analyzeSigs(h.hierarchy)
-    arglist = _flatten(h.top)
-    _checkArgs(arglist)
-    genlist = _analyzeGens(arglist, h.genNames)
-    intf = _analyzeTopFunc(func, *args, **kwargs)
-    intf.name = name
-    
-    _writeModuleHeader(vfile, intf)
-    _writeSigDecls(vfile, intf, siglist, memlist)
-    _convertGens(genlist, vfile)
-    _writeModuleFooter(vfile)
-    _writeTestBench(tbfile, intf)
 
-    vfile.close()
-    tbfile.close()
+class _ToVerilogConvertor(object):
 
-    # clean up signal names
-    for sig in siglist:
-        sig._name = None
+    __slots__ = ("name")
+
+    def __init__(self):
+        self.name = None
+
+    def __call__(self, func, *args, **kwargs):
+        global _converting
+        if _converting:
+            return func(*args, **kwargs) # skip
+        else:
+            # clean start
+            sys.setprofile(None)
+        from myhdl import _traceSignals
+        if _traceSignals._tracing:
+            raise ToVerilogError("Cannot use toVerilog while tracing signals")
+        if not callable(func):
+            raise ToVerilogError(_error.FirstArgType, "got %s" % type(func))
+
+        _converting = 1
+        if self.name is None:
+            name = func.func_name
+        else:
+            name = str(self.name)
+        try:
+            # outer = inspect.getouterframes(inspect.currentframe())[1]
+            # name = _findInstanceName(outer)
+##             if name is None:
+##                 raise ToVerilogError(_error.TopLevelName)
+            h = _HierExtr(name, func, *args, **kwargs)
+        finally:
+            _converting = 0
+
+        vpath = name + ".v"
+        vfile = open(vpath, 'w')
+        tbpath = "tb_" + vpath
+        tbfile = open(tbpath, 'w')
+
+        siglist, memlist = _analyzeSigs(h.hierarchy)
+        arglist = _flatten(h.top)
+        _checkArgs(arglist)
+        genlist = _analyzeGens(arglist, h.genNames)
+        intf = _analyzeTopFunc(func, *args, **kwargs)
+        intf.name = name
+
+        _writeModuleHeader(vfile, intf)
+        _writeSigDecls(vfile, intf, siglist, memlist)
+        _convertGens(genlist, vfile)
+        _writeModuleFooter(vfile)
+        _writeTestBench(tbfile, intf)
+
+        vfile.close()
+        tbfile.close()
+
+        # clean up signal names
+        for sig in siglist:
+            sig._name = None
+
+        return h.top
     
-    return h.top
+
+toVerilog = _ToVerilogConvertor()
 
 
 def _writeModuleHeader(f, intf):
