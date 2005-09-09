@@ -88,17 +88,17 @@ class TestTraceSigs(TestCase):
         for p in paths:
             os.remove(p)
 
-    def testTopName(self):
-        p = "dut.vcd"
-        dut = traceSignals(fun)
-        _simulator._tf.close()
-        _simulator._tracing = 0
-        try:
-            traceSignals(fun)
-        except TraceSignalsError, e:
-            self.assertEqual(e.kind, _error.TopLevelName)
-        else:
-            self.fail()
+##     def testTopName(self):
+##         p = "dut.vcd"
+##         dut = traceSignals(fun)
+##         _simulator._tf.close()
+##         _simulator._tracing = 0
+##         try:
+##             traceSignals(fun)
+##         except TraceSignalsError, e:
+##             self.assertEqual(e.kind, _error.TopLevelName)
+##         else:
+##             self.fail()
 
     def testMultipleTraces(self):
         try:
@@ -128,31 +128,31 @@ class TestTraceSigs(TestCase):
             self.fail()
 
     def testHierarchicalTrace1(self):
-        p = "inst.vcd"
+        p = "%s.vcd" % fun.func_name
         top()
         self.assert_(path.exists(p))
 
     def testHierarchicalTrace2(self):
-        pdut = "dut.vcd"
-        psub = "inst.vcd"
+        pdut = "%s.vcd" % top.func_name
+        psub = "%s.vcd" % fun.func_name
         dut = traceSignals(top)
         self.assert_(path.exists(pdut))
         self.assert_(not path.exists(psub))
 
-    def testIndexedName(self):
-        p = "dut[1][0].vcd"
-        dut = [[None] * 3 for i in range(4)]
-        i, j = 0, 2
-        dut[i+1][j-2] = traceSignals(top)
-        self.assert_(path.exists(p))
+##     def testIndexedName(self):
+##         p = "dut[1][0].vcd"
+##         dut = [[None] * 3 for i in range(4)]
+##         i, j = 0, 2
+##         dut[i+1][j-2] = traceSignals(top)
+##         self.assert_(path.exists(p))
 
-    def testIndexedName2(self):
-        p = "inst[1][key].vcd"
-        top2()
-        self.assert_(path.exists(p))
+##     def testIndexedName2(self):
+##         p = "inst[1][key].vcd"
+##         top2()
+##         self.assert_(path.exists(p))
 
     def testBackupOutputFile(self):
-        p = "dut.vcd"
+        p = "%s.vcd" % fun.func_name
         dut = traceSignals(fun)
         Simulation(dut).run(1000, quiet=QUIET)
         _simulator._tf.close()
