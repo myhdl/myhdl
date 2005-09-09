@@ -36,7 +36,7 @@ from sets import Set
 from myhdl import _simulator, Signal, __version__
 from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
-from myhdl._extractHierarchy import _findInstanceName, _HierExtr
+from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 
 _tracing = 0
@@ -65,8 +65,9 @@ def traceSignals(dut, *args, **kwargs):
     
     _tracing = 1
     try:
-        outer = getouterframes(currentframe())[1]
-        name = _findInstanceName(outer)
+##         outer = getouterframes(currentframe())[1]
+##         name = _findInstanceName(outer)
+        name = dut.func_name
         if name is None:
             raise TraceSignalsError(_error.TopLevelName)
         h = _HierExtr(name, dut, *args, **kwargs)
