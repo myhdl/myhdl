@@ -136,6 +136,10 @@ class Cosimulation(object):
             s, v = self._toSigDict[e[i]], e[i+1]
             try:
                 next = int(v, 16)
+                # signed support
+                if (s._type is intbv) and (s._min < 0):
+                    if next >= (1 << (s._nrbits-1)):
+                        next -= (1 << s._nrbits)
             except ValueError:
                 next = intbv(None)
             s.next = next

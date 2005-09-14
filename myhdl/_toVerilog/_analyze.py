@@ -388,8 +388,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if isinstance(obj, intbv):
                 if len(obj) == 0:
                     self.raiseError(node, _error.IntbvBitWidth, n)
-                if obj._min < 0:
-                    self.raiseError(node, _error.IntbvSign, n)
+##                 if obj._min < 0:
+##                     self.raiseError(node, _error.IntbvSign, n)
             if n in self.ast.vardict:
                 curObj = self.ast.vardict[n]
                 if isinstance(obj, type(curObj)):

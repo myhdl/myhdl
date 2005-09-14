@@ -81,10 +81,6 @@ class _ToVerilogConvertor(object):
         else:
             name = str(self.name)
         try:
-            # outer = inspect.getouterframes(inspect.currentframe())[1]
-            # name = _findInstanceName(outer)
-##             if name is None:
-##                 raise ToVerilogError(_error.TopLevelName)
             h = _HierExtr(name, func, *args, **kwargs)
         finally:
             _converting = 0
@@ -227,7 +223,7 @@ def _getRangeString(s):
         raise AssertionError
 
 def _getSignString(s):
-    if s._min < 0:
+    if (s._type is intbv) and (s._min < 0):
         return "signed "
     else:
         return ''
@@ -279,7 +275,10 @@ class _ConvertVisitor(_ToVerilogMixin):
         elif isinstance(obj, _Ram):
             self.write("reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth))
         elif hasattr(obj, '_nrbits'):
-            self.write("%s[%s-1:0] %s" % (dir, obj._nrbits, name))
+            s = ""
+            if isinstance(obj, intbv) and obj._min < 0:
+                s = "signed "
+            self.write("%s%s[%s-1:0] %s" % (dir, s, obj._nrbits, name))
         else:
             raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
         # initialize regs
