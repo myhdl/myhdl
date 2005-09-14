@@ -70,10 +70,6 @@ class _MemInfo(object):
         self.depth = len(mem)
         self.elObj = mem[0]
 
-## def _registerMem(mem):
-##     key = id(mem)
-##     if key not in _memInfoMap:
-##         _memInfoMap[key] = _memInfo()
 
 def _getMemInfo(mem):
     return _memInfoMap[id(mem)]
@@ -110,54 +106,22 @@ class _CallFuncVisitor(object):
     def visitName(self, node):
         self.lineno = node.lineno
         
-
-def _findInstanceName(framerec):
-    fr = framerec[0]
-    fn = framerec[1]
-    ln = framerec[2]
-    if not _filelinemap.has_key(fn):
-        tree = compiler.parseFile(fn)
-        v = _CallFuncVisitor()
-        compiler.walk(tree, v)
-        linemap = _filelinemap[fn] = v.linemap
-    else:
-        linemap = _filelinemap[fn]
-    if not linemap.has_key(ln):
-        return None
-    nln = linemap[ln]
-    cl = linecache.getline(fn, nln)
-    m = rex_assign.match(cl)
-    name = None
-    if m:
-        basename, index = m.groups()
-        if index:
-            il = []
-            for i in index[1:-1].split("]["):
-                try:
-                    s = str(eval(i, fr.f_globals, fr.f_locals))
-                except:
-                    break
-                il.append(s)
-            else:
-                name = basename + '[' + "][".join(il) + ']'
-        else:
-            name = basename
-    return name
  
 
 class _HierExtr(object):
     
     def __init__(self, name, dut, *args, **kwargs):
+        
         global _profileFunc
         global _memInfoMap
         _memInfoMap = {}
         self.skipNames = ('always_comb', 'instances', 'processes')
         self.skip = 0
-        self.names = []
-        self.instNamesStack = [Set()]
         self.hierarchy = hierarchy = []
-        self.genNames = genNames = {}
+        self.absnames = absnames = {}
         self.level = 0
+        self.returned = Set()
+        
         # handle special case of a top-level generator separately
         if _isGenFunc(dut):
             _top = dut(*args, **kwargs)
@@ -169,8 +133,9 @@ class _HierExtr(object):
                         gsigdict[n] = v
                     if _isListOfSigs(v):
                         gmemdict[n] = _makeMemInfo(v)
-            inst = [1, name, gsigdict, gmemdict]
+            inst = [1, (_top, ()), gsigdict, gmemdict]
             self.hierarchy.append(inst)
+        # the normal case
         else:
             _profileFunc = self.extractor
             sys.setprofile(_profileFunc)
@@ -178,71 +143,89 @@ class _HierExtr(object):
             sys.setprofile(None)
             if not hierarchy:
                 raise ExtractHierarchyError(_error.NoInstances)
+            
         self.top = _top
-        hierarchy.reverse()
-        hierarchy[0][1] = name
-        linecache.clearcache()
 
+        # streamline hierarchy
+        hierarchy.reverse()
+        # walk the hierarchy to define relative and absolute names
+        # in this case, we'll use the names from the lowest levels
+        names = {}
+        obj, subs = hierarchy[0][1]
+        names[id(obj)] = name
+        absnames[id(obj)] = '_' + name
+        for m in hierarchy:
+            obj, subs = m[1]
+            assert id(obj) in names
+            tn = absnames[id(obj)]
+            for sn, so in subs:
+                names[id(so)] = sn
+                absnames[id(so)] = "%s_%s" % (tn, sn)
+                if isinstance(so, (tuple, list)):
+                    for i, soi in enumerate(so):
+                        names[id(soi)] = "%s[%s]" % (sn, i)
+                        absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
+            m[1] = names[id(obj)]
+           
+
+                
     def extractor(self, frame, event, arg):
+        
         if event == "call":
+            
             func_name = frame.f_code.co_name
             if func_name in self.skipNames:
                 self.skip = 1
             if not self.skip:
-                outer = getouterframes(frame)[1]
-                name = _findInstanceName(outer)
-                self.names.append(name)
-                if name:
-                    self.instNamesStack[-1].add(name)
-                    self.level += 1
-                    self.instNamesStack.append(Set())
-        elif event == "return":
-            truenames = [n for n in self.names[1:] if n is not None]
-            prefix = '_'.join(truenames)
-            if not self.skip:
-                name = self.names.pop()
-                if name:
-                    if _isGenSeq(arg):
-                        sigdict = {}
-                        memdict = {}
-                        for dict in (frame.f_globals, frame.f_locals):
-                            for n, v in dict.items():
-                                if isinstance(v, Signal):
-                                    sigdict[n] = v
-                                if _isListOfSigs(v):
-                                    memdict[n] = _makeMemInfo(v)
-                        # check locally named generators
-                        # those are not visited by the profiler mechanism
-                        instNames = self.instNamesStack[-1]
-                        gens = _getGens(arg)
-                        for gname, g in frame.f_locals.items():
-                            if type(g) is _AlwaysComb:
-                                g = g.gen
-                            if type(g) is GeneratorType and \
-                               g in gens and gname not in instNames:
-                                gsigdict = {}
-                                gmemdict = {}
-                                for dict in (g.gi_frame.f_globals,
-                                             g.gi_frame.f_locals):
-                                    for n, v in dict.items():
-                                        if isinstance(v, Signal):
-                                            gsigdict[n] = v
-                                        if _isListOfSigs(v):
-                                            gmemdict[n] = _makeMemInfo(v)
-                                inst = [self.level+1, gname, gsigdict, gmemdict]
-                                self.hierarchy.append(inst)
-                                absgname = gname
-                                if prefix:
-                                    absgname = prefix + "_" + gname
-                                self.genNames[id(g)] = absgname
-                        inst = [self.level, name, sigdict, memdict]       
-                        self.hierarchy.append(inst)
-                    self.level -= 1
-                    self.instNamesStack.pop()
-            func_name = frame.f_code.co_name
-            if func_name in self.skipNames:
-                self.skip = 0
+                self.level += 1
                 
+        elif event == "return":
+            
+           if not self.skip:
+                if _isGenSeq(arg):
+                    sigdict = {}
+                    memdict = {}
+                    for dict in (frame.f_globals, frame.f_locals):
+                        for n, v in dict.items():
+                            if isinstance(v, Signal):
+                                sigdict[n] = v
+                            if _isListOfSigs(v):
+                                memdict[n] = _makeMemInfo(v)
+                    l = []
+                    for n, o in frame.f_locals.items():
+                        for e in _inferArgs(arg):
+                            if e is o:
+                                l.append((n, o))
+                    for n, o in l:
+                        if type(o) is _AlwaysComb:
+                            g = o.gen
+                        else:
+                            g = o
+                        # special handling of locally defined generators
+                        # outside the profiling mechanism
+                        if id(o) not in self.returned and \
+                            type(g) is GeneratorType:
+                            gsigdict = {}
+                            gmemdict = {}
+                            for dict in (g.gi_frame.f_globals,
+                                         g.gi_frame.f_locals):
+                                for n, v in dict.items():
+                                    if isinstance(v, Signal):
+                                        gsigdict[n] = v
+                                    if _isListOfSigs(v):
+                                        gmemdict[n] = _makeMemInfo(v)
+                            inst = [self.level+1, (o, ()), gsigdict, gmemdict]
+                            self.hierarchy.append(inst)
+                    self.returned.add(id(arg))
+                    inst = [self.level, (arg, l), sigdict, memdict]
+                    self.hierarchy.append(inst)
+                self.level -= 1
+                
+           func_name = frame.f_code.co_name
+           if func_name in self.skipNames:
+               self.skip = 0
+                
+
 
 def _getGens(arg):
     if type(arg) is GeneratorType:
@@ -259,7 +242,12 @@ def _getGens(arg):
         return l
 
 
-    
+def _inferArgs(arg):
+    c = [arg]
+    if isinstance(arg, (tuple, list)):
+        c += list(arg)
+    return c
+   
 
 
     

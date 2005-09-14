@@ -97,7 +97,7 @@ class _ToVerilogConvertor(object):
         siglist, memlist = _analyzeSigs(h.hierarchy)
         arglist = _flatten(h.top)
         _checkArgs(arglist)
-        genlist = _analyzeGens(arglist, h.genNames)
+        genlist = _analyzeGens(arglist, h.absnames)
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
 

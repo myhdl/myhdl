@@ -34,6 +34,8 @@ from unittest import TestCase
 
 from myhdl import *
 
+from util import setupCosimulation
+
 QUIET = 1
 
 def design1(a, b, c, d, p, q, r):
@@ -74,15 +76,8 @@ def design5(a, b, c, d, p, q, r):
     return always_comb(logic)
 
 
-objfile = "design.o"           
-analyze_cmd = "iverilog -o %s design_inst.v tb_design_inst.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-
-def design_v(a, b, c, d, p, q, r):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+def design_v(name, a, b, c, d, p, q, r):
+    return setupCosimulation(**locals())
     
 
 class AlwaysCombSimulationTest(TestCase):
@@ -105,7 +100,7 @@ class AlwaysCombSimulationTest(TestCase):
         random.shuffle(vectors)
 
         design_inst = toVerilog(design, a, b, c, d, p, q, r)
-        design_v_inst = design_v(a, b, c, d, p_v, q_v, r_v)
+        design_v_inst = design_v(design.func_name, a, b, c, d, p_v, q_v, r_v)
 
         def clkGen():
             while 1:

@@ -110,7 +110,7 @@ def _analyzeSigs(hierarchy):
 
         
 
-def _analyzeGens(top, genNames):
+def _analyzeGens(top, absnames):
     genlist = []
     for g in top:
         if type(g) is _AlwaysComb:
@@ -130,7 +130,7 @@ def _analyzeGens(top, genNames):
                     assert isinstance(obj, (int, long, Signal)) or \
                            _isMem(obj)
                     ast.symdict[n] = obj
-            ast.name = genNames.get(id(g.gen), _Label("BLOCK"))
+            ast.name = absnames.get(id(g), _Label("BLOCK"))
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
             v = _AnalyzeAlwaysCombVisitor(ast, g.senslist)
@@ -138,9 +138,7 @@ def _analyzeGens(top, genNames):
         else:
             f = g.gi_frame
             s = inspect.getsource(f)
-            #print s
             s = s.lstrip()
-            #print s
             ast = compiler.parse(s)
             #print ast
             ast.sourcefile = inspect.getsourcefile(f)
@@ -148,7 +146,7 @@ def _analyzeGens(top, genNames):
             ast.symdict = f.f_globals.copy()
             ast.symdict.update(f.f_locals)
             ast.callstack = []
-            ast.name = genNames.get(id(g), _Label("BLOCK"))
+            ast.name = absnames.get(id(g), _Label("BLOCK"))
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
             v = _AnalyzeBlockVisitor(ast)
