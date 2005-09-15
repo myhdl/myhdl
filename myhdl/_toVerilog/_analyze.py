@@ -54,6 +54,8 @@ def _makeName(n, prefixes):
         name = n
     if '[' in name or ']' in name:
         name = "\\" + name + ' '
+##     print prefixes
+##     print name
     return name
                     
 def _analyzeSigs(hierarchy):

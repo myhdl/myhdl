@@ -71,15 +71,15 @@ def undefinedBitWidthSignal(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return incTaskGen()
                 
-def negIntbv(count, enable, clock, reset, n):
-    a = intbv(0, min=-2, max=45)
-    while 1:
-        yield posedge(clock), negedge(reset)
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = (count + 1) % n
+## def negIntbv(count, enable, clock, reset, n):
+##     a = intbv(0, min=-2, max=45)
+##     while 1:
+##         yield posedge(clock), negedge(reset)
+##         if reset == ACTIVE_LOW:
+##             count.next = 0
+##         else:
+##             if enable:
+##                 count.next = (count + 1) % n
 
 def yieldObject1(count, enable, clock, reset, n):
     while 1:
@@ -352,13 +352,13 @@ class TestErr(TestCase):
         else:
             self.fail()
         
-    def testNegIntbv(self):
-        try:
-            self.bench(negIntbv)
-        except ToVerilogError, e:
-            self.assertEqual(e.kind, _error.IntbvSign)
-        else:
-            self.fail()
+##     def testNegIntbv(self):
+##         try:
+##             self.bench(negIntbv)
+##         except ToVerilogError, e:
+##             self.assertEqual(e.kind, _error.IntbvSign)
+##         else:
+##             self.fail()
             
     def testYield1(self):
         try:
