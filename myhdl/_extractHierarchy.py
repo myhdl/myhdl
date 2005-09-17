@@ -164,12 +164,8 @@ class _HierExtr(object):
                 if isinstance(so, (tuple, list)):
                     for i, soi in enumerate(so):
                         names[id(soi)] = "%s[%s]" % (sn, i)
-                        print id(soi)
-                        print "%s[%s]" % (sn, i)
                         absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
-                        # print "%s_%s_%s" % (tn, sn, i)
             m[1] = names[id(obj)]
-            # print names
            
 
                 
@@ -196,30 +192,33 @@ class _HierExtr(object):
                             if _isListOfSigs(v):
                                 memdict[n] = _makeMemInfo(v)
                     subs = []
-                    for n, obj in frame.f_locals.items():
+                    for n, sub in frame.f_locals.items():
                         for elt in _inferArgs(arg):
-                            if elt is obj:
-                                subs.append((n, obj))
-                    # special handling of locally defined generators
-                    # outside the profiling mechanism
-##                     for obj in _getGens(arg):
-##                         gen = obj
-##                         if isinstance(obj, _AlwaysComb):
-##                             gen = obj.gen
-##                         if id(obj) not in self.returned:
-##                             assert type(gen) is GeneratorType
-##                             gsigdict = {}
-##                             gmemdict = {}
-##                             for dict in (gen.gi_frame.f_globals,
-##                                          gen.gi_frame.f_locals):
-##                                 for n, v in dict.items():
-##                                     if isinstance(v, Signal):
-##                                         gsigdict[n] = v
-##                                     if _isListOfSigs(v):
-##                                         gmemdict[n] = _makeMemInfo(v)
-##                             inst = [self.level+1, (obj, ()), gsigdict, gmemdict]
-##                             # print inst
-##                             self.hierarchy.append(inst)
+                            if elt is sub:
+                                subs.append((n, sub))
+                                
+                                # special handling of locally defined generators
+                                # outside the profiling mechanism
+                                if id(sub) in self.returned:
+                                    continue
+                                for obj in _getGens(sub):
+                                    if id(obj) in self.returned:
+                                        continue
+                                    gen = obj
+                                    if isinstance(obj, _AlwaysComb):
+                                        gen = obj.gen
+                                    gsigdict = {}
+                                    gmemdict = {}
+                                    for dict in (gen.gi_frame.f_globals,
+                                                 gen.gi_frame.f_locals):
+                                        for n, v in dict.items():
+                                            if isinstance(v, Signal):
+                                                gsigdict[n] = v
+                                            if _isListOfSigs(v):
+                                                gmemdict[n] = _makeMemInfo(v)
+                                    inst = [self.level+1, (obj, ()), gsigdict, gmemdict]
+                                    self.hierarchy.append(inst)
+                                    
                     self.returned.add(id(arg))
                     inst = [self.level, (arg, subs), sigdict, memdict]
                     self.hierarchy.append(inst)
@@ -240,27 +239,6 @@ def _getGens(arg):
             if isinstance(elt,  (GeneratorType, _AlwaysComb)):
                 gens.append(elt)
         return gens
-
-
-## def _getGens(*args):
-##     gens = []
-##     for arg in args:
-##         if isinstance(arg, (list, tuple, Set)):
-##             for item in arg:
-##                 gens.extend(_getGens(item))
-##         else:
-##             if isinstance(arg,  (GeneratorType, _AlwaysComb)):
-##                 gens.append(arg)
-##     return gens
-
-
-## def _getGens(*args):
-##     gens = []
-##     for arg in args:
-##         if isinstance(arg,  (GeneratorType, _AlwaysComb)):
-##             gens.append(arg)
-##     return gens
-       
 
 
 def _inferArgs(arg):
