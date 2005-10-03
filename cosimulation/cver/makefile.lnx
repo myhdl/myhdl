@@ -19,3 +19,5 @@ myhdl_vpi.o:	myhdl_vpi.c
 myhdl_vpi.so:	myhdl_vpi.o
 	$(LD) $(LFLAGS) myhdl_vpi.o -o myhdl_vpi.so
 
+clean:
+	-rm *.o *.so
