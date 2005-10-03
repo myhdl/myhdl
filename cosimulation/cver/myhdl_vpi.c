@@ -148,7 +148,7 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
 
 static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 {
-  vpiHandle net_iter, net_handle;
+  vpiHandle net_iter, net_handle, cb_h;
   char buf[MAXLINE];
   char s[MAXWIDTH];
   int n;
@@ -205,7 +205,8 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
     *id = i;
     cb_data_s.user_data = (PLI_BYTE8 *)id;
     cb_data_s.obj = net_handle;
-    vpi_register_cb(&cb_data_s);
+    cb_h = vpi_register_cb(&cb_data_s);
+    vpi_free_object(cb_h);
     i++;
   }
   n = write(wpipe, buf, strlen(buf));
@@ -228,7 +229,8 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
-  vpi_register_cb(&cb_data_s);
+  cb_h = vpi_register_cb(&cb_data_s);
+  vpi_free_object(cb_h);
 
   // pre-register delta cycle callback //
   delta = 0;
@@ -241,7 +243,8 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
-  vpi_register_cb(&cb_data_s);
+  cb_h = vpi_register_cb(&cb_data_s);
+  vpi_free_object(cb_h);
 
   return(0);
 }
@@ -249,7 +252,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 
 static PLI_INT32 readonly_callback(p_cb_data cb_data)
 {
-  vpiHandle net_iter, net_handle;
+  vpiHandle net_iter, net_handle, cb_h;
   s_cb_data cb_data_s;
   s_vpi_time verilog_time_s;
   s_vpi_value value_s;
@@ -337,7 +340,8 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
     cb_data_s.obj = NULL;
     cb_data_s.time = &time_s;
     cb_data_s.value = NULL;
-    vpi_register_cb(&cb_data_s);
+    cb_h = vpi_register_cb(&cb_data_s);
+    vpi_free_object(cb_h);
   } else {
     delta++;
     assert(delta < 1000);
@@ -349,6 +353,7 @@ static PLI_INT32 delay_callback(p_cb_data cb_data)
 {
   s_vpi_time time_s;
   s_cb_data cb_data_s;
+  vpiHandle cb_h;
 
   // register readonly callback //
   time_s.type = vpiSimTime;
@@ -360,7 +365,8 @@ static PLI_INT32 delay_callback(p_cb_data cb_data)
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
-  vpi_register_cb(&cb_data_s);
+  cb_h = vpi_register_cb(&cb_data_s);
+  vpi_free_object(cb_h);
 
   // register delta callback //
   time_s.type = vpiSimTime;
@@ -372,7 +378,8 @@ static PLI_INT32 delay_callback(p_cb_data cb_data)
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
-  vpi_register_cb(&cb_data_s);
+  cb_h = vpi_register_cb(&cb_data_s);
+  vpi_free_object(cb_h);
 
   return(0);
 }
@@ -381,7 +388,7 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
 {
   s_cb_data cb_data_s;
   s_vpi_time time_s;
-  vpiHandle reg_iter, reg_handle;
+  vpiHandle reg_iter, reg_handle, cb_h;
   s_vpi_value value_s;
 
   if (delta == 0) {
@@ -412,7 +419,8 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
-  vpi_register_cb(&cb_data_s);
+  cb_h = vpi_register_cb(&cb_data_s);
+  vpi_free_object(cb_h);
 
   // register delta callback //
   time_s.type = vpiSimTime;
@@ -424,7 +432,8 @@ static PLI_INT32 delta_callback(p_cb_data cb_data)
   cb_data_s.obj = NULL;
   cb_data_s.time = &time_s;
   cb_data_s.value = NULL;
-  vpi_register_cb(&cb_data_s);
+  cb_h = vpi_register_cb(&cb_data_s);
+  vpi_free_object(cb_h);
 
   return(0);
 }
