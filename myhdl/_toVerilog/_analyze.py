@@ -45,7 +45,10 @@ from myhdl._extractHierarchy import _isMem
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
- 
+
+_signed = False
+def _isSigned():
+    return _signed
 
 def _makeName(n, prefixes):
     if len(prefixes) > 1:
@@ -59,6 +62,7 @@ def _makeName(n, prefixes):
     return name
                     
 def _analyzeSigs(hierarchy):
+    global _signed
     curlevel = 0
     siglist = []
     memlist = []
@@ -79,6 +83,8 @@ def _analyzeSigs(hierarchy):
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
+            if s._min is not None and s._min < 0:
+                _signed = True
             s._name = _makeName(n, prefixes)
             if not s._nrbits:
                 raise ToVerilogError(_error.UndefinedBitWidth, s._name)
@@ -107,6 +113,8 @@ def _analyzeSigs(hierarchy):
                 raise ToVerilogError(_error.InconsistentType, s._name)
             if s._nrbits != m.elObj._nrbits:
                 raise ToVerilogError(_error.InconsistentBitWidth, s._name)
+            if s._min is not None and s._min < 0:
+                _signed = True
             
     return siglist, memlist
 
@@ -378,6 +386,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.expr, _access.OUTPUT)
         
     def visitAssign(self, node, access=_access.OUTPUT, *args):
+        global _signed
         target, expr = node.nodes[0], node.expr
         self.visit(target, _access.OUTPUT)
         if isinstance(target, astNode.AssName):
@@ -392,6 +401,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                     self.raiseError(node, _error.IntbvBitWidth, n)
 ##                 if obj._min < 0:
 ##                     self.raiseError(node, _error.IntbvSign, n)
+                    if obj._min < 0:
+                        _signed = True
             if n in self.ast.vardict:
                 curObj = self.ast.vardict[n]
                 if isinstance(obj, type(curObj)):

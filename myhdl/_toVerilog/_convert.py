@@ -44,7 +44,7 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._toVerilog import _error, _access, _kind,_context, \
      _ToVerilogMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
-     _Ram, _Rom
+     _Ram, _Rom, _isSigned
             
 _converting = 0
 _profileFunc = None
@@ -134,13 +134,13 @@ def _writeModuleHeader(f, intf):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            print >> f, "output %s%s;" % (r, portname)
+            print >> f, "output %s%s%s;" % (p, r, portname)
             if s._driven == 'reg':
                 print >> f, "reg %s%s%s;" % (p, r, portname)
             else:
-                print >> f, "wire %s%s;" % (r, portname)
+                print >> f, "wire %s%s%s;" % (p, r, portname)
         else:
-            print >> f, "input %s%s;" % (r, portname)
+            print >> f, "input %s%s%s;" % (p, r, portname)
     print >> f
 
 
@@ -218,12 +218,17 @@ def _getRangeString(s):
     if s._type is bool:
         return ''
     elif s._nrbits is not None:
-        return "[%s:0] " % (s._nrbits-1)
+        nrbits = s._nrbits
+        if _isSigned():
+            # add a sign bit to positive numbers
+            if s._type is intbv and s._min >=0:
+                nrbits += 1
+        return "[%s:0] " % (nrbits-1)
     else:
         raise AssertionError
 
 def _getSignString(s):
-    if (s._type is intbv) and (s._min < 0):
+    if _isSigned() and s._type is intbv:
         return "signed "
     else:
         return ''
@@ -282,7 +287,9 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
         # initialize regs
-        if dir == 'reg ' and not isinstance(obj, _Ram):
+        # if dir == 'reg ' and not isinstance(obj, _Ram):
+        # disable for cver
+        if False:
             if str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
                 inival = obj._toVerilog()
             else:

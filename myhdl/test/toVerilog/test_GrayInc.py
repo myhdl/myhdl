@@ -14,7 +14,7 @@ ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 def GrayInc(graycnt, enable, clock, reset, width):
     
-    bincnt = Signal(intbv()[width:])
+    bincnt = Signal(intbv(0)[width:])
     
     INC_1 = inc(bincnt, enable, clock, reset, n=2**width)
     BIN2GRAY_1 = bin2gray(B=bincnt, G=graycnt, width=width)
@@ -24,7 +24,7 @@ def GrayInc(graycnt, enable, clock, reset, width):
 
 def GrayIncReg(graycnt, enable, clock, reset, width):
     
-    graycnt_comb = Signal(intbv()[width:])
+    graycnt_comb = Signal(intbv(0)[width:])
     
     GRAY_INC_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
     
@@ -38,14 +38,14 @@ def GrayIncReg(graycnt, enable, clock, reset, width):
 
 
 width = 8
-graycnt = Signal(intbv()[width:])
+graycnt = Signal(intbv(0)[width:])
 enable, clock, reset = [Signal(bool()) for i in range(3)]
 # GrayIncReg(graycnt, enable, clock, reset, width)
 
 def GrayIncReg_v(name, graycnt, enable, clock, reset, width):
     return setupCosimulation(**locals())
 
-graycnt_v = Signal(intbv()[width:])
+graycnt_v = Signal(intbv(0)[width:])
 
 class TestGrayInc(unittest.TestCase):
 

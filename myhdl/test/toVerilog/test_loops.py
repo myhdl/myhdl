@@ -143,7 +143,7 @@ def ReturnFromTask(a, out):
     out[:] = 23 # to notice it
 
 def TaskCall(a, out):
-    var = intbv()[8:]
+    var = intbv(0)[8:]
     while 1:
         yield a
         ReturnFromTask(a, var)

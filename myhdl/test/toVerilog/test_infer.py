@@ -166,24 +166,26 @@ class TestErrors(unittest.TestCase):
 
 
 def Infer1(a, out):
-    yield a
-    c = 5
-    c = a < 4
-    c = bool(0)
-    c = False
-    c = not a
-    c = True
-    out.next = c
+    while 1:
+        yield a
+        c = 5
+        c = a < 4
+        c = bool(0)
+        c = False
+        c = not a
+        c = True
+        out.next = c
     
 def Infer2(a, out):
-    yield a
-    c = a < 4
-    c = bool(0)
-    c = False
-    c = not a
-    c = True
-    c = 5
-    out.next = c
+    while 1:
+        yield a
+        c = a < 4
+        c = bool(0)
+        c = False
+        c = not a
+        c = True
+        c = 5
+        out.next = c
 
 def Infer3Func(a):
     if True:
@@ -192,37 +194,41 @@ def Infer3Func(a):
         return 5
 
 def Infer3(a, out):
-    yield a
-    out.next = Infer3Func(a)
+    while 1:
+        yield a
+        out.next = Infer3Func(a)
     
 def Infer4Func(a):
-    if True:
-        return 6
-    else:
-        return a < 3
+    while 1:
+        if True:
+            return 6
+        else:
+            return a < 3
 
 def Infer4(a, out):
-    yield a
-    out.next = Infer4Func(a)
+    while 1:
+        yield a
+        out.next = Infer4Func(a)
 
 def Infer5(a, out):
-    yield a
-    c = a + 1
-    c = a - 1
-    c = a * 3
-    c = a // 2
-    c = a << 2
-    c = a >> 2
-    c = a % 16
-    c = + a
-    c = -( - a)
-    c = ~(-3)
-    c = not a
-    c = 5 & 4
-    c = 5 | 2
-    c = 6 ^ 3
-    c = bool(a and 1)
-    out.next = c
+    while 1:
+        yield a
+        c = a + 1
+        c = a - 1
+        c = a * 3
+        c = a // 2
+        c = a << 2
+        c = a >> 2
+        c = a % 16
+        c = + a
+        c = -( - a)
+        c = ~(-3)
+        c = not a
+        c = 5 & 4
+        c = 5 | 2
+        c = 6 ^ 3
+        c = bool(a and 1)
+        out.next = c
 
 
         
@@ -233,7 +239,7 @@ class TestInfer(unittest.TestCase):
 
     def bench(self, Infertest):
         
-        a = Signal(intbv(-1)[16:])
+        a = Signal(intbv()[16:])
         out_v = Signal(intbv(0)[16:])
         out = Signal(intbv(0)[16:])
 
@@ -246,6 +252,7 @@ class TestInfer(unittest.TestCase):
             yield delay(10)
             # print "%s %s" % (out, out_v)
             self.assertEqual(out, out_v)
+            raise StopSimulation
 
         return stimulus(), infertest_inst, infertest_v_inst
 

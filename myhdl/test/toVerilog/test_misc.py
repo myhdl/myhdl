@@ -72,8 +72,8 @@ class TestConstWires(unittest.TestCase):
     def benchIntbv(self, ConstWire):
         
         p = Signal(intbv(0)[8:])
-        q = Signal(intbv()[8:])
-        q_v = Signal(intbv()[8:])
+        q = Signal(intbv(0)[8:])
+        q_v = Signal(intbv(0)[8:])
 
         constwire_inst = toVerilog(ConstWire, p, q)
         constwire_v_inst = ConstWire_v(ConstWire.func_name, p, q_v)

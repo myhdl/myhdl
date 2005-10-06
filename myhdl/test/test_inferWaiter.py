@@ -107,7 +107,7 @@ class InferWaiterTest(TestCase):
 
     def bench(self, genFunc, waiterType):
 
-        a, b, c, d, r, s = [Signal(intbv()) for i in range(6)]
+        a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
 
         gen_inst_r = genFunc(a, b, c, d, r)
         self.assertEqual(type(_inferWaiter(gen_inst_r)), waiterType)

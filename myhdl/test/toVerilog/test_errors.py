@@ -157,7 +157,7 @@ def h2(cnt):
     return 1
 
 def taskReturnVal(count, enable, clock, reset, n):
-    cnt = intbv()[8:]
+    cnt = intbv(0)[8:]
     while 1:
         yield posedge(clock), negedge(reset)
         if reset == ACTIVE_LOW:
@@ -169,7 +169,7 @@ def taskReturnVal(count, enable, clock, reset, n):
 
 
 def printnlToFile(count, enable, clock, reset, n):
-    cnt = intbv()[8:]
+    cnt = intbv(0)[8:]
     while 1:
         yield posedge(clock), negedge(reset)
         if reset == ACTIVE_LOW:
@@ -180,7 +180,7 @@ def printnlToFile(count, enable, clock, reset, n):
                 count.next = count + 1
 
 def printToFile(count, enable, clock, reset, n):
-    cnt = intbv()[8:]
+    cnt = intbv(0)[8:]
     while 1:
         yield posedge(clock), negedge(reset)
         if reset == ACTIVE_LOW:
@@ -191,25 +191,25 @@ def printToFile(count, enable, clock, reset, n):
                 count.next = count + 1
 
 def listComp1(count, enable, clock, reset, n):
-    mem = [intbv()[8:] for i in range(4) for j in range(5)]
+    mem = [intbv(0)[8:] for i in range(4) for j in range(5)]
     while 1:
         yield posedge(clock), negedge(reset)
         count.next = count + 1
 
 def listComp2(count, enable, clock, reset, n):
-    mem = [intbv()[8:] for i in downrange(4)]
+    mem = [intbv(0)[8:] for i in downrange(4)]
     while 1:
         yield posedge(clock), negedge(reset)
         count.next = count + 1
 
 def listComp3(count, enable, clock, reset, n):
-    mem = [intbv()[8:] for i in range(1, 4)]
+    mem = [intbv(0)[8:] for i in range(1, 4)]
     while 1:
         yield posedge(clock), negedge(reset)
         count.next = count + 1
         
 def listComp4(count, enable, clock, reset, n):
-    mem = [intbv() for i in range(4)]
+    mem = [intbv(0) for i in range(4)]
     while 1:
         yield posedge(clock), negedge(reset)
         count.next = count + 1

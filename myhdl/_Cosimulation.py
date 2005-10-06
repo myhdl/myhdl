@@ -136,8 +136,7 @@ class Cosimulation(object):
             s, v = self._toSigDict[e[i]], e[i+1]
             try:
                 next = int(v, 16)
-                # signed support
-                if (s._type is intbv) and (s._min < 0):
+                if s._nrbits and s._min is not None and s._min < 0:
                     if next >= (1 << (s._nrbits-1)):
                         next -= (1 << s._nrbits)
             except ValueError:
@@ -154,7 +153,11 @@ class Cosimulation(object):
         if self._hasChange:
             self._hasChange = 0
             for s in self._fromSigs:
-                buf = hex(s)[2:]
+                v = int(s._val)
+                # signed support
+                if s._nrbits and v < 0:
+                    v += (1 << s._nrbits)
+                buf = hex(v)[2:]
                 if buf[-1] == 'L':
                     buf = buf[:-1] # strip trailing L
                 buflist.append(buf)

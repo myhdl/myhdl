@@ -3,7 +3,8 @@ path = os.path
 
 from myhdl import *
 
-def setupCosimulation(**kwargs):
+# Icarus
+def setupCosimulationIcarus(**kwargs):
     name = kwargs['name']
     objfile = "%s.o" % name
     if path.exists(objfile):
@@ -12,4 +13,14 @@ def setupCosimulation(**kwargs):
     os.system(analyze_cmd)
     simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
     return Cosimulation(simulate_cmd, **kwargs)
-    
+
+# cver
+def setupCosimulationCver(**kwargs):
+    name = kwargs['name']
+    cmd = "cver -q +loadvpi=../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap " + \
+          "%s.v tb_%s.v " % (name, name)
+    return Cosimulation(cmd, **kwargs)
+
+
+setupCosimulation = setupCosimulationIcarus
+setupCosimulation = setupCosimulationCver

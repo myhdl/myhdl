@@ -36,7 +36,7 @@ from __builtin__ import max as maxfunc
 class intbv(object):
     __slots__ = ('_val', '_min', '_max', '_nrbits')
     
-    def __init__(self, val=0, min=None, max=None, _nrbits=0):
+    def __init__(self, val=None, min=None, max=None, _nrbits=0):
         if _nrbits:
             self._min = 0
             self._max = 2**_nrbits
@@ -45,6 +45,13 @@ class intbv(object):
             self._max = max
             if max is not None and min is not None:
                 _nrbits = maxfunc(len(bin(max-1)), len(bin(min)))
+                if min >= 0:
+                    _nrbits = len(bin(max-1))
+                elif max <= 0:
+                    _nrbits = len(bin(min))
+                else:
+                    # make sure there is a leading zero bit in positive numbers
+                    _nrbits = maxfunc(len(bin(max-1))+1, len(bin(min)))
         if isinstance(val, (int, long)):
             self._val = val
         elif isinstance(val, StringType):
@@ -114,6 +121,8 @@ class intbv(object):
     def __getitem__(self, key):
         if isinstance(key, int):
             i = key
+            if self._val is None:
+                return intbv(None, _nrbits=1)
             res = intbv((self._val >> i) & 0x1, _nrbits=1)
             return res
         elif isinstance(key, slice):
@@ -128,6 +137,8 @@ class intbv(object):
             if i <= j:
                 raise ValueError, "intbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j)
+            if self._val is None:
+                return intbv(None, _nrbits=i-j)
             res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
             return res
         else:
@@ -147,6 +158,8 @@ class intbv(object):
         elif isinstance(key, slice):
             i, j = key.start, key.stop
             if j is None: # default
+                if i is None and self._val is None:
+                    self._val = val
                 j = 0
             if j < 0:
                 raise ValueError, "intbv[i:j] = v requires j >= 0\n" \

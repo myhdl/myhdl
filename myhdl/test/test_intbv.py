@@ -37,7 +37,7 @@ from myhdl._intbv import intbv
 
 class TestIntbvInit(TestCase):
     def testDefaultValue(self):
-        self.assertEqual(intbv(), 0)
+        self.assertEqual(intbv(), None)
     
 
 def getItem(s, i):

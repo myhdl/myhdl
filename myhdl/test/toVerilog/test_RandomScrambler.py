@@ -5,6 +5,7 @@ from unittest import TestCase
 import random
 from random import randrange
 random.seed(2)
+import time
 
 from myhdl import *
 
@@ -83,9 +84,9 @@ def RandomScrambler_v(name,
 class TestRandomScrambler(TestCase):
 
     def stimulus(self):
-        input = intbv()
-        output = intbv()
-        output_v = intbv()
+        input = intbv(0)
+        output = intbv(0)
+        output_v = intbv(0)
         for i in range(100):
         # while 1:
             input[:] = randrange(M)
@@ -119,11 +120,13 @@ class TestRandomScrambler(TestCase):
 ##             print input
             self.assertEqual(output, output_v)
 
+            
     def test(self):
         rs = toVerilog(RandomScrambler, 
                        o7, o6, o5, o4, o3, o2, o1, o0,
                        i7, i6, i5, i4, i3, i2, i1, i0
                        )
+        # time.sleep(1)
         rs_v = RandomScrambler_v(RandomScrambler.func_name,
                                  v7, v6, v5, v4, v3, v2, v1, v0,
                                  i7, i6, i5, i4, i3, i2, i1, i0
