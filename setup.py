@@ -11,8 +11,8 @@ try:
 except:
     print versionError
     raise SystemExit(1)
-# we need at least 2.3
-if sys.version_info < (2, 3):
+# we need at least 2.4
+if sys.version_info < (2, 4):
     print versionError
     raise SystemExit(1)
 
@@ -29,7 +29,7 @@ Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
 
     
 setup(name="myhdl",
-      version="0.4.1",
+      version="0.5dev1",
       description="Python as a Hardware Description Language",
       long_description = "See home page.",
       author="Jan Decaluwe",
