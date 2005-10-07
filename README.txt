@@ -1,5 +1,5 @@
-MyHDL Release 0.4.1
-===================
+MyHDL Release 0.5 Development
+=================
 
 INTRODUCTION
 ------------
