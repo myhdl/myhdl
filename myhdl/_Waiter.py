@@ -28,6 +28,7 @@ from types import GeneratorType
 import compiler
 from compiler import ast as astNode
 import inspect
+import re
 
 from myhdl._delay import delay
 from myhdl._join import join
@@ -197,6 +198,8 @@ _kind = enum("SIGNAL_TUPLE", "EDGE_TUPLE", "SIGNAL", "EDGE", "DELAY", "UNDEFINED
 def _inferWaiter(gen):
     f = gen.gi_frame
     s = inspect.getsource(f)
+    # remove decorators
+    s = re.sub(r"@\S*", "", s)
     s = s.lstrip()
     ast = compiler.parse(s)
     ast.symdict = f.f_globals.copy()

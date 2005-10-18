@@ -41,6 +41,10 @@ from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
 from myhdl._always_comb import _AlwaysComb
 
+
+def instance(g):
+    return g()
+
     
 def instances():
     f = inspect.currentframe()

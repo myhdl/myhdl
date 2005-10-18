@@ -47,6 +47,20 @@ class _WaiterList(list):
         if self:
             self[:] = [w for w in self if not w.hasRun]
 
+
+class _PosedgeWaiterList(_WaiterList):
+    def __init__(self, sig):
+        self.sig = sig
+    def _toVerilog(self):
+        return "posedge %s" % self.sig._name
+    
+class _NegedgeWaiterList(_WaiterList):
+    def __init__(self, sig):
+        self.sig = sig
+    def _toVerilog(self):
+        return "negedge %s" % self.sig._name
+
+
 def posedge(sig):
     """ Return a posedge trigger object """
     return sig.posedge
@@ -118,8 +132,8 @@ class Signal(object):
             if hasattr(val, '_nrbits'):
                 self._nrbits = val._nrbits
         self._eventWaiters = _WaiterList()
-        self._posedgeWaiters = _WaiterList()
-        self._negedgeWaiters = _WaiterList()
+        self._posedgeWaiters = _PosedgeWaiterList(self)
+        self._negedgeWaiters = _NegedgeWaiterList(self)
         self._code = ""
         self._tracing = 0
         
@@ -389,6 +403,9 @@ class Signal(object):
 
     def __repr__(self):
         return "Signal(" + repr(self._val) + ")"
+
+    def _toVerilog(self):
+        return self._name
 
     # augmented assignment not supported
     def _augm(self):

@@ -78,13 +78,13 @@ class AlwaysCombCompilationTest(TestCase):
         else:
             self.fail()
 
-    def testScope(self):
-        try:
-            always_comb(g)
-        except AlwaysCombError, e:
-            self.assertEqual(e.kind, _error.Scope)
-        else:
-            self.fail()
+##     def testScope(self):
+##         try:
+##             always_comb(g)
+##         except AlwaysCombError, e:
+##             self.assertEqual(e.kind, _error.Scope)
+##         else:
+##             self.fail()
 
     def testInfer1(self):
         a, b, c, d = [Signal(0) for i in range(4)]

@@ -71,6 +71,8 @@ class Error(Exception):
             s += ": %s" % self.msg
         return s
 
+class AlwaysError(Error):
+    pass
 class AlwaysCombError(Error):
     pass
 class CosimulationError(Error):
@@ -99,8 +101,9 @@ from _delay import delay
 from _util import downrange
 from _Cosimulation import Cosimulation
 from _Simulation import Simulation
-from _misc import instances, processes
+from _misc import instances, processes, instance
 from _always_comb import always_comb
+from _always import always
 from _enum import enum
 from _traceSignals import traceSignals
 from _toVerilog._convert import toVerilog
@@ -119,8 +122,10 @@ __all__ = ["bin",
            "Cosimulation",
            "Simulation",
            "instances",
+           "instance",
            "processes",
            "always_comb",
+           "always",
            "enum",
            "traceSignals",
            "toVerilog",

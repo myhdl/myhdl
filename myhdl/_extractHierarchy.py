@@ -39,6 +39,7 @@ from myhdl import Signal, ExtractHierarchyError
 from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
 from myhdl._always_comb import _AlwaysComb
+from myhdl._always import _Always
 
 
 _profileFunc = None
@@ -46,16 +47,6 @@ _profileFunc = None
 class _error:
     pass
 _error.NoInstances = "No instances found"
-
-re_assign = r"""^
-                \s*
-                (?P<name>\w[\w\d]*)
-                (?P<index>\[.*\])?
-                \s*
-                =
-                """
- 
-rex_assign = re.compile(re_assign, re.X)
 
 _filelinemap = {}
 
@@ -84,7 +75,7 @@ def _isMem(mem):
     return id(mem) in _memInfoMap
 
 def _isListOfSigs(obj):
-    if isinstance(obj, list):
+    if obj and isinstance(obj, list):
         for e in obj:
             if not isinstance(e, Signal):
                 return False
@@ -115,7 +106,7 @@ class _HierExtr(object):
         global _profileFunc
         global _memInfoMap
         _memInfoMap = {}
-        self.skipNames = ('always_comb', 'instances', 'processes')
+        self.skipNames = ('always_comb', 'always', '_always_decorator', 'instances', 'processes', 'posedge', 'negedge')
         self.skip = 0
         self.hierarchy = hierarchy = []
         self.absnames = absnames = {}
@@ -205,7 +196,7 @@ class _HierExtr(object):
                                     if id(obj) in self.returned:
                                         continue
                                     gen = obj
-                                    if isinstance(obj, _AlwaysComb):
+                                    if isinstance(obj, (_AlwaysComb, _Always)):
                                         gen = obj.gen
                                     gsigdict = {}
                                     gmemdict = {}
@@ -231,12 +222,12 @@ class _HierExtr(object):
 
 
 def _getGens(arg):
-    if isinstance(arg, (GeneratorType, _AlwaysComb)):
+    if isinstance(arg, (GeneratorType, _AlwaysComb, _Always)):
         return [arg]
     else:
         gens = []
         for elt in arg:
-            if isinstance(elt,  (GeneratorType, _AlwaysComb)):
+            if isinstance(elt,  (GeneratorType, _AlwaysComb, _Always)):
                 gens.append(elt)
         return gens
 

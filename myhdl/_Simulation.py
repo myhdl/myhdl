@@ -35,6 +35,7 @@ from myhdl._simulator import _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _flatten, _printExcInfo
 from myhdl._always_comb import _AlwaysComb
+from myhdl._always import _Always
 
 
 schedule = _futureEvents.append
@@ -206,6 +207,8 @@ def _checkArgs(arglist):
     for arg in arglist:
         if isinstance(arg, GeneratorType):
             waiters.append(_inferWaiter(arg))
+        elif isinstance(arg, _Always):
+            waiters.append(arg.waiter)
         elif isinstance(arg, _AlwaysComb):
             if len(arg.senslist) == 1:
                 waiters.append(_SignalWaiter(arg.gen))

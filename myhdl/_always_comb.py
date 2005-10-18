@@ -28,6 +28,7 @@ import inspect
 from types import FunctionType
 import compiler
 from sets import Set
+import re
 
 from myhdl import Signal, AlwaysCombError
 from myhdl._util import _isGenFunc
@@ -42,23 +43,14 @@ _error.SignalAsInout = "signal used as inout in always_comb function argument"
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
     
 def always_comb(func):
-    f = inspect.getouterframes(inspect.currentframe())[1][0]
     if not isinstance( func, FunctionType):
         raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
         raise AlwaysCombError(_error.ArgType)
     if func.func_code.co_argcount:
         raise AlwaysCombError(_error.NrOfArgs)
-    if func.func_name not in f.f_locals:
-        raise AlwaysCombError(_error.Scope)
     varnames = func.func_code.co_varnames
     sigdict = {}
-##     for dict in (f.f_locals, f.f_globals):
-##         for n, v in dict.items():
-##             if isinstance(v, Signal) and \
-##                    n not in varnames and \
-##                    n not in sigdict:
-##                 sigdict[n] = v
     for n, v in func.func_globals.items():
         if isinstance(v, Signal) and \
            n not in varnames:
@@ -161,6 +153,8 @@ class _AlwaysComb(object):
         self.func = func
         self.sigdict = sigdict
         s = inspect.getsource(func)
+        # remove decorators
+        s = re.sub(r"@\S*", "", s)
         s = s.lstrip()
         tree = compiler.parse(s)
         v = _SigNameVisitor(sigdict)

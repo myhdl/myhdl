@@ -41,6 +41,7 @@ from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo
 from myhdl._util import _flatten
 from myhdl._always_comb import _AlwaysComb
+from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind,_context, \
      _ToVerilogMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
@@ -51,7 +52,7 @@ _profileFunc = None
 
 def _checkArgs(arglist):
     for arg in arglist:
-        if not type(arg) in (GeneratorType, _AlwaysComb):
+        if not type(arg) in (GeneratorType, _AlwaysComb, _Always):
             raise ToVerilogError(_error.ArgType, arg)
         
 
@@ -244,6 +245,8 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertInitialVisitor
         elif ast.kind == _kind.SIMPLE_ALWAYS_COMB:
             Visitor = _ConvertSimpleAlwaysCombVisitor
+        elif ast.kind == _kind.ALWAYS_DECO:
+            Visitor = _ConvertAlwaysDecoVisitor
         else: # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(ast, blockBuf, funcBuf)
@@ -583,9 +586,12 @@ class _ConvertVisitor(_ToVerilogMixin):
         assert isinstance(node.expr, astNode.Name)
         assert node.expr.name in self.ast.symdict
         obj = self.ast.symdict[node.expr.name]
-        if type(obj) is Signal:
+        if isinstance(obj, Signal):
             if node.attrname == 'next':
                 self.isSigAss = True
+            elif node.attrname in ('posedge', 'negedge'):
+                self.write(node.attrname)
+                self.write(' ')
             self.visit(node.expr)
         elif str(type(obj)) == "<class 'myhdl._enum.Enum'>":
             assert hasattr(obj, node.attrname)
@@ -880,6 +886,30 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 
     def visitFunction(self, node, *args):
         self.visit(node.code)
+        self.writeline(2)
+
+
+        
+class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
+    
+    def __init__(self, ast, blockBuf, funcBuf):
+        _ConvertVisitor.__init__(self, ast, blockBuf)
+        self.funcBuf = funcBuf
+
+    def visitFunction(self, node, *args):
+        self.write("always @(")
+        assert self.ast.senslist
+        for e in self.ast.senslist[:-1]:
+            self.write(e._toVerilog())
+            self.write(', ')
+        self.write(self.ast.senslist[-1]._toVerilog())
+        self.write(") begin: %s" % self.ast.name)
+        self.indent()
+        self.writeDeclarations()
+        self.visit(node.code)
+        self.dedent()
+        self.writeline()
+        self.write("end")
         self.writeline(2)
        
     

@@ -31,6 +31,7 @@ from compiler import ast as astNode
 from sets import Set
 from types import GeneratorType, FunctionType, ClassType, MethodType
 from cStringIO import StringIO
+import re
 import __builtin__
 
 import myhdl
@@ -39,7 +40,8 @@ from myhdl import ToVerilogError
 from myhdl._unparse import _unparse
 from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
-from myhdl._toVerilog import _error, _access, _kind,_context, \
+from myhdl._always import _Always
+from myhdl._toVerilog import _error, _access, _kind, _context, \
                              _ToVerilogMixin, _Label
 from myhdl._extractHierarchy import _isMem
 
@@ -123,9 +125,11 @@ def _analyzeSigs(hierarchy):
 def _analyzeGens(top, absnames):
     genlist = []
     for g in top:
-        if type(g) is _AlwaysComb:
+        if isinstance(g, (_AlwaysComb, _Always)):
             f = g.func
             s = inspect.getsource(f)
+            # remove decorators
+            s = re.sub(r"@\S*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
             # print ast
@@ -138,16 +142,21 @@ def _analyzeGens(top, absnames):
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
                     assert isinstance(obj, (int, long, Signal)) or \
-                           _isMem(obj)
+                           _isMem(obj) or isTupleOfInts(obj)
                     ast.symdict[n] = obj
             ast.name = absnames.get(id(g), _Label("BLOCK"))
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
-            v = _AnalyzeAlwaysCombVisitor(ast, g.senslist)
+            if isinstance(g, _AlwaysComb):
+                v = _AnalyzeAlwaysCombVisitor(ast, g.senslist)
+            else:
+                v = _AnalyzeAlwaysDecoVisitor(ast, g.senslist)
             compiler.walk(ast, v)
         else:
             f = g.gi_frame
             s = inspect.getsource(f)
+            # remove d_AnalyzeAlwaysCombVisitor(ast, g.senslist)ecorators
+            s = re.sub(r"@\S*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
             #print ast
@@ -322,6 +331,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         ast.argnames = []
         ast.kind = None
         ast.isGen = False
+        ast.hasRom = False
         self.ast = ast
         self.labelStack = []
         self.refStack = ReferenceStack()
@@ -540,7 +550,10 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         assert node.expr.name in self.ast.symdict
         node.obj = None
         obj = self.ast.symdict[node.expr.name]
-        if str(type(obj)) == "<class 'myhdl._enum.Enum'>":
+        if isinstance(obj, Signal):
+            if node.attrname in ('posedge', 'negedge'):
+                node.obj = _EdgeDetector()
+        elif str(type(obj)) == "<class 'myhdl._enum.Enum'>":
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
             
@@ -618,6 +631,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = self.ast.symdict[n]
             if isTupleOfInts(node.obj):
                 node.obj = _Rom(node.obj)
+                self.ast.hasRom = True
         elif n in __builtin__.__dict__:
             node.obj = __builtin__.__dict__[n]
         else:
@@ -749,6 +763,9 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
               else:
                   self.ast.kind = _kind.ALWAYS_COMB
                   return
+          # rom access is expanded into a case statement
+          if self.ast.hasRom:
+              self.ast.kind = _kind.ALWAYS_COMB
           self.refStack.pop()
 
     def visitModule(self, node, *args):
@@ -757,9 +774,20 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
             for n in self.ast.outputs:
                 s = self.ast.sigdict[n]
                 s._driven = "wire"
-        
+                
 
-          
+class _AnalyzeAlwaysDecoVisitor(_AnalyzeBlockVisitor):
+    
+    def __init__(self, ast, senslist):
+        _AnalyzeBlockVisitor.__init__(self, ast)
+        self.ast.senslist = senslist
+
+    def visitFunction(self, node, *args):
+          self.refStack.push()
+          self.visit(node.code)
+          self.ast.kind = _kind.ALWAYS_DECO
+          self.refStack.pop()
+         
             
 
 class _AnalyzeFuncVisitor(_AnalyzeVisitor):

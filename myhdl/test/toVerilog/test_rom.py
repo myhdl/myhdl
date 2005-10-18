@@ -49,6 +49,14 @@ def rom3(dout, addr, clk):
     RL = rdLogic()
     return RL
 
+def rom4(dout, addr, clk):
+
+    @always_comb
+    def read():
+        dout.next = ROM[int(addr)]
+
+    return read
+
       
 def rom_v(name, dout, addr, clk):
     return setupCosimulation(**locals())
@@ -94,6 +102,11 @@ class TestRom(TestCase):
     def test3(self):
         sim = self.bench(rom3)
         Simulation(sim).run()
+        
+    def test4(self):
+        sim = self.bench(rom4)
+        Simulation(sim).run()
+        
         
 
 if __name__ == '__main__':
