@@ -199,7 +199,7 @@ def _inferWaiter(gen):
     f = gen.gi_frame
     s = inspect.getsource(f)
     # remove decorators
-    s = re.sub(r"@\S*", "", s)
+    s = re.sub(r"@.*", "", s)
     s = s.lstrip()
     ast = compiler.parse(s)
     ast.symdict = f.f_globals.copy()

@@ -129,7 +129,7 @@ def _analyzeGens(top, absnames):
             f = g.func
             s = inspect.getsource(f)
             # remove decorators
-            s = re.sub(r"@\S*", "", s)
+            s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
             # print ast
@@ -141,8 +141,9 @@ def _analyzeGens(top, absnames):
             if f.func_code.co_freevars:
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
-                    assert isinstance(obj, (int, long, Signal)) or \
-                           _isMem(obj) or isTupleOfInts(obj)
+                    if isinstance(g, _AlwaysComb):
+                        assert isinstance(obj, (int, long, Signal)) or \
+                               _isMem(obj) or isTupleOfInts(obj)
                     ast.symdict[n] = obj
             ast.name = absnames.get(id(g), _Label("BLOCK"))
             v = _NotSupportedVisitor(ast)
@@ -155,8 +156,8 @@ def _analyzeGens(top, absnames):
         else:
             f = g.gi_frame
             s = inspect.getsource(f)
-            # remove d_AnalyzeAlwaysCombVisitor(ast, g.senslist)ecorators
-            s = re.sub(r"@\S*", "", s)
+            # remove decorators
+            s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
             #print ast

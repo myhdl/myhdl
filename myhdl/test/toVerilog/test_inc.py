@@ -22,7 +22,7 @@ def incRef(count, enable, clock, reset, n):
     n -- counter max value
     """
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -38,26 +38,26 @@ def inc(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
+    @always(clock.posedge, reset.negedge)
     def incProcess():
-        while 1:
-            yield posedge(clock), negedge(reset)
-            if reset == ACTIVE_LOW:
-                count.next = 0
-            else:
-                if enable:
-                    count.next = (count + 1) % n
-    return incProcess()
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+    return incProcess
 
 def incTask(count, enable, clock, reset, n):
     
     def incTaskFunc(cnt, enable, reset, n):
         if enable:
             cnt[:] = (cnt + 1) % n
- 
+
+    @instance
     def incTaskGen():
         cnt = intbv(0)[8:]
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                 cnt[:] = 0
                 count.next = 0
@@ -66,7 +66,7 @@ def incTask(count, enable, clock, reset, n):
                 incTaskFunc(cnt, enable, reset, n)
                 count.next = cnt
 
-    return incTaskGen()
+    return incTaskGen
 
 
 def incTaskFreeVar(count, enable, clock, reset, n):
@@ -74,17 +74,16 @@ def incTaskFreeVar(count, enable, clock, reset, n):
     def incTaskFunc():
         if enable:
             count.next = (count + 1) % n
- 
-    def incTaskGen():
-        while 1:
-            yield posedge(clock), negedge(reset)
-            if reset == ACTIVE_LOW:
-               count.next = 0
-            else:
-                # print count
-                incTaskFunc()
 
-    return incTaskGen()
+    @always(clock.posedge, reset.negedge)
+    def incTaskGen():
+        if reset == ACTIVE_LOW:
+           count.next = 0
+        else:
+            # print count
+            incTaskFunc()
+
+    return incTaskGen
 
       
 def inc_v(name, count, enable, clock, reset):
@@ -99,25 +98,25 @@ class TestInc(TestCase):
     
     def stimulus(self, enable, clock, reset):
         reset.next = INACTIVE_HIGH
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = ACTIVE_LOW
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = INACTIVE_HIGH
         for i in range(1000):
             enable.next = 1
-            yield negedge(clock)
+            yield clock.negedge
         for i in range(1000):
             enable.next = min(1, randrange(5))
-            yield negedge(clock)
+            yield clock.negedge
         raise StopSimulation
 
     def check(self, count, count_v, enable, clock, reset, n):
         expect = 0
-        yield posedge(reset)
+        yield reset.posedge
         self.assertEqual(count, expect)
         self.assertEqual(count, count_v)
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             if enable:
                 expect = (expect + 1) % n
             yield delay(1)

@@ -154,7 +154,7 @@ class _AlwaysComb(object):
         self.sigdict = sigdict
         s = inspect.getsource(func)
         # remove decorators
-        s = re.sub(r"@\S*", "", s)
+        s = re.sub(r"@.*", "", s)
         s = s.lstrip()
         tree = compiler.parse(s)
         v = _SigNameVisitor(sigdict)

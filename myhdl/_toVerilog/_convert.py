@@ -901,7 +901,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         assert self.ast.senslist
         for e in self.ast.senslist[:-1]:
             self.write(e._toVerilog())
-            self.write(', ')
+            self.write(' or ')
         self.write(self.ast.senslist[-1]._toVerilog())
         self.write(") begin: %s" % self.ast.name)
         self.indent()
