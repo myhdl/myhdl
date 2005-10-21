@@ -62,7 +62,8 @@ def ram_deco2(dout, din, addr, we, clk, depth=128):
 
     @always(clk.posedge)
     def write():
-        mem[int(addr)].next = din
+        if we:
+            mem[int(addr)].next = din
                 
     @always_comb
     def read():
