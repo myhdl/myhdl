@@ -30,7 +30,9 @@ def testbench():
 
     INC_1 = Inc(count, enable, clock, reset, n=4)
 
-    @always(delay(10))
+    HALF_PERIOD = delay(10)
+
+    @always(HALF_PERIOD)
     def clockGen():
         clock.next = not clock
 
