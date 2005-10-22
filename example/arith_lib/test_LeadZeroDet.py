@@ -27,9 +27,9 @@ class LeadZeroDetTest(TestCase):
                      
         """
 
-        A = Signal(intbv())
-        ZS = Signal(intbv())
-        ZB = Signal(intbv())
+        A = Signal(intbv(0))
+        ZS = Signal(intbv(0))
+        ZB = Signal(intbv(0))
 
         beh = LeadZeroDet(width, speed, A, ZB, architecture=BEHAVIOR)
         str = LeadZeroDet(width, speed, A, ZS, architecture=STRUCTURE)

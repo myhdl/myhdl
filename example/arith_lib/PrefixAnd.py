@@ -11,7 +11,7 @@ def PrefixAnd(width, speed, PI, PO):
     m = log2ceil(width)
 
     def fastPrefix():
-        PT = Signal(intbv())
+        PT = Signal(intbv(0))
         while 1:
             yield PI, PT
             PT.next[n:] = PI
@@ -28,7 +28,7 @@ def PrefixAnd(width, speed, PI, PO):
             PO.next = PT[(m+1)*n:m*n]
 
     def slowPrefix():
-        PT = Signal(intbv())
+        PT = Signal(intbv(0))
         while 1:
             yield PI, PT
             PT.next[0] = PI[0]

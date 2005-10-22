@@ -27,9 +27,9 @@ class DecTest(TestCase):
                      
         """
 
-        A = Signal(intbv())
-        ZS = Signal(intbv())
-        ZB = Signal(intbv())
+        A = Signal(intbv(0))
+        ZS = Signal(intbv(0))
+        ZB = Signal(intbv(0))
 
         beh = Dec(width, speed, A, ZB, architecture=BEHAVIOR)
         str = Dec(width, speed, A, ZS, architecture=STRUCTURE)

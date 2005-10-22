@@ -21,8 +21,8 @@ def Dec(width, speed, A, Z, architecture=BEHAVIOR):
             Z.next = A - 1
 
     def Structural():
-        AI = Signal(intbv())
-        PO = Signal(intbv())
+        AI = Signal(intbv(0))
+        PO = Signal(intbv(0))
         prefix = PrefixAnd(width, speed, AI, PO)
         def logic():
             while 1:

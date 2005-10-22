@@ -26,10 +26,10 @@ def LeadZeroDet(width, speed, A, Z, architecture=BEHAVIOR):
             Z.next = zv
 
     def Structural():
-        PI = Signal(intbv())
-        PO = Signal(intbv())
-        PIT = Signal(intbv())
-        POT = Signal(intbv())
+        PI = Signal(intbv(0))
+        PO = Signal(intbv(0))
+        PIT = Signal(intbv(0))
+        POT = Signal(intbv(0))
         prefix = PrefixAnd(width, speed, PIT, POT)
         def logic():
             while 1:
