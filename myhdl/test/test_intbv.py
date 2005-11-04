@@ -108,9 +108,9 @@ class TestIntBvIndexing(TestCase):
                 res = bv[i]
                 resi = bvi[i]
                 self.assertEqual(res, ref)
-                self.assertEqual(type(res), intbv)
+                self.assertEqual(type(res), bool)
                 self.assertEqual(resi, ref^1)
-                self.assertEqual(type(resi), intbv)
+                self.assertEqual(type(resi), bool)
 
     def testGetSlice(self):
         self.seqsSetup()

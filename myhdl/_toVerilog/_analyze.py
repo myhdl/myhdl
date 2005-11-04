@@ -160,7 +160,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            #print ast
+            # print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -609,11 +609,13 @@ class _AnalyzeVisitor(_ToVerilogMixin):
 
     def visitName(self, node, access=_access.INPUT, *args):
         n = node.name
+        node.obj = None
         if n not in self.refStack:
             if n in self.ast.vardict:
                 self.raiseError(node, _error.UnboundLocal, n)
             self.globalRefs.add(n)
         if n in self.ast.sigdict:
+            node.obj = self.ast.sigdict[n]
             if access == _access.INPUT:
                 self.ast.inputs.add(n)
             elif access == _access.OUTPUT:
@@ -625,7 +627,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 pass
             else: 
                 raise AssertionError
-        node.obj = None
         if n in self.ast.vardict:
             node.obj = self.ast.vardict[n]
         elif n in self.ast.symdict:

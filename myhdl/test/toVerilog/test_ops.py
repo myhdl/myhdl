@@ -381,6 +381,7 @@ class TestUnaryOps(TestCase):
         def check():
             while 1:
                 yield arg
+                yield delay(1)
                 self.assertEqual(Not, Not_v)
                 self.assertEqual(Invert, Invert_v)
                 self.assertEqual(UnaryAdd, UnaryAdd_v)

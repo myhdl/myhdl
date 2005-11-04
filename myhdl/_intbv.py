@@ -123,7 +123,7 @@ class intbv(object):
             i = key
             if self._val is None:
                 return intbv(None, _nrbits=1)
-            res = intbv((self._val >> i) & 0x1, _nrbits=1)
+            res = bool((self._val >> i) & 0x1)
             return res
         elif isinstance(key, slice):
             i, j = key.start, key.stop
@@ -271,7 +271,7 @@ class intbv(object):
            
     def __and__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val & other._val, _nrbits=max(self._nrbits, other._nrbits))
+            return intbv(self._val & other._val)
         else:
             return intbv(self._val & other)
     def __rand__(self, other):
@@ -279,7 +279,7 @@ class intbv(object):
 
     def __or__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val | other._val, _nrbits=max(self._nrbits, other._nrbits))
+            return intbv(self._val | other._val)
         else:
             return intbv(self._val | other)
     def __ror__(self, other):
@@ -287,7 +287,7 @@ class intbv(object):
     
     def __xor__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val ^ other._val, _nrbits=max(self._nrbits, other._nrbits))
+            return intbv(self._val ^ other._val)
         else:
             return intbv(self._val ^ other)
     def __rxor__(self, other):
