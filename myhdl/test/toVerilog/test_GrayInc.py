@@ -67,13 +67,10 @@ class TestGrayInc(unittest.TestCase):
         raise StopSimulation
 
     def check(self):
-        expect = 0
         yield posedge(reset)
         self.assertEqual(graycnt, graycnt_v)
         while 1:
             yield posedge(clock)
-            if enable:
-                expect = (expect + 1) % (2 ** width)
             yield delay(1)
             # print "%d graycnt %s %s" % (now(), graycnt, graycnt_v)
             self.assertEqual(graycnt, graycnt_v)
