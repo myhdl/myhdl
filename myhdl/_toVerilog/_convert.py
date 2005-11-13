@@ -38,8 +38,9 @@ import warnings
 import myhdl
 from myhdl import *
 from myhdl import ToVerilogError, ToVerilogWarning
-from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo
-from myhdl._util import _flatten
+from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo, \
+     _CustomVerilog, _customVerilogMap
+
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind,_context, \
@@ -52,8 +53,20 @@ _profileFunc = None
 
 def _checkArgs(arglist):
     for arg in arglist:
-        if not type(arg) in (GeneratorType, _AlwaysComb, _Always):
+        if not type(arg) in (GeneratorType, _AlwaysComb, _Always, _CustomVerilog):
             raise ToVerilogError(_error.ArgType, arg)
+        
+def _flatten(*args):
+    arglist = []
+    for arg in args:
+        if id(arg) in _customVerilogMap:
+            arglist.append(_customVerilogMap[id(arg)])
+        elif isinstance(arg, (list, tuple, Set)):
+            for item in arg:
+                arglist.extend(_flatten(item))
+        else:
+            arglist.append(arg)
+    return arglist
         
 
 class _ToVerilogConvertor(object):
@@ -93,6 +106,7 @@ class _ToVerilogConvertor(object):
 
         siglist, memlist = _analyzeSigs(h.hierarchy)
         arglist = _flatten(h.top)
+        # print h.top
         _checkArgs(arglist)
         genlist = _analyzeGens(arglist, h.absnames)
         intf = _analyzeTopFunc(func, *args, **kwargs)
@@ -239,6 +253,9 @@ def _convertGens(genlist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for ast in genlist:
+        if isinstance(ast, _CustomVerilog):
+            blockBuf.write(str(ast))
+            continue
         if ast.kind == _kind.ALWAYS:
             Visitor = _ConvertAlwaysVisitor
         elif ast.kind == _kind.INITIAL:

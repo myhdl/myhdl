@@ -48,8 +48,6 @@ class _error:
     pass
 _error.NoInstances = "No instances found"
 
-_filelinemap = {}
-
 _memInfoMap = {}
 
 class _MemInfo(object):
@@ -73,6 +71,24 @@ def _makeMemInfo(mem):
     
 def _isMem(mem):
     return id(mem) in _memInfoMap
+
+_customVerilogMap = {}
+
+class _CustomVerilog(object):
+    __slots__ = ['code', 'namespace']
+    def __init__(self, code, namespace):
+        self.code = code
+        self.namespace = namespace
+
+    def __str__(self):
+        code = self.code % self.namespace
+        code = "\n%s\n" % code
+        return code
+
+def _addCustomVerilog(arg, code, namespace):
+    assert id(arg) not in _customVerilogMap
+    _customVerilogMap[id(arg)] = _CustomVerilog(code, namespace)
+        
 
 def _isListOfSigs(obj):
     if obj and isinstance(obj, list):
@@ -106,7 +122,8 @@ class _HierExtr(object):
         global _profileFunc
         global _memInfoMap
         _memInfoMap = {}
-        self.skipNames = ('always_comb', 'always', '_always_decorator', 'instances', 'processes', 'posedge', 'negedge')
+        self.skipNames = ('always_comb', 'always', '_always_decorator', \
+                          'instances', 'processes', 'posedge', 'negedge')
         self.skip = 0
         self.hierarchy = hierarchy = []
         self.absnames = absnames = {}
@@ -139,8 +156,11 @@ class _HierExtr(object):
 
         # streamline hierarchy
         hierarchy.reverse()
+##         from pprint import pprint
+##         pprint(hierarchy)
+        # print hierarchy
         # walk the hierarchy to define relative and absolute names
-        # in this case, we'll use the names from the lowest levels
+        # use names as high as possible in hierarchy to avoid ambiguity
         names = {}
         obj, subs = hierarchy[0][1]
         names[id(obj)] = name
@@ -150,13 +170,16 @@ class _HierExtr(object):
             assert id(obj) in names
             tn = absnames[id(obj)]
             for sn, so in subs:
-                names[id(so)] = sn
+                if not id(so) in names:
+                    names[id(so)] = sn
                 absnames[id(so)] = "%s_%s" % (tn, sn)
                 if isinstance(so, (tuple, list)):
                     for i, soi in enumerate(so):
-                        names[id(soi)] = "%s[%s]" % (sn, i)
+                        if not(id(soi)) in names:
+                            names[id(soi)] = "%s_%s" % (sn, i)
                         absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
             m[1] = names[id(obj)]
+##         pprint(hierarchy)
            
 
                 
@@ -172,8 +195,16 @@ class _HierExtr(object):
                 
         elif event == "return":
             
-           if not self.skip:
-                if _isGenSeq(arg):
+            if not self.skip:
+                isGenSeq = _isGenSeq(arg)
+                if isGenSeq:
+                    if "__verilog__" in frame.f_locals:
+                        code = frame.f_locals["__verilog__"]
+                        namespace = frame.f_globals.copy()
+                        namespace.update(frame.f_locals)
+                        _addCustomVerilog(arg, code, namespace)
+                # building hierarchy only makes sense if there are generators
+                if isGenSeq and arg:
                     sigdict = {}
                     memdict = {}
                     for dict in (frame.f_globals, frame.f_locals):
@@ -215,9 +246,9 @@ class _HierExtr(object):
                     self.hierarchy.append(inst)
                 self.level -= 1
                 
-           func_name = frame.f_code.co_name
-           if func_name in self.skipNames:
-               self.skip = 0
+            func_name = frame.f_code.co_name
+            if func_name in self.skipNames:
+                self.skip = 0
                 
 
 

@@ -37,8 +37,8 @@ def _isGenSeq(obj):
         return True
     if not isinstance(obj, (ListType, TupleType, Set)):
         return False
-    if not obj:
-        return False
+##     if not obj:
+##         return False
     for e in obj:
         if not _isGenSeq(e):
             return False

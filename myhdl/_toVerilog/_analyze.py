@@ -43,7 +43,7 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind, _context, \
                              _ToVerilogMixin, _Label
-from myhdl._extractHierarchy import _isMem
+from myhdl._extractHierarchy import _isMem, _CustomVerilog
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
@@ -74,14 +74,19 @@ def _analyzeSigs(hierarchy):
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
+        #print
+        #print curlevel
+        #print delta
+        #print prefixes
         if delta == -1:
             prefixes.append(name)
-        elif delta == 0:
-            prefixes.pop()
-            prefixes.append(name)
         else:
-            prefixes = prefixes[:curlevel]
+            prefixes = prefixes[:curlevel-1]
+            prefixes.append(name)
+        assert prefixes[-1] == name
+        #print prefixes
         # signals
+        #print sigdict
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
@@ -125,7 +130,9 @@ def _analyzeSigs(hierarchy):
 def _analyzeGens(top, absnames):
     genlist = []
     for g in top:
-        if isinstance(g, (_AlwaysComb, _Always)):
+        if isinstance(g, _CustomVerilog):
+            ast = g
+        elif isinstance(g, (_AlwaysComb, _Always)):
             f = g.func
             s = inspect.getsource(f)
             # remove decorators

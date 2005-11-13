@@ -191,6 +191,14 @@ class Signal(object):
         return self._min
     min = property(_get_min, None)
 
+    # support for the 'driven' attribute
+    def _get_driven(self):
+        return self._driven
+    def _set_driven(self, val):
+        assert val in ("reg", "wire")
+        self._driven = val
+    driven = property(_get_driven, _set_driven, None, "'driven' access methods")
+
     # set next methods
     def _setNextBool(self, val):
         if not val in (0, 1):
@@ -399,7 +407,10 @@ class Signal(object):
 
     # representation 
     def __str__(self):
-        return str(self._val)
+        if self._name:
+            return self._name
+        else:
+            return str(self._val)
 
     def __repr__(self):
         return "Signal(" + repr(self._val) + ")"

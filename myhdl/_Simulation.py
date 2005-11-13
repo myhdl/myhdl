@@ -221,6 +221,8 @@ def _checkArgs(arglist):
             waiters.append(_SignalTupleWaiter(cosim._waiter()))
         elif isinstance(arg, _Waiter):
             waiters.append(arg)
+        elif arg == True:
+            pass
         else:
             raise SimulationError(_error.ArgType, str(type(arg)))
         if id(arg) in ids:

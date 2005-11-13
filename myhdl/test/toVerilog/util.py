@@ -21,6 +21,12 @@ def setupCosimulationCver(**kwargs):
           "%s.v tb_%s.v " % (name, name)
     return Cosimulation(cmd, **kwargs)
 
+def verilogCompileCver(name):
+    cmd = "cver -c %s.v" % name
+    os.system(cmd)
+
 
 setupCosimulation = setupCosimulationIcarus
 setupCosimulation = setupCosimulationCver
+
+verilogCompile = verilogCompileCver
