@@ -54,6 +54,28 @@ def dec(count, enable, clock, reset, n):
                         count.next = count - 1
     return decProcess()
 
+
+def decFunc(count, enable, clock, reset, n):
+
+    def decFuncFunc(cnt):
+        count_next = intbv(0, min=-n, max=n)
+        if count == -n:
+            count_next[:] = n-1
+        else:
+            count_next[:] = cnt - 1
+        return count_next
+
+    @always(clock.posedge, reset.negedge)
+    def decFuncGen():
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = decFuncFunc(count)
+
+    return decFuncGen
+
+
 def decTask(count, enable, clock, reset, n):
     
     def decTaskFunc(cnt, enable, reset, n):
@@ -163,13 +185,15 @@ class TestDec(TestCase):
         return sim
 
     def testDecRef(self):
-        """ Check decrement operation """
         sim = self.bench(decRef)
         sim.run(quiet=1)
         
     def testDec(self):
-        """ Check decrement operation """
         sim = self.bench(dec)
+        sim.run(quiet=1)
+        
+    def testDecFunc(self):
+        sim = self.bench(decFunc)
         sim.run(quiet=1)
 
 ## signed inout in task doesn't work yet in Icarus

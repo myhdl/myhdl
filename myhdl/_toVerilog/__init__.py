@@ -71,7 +71,7 @@ _error.ListElementNotUnique = "List contains Signals that are not unique to it"
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
 _kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB", "SIMPLE_ALWAYS_COMB", "ALWAYS_DECO", "TASK", "REG")
-_context = enum("BOOLEAN", "YIELD", "PRINT" ,"EXPR", "UNKNOWN")
+_context = enum("BOOLEAN", "YIELD", "PRINT" ,"SIGNED", "UNKNOWN")
 
     
 class _ToVerilogMixin(object):

@@ -48,9 +48,6 @@ from myhdl._extractHierarchy import _isMem, _CustomVerilog
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
 
-_signed = False
-def _isSigned():
-    return _signed
 
 def _makeName(n, prefixes):
     if len(prefixes) > 1:
@@ -64,7 +61,6 @@ def _makeName(n, prefixes):
     return name
                     
 def _analyzeSigs(hierarchy):
-    global _signed
     curlevel = 0
     siglist = []
     memlist = []
@@ -74,24 +70,15 @@ def _analyzeSigs(hierarchy):
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
-        #print
-        #print curlevel
-        #print delta
-        #print prefixes
         if delta == -1:
             prefixes.append(name)
         else:
             prefixes = prefixes[:curlevel-1]
             prefixes.append(name)
         assert prefixes[-1] == name
-        #print prefixes
-        # signals
-        #print sigdict
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
-            if s._min is not None and s._min < 0:
-                _signed = True
             s._name = _makeName(n, prefixes)
             if not s._nrbits:
                 raise ToVerilogError(_error.UndefinedBitWidth, s._name)
@@ -120,8 +107,6 @@ def _analyzeSigs(hierarchy):
                 raise ToVerilogError(_error.InconsistentType, s._name)
             if s._nrbits != m.elObj._nrbits:
                 raise ToVerilogError(_error.InconsistentBitWidth, s._name)
-            if s._min is not None and s._min < 0:
-                _signed = True
             
     return siglist, memlist
 
@@ -328,6 +313,11 @@ class _Rom(object):
     def __init__(self, rom):
         self.rom = rom
 
+def _isNegative(obj):
+    if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
+        return True
+    return False
+
 
 class _AnalyzeVisitor(_ToVerilogMixin):
     
@@ -350,18 +340,22 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.left)
         self.visit(node.right)
         node.obj = int()
+        node.signed = node.left.signed or node.right.signed
     visitAdd = binaryOp
     visitFloorDiv = binaryOp
     visitLeftShift = binaryOp
     visitMul = binaryOp
-    visitPow = binaryOp
+    visitPower = binaryOp
     visitMod = binaryOp
     visitRightShift = binaryOp
     visitSub = binaryOp
     
     def multiBitOp(self, node, *args):
+        node.signed = False
         for n in node.nodes:
             self.visit(n)
+            if n.signed:
+                node.signed = True
         node.obj = None
         for n in node.nodes:
             if node.obj is None:
@@ -387,15 +381,19 @@ class _AnalyzeVisitor(_ToVerilogMixin):
     def visitInvert(self, node, *args):
         self.visit(node.expr)
         node.obj = node.expr.obj
+        node.signed = node.expr.signed
     def visitNot(self, node, *args):
         self.visit(node.expr)
         node.obj = bool()
+        node.signed = node.expr.signed
     def visitUnaryAdd(self, node, *args):
         self.visit(node.expr)
         node.obj = int()
+        node.signed = node.expr.signed
     def visitUnarySub(self, node, *args):
         self.visit(node.expr)
         node.obj = int()
+        node.signed = node.expr.signed
         
     def visitAssAttr(self, node, access=_access.OUTPUT, *args):
         if node.attrname != 'next':
@@ -404,7 +402,6 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.expr, _access.OUTPUT)
         
     def visitAssign(self, node, access=_access.OUTPUT, *args):
-        global _signed
         target, expr = node.nodes[0], node.expr
         self.visit(target, _access.OUTPUT)
         if isinstance(target, astNode.AssName):
@@ -457,6 +454,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         argsAreInputs = True
         f = self.getObj(node.node)
         node.obj = None
+        node.signed = False
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
         elif f is len:
@@ -517,7 +515,11 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             
     def visitCompare(self, node, *args):
         node.obj = bool()
-        self.visitChildNodes(node)
+        node.signed = False
+        for n in node.getChildNodes():
+            self.visit(n, *args)
+            if n.signed:
+                node.signed = True
         op, arg = node.ops[0]
         if op == '==':
             if isinstance(node.expr, astNode.Name) and \
@@ -525,6 +527,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 node.case = (node.expr.name, arg.obj)
 
     def visitConst(self, node, *args):
+        node.signed = False
         if isinstance(node.value, int):
             node.obj = node.value
         else:
@@ -557,6 +560,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         assert isinstance(node.expr, astNode.Name)
         assert node.expr.name in self.ast.symdict
         node.obj = None
+        node.signed = False
         obj = self.ast.symdict[node.expr.name]
         if isinstance(obj, Signal):
             if node.attrname in ('posedge', 'negedge'):
@@ -645,11 +649,13 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = __builtin__.__dict__[n]
         else:
             pass
+        node.signed = _isNegative(node.obj)
 
     def visitReturn(self, node, *args):
         self.raiseError(node, _error.NotSupported, "return statement")
             
     def visitSlice(self, node, access=_access.INPUT, kind=_kind.NORMAL, *args):
+        node.signed = False
         self.visit(node.expr, access)
         node.obj = self.getObj(node.expr)
         if node.lower:
@@ -668,6 +674,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             
  
     def visitSubscript(self, node, access=_access.INPUT, *args):
+        node.signed = False
         self.visit(node.expr, access)
         assert len(node.subs) == 1
         self.visit(node.subs[0], _access.INPUT)

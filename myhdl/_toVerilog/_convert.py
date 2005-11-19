@@ -46,7 +46,7 @@ from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind,_context, \
      _ToVerilogMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
-     _Ram, _Rom, _isSigned
+     _Ram, _Rom
             
 _converting = 0
 _profileFunc = None
@@ -234,16 +234,12 @@ def _getRangeString(s):
         return ''
     elif s._nrbits is not None:
         nrbits = s._nrbits
-        if _isSigned():
-            # add a sign bit to positive numbers
-            if s._type is intbv and s._min >=0:
-                nrbits += 1
         return "[%s:0] " % (nrbits-1)
     else:
         raise AssertionError
 
 def _getSignString(s):
-    if _isSigned() and s._type is intbv:
+    if s._min is not None and s._min < 0:
         return "signed "
     else:
         return ''
@@ -301,8 +297,9 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write("reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth))
         elif hasattr(obj, '_nrbits'):
             s = ""
-            if isinstance(obj, intbv) and obj._min < 0:
-                s = "signed "
+            if isinstance(obj, (intbv, Signal)):
+                if obj._min is not None and obj._min < 0:
+                    s = "signed "
             self.write("%s%s[%s-1:0] %s" % (dir, s, obj._nrbits, name))
         else:
             raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
@@ -331,10 +328,13 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.ind = self.ind[:-4]
 
     def binaryOp(self, node, op=None):
+        context = None
+        if node.signed:
+            context = _context.SIGNED
         self.write("(")
-        self.visit(node.left, _context.EXPR)
+        self.visit(node.left, context)
         self.write(" %s " % op)
-        self.visit(node.right, _context.EXPR)
+        self.visit(node.right, context)
         self.write(")")
     def visitAdd(self, node, *args):
         self.binaryOp(node, '+')
@@ -374,7 +374,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.visit(node.nodes[0])
         for n in node.nodes[1:]:
             self.write(" %s " % op)
-            self.visit(n, _context.EXPR)
+            self.visit(n)
         self.write(")")
     def visitAnd(self, node, *args):
         self.multiOp(node, '&&')
@@ -387,19 +387,19 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitOr(self, node, *args):
         self.multiOp(node, '||')
 
-    def unaryOp(self, node, op):
+    def unaryOp(self, node, op, context):
         self.checkOpWithNegIntbv(node.expr, op)
         self.write("(%s" % op)
-        self.visit(node.expr, _context.EXPR)
+        self.visit(node.expr, context)
         self.write(")")
-    def visitInvert(self, node, *args):
-        self.unaryOp(node, '~')
-    def visitNot(self, node, *args):
-        self.unaryOp(node, '!')
-    def visitUnaryAdd(self, node, *args):
-        self.unaryOp(node, '+')
-    def visitUnarySub(self, node, *args):
-        self.unaryOp(node, '-')
+    def visitInvert(self, node, context=None, *args):
+        self.unaryOp(node, '~', context)
+    def visitNot(self, node, context=None, *args):
+        self.unaryOp(node, '!', context)
+    def visitUnaryAdd(self, node, context=None, *args):
+        self.unaryOp(node, '+', context)
+    def visitUnarySub(self, node, context=None, *args):
+        self.unaryOp(node, '-', context)
 
     def visitAssAttr(self, node, *args):
         assert node.attrname == 'next'
@@ -496,6 +496,9 @@ class _ConvertVisitor(_ToVerilogMixin):
             return
         elif f in (int, long):
             opening, closing = '', ''
+        elif f is intbv:
+            self.visit(node.args[0])
+            return
         elif type(f) is ClassType and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
@@ -523,11 +526,14 @@ class _ConvertVisitor(_ToVerilogMixin):
             compiler.walk(node.ast, v)
 
     def visitCompare(self, node, *args):
+        context = None
+        if node.signed:
+            context = _context.SIGNED
         self.write("(")
-        self.visit(node.expr)
+        self.visit(node.expr, context)
         op, code = node.ops[0]
         self.write(" %s " % op)
-        self.visit(code)
+        self.visit(code, context)
         self.write(")")
 
     def visitConst(self, node, context=None, *args):
@@ -697,54 +703,50 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitModule(self, node, *args):
         for stmt in node.node.nodes:
             self.visit(stmt)
-
-    def writeName(self, name, context, isBool):
-        addSignBit = isBool and _isSigned() and context == _context.EXPR
-        if addSignBit:
-            self.write("$signed({1'b0, ")
-        self.write(name)
-        if addSignBit:
-            self.write("})")       
        
     def visitName(self, node, context=None, *args):
+        addSignBit = False
+        isMixedExpr = (not node.signed) and (context == _context.SIGNED)
         n = node.name
         if n == 'False':
-            self.write("0")
+            s = "0"
         elif n == 'True':
-            self.write("1")
+            s = "1"
         elif n in self.ast.vardict:
-            obj = self.ast.vardict[n]
-            isBool = isinstance(obj, bool)
-            self.writeName(n, context, isBool)
+            addSignBit = isMixedExpr
+            s = n
         elif n in self.ast.argnames:
             assert n in self.ast.symdict
-            obj = self.ast.symdict[n]
-            isBool = isinstance(obj, bool) or (isinstance(obj, Signal) and obj._type is bool)
-            self.writeName(n, context, isBool)
+            addSignBit = isMixedExpr
+            s = n
         elif n in self.ast.symdict:
             obj = self.ast.symdict[n]
             if isinstance(obj, bool):
-                self.write("%s" % int(obj))
+                s = "%s" % int(obj)
             elif isinstance(obj, int):
-                self.write(str(obj))
+                s = str(obj)
             elif isinstance(obj, Signal):
-                isBool = obj._type is bool
-                assert obj._name
-                self.writeName(obj._name, context, isBool)
+                addSignBit = isMixedExpr
+                s = str(obj)
             elif _isMem(obj):
                 m = _getMemInfo(obj)
                 assert m.name
                 if not m.decl:
                     self.raiseError(node, _error.ListElementNotUnique, m.name)
-                self.write(m.name)
+                s = m.name
             elif str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
-                self.write(obj._toVerilog())
+                s = obj._toVerilog()
             elif type(obj) is ClassType and issubclass(obj, Exception):
-                self.write(n)
+                s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:
             raise AssertionError("name ref: %s" % n)
+        if addSignBit:
+            self.write("$signed({1'b0, ")
+        self.write(s)
+        if addSignBit:
+            self.write("})")       
 
     def visitPass(self, node, *args):
         self.write("// pass")
@@ -774,14 +776,15 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitReturn(self, node, *args):
         self.write("disable %s;" % self.returnLabel)
 
-    def visitSlice(self, node, *args):
+    def visitSlice(self, node, context=None, *args):
         if isinstance(node.expr, astNode.CallFunc) and \
            node.expr.node.obj is intbv:
             c = self.getVal(node)
             self.write("%s'h" % c._nrbits)
             self.write("%x" % c._val)
             return
-        if node.flags == 'OP_APPLY' and _isSigned():
+        addSignBit = (node.flags == 'OP_APPLY') and (context == _context.SIGNED)
+        if addSignBit:
             self.write("$signed({1'b0, ")
         self.visit(node.expr)
         # special shortcut case for [:] slice
@@ -798,7 +801,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             self.visit(node.upper)
         self.write("]")
-        if node.flags == 'OP_APPLY' and _isSigned():
+        if addSignBit:
             self.write("})")
 
     def visitStmt(self, node, *args):
@@ -809,15 +812,16 @@ class _ConvertVisitor(_ToVerilogMixin):
             if isinstance(stmt, astNode.CallFunc) and hasattr(stmt, 'ast'):
                 self.write(';')
 
-    def visitSubscript(self, node, *args):
-        if node.flags == 'OP_APPLY' and _isSigned():
+    def visitSubscript(self, node, context=None, *args):
+        addSignBit = (node.flags == 'OP_APPLY') and (context == _context.SIGNED)
+        if addSignBit:
             self.write("$signed({1'b0, ")
         self.visit(node.expr)
         self.write("[")
         assert len(node.subs) == 1
         self.visit(node.subs[0])
         self.write("]")
-        if node.flags == 'OP_APPLY' and _isSigned():
+        if addSignBit:
             self.write("})")
 
     def visitTuple(self, node, context=None, *args):

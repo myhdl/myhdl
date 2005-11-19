@@ -47,6 +47,21 @@ def inc(count, enable, clock, reset, n):
                 count.next = (count + 1) % n
     return incProcess
 
+def inc2(count, enable, clock, reset, n):
+    
+    @always(clock.posedge, reset.negedge)
+    def incProcess():
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                if count == n:
+                    count.next = 0
+                else:
+                    count.next = count + 1
+    return incProcess
+    
+
 def incTask(count, enable, clock, reset, n):
     
     def incTaskFunc(cnt, enable, reset, n):
@@ -153,6 +168,11 @@ class TestInc(TestCase):
     def testInc(self):
         """ Check increment operation """
         sim = self.bench(inc)
+        sim.run(quiet=1)
+        
+    def testInc2(self):
+        """ Check increment operation """
+        sim = self.bench(inc2)
         sim.run(quiet=1)
         
     def testIncTask(self):

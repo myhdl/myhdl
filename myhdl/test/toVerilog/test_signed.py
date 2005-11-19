@@ -482,6 +482,84 @@ class TestAugmOps(TestCase):
             Simulation(sim).run()
 
 
+def expressions(a, b, clk):
+
+    c = Signal(intbv(0, min=0, max=47))
+    e = Signal(bool())
+
+    @instance
+    def logic():
+
+        d = intbv(0, min=-23, max=43)
+        d[:] = -17
+
+        c.next = 5
+        yield clk.posedge
+        a.next = c + 1
+        b.next = c + 1
+        yield clk.posedge
+        a.next = c + -10
+        b.next = c + -1
+        yield clk.posedge
+        a.next = c < -10
+        b.next = c < -1
+        yield clk.posedge
+        a.next = d + c
+        b.next = d >= c
+        yield clk.posedge
+        # a.next = d & c
+        # b.next = c + (d & c)
+        yield clk.posedge
+        a.next = d + -c
+        b.next = c + (-d)
+        yield clk.posedge
+        a.next = -d
+        yield clk.posedge
+        a.next = -c
+        yield clk.posedge
+
+
+        yield clk.posedge
+        raise StopSimulation
+
+    return logic
+        
+def expressions_v(a, b, clk):
+   return setupCosimulation(**locals())
+        
+
+class TestExpressions(TestCase):
+
+    def bench(self):
+        
+        a, a_v = [Signal(intbv(0, min=-34, max=47)) for i in range(2)]
+        b, b_v = [Signal(intbv(0, min=0, max=47)) for i in range(2)]
+        clk = Signal(bool())
+        
+        expr = toVerilog(expressions, a, b, clk)
+        expr_v = toVerilog(expressions, a_v, b_v, clk)
+
+        @instance
+        def check():
+            while 1:
+                yield clk.posedge
+                yield delay(1)
+                self.assertEqual(a, a_v)
+                # print a
+                # print a_v
+                self.assertEqual(b, b_v)
+
+        @always(delay(10))
+        def clkgen():
+            clk.next = not clk
+
+        return expr, expr_v, check, clkgen
+    
+    def testExpressions(self):
+        sim = self.bench()
+        Simulation(sim).run()
+
+
 
 if __name__ == '__main__':
     unittest.main()
