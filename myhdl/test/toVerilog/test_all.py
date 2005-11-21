@@ -47,9 +47,9 @@ def suite():
     return alltests
 
 def main():
+    import test_bugreports
     unittest.main(defaultTest='suite',
                   testRunner=unittest.TextTestRunner(verbosity=2))
-
 
 
 if __name__ == '__main__':
