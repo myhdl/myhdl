@@ -10,6 +10,9 @@ from myhdl import *
 
 from util import setupCosimulation
 
+from myhdl._toVerilog import ToVerilogError, _error
+
+
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 def incRef(count, enable, clock, reset, n):
@@ -28,6 +31,21 @@ def incRef(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
+
+
+def incGen(count, enable, clock, reset, n):
+    """ Generator with __verilog__ is not permitted """
+    __verilog__ = "Template string"
+    while 1:
+        yield clock.posedge, reset.negedge
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+
+
+                 
                 
                 
 def inc(count, enable, clock, reset, n):
@@ -189,29 +207,40 @@ class TestInc(TestCase):
         sim = Simulation(inc_inst_ref, inc_inst_v, clk_1, st_1, ch_1)
         return sim
 
-    def testInc1(self):
+    def testIncRefIncRef(self):
         """ Check increment operation """
         sim = self.bench(incRef, incRef)
         sim.run(quiet=1)
         
-    def testInc2(self):
+    def testIncRefInc(self):
         sim = self.bench(incRef, inc)
         sim.run(quiet=1)
         
-    def testInc3(self):
+    def testIncInc(self):
         sim = self.bench(inc, inc)
         sim.run(quiet=1)
 
-    def testInc4(self):
+    def testIncRefInc2(self):
         sim = self.bench(incRef, inc2)
         sim.run(quiet=1)
 
-    def testInc6(self):
+    def testIncRefInc3(self):
         sim = self.bench(incRef, inc3)
         sim.run(quiet=1)
-        
-         
-        
+
+    def testIncGen(self):
+        m = 8
+        n = 2 ** m
+        count_v = Signal(intbv(0)[m:])
+        enable = Signal(bool(0))
+        clock, reset = [Signal(bool()) for i in range(2)]
+        try:
+            inc_inst = toVerilog(incGen, count_v, enable, clock, reset, n=n)
+        except ToVerilogError, e:
+            self.assertEqual(e.kind, _error.NotSupported)
+        else:
+            self.fail()
+   
         
 if __name__ == '__main__':
     unittest.main()
