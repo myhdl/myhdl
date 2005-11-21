@@ -526,7 +526,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         op, arg = node.ops[0]
         if op == '==':
             if isinstance(node.expr, astNode.Name) and \
-               str(type(arg.obj)) == "<class 'myhdl._enum.EnumItem'>":
+               isinstance(arg.obj, EnumItemType):
                 node.case = (node.expr.name, arg.obj)
 
     def visitConst(self, node, *args):
@@ -568,7 +568,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         if isinstance(obj, Signal):
             if node.attrname in ('posedge', 'negedge'):
                 node.obj = _EdgeDetector()
-        elif str(type(obj)) == "<class 'myhdl._enum.Enum'>":
+        elif isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
             

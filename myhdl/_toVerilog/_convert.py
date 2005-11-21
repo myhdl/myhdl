@@ -307,7 +307,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         # if dir == 'reg ' and not isinstance(obj, _Ram):
         # disable for cver
         if False:
-            if str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
+            if isinstance(obj, EnumItemType):
                 inival = obj._toVerilog()
             else:
                 inival = int(obj)
@@ -628,7 +628,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.write(node.attrname)
                 self.write(' ')
             self.visit(node.expr)
-        elif str(type(obj)) == "<class 'myhdl._enum.Enum'>":
+        elif isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             e = getattr(obj, node.attrname)
             self.write(e._toVerilog())
@@ -734,7 +734,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                 if not m.decl:
                     self.raiseError(node, _error.ListElementNotUnique, m.name)
                 s = m.name
-            elif str(type(obj)) == "<class 'myhdl._enum.EnumItem'>":
+            elif isinstance(obj, EnumItemType):
                 s = obj._toVerilog()
             elif type(obj) is ClassType and issubclass(obj, Exception):
                 s = n

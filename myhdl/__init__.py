@@ -48,7 +48,7 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-__version__ = "0.5dev5"
+__version__ = "0.5a"
 
 import warnings
 
@@ -104,7 +104,7 @@ from _Simulation import Simulation
 from _misc import instances, processes, instance
 from _always_comb import always_comb
 from _always import always
-from _enum import enum
+from _enum import enum, EnumType, EnumItemType
 from _traceSignals import traceSignals
 from _toVerilog._convert import toVerilog
 
@@ -127,6 +127,8 @@ __all__ = ["bin",
            "always_comb",
            "always",
            "enum",
+           "EnumType",
+           "EnumItemType",
            "traceSignals",
            "toVerilog",
            ]

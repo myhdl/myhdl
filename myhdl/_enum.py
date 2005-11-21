@@ -29,6 +29,15 @@ from types import StringType
 
 from myhdl._bin import bin
 
+class EnumType(object):
+    def __init__(self):
+        raise TypeError("class EnumType is only intended for type checking on subclasses")
+
+class EnumItemType(object):
+    def __init__(self):
+        raise TypeError("class EnumItemType is only intended for type checking on subclasses")
+
+
 def enum(*args, **kwargs):
 
     # args = args
@@ -61,7 +70,7 @@ def enum(*args, **kwargs):
         codedict[arg] = code
         i += 1
        
-    class EnumItem(object):
+    class EnumItem(EnumItemType):
         def __init__(self, index, arg):
             self._index = index
             self._val = codedict[arg]
@@ -81,7 +90,7 @@ def enum(*args, **kwargs):
                     val = val.replace('1', '?')
             return "%d'b%s" % (self._nrbits, val)
 
-    class Enum(object):
+    class Enum(EnumType):
         def __init__(self):
             for index, slot in enumerate(args):
                 self.__dict__[slot] = EnumItem(index, slot)
