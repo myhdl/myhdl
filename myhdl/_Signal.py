@@ -195,7 +195,8 @@ class Signal(object):
     def _get_driven(self):
         return self._driven
     def _set_driven(self, val):
-        assert val in ("reg", "wire")
+        if not val  in ("reg", "wire"):
+            raise ValueError('Expected value "reg" or "wire", got "%s"' % val)
         self._driven = val
     driven = property(_get_driven, _set_driven, None, "'driven' access methods")
 

@@ -73,17 +73,27 @@ class SigTest(TestCase):
         """ val attribute should not be writable"""
         s1 = Signal(1)
         try:
-            self.s1.val = 1
+            s1.val = 1
         except AttributeError:
             pass
         else:
             self.fail()
 
+    def testDrivenAttrValue(self):
+        """ driven attribute only accepts value 'reg' or 'wire' """
+        s1 = Signal(1)
+        try:
+            s1.driven = "signal"
+        except ValueError:
+            pass
+        else:
+            self.fail()
+        
     def testPosedgeAttrReadOnly(self):
         """ posedge attribute should not be writable"""
         s1 = Signal(1)
         try:
-            self.s1.posedge = 1
+            s1.posedge = 1
         except AttributeError:
             pass
         else:
@@ -93,7 +103,7 @@ class SigTest(TestCase):
         """ negedge attribute should not be writable"""
         s1 = Signal(1)
         try:
-            self.s1.negedge = 1
+            s1.negedge = 1
         except AttributeError:
             pass
         else:
