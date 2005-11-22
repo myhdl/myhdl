@@ -44,10 +44,7 @@ def incGen(count, enable, clock, reset, n):
             if enable:
                 count.next = (count + 1) % n
 
-
-                 
-                
-                
+                                        
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -78,6 +75,37 @@ always @(posedge %(clock)s, negedge %(reset)s) begin
     else begin
         if (enable) begin
             %(count)s <= (%(count)s + 1) %% %(n)s;
+        end
+    end
+end
+"""
+                
+    return incProcess
+
+
+def incErr(count, enable, clock, reset, n):
+    
+    @always(clock.posedge, reset.negedge)
+    def incProcess():
+        # make it fail in conversion
+        import types
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+
+    count.driven = "reg"
+
+    __verilog__ = \
+"""
+always @(posedge %(clock)s, negedge %(reset)s) begin
+    if (reset == 0) begin
+        %(count)s <= 0;
+    end
+    else begin
+        if (enable) begin
+            %(count)s <= (%(countq)s + 1) %% %(n)s;
         end
     end
 end
@@ -240,6 +268,21 @@ class TestInc(TestCase):
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
+
+    def testIncErr(self):
+        m = 8
+        n = 2 ** m
+        count_v = Signal(intbv(0)[m:])
+        enable = Signal(bool(0))
+        clock, reset = [Signal(bool()) for i in range(2)]
+        try:
+            inc_inst = toVerilog(incErr, count_v, enable, clock, reset, n=n)
+        except ToVerilogError, e:
+            pass
+        else:
+            self.fail()
+
+          
    
         
 if __name__ == '__main__':

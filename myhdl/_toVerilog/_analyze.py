@@ -43,7 +43,7 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind, _context, \
                              _ToVerilogMixin, _Label
-from myhdl._extractHierarchy import _isMem, _CustomVerilog
+from myhdl._extractHierarchy import _isMem, _UserDefinedVerilog
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
@@ -115,7 +115,7 @@ def _analyzeSigs(hierarchy):
 def _analyzeGens(top, absnames):
     genlist = []
     for g in top:
-        if isinstance(g, _CustomVerilog):
+        if isinstance(g, _UserDefinedVerilog):
             ast = g
         elif isinstance(g, (_AlwaysComb, _Always)):
             f = g.func

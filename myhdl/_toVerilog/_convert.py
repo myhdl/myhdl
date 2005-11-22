@@ -26,6 +26,7 @@ __revision__ = "$Revision$"
 __date__ = "$Date$"
 
 import sys
+import traceback
 import inspect
 import compiler
 from compiler import ast as astNode
@@ -39,7 +40,7 @@ import myhdl
 from myhdl import *
 from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo, \
-     _CustomVerilog, _customVerilogMap
+     _UserDefinedVerilog, _userDefinedVerilogMap
 
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
@@ -53,14 +54,14 @@ _profileFunc = None
 
 def _checkArgs(arglist):
     for arg in arglist:
-        if not type(arg) in (GeneratorType, _AlwaysComb, _Always, _CustomVerilog):
+        if not type(arg) in (GeneratorType, _AlwaysComb, _Always, _UserDefinedVerilog):
             raise ToVerilogError(_error.ArgType, arg)
         
 def _flatten(*args):
     arglist = []
     for arg in args:
-        if id(arg) in _customVerilogMap:
-            arglist.append(_customVerilogMap[id(arg)])
+        if id(arg) in _userDefinedVerilogMap:
+            arglist.append(_userDefinedVerilogMap[id(arg)])
         elif isinstance(arg, (list, tuple, Set)):
             for item in arg:
                 arglist.extend(_flatten(item))
@@ -249,7 +250,7 @@ def _convertGens(genlist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for ast in genlist:
-        if isinstance(ast, _CustomVerilog):
+        if isinstance(ast, _UserDefinedVerilog):
             blockBuf.write(str(ast))
             continue
         if ast.kind == _kind.ALWAYS:

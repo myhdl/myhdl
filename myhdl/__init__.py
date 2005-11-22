@@ -48,7 +48,7 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-__version__ = "0.5a"
+__version__ = "0.5a1"
 
 import warnings
 

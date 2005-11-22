@@ -26,6 +26,7 @@ __revision__ = "$Revision$"
 __date__ = "$Date$"
 
 import sys
+import inspect
 from inspect import currentframe, getframeinfo, getouterframes
 import re
 import string
@@ -35,7 +36,7 @@ from compiler import ast
 import linecache
 from sets import Set
 
-from myhdl import Signal, ExtractHierarchyError
+from myhdl import Signal, ExtractHierarchyError, ToVerilogError
 from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
 from myhdl._always_comb import _AlwaysComb
@@ -72,22 +73,32 @@ def _makeMemInfo(mem):
 def _isMem(mem):
     return id(mem) in _memInfoMap
 
-_customVerilogMap = {}
+_userDefinedVerilogMap = {}
 
-class _CustomVerilog(object):
-    __slots__ = ['code', 'namespace']
-    def __init__(self, code, namespace):
+class _UserDefinedVerilog(object):
+    __slots__ = ['code', 'namespace', 'sourcefile', 'funcname', 'sourceline']
+    def __init__(self, code, namespace, sourcefile, funcname, sourceline):
         self.code = code
         self.namespace = namespace
+        self.sourcefile = sourcefile
+        self.funcname = funcname
+        self.sourceline = sourceline
 
     def __str__(self):
-        code = self.code % self.namespace
+        try:
+            code = self.code % self.namespace
+        except:
+            type, value, tb = sys.exc_info()
+            info = "in file %s, function %s starting on line %s:\n    " % \
+                   (self.sourcefile, self.funcname, self.sourceline)
+            msg = "%s: %s" % (type, value)
+            raise ToVerilogError("Error in user defined Verilog code", msg, info)
         code = "\n%s\n" % code
         return code
 
-def _addCustomVerilog(arg, code, namespace):
-    assert id(arg) not in _customVerilogMap
-    _customVerilogMap[id(arg)] = _CustomVerilog(code, namespace)
+def _addUserDefinedVerilog(arg, code, namespace, sourcefile, funcname, sourceline):
+    assert id(arg) not in _userDefinedVerilogMap
+    _userDefinedVerilogMap[id(arg)] = _UserDefinedVerilog(code, namespace, sourcefile, funcname, sourceline)
         
 
 def _isListOfSigs(obj):
@@ -202,7 +213,10 @@ class _HierExtr(object):
                         code = frame.f_locals["__verilog__"]
                         namespace = frame.f_globals.copy()
                         namespace.update(frame.f_locals)
-                        _addCustomVerilog(arg, code, namespace)
+                        sourcefile = inspect.getsourcefile(frame)
+                        funcname = frame.f_code.co_name
+                        sourceline = inspect.getsourcelines(frame)[1]
+                        _addUserDefinedVerilog(arg, code, namespace, sourcefile, funcname, sourceline)
                 # building hierarchy only makes sense if there are generators
                 if isGenSeq and arg:
                     sigdict = {}
