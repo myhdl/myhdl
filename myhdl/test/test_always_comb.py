@@ -38,6 +38,8 @@ from myhdl import Signal, Simulation, instances, processes, \
 from myhdl._always_comb import always_comb, _AlwaysComb, \
                                AlwaysCombError, _error
 
+from myhdl._Waiter import _Waiter,_SignalWaiter,_SignalTupleWaiter
+
 
 QUIET=1
 
@@ -365,6 +367,66 @@ class AlwaysCombSimulationTest2(TestCase):
         
     def testInc(self):
         Simulation(self.bench("inc")).run(quiet=QUIET)
+
+
+
+
+def SignalGen1(a, b, c, d, r):
+    
+    @always_comb
+    def logic():
+        r.next = a
+
+    return logic
+
+
+def SignalTupleGen1(a, b, c, d, r):
+
+    @always_comb
+    def logic():
+        r.next = a + b + c
+
+    return logic
+
+
+        
+class InferWaiterTest(TestCase):
+
+    def bench(self, MyHDLFunc, waiterType):
+
+        a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
+
+        inst_r = MyHDLFunc(a, b, c, d, r)
+        self.assertEqual(type(inst_r.waiter), waiterType)
+        
+        inst_s = MyHDLFunc(a, b, c, d, s)
+
+        def stimulus():
+            for i in range(1000):
+                yield delay(randrange(1, 10))
+                if randrange(2):
+                    a.next = randrange(32)
+                if randrange(2):
+                       b.next = randrange(32)
+                c.next = randrange(2)
+                d.next = randrange(2)
+            raise StopSimulation
+
+        def check():
+            while 1:
+                yield a, b, c, r, s
+                self.assertEqual(r, s)
+
+        return inst_r, _Waiter(inst_s.gen), _Waiter(stimulus()), _Waiter(check())
+
+    def testSignal1(self):
+        sim = Simulation(self.bench(SignalGen1, _SignalWaiter))
+        sim.run()
+        
+    def testSignalTuple1(self):
+        sim = Simulation(self.bench(SignalTupleGen1, _SignalTupleWaiter))
+        sim.run()
+
 
 
 if __name__ == "__main__":

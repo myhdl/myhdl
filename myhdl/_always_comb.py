@@ -33,6 +33,7 @@ import re
 from myhdl import Signal, AlwaysCombError
 from myhdl._util import _isGenFunc
 from myhdl._cell_deref import _cell_deref
+from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
 
 class _error:
     pass
@@ -163,6 +164,11 @@ class _AlwaysComb(object):
         self.outputs = v.outputs
         self.senslist = tuple([self.sigdict[n] for n in self.inputs])
         self.gen = self.genfunc()
+        if len(self.senslist) == 1:
+            W = _SignalWaiter
+        else:
+            W = _SignalTupleWaiter
+        self.waiter = W(self.gen)
 
     def genfunc(self):
         senslist = self.senslist
