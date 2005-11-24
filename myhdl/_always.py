@@ -23,29 +23,27 @@ __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
 __revision__ = "$Revision$"
 __date__ = "$Date$"
 
-import sys
-import inspect
 from types import FunctionType
-import compiler
-from sets import Set
-import re
 
 from myhdl import AlwaysError
 from myhdl._util import _isGenFunc
 from myhdl._delay import delay
 from myhdl._Signal import Signal, _WaiterList, posedge, negedge
-from myhdl._Waiter import _Waiter
+from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
+                          _DelayWaiter, _EdgeWaiter, _EdgeTupleWaiter
 
 class _error:
     pass
-_error.ArgType = "function with always decorator should be classic"
-_error.NrOfArgs = "function with always decorator should not have arguments"
+_error.DecArgType = "decorator argument should be a Signal, edge, or delay"
+_error.ArgType = "decorated object should be a classic (non-generator) function"
+_error.NrOfArgs = "decorated function should not have arguments"
+_error.DecNrOfArgs = "decorator should have arguments"
 
 
 def always(*args):
-    assert len(args) > 0
     for arg in args:
-        assert isinstance(arg, (Signal, _WaiterList, delay))
+        if not isinstance(arg, (Signal, _WaiterList, delay)):
+            raise AlwaysError(_error.DecArgType)
     def _always_decorator(func):
         if not isinstance(func, FunctionType):
             raise AlwaysError(_error.ArgType)
@@ -74,7 +72,21 @@ class _Always(object):
                 bt = None
                 break
         # now set waiter class
+
         W = _Waiter
+        
+        if bt is delay:
+            W = _DelayWaiter
+        elif len(self.senslist) == 1:
+            if bt is Signal:
+                W = _SignalWaiter
+            elif bt is _WaiterList:
+                W = _EdgeWaiter
+        else:
+            if bt is Signal:
+                W = _SignalTupleWaiter
+            elif bt is _WaiterList:
+                W = _EdgeTupleWaiter
 
         self.waiter = W(self.gen)
             

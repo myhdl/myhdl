@@ -32,11 +32,10 @@ from unittest import TestCase
 import inspect
 from sets import Set
 
-from myhdl import Signal, Simulation, instances, processes, \
+from myhdl import Signal, Simulation, instances, processes, AlwaysCombError, \
                   intbv, posedge, negedge, delay, StopSimulation, now
 
-from myhdl._always_comb import always_comb, _AlwaysComb, \
-                               AlwaysCombError, _error
+from myhdl._always_comb import always_comb, _AlwaysComb, _error
 
 from myhdl._Waiter import _Waiter,_SignalWaiter,_SignalTupleWaiter
 
