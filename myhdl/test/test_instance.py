@@ -33,7 +33,7 @@ import inspect
 from sets import Set
 
 from myhdl import Signal, Simulation, instances, processes, InstanceError, \
-                  intbv, posedge, negedge, delay, StopSimulation, now
+                  intbv, delay, StopSimulation, now
 
 from myhdl._instance import instance, _error
 

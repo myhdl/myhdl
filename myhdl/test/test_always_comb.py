@@ -33,7 +33,7 @@ import inspect
 from sets import Set
 
 from myhdl import Signal, Simulation, instances, processes, AlwaysCombError, \
-                  intbv, posedge, negedge, delay, StopSimulation, now
+                  intbv, delay, StopSimulation, now
 
 from myhdl._always_comb import always_comb, _AlwaysComb, _error
 
@@ -250,8 +250,8 @@ class AlwaysCombSimulationTest1(TestCase):
                 b.next = v[1]
                 c.next = v[2]
                 d.next = v[3]
-                yield posedge(clk)
-                yield negedge(clk)
+                yield clk.posedge
+                yield clk.negedge
                 self.assertEqual(x, z)
             raise StopSimulation, "always_comb simulation test"
 
@@ -347,8 +347,8 @@ class AlwaysCombSimulationTest2(TestCase):
                 c.next = v[2]
                 d.next = v[3]
                 k.next = v
-                yield posedge(clk)
-                yield negedge(clk)
+                yield clk.posedge
+                yield clk.negedge
                 self.assertEqual(x, z)
             raise StopSimulation, "always_comb simulation test"
 

@@ -33,7 +33,7 @@ import inspect
 from sets import Set
 
 from myhdl import Signal, Simulation, instances, processes, AlwaysError, \
-                  intbv, posedge, negedge, delay, StopSimulation, now
+                  intbv, delay, StopSimulation, now
 
 from myhdl._always import always, _Always, _error
 

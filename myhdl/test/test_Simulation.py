@@ -30,7 +30,7 @@ from random import randrange
 random.seed(1) # random, but deterministic
 
 from myhdl import Simulation, SimulationError, now, delay, StopSimulation, join
-from myhdl import Signal, posedge, negedge, intbv
+from myhdl import Signal, intbv
 from myhdl._Simulation import _error
 
 from myhdl._simulator import _siglist
@@ -203,14 +203,14 @@ class JoinMix(TestCase):
     def test8(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
-            yield join(a, negedge(a))
+            yield join(a, a.negedge)
             self.assertEqual(now(), 10)
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test9(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
-            yield join(a, negedge(a), posedge(c))
+            yield join(a, a.negedge, c.posedge)
             self.assertEqual(now(), 15)
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
@@ -224,7 +224,7 @@ class JoinMix(TestCase):
     def test11(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def response():
-            yield join(a, posedge(b), negedge(b), a)
+            yield join(a, b.posedge, b.negedge, a)
             self.assertEqual(now(), 15)
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
           
@@ -321,10 +321,10 @@ class YieldZeroDelay(TestCase):
             self.assertEqual(sig1.val, 0)
             self.assertEqual(sig2.val, 0)
             self.assertEqual(now(), offset + 0)
-            yield posedge(sig1)
+            yield sig1.posedge
             self.assertEqual(sig2.val, 0)
             self.assertEqual(now(), offset + n1*td)
-            yield posedge(sig2)
+            yield sig2.posedge
             self.assertEqual(now(), offset + n2*td)
         
         raise StopSimulation, "Zero delay yield"
@@ -357,10 +357,10 @@ class YieldConcurrentGen(TestCase):
             self.assertEqual(sig1.val, 0)
             self.assertEqual(sig2.val, 0)
             self.assertEqual(now(), offset + td)
-            yield posedge(sig1)
+            yield sig1.posedge
             self.assertEqual(sig2.val, 0)
             self.assertEqual(now(), offset + n1*td)
-            yield posedge(sig2)
+            yield sig2.posedge
             self.assertEqual(now(), offset + n2*td)
 
         raise StopSimulation, "Concurrent generator yield"
@@ -402,7 +402,7 @@ class YieldGen(TestCase):
         def task(nlist):
             n = nlist.pop(0)
             for i in range(n):
-                yield posedge(clk)
+                yield clk.posedge
                 shared.cnt += 1
             self.assertEqual(shared.cnt, expected[shared.i])
             shared.i += 1
@@ -456,7 +456,7 @@ class DeltaCycleOrder(TestCase):
 
         def inGen(i):
             while 1:
-                yield posedge(delta[i])
+                yield delta[i].posedge
                 s[index[i]].next = inputs.val[index[i]]
 
         def logic():
@@ -469,8 +469,8 @@ class DeltaCycleOrder(TestCase):
             for v in vectors:
                 inputs.next = v
                 random.shuffle(index)
-                yield posedge(clk)
-                yield negedge(clk)
+                yield clk.posedge
+                yield clk.posedge
                 self.assertEqual(z.val, function(v[0], v[1], v[2], v[3]))
             raise StopSimulation, "Delta cycle order"
 
@@ -537,7 +537,7 @@ class DeltaCycleRace(TestCase):
         def master():
             i = 0
             while 1:
-                yield posedge(clk)
+                yield clk.posedge
                 msig.next = uprange[i+1]
                 self.assertEqual(msig.val, uprange[i])
                 shared.t = now()
@@ -547,7 +547,7 @@ class DeltaCycleRace(TestCase):
             """ Double-check proper operation """
             i = 0
             while 1:
-                yield posedge(clk)
+                yield clk.posedge
                 ssig.next = msig.val
                 self.assertEqual(ssig.val, uprange[i-1])
                 i += 1
@@ -556,7 +556,7 @@ class DeltaCycleRace(TestCase):
             """ Expect delta cycle races """
             i = 0
             while 1:
-                yield posedge(deltaClk)
+                yield deltaClk.posedge
                 dsig.next = msig.val
                 self.assertEqual(now(), shared.t)
                 self.assertEqual(dsig.val, uprange[i])
@@ -596,14 +596,14 @@ class DelayLine(TestCase):
         def stage(n):
             i = 0
             while 1:
-                yield posedge(clk)
+                yield clk.posedge
                 delayElement(n, i)
                 i += 1
                 
         def stage012():
             i = 0
             while 1:
-                yield posedge(clk)
+                yield clk.posedge
                 delayElement(1, i)
                 sig_Z[0].next = uprange[i+1]
                 delayElement(2, i)
@@ -713,7 +713,7 @@ class Waveform(TestCase):
         s = self.sig
         stimulus = self.stimulus()
         expected = getExpectedTimes(self.waveform, isPosedge)     
-        response = self.response(clause=posedge(s), expected=expected)
+        response = self.response(clause=s.posedge, expected=expected)
         self.runSim(Simulation(stimulus, response))
         self.assert_(self.duration <= now())
 
@@ -722,7 +722,7 @@ class Waveform(TestCase):
         s = self.sig
         stimulus = self.stimulus()
         expected = getExpectedTimes(self.waveform, isNegedge)     
-        response = self.response(clause=negedge(s), expected=expected)
+        response = self.response(clause=s.negedge, expected=expected)
         self.runSim(Simulation(stimulus, response))
         self.assert_(self.duration <= now())
 
@@ -731,7 +731,7 @@ class Waveform(TestCase):
         s = self.sig
         stimulus = self.stimulus()
         expected = getExpectedTimes(self.waveform, isEdge)
-        response = self.response(clause=(negedge(s), posedge(s)),
+        response = self.response(clause=(s.negedge, s.posedge),
                                  expected=expected)
         self.runSim(Simulation(stimulus, response))
         self.assert_(self.duration <= now())
@@ -760,7 +760,7 @@ class Waveform(TestCase):
         s = self.sig
         stimulus = self.stimulus()
         expected = getExpectedTimes(self.waveform, isEvent)     
-        response = self.response(clause=(s, negedge(s), posedge(s)),
+        response = self.response(clause=(s, s.negedge, s.posedge),
                                  expected=expected)
         self.runSim(Simulation(stimulus, response))
         self.assert_(self.duration <= now())
@@ -770,7 +770,7 @@ class Waveform(TestCase):
         s = self.sig
         stimulus = self.stimulus()
         expected = getExpectedTimes(self.waveform, isPosedge)     
-        response = self.response(clause=(posedge(s),) * 3, expected=expected)
+        response = self.response(clause=(s.posedge,) * 3, expected=expected)
         self.runSim(Simulation(stimulus, response))
         self.assert_(self.duration <= now())
 
@@ -779,7 +779,7 @@ class Waveform(TestCase):
         s = self.sig
         stimulus = self.stimulus()
         expected = getExpectedTimes(self.waveform, isNegedge)     
-        response = self.response(clause=(negedge(s),) * 9, expected=expected)
+        response = self.response(clause=(s.negedge,) * 9, expected=expected)
         self.runSim(Simulation(stimulus, response))
         self.assert_(self.duration <= now())
 
@@ -861,13 +861,13 @@ class TimeZeroEvents(TestCase):
     def testPosedge(self):
         """ Posedge at time 0 """
         s = Signal(0)
-        testBench = self.bench(sig=s, next=1, clause=posedge(s))
+        testBench = self.bench(sig=s, next=1, clause=s.posedge)
         Simulation(testBench).run(quiet=QUIET)
         
     def testNegedge(self):
         """ Negedge at time 0 """
         s = Signal(1)
-        testBench = self.bench(sig=s, next=0, clause=negedge(s))
+        testBench = self.bench(sig=s, next=0, clause=s.negedge)
         Simulation(testBench).run(quiet=QUIET)
 
 
