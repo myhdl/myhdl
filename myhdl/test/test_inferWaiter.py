@@ -38,64 +38,92 @@ from myhdl._Waiter import _SignalWaiter,_SignalTupleWaiter, _DelayWaiter, \
 
 QUIET=1
 
-def SignalGen1(a, b, c, d, r):
-    while 1:
-        yield a
-        r.next = a + b + c
+def SignalFunc1(a, b, c, d, r):
+    @instance
+    def logic():
+        while 1:
+            yield a
+            r.next = a + b + c
+    return logic
 
-def SignalGen2(a, b, c, d, r):
+
+def SignalFunc2(a, b, c, d, r):
     def logic(a, r):
         while 1:
             yield a
             r.next = a - b + c
     return logic(a, r)
 
-def SignalTupleGen1(a, b, c, d, r):
-    while 1:
-        yield a, b, c
-        r.next = a + b + c
+def SignalTupleFunc1(a, b, c, d, r):
+    @instance
+    def logic():
+        while 1:
+            yield a, b, c
+            r.next = a + b + c
+    return logic
 
-def SignalTupleGen2(a, b, c, d, r):
+def SignalTupleFunc2(a, b, c, d, r):
     def logic(a, r):
         while 1:
             yield a, b, c
             r.next = a - b + c
     return logic(a, r)
 
-def DelayGen(a, b, c, d, r):
-    while 1:
-        yield delay(3)
-        r.next = a + b + c
+def DelayFunc(a, b, c, d, r):
+    @instance
+    def logic():
+        while 1:
+            yield delay(3)
+            r.next = a + b + c
+    return logic
 
-def EdgeGen1(a, b, c, d, r):
-    while 1:
-        yield posedge(c)
-        r.next = a + b + c
+def EdgeFunc1(a, b, c, d, r):
+    @instance
+    def logic():
+        while 1:
+            yield c.posedge
+            r.next = a + b + c
+    return logic
 
-def EdgeGen2(a, b, c, d, r):
+def EdgeFunc2(a, b, c, d, r):
     def logic(c, r):
         while 1:
-            yield negedge(c)
+            yield c.negedge
             r.next = a + b + c
             if a > 5:
-                yield posedge(c)
+                yield c.posedge
                 r.next = a - b -c
             else:
                 r.next = a + b - c
     return logic(c, r)
 
-def EdgeTupleGen1(a, b, c, d, r):
-    while 1:
-        yield posedge(c), negedge(d)
-        r.next = a + b + c
+def EdgeTupleFunc1(a, b, c, d, r):
+    @instance
+    def logic():
+        while 1:
+            yield c.posedge, d.negedge
+            r.next = a + b + c
+    return logic
 
-def EdgeTupleGen2(a, b, c, d, r):
+def EdgeTupleFunc2(a, b, c, d, r):
     def logic(c, r):
         while 1:
-            yield negedge(c), posedge(d)
+            yield c.negedge, d.posedge
             r.next = a + b + c
             if a > 5:
-                yield posedge(c), negedge(d)
+                yield c.posedge, d.negedge
+                r.next = a - b -c
+            else:
+                r.next = a + b - c
+    return logic(c, r)
+     
+def GeneralFunc(a, b, c, d, r):
+    def logic(c, r):
+        while 1:
+            yield c.negedge, d.posedge
+            r.next = a + b + c
+            if a > 5:
+                yield c, d.negedge
                 r.next = a - b -c
             else:
                 r.next = a + b - c
@@ -133,39 +161,43 @@ class InferWaiterTest(TestCase):
         return gen_inst_r, _Waiter(gen_inst_s), _Waiter(stimulus()), _Waiter(check())
 
     def testSignal1(self):
-        sim = Simulation(self.bench(SignalGen1, _SignalWaiter))
+        sim = Simulation(self.bench(SignalFunc1, _SignalWaiter))
         sim.run()
         
     def testSignal2(self):
-        sim = Simulation(self.bench(SignalGen2, _SignalWaiter))
+        sim = Simulation(self.bench(SignalFunc2, _SignalWaiter))
         sim.run()
         
     def testSignalTuple1(self):
-        sim = Simulation(self.bench(SignalTupleGen1, _SignalTupleWaiter))
+        sim = Simulation(self.bench(SignalTupleFunc1, _SignalTupleWaiter))
         sim.run()
 
     def testSignalTuple2(self):
-        sim = Simulation(self.bench(SignalTupleGen2, _SignalTupleWaiter))
+        sim = Simulation(self.bench(SignalTupleFunc2, _SignalTupleWaiter))
         sim.run()
 
     def testDelay(self):
-        sim = Simulation(self.bench(DelayGen, _DelayWaiter))
+        sim = Simulation(self.bench(DelayFunc, _DelayWaiter))
         sim.run()
 
     def testEdge1(self):
-        sim = Simulation(self.bench(EdgeGen1, _EdgeWaiter))
+        sim = Simulation(self.bench(EdgeFunc1, _EdgeWaiter))
         sim.run()
         
     def testEdge2(self):
-        sim = Simulation(self.bench(EdgeGen2, _EdgeWaiter))
+        sim = Simulation(self.bench(EdgeFunc2, _EdgeWaiter))
         sim.run()
 
     def testEdgeTuple1(self):
-        sim = Simulation(self.bench(EdgeTupleGen1, _EdgeTupleWaiter))
+        sim = Simulation(self.bench(EdgeTupleFunc1, _EdgeTupleWaiter))
         sim.run()
 
     def testEdgeTuple2(self):
-        sim = Simulation(self.bench(EdgeTupleGen2, _EdgeTupleWaiter))
+        sim = Simulation(self.bench(EdgeTupleFunc2, _EdgeTupleWaiter))
+        sim.run()
+
+    def testGeneral(self):
+        sim = Simulation(self.bench(GeneralFunc, _Waiter))
         sim.run()
 
 

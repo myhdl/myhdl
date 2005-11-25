@@ -75,6 +75,8 @@ class AlwaysError(Error):
     pass
 class AlwaysCombError(Error):
     pass
+class InstanceError(Error):
+    pass
 class CosimulationError(Error):
     pass
 class ExtractHierarchyError(Error):
@@ -101,9 +103,10 @@ from _delay import delay
 from _util import downrange
 from _Cosimulation import Cosimulation
 from _Simulation import Simulation
-from _misc import instances, processes, instance
+from _misc import instances, processes
 from _always_comb import always_comb
 from _always import always
+from _instance import instance
 from _enum import enum, EnumType, EnumItemType
 from _traceSignals import traceSignals
 from _toVerilog._convert import toVerilog

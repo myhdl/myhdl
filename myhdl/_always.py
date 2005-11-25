@@ -49,7 +49,7 @@ def always(*args):
             raise AlwaysError(_error.ArgType)
         if _isGenFunc(func):
             raise AlwaysError(_error.ArgType)
-        if func.func_code.co_argcount:
+        if func.func_code.co_argcount > 0:
             raise AlwaysError(_error.NrOfArgs)
         return _Always(func, args)
     return _always_decorator

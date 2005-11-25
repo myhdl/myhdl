@@ -274,6 +274,12 @@ class _YieldVisitor(object):
                 node.kind = _kind.DELAY
             elif obj in (posedge, negedge):
                 node.kind = _kind.EDGE
+
+    def visitGetattr(self, node, *args):
+        node.kind = _kind.UNDEFINED
+        if node.attrname in ('posedge', 'negedge'):
+            node.kind = _kind.EDGE
+               
                 
         
 
