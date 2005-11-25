@@ -19,7 +19,7 @@ def freeVarTypeError(count, enable, clock, reset, n):
             cnt[:] = (cnt + 1) % n
     def incTaskGen():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                cnt[:]= 0
             else:
@@ -29,7 +29,7 @@ def freeVarTypeError(count, enable, clock, reset, n):
 def multipleDrivenSignal(count, enable, clock, reset, n):
     def incTaskGen():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                count.next = 0
             else:
@@ -41,7 +41,7 @@ def shadowingSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0)[8:])
     def incTaskGen():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                count.next = 0
             else:
@@ -52,7 +52,7 @@ def shadowingSignal(count, enable, clock, reset, n):
 def internalSignal(count, enable, clock, reset, n):
     a = Signal(bool())
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -63,7 +63,7 @@ def undefinedBitWidthSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0))
     def incTaskGen():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                count.next = 0
             else:
@@ -74,7 +74,7 @@ def undefinedBitWidthSignal(count, enable, clock, reset, n):
 ## def negIntbv(count, enable, clock, reset, n):
 ##     a = intbv(0, min=-2, max=45)
 ##     while 1:
-##         yield posedge(clock), negedge(reset)
+##         yield clock.posedge, reset.negedge
 ##         if reset == ACTIVE_LOW:
 ##             count.next = 0
 ##         else:
@@ -83,7 +83,7 @@ def undefinedBitWidthSignal(count, enable, clock, reset, n):
 
 def yieldObject1(count, enable, clock, reset, n):
     while 1:
-        yield posedge(clock), delay(5)
+        yield clock.posedge, delay(5)
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -91,9 +91,9 @@ def yieldObject1(count, enable, clock, reset, n):
                 count.next = (count + 1) % n
                 
 def g1(clock):
-        yield posedge(clock)
+        yield clock.posedge
 def g2(reset):
-        yield negedge(reset)
+        yield reset.negedge
       
 def yieldObject2(count, enable, clock, reset, n):
     while 1:
@@ -124,7 +124,7 @@ def f3(n):
       
 def recursion1(count, enable, clock, reset, n):
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -133,7 +133,7 @@ def recursion1(count, enable, clock, reset, n):
                 
 def recursion2(count, enable, clock, reset, n):
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -145,7 +145,7 @@ def h1(n):
 
 def functionNoReturnVal(count, enable, clock, reset, n):
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -159,7 +159,7 @@ def h2(cnt):
 def taskReturnVal(count, enable, clock, reset, n):
     cnt = intbv(0)[8:]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -171,7 +171,7 @@ def taskReturnVal(count, enable, clock, reset, n):
 def printnlToFile(count, enable, clock, reset, n):
     cnt = intbv(0)[8:]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -182,7 +182,7 @@ def printnlToFile(count, enable, clock, reset, n):
 def printToFile(count, enable, clock, reset, n):
     cnt = intbv(0)[8:]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -193,31 +193,31 @@ def printToFile(count, enable, clock, reset, n):
 def listComp1(count, enable, clock, reset, n):
     mem = [intbv(0)[8:] for i in range(4) for j in range(5)]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         count.next = count + 1
 
 def listComp2(count, enable, clock, reset, n):
     mem = [intbv(0)[8:] for i in downrange(4)]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         count.next = count + 1
 
 def listComp3(count, enable, clock, reset, n):
     mem = [intbv(0)[8:] for i in range(1, 4)]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         count.next = count + 1
         
 def listComp4(count, enable, clock, reset, n):
     mem = [intbv(0) for i in range(4)]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         count.next = count + 1
 
 def listComp5(count, enable, clock, reset, n):
     mem = [i for i in range(4)]
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         count.next = count + 1
 
 def undefinedBitWidthMem(count, enable, clock, reset, n):
@@ -225,7 +225,7 @@ def undefinedBitWidthMem(count, enable, clock, reset, n):
     mem[7] = Signal(intbv(0))
     def f():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             count.next = count + 1
     return f()
 
@@ -234,7 +234,7 @@ def inconsistentTypeMem(count, enable, clock, reset, n):
     mem[3] = Signal(bool())
     def f():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             count.next = count + 1
     return f()
 
@@ -243,7 +243,7 @@ def inconsistentBitWidthMem(count, enable, clock, reset, n):
     mem[4] = Signal(intbv(0)[7:])
     def f():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             count.next = count + 1
     return f()
 
@@ -253,7 +253,7 @@ def listElementNotUnique(count, enable, clock, reset, n):
     mem2 = mem[4:]
     def f():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             count.next = mem[0] + mem2[1]
     return f()
 
@@ -267,25 +267,25 @@ class TestErr(TestCase):
     
     def stimulus(self, enable, clock, reset):
         reset.next = INACTIVE_HIGH
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = ACTIVE_LOW
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = INACTIVE_HIGH
         for i in range(1000):
             enable.next = 1
-            yield negedge(clock)
+            yield clock.negedge
         for i in range(1000):
             enable.next = min(1, randrange(5))
-            yield negedge(clock)
+            yield clock.negedge
         raise StopSimulation
 
     def check(self, count, count_v, enable, clock, reset, n):
         expect = 0
-        yield posedge(reset)
+        yield reset.posedge
         self.assertEqual(count, expect)
         self.assertEqual(count, count_v)
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             if enable:
                 expect = (expect + 1) % n
             yield delay(1)

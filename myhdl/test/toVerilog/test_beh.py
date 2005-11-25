@@ -15,16 +15,16 @@ ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 def behRef(count, enable, clock, reset, n):
    while 1:
        if reset == ACTIVE_LOW:
-           yield posedge(reset)
+           yield reset.posedge
        for i in range(20):
-           yield posedge(clock)
+           yield clock.posedge
            if enable:
                count.next = i
        j = 1
        while j < 25:
            if enable:
-               yield posedge(clock)
-           yield posedge(clock)
+               yield clock.posedge
+           yield clock.posedge
            count.next = 2 * j
            j += 1
 
@@ -44,23 +44,23 @@ class TestBeh(TestCase):
     
     def stimulus(self, enable, clock, reset):
         reset.next = INACTIVE_HIGH
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = ACTIVE_LOW
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = INACTIVE_HIGH
         for i in range(1000):
             enable.next = 1
-            yield negedge(clock)
+            yield clock.negedge
         for i in range(1000):
             enable.next = min(1, randrange(5))
-            yield negedge(clock)
+            yield clock.negedge
         raise StopSimulation
 
     def check(self, count, count_v, enable, clock, reset, n):
-        yield posedge(reset)
+        yield reset.posedge
         self.assertEqual(count, count_v)
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             yield delay(1)
             # print "%d count %s count_v %s" % (now(), count, count_v)
             self.assertEqual(count, count_v)

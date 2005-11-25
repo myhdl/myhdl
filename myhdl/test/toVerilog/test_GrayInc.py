@@ -30,7 +30,7 @@ def GrayIncReg(graycnt, enable, clock, reset, width):
     
     def reg():
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             graycnt.next = graycnt_comb
     REG_1 = reg()
     
@@ -67,10 +67,10 @@ class TestGrayInc(unittest.TestCase):
         raise StopSimulation
 
     def check(self):
-        yield posedge(reset)
+        yield reset.posedge
         self.assertEqual(graycnt, graycnt_v)
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             yield delay(1)
             # print "%d graycnt %s %s" % (now(), graycnt, graycnt_v)
             self.assertEqual(graycnt, graycnt_v)

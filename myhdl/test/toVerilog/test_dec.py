@@ -22,7 +22,7 @@ def decRef(count, enable, clock, reset, n):
     n -- counter max value
     """
     while 1:
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -43,7 +43,7 @@ def dec(count, enable, clock, reset, n):
     """
     def decProcess():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                 count.next = 0
             else:
@@ -88,7 +88,7 @@ def decTask(count, enable, clock, reset, n):
     def decTaskGen():
         cnt = intbv(0, min=-n, max=n)
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                 cnt[:] = 0
                 count.next = 0
@@ -111,7 +111,7 @@ def decTaskFreeVar(count, enable, clock, reset, n):
  
     def decTaskGen():
         while 1:
-            yield posedge(clock), negedge(reset)
+            yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                count.next = 0
             else:
@@ -134,25 +134,25 @@ class TestDec(TestCase):
     
     def stimulus(self, enable, clock, reset):
         reset.next = INACTIVE_HIGH
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = ACTIVE_LOW
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = INACTIVE_HIGH
         for i in range(1000):
             enable.next = 1
-            yield negedge(clock)
+            yield clock.negedge
         for i in range(1000):
             enable.next = min(1, randrange(5))
-            yield negedge(clock)
+            yield clock.negedge
         raise StopSimulation
 
     def check(self, count, count_v, enable, clock, reset, n):
         expect = 0
-        yield posedge(reset)
+        yield reset.posedge
         self.assertEqual(count, expect)
         self.assertEqual(count, count_v)
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             if enable:
                 if expect == -n:
                     expect = n-1

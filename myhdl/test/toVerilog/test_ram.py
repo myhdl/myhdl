@@ -30,7 +30,7 @@ def ram_clocked(dout, din, addr, we, clk, depth=128):
     
     def access():
         while 1:
-            yield posedge(clk)
+            yield clk.posedge
             if we:
                 mem[int(addr)].next = din
             dout.next = mem[int(addr)]
@@ -45,7 +45,7 @@ def ram_deco1(dout, din, addr, we, clk, depth=128):
     @instance
     def write():
         while 1:
-            yield posedge(clk)
+            yield clk.posedge
             if we:
                 mem[int(addr)].next = din
                 
@@ -79,13 +79,13 @@ def ram2(dout, din, addr, we, clk, depth=128):
     memL = [Signal(intbv()[len(dout):]) for i in range(depth)]
     def wrLogic() :
         while 1:
-            yield posedge(clk)
+            yield clk.posedge
             if we:
                 memL[int(addr)].next = din
 
     def rdLogic() :
         while 1:
-            yield posedge(clk)
+            yield clk.posedge
             dout.next = memL[int(addr)]
 
     WL = wrLogic()
@@ -101,7 +101,7 @@ def ram3(dout, din, addr, we, clk, depth=128):
 
     def wrLogic() :
         while 1:
-            yield posedge(clk)
+            yield clk.posedge
             if we:
                 memL[int(addr)].next = din
             read_addr.next = addr
@@ -137,12 +137,12 @@ class TestMemory(TestCase):
                 din.next = i
                 addr.next = i
                 we.next = True
-                yield negedge(clk)
+                yield clk.negedge
             we.next = False
             for i in range(depth):
                 addr.next = i
-                yield negedge(clk)
-                yield posedge(clk)
+                yield clk.negedge
+                yield clk.posedge
                 yield delay(1)
                 #print dout
                 #print dout_v

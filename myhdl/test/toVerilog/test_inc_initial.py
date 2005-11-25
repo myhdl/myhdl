@@ -22,7 +22,7 @@ def inc_initial(count, enable, clock, reset, n):
     n -- counter max value
     """
     for i in range(100):
-        yield posedge(clock), negedge(reset)
+        yield clock.posedge, reset.negedge
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -64,11 +64,11 @@ class TestInc_initial(TestCase):
 
     def check(self, count, count_v, enable, clock, reset, n):
         expect = 0
-        yield posedge(reset)
+        yield reset.posedge
         self.assertEqual(count, expect)
         self.assertEqual(count, count_v)
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             if enable:
                 expect = (expect + 1) % n
             yield delay(1)

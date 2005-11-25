@@ -114,8 +114,8 @@ class AlwaysCombSimulationTest(TestCase):
                 c.next = v[2]
                 d.next = v[3]
                 k.next = v
-                yield posedge(clk)
-                yield negedge(clk)
+                yield clk.posedge
+                yield clk.negedge
                 # print p, q, r
                 self.assertEqual(p, p_v)
                 self.assertEqual(q, q_v)

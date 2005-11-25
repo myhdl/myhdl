@@ -30,7 +30,7 @@ def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
 
     def FSM():
         while 1:
-            yield posedge(clk), negedge(reset_n)
+            yield clk.posedge, reset_n.negedge
             if reset_n == ACTIVE_LOW:
                 SOF.next = 0
                 index.next = 0
@@ -77,7 +77,7 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
         index = intbv(0)[8:] # position in frame
         state_var = t_State.SEARCH
         while 1:
-            yield posedge(clk), negedge(reset_n)
+            yield clk.posedge, reset_n.negedge
             if reset_n == ACTIVE_LOW:
                 SOF.next = 0
                 index[:] = 0
@@ -124,7 +124,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
     
     index = intbv(0, min=0, max=8) # position in frame
     while 1:
-        yield posedge(clk), negedge(reset_n)
+        yield clk.posedge, reset_n.negedge
         if reset_n == ACTIVE_LOW:
             SOF.next = 0
             index[:] = 0
@@ -186,18 +186,18 @@ class FramerCtrlTest(TestCase):
 
         def stimulus():
             for i in range(3):
-                yield posedge(clk)
+                yield clk.posedge
             for n in (12, 8, 8, 4, 11, 8, 8, 7, 6, 8, 8):
                 syncFlag.next = 1
-                yield posedge(clk)
+                yield clk.posedge
                 syncFlag.next = 0
                 for i in range(n-1):
-                    yield posedge(clk)
+                    yield clk.posedge
             raise StopSimulation
 
         def check():
             while 1:
-                yield negedge(clk)
+                yield clk.negedge
                 self.assertEqual(SOF, SOF_v)
                 self.assertEqual(eval(hex(state)), eval(hex(state_v)))
                 # print "MyHDL: %s %s" % (SOF, hex(state))

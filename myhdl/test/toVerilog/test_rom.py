@@ -17,7 +17,7 @@ def rom1(dout, addr, clk):
 
     def rdLogic() :
         while 1:
-            yield posedge(clk)
+            yield clk.posedge
             dout.next = ROM[int(addr)]
 
     RL = rdLogic()
@@ -29,7 +29,7 @@ def rom2(dout, addr, clk):
     
     def rdLogic() :
         while 1:
-            yield posedge(clk)
+            yield clk.posedge
             dout.next = theROM[int(addr)]
 
     RL = rdLogic()
@@ -77,8 +77,8 @@ class TestRom(TestCase):
         def stimulus():
             for i in range(D):
                 addr.next = i
-                yield negedge(clk)
-                yield posedge(clk)
+                yield clk.negedge
+                yield clk.posedge
                 yield delay(1)
                 self.assertEqual(dout, ROM[i])
                 self.assertEqual(dout, dout_v)
