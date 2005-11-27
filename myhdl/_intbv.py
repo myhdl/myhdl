@@ -395,7 +395,7 @@ class intbv(object):
         return -self._val
 
     def __pos__(self):
-        return +self._val
+        return self._val
 
     def __abs__(self):
         return abs(self._val)
