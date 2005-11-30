@@ -168,6 +168,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
+            if not s._read:
+                warnings.warn("%s: %s" % (_error.UnusedSignal, s._name),
+                              category=ToVerilogWarning
+                              )
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
             print >> f, "%s %s%s%s;" % (s._driven, p, r, s._name)

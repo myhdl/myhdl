@@ -50,6 +50,7 @@ __date__ = "$Date$"
 
 __version__ = "0.5a1"
 
+import sys
 import warnings
 
 class StopSimulation(Exception):
@@ -91,6 +92,11 @@ class TraceSignalsError(Error):
 class ToVerilogWarning(UserWarning):
     pass
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
+
+def showwarning(message, category, filename, lineno):
+    print >> sys.stderr, "%s: %s" % (category, message)
+
+warnings.showwarning = showwarning
 
 
 from _bin import bin

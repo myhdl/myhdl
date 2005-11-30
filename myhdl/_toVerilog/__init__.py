@@ -43,6 +43,7 @@ _error.TopLevelName = "Result of toVerilog call should be assigned to a top leve
 _error.SigMultipleDriven = "Signal has multiple drivers"
 _error.UndefinedBitWidth = "Signal has undefined bit width"
 _error.UndrivenSignal = "Signal is not driven"
+_error.UnusedSignal = "Signal is driven but not used"
 _error.Requirement = "Requirement violation"
 _error.UnboundLocal = "Local variable may be referenced before assignment"
 _error.TypeMismatch = "Type mismatch with earlier assignment"
