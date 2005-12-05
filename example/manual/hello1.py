@@ -10,7 +10,8 @@ def sayHello():
 
 
 def main():
-    sim = Simulation(sayHello())
+    inst = sayHello()
+    sim = Simulation(inst)
     sim.run(30)
     
 
