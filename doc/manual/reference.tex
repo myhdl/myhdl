@@ -68,6 +68,15 @@ value to \var{val}. Optionally, a delay can be specified.
 
 A \class{Signal} object has the following attributes:
 
+\begin{memberdesc}[Signal]{posedge}
+Attribute that represents the positive edge of a signal, to be
+used in sensitivity lists.
+\end{memberdesc}
+\begin{memberdesc}[Signal]{negedge}
+Attribute that represents the negative edge of a signal, to be
+used in sensitivity lists.
+\end{memberdesc}
+
 \begin{memberdesc}[Signal]{next}
 Read-write attribute that represents the next value of the signal.
 \end{memberdesc}
@@ -98,6 +107,20 @@ Read-only attribute that is the maximum value
 maximum.
 \end{memberdesc}
 
+\begin{memberdesc}[Signal]{driven}
+Writable attribute that can be used to indicate that the signal
+is supposed to be driven from the MyHDL code, and how it should
+be declared in Verilog after conversion. The allowed values
+are \code{'reg'} and \code{'wire'}.
+
+This attribute is useful when the Verilog convertor cannot
+infer automatically whether and how a signal is driven. This
+occurs when the signal is driven from user-defined Verilog code.
+\end{memberdesc}
+
+
+
+
 \section{\myhdl\ generators and trigger objects \label{ref-gen}}
 \declaremodule{}{myhdl}
 
@@ -122,19 +145,27 @@ that the same \keyword{yield} statement is invoked again, and that a
 subsequent trigger still triggers the generator.)
 
 In this section, the trigger objects and their functionality will be
-described. 
+described.
 
-\begin{funcdesc}{posedge}{signal}
-Return a trigger object that specifies that the generator should
-resume on a rising edge on the signal. A rising edge means a change
-from false to true.
-\end{funcdesc}
+Some MyHDL objects that are described elsewhere can directly be used
+as trigger objects. In particular, a signal can be used as
+a trigger objects. Whenever a signal changes value, the generator
+resumes. Likewise, the objects referred to by the signal attributes
+\code{posedge} and \code{negedge} are trigger object. The generator
+resumes on the occurrence of a positive or a negative edge on the
+signal, respectively. An edge occurs when there is a change from
+false to true (positive) or vice versa (negative).
+For the full description of the \class{Signal} class and its
+attributes, see section~\ref{ref-sig}.
 
-\begin{funcdesc}{negedge}{signal}
-Return a trigger object that specifies that the generator should
-resume on a falling edge on the signal. A falling edge means a change
-from true to false.
-\end{funcdesc}
+Furthermore, \myhdl\ generators can be used as clauses in \code{yield}
+statements. Such a generator is forked, and starts operating
+immediately, while the original generator
+waits for it to complete. The original generator resumes when the
+forked generator returns.
+
+
+In addition, the following functions return trigger objects:
 
 \begin{funcdesc}{delay}{t}
 Return a trigger object that specifies that the generator should
@@ -147,112 +178,120 @@ trigger object.  The effect is that the joined trigger object will
 trigger when \emph{all} of its arguments have triggered.
 \end{funcdesc}
 
-In addition, some objects can directly be used as trigger
-objects. These are the objects of the following types:
 
-\begin{description}
-\item[\class{Signal}]
-For the full description of the \class{Signal} class, see
-section~\ref{ref-sig}.
-A signal is a trigger object. Whenever a signal changes value, the
-generator is triggered.
+Finally, as a special case, the Python \code{None} object can be
+present in a \code{yield} statement. It is the do-nothing
+trigger object. The generator immediately resumes, as if no
+\code{yield} statement were present. This can be useful if the
+\code{yield} statement also has generator clauses: those generators
+are forked, while the original generator resumes immediately.
 
-\item[\class{GeneratorType}]
-\myhdl\ generators can be used as clauses in \code{yield}
-statements. Such a generator is forked, and starts operating
-while the original generator
-waits for it to complete. The original generator resumes when the
-forked generator returns.
-\end{description}
-
-In addition, as a special case, the Python \code{None} object can be
-present in  a \code{yield} statement:
-\begin{description}
-
-\item[\code{None}]
-This is the do-nothing trigger object. The generator immediately
-resumes, as if no \code{yield} statement were present. This can be
-useful if the \code{yield} statement also has generator clauses: those
-generators are forked, while the original generator resumes
-immediately.
-\end{description}
-
-
-
-\section{Modeling support\label{ref-misc}}
+\section{Decorator functions \label{ref-deco}}
 \declaremodule{}{myhdl}
 
-\begin{funcdesc}{always_comb}{func}
-Returns a generator that is sensitive to all signals that
-are used as inputs in function \function{func()}. The generator
-will run \function{func()} whenever one of the inputs changes.
-\function{func()} should be a locally defined function without
-parameters.
-\end{funcdesc}
+MyHDL defines a number of decorator functions, that make it easier to
+create generators from local generator function.
 
-\begin{funcdesc}{bin}{num \optional{, width}}
-Returns a bit string representation. If the optional \var{width}
-is provided, and if it is larger than the width of the default
-representation, the bit string is padded with the sign bit.
+\begin{funcdesc}{instance}{}
+The \code{@instance} decorator is the most general decorator.  It
+automatically creates a generator by calling the generator function,
+and by reusing its name.
 
-This function complements the standard Python conversion functions
-\code{hex} and \code{oct}. A binary string representation is often
-useful in hardware design.
-\end{funcdesc}
+It is used as follows:
 
-\begin{funcdesc}{concat}{base \optional{, arg \moreargs}}
-Returns an \class{intbv} object formed by concatenating the arguments.
-
-The following argument types are supported: \class{intbv} objects with
-a defined bit width, \class{bool} objects, signals of the previous
-objects, and bit strings. All these objects have a defined bit
-width. The first argument \var{base} is special as it doesn't need to
-have a defined bit width. In addition to the previously mentioned
-objects, unsized \class{intbv}, \class{int} and \class{long} objects
-are supported, as well as signals of such objects.
-\end{funcdesc}
-
-\begin{funcdesc}{downrange}{high \optional{, low=0}}
-Generates a downward range list of integers.
-
-This function is modeled after the standard \code{range} function, but
-works in the downward direction. The returned interval is half-open,
-with the \var{high} index not included. \var{low} is optional and
-defaults to zero.  This function is especially useful in conjunction
-with the \class{intbv} class, that also works with downward indexing.
-\end{funcdesc}
-
-\begin{funcdesc}{enum}{arg \optional{, arg \moreargs} \optional{, encoding='binary'}}
-Returns an enumeration type.
-
-The arguments should be string literals that represent the desired
-names of the enumeration type attributes.  The returned type should be
-assigned to a type name.  For example:
 \begin{verbatim}
-t_EnumType = enum('ATTR_NAME_1', 'ATTR_NAME_2', ...)
+def top(...):
+    ...
+    @instance
+    def inst():
+        <generator body>
+    ...
+    return inst, ...
 \end{verbatim}
-The enumeration type identifiers are available as attributes of
-the type name, for example: \code{t_EnumType.ATTR_NAME_1}
 
-The optional keyword argument \var{encoding} specifies the encoding
-scheme used in Verilog output. The available encodings are \code{'binary'},
-\code{'one_hot'}, and \code{'one_cold'}.
+This is equivalent to:
+
+\begin{verbatim}
+def top(...):
+    ...
+    def gen_func():
+        <generator body>
+    ...
+    inst = gen_func()
+    ...
+    return inst, ...
+\end{verbatim}
+
+\end{funcdesc}
+    
+
+\begin{funcdesc}{always}{arg \optional{, *args}}
+
+The \code{@always} decorator is a specialized decorator for a widely used
+pattern. It is used as follows:
+
+\begin{verbatim}
+def top(...):
+    ...
+    @always(event1, event2, ...)
+    def inst()
+        <body>
+    ...
+    return inst, ...
+\end{verbatim}
+
+This is equivalent to the following:
+
+
+\begin{verbatim}
+def top(...):
+    ...
+    def gen_func()
+        while True:
+            yield event1, event2, ... 
+            <body>
+    ...
+    inst = gen_func()
+    ...
+    return inst, ...
+\end{verbatim}
+
+
+The argument list of the decorator corresponds to the sensitivity
+list. Only signals, edge specifiers, or delay objects are allowed.
+
+
 \end{funcdesc}
 
-\begin{funcdesc}{instances}{}
-Looks up all \myhdl\ instances in the local name space and returns them
-in a list.
+
+\begin{funcdesc}{always_comb}{}
+
+
+The \code{@always_comb} decorator is used to describe combinatorial
+logic.
+
+
+\begin{verbatim}
+def top(...):
+    ...
+    @always_comb
+    def comb_inst():
+        <combinatorial body>
+    ...
+    return comb_inst, ...
+\end{verbatim}
+
+
+The \code{@always_comb} decorator infers the inputs of the combinatorial
+logic and the corresponding sensitivity list automatically.
 
 \end{funcdesc}
-\begin{funcdesc}{processes}{}
-Looks up all generator functions without parameters in the local name
-space, calls each of them, and returns the resulting generators in a list.
-\end{funcdesc}
+
 
 \section{The \class{intbv} class \label{ref-intbv}}
 \declaremodule{}{myhdl}
 
-\begin{classdesc}{intbv}{\optional{val=0} \optional{, min=None} 
+\begin{classdesc}{intbv}{\optional{val=None} \optional{, min=None} 
 \optional{, max=None}}
 This class represents \class{int}-like objects with some additional
 features that make it suitable for hardware design. The \var{val}
@@ -355,6 +394,66 @@ index 0. This is only possible for \class{intbv} objects with a
 defined bit width.
 
 
+
+\section{Miscellaneous modeling support functions\label{ref-misc}}
+\declaremodule{}{myhdl}
+
+\begin{funcdesc}{bin}{num \optional{, width}}
+Returns a bit string representation. If the optional \var{width}
+is provided, and if it is larger than the width of the default
+representation, the bit string is padded with the sign bit.
+
+This function complements the standard Python conversion functions
+\code{hex} and \code{oct}. A binary string representation is often
+useful in hardware design.
+\end{funcdesc}
+
+\begin{funcdesc}{concat}{base \optional{, arg \moreargs}}
+Returns an \class{intbv} object formed by concatenating the arguments.
+
+The following argument types are supported: \class{intbv} objects with
+a defined bit width, \class{bool} objects, signals of the previous
+objects, and bit strings. All these objects have a defined bit
+width. The first argument \var{base} is special as it doesn't need to
+have a defined bit width. In addition to the previously mentioned
+objects, unsized \class{intbv}, \class{int} and \class{long} objects
+are supported, as well as signals of such objects.
+\end{funcdesc}
+
+\begin{funcdesc}{downrange}{high \optional{, low=0}}
+Generates a downward range list of integers.
+
+This function is modeled after the standard \code{range} function, but
+works in the downward direction. The returned interval is half-open,
+with the \var{high} index not included. \var{low} is optional and
+defaults to zero.  This function is especially useful in conjunction
+with the \class{intbv} class, that also works with downward indexing.
+\end{funcdesc}
+
+\begin{funcdesc}{enum}{arg \optional{, arg \moreargs} \optional{, encoding='binary'}}
+Returns an enumeration type.
+
+The arguments should be string literals that represent the desired
+names of the enumeration type attributes.  The returned type should be
+assigned to a type name.  For example:
+\begin{verbatim}
+t_EnumType = enum('ATTR_NAME_1', 'ATTR_NAME_2', ...)
+\end{verbatim}
+The enumeration type identifiers are available as attributes of
+the type name, for example: \code{t_EnumType.ATTR_NAME_1}
+
+The optional keyword argument \var{encoding} specifies the encoding
+scheme used in Verilog output. The available encodings are \code{'binary'},
+\code{'one_hot'}, and \code{'one_cold'}.
+\end{funcdesc}
+
+\begin{funcdesc}{instances}{}
+Looks up all \myhdl\ instances in the local name space and returns them
+in a list.
+
+\end{funcdesc}
+
+
 \section{Co-simulation\label{ref-cosim}}
 \declaremodule{}{myhdl}
 
@@ -397,6 +496,8 @@ Not implemented yet.
 \section{Conversion to Verilog\label{ref-conv}}
 \declaremodule{}{myhdl}
 
+\subsection{Conversion \label{ref-conv-conv}}
+
 \begin{funcdesc}{toVerilog}{func \optional{, *args} \optional{, **kwargs}}
 Converts a \myhdl\ design instance to equivalent Verilog
 code, and also generates a test bench to verify it.
@@ -408,8 +509,36 @@ The return value is the same as would be returned by the call
 \code{func(*args, **kwargs)}. It should be assigned
 to an instance name.
 
+The basename of the Verilog output filename is \code{func.func_name}
+by default.
+
 For more information about the restrictions on convertible
 \myhdl\ code, see section~\ref{conv-subset} in
 Chapter~\ref{conv}.
 \end{funcdesc}
 
+The \code{toVerilog} callable has the following attribute:
+
+\begin{memberdesc}[toVerilog]{name}
+
+This attribute is used to overwrite the default basename for the
+Verilog output filename.
+
+\end{memberdesc}
+
+\subsection{User-defined Verilog code \label{ref-conv-user}}
+
+A user can insert user-defined code in the Verilog output
+by using the \code{__verilog__} hook.
+
+\begin{datadesc}{__verilog__}
+When defined within a function under elaboration, the
+\code{__verilog__} hook variable specifies user-defined code that
+should be used instead of converted code for that function.  The
+user-defined code should be a Python format string that uses keys to
+refer to the variables that should be interpolated in the string. Any
+variable in the functional context can be referred to.
+
+Note that this hook cannot be used inside generator functions, as
+those are not elaborated.
+\end{datadesc}
