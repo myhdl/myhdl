@@ -1,16 +1,16 @@
 from myhdl import Signal, delay, always, now, Simulation
 
-def sayHello():
+def HelloWorld():
     
     @always(delay(10))
-    def behavior():
+    def sayHello():
         print "%s Hello World!" % now()
 
-    return behavior
+    return sayHello
 
 
 def main():
-    inst = sayHello()
+    inst = HelloWorld()
     sim = Simulation(inst)
     sim.run(30)
     
