@@ -203,7 +203,7 @@ class Signal(object):
     # set next methods
     def _setNextBool(self, val):
         if not val in (0, 1):
-            raise ValueError("Expected value 0 or 1, got %s" % val)
+            raise ValueError("Expected boolean value, got %s (%s)" % (repr(val), type(val)))
         self._next = val
 
     def _setNextInt(self, val):
