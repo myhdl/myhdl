@@ -1,5 +1,4 @@
-from __future__ import generators
-from myhdl import Signal, delay, Simulation, intbv, bin, traceSignals
+from myhdl import Signal, delay, Simulation, always_comb, instance, intbv, bin, traceSignals
 
 def bin2gray(B, G, width):
     """ Gray encoder.
@@ -8,10 +7,14 @@ def bin2gray(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
-    while 1:
-        yield B
+    
+    @always_comb
+    def logic():
         for i in range(width):
             G.next[i] = B[i+1] ^ B[i]
+            
+    return logic
+
 
 def testBench(width):
     
@@ -20,16 +23,18 @@ def testBench(width):
     
     dut = traceSignals(bin2gray, B, G, width)
 
+    @instance
     def stimulus():
         for i in range(2**width):
             B.next = intbv(i)
             yield delay(10)
             print "B: " + bin(B, width) + "| G: " + bin(G, width)
 
-    return (dut, stimulus())
+    return dut, stimulus
 
 def main():
-    Simulation(testBench(width=3)).run()
+    sim = Simulation(testBench(width=3))
+    sim.run()
     
 
 if __name__ == '__main__':

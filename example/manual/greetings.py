@@ -1,34 +1,46 @@
-from __future__ import generators
-from myhdl import Signal, delay, posedge, now, Simulation
+from myhdl import Signal, delay, instance, always, now, Simulation
 
-def clkGen(clock, period=20):
+def ClkDriver(clk, period=20):
+    
     lowTime = int(period/2)
     highTime = period - lowTime
-    while 1:
-        yield delay(lowTime)
-        clock.next = 1
-        yield delay(highTime)
-        clock.next = 0
 
-def sayHello(clock, to="World!"):
-    while 1:
-        yield posedge(clock)
+    @instance
+    def driveClk():
+        while True:
+            yield delay(lowTime)
+            clk.next = 1
+            yield delay(highTime)
+            clk.next = 0
+
+    return driveClk
+            
+
+def Hello(clk, to="World!"):
+
+    @always(clk.posedge)
+    def sayHello():
         print "%s Hello %s" % (now(), to)
+
+    return sayHello
+
 
 def greetings():
 
     clk1 = Signal(0)
     clk2 = Signal(0)
     
-    clkGen1 = clkGen(clk1) # positional and default association
-    clkGen2 = clkGen(clock=clk2, period=19) # named assocation 
-    sayHello1 = sayHello(clock=clk1) # named and default association
-    sayHello2 = sayHello(to="MyHDL", clock=clk2) # named assocation
+    clkdriver_1 = ClkDriver(clk1) # positional and default association
+    clkdriver_2 = ClkDriver(clk=clk2, period=19) # named assocation 
+    hello_1 = Hello(clk=clk1) # named and default association
+    hello_2 = Hello(to="MyHDL", clk=clk2) # named assocation
 
-    return clkGen1, clkGen2, sayHello1, sayHello2
+    return clkdriver_1, clkdriver_2, hello_1, hello_2
+
 
 def main():
-    sim = Simulation(greetings())
+    inst = greetings()
+    sim = Simulation(inst)
     sim.run(50)
 
 if __name__ == '__main__':

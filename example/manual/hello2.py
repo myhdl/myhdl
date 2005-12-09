@@ -1,22 +1,29 @@
-from __future__ import generators
-from myhdl import Signal, delay, posedge, now, Simulation
+from myhdl import Signal, delay, always, now, Simulation
 
-clk = Signal(0)
+def ClkDriver(clk):
 
-def clkGen():
-    while 1:
-        yield delay(10)
-        clk.next = 1
-        yield delay(10)
-        clk.next = 0
+    @always(delay(10))
+    def driveClk():
+        clk.next = not clk
 
-def sayHello():
-    while 1:
-        yield posedge(clk)
+    return driveClk
+
+
+def HelloWorld(clk):
+    
+    @always(clk.posedge)
+    def sayHello():
         print "%s Hello World!" % now()
 
+    return sayHello
+
+
+
 def main():
-    sim = Simulation(clkGen(), sayHello())
+    clk = Signal(0)
+    clkdriver_inst = ClkDriver(clk)
+    hello_inst = HelloWorld(clk)
+    sim = Simulation(clkdriver_inst, hello_inst)
     sim.run(50)
 
 if __name__ == '__main__':
