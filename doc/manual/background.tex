@@ -17,13 +17,17 @@ see \url{http://www.python.org/doc/Newbies.html}.
 A working knowledge of a hardware description language such as Verilog
 or VHDL is helpful. 
 
-\section{A small tutorial on generators \label{tutorial}}
-\index{generators!tutorial on|(}
+Code examples in this manual are sometimes shortened for clarity.
+ Complete executable examples can be found in the distribution directory at 
+\file{example/manual/}.
 
-Generators are a recent Python feature, introduced in
-Python~2.2. Therefore, there isn't a lot of tutorial material
-available yet. Because generators are the key concept in
-\myhdl{}, I include a small tutorial here.
+\section{A small tutorial on generators \label{tutorial}}
+\index{generators!tutorial on}
+
+Generators are a relatively recent Python feature. They
+were introduced in Python~2.2.
+Because generators are the key concept in
+\myhdl{}, a small tutorial is included a here.
 
 Consider the following nonsensical function:
 
@@ -113,19 +117,49 @@ statements work as generalized
     \index{sensitivity list}%
 sensitivity lists. 
 
-If you want to know more about generators, consult the on-line Python
+For more info about generators, consult the on-line Python
 documentation, e.g. at \url{http://www.python.org/doc/2.2.2/whatsnew}. 
 
+
+\section{About decorators \label{deco}}
+\index{decorators!about}
+
+Python 2.4 introduced a new feature called decorators. MyHDL 0.5 defines
+a number of decorators to facilitate hardware descriptions, but many users may
+not be familiar with the concept. Therefore, an introduction
+is included here.
+
+A decorator consists of special syntax in front of a function
+declaration. It refers to a decorator function. The decorator
+function automatically transforms the declared function into some
+other callable object.
+
+A decorator function \function{deco} is used in a decorator statement as follows:
+
+\begin{verbatim}
+@deco
+def func(arg1, arg2, ...):
+    <body>
+
+This code is equivalent to the following template:
+
+def func(arg1, arg2, ...):
+    <body>
+func = deco(func)
+\end{verbatim}
+
+Note that the decorator statement goes directly in front of the
+function declaration, and that the function name func is automatically
+reused.
+
+MyHDL 0.5 uses decorators to create ready-to-simulate generators
+from local (embedded) function definitions. Their functionality
+and usage will be described extensively in this manual.
+
+For more info about Python decorators, consult the on-line Python
+documentation, e.g. at \url{http://www.python.org/doc/2.4/whatsnew/node6.html}.
+
 \begin{notice}[warning]
-As mentioned earlier, generators were introduced in Python~2.2. In
-that version, they were introduced as a ``future'' feature that has to
-be enabled explicitly. In Python~2.3, which is the latest stable
-Python version at the time of this writing, generators are enabled by
-default.
-
-Besides generators, Python~2.3 has several other interesting new
-features, and it runs 25--35\% faster than Python~2.2. For these
-reasons, \myhdl\ requires Python~2.3.
+Because MyHDL 0.5 uses decorators, it requires Python 2.4 or a
+later version.
 \end{notice}
-\index{generators!tutorial on|)}
-

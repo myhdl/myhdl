@@ -3,177 +3,229 @@
 \section{A basic \myhdl\ simulation \label{intro-basic}}
 
 We will introduce \myhdl\ with a classic \code{Hello World} style
-example. Here are the contents of a \myhdl\ simulation script called
-\file{hello1.py}:
+example. All example code can be found in the distribution directory
+under \file{example/manual}.  Here are the contents of a \myhdl\
+simulation script called \file{hello1.py}:
 
 \begin{verbatim}
-from myhdl import delay, now, Simulation
+from myhdl import Signal, delay, always, now, Simulation
 
-def sayHello():
-    while 1:
-        yield delay(10)
+def HelloWorld():
+    
+    @always(delay(10))
+    def sayHello():
         print "%s Hello World!" % now()
 
-gen = sayHello()
-sim = Simulation(gen)
+    return sayHello
+
+inst = HelloWorld()
+sim = Simulation(inst)
 sim.run(30)
 \end{verbatim}
 
-All example code can be found in the distribution directory under
-\file{example/manual}.  When we run this simulation, we get the
-following output:
+When we run this simulation, we get the following output:
 
 \begin{verbatim}
 % python hello1.py
 10 Hello World!
 20 Hello World!
 30 Hello World!
-StopSimulation: Simulated for duration 30
+_SuspendSimulation: Simulated 30 timesteps
 \end{verbatim}
 
 The first line of the script imports a number of objects from the
-\code{myhdl} package. In good Python style, and unlike most other
-languages, we can only use identifiers that are
-\emph{literally} defined in the source file 
+\code{myhdl} package. In Python we can only use identifiers that are
+literally defined in the source file 
 \footnote{The exception is the \samp{from module import *} syntax,
 that imports all the symbols from a module. Although this is generally
 considered bad practice, it can be tolerated for large modules that
 export a lot of symbols. One may argue that
 \code{myhdl} falls into that category.}.
 
-Next, we define a generator function called
-\code{sayHello}. This is a generator function (as opposed to
-a classic Python function) because it contains a \keyword{yield}
-statement (instead of \keyword{return} statement).
-When called, a generator function returns a \dfn{generator},
-which is the basic simulation object in \myhdl{}.
+Then, we define a function called \function{HelloWorld}. In MyHDL,
+classic functions are used to model hardware modules. In particular,
+the parameter list is used to define the interface. In this first
+example, the interface is empty.
 
-The \keyword{yield} statement in \myhdl{} has a similar meaning as
-the \keyword{wait} statement in VHDL: the statement suspends execution
-of a generator, and its clauses specify the conditions on which the
-generator should wait before resuming. In this case, it should
-\index{wait!for a delay}% 
-wait for a delay.
+Inside the top level function we declared a local function called
+\function{sayHello} that defines the desired behavior. This function
+is decorated with an \function{@always} decorator that has a delay
+object as its parameter.  The meaning is that the function will be
+executed whenever the specified delay has expired.
 
-To make sure that a generator runs ``forever'', we wrap its behavior
-in a \code{while 1} loop. This is a standard Python idiom, and it is
-the \myhdl\ equivalent of the implicit looping behavior of a 
-    \index{Verilog!always block}% 
-Verilog \keyword{always} block
-    \index{VHDL!process}%
-and a VHDL \keyword{process}.
+Behind the curtains, the \function{@always} decorator creates a Python
+\emph{generator} and reuses the name of the decorated function for
+it. Generators are the fundamental objects in MyHDL, and we will say
+much more about them further on.
 
-In the example, variable
-\code{gen} refers to a generator. To simulate it, we pass
-it as an argument to a \class{Simulation} object constructor.  We then
-run the simulation for the desired amount of time. In \myhdl{}, time
-is modeled as a natural integer.
+Finally, the top level function returns the local generator. This code
+pattern is the simplest incarnation of the basic MyHDL code pattern
+to define the contents of a hardware module. We will describe the
+general case further on.
 
+In MyHDL, we create an \emph{instance} of a hardware module by calling
+the corresponding function. In the example, variable \code{inst} refers
+to an instance of \function{HelloWorld}.  To simulate the instance, we
+pass it as an argument to a \class{Simulation} object constructor.  We
+then run the simulation for the desired amount of timesteps.
 
-\section{Concurrent generators and signals \label{intro-conc}}
+\section{Signals, ports, and concurrency \label{intro-conc}}
 
-In the previous section, we simulated a single generator. Of course,
-real hardware descriptions are not like that: in fact, they are
+In the previous section, we simulated a design that consisted
+of a single generator. Of course,
+real hardware descriptions are not like that: they are
 typically massively concurrent. \myhdl\ supports this by allowing an
 arbitrary number of concurrent generators. 
 
 With concurrency comes the problem of deterministic
 communication. Hardware languages use special objects to
-support deterministic communication between concurrent code. \myhdl\
+support deterministic communication between concurrent code.
+For this purpose \myhdl\
 has a \class{Signal} object which is roughly modeled after VHDL
 signals.
 
-We will demonstrate these concepts by extending and modifying our
-first example. We introduce a clock signal, driven by a second
-generator: 
+We will demonstrate the use of signals and the concept of concurrency
+by extending and modifying our first example. We define two hardware
+modules, one that drives a clock signal, and one that is sensitive
+to a positive edge on a clock signal:
+
 
 \begin{verbatim}
-clk = Signal(0)
+from myhdl import Signal, delay, always, now, Simulation
 
-def clkGen():
-    while 1:
-        yield delay(10)
-        clk.next = 1
-        yield delay(10)
-        clk.next = 0
+
+def ClkDriver(clk):
+
+    @always(delay(10))
+    def driveClk():
+        clk.next = not clk
+
+    return driveClk
+
+
+def HelloWorld(clk):
+    
+    @always(clk.posedge)
+    def sayHello():
+        print "%s Hello World!" % now()
+
+    return sayHello
+
+
+clk = Signal(0)
+clkdriver_inst = ClkDriver(clk)
+hello_inst = HelloWorld(clk)
+sim = Simulation(clkdriver_inst, hello_inst)
+sim.run(50)
 \end{verbatim}
 
-The \code{clk} signal is constructed with an initial value
-\code{0}. In the clock generator function \code{clkGen}, it is
-continuously assigned a new value after a certain delay. In \myhdl{},
-the new value of a signal is specified by assigning to its
+The clock driver function \function{ClkDriver} has a
+clock signal as its parameter. This is how a
+\emph{port} is modelled in MyHDL. The function
+defines a generator
+that continuously toggles a clock signal after a certain delay.
+A new value of a signal is specified by assigning to its
 \code{next} attribute. This is the \myhdl\ equivalent of 
     \index{VHDL!signal assignment}%
 the VHDL signal assignment and the 
     \index{Verilog!non-blocking assignment}%
 Verilog non-blocking assignment.
 
-The \code{sayHello} generator function is modified to wait for a
-rising edge of the clock instead of a delay:
-
-\begin{verbatim}
-def sayHello():
-    while 1:
-        yield posedge(clk)
-        print "%s Hello World!" % now()
-\end{verbatim}
-
-Waiting for the clock edge is achieved with a second form of the
-\keyword{yield} statement: \samp{yield posedge(\var{signal})}. 
-At that point, the generator will
+The \function{HelloWorld} function is modified from the
+first example. It now also takes a clock signal as parameter.
+Its generator is made sensitive to a rising
     \index{wait!for a rising edge}%
-wait for a rising edge on the signal.
+edge of the clock signal. This is specified by the
+\code{posedge} attribute of a signal. The edge
+specifier is the argument of the \code{@always}
+decorator. As a result, the decorated function
+will be executed on every rising clock edge.
 
-The \class{Simulation} is now constructed with 2 generator arguments:
+The \code{clk} signal is constructed with an initial value
+\code{0}. When creating an instance of each to the two
+hardware modules, the same clock signal is passed as
+the argument. The result is that the two instances
+are now connected through the clock signal.
+The \class{Simulation} object is constructed with the
+two instances.
 
-\begin{verbatim}
-sim = Simulation(clkGen(), sayHello())
-sim.run(50)
-\end{verbatim}
-
-When we run this simulation, we get:
+When we run the simulation, we get:
 
 \begin{verbatim}
 % python hello2.py
 10 Hello World!
 30 Hello World!
 50 Hello World!
-StopSimulation: Simulated for duration 50
+_SuspendSimulation: Simulated 50 timesteps
 \end{verbatim}
 
 
-\section{Parameters, instances and hierarchy \label{intro-hier}}
+\section{Parameters and hierarchy \label{intro-hier}}
 
-So far, the generator function examples had no parameters. For
-example, the \code{clk} signal was defined in the enclosing scope of
-the generator functions. To make code reusable we will
-want to pass arguments through a parameter list. For example, we can
+We have seen that MyHDL uses functions to model hardware
+modules. We have also seen that ports are modeled by using
+signals as parameters. To make designs reusable we will also
+want to use other objects as parameters. For example, we can
 change the clock generator function to make it more general
-and reusable, as follows:
+and reusable, by making the clock period parametrizable, as
+follows:
 
 \begin{verbatim}
-def clkGen(clock, period=20):
-    lowTime = int(period / 2)
+from myhdl import Signal, delay, instance, always, now, Simulation
+
+def ClkDriver(clk, period=20):
+    
+    lowTime = int(period/2)
     highTime = period - lowTime
-    while 1:
-        yield delay(lowTime)
-        clock.next = 1
-        yield delay(highTime)
-        clock.next = 0
+
+    @instance
+    def driveClk():
+        while True:
+            yield delay(lowTime)
+            clk.next = 1
+            yield delay(highTime)
+            clk.next = 0
+
+    return driveClk
 \end{verbatim}
 
-The clock signal is now a parameter of the function. Also, the clock
+In addition to the clock signal, the clock
 \var{period} is a parameter with a default value of \code{20}.
-This makes \var{period} an \dfn{optional} parameter; if it is not
-specified in a call, the default value will be used.
 
-Similarly, the \code{sayHello} function can be made more general as follows:
+As the low time of the clock may differ from the high time in case of
+an odd period, we cannot use the \function{@always} decorator with a
+single delay value anymore. Instead, the \function{driveClk} function
+is now a generator function with an explicit definition of the desired
+behavior. You can see that \function{driveClk} is a generator function (as
+opposed to a classic function) because it contains \code{yield}
+statements.
+
+When a generator function is called, it returns a generator object. In
+fact, this is mainly what the \function{@instance} decorator does. It
+is less sophisticated than the \function{@always} decorator,
+but it can be used to create a generator from any local generator
+function.
+
+The \code{yield} statement is a general Python construct, but MyHDL
+uses it in a dedicated way.  In MyHDL, it has a similar meaning as the
+wait statement in VHDL: the statement suspends execution of a
+generator, and its clauses specify the conditions on which the
+generator should wait before resuming. In this case, the generator
+waits for a certain delay.
+
+Not that to make sure that the generator runs ``forever'', we wrap its
+behavior in a \code{while True} loop.
+
+Likewise, we can define a general \function{Hello} function as follows:
 
 \begin{verbatim}
-def sayHello(clock, to="World!"):
-    while 1:
-        yield posedge(clock)
+def Hello(clk, to="World!"):
+
+    @always(clk.posedge)
+    def sayHello():
         print "%s Hello %s" % (now(), to)
+
+    return sayHello
 \end{verbatim}
 
 We can create any number of generators by calling generator functions
@@ -190,15 +242,20 @@ For example:
 
 \begin{verbatim}
 def greetings():
+
     clk1 = Signal(0)
     clk2 = Signal(0)
-    clkGen1 = clkGen(clk1)
-    clkGen2 = clkGen(clock=clk2, period=19)
-    sayHello1 = sayHello(clock=clk1)
-    sayHello2 = sayHello(to="MyHDL", clock=clk2)
-    return clkGen1, clkGen2, sayHello1, sayHello2
+    
+    clkdriver_1 = ClkDriver(clk1) # positional and default association
+    clkdriver_2 = ClkDriver(clk=clk2, period=19) # named assocation 
+    hello_1 = Hello(clk=clk1) # named and default association
+    hello_2 = Hello(to="MyHDL", clk=clk2) # named assocation
 
-sim = Simulation(greetings())
+    return clkdriver_1, clkdriver_2, hello_1, hello_2
+
+
+inst = greetings()
+sim = Simulation(inst)
 sim.run(50)
 \end{verbatim}
 
@@ -220,7 +277,7 @@ The simulation produces the following output:
 30 Hello World!
 47 Hello MyHDL
 50 Hello World!
-StopSimulation: Simulated for duration 50
+_SuspendSimulation: Simulated 50 timesteps
 \end{verbatim}
 
 
@@ -273,30 +330,38 @@ As an example, we will consider the design of a Gray encoder. The
 following code is a Gray encoder modeled in \myhdl{}:
 
 \begin{verbatim}
+from myhdl import Signal, delay, Simulation, always_comb, instance, intbv, bin
+
 def bin2gray(B, G, width):
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
-    G -- output intbv signal, Gray encoded
+    G -- output intbv signal, gray encoded
     width -- bit width
-
-    """xc
-    while 1:
-        yield B
+    """
+    
+    @always_comb
+    def logic():
         for i in range(width):
             G.next[i] = B[i+1] ^ B[i]
+            
+    return logic
 \end{verbatim}
 
 This code introduces a few new concepts. The string in triple quotes
 at the start of the function is a \dfn{doc string}. This is standard
-Python practice for structured documentation of code. Moreover, we
-use a third form of the \keyword{yield} statement:
-\samp{yield \var{signal}}. This specifies that the generator should
+Python practice for structured documentation of code.
+
+Furthermore, we introduce a third decorator: \function{@always_comb}.
+It is used with a classic function and specifies that the 
+resulting generator should
     \index{wait!for a signal value change}%
-wait for a signal value change. This is typically used to
+wait for a value change on any input signal. This is typically used to
 describe 
     \index{combinatorial logic}%
-combinatorial logic.
+combinatorial logic. The \function{@always_comb} decorator
+automatically infers which signals are used as inputs.
+
 Finally, the code contains bit indexing operations and an exclusive-or
 operator as required for a Gray encoder. By convention, the lsb of an
 \class{intbv} object has index~\code{0}.
@@ -310,15 +375,16 @@ def testBench(width):
     B = Signal(intbv(0))
     G = Signal(intbv(0))
     
-    dut = bin2gray(B, G, width)
+    dut = traceSignals(bin2gray, B, G, width)
 
+    @instance
     def stimulus():
         for i in range(2**width):
             B.next = intbv(i)
             yield delay(10)
             print "B: " + bin(B, width) + "| G: " + bin(G, width)
 
-    return (dut, stimulus())
+    return dut, stimulus
 \end{verbatim}
 
 We use the conversion function \code{bin} to get a binary
@@ -329,7 +395,8 @@ by the \code{myhdl} package and complements the standard Python
 To demonstrate, we set up a simulation for a small width: 
 
 \begin{verbatim}
-Simulation(testBench(width=3)).run()
+sim = Simulation(testBench(width=3))
+sim.run()
 \end{verbatim}
 
 The simulation produces the following output:
@@ -355,8 +422,7 @@ slicing.  The following function calculates the HEC byte of an ATM
 header.
 
 \begin{verbatim}
-from myhdl import intbv
-concat = intbv.concat # shorthand alias
+from myhdl import intbv, concat
 
 COSET = 0x55
 
@@ -395,6 +461,9 @@ to avoid one-off count issues in practice. For example, the slice
 follows: for a slice \code{[i:j]}, only bits below index \code{i} are
 included, and the bit with index \code{j} is the last bit included.
 
+When an intbv object is sliced, a new intbv object is returned. This
+new intbv always has a positive value, even when the original object
+was negative.
 
 \section{Bus-functional procedures \label{intro-bfm}}
 

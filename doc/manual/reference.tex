@@ -192,7 +192,7 @@ are forked, while the original generator resumes immediately.
 MyHDL defines a number of decorator functions, that make it easier to
 create generators from local generator function.
 
-\begin{funcdesc}{instance}{}
+\begin{funcdesc}{@instance}{}
 The \code{@instance} decorator is the most general decorator.  It
 automatically creates a generator by calling the generator function,
 and by reusing its name.
@@ -214,10 +214,10 @@ This is equivalent to:
 \begin{verbatim}
 def top(...):
     ...
-    def gen_func():
+    def _gen_func():
         <generator body>
     ...
-    inst = gen_func()
+    inst = _gen_func()
     ...
     return inst, ...
 \end{verbatim}
@@ -225,10 +225,10 @@ def top(...):
 \end{funcdesc}
     
 
-\begin{funcdesc}{always}{arg \optional{, *args}}
+\begin{funcdesc}{@always}{arg \optional{, *args}}
 
-The \code{@always} decorator is a specialized decorator for a widely used
-pattern. It is used as follows:
+The \code{@always} decorator is a specialized decorator that targets a widely used
+coding pattern. It is used as follows:
 
 \begin{verbatim}
 def top(...):
@@ -242,16 +242,18 @@ def top(...):
 
 This is equivalent to the following:
 
-
 \begin{verbatim}
 def top(...):
     ...
-    def gen_func()
+    def _func():
+        <body>
+
+    def _gen_func()
         while True:
             yield event1, event2, ... 
-            <body>
+            _func()
     ...
-    inst = gen_func()
+    inst = _gen_func()
     ...
     return inst, ...
 \end{verbatim}
@@ -259,12 +261,13 @@ def top(...):
 
 The argument list of the decorator corresponds to the sensitivity
 list. Only signals, edge specifiers, or delay objects are allowed.
+The decorated function should be a classic function.
 
 
 \end{funcdesc}
 
 
-\begin{funcdesc}{always_comb}{}
+\begin{funcdesc}{@always_comb}{}
 
 
 The \code{@always_comb} decorator is used to describe combinatorial
