@@ -1,7 +1,6 @@
-from __future__ import generators
 from myhdl import Signal, Simulation, delay, always_comb
 
-def mux(z, a, b, sel):
+def Mux(z, a, b, sel):
     """ Multiplexer.
     
     z -- mux output
@@ -9,19 +8,20 @@ def mux(z, a, b, sel):
     sel -- control input: select a if asserted, otherwise b
     
     """
+    @always_comb
     def muxlogic():
         if sel == 1:
             z.next = a
         else:
             z.next = b
 
-    return always_comb(muxlogic)
+    return muxlogic
 
 from random import randrange
 
-(z, a, b, sel) = [Signal(0) for i in range(4)]
+z, a, b, sel = [Signal(0) for i in range(4)]
 
-MUX_1 = mux(z, a, b, sel)
+mux_1 = Mux(z, a, b, sel)
 
 def test():
     print "z a b sel"
@@ -30,8 +30,11 @@ def test():
         yield delay(10)
         print "%s %s %s %s" % (z, a, b, sel)
 
+test_1 = test()
+
 def main():
-    Simulation(MUX_1, test()).run()    
+    sim = Simulation(mux_1, test_1)
+    sim.run()    
     
 if __name__ == '__main__':
     main()

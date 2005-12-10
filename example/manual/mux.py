@@ -1,4 +1,3 @@
-from __future__ import generators
 from myhdl import Signal, Simulation, delay
 
 def mux(z, a, b, sel):
