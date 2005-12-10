@@ -55,7 +55,7 @@ def inc2(count, enable, clock, reset, n):
             count.next = 0
         else:
             if enable:
-                if count == n:
+                if count == n-1:
                     count.next = 0
                 else:
                     count.next = count + 1
