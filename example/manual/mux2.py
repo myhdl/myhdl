@@ -1,6 +1,7 @@
 from myhdl import Signal, Simulation, delay, always_comb
 
 def Mux(z, a, b, sel):
+    
     """ Multiplexer.
     
     z -- mux output
@@ -8,14 +9,15 @@ def Mux(z, a, b, sel):
     sel -- control input: select a if asserted, otherwise b
     
     """
+    
     @always_comb
-    def muxlogic():
+    def muxLogic():
         if sel == 1:
             z.next = a
         else:
             z.next = b
 
-    return muxlogic
+    return muxLogic
 
 from random import randrange
 
