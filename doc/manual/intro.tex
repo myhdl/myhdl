@@ -228,17 +228,18 @@ def Hello(clk, to="World!"):
     return sayHello
 \end{verbatim}
 
-We can create any number of generators by calling generator functions
-with the appropriate parameters. This is very similar to the concept
-of instantiation in hardware description languages and we will use
-the same terminology in \myhdl{}. A \myhdl\ \dfn{instance} is
-    \index{instance!defined}%
-recursively defined as being either a sequence of instances, or a
-generator.  Hierarchy can be modeled by defining the instances in a
-higher-level function, and returning them. 
-A \class{Simulation} constructor takes an arbitrary number of
-instances as its arguments.
-For example:
+
+We can create any number of instances by calling the functions with
+the appropriate parameters. Hierarchy can be modeled by defining the
+instances in a higher-level function, and returning them.
+This pattern can be repeated for an arbitrary number of
+hierarhical levels. Consequently, the general definition
+of a \myhdl\ \dfn{instance} is recursive: an instance
+   \index{instance!defined}%
+is either a sequence of instances, or a generator.
+
+As an example, we will create a higher-level function with
+four instances of the lower-level functions, and simulate it:
 
 \begin{verbatim}
 def greetings():
@@ -264,7 +265,7 @@ be used in instantiations, or a mix of both\footnote{All positional
 parameters have to go before any named parameter.}. All these styles
 are demonstrated in the example above. As in hardware description
 languages, named association can be very useful if there are a lot of
-parameters, as the parameter order in the call does not matter in that
+parameters, as the argument order in the call does not matter in that
 case.
 
 The simulation produces the following output:
@@ -465,8 +466,10 @@ When an intbv object is sliced, a new intbv object is returned. This
 new intbv always has a positive value, even when the original object
 was negative.
 
+\section{Summary and perspective}
 
-\section{\myhdl\ and Python \label{intro-python}}
+
+\section{Some remarks on \myhdl\ and Python \label{intro-python}}
 
 To conclude this introductory chapter, it is useful to stress that
 \myhdl\ is not a language in itself. The underlying language is Python, 
