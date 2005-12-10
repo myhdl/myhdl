@@ -376,7 +376,7 @@ def testBench(width):
     B = Signal(intbv(0))
     G = Signal(intbv(0))
     
-    dut = traceSignals(bin2gray, B, G, width)
+    dut = bin2gray(B, G, width)
 
     @instance
     def stimulus():
