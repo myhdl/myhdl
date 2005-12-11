@@ -2,7 +2,9 @@ from myhdl import Signal, delay, always, now, Simulation
 
 def ClkDriver(clk):
 
-    @always(delay(10))
+    halfPeriod = delay(10)
+
+    @always(halfPeriod)
     def driveClk():
         clk.next = not clk
 
