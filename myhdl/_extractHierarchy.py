@@ -49,6 +49,17 @@ class _error:
     pass
 _error.NoInstances = "No instances found"
 
+
+class _Instance(object):
+    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name']
+    def __init__(self, level, obj, subs, sigdict, memdict):
+        self.level = level
+        self.obj = obj
+        self.subs = subs
+        self.sigdict = sigdict
+        self.memdict = memdict
+        
+
 _memInfoMap = {}
 
 class _MemInfo(object):
@@ -133,7 +144,7 @@ class _HierExtr(object):
         global _profileFunc
         global _memInfoMap
         _memInfoMap = {}
-        self.skipNames = ('always_comb', 'always', '_always_decorator', \
+        self.skipNames = ('always_comb', 'always', '_always_decorator', 'instance', \
                           'instances', 'processes', 'posedge', 'negedge')
         self.skip = 0
         self.hierarchy = hierarchy = []
@@ -152,7 +163,7 @@ class _HierExtr(object):
                         gsigdict[n] = v
                     if _isListOfSigs(v):
                         gmemdict[n] = _makeMemInfo(v)
-            inst = [1, (_top, ()), gsigdict, gmemdict]
+            inst = _Instance(1, _top, (), gsigdict, gmemdict)
             self.hierarchy.append(inst)
         # the normal case
         else:
@@ -169,29 +180,25 @@ class _HierExtr(object):
         hierarchy.reverse()
 ##         from pprint import pprint
 ##         pprint(hierarchy)
-        # print hierarchy
         # walk the hierarchy to define relative and absolute names
-        # use names as high as possible in hierarchy to avoid ambiguity
         names = {}
-        obj, subs = hierarchy[0][1]
+        top_inst = hierarchy[0]
+        obj, subs = top_inst.obj, top_inst.subs
         names[id(obj)] = name
         absnames[id(obj)] = '_' + name
-        for m in hierarchy:
-            obj, subs = m[1]
+        for inst in hierarchy:
+            obj, subs = inst.obj, inst.subs
             assert id(obj) in names
+            inst.name = names[id(obj)]
             tn = absnames[id(obj)]
             for sn, so in subs:
-                if not id(so) in names:
-                    names[id(so)] = sn
+                names[id(so)] = sn
                 absnames[id(so)] = "%s_%s" % (tn, sn)
                 if isinstance(so, (tuple, list)):
                     for i, soi in enumerate(so):
-                        if not(id(soi)) in names:
-                            names[id(soi)] = "%s_%s" % (sn, i)
+                        sni =  "%s_%s" % (sn, i)
+                        names[id(soi)] = sni
                         absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
-            m[1] = names[id(obj)]
-##         pprint(hierarchy)
-           
 
                 
     def extractor(self, frame, event, arg):
@@ -241,8 +248,9 @@ class _HierExtr(object):
                                     if id(obj) in self.returned:
                                         continue
                                     gen = obj
+                                    # can't get signal info from contructed generators
                                     if isinstance(obj, (_AlwaysComb, _Always)):
-                                        gen = obj.gen
+                                        continue
                                     gsigdict = {}
                                     gmemdict = {}
                                     for dict in (gen.gi_frame.f_globals,
@@ -252,11 +260,11 @@ class _HierExtr(object):
                                                 gsigdict[n] = v
                                             if _isListOfSigs(v):
                                                 gmemdict[n] = _makeMemInfo(v)
-                                    inst = [self.level+1, (obj, ()), gsigdict, gmemdict]
+                                    inst = _Instance(self.level+1, obj, (), gsigdict, gmemdict)
                                     self.hierarchy.append(inst)
                                     
                     self.returned.add(id(arg))
-                    inst = [self.level, (arg, subs), sigdict, memdict]
+                    inst = _Instance(self.level, arg, subs, sigdict, memdict)
                     self.hierarchy.append(inst)
                 self.level -= 1
                 
