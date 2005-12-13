@@ -48,43 +48,54 @@ _error.TopLevelName = "result of traceSignals call should be assigned to a top l
 _error.ArgType = "traceSignals first argument should be a classic function"
 _error.MultipleTraces = "Cannot trace multiple instances simultaneously"
 
-def traceSignals(dut, *args, **kwargs):
-    global _tracing
-    if _tracing:
-        return dut(*args, **kwargs) # skip
-    else:
-        # clean start
-        sys.setprofile(None)
-    from myhdl._toVerilog import _convert
-    if _convert._converting:
-        raise TraceSignalsError("Cannot use traceSignals while converting to Verilog")
-    if not callable(dut):
-        raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
-    if _simulator._tracing:
-        raise TraceSignalsError(_error.MultipleTraces)
-    
-    _tracing = 1
-    try:
-##         outer = getouterframes(currentframe())[1]
-##         name = _findInstanceName(outer)
-        name = dut.func_name
-        if name is None:
-            raise TraceSignalsError(_error.TopLevelName)
-        h = _HierExtr(name, dut, *args, **kwargs)
-        vcdpath = name + ".vcd"
-        if path.exists(vcdpath):
-            backup = vcdpath + '.' + str(path.getmtime(vcdpath))
-            shutil.copyfile(vcdpath, backup)
-            os.remove(vcdpath)
-        vcdfile = open(vcdpath, 'w')
-        _simulator._tracing = 1
-        _simulator._tf = vcdfile
-        _writeVcdHeader(vcdfile)
-        _writeVcdSigs(vcdfile, h.hierarchy)
-    finally:
-        _tracing = 0
-        
-    return h.top
+
+class _TraceSignalsClass(object):
+
+    __slot__ = ("name", )
+
+    def __init__(self):
+        self.name = None
+
+    def __call__(self, dut, *args, **kwargs):
+        global _tracing
+        if _tracing:
+            return dut(*args, **kwargs) # skip
+        else:
+            # clean start
+            sys.setprofile(None)
+        from myhdl._toVerilog import _convert
+        if _convert._converting:
+            raise TraceSignalsError("Cannot use traceSignals while converting to Verilog")
+        if not callable(dut):
+            raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
+        if _simulator._tracing:
+            raise TraceSignalsError(_error.MultipleTraces)
+
+        _tracing = 1
+        try:
+            if self.name is None:
+                name = dut.func_name
+            else:
+                name = str(self.name)
+            if name is None:
+                raise TraceSignalsError(_error.TopLevelName)
+            h = _HierExtr(dut.func_name, dut, *args, **kwargs)
+            vcdpath = name + ".vcd"
+            if path.exists(vcdpath):
+                backup = vcdpath + '.' + str(path.getmtime(vcdpath))
+                shutil.copyfile(vcdpath, backup)
+                os.remove(vcdpath)
+            vcdfile = open(vcdpath, 'w')
+            _simulator._tracing = 1
+            _simulator._tf = vcdfile
+            _writeVcdHeader(vcdfile)
+            _writeVcdSigs(vcdfile, h.hierarchy)
+        finally:
+            _tracing = 0
+
+        return h.top
+
+traceSignals = _TraceSignalsClass()
 
 
 _codechars = ""

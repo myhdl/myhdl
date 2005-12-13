@@ -72,7 +72,7 @@ def _flatten(*args):
 
 class _ToVerilogConvertor(object):
 
-    __slots__ = ("name")
+    __slots__ = ("name", )
 
     def __init__(self):
         self.name = None
@@ -96,7 +96,7 @@ class _ToVerilogConvertor(object):
         else:
             name = str(self.name)
         try:
-            h = _HierExtr(name, func, *args, **kwargs)
+            h = _HierExtr(func.func_name, func, *args, **kwargs)
         finally:
             _converting = 0
 
