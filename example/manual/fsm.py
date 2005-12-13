@@ -63,11 +63,11 @@ def testbench():
             
     framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset_n)
 
+    @always(delay(10))
     def clkgen():
-        while 1:
-            yield delay(10)
-            clk.next = not clk
+        clk.next = not clk
 
+    @instance
     def stimulus():
         for i in range(3):
             yield posedge(clk)
@@ -79,7 +79,7 @@ def testbench():
                 yield posedge(clk)
         raise StopSimulation
         
-    return framectrl, clkgen(), stimulus()
+    return framectrl, clkgen, stimulus
 
 
 def main():
