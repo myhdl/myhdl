@@ -11,12 +11,15 @@ simulation script called \file{hello1.py}:
 from myhdl import Signal, delay, always, now, Simulation
 
 def HelloWorld():
+
+    interval = delay(10)
     
-    @always(delay(10))
+    @always(interval)
     def sayHello():
         print "%s Hello World!" % now()
 
     return sayHello
+
 
 inst = HelloWorld()
 sim = Simulation(inst)
@@ -51,7 +54,7 @@ Inside the top level function we declared a local function called
 \function{sayHello} that defines the desired behavior. This function
 is decorated with an \function{@always} decorator that has a delay
 object as its parameter.  The meaning is that the function will be
-executed whenever the specified delay has expired.
+executed whenever the specified delay interval has expired.
 
 Behind the curtains, the \function{@always} decorator creates a Python
 \emph{generator} and reuses the name of the decorated function for
@@ -96,7 +99,9 @@ from myhdl import Signal, delay, always, now, Simulation
 
 def ClkDriver(clk):
 
-    @always(delay(10))
+    halfPeriod = delay(10)
+
+    @always(halfPeriod)
     def driveClk():
         clk.next = not clk
 

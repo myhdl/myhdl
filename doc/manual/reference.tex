@@ -38,6 +38,10 @@ Base exception that is caught by the \code{Simulation.run()} method to
 stop a simulation.
 \end{excclassdesc}
 
+
+\section{Waveform tracing\label{ref-trace}}
+
+
 \begin{funcdesc}{traceSignals}{func \optional{, *args} \optional{, **kwargs}}
 Enables signal tracing to a VCD file for waveform viewing.
 \var{func} is a function that returns an instance.
@@ -51,11 +55,20 @@ to a top level instance name. For example:
 \begin{verbatim}
 topname = traceSignals(func, ...)
 \end{verbatim}
-The resulting VCD file will be named after the top level instance
-name. In the example, it would be called \file{topname.vcd}.  If the
-VCD file exists already, it will be moved to a backup file by
+By default, the resulting VCD file will be named after the top level
+instance name. In the example, it would be called \file{topname.vcd}.
+
+If the VCD file exists already, it will be moved to a backup file by
 attaching a timestamp to it, before creating the new file.
 \end{funcdesc}
+
+The \code{traceSignals} callable has the following attribute:
+
+\begin{memberdesc}[traceSignals]{name}
+
+This attribute is used to overwrite the default basename for the
+VCD output filename.
+\end{memberdesc}
 
 
 \section{The \class{Signal} class \label{ref-sig}}

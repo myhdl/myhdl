@@ -406,6 +406,8 @@ otherwise it falls back to the \code{SEARCH} state.  This FSM can be
 coded as follows:
 
 \begin{verbatim}
+from myhdl import *
+
 ACTIVE_LOW = 0
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
@@ -415,49 +417,48 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     """ Framing control FSM.
 
     SOF -- start-of-frame output bit
-    state -- t_State output signal
+    state -- FramerState output
     syncFlag -- sync pattern found indication input
     clk -- clock input
     reset_n -- active low reset
     
     """
+    
     index = Signal(0) # position in frame
 
+    @always(clk.posedge, reset_n.negedge)
     def FSM():
-        while 1:
-            yield posedge(clk), negedge(reset_n)
-            
-            if reset_n == ACTIVE_LOW:
-                SOF.next = 0
-                index.next = 0
-                state.next = t_State.SEARCH
+        if reset_n == ACTIVE_LOW:
+            SOF.next = 0
+            index.next = 0
+            state.next = t_State.SEARCH
+
+        else:
+            index.next = (index + 1) % FRAME_SIZE
+            SOF.next = 0
+
+            if state == t_State.SEARCH:
+                index.next = 1
+                if syncFlag:
+                    state.next = t_State.CONFIRM
+
+            elif state == t_State.CONFIRM:
+                if index == 0:
+                    if syncFlag:
+                        state.next = t_State.SYNC
+                    else:
+                        state.next = t_State.SEARCH
+
+            elif state == t_State.SYNC:
+                if index == 0:
+                    if not syncFlag:
+                        state.next = t_State.SEARCH
+                SOF.next = (index == FRAME_SIZE-1)
 
             else:
-                index.next = (index + 1) % FRAME_SIZE
-                SOF.next = 0
+                raise ValueError("Undefined state")
 
-                if state == t_State.SEARCH:
-                    index.next = 1
-                    if syncFlag:
-                        state.next = t_State.CONFIRM
-
-                elif state == t_State.CONFIRM:
-                    if index == 0:
-                        if syncFlag:
-                            state.next = t_State.SYNC
-                        else:
-                            state.next = t_State.SEARCH
-
-                elif state == t_State.SYNC:
-                    if index == 0:
-                        if not syncFlag:
-                            state.next = t_State.SEARCH
-                    SOF.next = (index == FRAME_SIZE-1)
-
-                else:
-                    raise ValueError("Undefined state")
-
-    return FSM()
+    return FSM
 \end{verbatim}
 
 At this point, we will use the example to demonstrate
@@ -497,7 +498,6 @@ passed to the function call.
 A small test bench for our framing controller example,
 with signal tracing enabled, is shown below:
 
-
 \begin{verbatim}
 def testbench():
 
@@ -509,11 +509,11 @@ def testbench():
             
     framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset_n)
 
+    @always(delay(10))
     def clkgen():
-        while 1:
-            yield delay(10)
-            clk.next = not clk
+        clk.next = not clk
 
+    @instance
     def stimulus():
         for i in range(3):
             yield posedge(clk)
@@ -525,16 +525,16 @@ def testbench():
                 yield posedge(clk)
         raise StopSimulation
         
-    return framectrl, clkgen(), stimulus()
+    return framectrl, clkgen, stimulus
+
 
 tb_fsm = traceSignals(testbench)
-
 sim = Simulation(tb_fsm)
 sim.run()
 \end{verbatim}
 
 When we run the test bench, it generates a VCD file
-called \file{tb_fsm.vcd}. When we load this file into
+called \file{testbench.vcd}. When we load this file into
 \program{gtkwave}, we can view the waveforms:
 
 \ifpdf
@@ -897,9 +897,8 @@ allocate the needed storage space. This is exactly what a dictionary
 provides. The following is an example of a sparse memory model:
 
 \begin{verbatim}
-
-
 def sparseMemory(dout, din, addr, we, en, clk):
+    
     """ Sparse memory model based on a dictionary.
 
     Ports:
@@ -911,15 +910,18 @@ def sparseMemory(dout, din, addr, we, en, clk):
     clk -- clock input
     
     """
+
     memory = {}
-    while 1:
-        yield posedge(clk)
-        if not en:
-            continue
-        if we:
-            memory[addr] = din.val
-        else:
-            dout.next = memory[addr]
+
+    @always(clk.posedge)
+    def access():
+        if en:
+            if we:
+                memory[addr] = din.val
+            else:
+                dout.next = memory[addr]
+
+    return access
 \end{verbatim} 
 
 Note how we use the \code{val} attribute of the \code{din} signal, as
@@ -934,8 +936,9 @@ synchronous fifo:
 
 \begin{verbatim}
 def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
+    
     """ Synchronous fifo model based on a list.
-
+    
     Ports:
     dout -- data out
     din -- data in
@@ -944,13 +947,16 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
     empty -- empty indication flag
     full -- full indication flag
     clk -- clock input
+
     Optional parameter:
     maxFilling -- maximum fifo filling, "infinite" by default
 
     """
+    
     memory = []
-    while 1:
-        yield posedge(clk)
+
+    @always(clk.posedge)
+    def access():
         if we:
             memory.insert(0, din.val)
         if re:
@@ -958,6 +964,8 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
         filling = len(memory)
         empty.next = (filling == 0)
         full.next = (filling == maxFilling)
+
+    return access
 \end{verbatim}
 
 Again, the model is merely a \myhdl\ interface around some operations
@@ -977,6 +985,11 @@ clarity):
 \begin{verbatim}
 Traceback (most recent call last):
 ...
+  File "sparseMemory.py", line 31, in access
+    dout.next = memory[addr]
+KeyError: Signal(51)
+
+
   File "sparseMemory.py", line 30, in sparseMemory
     dout.next = memory[addr]
 KeyError: 51
@@ -1006,19 +1019,23 @@ follows (with the doc string is omitted for brevity):
 class Error(Exception):
     pass
 
-def sparseMemory(dout, din, addr, we, en, clk):
+def sparseMemory2(dout, din, addr, we, en, clk):
+   
     memory = {}
-    while 1:
-        yield posedge(clk)
-        if not en:
-            continue
-        if we:
-            memory[addr] = din.val
-        else:
-            try:
-                dout.next = memory[addr]
-            except KeyError:
-                raise Error, "Uninitialized address %s" % hex(addr)
+
+    @always(clk.posedge)
+    def access():
+        if en:
+            if we:
+                memory[addr] = din.val
+            else:
+                try:
+                    dout.next = memory[addr]
+                except KeyError:
+                    raise Error, "Uninitialized address %s" % hex(addr)
+
+    return access
+
 \end{verbatim}
 
 This works by catching the low level data type exception, and raising
@@ -1029,9 +1046,10 @@ same name, an access error is now reported as follows:
 \begin{verbatim}
 Traceback (most recent call last):
 ...
-  File "sparseMemory.py", line 57, in sparseMemory
+  File "sparseMemory.py", line 61, in access
     raise Error, "Uninitialized address %s" % hex(addr)
-__main__.Error: Uninitialized address 0x33
+Error: Uninitialized address 0x33
+
 \end{verbatim}
 
 Likewise, the \function{fifo} function can be adapted as follows, to
@@ -1041,10 +1059,13 @@ report underflow and overflow errors:
 class Error(Exception):
     pass
 
-def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
+
+def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
+ 
     memory = []
-    while 1:
-        yield posedge(clk)
+
+    @always(clk.posedge)
+    def access():
         if we:
             memory.insert(0, din.val)
         if re:
@@ -1057,6 +1078,8 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
         full.next = (filling == maxFilling)
         if filling > maxFilling:
             raise Error, "Overflow -- Max filling %s exceeded" % maxFilling
+
+    return access
 \end{verbatim}
 
 In this case, the underflow error is detected as before, by catching a
