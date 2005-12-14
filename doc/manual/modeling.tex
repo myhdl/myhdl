@@ -917,19 +917,20 @@ def sparseMemory(dout, din, addr, we, en, clk):
     def access():
         if en:
             if we:
-                memory[addr] = din.val
+                memory[addr.val] = din.val
             else:
-                dout.next = memory[addr]
+                dout.next = memory[addr.val]
 
     return access
 \end{verbatim} 
 
 Note how we use the \code{val} attribute of the \code{din} signal, as
 we don't want to store the signal object itself, but its current
-value. (In many cases, \myhdl\ can use a signal's value automatically
-when there is no ambiguity: for example, this happens whenever a
-signal is used in expressions. When in doubt, you can always use the
-\code{val} attribute explicitly.)
+value. Likewise, we use the \code{val} attribute of the \code{addr}
+signal as the dictionary key. In many cases, \myhdl\ can use a signal's
+value automatically when there is no ambiguity: for example, 
+when a signal is used in an expression. When in doubt, you
+can always use the \code{val} attribute explicitly.
 
 As a second example, we will demonstrate how to use a list to model a
 synchronous fifo:
@@ -986,13 +987,8 @@ clarity):
 Traceback (most recent call last):
 ...
   File "sparseMemory.py", line 31, in access
-    dout.next = memory[addr]
+    dout.next = memory[addr.val]
 KeyError: Signal(51)
-
-
-  File "sparseMemory.py", line 30, in sparseMemory
-    dout.next = memory[addr]
-KeyError: 51
 \end{verbatim}
 
 Similarly, if the \code{fifo} is empty, and we attempt to read from
@@ -1027,10 +1023,10 @@ def sparseMemory2(dout, din, addr, we, en, clk):
     def access():
         if en:
             if we:
-                memory[addr] = din.val
+                memory[addr.val] = din.val
             else:
                 try:
-                    dout.next = memory[addr]
+                    dout.next = memory[addr.val]
                 except KeyError:
                     raise Error, "Uninitialized address %s" % hex(addr)
 

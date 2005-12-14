@@ -4,7 +4,9 @@
 \myhdl\ is implemented as a Python package called \code{myhdl}. This
 chapter describes the objects that are exported by this package.
 
-\section{The \class{Simulation} class \label{ref-sim}}
+\section{Simulation \label{ref-sim}}
+
+\subsection{The \class{Simulation} class \label{ref-simclass}}
 \declaremodule{}{myhdl}
 
 \begin{classdesc}{Simulation}{arg \optional{, arg \moreargs}}
@@ -26,7 +28,7 @@ Run the simulation forever (by default) or for a specified duration.
 \end{methoddesc}
 
 
-\section{Simulation support\label{ref-simsupport}}
+\subsection{Simulation support functions\label{ref-simsupport}}
 \declaremodule{}{myhdl}
 
 \begin{funcdesc}{now}{}
@@ -39,7 +41,7 @@ stop a simulation.
 \end{excclassdesc}
 
 
-\section{Waveform tracing\label{ref-trace}}
+\subsection{Waveform tracing\label{ref-trace}}
 
 
 \begin{funcdesc}{traceSignals}{func \optional{, *args} \optional{, **kwargs}}
@@ -70,8 +72,9 @@ This attribute is used to overwrite the default basename for the
 VCD output filename.
 \end{memberdesc}
 
+\section{Modelling \label{ref-model}}
 
-\section{The \class{Signal} class \label{ref-sig}}
+\subsection{The \class{Signal} class \label{ref-sig}}
 \declaremodule{}{myhdl}
 
 \begin{classdesc}{Signal}{\optional{val=None} \optional{, delay=0}}
@@ -134,7 +137,7 @@ occurs when the signal is driven from user-defined Verilog code.
 
 
 
-\section{\myhdl\ generators and trigger objects \label{ref-gen}}
+\subsection{\myhdl\ generators and trigger objects \label{ref-gen}}
 \declaremodule{}{myhdl}
 
 \myhdl\ generators are standard Python generators with specialized
@@ -199,7 +202,7 @@ trigger object. The generator immediately resumes, as if no
 \code{yield} statement also has generator clauses: those generators
 are forked, while the original generator resumes immediately.
 
-\section{Decorator functions \label{ref-deco}}
+\subsection{Decorator functions \label{ref-deco}}
 \declaremodule{}{myhdl}
 
 MyHDL defines a number of decorator functions, that make it easier to
@@ -304,7 +307,7 @@ logic and the corresponding sensitivity list automatically.
 \end{funcdesc}
 
 
-\section{The \class{intbv} class \label{ref-intbv}}
+\subsection{The \class{intbv} class \label{ref-intbv}}
 \declaremodule{}{myhdl}
 
 \begin{classdesc}{intbv}{\optional{val=None} \optional{, min=None} 
@@ -411,7 +414,7 @@ defined bit width.
 
 
 
-\section{Miscellaneous modeling support functions\label{ref-misc}}
+\subsection{Miscellaneous modeling support functions\label{ref-model-misc}}
 \declaremodule{}{myhdl}
 
 \begin{funcdesc}{bin}{num \optional{, width}}
