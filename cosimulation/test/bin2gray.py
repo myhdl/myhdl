@@ -1,5 +1,4 @@
-from __future__ import generators
-from myhdl import Signal, delay, Simulation, intbv, bin
+from myhdl import *
 
 def bin2gray(B, G, width):
     """ Gray encoder.
@@ -8,9 +7,12 @@ def bin2gray(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
-    while 1:
-        yield B
+
+    @always_comb
+    def logic():
         for i in range(width):
             G.next[i] = B[i+1] ^ B[i]
+
+    return logic
 
 

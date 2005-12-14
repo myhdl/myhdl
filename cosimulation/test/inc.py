@@ -1,5 +1,4 @@
-from __future__ import generators
-from myhdl import Signal, intbv, posedge, negedge
+from myhdl import *
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
@@ -12,11 +11,13 @@ def inc(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
-    while 1:
-        yield posedge(clock), negedge(reset)
+
+    @always(clock.posedge, reset.negedge)
+    def logic():
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
             if enable:
                 count.next = (count + 1) % n
 
+    return logic

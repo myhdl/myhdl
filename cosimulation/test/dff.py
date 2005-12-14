@@ -1,5 +1,4 @@
-from __future__ import generators
-from myhdl import Signal, intbv, posedge, negedge
+from myhdl import *
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
@@ -11,10 +10,15 @@ def dff(q, d, clk, reset):
     clock -- clock input
     reset -- asynchronous reset input
     """
-    while 1:
-        yield posedge(clk), negedge(reset)
+
+    @always(clk.posedge, reset.negedge)
+    def logic():
         if reset == ACTIVE_LOW:
             q.next = 0
         else:
             q.next = d
+
+    return logic
+
+
 

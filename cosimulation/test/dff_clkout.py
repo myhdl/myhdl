@@ -1,5 +1,4 @@
-from __future__ import generators
-from myhdl import Signal, intbv, posedge, negedge
+from myhdl import *
 
 from dff import dff
 
@@ -9,10 +8,11 @@ def dff_clkout(clkout, q, d, clk, reset):
     
     DFF_1 = dff(q, d, clkout, reset)
 
+    @instance
     def assign():
         while 1:
             yield clk
             clkout.next = clk
             
-    return DFF_1, assign()
+    return DFF_1, assign
 
