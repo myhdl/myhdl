@@ -43,10 +43,13 @@ def bin2gray(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
-    while 1:
-        yield B
+
+    @always_comb
+    def logic():
         for i in range(width):
             G.next[i] = B[i+1] ^ B[i]
+
+    return logic
 \end{verbatim}
 
 To show the co-simulation flow, we don't need the Verilog
@@ -295,16 +298,13 @@ in C. In Verilog, the PLI is part of the ``standard''.  However,
 different simulators implement different versions and portions of the
 standard. Worse yet, the behavior of certain PLI callbacks is not
 defined on some essential points.  As a result, one should plan to
-write a specific PLI module for any simulator.
-
-The present release contains a PLI module for the open source Icarus
-simulator. I would like to add modules for other simulators in the
-future, either from external contributions, or by getting access to
-them myself.
+write or at least customize a specific PLI module for any simulator.
+The release contains a PLI module for the open source Icarus
+and Cver simulators. 
 
 This section documents the current approach and status of the PLI
-module implementation in Icarus, and some reflections on future
-implementations in other simulators.
+module implementation and some reflections on future
+implementations.
 
 \subsection{Icarus Verilog \label{cosim-icarus}}
 
@@ -352,23 +352,13 @@ In the mean time, just don't do this. It may appear to ``work'' but it
 really won't as events will be missed over the co-simulation
 interface.
 
-\subsubsection{Interrupted system calls \label{cosim-impl-syscalls}}
 
-The PLI module uses \code{read} and \code{write} system calls to
-communicate between the co-simulators. The implementation assumes that
-these calls are restarted automatically by the operating system when
-interrupted. This is apparently what happens on my Linux box and on
-other operating systems I have used before.
+\subsection{Cver \label{cosim-cver}}
 
-I know how to handle non-restarted interrupted system calls, but I
-cannot test the code! Also, I don't know whether this is still a
-relevant issue with modern operating systems. So I left it
-at that for the moment, and added assertions that should trigger
-when this situation occurs.
-
-Whenever an assertion fires in the PLI module, let me
-know. The same holds for Python exceptions that you cannot
-easily explain.
+MyHDL co-simulation is supported with the open source Verilog
+simulator Cver. The PLI module is based on the one for Icarus
+and basically has the same functionality. Only some cosmetic
+modifications were required.
 
 \subsection{Other Verilog simulators \label{cosim-impl-verilog}}
 
@@ -392,22 +382,36 @@ to introduce new, well defined callbacks. From reading some proposals,
 I conclude that the \code{cbEndOfSimTime} callback would provide the
 required functionality.
 
-I currently have no access to commercial Verilog simulators, so
-progress in co-simulation support will depend on external interest and
-participation. Contact me for more information if you are interested.
+The MyHDL project currently has no access to commercial Verilog
+simulators, so progress in co-simulation support depends on external
+interest and participation. Users have reported that they are using
+MyHDL co-simulation with the simulators from Aldec and Modelsim.
+
+
+\subsection{Interrupted system calls \label{cosim-impl-syscalls}}
+
+The PLI module uses \code{read} and \code{write} system calls to
+communicate between the co-simulators. The implementation assumes that
+these calls are restarted automatically by the operating system when
+interrupted. This is apparently what happens on the Linux box on which
+MyHDL is developed.
+
+It is known how non-restarted interrupted system calls should be
+handled, but currently such code cannot be tested on the MyHDL
+development platform. Also, it is not clear whether this is still a
+relevant issue with modern operating systems. Therefore, this issue
+has not been addressed at this moment. However, assertions have been
+included that should trigger when this situation occurs.
+
+Whenever an assertion fires in the PLI module, please report it.  The
+same holds for Python exceptions that cannot be easily explained.
 
 \subsection{VHDL \label{cosim-impl-vhdl}}
 
 It would be nice to have an interface to VHDL simulators such as the
 Modelsim VHDL simulator. This will require a PLI module using the
-PLI of the VHDL simulator. One feature which I would
-like to keep if possible is the way to declare the communicating
-signals.  In the Verilog solution, it is not necessary to define and
-instantiate a special HDL module (entity). Rather, the participating
-signals can be declared directly in the \code{\$to_myhdl} and
-\code{\$from_myhdl} task calls.
+PLI of the VHDL simulator. 
 
-As for Verilog, I currently have no access to commercial VHDL
+As for Verilog, the MyHDL project currently has no access to commercial VHDL
 simulators, so progress in co-simulation support will depend on
-external interest and participation.  Contact me for more information
-if you are interested.
+external interest and participation.
