@@ -1,9 +1,7 @@
-from __future__ import generators
 import sys
 import traceback
 
-from myhdl import Signal, Simulation, posedge, negedge, delay, \
-                  StopSimulation, join
+from myhdl import *
 
 class Error(Exception):
     pass
@@ -27,8 +25,9 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
     """
     
     memory = []
-    while 1:
-        yield posedge(clk)
+
+    @always(clk.posedge)
+    def access():
         if we:
             memory.insert(0, din.val)
         if re:
@@ -36,6 +35,8 @@ def fifo(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
         filling = len(memory)
         empty.next = (filling == 0)
         full.next = (filling == maxFilling)
+
+    return access
 
         
 def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
@@ -57,8 +58,9 @@ def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
     """
     
     memory = []
-    while 1:
-        yield posedge(clk)
+
+    @always(clk.posedge)
+    def access():
         if we:
             memory.insert(0, din.val)
         if re:
@@ -72,6 +74,8 @@ def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
         if filling > maxFilling:
             raise Error, "Overflow -- Max filling %s exceeded" % maxFilling
 
+    return access
+
 
 dout, din, re, we, empty, full, clk = args = [Signal(0) for i in range(7)]
 
@@ -83,17 +87,17 @@ def clkGen():
         clk.next = not clk
 
 def read():
-    yield negedge(clk)
+    yield clk.negedge
     re.next = 1
-    yield posedge(clk)
+    yield clk.posedge
     yield delay(1)
     re.next = 0
 
 def write(data):
-    yield negedge(clk)
+    yield clk.negedge
     din.next = data
     we.next = 1
-    yield posedge(clk)
+    yield clk.posedge
     yield delay(1)
     we.next = 0
 

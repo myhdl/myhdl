@@ -1,8 +1,6 @@
-from __future__ import generators
-
 import traceback
 
-from myhdl import Signal, Simulation, posedge, negedge, delay, StopSimulation
+from myhdl import *
 
 
 class Error(Exception):
@@ -21,15 +19,18 @@ def sparseMemory(dout, din, addr, we, en, clk):
     clk -- clock input
     
     """
+    
     memory = {}
-    while 1:
-        yield posedge(clk)
-        if not en:
-            continue
-        if we:
-            memory[addr] = din.val
-        else:
-            dout.next = memory[addr]
+
+    @always(clk.posedge)
+    def access():
+        if en:
+            if we:
+                memory[addr.val] = din.val
+            else:
+                 dout.next = memory[addr.val]
+
+    return access
             
         
 def sparseMemory2(dout, din, addr, we, en, clk):
@@ -45,18 +46,21 @@ def sparseMemory2(dout, din, addr, we, en, clk):
     clk -- clock input
     
     """
+    
     memory = {}
-    while 1:
-        yield posedge(clk)
-        if not en:
-            continue
-        if we:
-            memory[addr] = din.val
-        else:
-            try:
-                dout.next = memory[addr]
-            except KeyError:
-                raise Error, "Uninitialized address %s" % hex(addr)
+
+    @always(clk.posedge)
+    def access():
+        if en:
+            if we:
+                memory[addr.val] = din.val
+            else:
+                try:
+                    dout.next = memory[addr.val]
+                except KeyError:
+                    raise Error, "Uninitialized address %s" % hex(addr)
+
+    return access
 
 
 dout, din, addr, we, en, clk = args = [Signal(0) for i in range(6)]
@@ -69,22 +73,22 @@ def clkGen():
         clk.next = not clk
 
 def read(address):
-    yield negedge(clk)
+    yield clk.negedge
     en.next = 1
     we.next = 0
     addr.next = address
-    yield posedge(clk)
+    yield clk.posedge
     yield delay(1)
     en.next = 0
     we.next = 0
 
 def write(data, address):
-    yield negedge(clk)
+    yield clk.negedge
     addr.next = address
     din.next = data
     en.next = 1
     we.next = 1
-    yield posedge(clk)
+    yield clk.posedge
     en.next = 0
     we.next = 0
     
@@ -97,7 +101,7 @@ def test():
     yield read(0x55)
     print hex(dout)
     yield read(0x33)
-    
+    raise StopSimulation
 
 sim = Simulation(clkGen(), test(), dut)
     

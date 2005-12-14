@@ -226,9 +226,12 @@ implementation, that puts the lsb of in the input on the output:
 \begin{verbatim}
 def bin2gray(B, G, width):
     ### INCORRECT - DEMO PURPOSE ONLY! ###
-    while 1:
-        yield B
+
+    @always_comb
+    def logic():
         G.next = B[0]
+
+    return logic
 \end{verbatim}
 
 
