@@ -7,7 +7,7 @@ from myhdl import *
 
 from util import setupCosimulation
 
-def bin2gray(B, G, width):
+def bin2gray2(B, G, width):
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
@@ -21,21 +21,24 @@ def bin2gray(B, G, width):
         for i in range(width):
             G.next[i] = Bext[i+1] ^ Bext[i]
 
-def bin2gray2(B, G, width):
+def bin2gray(B, G, width):
+    
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
     G -- output intbv signal, gray encoded
     width -- bit width
+    
     """
 
+    @always_comb
     def logic():
         Bext = intbv(0)[width+1:]
         Bext[:] = B
         for i in range(width):
             G.next[i] = Bext[i+1] ^ Bext[i]
 
-    return always_comb(logic)
+    return logic
            
             
 objfile = "bin2gray.o"           

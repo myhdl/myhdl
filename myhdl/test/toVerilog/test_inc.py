@@ -30,6 +30,7 @@ def incRef(count, enable, clock, reset, n):
                 count.next = (count + 1) % n
                 
 def inc(count, enable, clock, reset, n):
+    
     """ Incrementer with enable.
     
     count -- output
@@ -37,7 +38,9 @@ def inc(count, enable, clock, reset, n):
     clock -- clock input
     reset -- asynchronous reset input
     n -- counter max value
+    
     """
+    
     @always(clock.posedge, reset.negedge)
     def incProcess():
         if reset == ACTIVE_LOW:
@@ -45,6 +48,7 @@ def inc(count, enable, clock, reset, n):
         else:
             if enable:
                 count.next = (count + 1) % n
+                
     return incProcess
 
 def inc2(count, enable, clock, reset, n):
