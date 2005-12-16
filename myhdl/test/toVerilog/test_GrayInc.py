@@ -6,7 +6,7 @@ from random import randrange
 from myhdl import *
 
 from test_bin2gray import bin2gray
-from test_inc import incRef as inc
+from test_inc import inc
 
 from util import setupCosimulation
 
@@ -16,25 +16,23 @@ def GrayInc(graycnt, enable, clock, reset, width):
     
     bincnt = Signal(intbv(0)[width:])
     
-    INC_1 = inc(bincnt, enable, clock, reset, n=2**width)
-    BIN2GRAY_1 = bin2gray(B=bincnt, G=graycnt, width=width)
+    inc_1 = inc(bincnt, enable, clock, reset, n=2**width)
+    bin2gray_1 = bin2gray(B=bincnt, G=graycnt, width=width)
     
-    return INC_1, BIN2GRAY_1
+    return inc_1, bin2gray_1
 
 
 def GrayIncReg(graycnt, enable, clock, reset, width):
     
     graycnt_comb = Signal(intbv(0)[width:])
     
-    GRAY_INC_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
+    gray_inc_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
+
+    @always(clock.posedge)
+    def reg_1():
+        graycnt.next = graycnt_comb
     
-    def reg():
-        while 1:
-            yield clock.posedge
-            graycnt.next = graycnt_comb
-    REG_1 = reg()
-    
-    return GRAY_INC_1, REG_1
+    return gray_inc_1, reg_1
 
 
 width = 8
@@ -53,17 +51,17 @@ class TestGrayInc(unittest.TestCase):
         while 1:
             yield delay(10)
             clock.next = not clock
-    
+
     def stimulus(self):
         reset.next = ACTIVE_LOW
         yield negedge(clock)
         reset.next = INACTIVE_HIGH
         for i in range(1000):
             enable.next = 1
-            yield negedge(clock)
+            yield clock.negedge
         for i in range(1000):
             enable.next = min(1, randrange(5))
-            yield negedge(clock)
+            yield clock.negedge
         raise StopSimulation
 
     def check(self):
@@ -76,12 +74,12 @@ class TestGrayInc(unittest.TestCase):
             self.assertEqual(graycnt, graycnt_v)
                 
     def bench(self):
-        GRAY_INC_REG_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
-        GRAY_INC_REG_v = GrayIncReg_v(GrayIncReg.func_name, graycnt_v, enable, clock, reset, width)
+        gray_inc_reg_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+        gray_inc_reg_v = GrayIncReg_v(GrayIncReg.func_name, graycnt_v, enable, clock, reset, width)
         clk_1 = self.clockGen()
         st_1 = self.stimulus()
         ch_1 = self.check()
-        sim = Simulation(GRAY_INC_REG_1, GRAY_INC_REG_v, clk_1, st_1, ch_1)
+        sim = Simulation(gray_inc_reg_1, gray_inc_reg_v, clk_1, st_1, ch_1)
         return sim
 
     def test(self):
