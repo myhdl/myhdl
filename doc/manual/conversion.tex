@@ -85,6 +85,35 @@ function takes an additional parameter \var{encoding} that specifies the
 desired encoding in the implementation: binary, one hot, or one cold.
 The Verilog converter generates the appropriate code.
 
+\subsection{Support for RAM memory inference \label{conf-features-ram}}
+Certain synthesis tools can map Verilog memories to memory
+structures. To support this interesting feature, the Verilog convertor
+maps lists of signals to Verilog memories.
+
+\subsection{Support for ROM memory inference \label{conf-features-rom}}
+Some synthesis tools can infer a ROM memory
+from a case statement. The Verilog convertor does the expansion into
+a case statement automatically, based on a higher level
+description. The rom access is described in a single line, by
+indexing into a tuple of integers.
+
+\subsection{Support for signed arithmetic \label{conf-features-signed}}
+In MyHDL, working with negative numbers is trivial: one just uses
+\code{intbv} objects with negative values to get the expected result.
+In contrast, Verilog uses an unsigned representation by default and a
+signed representation when it is explicitly declared. When the two are
+mixed in an expression, the operation is performed unsigned, which
+typically leads to unexpected results.
+
+The Verilog convertor handles negative \code{intbv} objects by using
+signed Verilog representation. Also, it automatically performs sign
+extension and casting to a signed representation when unsigned numbers
+are used in a mixed expression. In this way, it automates a task which
+is especially hard to get right in Verilog directly.
+
+\subsection{Support for user-defined Verilog code \label{conf-features-udfv}}
+If desired, the user can bypass the regular Verilog conversion
+and describe user-defined code to be inserted instead.
 
 \section{The convertible subset\label{conv-subset}}
 
@@ -121,7 +150,7 @@ design.
 
 A natural restriction on convertible code is that it should be
 written in MyHDL style: cooperating generators, communicating through
-signals, and with \code{yield} statements specifying wait points and resume
+signals, and with sensitivity lists specifying wait points and resume
 conditions.  Supported resume conditions are a signal edge, a signal
 change, or a tuple of such conditions.
 
@@ -146,8 +175,11 @@ width can be inferred. This can be done by specifying minimum
 and maximum values, e.g. as follows:
 
 \begin{verbatim}
-index = intbv(0, min=0, max=2**N)
+index = intbv(0, min=MIN, max=MAX)
 \end{verbatim}
+
+The Verilog convertor supports \class{intbv} objects that
+can take negative values.
 
 Alternatively, a slice can be taken from an \class{intbv} object
 as follows:
@@ -340,12 +372,15 @@ a += 1
 
 We will demonstrate the conversion process by showing some examples.
 
-\subsection{A small design with a single generator\label{conv-usage-small}}
+\subsection{A small sequential design\label{conv-usage-seq}}
 
 Consider the following MyHDL code for an incrementer module:
 
 \begin{verbatim}
+ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+
 def inc(count, enable, clock, reset, n):
+    
     """ Incrementer with enable.
     
     count -- output
@@ -353,20 +388,22 @@ def inc(count, enable, clock, reset, n):
     clock -- clock input
     reset -- asynchronous reset input
     n -- counter max value
+    
     """
+    
+    @always(clock.posedge, reset.negedge)
     def incProcess():
-        while 1:
-            yield posedge(clock), negedge(reset)
-            if reset == ACTIVE_LOW:
-                count.next = 0
-            else:
-                if enable:
-                    count.next = (count + 1) % n
-    return incProcess()
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            if enable:
+                count.next = (count + 1) % n
+                
+    return incProcess
 \end{verbatim}
 
 In Verilog terminology, function \function{inc} corresponds to a
-module, while generator function \function{incProcess}
+module, while the decorated function \function{incProcess}
 roughly corresponds to an always block.
 
 Normally, to simulate the design, we would "elaborate" an instance
@@ -391,7 +428,7 @@ inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
 \end{verbatim}
 
 Again, this creates an instance that can be simulated, but as a side
-effect, it also generates an equivalent Verilog module in file \file{inc_inst.v}.
+effect, it also generates an equivalent Verilog module in file \file{inc.v}.
 The Verilog code looks as follows:
 
 \begin{verbatim}
@@ -426,25 +463,30 @@ endmodule
 You can see the module interface and the always block, as expected
 from the MyHDL design. 
 
-\subsection{Converting a generator directly\label{conv-usage-gen}}
+\subsection{A small combinatorial design\label{conv-usage-comb}}
 
-It is also possible to convert a generator
-directly. For example, consider the following generator function:
+The second example is a small combinatoriaol design, more
+specifically the binary to Gray code convertor from previous chapters:
 
 \begin{verbatim}
 def bin2gray(B, G, width):
+    
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
     G -- output intbv signal, gray encoded
     width -- bit width
+    
     """
-    Bext = intbv(0)[width+1:]
-    while 1:
-        yield B
+
+    @always_comb
+    def logic():
+        Bext = intbv(0)[width+1:]
         Bext[:] = B
         for i in range(width):
             G.next[i] = Bext[i+1] ^ Bext[i]
+
+    return logic
 \end{verbatim}
 
 As before, you can create an instance and convert to
@@ -462,7 +504,7 @@ bin2gray_inst = toVerilog(bin2gray, B, G, width)
 The generated Verilog code looks as follows:
 
 \begin{verbatim}
-module bin2gray_inst (
+module bin2gray (
     B,
     G
 );
@@ -471,10 +513,11 @@ input [7:0] B;
 output [7:0] G;
 reg [7:0] G;
 
-always @(B) begin: _MYHDL1_BLOCK
+always @(B) begin: _bin2gray_logic
     integer i;
     reg [9-1:0] Bext;
-    Bext[9-1:0] = B;
+    Bext = 9'h0;
+    Bext = B;
     for (i=0; i<8; i=i+1) begin
         G[i] <= (Bext[(i + 1)] ^ Bext[i]);
     end
@@ -493,14 +536,16 @@ designs from previous sections, we can proceed
 as follows:
 
 \begin{verbatim}
+ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+
 def GrayInc(graycnt, enable, clock, reset, width):
     
-    bincnt = Signal(intbv()[width:])
+    bincnt = Signal(intbv(0)[width:])
     
-    INC_1 = inc(bincnt, enable, clock, reset, n=2**width)
-    BIN2GRAY_1 = bin2gray(B=bincnt, G=graycnt, width=width)
+    inc_1 = inc(bincnt, enable, clock, reset, n=2**width)
+    bin2gray_1 = bin2gray(B=bincnt, G=graycnt, width=width)
     
-    return INC_1, BIN2GRAY_1
+    return inc_1, bin2gray_1
 \end{verbatim}
 
 According to Gray code properties, only a single bit
@@ -514,19 +559,19 @@ cycle, which may not be acceptable, but we will
 ignore that here.)
 
 \begin{verbatim}
+
+
 def GrayIncReg(graycnt, enable, clock, reset, width):
     
-    graycnt_comb = Signal(intbv()[width:])
+    graycnt_comb = Signal(intbv(0)[width:])
     
-    GRAY_INC_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
+    gray_inc_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
+
+    @always(clock.posedge)
+    def reg_1():
+        graycnt.next = graycnt_comb
     
-    def reg():
-        while 1:
-            yield posedge(clock)
-            graycnt.next = graycnt_comb
-    REG_1 = reg()
-    
-    return GRAY_INC_1, REG_1
+    return gray_inc_1, reg_1
 \end{verbatim}
 
 We can convert this hierarchical design as before:
@@ -536,52 +581,54 @@ width = 8
 graycnt = Signal(intbv()[width:])
 enable, clock, reset = [Signal(bool()) for i in range(3)]
 
-GRAY_INC_REG_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+gray_inc_reg_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
 \end{verbatim}
 
 The Verilog output code looks as follows:
 
 \begin{verbatim}
-module GRAY_INC_REG_1 (
+module GrayIncReg (
     graycnt,
     enable,
     clock,
     reset
 );
-
+ 
 output [7:0] graycnt;
 reg [7:0] graycnt;
 input enable;
 input clock;
 input reset;
-
+ 
 reg [7:0] graycnt_comb;
-reg [7:0] _GRAY_INC_1_bincnt;
-
-always @(posedge clock or negedge reset) begin: _MYHDL1_BLOCK
+reg [7:0] _gray_inc_1_bincnt;
+ 
+ 
+always @(posedge clock or negedge reset) begin: _GrayIncReg_gray_inc_1_inc_1_incProcess
     if ((reset == 0)) begin
-        _GRAY_INC_1_bincnt <= 0;
+        _gray_inc_1_bincnt <= 0;
     end
     else begin
         if (enable) begin
-            _GRAY_INC_1_bincnt <= ((_GRAY_INC_1_bincnt + 1) % 256);
+            _gray_inc_1_bincnt <= ((_gray_inc_1_bincnt + 1) % 256);
         end
     end
 end
-
-always @(_GRAY_INC_1_bincnt) begin: _MYHDL4_BLOCK
+ 
+always @(_gray_inc_1_bincnt) begin: _GrayIncReg_gray_inc_1_bin2gray_1_logic
     integer i;
     reg [9-1:0] Bext;
-    Bext[9-1:0] = _GRAY_INC_1_bincnt;
+    Bext = 9'h0;
+    Bext = _gray_inc_1_bincnt;
     for (i=0; i<8; i=i+1) begin
         graycnt_comb[i] <= (Bext[(i + 1)] ^ Bext[i]);
     end
 end
-
-always @(posedge clock) begin: _MYHDL9_BLOCK
+ 
+always @(posedge clock) begin: _GrayIncReg_reg_1
     graycnt <= graycnt_comb;
 end
-
+ 
 endmodule
 \end{verbatim}
 
