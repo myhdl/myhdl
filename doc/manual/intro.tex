@@ -471,8 +471,6 @@ When an intbv object is sliced, a new intbv object is returned. This
 new intbv always has a positive value, even when the original object
 was negative.
 
-\section{Summary and perspective}
-
 
 \section{Some remarks on \myhdl\ and Python \label{intro-python}}
 
@@ -514,5 +512,42 @@ rewrite performance critical modules in C if necessary.
 \end{itemize}
 
 
+\section{Summary and perspective}
+Here is an overview of what we have learned in this chapter:
 
+\begin{itemize}
+\item Generators are the basic building blocks of MyHDL models. They
+provide massive light-weight concurrency, and a way to model sensitivity lists.
 
+\item MyHDL provides decorators that create useful generators from local functions.
+
+\item Hardware structure and hierarchy is described with classic Python functions. 
+
+\item \code{Signal} objects are used to communicate between concurrent generators.
+
+\item \code{intbv} objects are used to describe bit-oriented operations.
+
+\item A \code{Simulation} object is used to simulate MyHDL models.
+\end{itemize}
+
+These concepts are sufficient to start describing and simulating MyHDL models.
+
+However, there is much more to MyHDL. Here is an overview of what can
+be learned from the following chapters:
+
+\begin{itemize}
+\item MyHDL supports sophisticated and high level modeling techniques.
+This is described in Chapter~\ref{model}
+
+\item MyHDL enables the use of modern software verfication techniques,
+such as unit testing, on hardware designs. This is the topic of
+Chapter~\ref{unittest}.
+
+\item It is possible to co-simulate MyHDL models with other HDL
+language such as Verilog and VHDL. This is described in
+Chapter~\ref{cosim}.
+
+\item Last but not least, MyHDL models can be converted to
+Verilog to provide path to a silicon implementation. This
+is the topic of Chapter~\ref{conv}.
+\end{itemize}

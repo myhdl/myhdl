@@ -8,10 +8,10 @@ global-include makefile*
 global-include *.v
 prune dist
 prune doc
-#graft doc/html/manual
+graft doc/html/manual
 #graft doc/html/icons
 #graft doc/html/whatsnew*
-#include doc/paper-a4/*.pdf
-#include doc/paper-letter/*.pdf
+include doc/paper-a4/MyHDL.pdf
+include doc/paper-letter/MyHDL.pdf
 prune myhdl/experiments
 exclude myhdl/test/toVerilog/*.v
