@@ -91,7 +91,7 @@ class intbv(object):
 
     # hash
     def __hash__(self):
-        return hash(self._val)
+        raise TypeError("intbv objects are unhashable")
         
     # copy methods
     def __copy__(self):

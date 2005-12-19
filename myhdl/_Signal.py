@@ -244,9 +244,8 @@ class Signal(object):
 
     ### operators for which delegation to current value is appropriate ###
         
-    # hashing (?)
     def __hash__(self):
-        return hash(self._val)
+        raise TypeError("Signals are unhashable")
         
     
     def __nonzero__(self):
