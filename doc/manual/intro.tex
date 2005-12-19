@@ -126,7 +126,7 @@ sim.run(50)
 
 The clock driver function \function{ClkDriver} has a
 clock signal as its parameter. This is how a
-\emph{port} is modelled in MyHDL. The function
+\emph{port} is modeled in MyHDL. The function
 defines a generator
 that continuously toggles a clock signal after a certain delay.
 A new value of a signal is specified by assigning to its
@@ -172,7 +172,7 @@ modules. We have also seen that ports are modeled by using
 signals as parameters. To make designs reusable we will also
 want to use other objects as parameters. For example, we can
 change the clock generator function to make it more general
-and reusable, by making the clock period parametrizable, as
+and reusable, by making the clock period parameterizable, as
 follows:
 
 \begin{verbatim}
@@ -238,7 +238,7 @@ We can create any number of instances by calling the functions with
 the appropriate parameters. Hierarchy can be modeled by defining the
 instances in a higher-level function, and returning them.
 This pattern can be repeated for an arbitrary number of
-hierarhical levels. Consequently, the general definition
+hierarchical levels. Consequently, the general definition
 of a \myhdl\ \dfn{instance} is recursive: an instance
    \index{instance!defined}%
 is either a sequence of instances, or a generator.
@@ -253,9 +253,9 @@ def greetings():
     clk2 = Signal(0)
     
     clkdriver_1 = ClkDriver(clk1) # positional and default association
-    clkdriver_2 = ClkDriver(clk=clk2, period=19) # named assocation 
+    clkdriver_2 = ClkDriver(clk=clk2, period=19) # named association 
     hello_1 = Hello(clk=clk1) # named and default association
-    hello_2 = Hello(to="MyHDL", clk=clk2) # named assocation
+    hello_2 = Hello(to="MyHDL", clk=clk2) # named association
 
     return clkdriver_1, clkdriver_2, hello_1, hello_2
 

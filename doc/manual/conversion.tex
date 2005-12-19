@@ -87,12 +87,12 @@ The Verilog converter generates the appropriate code.
 
 \subsection{Support for RAM inference \label{conf-features-ram}}
 Certain synthesis tools can map Verilog memories to RAM
-structures. To support this interesting feature, the Verilog convertor
+structures. To support this interesting feature, the Verilog converter
 maps lists of signals to Verilog memories.
 
 \subsection{Support for ROM memory \label{conf-features-rom}}
 Some synthesis tools can infer a ROM
-from a case statement. The Verilog convertor does the expansion into
+from a case statement. The Verilog converter does the expansion into
 a case statement automatically, based on a higher level
 description. The rom access is described in a single line, by
 indexing into a tuple of integers.
@@ -106,7 +106,7 @@ and the user has to declare signed variables explicitly.  When the two
 representations are mixed in an expression, all operands are
 interpreted as unsigned, which typically leads to unexpected results.
 
-The Verilog convertor handles negative \code{intbv} objects by using
+The Verilog converter handles negative \code{intbv} objects by using
 signed Verilog representation. Also, it automatically performs sign
 extension and casting to a signed representation when unsigned numbers
 are used in a mixed expression. In this way, it automates a task which
@@ -179,7 +179,7 @@ and maximum values, e.g. as follows:
 index = intbv(0, min=MIN, max=MAX)
 \end{verbatim}
 
-The Verilog convertor supports \class{intbv} objects that
+The Verilog converter supports \class{intbv} objects that
 can take negative values.
 
 Alternatively, a slice can be taken from an \class{intbv} object
@@ -466,8 +466,8 @@ from the MyHDL design.
 
 \subsection{A small combinatorial design\label{conv-usage-comb}}
 
-The second example is a small combinatoriaol design, more
-specifically the binary to Gray code convertor from previous chapters:
+The second example is a small combinatorial design, more
+specifically the binary to Gray code converter from previous chapters:
 
 \begin{verbatim}
 def bin2gray(B, G, width):
@@ -528,7 +528,7 @@ endmodule
 \end{verbatim}
 
 \subsection{A hierarchical design\label{conv-usage-hier}}
-The Verilog convertor can handle designs with an
+The Verilog converter can handle designs with an
 arbitrarily deep hierarchy.
 
 For example, suppose we want to design an
@@ -796,7 +796,7 @@ endmodule
 \subsection{RAM inference \label{conf-usage-RAM}}
 
 Certain synthesis tools can map Verilog memories to RAM
-structures. To support this interesting feature, the Verilog convertor
+structures. To support this interesting feature, the Verilog converter
 maps lists of signals in MyHDL to Verilog memories.
 
 The following MyHDL example is a ram model that uses a list of signals
@@ -856,7 +856,7 @@ endmodule
 
 \subsection{ROM inference \label{conf-usage-ROM}}
 Some synthesis tools can infer a ROM memory from a case statement. The
-Verilog convertor can perform the expansion into a case statement
+Verilog converter can perform the expansion into a case statement
 automatically, based on a higher level description. The ROM access is
 described in a single line, by indexing into a tuple of integers. The
 tuple can be described manually, but also by programmatical
@@ -916,7 +916,7 @@ endmodule
 MyHDL provides a way a method to include user-defined Verilog
 code during the conversion process.
 
-MyHDL defines a hook that is understood by the convertor but ignored by
+MyHDL defines a hook that is understood by the converter but ignored by
 the simulator. The hook is called \code{__verilog__}. It operates
 like a special return value. When a MyHDL function defines
 \code{__verilog__}, the Verilog converter will use its value instead of the
@@ -972,7 +972,7 @@ that the format specifier indicator \% needs to be escaped (by doubling
 it) if it is required in the user-defined code.
 
 There is one more issue that needs user attention. Normally, the
-Verilog convertor infers inputs, internal signals, and outputs. It
+Verilog converter infers inputs, internal signals, and outputs. It
 also detects undriven and multiple driven signals. To do this, it
 assumes that signals are not driven by default. It then processes the
 code to find out which signals are driven from where. However, it
