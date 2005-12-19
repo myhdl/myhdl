@@ -52,14 +52,9 @@ and passes \var{*args} and \var{**kwargs} to the call. In this way, it
 finds the hierarchy and the signals to be traced.
 
 The return value is the same as would be returned by the call
-\code{func(*args, **kwargs)}. It should be assigned
-to a top level instance name. For example:
-\begin{verbatim}
-topname = traceSignals(func, ...)
-\end{verbatim}
-By default, the resulting VCD file will be named after the top level
-instance name. In the example, it would be called \file{topname.vcd}.
-
+\code{func(*args, **kwargs)}.
+The basename of the VCD output filename is \code{func.func_name}
+by default.
 If the VCD file exists already, it will be moved to a backup file by
 attaching a timestamp to it, before creating the new file.
 \end{funcdesc}
