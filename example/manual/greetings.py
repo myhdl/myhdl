@@ -31,9 +31,9 @@ def greetings():
     clk2 = Signal(0)
     
     clkdriver_1 = ClkDriver(clk1) # positional and default association
-    clkdriver_2 = ClkDriver(clk=clk2, period=19) # named assocation 
+    clkdriver_2 = ClkDriver(clk=clk2, period=19) # named association 
     hello_1 = Hello(clk=clk1) # named and default association
-    hello_2 = Hello(to="MyHDL", clk=clk2) # named assocation
+    hello_2 = Hello(to="MyHDL", clk=clk2) # named association
 
     return clkdriver_1, clkdriver_2, hello_1, hello_2
 
