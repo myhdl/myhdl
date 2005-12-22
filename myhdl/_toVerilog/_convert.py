@@ -96,7 +96,7 @@ class _ToVerilogConvertor(object):
         else:
             name = str(self.name)
         try:
-            h = _HierExtr(func.func_name, func, *args, **kwargs)
+            h = _HierExtr(name, func, *args, **kwargs)
         finally:
             _converting = 0
 
