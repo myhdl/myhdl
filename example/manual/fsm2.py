@@ -90,6 +90,7 @@ def testbench():
 
 
 def main():
+    traceSignals.name = "fsm2"
     tb_fsm = traceSignals(testbench)
     sim = Simulation(tb_fsm)
     sim.run()

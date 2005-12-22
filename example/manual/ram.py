@@ -24,4 +24,5 @@ addr = Signal(intbv(0)[7:])
 we = Signal(bool(0))
 clk = Signal(bool(0))
 
+toVerilog.name = 'ram_1'
 toVerilog(ram, dout, din, addr, we, clk)
