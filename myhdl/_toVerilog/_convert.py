@@ -652,7 +652,9 @@ class _ConvertVisitor(_ToVerilogMixin):
         if node.isFullCase:
             self.write(" full_case")
         self.writeline()
-        self.write("casez (%s)" % var)
+        self.write("casez (")
+        self.visit(var)
+        self.write(")")
         self.indent()
         for test, suite in node.tests:
             self.writeline()

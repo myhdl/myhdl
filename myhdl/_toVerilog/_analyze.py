@@ -531,7 +531,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         if op == '==':
             if isinstance(node.expr, astNode.Name) and \
                isinstance(arg.obj, EnumItemType):
-                node.case = (node.expr.name, arg.obj)
+                node.case = (node.expr, arg.obj)
 
     def visitConst(self, node, *args):
         node.signed = False
@@ -593,20 +593,20 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         test1 = node.tests[0][0]
         if not hasattr(test1, 'case'):
             return
-        name1, item1 = test1.case
+        var1, item1 = test1.case
         choices = Set()
         choices.add(item1._index)
         for test, suite in node.tests[1:]:
             if not hasattr(test, 'case'):
                 return
-            name, item = test.case
-            if name != name1 or type(item) is not type(item1):
+            var, item = test.case
+            if var.name != var1.name or type(item) is not type(item1):
                 return
             if item._index in choices:
                 return
             choices.add(item._index)
         node.isCase = True
-        node.caseVar = name1
+        node.caseVar = var1
         if (len(choices) == item1._nritems) or (node.else_ is not None):
             node.isFullCase = True
             

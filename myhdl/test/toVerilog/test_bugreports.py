@@ -31,10 +31,13 @@ def TestModule(x,a,b,c,d,e) :
     return instances()
 
 
-x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
+def test():
+    x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
 
-toVerilog(TestModule, x,a,b,c,d,e)
-verilogCompile(TestModule.func_name)
+    toVerilog(TestModule, x,a,b,c,d,e)
+    verilogCompile(TestModule.func_name)
+
+test()
 
 
 ##############################
@@ -69,9 +72,45 @@ def TestModule(x,a,b,c,d,e):
 
     return instances()
 
-width = 8
+def test():
+    width = 8
 
-x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
+    x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
 
-toVerilog(TestModule, x,a,b,c,d,e)
-verilogCompile(TestModule.func_name)
+    toVerilog(TestModule, x,a,b,c,d,e)
+    verilogCompile(TestModule.func_name)
+
+test()
+
+###################################
+# Bug report (George Pantazopoulos)
+# case variable name in embedded FSM
+####################################
+
+from test_fsm import FramerCtrl
+
+def mid(SOF, clk, reset_n):
+    t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
+    syncFlag = Signal(bool(0))
+    state = Signal(t_State.SEARCH)
+    
+    fsm_1 = FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State)
+
+    return fsm_1
+
+
+def top(SOF, clk, reset_n):
+    mid_1 = mid(SOF, clk, reset_n)
+    return mid_1
+
+
+def test():
+    clk = Signal(bool(0))
+    reset_n = Signal(bool(1))
+    SOF = Signal(bool(0))
+   
+    toVerilog(top, SOF, clk, reset_n)
+    verilogCompile(top.func_name)
+
+test()
+
