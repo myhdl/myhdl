@@ -1,7 +1,7 @@
-Release 0.5 27-Dec-2005
+Release 0.5 29-Dec-2005
 -----------------------
 
-For full details about the changes, consult:
+The full details about new features and changes can be found here:
 
   http://myhdl.jandecaluwe.com/doku.php/whatsnew:0.5
 

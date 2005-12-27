@@ -101,7 +101,14 @@ and following the instructions in the README.txt file.
 DOCUMENTATION
 -------------
 
-See the doc/ subdirectory.
+The manual is available in various formats under the doc/
+subdirectory.
+
+An on-line version of the manual and extensive additional
+documentation and support information can be found on the MyHDL
+website:
+
+    http://myhdl.jandecaluwe.com
 
 
 EXAMPLES
