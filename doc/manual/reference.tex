@@ -149,9 +149,8 @@ execution is suspended at that point. At the same time, each
 \var{clause} is a \emph{trigger object} which defines the condition
 upon which the generator should be resumed. However, per invocation of a
 \keyword{yield} statement, the generator resumes exactly once,
-regardless of the number of clauses. This happens as soon as one
-of the objects triggers; subsequent triggers are
-neglected.
+regardless of the number of clauses. This happens on the
+first trigger that occurs.
 
 In this section, the trigger objects and their functionality will be
 described.
@@ -294,7 +293,7 @@ def top(...):
 \end{verbatim}
 
 
-The \code{@always_comb} decorator infers the inputs of the combinatorial
+The \function{always_comb} decorator infers the inputs of the combinatorial
 logic and the corresponding sensitivity list automatically.
 
 \end{funcdesc}

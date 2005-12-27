@@ -77,7 +77,7 @@ then run the simulation for the desired amount of timesteps.
 
 In the previous section, we simulated a design with a single
 generator and no concurrency. On the other hand, real hardware
-descriptions typically have massive concurrency.
+descriptions are typically massively concurrent.
 \myhdl\ supports this by allowing an
 arbitrary number of concurrently running generators. 
 
@@ -202,7 +202,7 @@ As the low time of the clock may differ from the high time in case of
 an odd period, we cannot use the \function{always} decorator with a
 single delay value anymore. Instead, the \function{driveClk} function
 is now a generator function with an explicit definition of the desired
-behavior and decorated with the \function{instance} decorator.
+behavior. It is decorated with the \function{instance} decorator.
     \index{decorator!\function{instance}}
 You can see that \function{driveClk} is a generator function
 because it contains \code{yield} statements.
