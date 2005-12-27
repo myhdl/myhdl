@@ -3,14 +3,14 @@
 \section{Prerequisites \label{prerequisites}}
 
 You need a basic understanding of Python to use \myhdl{}.
-If you don't know Python, you will take comfort in knowing
-that it is probably one of the easiest programming languages to
+If you don't know Python, don't worry: it
+it is one of the easiest programming languages to
 learn~\footnote{You must be bored by such claims, but in Python's
-case it's true.}. Learning Python is also one of the better time
+case it's true.}. Learning Python is one of the best time
 investments that engineering professionals can make~\footnote{I am not
 biased.}.
 
-For beginners, \url{http://www.python.org/doc/current/tut/tut.html} is
+For starters, \url{http://www.python.org/doc/current/tut/tut.html} is
 probably the best choice for an on-line tutorial. For alternatives,
 see \url{http://www.python.org/doc/Newbies.html}.
 
@@ -94,7 +94,7 @@ until they are exhausted. What happens is that the
 \keyword{return}, except that it is non-fatal: the generator remembers
 its state and the point in the code when it yielded. A higher order
 agent can decide when to get a further value by calling the
-generator's \function{next()} method. We can say that generators are
+generator's \function{next()} method. We say that generators are
 \dfn{resumable functions}.
 
 If you are familiar with hardware description languages, this may ring
@@ -124,15 +124,15 @@ documentation, e.g. at \url{http://www.python.org/doc/2.2.2/whatsnew}.
 \section{About decorators \label{deco}}
 \index{decorators!about}
 
-Python 2.4 introduced a new feature called decorators. MyHDL 0.5 defines
-a number of decorators to facilitate hardware descriptions, but many users may
-not be familiar with the concept. Therefore, an introduction
-is included here.
+Python 2.4 introduced a new feature called decorators. MyHDL 0.5 takes
+advantage of this new feature by defining a number of decorators that
+facilitate hardware descriptions. However, many users may not yet be familiar with
+decorators. Therefore, an introduction is included here.
 
 A decorator consists of special syntax in front of a function
-declaration. It refers to a decorator function. The decorator
-function automatically transforms the declared function into some
-other callable object.
+declaration. It refers to a decorator function. The decorator function
+automatically transforms the declared function into some other
+callable object.
 
 A decorator function \function{deco} is used in a decorator statement as follows:
 
@@ -150,10 +150,10 @@ func = deco(func)
 
 Note that the decorator statement goes directly in front of the
 function declaration, and that the function name func is automatically
-reused.
+reused for the final result.
 
 MyHDL 0.5 uses decorators to create ready-to-simulate generators
-from local (embedded) function definitions. Their functionality
+from local function definitions. Their functionality
 and usage will be described extensively in this manual.
 
 For more info about Python decorators, consult the on-line Python

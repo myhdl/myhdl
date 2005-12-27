@@ -50,19 +50,20 @@ classic functions are used to model hardware modules. In particular,
 the parameter list is used to define the interface. In this first
 example, the interface is empty.
 
-Inside the top level function we declared a local function called
+Inside the top level function we declare a local function called
 \function{sayHello} that defines the desired behavior. This function
-is decorated with an \function{@always} decorator that has a delay
+is decorated with an \function{always} decorator that has a delay
+   \index{decorator!\function{always}}
 object as its parameter.  The meaning is that the function will be
 executed whenever the specified delay interval has expired.
 
-Behind the curtains, the \function{@always} decorator creates a Python
+Behind the curtains, the \function{always} decorator creates a Python
 \emph{generator} and reuses the name of the decorated function for
 it. Generators are the fundamental objects in MyHDL, and we will say
 much more about them further on.
 
-Finally, the top level function returns the local generator. This code
-pattern is the simplest incarnation of the basic MyHDL code pattern
+Finally, the top level function returns the local generator. This is
+the simplest case of the basic MyHDL code pattern
 to define the contents of a hardware module. We will describe the
 general case further on.
 
@@ -74,20 +75,20 @@ then run the simulation for the desired amount of timesteps.
 
 \section{Signals, ports, and concurrency \label{intro-conc}}
 
-In the previous section, we simulated a design that consisted
-of a single generator. Of course,
-real hardware descriptions are not like that: they are
-typically massively concurrent. \myhdl\ supports this by allowing an
-arbitrary number of concurrent generators. 
+In the previous section, we simulated a design with a single
+generator and no concurrency. On the other hand, real hardware
+descriptions typically have massive concurrency.
+\myhdl\ supports this by allowing an
+arbitrary number of concurrently running generators. 
 
 With concurrency comes the problem of deterministic
 communication. Hardware languages use special objects to
 support deterministic communication between concurrent code.
-For this purpose \myhdl\
+In particular, \myhdl\ 
 has a \class{Signal} object which is roughly modeled after VHDL
 signals.
 
-We will demonstrate the use of signals and the concept of concurrency
+We will demonstrate signals and concurrency
 by extending and modifying our first example. We define two hardware
 modules, one that drives a clock signal, and one that is sensitive
 to a positive edge on a clock signal:
@@ -142,14 +143,14 @@ Its generator is made sensitive to a rising
     \index{wait!for a rising edge}%
 edge of the clock signal. This is specified by the
 \code{posedge} attribute of a signal. The edge
-specifier is the argument of the \code{@always}
+specifier is the argument of the \code{always}
 decorator. As a result, the decorated function
 will be executed on every rising clock edge.
 
 The \code{clk} signal is constructed with an initial value
-\code{0}. When creating an instance of each to the two
-hardware modules, the same clock signal is passed as
-the argument. The result is that the two instances
+\code{0}. When creating an instance of each 
+hardware module, the same clock signal is passed as
+the argument. The result is that the instances
 are now connected through the clock signal.
 The \class{Simulation} object is constructed with the
 two instances.
@@ -198,16 +199,17 @@ In addition to the clock signal, the clock
 \var{period} is a parameter with a default value of \code{20}.
 
 As the low time of the clock may differ from the high time in case of
-an odd period, we cannot use the \function{@always} decorator with a
+an odd period, we cannot use the \function{always} decorator with a
 single delay value anymore. Instead, the \function{driveClk} function
 is now a generator function with an explicit definition of the desired
-behavior. You can see that \function{driveClk} is a generator function (as
-opposed to a classic function) because it contains \code{yield}
-statements.
+behavior and decorated with the \function{instance} decorator.
+    \index{decorator!\function{instance}}
+You can see that \function{driveClk} is a generator function
+because it contains \code{yield} statements.
 
-When a generator function is called, it returns a generator object. In
-fact, this is mainly what the \function{@instance} decorator does. It
-is less sophisticated than the \function{@always} decorator,
+When a generator function is called, it returns a generator object.
+This is basically what the \function{instance} decorator does. It
+is less sophisticated than the \function{always} decorator,
 but it can be used to create a generator from any local generator
 function.
 
@@ -322,7 +324,7 @@ desired features, but lacks support for indexing and slicing. For this
 reason, \myhdl\ provides the \class{intbv} class. The name was chosen
 to suggest an integer with bit vector flavor.
 
-Class \class{intbv} works transparently as an integer and with other
+Class \class{intbv} works transparently with other
 integer-like types. Like class \class{int}, it provides access to the
 underlying two's complement representation for bitwise
 operations. In addition, it is a mutable type that provides indexing
@@ -358,14 +360,15 @@ This code introduces a few new concepts. The string in triple quotes
 at the start of the function is a \dfn{doc string}. This is standard
 Python practice for structured documentation of code.
 
-Furthermore, we introduce a third decorator: \function{@always_comb}.
+Furthermore, we introduce a third decorator: \function{always_comb}.
+    \index{decorator!\function{always_comb}}
 It is used with a classic function and specifies that the 
 resulting generator should
     \index{wait!for a signal value change}%
 wait for a value change on any input signal. This is typically used to
 describe 
     \index{combinatorial logic}%
-combinatorial logic. The \function{@always_comb} decorator
+combinatorial logic. The \function{always_comb} decorator
 automatically infers which signals are used as inputs.
 
 Finally, the code contains bit indexing operations and an exclusive-or
@@ -517,7 +520,7 @@ Here is an overview of what we have learned in this chapter:
 
 \begin{itemize}
 \item Generators are the basic building blocks of MyHDL models. They
-provide massive light-weight concurrency, and a way to model sensitivity lists.
+provide the way to model massive concurrency and sensitiviy lists.
 
 \item MyHDL provides decorators that create useful generators from local functions.
 
@@ -548,6 +551,6 @@ languages such as Verilog and VHDL. This is described in
 Chapter~\ref{cosim}.
 
 \item Last but not least, MyHDL models can be converted to
-Verilog as a path to a silicon implementation. This
+Verilog, providing a path to a silicon implementation. This
 is the topic of Chapter~\ref{conv}.
 \end{itemize}
