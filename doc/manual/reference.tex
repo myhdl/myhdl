@@ -201,7 +201,7 @@ are forked, while the original generator resumes immediately.
 MyHDL defines a number of decorator functions, that make it easier to
 create generators from local generator function.
 
-\begin{funcdesc}{@instance}{}
+\begin{funcdesc}{instance}{}
 The \function{instance} decorator is the most general decorator.  It
 automatically creates a generator by calling the generator function,
 and by reusing its name.
@@ -234,7 +234,7 @@ def top(...):
 \end{funcdesc}
     
 
-\begin{funcdesc}{@always}{arg \optional{, *args}}
+\begin{funcdesc}{always}{arg \optional{, *args}}
 
 The \function{always} decorator is a specialized decorator that targets a widely used
 coding pattern. It is used as follows:
@@ -276,7 +276,7 @@ The decorated function should be a classic function.
 \end{funcdesc}
 
 
-\begin{funcdesc}{@always_comb}{}
+\begin{funcdesc}{always_comb}{}
 
 
 The \function{always_comb} decorator is used to describe combinatorial
