@@ -148,19 +148,17 @@ When a generator executes a \keyword{yield} statement, its
 execution is suspended at that point. At the same time, each
 \var{clause} is a \emph{trigger object} which defines the condition
 upon which the generator should be resumed. However, per invocation of a
-\keyword{yield} statement, the generator is resumed exactly once,
+\keyword{yield} statement, the generator resumes exactly once,
 regardless of the number of clauses. This happens as soon as one
 of the objects triggers; subsequent triggers are
-neglected. (However, as a result of the resumption, it is possible
-that the same \keyword{yield} statement is invoked again, and that a
-subsequent trigger still triggers the generator.)
+neglected.
 
 In this section, the trigger objects and their functionality will be
 described.
 
 Some MyHDL objects that are described elsewhere can directly be used
 as trigger objects. In particular, a signal can be used as
-a trigger objects. Whenever a signal changes value, the generator
+a trigger object. Whenever a signal changes value, the generator
 resumes. Likewise, the objects referred to by the signal attributes
 \code{posedge} and \code{negedge} are trigger object. The generator
 resumes on the occurrence of a positive or a negative edge on the
@@ -204,7 +202,7 @@ MyHDL defines a number of decorator functions, that make it easier to
 create generators from local generator function.
 
 \begin{funcdesc}{@instance}{}
-The \code{@instance} decorator is the most general decorator.  It
+The \function{instance} decorator is the most general decorator.  It
 automatically creates a generator by calling the generator function,
 and by reusing its name.
 
@@ -238,7 +236,7 @@ def top(...):
 
 \begin{funcdesc}{@always}{arg \optional{, *args}}
 
-The \code{@always} decorator is a specialized decorator that targets a widely used
+The \function{always} decorator is a specialized decorator that targets a widely used
 coding pattern. It is used as follows:
 
 \begin{verbatim}
@@ -281,7 +279,7 @@ The decorated function should be a classic function.
 \begin{funcdesc}{@always_comb}{}
 
 
-The \code{@always_comb} decorator is used to describe combinatorial
+The \function{always_comb} decorator is used to describe combinatorial
 logic.
 
 
@@ -398,8 +396,8 @@ operations:
 	  \var{min} and \var{max} attributes are implicitly set to
 	  \code{0} and \code{2**w}, respectively.  
 
-\item[(4)] In setting a slice, it is checked whether the slice is wide
-	  enough to accept all significant bits of the value.
+\item[(4)] When setting a slice to a value, it is checked whether the
+	  slice is wide enough.
 \end{description}
 
 In addition, an \class{intbv} object supports the iterator protocol. This
@@ -531,7 +529,7 @@ For more information about the restrictions on convertible
 Chapter~\ref{conv}.
 \end{funcdesc}
 
-The \code{toVerilog} callable has the following attribute:
+The \function{toVerilog} callable has the following attribute:
 
 \begin{memberdesc}[toVerilog]{name}
 
@@ -553,6 +551,6 @@ user-defined code should be a Python format string that uses keys to
 refer to the variables that should be interpolated in the string. Any
 variable in the functional context can be referred to.
 
-Note that this hook cannot be used inside generator functions, as
-those are not elaborated.
+Note that this hook cannot be used inside generator functions or
+decorated local functions, as these are not elaborated.
 \end{datadesc}
