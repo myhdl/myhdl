@@ -1,7 +1,6 @@
-from __future__ import generators
 import operator
 
-from myhdl import Signal, downrange, delay, posedge
+from myhdl import Signal, downrange, delay
 
 from rs232_util import reduceXor, sec, ODD, EVEN, MARK, SPACE
 

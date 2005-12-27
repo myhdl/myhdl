@@ -1,6 +1,4 @@
-from __future__ import generators
-
-from myhdl import delay, posedge, intbv, downrange
+from myhdl import delay, intbv, downrange
 
 from rs232_util import sec, parity, ParityError, StopBitError
 
@@ -17,7 +15,7 @@ def rs232_rx(rx, actual, cfg):
     data = intbv(0)
     period = int(1*sec / cfg.baud_rate)
     
-    yield posedge(rx)
+    yield rx.posedge
     yield delay(period // 2)
     
     data[7] = 0

@@ -9,5 +9,6 @@ and verilogCompile.
 
 The test suite should run without errors or failures with Cver
 (GPLCVER_2.11a). However, with Icarus 0.8.1 some tests in test_dec and
-test_signed fail. It has been found that Icarus is currently
-unreliable for signed arithmetic.
+test_signed fail. It has been found that Icarus 0.8 is currently
+unreliable for signed arithmetic. It has been reported that the issues
+are addressed in 0.9 development.

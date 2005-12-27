@@ -1,3 +1,8 @@
+MyHDL co-simulation relies on Unix-style interprocess communication.
+To run co-simulation on Windows, compile and use all tools involved
+(including Python itself) on a Unix-like environment for Windows, such
+as cygwin.
+
 A working cver installation is required.
 
 Use the makefile corresponding to your platform to generate a 'myhdl.so'
