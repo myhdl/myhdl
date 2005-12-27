@@ -1,33 +1,28 @@
 \section{Introduction\label{conv-intro}}
 
-\myhdl\ 0.4 supports the automatic conversion of a subset of \myhdl\ code
-to synthesizable Verilog code. This feature provides a direct path
-from Python to an FPGA or ASIC implementation.
-
-\myhdl\ aims to be a complete design language, for tasks such as high
-level modeling and verification, but also for implementation.
-However, prior to 0.4 a user had to translate \myhdl\ code manually to
-Verilog or VHDL. Needless to say, this was inconvenient. With \myhdl\
-0.4, this manual step is no longer necessary.
+\myhdl\ supports the automatic conversion of implementation-oriented
+\myhdl\ code to synthesizable Verilog code. This feature provides a
+direct path from Python to an FPGA or ASIC implementation.
 
 \section{Solution description\label{conv-solution}}
 
 The solution works as follows. The hardware description should be
-modeled in \myhdl\ style, and satisfy certain constraints that are
-typical for implementation-oriented hardware modeling.  Subsequently,
-such a design is converted to an equivalent model in the Verilog
-language, using the function \function{toVerilog} from the \myhdl\
+satisfy certain constraints that are typical for
+implementation-oriented hardware modeling.  Subsequently, such a
+design is converted to an equivalent model in the Verilog language,
+using the function \function{toVerilog} from the \myhdl\
 library. Finally, a third-party \emph{synthesis tool} is used to
 convert the Verilog design to a gate implementation for an ASIC or
 FPGA. There are a number of Verilog synthesis tools available, varying
 in price, capabilities, and target implementation technology.
 
-The conversion does not start from source files, but from a design
-that has been \emph{elaborated} by the Python interpreter. The
-converter uses the Python profiler to track the interpreter's
-operation and to infer the design structure and name spaces. It then
-selectively compiles pieces of source code for additional analysis and
-for conversion. This is done using the Python compiler package.
+The conversion does not start from source files, but from an
+instantiated design that has been \emph{elaborated} by the Python
+interpreter. The converter uses the Python profiler to track the
+interpreter's operation and to infer the design structure and name
+spaces. It then selectively compiles pieces of source code for
+additional analysis and for conversion. This is done using the Python
+compiler package.
 
 \section{Features\label{conv-features}}
 
@@ -94,12 +89,12 @@ maps lists of signals to Verilog memories.
 Some synthesis tools can infer a ROM
 from a case statement. The Verilog converter does the expansion into
 a case statement automatically, based on a higher level
-description. The rom access is described in a single line, by
+description. The ROM access is described in a single line, by
 indexing into a tuple of integers.
 
 \subsection{Support for signed arithmetic \label{conf-features-signed}}
 In MyHDL, working with negative numbers is trivial: one just uses
-\code{intbv} objects with negative values to get the expected result.
+\code{intbv} objects with negative values.
 By contrast, negative numbers are tricky in Verilog. The language
 makes a difference between an unsigned and a signed representation,
 and the user has to declare signed variables explicitly.  When the two
@@ -107,10 +102,10 @@ representations are mixed in an expression, all operands are
 interpreted as unsigned, which typically leads to unexpected results.
 
 The Verilog converter handles negative \code{intbv} objects by using
-signed Verilog representation. Also, it automatically performs sign
+a signed Verilog representation. Also, it automatically performs sign
 extension and casting to a signed representation when unsigned numbers
 are used in a mixed expression. In this way, it automates a task which
-is especially hard to get right in Verilog directly.
+is notoriously hard to get right in Verilog directly.
 
 \subsection{Support for user-defined Verilog code \label{conf-features-udfv}}
 If desired, the user can bypass the regular Verilog conversion
@@ -876,7 +871,8 @@ def rom(dout, addr, CONTENT):
     return read
 \end{verbatim}
 
-The ROM content is described as a tuple of integers:
+The ROM content is described as a tuple of integers. With the
+ROM content defined, the conversion can be performed:
 
 \begin{verbatim}
 CONTENT = (17, 134, 52, 9)
@@ -913,7 +909,7 @@ endmodule
 
 \subsection{User-defined Verilog code \label{conf-usage-custom}}
 
-MyHDL provides a way a method to include user-defined Verilog
+MyHDL provides a way  to include user-defined Verilog
 code during the conversion process.
 
 MyHDL defines a hook that is understood by the converter but ignored by
@@ -994,10 +990,6 @@ user-defined Verilog code drives the signal in Verilog. To decide
 which value to use, consider how the signal should be declared in
 Verilog after the user-defined code is inserted.  Limitations
 
-It is not possible to use the \code{__verilog__} hook in a generator
-function, but only in a classic function. This is because
-generator functions are not elaborated before the conversion
-(or the simulation) starts.
 
 \section{Known issues\label{conv-issues}}
 \begin{description}
