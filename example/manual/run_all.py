@@ -7,10 +7,13 @@ modules = ('hello1',
            'mux',
            'mux2',
            'inc',
-           'fsm', 
+           'fsm',
+           'fsm2',
            'queue',
            'sparseMemory',
            'fifo',
+           'rom',
+           'ram',
           )
 
 for n in modules:
