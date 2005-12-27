@@ -47,7 +47,7 @@ def rs232_rx(rx, data, duration=T_9600, timeout=MAX_TIMEOUT):
     """
 
     # wait on start bit until timeout
-    yield negedge(rx), delay(timeout)
+    yield rx.negedge, delay(timeout)
     if rx == 1:
         raise StopSimulation, "RX time out error"
 

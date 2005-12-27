@@ -1,5 +1,3 @@
-from __future__ import generators
-
 from myhdl import *
 
 # SEARCH, CONFIRM, SYNC = range(3)
@@ -77,13 +75,13 @@ def testbench():
 
     def stimulus():
         for i in range(3):
-            yield posedge(clk)
+            yield clk.posedge
         for n in (12, 8, 8, 4):
             syncFlag.next = 1
-            yield posedge(clk)
+            yield clk.posedge
             syncFlag.next = 0
             for i in range(n-1):
-                yield posedge(clk)
+                yield clk.posedge
         raise StopSimulation
         
     return framectrl, clkgen(), stimulus()

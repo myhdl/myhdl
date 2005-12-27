@@ -40,19 +40,19 @@ def testbench():
     @instance
     def stimulus():
         reset.next = ACTIVE_LOW
-        yield negedge(clock)
+        yield clock.negedge
         reset.next = INACTIVE_HIGH
         for i in range(12):
             enable.next = min(1, randrange(3))
-            yield negedge(clock)
+            yield clock.negedge
         raise StopSimulation
 
     @instance
     def monitor():
         print "enable  count"
-        yield posedge(reset)
+        yield reset.posedge
         while 1:
-            yield posedge(clock)
+            yield clock.posedge
             yield delay(1)
             print "   %s      %s" % (enable, count)
 
