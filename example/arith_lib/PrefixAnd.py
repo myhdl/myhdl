@@ -1,5 +1,3 @@
-from __future__ import generators
-
 from myhdl import Signal, intbv
 
 from arith_utils import log2ceil

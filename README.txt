@@ -1,49 +1,69 @@
-MyHDL Release 0.5 Development
+MyHDL Release 0.5
 =================
 
-INTRODUCTION
-------------
+OVERVIEW
+--------
 
-MyHDL is a Python package for using Python as a hardware description
-and verification language. Languages such Verilog and VHDL are
-compiled languages. Python with MyHDL can be viewed as a "scripting
-language" counterpart of such languages. However, Python is more
-accurately described as a very high level language (VHLL). MyHDL users
-have access to the amazing power and elegance of Python.
+The goal of the MyHDL project is to empower hardware designers with
+the elegance and simplicity of the Python language.
 
-The key idea behind MyHDL is to use Python generators for modeling
-hardware concurrency. A generator is a resumable function with
-internal state. In MyHDL, a hardware module is modeled as a function
-that returns generators. With this approach, MyHDL directly supports
-features such as named port association, arrays of instances, and
-conditional instantiation.
+MyHDL is a free, open-source (LGPL) package for using Python as a
+hardware description and verification language. Python is a very high
+level language, and hardware designers can use its full power to model
+and simulate their designs. Moreover, MyHDL can convert a design to
+Verilog. In combination with an external synthesis tool, it provides a
+complete path from Python to a silicon implementation.
 
-MyHDL supports the classic hardware description concepts. It provides
-a signal class similar to the VHDL signal, a class for bit oriented
-operations, and support for enumeration types.  The Python yield
-statement is used as a general sensitivity list to wait on a signal
-change, an edge, a delay, or on the completion of another
-generator. MyHDL supports waveform viewing by tracing signal changes
-in a VCD file.
+Modeling
+~~~~~~~~
 
-Python's rare combination of power and clarity makes it ideal for high
-level modeling.  It can be expected that MyHDL users will often have
-the ``Pythonic experience'' of finding an elegant solution to a
-complex modeling problem. Moreover, Python is outstanding for rapid
+Python's power and clarity make MyHDL an ideal solution for high level
+modeling. Python is famous for enabling elegant solutions to complex
+modeling problems. Moreover, Python is outstanding for rapid
 application development and experimentation.
 
+The key idea behind MyHDL is the use of Python generators to model
+hardware concurrency. Generators are best described as resumable
+functions. In MyHDL, generators are used in a specific way so that
+they become similar to always blocks in Verilog or processes in VHDL.
+
+A hardware module is modeled as a function that returns any number of
+generators. This approach makes it straightforward to support features
+such as arbitrary hierarchy, named port association, arrays of
+instances, and conditional instantiation.
+
+Furthermore, MyHDL provides classes that implement traditional
+hardware description concepts. It provides a signal class to support
+communication between generators, a class to support bit oriented
+operations, and a class for enumeration types.
+
+Simulation and Verification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The built-in simulator runs on top of the Python interpreter. It
+supports waveform viewing by tracing signal changes in a VCD file.
+
 With MyHDL, the Python unit test framework can be used on hardware
-designs.  MyHDL can also be used as hardware verification language for
-VHDL and Verilog designs, by co-simulation with any simulator that has
-a PLI.  The distribution contains a PLI module for the Icarus Verilog
-simulator and for the cver Verilog simulator.
+designs. Although unit testing is a popular modern software
+verification technique, it is not yet common in the hardware design
+world, making it one more area in which MyHDL innovates.
 
-Finally, a subset of MyHDL code can be converted automatically to
-synthesizable Verilog code. This feature provides a direct path from
-Python to an FPGA or ASIC implementation.
+MyHDL can also be used as hardware verification language for VHDL and
+Verilog designs, by co-simulation with traditional HDL simulators.
 
-The MyHDL software is open source software. It is licensed under the
-GNU Lesser General Public License (LGPL).
+Conversion to Verilog
+~~~~~~~~~~~~~~~~~~~~~
+
+The converter to Verilog works on an instantiated design that has been
+fully elaborated. Consequently, the original design structure can be
+arbitrarily complex.
+
+The converter automates certain tasks that are tedious or hard in
+Verilog directly. Notable features are the possibility to choose
+between various FSM state encodings based on a single attribute, the
+mapping of certain high-level objects to RAM and ROM descriptions, and
+the automated handling of signed arithmetic issues.
+
 
 
 INSTALLATION

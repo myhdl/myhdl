@@ -1,5 +1,9 @@
-Release 0.5 Development
+Release 0.5 27-Dec-2005
 -----------------------
+
+For full details about the changes, consult:
+
+  http://myhdl.jandecaluwe.com/doku.php/whatsnew:0.5
 
 
 Release 0.4.1 29-Dec-2004
@@ -21,8 +25,9 @@ Release 0.4 4-Feb-2004
 
 * Conversion to Verilog to provide a path to implementation
 
-For details, consult the whatsnew04.* documents available
-in various formats under doc/.
+For full details about the changes, consult:
+
+  http://www.jandecaluwe.com/Tools/MyHDL/whatsnew04/whatsnew04.html
 
 Release 0.3 30-Aug-2003
 -----------------------
@@ -36,8 +41,9 @@ Release 0.3 30-Aug-2003
 * Function concat()
 * Python 2.3 support
 
-For details, consult the whatsnew03.* documents available
-in various formats under doc/.
+For full details about the changes, consult:
+
+  http://www.jandecaluwe.com/Tools/MyHDL/whatsnew03/whatsnew03.html
 
 
 Release 0.2 19-May-2003

@@ -1,4 +1,3 @@
-from __future__ import generators
 from myhdl import Signal, intbv, downrange
 from arith_utils import BEHAVIOR
 from PrefixAnd import PrefixAnd
