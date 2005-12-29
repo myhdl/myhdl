@@ -52,19 +52,18 @@ and passes \var{*args} and \var{**kwargs} to the call. In this way, it
 finds the hierarchy and the signals to be traced.
 
 The return value is the same as would be returned by the call
-\code{func(*args, **kwargs)}.
-The basename of the VCD output filename is \code{func.func_name}
-by default.
-If the VCD file exists already, it will be moved to a backup file by
-attaching a timestamp to it, before creating the new file.
+\code{func(*args, **kwargs)}.  The top-level instance name and the
+basename of the VCD output filename is \code{func.func_name} by
+default.  If the VCD file exists already, it will be moved to a backup
+file by attaching a timestamp to it, before creating the new file.
 \end{funcdesc}
 
 The \code{traceSignals} callable has the following attribute:
 
 \begin{memberdesc}[traceSignals]{name}
 
-This attribute is used to overwrite the default basename for the
-VCD output filename.
+This attribute is used to overwrite the default top-level instance
+name and the basename for the VCD output filename.
 \end{memberdesc}
 
 \section{Modeling \label{ref-model}}
@@ -159,7 +158,7 @@ Some MyHDL objects that are described elsewhere can directly be used
 as trigger objects. In particular, a signal can be used as
 a trigger object. Whenever a signal changes value, the generator
 resumes. Likewise, the objects referred to by the signal attributes
-\code{posedge} and \code{negedge} are trigger object. The generator
+\code{posedge} and \code{negedge} are trigger objects. The generator
 resumes on the occurrence of a positive or a negative edge on the
 signal, respectively. An edge occurs when there is a change from
 false to true (positive) or vice versa (negative).
@@ -198,12 +197,11 @@ are forked, while the original generator resumes immediately.
 \declaremodule{}{myhdl}
 
 MyHDL defines a number of decorator functions, that make it easier to
-create generators from local generator function.
+create generators from local generator functions.
 
 \begin{funcdesc}{instance}{}
 The \function{instance} decorator is the most general decorator.  It
-automatically creates a generator by calling the generator function,
-and by reusing its name.
+automatically creates a generator by calling the decorated generator function.
 
 It is used as follows:
 
@@ -295,6 +293,7 @@ def top(...):
 
 The \function{always_comb} decorator infers the inputs of the combinatorial
 logic and the corresponding sensitivity list automatically.
+The decorated function should be a classic function.
 
 \end{funcdesc}
 
@@ -520,8 +519,8 @@ The return value is the same as would be returned by the call
 \code{func(*args, **kwargs)}. It should be assigned
 to an instance name.
 
-The basename of the Verilog output filename is \code{func.func_name}
-by default.
+The top-level instance name and the basename of the Verilog output
+filename is \code{func.func_name} by default.
 
 For more information about the restrictions on convertible
 \myhdl\ code, see section~\ref{conv-subset} in
@@ -532,8 +531,8 @@ The \function{toVerilog} callable has the following attribute:
 
 \begin{memberdesc}[toVerilog]{name}
 
-This attribute is used to overwrite the default basename for the
-Verilog output filename.
+This attribute is used to overwrite the default top-level instance
+and and the basename for the Verilog output filename.
 
 \end{memberdesc}
 
@@ -548,7 +547,7 @@ When defined within a function under elaboration, the
 should be used instead of converted code for that function.  The
 user-defined code should be a Python format string that uses keys to
 refer to the variables that should be interpolated in the string. Any
-variable in the functional context can be referred to.
+variable in the function context can be referred to.
 
 Note that this hook cannot be used inside generator functions or
 decorated local functions, as these are not elaborated.

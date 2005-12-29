@@ -871,8 +871,8 @@ def rom(dout, addr, CONTENT):
     return read
 \end{verbatim}
 
-The ROM content is described as a tuple of integers. With the
-ROM content defined, the conversion can be performed:
+The ROM content is described as a tuple of integers. When the
+ROM content is defined, the conversion can be performed:
 
 \begin{verbatim}
 CONTENT = (17, 134, 52, 9)
@@ -985,10 +985,10 @@ nextCount.driven = "wire"
 
 This specifies that the nextCount signal is driven as a Verilog wire
 from this module. The allowed values of the driven attribute are
-\code{'wire'} and \code{''reg''} The value specifies how the
+\code{'wire'} and \code{'reg'}. The value specifies how the
 user-defined Verilog code drives the signal in Verilog. To decide
 which value to use, consider how the signal should be declared in
-Verilog after the user-defined code is inserted.  Limitations
+Verilog after the user-defined code is inserted.
 
 
 \section{Known issues\label{conv-issues}}
@@ -1001,10 +1001,11 @@ wider than 32 bit this mapping is incorrect.
 
 \item[Synthesis pragmas are specified as Verilog comments.] The recommended
 way to specify synthesis pragmas in Verilog is through attribute
-lists. However, my Verilog simulator (Icarus) doesn't support them
+lists. However, the Icarus simulator doesn't support them
 for \code{case} statements (to specify \code{parallel_case} and
-\code{full_case} pragmas). Therefore, I still used the old
-but deprecated method of synthesis pragmas in Verilog comments.
+\code{full_case} pragmas). Therefore, the old
+but deprecated method of synthesis pragmas in Verilog comments
+is still used.
 
 \item[Inconsistent place of the sensitivity list inferred from \code{always_comb}.]
 The semantics of \code{always_comb}, both in Verilog and \myhdl{}, is to
@@ -1015,9 +1016,6 @@ This may cause inconsistent behavior at the start of the
 simulation. The workaround is to create events at time 0.
 
 \item[Non-blocking assignments to task arguments don't work.] 
-I didn't get non-blocking (signal) assignments to task arguments to
-work.  I don't know yet whether the issue is my own, a Verilog issue,
-or an issue with my Verilog simulator Icarus. I'll need to check this
-further.
-
+Non-blocking (signal) assignments to task arguments don't work
+for an as yet unknown reason.
 \end{description}
