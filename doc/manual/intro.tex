@@ -196,7 +196,7 @@ def ClkDriver(clk, period=20):
 \end{verbatim}
 
 In addition to the clock signal, the clock
-\var{period} is a parameter with a default value of \code{20}.
+period is a parameter, with a default value of \code{20}.
 
 As the low time of the clock may differ from the high time in case of
 an odd period, we cannot use the \function{always} decorator with a
@@ -220,10 +220,10 @@ generator, and its clauses specify the conditions on which the
 generator should wait before resuming. In this case, the generator
 waits for a certain delay.
 
-Not that to make sure that the generator runs ``forever'', we wrap its
+Note that to make sure that the generator runs ``forever'', we wrap its
 behavior in a \code{while True} loop.
 
-Likewise, we can define a general \function{Hello} function as follows:
+Similarly, we can define a general \function{Hello} function as follows:
 
 \begin{verbatim}
 def Hello(clk, to="World!"):
@@ -241,7 +241,7 @@ the appropriate parameters. Hierarchy can be modeled by defining the
 instances in a higher-level function, and returning them.
 This pattern can be repeated for an arbitrary number of
 hierarchical levels. Consequently, the general definition
-of a \myhdl\ \dfn{instance} is recursive: an instance
+of a \myhdl\ instance is recursive: an instance
    \index{instance!defined}%
 is either a sequence of instances, or a generator.
 
@@ -270,10 +270,9 @@ sim.run(50)
 As in standard Python, positional or named parameter association can
 be used in instantiations, or a mix of both\footnote{All positional
 parameters have to go before any named parameter.}. All these styles
-are demonstrated in the example above. As in hardware description
-languages, named association can be very useful if there are a lot of
-parameters, as the argument order in the call does not matter in that
-case.
+are demonstrated in the example above. Named association can be very
+useful if there are a lot of parameters, as the argument order in the
+call does not matter in that case.
 
 The simulation produces the following output:
 
@@ -398,10 +397,10 @@ def testBench(width):
 
 We use the conversion function \code{bin} to get a binary
 string representation of the signal values. This function is exported
-by the \code{myhdl} package and complements the standard Python
+by the \code{myhdl} package and supplements the standard Python
 \code{hex} and \code{oct} conversion functions.
 
-To demonstrate, we set up a simulation for a small width: 
+As a demonstration, we set up a simulation for a small width: 
 
 \begin{verbatim}
 sim = Simulation(testBench(width=3))
@@ -426,7 +425,7 @@ StopSimulation: No more events
 \subsection{Bit slicing \label{intro-slicing}}
 \index{bit slicing}
 
-For a change, we will use a plain function as an example to illustrate
+For a change, we will use a traditional function as an example to illustrate
 slicing.  The following function calculates the HEC byte of an ATM
 header.
 
@@ -471,7 +470,7 @@ follows: for a slice \code{[i:j]}, only bits below index \code{i} are
 included, and the bit with index \code{j} is the last bit included.
 
 When an intbv object is sliced, a new intbv object is returned. This
-new intbv always has a positive value, even when the original object
+new intbv object is always positive, even when the original object
 was negative.
 
 
