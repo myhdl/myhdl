@@ -133,7 +133,7 @@ Combinatorial logic is described with a code pattern as
 follows: 
 
 \begin{verbatim}
-def top(<parameters>)
+def top(<parameters>):
     ...
     @always_comb
     def combLogic():
@@ -238,7 +238,7 @@ common patterns: a template with a rising clock edge and an
 asynchronous reset signal. Other templates are similar.
 
 \begin{verbatim}
-def top(<parameters>, clock, ..., reset, ...)
+def top(<parameters>, clock, ..., reset, ...):
     ...
     @always(clock.posedge, reset.negedge)
     def seqLogic():
@@ -487,8 +487,7 @@ instead:
 tb_fsm = traceSignals(testbench)
 \end{verbatim}
 
-All signals in the instance hierarchy will be traced in an output VCD
-file called \file{tb_fsm.vcd}. Note that first the argument of
+Note that the first argument of
 \function{traceSignals()} consists of the uncalled function. By
 calling the function under its control, \function{traceSignals()}
 gathers information about the hierarchy and the signals to be traced.
