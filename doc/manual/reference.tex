@@ -54,7 +54,7 @@ finds the hierarchy and the signals to be traced.
 The return value is the same as would be returned by the call
 \code{func(*args, **kwargs)}.  The top-level instance name and the
 basename of the VCD output filename is \code{func.func_name} by
-default.  If the VCD file exists already, it will be moved to a backup
+default. If the VCD file exists already, it will be moved to a backup
 file by attaching a timestamp to it, before creating the new file.
 \end{funcdesc}
 
@@ -63,7 +63,7 @@ The \code{traceSignals} callable has the following attribute:
 \begin{memberdesc}[traceSignals]{name}
 
 This attribute is used to overwrite the default top-level instance
-name and the basename for the VCD output filename.
+name and the basename of the VCD output filename.
 \end{memberdesc}
 
 \section{Modeling \label{ref-model}}
@@ -532,7 +532,7 @@ The \function{toVerilog} callable has the following attribute:
 \begin{memberdesc}[toVerilog]{name}
 
 This attribute is used to overwrite the default top-level instance
-name and the basename for the Verilog output filename.
+name and the basename of the Verilog output filename.
 
 \end{memberdesc}
 
