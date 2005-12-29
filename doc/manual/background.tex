@@ -93,7 +93,7 @@ until they are exhausted. What happens is that the
 \keyword{yield} statement is like a
 \keyword{return}, except that it is non-fatal: the generator remembers
 its state and the point in the code when it yielded. A higher order
-agent can decide when to get a further value by calling the
+agent can decide when to get the next value by calling the
 generator's \function{next()} method. We say that generators are
 \dfn{resumable functions}.
 
@@ -105,7 +105,7 @@ called
 \dfn{processes} in VHDL and 
 \index{Verilog!always block}%
 \dfn{always blocks} in
-Verilog. Like in those languages, Python generators provide an elegant
+Verilog.  Similarly, Python generators provide an elegant
 and efficient method to model concurrency, without having to resort to
 some form of threading.
 
@@ -113,7 +113,7 @@ The use of generators to model concurrency is the first key concept in
 \myhdl{}. The second key concept is a related one: in \myhdl{}, the
 yielded values are used to specify the conditions on which the
 generator should wait before resuming. In other words, \keyword{yield}
-statements work as generalized 
+statements work as general 
     \index{sensitivity list}%
 sensitivity lists. 
 
@@ -140,9 +140,11 @@ A decorator function \function{deco} is used in a decorator statement as follows
 @deco
 def func(arg1, arg2, ...):
     <body>
+\end{verbatim}
 
-This code is equivalent to the following template:
+This code is equivalent to the following:
 
+\begin{verbatim}
 def func(arg1, arg2, ...):
     <body>
 func = deco(func)
