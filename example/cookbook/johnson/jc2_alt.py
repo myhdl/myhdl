@@ -9,7 +9,7 @@ def jc2_alt(goLeft, goRight, stop, clk, q):
 
     I/O pins:
     --------
-    clk      : input free-running clock 
+    clk      : input free-running slow clock 
     goLeft   : input signal to shift left (active-low switch)
     goRight  : input signal to shift right (active-low switch)
     stop     : input signal to stop counting (active-low switch)
