@@ -2,7 +2,10 @@
 
 import sys
 
-versionError = "ERROR: myhdl requires Python 2.3 or higher"
+requiredVersion = (2, 4)
+requiredVersionStr = ".".join([str(i) for i in requiredVersion])
+
+versionError = "ERROR: myhdl requires Python %s or higher" % requiredVersionStr
 
 # use version_info to check version
 # this was new in 2.0, so first see if it exists
@@ -11,8 +14,8 @@ try:
 except:
     print versionError
     raise SystemExit(1)
-# we need at least 2.4
-if sys.version_info < (2, 4):
+
+if sys.version_info < requiredVersion:
     print versionError
     raise SystemExit(1)
 
@@ -29,7 +32,7 @@ Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
 
     
 setup(name="myhdl",
-      version="0.5",
+      version="0.5.1dev1",
       description="Python as a Hardware Description Language",
       long_description = "See home page.",
       author="Jan Decaluwe",

@@ -594,6 +594,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         if not hasattr(test1, 'case'):
             return
         var1, item1 = test1.case
+        # don't infer a case if there's no elsif test
+        if not node.tests[1:]:
+            return
         choices = Set()
         choices.add(item1._index)
         for test, suite in node.tests[1:]:
