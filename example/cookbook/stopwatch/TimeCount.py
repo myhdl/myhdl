@@ -7,7 +7,7 @@ def TimeCount(tens, ones, tenths, startstop, reset, clock):
     tens: most significant digit of the seconds
     ones: least significant digit of the seconds
     tenths: tenths of a second
-    startstop: input that triggers start or stop of the counter
+    startstop: input that starts or stops the counter on posedge
     reset: reset input
     clock: 10kHz clock input
 

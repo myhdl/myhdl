@@ -8,9 +8,9 @@ def StopWatch(tens_led, ones_led, tenths_led, startstop, reset, clock):
     """ 3 digit stopwatch with seconds and tenths of a second.
     
     tens_led: 7 segment led for most significant digit of the seconds
-    ones_led: 7 segment led for of least significant digit of the seconds
+    ones_led: 7 segment led for least significant digit of the seconds
     tenths_led: 7 segment led for tenths of a second
-    startstop: input that triggers start or stop of the stopwatch
+    startstop: input that starts or stops the stopwatch on a posedge
     reset: reset input
     clock: 10kHz clock input
 
