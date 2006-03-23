@@ -9,7 +9,7 @@ def TimeCount(tens, ones, tenths, startstop, reset, clock):
     tenths: tenths of a second
     startstop: input that starts or stops the counter on posedge
     reset: reset input
-    clock: 10kHz clock input
+    clock: 10Hz clock input
 
     """
     

@@ -12,7 +12,7 @@ def StopWatch(tens_led, ones_led, tenths_led, startstop, reset, clock):
     tenths_led: 7 segment led for tenths of a second
     startstop: input that starts or stops the stopwatch on a posedge
     reset: reset input
-    clock: 10kHz clock input
+    clock: 10Hz clock input
 
     """
 
