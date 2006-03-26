@@ -16,7 +16,7 @@ def binaryOps(
 ##               Bitor,
 ##               Bitxor,
 ##               FloorDiv,
-##               LeftShift,
+              LeftShift,
 ##               Mod,
                  Mul,
 ##               Pow,
@@ -40,8 +40,8 @@ def binaryOps(
 ##         Bitxor.next = left ^ right
 ##         if right != 0:
 ##             FloorDiv.next = left // right
-##         if left < 256 and right < 40:
-##             LeftShift.next = left << right
+        if left < 256 and right < 40  and right >= 0:
+            LeftShift.next = left << right
 ##         if right != 0:
 ##             Mod.next = left % right
         Mul.next = left * right
@@ -73,7 +73,7 @@ def binaryOps_v(name,
 ##                 Bitor,
 ##                 Bitxor,
 ##                 FloorDiv,
-##                 LeftShift,
+                LeftShift,
 ##                 Mod,
                 Mul,
 ##                 Pow,
@@ -107,8 +107,8 @@ class TestBinaryOps(TestCase):
 ##         Bitxor_v = Signal(intbv(0)[max(m, n):])
 ##         FloorDiv = Signal(intbv(0)[m:])
 ##         FloorDiv_v = Signal(intbv(0)[m:])
-##         LeftShift = Signal(intbv(0)[64:])
-##         LeftShift_v = Signal(intbv(0)[64:])
+        LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
+        LeftShift_v = Signal(intbv(0, min=-2**64, max=2**64))
 ##         Mod = Signal(intbv(0)[m:])
 ##         Mod_v = Signal(intbv(0)[m:])
         Mul = Signal(intbv(0, min=-2**17, max=2**17))
@@ -131,7 +131,7 @@ class TestBinaryOps(TestCase):
 ##                            Bitor,
 ##                            Bitxor,
 ##                            FloorDiv,
-##                            LeftShift,
+                           LeftShift,
 ##                            Mod,
                            Mul,
 ##                            Pow,
@@ -152,7 +152,7 @@ class TestBinaryOps(TestCase):
 ##                                Bitor_v,
 ##                                Bitxor_v,
 ##                                FloorDiv_v,
-##                                LeftShift_v,
+                               LeftShift_v,
 ##                                Mod_v,
                                Mul_v,
 ##                                Pow_v,
@@ -204,7 +204,7 @@ class TestBinaryOps(TestCase):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-##                 self.assertEqual(LeftShift, LeftShift_v)
+                self.assertEqual(LeftShift, LeftShift_v)
 ##                 self.assertEqual(Mod, Mod_v)
                 self.assertEqual(Mul, Mul_v)
                 # self.assertEqual(Pow, Pow_v)
