@@ -20,7 +20,7 @@ def binaryOps(
 ##               Mod,
                  Mul,
 ##               Pow,
-##               RightShift,
+                 RightShift,
                  Sub,
                  Sum, Sum1, Sum2, Sum3,
                  EQ,
@@ -49,7 +49,9 @@ def binaryOps(
 ##         #if left < 256 and right < 40:
 ##         #    Pow.next = left ** right
 ##         Pow.next = 0
-##         RightShift.next = left >> right
+        if right >= -0:
+           RightShift.next = left >> right
+            ## RightShift.next = left
         Sub.next = left - right
         Sum.next = left + right
         Sum1.next = left + right[2:]
@@ -75,7 +77,7 @@ def binaryOps_v(name,
 ##                 Mod,
                 Mul,
 ##                 Pow,
-##                 RightShift,
+                RightShift,
                 Sub,
                 Sum, Sum1, Sum2, Sum3,
                 EQ,
@@ -113,8 +115,8 @@ class TestBinaryOps(TestCase):
         Mul_v = Signal(intbv(0, min=-2**17, max=2**17))
 ##         Pow = Signal(intbv(0)[64:])
 ##         Pow_v = Signal(intbv(0)[64:])
-##         RightShift = Signal(intbv(0)[m:])
-##         RightShift_v = Signal(intbv(0)[m:])
+        RightShift = Signal(intbv(0, min=-M, max=M))
+        RightShift_v = Signal(intbv(0, min=-M, max=M))
         Sub, Sub1, Sub2, Sub3 = [Signal(intbv(min=-M, max=M)) for i in range(4)]
         Sub_v, Sub1_v, Sub2_v, Sub3_v = [Signal(intbv(min=-M, max=M)) for i in range(4)]
         Sum, Sum1, Sum2, Sum3 = [Signal(intbv(min=-M, max=M)) for i in range(4)]
@@ -133,7 +135,7 @@ class TestBinaryOps(TestCase):
 ##                            Mod,
                            Mul,
 ##                            Pow,
-##                            RightShift,
+                           RightShift,
                            Sub,
                            Sum, Sum1, Sum2, Sum3,
                            EQ,
@@ -154,7 +156,7 @@ class TestBinaryOps(TestCase):
 ##                                Mod_v,
                                Mul_v,
 ##                                Pow_v,
-##                                RightShift_v,
+                               RightShift_v,
                                Sub_v,
                                Sum_v, Sum1_v, Sum2_v, Sum3_v,
                                EQ_v,
@@ -206,7 +208,7 @@ class TestBinaryOps(TestCase):
 ##                 self.assertEqual(Mod, Mod_v)
                 self.assertEqual(Mul, Mul_v)
                 # self.assertEqual(Pow, Pow_v)
-##                 self.assertEqual(RightShift, RightShift_v)
+                self.assertEqual(RightShift, RightShift_v)
                 self.assertEqual(Sub, Sub_v)
                 self.assertEqual(Sum, Sum_v)
                 self.assertEqual(Sum1, Sum1_v)
@@ -225,7 +227,9 @@ class TestBinaryOps(TestCase):
     
 
     def testBinaryOps(self):
-        for Ll, Ml, Lr, Mr in ( (-128, 128, -128, 128),
+        for Ll, Ml, Lr, Mr in (
+                                (-254, 236, 0, 4),
+                                (-128, 128, -128, 128),
                                 (-53, 25, -23, 123),
                                 (-23, 145, -66, 12),
                                 (23, 34, -34, -16),

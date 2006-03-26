@@ -138,10 +138,11 @@ class Cosimulation(object):
                 next = int(v, 16)
                 if s._nrbits and s._min is not None and s._min < 0:
                     if next >= (1 << (s._nrbits-1)):
-                        next -= (1 << s._nrbits)
+                        next |= (-1 << s._nrbits)
             except ValueError:
                 next = intbv(None)
             s.next = next
+                 
         self._getMode = 0
 
     def _put(self, time):

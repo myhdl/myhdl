@@ -320,6 +320,8 @@ class _Rom(object):
 def _isNegative(obj):
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
         return True
+    if isinstance(obj, (int, long)) and obj < 0:
+        return True
     return False
 
 
@@ -398,6 +400,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.visit(node.expr)
         node.obj = int()
         node.signed = node.expr.signed
+        if isinstance(node.expr, astNode.Const):
+            node.signed = True
         
     def visitAssAttr(self, node, access=_access.OUTPUT, *args):
         if node.attrname != 'next':

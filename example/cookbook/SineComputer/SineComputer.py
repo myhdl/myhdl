@@ -87,7 +87,7 @@ def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset):
     return Cosimulation(cmd, **locals())
 
 
-def convert(N=32):
+def convert(N=16):
 
     # scaling factor
     M = 2**N
@@ -105,7 +105,7 @@ def convert(N=32):
 
     toVerilog(SineComputer, cos_z0, sin_z0, done, z0, start, clock, reset, N)
 
-convert()
+convert(20)
     
         
 

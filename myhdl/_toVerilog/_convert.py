@@ -361,7 +361,13 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitSub(self, node, *args):
         self.binaryOp(node, "-")
     def visitRightShift(self, node, *args):
-        self.binaryOp(node, '>>')
+        # Additional cast to signed of the full expression
+        # this is apparently required by cver - not sure if it
+        # is actually required by standard Verilog.
+        # It shouldn't hurt however.
+        if node.signed:
+            self.write("$signed")
+        self.binaryOp(node, '>>>')
 
     def checkOpWithNegIntbv(self, node, op):
         if op in ("+", "-", "*", "&&", "||", "!"):
