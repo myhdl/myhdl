@@ -6,7 +6,7 @@ from myhdl import *
 from SineComputer import SineComputer, SineComputer_v
 
 
-def bench(N=32, nrTests=100):
+def bench(N=20, nrTests=1000):
 
     # error margin
     D = N
@@ -27,8 +27,8 @@ def bench(N=32, nrTests=100):
     reset = Signal(True)
 
     # design under test
-    dut = SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset, N)
-    # dut = SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset)
+    ## dut = SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset, N)
+    dut = SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset, N)
 
     # clock generator
     @always(delay(10))

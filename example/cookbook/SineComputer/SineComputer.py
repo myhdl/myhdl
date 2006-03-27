@@ -63,6 +63,15 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
                     dx[:] = y >> i
                     dy[:] = x >> i
                     dz[:] = angles[int(i)]
+##                     print 'x'
+##                     print x
+##                     print dx
+##                     print 'y'
+##                     print y
+##                     print dy
+##                     print 'z'
+##                     print z
+##                     print dz
                     if (z >= 0):
                         x -= dx
                         y += dy
@@ -81,10 +90,15 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
 
     return processor
 
-def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset):
+def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
+    convert(N)
     cmd = "cver -q +loadvpi=myhdl_vpi:vpi_compat_bootstrap " + \
           "SineComputer.v tb_SineComputer.v"
     return Cosimulation(cmd, **locals())
+    cmd = "iverilog SineComputer.v tb_SineComputer.v"
+    import os
+    os.system(cmd)
+    return Cosimulation("vvp -m ./myhdl.vpi a.out", **locals())
 
 
 def convert(N=16):
@@ -105,8 +119,6 @@ def convert(N=16):
 
     toVerilog(SineComputer, cos_z0, sin_z0, done, z0, start, clock, reset, N)
 
-convert(20)
-    
         
 
 
