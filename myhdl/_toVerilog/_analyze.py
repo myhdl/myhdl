@@ -283,7 +283,7 @@ def isTupleOfInts(obj):
     if not isinstance(obj, tuple):
         return False
     for e in obj:
-        if not isinstance(e, int):
+        if not isinstance(e, (int, long)):
             return False
     return True
 

@@ -26,6 +26,7 @@ __revision__ = "$Revision$"
 __date__ = "$Date$"
 
 import sys
+import math
 import traceback
 import inspect
 import compiler
@@ -289,6 +290,13 @@ class _ConvertVisitor(_ToVerilogMixin):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
 
+    def writeIntSize(self, n):
+        # write size for large integers (beyond 32 bits signed)
+        # with some safety margin
+        if n >= 2**30:
+            size = int(math.ceil(math.log(n+1,2))) + 1  # sign bit!
+            self.write("%s'sd" % size)
+
     def writeDeclaration(self, obj, name, dir):
         if dir: dir = dir + ' '
         if type(obj) is bool:
@@ -445,6 +453,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                     self.isSigAss = False
                 else:
                     self.write(' = ')
+                self.writeIntSize(n)
                 self.write("%s;" % n)
             self.dedent()
             self.writeline()
@@ -737,7 +746,8 @@ class _ConvertVisitor(_ToVerilogMixin):
             obj = self.ast.symdict[n]
             if isinstance(obj, bool):
                 s = "%s" % int(obj)
-            elif isinstance(obj, int):
+            elif isinstance(obj, (int, long)):
+                self.writeIntSize(obj)
                 s = str(obj)
             elif isinstance(obj, Signal):
                 addSignBit = isMixedExpr
