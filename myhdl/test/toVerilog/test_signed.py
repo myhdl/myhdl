@@ -324,14 +324,15 @@ def augmOps(
 ##               Bitor,
 ##               Bitxor,
 ##               FloorDiv,
-##               LeftShift,
+              LeftShift,
 ##               Mod,
               Mul,
-##               RightShift,
+              RightShift,
               Sub,
               Sum,
               left, right):
     var = intbv(0, min=-2**17, max=+2**17)
+    var2 = intbv(0, min=-2**64, max=+2**64)
     while 1:
         yield left, right
 ##         var[:] = left
@@ -347,10 +348,10 @@ def augmOps(
 ##             var[:] = left
 ##             var //= right
 ##             FloorDiv.next = var
-##         if left < 256 and right < 40:
-##             var[:] = left
-##             var <<= right
-##             LeftShift.next = var
+        if left < 256 and right < 40 and right >= 0:
+            var2[:] = left
+            var2 <<= right
+            LeftShift.next = var2
 ##         if right != 0:
 ##             var[:] = left
 ##             var %= right
@@ -359,9 +360,10 @@ def augmOps(
         var *= right
         Mul.next = var
         
-##         var[:] = left
-##         var >>= right
-##         RightShift.next = var
+        var[:] = left
+        if right >= 0:
+            var >>= right
+            RightShift.next = var
         
         var[:] = left
         var -= right
@@ -376,10 +378,10 @@ def augmOps_v(  name,
 ##                 Bitor,
 ##                 Bitxor,
 ##                 FloorDiv,
-##                 LeftShift,
+                LeftShift,
 ##                 Mod,
                 Mul,
-##                 RightShift,
+                RightShift,
                 Sub,
                 Sum,
                 left, right):
@@ -404,17 +406,17 @@ class TestAugmOps(TestCase):
         
 ##         FloorDiv = Signal(intbv(0)[m:])
 ##         FloorDiv_v = Signal(intbv(0)[m:])
-##         LeftShift = Signal(intbv(0)[64:])
-##         LeftShift_v = Signal(intbv(0)[64:])
+        LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
+        LeftShift_v = Signal(intbv(0, min=-2**64, max=2**64))
 ##         Mod = Signal(intbv(0)[m:])
 ##         Mod_v = Signal(intbv(0)[m:])
         
         Mul = Signal(intbv(0, min=-M, max=+M))
         Mul_v = Signal(intbv(0, min=-M, max=+M))
         
-##         RightShift = Signal(intbv(0)[m:])
-##         RightShift_v = Signal(intbv(0)[m:])
-        
+        RightShift = Signal(intbv(0, min=-M, max=+M))
+        RightShift_v = Signal(intbv(0, min=-M, max=+M))
+
         Sub = Signal(intbv(0, min=-M, max=+M))
         Sub_v = Signal(intbv(0, min=-M, max=+M))
         Sum = Signal(intbv(0, min=-M, max=+M))
@@ -425,10 +427,10 @@ class TestAugmOps(TestCase):
 ##                            Bitor,
 ##                            Bitxor,
 ##                            FloorDiv,
-##                            LeftShift,
+                           LeftShift,
 ##                            Mod,
                            Mul,
-##                            RightShift,
+                           RightShift,
                            Sub,
                            Sum,
                            left, right)
@@ -437,10 +439,10 @@ class TestAugmOps(TestCase):
 ##                                Bitor_v,
 ##                                Bitxor_v,
 ##                                FloorDiv_v,
-##                                LeftShift_v,
+                               LeftShift_v,
 ##                                Mod_v,
                                Mul_v,
-##                                RightShift_v,
+                               RightShift_v,
                                Sub_v,
                                Sum_v,
                                left, right)
@@ -467,7 +469,7 @@ class TestAugmOps(TestCase):
 ##                 self.assertEqual(LeftShift, LeftShift_v)
 ##                 self.assertEqual(Mod, Mod_v)
                 self.assertEqual(Mul, Mul_v)
-##                 self.assertEqual(RightShift, RightShift_v)
+                self.assertEqual(RightShift, RightShift_v)
                 self.assertEqual(Sub, Sub_v)
                 self.assertEqual(Sum, Sum_v)
 
@@ -475,7 +477,9 @@ class TestAugmOps(TestCase):
     
 
     def testAugmOps(self):
-       for Ll, Ml, Lr, Mr in ( (-128, 128, -128, 128),
+       for Ll, Ml, Lr, Mr in (
+                                (-254, 236, 0, 4),
+                                (-128, 128, -128, 128),
                                 (-53, 25, -23, 123),
                                 (-23, 145, -66, 12),
                                 (23, 34, -34, -16),

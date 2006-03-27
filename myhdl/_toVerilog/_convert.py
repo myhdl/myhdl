@@ -471,7 +471,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                  "%=" : "%",
                  "**=" : "**",
                  "|=" : "|",
-                 ">>=" : ">>",
+                 ">>=" : ">>>",
                  "<<=" : "<<",
                  "&=" : "&",
                  "^=" : "^"
@@ -480,6 +480,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.raiseError(node, _error.NotSupported,
                             "augmented assignment %s" % node.op)
         op = opmap[node.op]
+        # XXX apparently no signed context required for augmented assigns
         self.visit(node.node)
         self.write(" = ")
         self.visit(node.node)
