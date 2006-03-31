@@ -508,7 +508,8 @@ class _ConvertVisitor(_ToVerilogMixin):
         if f is bool:
             self.write("(")
             self.visit(node.args[0])
-            self.write(" ? 1'b1 : 1'b0)")
+            self.write(" != 0)")
+            # self.write(" ? 1'b1 : 1'b0)")
             return
         elif f is len:
             val = self.getVal(node)

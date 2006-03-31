@@ -286,6 +286,14 @@ def getNrBits(obj):
         return obj._nrbits
     return None
 
+def hasType(obj, theType):
+    if isinstance(obj, theType):
+        return True
+    if isinstance(obj, Signal):
+        if isinstance(obj._val, theType):
+            return True
+    return False
+
 
 class ReferenceStack(list):
     def push(self):
@@ -372,7 +380,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         for n in node.nodes:
             self.visit(n, *args)
         for n in node.nodes:
-            if not isinstance(n.obj, bool):
+            if not hasType(n.obj, bool):
                 self.raiseError(node, _error.NotSupported, "non-boolean argument in logical operator")
         node.obj = bool()
     def visitAnd(self, node, *args):
@@ -575,6 +583,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         if isinstance(obj, Signal):
             if node.attrname in ('posedge', 'negedge'):
                 node.obj = _EdgeDetector()
+            elif node.attrname == 'val':
+                node.obj = obj.val
         elif isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
