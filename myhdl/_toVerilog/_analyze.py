@@ -218,15 +218,11 @@ class _NotSupportedVisitor(_ToVerilogMixin):
     def visitTryFinally(self, node, *args):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
 
-    def visitAnd(self, node, context=_context.UNKNOWN):
-        if not context == _context.BOOLEAN:
-            self.raiseError(node, _error.NotSupported, "shortcutting logical and in non-boolean context")
-        self.visitChildNodes(node, _context.BOOLEAN)
+    def visitAnd(self, node):
+        self.visitChildNodes(node)
             
-    def visitOr(self, node, context=_context.UNKNOWN):
-        if not context == _context.BOOLEAN:
-            self.raiseError(node, _error.NotSupported, "shortcutting logical or in non-boolean context")
-        self.visitChildNodes(node, _context.BOOLEAN)
+    def visitOr(self, node):
+        self.visitChildNodes(node)
         
     def visitAssign(self, node, *args):
         if len(node.nodes) > 1:
@@ -234,15 +230,13 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         self.visit(node.nodes[0], *args)
         self.visit(node.expr, *args)
         
-    def visitCallFunc(self, node, context=_context.UNKNOWN):
+    def visitCallFunc(self, node):
         if node.star_args:
             self.raiseError(node, _error.NotSupported, "extra positional arguments")
         if node.dstar_args:
             self.raiseError(node, _error.NotSupported, "extra named arguments")
         f = eval(_unparse(node.node), self.ast.symdict)
-        if f is bool:
-            context = _context.BOOLEAN
-        self.visitChildNodes(node, context)
+        self.visitChildNodes(node)
                 
     def visitCompare(self, node, *args):
         if len(node.ops) != 1:
@@ -266,10 +260,10 @@ class _NotSupportedVisitor(_ToVerilogMixin):
                     node.ignore = True
                     return # skip
         for test, suite in node.tests:
-            self.visit(test, _context.BOOLEAN)
-            self.visit(suite, _context.UNKNOWN)
+            self.visit(test)
+            self.visit(suite)
         if node.else_:
-            self.visit(node.else_, _context.UNKNOWN)
+            self.visit(node.else_)
         
     def visitPrintnl(self, node, *args):
         if node.dest is not None:
@@ -377,7 +371,10 @@ class _AnalyzeVisitor(_ToVerilogMixin):
     def multiLogicalOp(self, node, *args):
         for n in node.nodes:
             self.visit(n, *args)
-        node.obj = None
+        for n in node.nodes:
+            if not isinstance(n.obj, bool):
+                self.raiseError(node, _error.NotSupported, "non-boolean argument in logical operator")
+        node.obj = bool()
     def visitAnd(self, node, *args):
         self.multiLogicalOp(node, *args)
     def visitOr(self, node, *args):
@@ -431,7 +428,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 if isinstance(obj, type(curObj)):
                     pass
                 elif isinstance(curObj, type(obj)):
-                    self.ast.vardict[n] = obj
+                     self.ast.vardict[n] = obj
                 else:
                     self.raiseError(node, _error.TypeMismatch, n)
                 if getNrBits(obj) != getNrBits(curObj):
@@ -539,7 +536,9 @@ class _AnalyzeVisitor(_ToVerilogMixin):
 
     def visitConst(self, node, *args):
         node.signed = False
-        if isinstance(node.value, int):
+        if node.value in (0, 1):
+            node.obj = bool(node.value)
+        elif isinstance(node.value, int):
             node.obj = node.value
         else:
             node.obj = None
@@ -653,7 +652,13 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             else: 
                 raise AssertionError
         if n in self.ast.vardict:
-            node.obj = self.ast.vardict[n]
+            obj = self.ast.vardict[n]
+            if access == _access.INOUT:
+                # upgrade bool to int for augmented assignments
+                if isinstance(obj, bool):
+                    obj = int()
+                    self.ast.vardict[n] = obj
+            node.obj = obj
         elif n in self.ast.symdict:
             node.obj = self.ast.symdict[n]
             if isTupleOfInts(node.obj):

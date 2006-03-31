@@ -63,8 +63,8 @@ def binaryOps(
         GT.next = left > right
         LE.next = left <= right
         GE.next = left >= right
-        And.next = bool(left and right)
-        Or.next = bool(left or right)
+        And.next = bool(left) and bool(right)
+        Or.next = bool(left) or bool(right)
 
 
 

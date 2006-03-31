@@ -226,8 +226,33 @@ class TestNotSupported(unittest.TestCase):
                 z.next = a <= b < c
         self.check(g, z, a, b, c)
 
-    def testShortcutAnd(self):
-        a, b = [Signal(bool()) for i in range(2)]
+##     def testShortcutAnd(self):
+##         a, b = [Signal(bool()) for i in range(2)]
+##         z = Signal(bool())
+##         def g(z, a, b):
+##             while 1:
+##                 yield a
+##                 if a:
+##                     pass
+##                 else:
+##                     z.next = a and b
+##         self.check(g, z, a, b)
+    
+##     def testShortcutOr(self):
+##         a, b, c  = [Signal(bool()) for i in range(3)]
+##         z = Signal(bool())
+##         def g(z, a, b):
+##             while 1:
+##                 yield a
+##                 if a:
+##                     pass
+##                 else:
+##                     z.next = a < (b or c)
+##         self.check(g, z, a, b)
+
+    def testNonBoolArgAnd(self):
+        a = Signal(bool())
+        b = intbv(0)[2:]
         z = Signal(bool())
         def g(z, a, b):
             while 1:
@@ -238,8 +263,10 @@ class TestNotSupported(unittest.TestCase):
                     z.next = a and b
         self.check(g, z, a, b)
     
-    def testShortcutOr(self):
-        a, b, c  = [Signal(bool()) for i in range(3)]
+    def testNonBoolArgOr(self):
+        a = Signal(bool())
+        b = intbv(0)[2:]
+        a = Signal(bool())
         z = Signal(bool())
         def g(z, a, b):
             while 1:

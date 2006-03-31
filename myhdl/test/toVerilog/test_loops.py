@@ -3,6 +3,7 @@ path = os.path
 import unittest
 from random import randrange
 
+
 from myhdl import *
 
 from util import setupCosimulation

@@ -227,7 +227,7 @@ def Infer5(a, out):
         c = 5 & 4
         c = 5 | 2
         c = 6 ^ 3
-        c = bool(a and 1)
+        c = bool(a) and 1
         out.next = c
 
 

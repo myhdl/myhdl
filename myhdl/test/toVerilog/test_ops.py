@@ -58,8 +58,8 @@ def binaryOps(
         GT.next = left > right
         LE.next = left <= right
         GE.next = left >= right
-        And.next = bool(left and right)
-        Or.next = bool(left or right)
+        And.next = bool(left) and bool(right)
+        Or.next = bool(left) or bool(right)
 
 
 
@@ -227,8 +227,8 @@ def multiOps(
         Bitand.next = argm & argn & argp
         Bitor.next = argm | argn | argp
         Bitxor.next = argm ^ argn ^ argp
-        And.next = bool(argm and argn and argp)
-        Or.next = bool(argm and argn and argp)
+        And.next = bool(argm) and bool(argn) and bool(argp)
+        Or.next = bool(argm) and bool(argn) and bool(argp)
 
 
 def multiOps_v( name,
