@@ -62,11 +62,6 @@ def edge4(flag, sig, clock):
 
     return detect
 
-
-
-
-
-
     
 def edge_v(name, flag, sig, clock):
     return setupCosimulation(**locals())
