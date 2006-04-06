@@ -4,35 +4,57 @@ from myhdl import *
 
 t_State = enum("WAITING", "CALCULATING")
 
-def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
+def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset):
+    """ Sine and cosine computer.
+
+    This modules computes the sine and cosine of an input angle
+    using the iterative Cordic algorithm. The floating point numbers
+    are represented as integers by scaling them up with a factor
+    corresponding to the number of bits after the point.
+
+    Ports:
+    -----
+    cos_z0: cosine of the input angle
+    sin_z0: sine of the input angle
+    done: output flag indicated completion of the computation
+    z0: input angle
+    start: input that starts the computation on a posedge
+    clock: clock input
+    reset: reset input
+
+    """
+
+    # angle input bit width
+    W = len(z0)
+
+    # angle input z0 represents number between -pi/2 and pi/2
+    # scaling factor corresponds to the nr of bits after the point
+    M = 2 ** (W-2)
+
+    # nr of iterations equals nr of significant input bits
+    N = W-1
     
     # calculate x0
     An = 1.0
     for i in range(N):
         An *= (sqrt(1 + 2**(-2*i)))
-
-    # scaling factor
-    M = 2**N
-
+        
     # X0
     X0 = int(round(M*1/An))
     
     # tuple with elementary angles
     angles = tuple([int(round(M*atan(2**(-i)))) for i in range(N)])
-
-    # maximal angle
-    ZMAX = int(round(M*pi/2))
-
+    
     # iterative cordic processor
     @instance
     def processor():
         
-        x = intbv(0, min=-M-N, max=M+N)
-        y = intbv(0, min=-M-N, max=M+N)
-        z = intbv(0, min=-ZMAX, max=ZMAX+1)
-        dx = intbv(0, min=-M, max=M+1)
-        dy = intbv(0, min=-M, max=M+1)
-        dz = intbv(0, min=-ZMAX, max=ZMAX)
+        x = intbv(0, min=cos_z0.min, max=cos_z0.max)
+        y = intbv(0, min=sin_z0.min, max=sin_z0.max)
+        z = intbv(0, min=z0.min, max=z0.max)
+        dx = intbv(0, min=sin_z0.min, max=sin_z0.max)
+        dy = intbv(0, min=cos_z0.min, max=cos_z0.max)
+        dz = intbv(0, min=z0.min, max=z0.max)
         i = intbv(0, min=0, max=N)
         state = t_State.WAITING
 
@@ -63,15 +85,6 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
                     dx[:] = y >> i
                     dy[:] = x >> i
                     dz[:] = angles[int(i)]
-##                     print 'x'
-##                     print x
-##                     print dx
-##                     print 'y'
-##                     print y
-##                     print dy
-##                     print 'z'
-##                     print z
-##                     print dz
                     if (z >= 0):
                         x -= dx
                         y += dy
@@ -90,8 +103,8 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
 
     return processor
 
-def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
-    convert(N)
+def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset):
+    toVerilog(SineComputer, cos_z0, sin_z0, done, z0, start, clock, reset)
     cmd = "cver -q +loadvpi=myhdl_vpi:vpi_compat_bootstrap " + \
           "SineComputer.v tb_SineComputer.v"
     return Cosimulation(cmd, **locals())
@@ -100,26 +113,7 @@ def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset, N=16):
     os.system(cmd)
     return Cosimulation("vvp -m ./myhdl.vpi a.out", **locals())
 
-
-def convert(N=16):
-
-    # scaling factor
-    M = 2**N
-    
-    # maximal angle
-    ZMAX = int(round(M*pi/2))
-    
-    cos_z0 = Signal(intbv(0, min=-M, max=M+N))
-    sin_z0 = Signal(intbv(0, min=-M, max=M+1))
-    z0 = Signal(intbv(0, min=-ZMAX, max=ZMAX+1))
-    done = Signal(False)
-    start = Signal(False)
-    clock = Signal(bool(0))
-    reset = Signal(True)
-
-    toVerilog(SineComputer, cos_z0, sin_z0, done, z0, start, clock, reset, N)
-
-        
+       
 
 
     
