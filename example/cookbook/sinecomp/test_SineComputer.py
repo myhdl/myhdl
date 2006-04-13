@@ -7,9 +7,11 @@ from SineComputer import SineComputer, SineComputer_v
 
 
 def bench(fractionSize, errorMargin, nrTests=100):
+    
     """ Test bench for SineComputer.
 
-    N: number of bits after the point
+    fractionSize: number of bits after the point
+    errorMargin: margin for rounding errors on result
     nrTests: number of tests vectors
 
     """
@@ -24,7 +26,7 @@ def bench(fractionSize, errorMargin, nrTests=100):
     D = errorMargin
 
     # signals
-    cos_z0 = Signal(intbv(0, min=-M-D, max=M+D))
+    cos_z0 = Signal(intbv(0, min=-D, max=M+D))
     sin_z0 = Signal(intbv(0, min=-M-D, max=M+D))
     z0 = Signal(intbv(0, min=-ZMAX, max=ZMAX+1))
     done = Signal(False)
@@ -70,10 +72,11 @@ def bench(fractionSize, errorMargin, nrTests=100):
     return dut, clockgen, check
 
 def test_bench():
-    fractionSize = 20
+    fractionSize = 18
     errorMargin = fractionSize
     tb = bench(fractionSize, errorMargin)
     sim = Simulation(tb)
     sim.run()
 
-# test_bench()
+if __name__ == '__main__':
+    test_bench()

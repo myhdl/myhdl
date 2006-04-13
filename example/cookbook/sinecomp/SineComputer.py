@@ -5,19 +5,19 @@ from myhdl import *
 t_State = enum("WAITING", "CALCULATING")
 
 def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset):
+    
     """ Sine and cosine computer.
 
-    This modules computes the sine and cosine of an input angle
-    using the iterative Cordic algorithm. The floating point numbers
-    are represented as integers by scaling them up with a factor
-    corresponding to the number of bits after the point.
+    This module computes the sine and cosine of an input angle. The
+    floating point numbers are represented as integers by scaling them
+    up with a factor corresponding to the number of bits after the point.
 
     Ports:
     -----
     cos_z0: cosine of the input angle
     sin_z0: sine of the input angle
     done: output flag indicated completion of the computation
-    z0: input angle
+    z0: input angle; -pi/2 <= z0 <= pi/2
     start: input that starts the computation on a posedge
     clock: clock input
     reset: reset input
@@ -34,7 +34,7 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset):
     # nr of iterations equals nr of significant input bits
     N = W-1
     
-    # calculate x0
+    # calculate X0
     An = 1.0
     for i in range(N):
         An *= (sqrt(1 + 2**(-2*i)))
@@ -49,11 +49,11 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset):
     @instance
     def processor():
         
-        x = intbv(0, min=cos_z0.min, max=cos_z0.max)
+        x = intbv(0, min=sin_z0.min, max=sin_z0.max)
         y = intbv(0, min=sin_z0.min, max=sin_z0.max)
         z = intbv(0, min=z0.min, max=z0.max)
         dx = intbv(0, min=sin_z0.min, max=sin_z0.max)
-        dy = intbv(0, min=cos_z0.min, max=cos_z0.max)
+        dy = intbv(0, min=sin_z0.min, max=sin_z0.max)
         dz = intbv(0, min=z0.min, max=z0.max)
         i = intbv(0, min=0, max=N)
         state = t_State.WAITING
@@ -108,10 +108,10 @@ def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset):
     cmd = "cver -q +loadvpi=myhdl_vpi:vpi_compat_bootstrap " + \
           "SineComputer.v tb_SineComputer.v"
     return Cosimulation(cmd, **locals())
-    cmd = "iverilog SineComputer.v tb_SineComputer.v"
-    import os
-    os.system(cmd)
-    return Cosimulation("vvp -m ./myhdl.vpi a.out", **locals())
+##     cmd = "iverilog SineComputer.v tb_SineComputer.v"
+##     import os
+##     os.system(cmd)
+##     return Cosimulation("vvp -m ./myhdl.vpi a.out", **locals())
 
        
 
