@@ -917,10 +917,17 @@ def sparseMemory(dout, din, addr, we, en, clk):
 Note how we use the \code{val} attribute of the \code{din} signal, as
 we don't want to store the signal object itself, but its current
 value. Similarly, we use the \code{val} attribute of the \code{addr}
-signal as the dictionary key. In many cases, \myhdl\ uses a signal's
-value automatically when there is no ambiguity: for example, 
-when a signal is used in an expression. When in doubt, you
-can always use the \code{val} attribute explicitly.
+signal as the dictionary key. 
+
+In many cases, \myhdl\ code uses a signal's current value
+automatically when there is no ambiguity: for example, when a signal
+is used in an expression. However, in other cases such as in this
+example you have to refer to the value explicitly: for example, when
+the Signal is used as an index, or when it is not used in an
+expression.  One option is to use the \code{val} attribute, as in this
+example.  Another possibility is to use the \code{int()} or
+\code{bool()} functions to typecast the Signal to an integer or a
+boolean value. These functions are also useful with \class{intbv} objects.
 
 As a second example, we will demonstrate how to use a list to model a
 synchronous fifo:
