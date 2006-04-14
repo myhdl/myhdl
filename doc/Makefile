@@ -181,10 +181,10 @@ paper-$(PAPER)/whatsnew03.pdf: whatsnew03/whatsnew03.tex
 
 # What's new
 # in 0.4
-paper-$(PAPER)/whatsnew04.dvi: whatsnew04/whatsnew04.tex manual/conversion.tex
+paper-$(PAPER)/whatsnew04.dvi: whatsnew04/whatsnew04.tex whatsnew04/conversion.tex
 	cd paper-$(PAPER) && $(MKDVI) ../whatsnew04/whatsnew04.tex
 
-paper-$(PAPER)/whatsnew04.pdf: whatsnew04/whatsnew04.tex manual/conversion.tex
+paper-$(PAPER)/whatsnew04.pdf: whatsnew04/whatsnew04.tex whatsnew04/conversion.tex
 	cd paper-$(PAPER) && $(MKPDF) ../whatsnew04/whatsnew04.tex
 
 # The remaining part of the Makefile is concerned with various
@@ -249,7 +249,7 @@ html/whatsnew03/whatsnew03.html: whatsnew03/whatsnew03.tex
 	$(MKHTML) --dir html/whatsnew03 whatsnew03/whatsnew03.tex
 
 whatsnew04: html/whatsnew04/whatsnew04.html
-html/whatsnew04/whatsnew04.html: whatsnew04/whatsnew04.tex manual/conversion.tex
+html/whatsnew04/whatsnew04.html: whatsnew04/whatsnew04.tex whatsnew04/conversion.tex
 	$(MKHTML) --dir html/whatsnew04 whatsnew04/whatsnew04.tex
 
 
