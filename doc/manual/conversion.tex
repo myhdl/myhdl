@@ -196,46 +196,74 @@ or usage notes.
 
 \begin{description}
 
-\item[The \keyword{break} statement.]
+\item[\keyword{break}]
 
-\item[The \keyword{continue} statement.]
+\item[\keyword{continue}]
 
-\item[The \keyword{def} statement.]
+\item[\keyword{def}]
 
-\item[The \keyword{for} statement.]
+\item[\keyword{for}]
 The only supported iteration scheme is iterating through sequences of
 integers returned by built-in function \function{range} or \myhdl\
 function \function{downrange}.  The optional \keyword{else} clause is
 not supported.
 
-\item[The \keyword{if} statement.]
+\item[\keyword{if}]
 \keyword{if}, \keyword{elif}, and \keyword{else} clauses
 are fully supported.
 
-\item[The \keyword{pass} statement.]
+\item[\keyword{pass}]
 
-\item[The \keyword{print} statement.]
+\item[\keyword{print}]
 When printing an interpolated string, the format specifiers are copied
 verbatim to the Verilog output.  Printing to a file (with syntax
 \code{'>>'}) is not supported.
 
-\item[The \keyword{raise} statement.]
+\item[\keyword{raise}]
 This statement is mapped to Verilog statements
 that end the simulation with an error message.
 
-\item[The \keyword{return} statement.]
+\item[\keyword{return}]
 
-\item[The \keyword{yield} statement.] 
+\item[\keyword{yield}] 
 The yielded expression can be a signal, a signal edge
 as specified by \myhdl\ functions \function{posedge}
 or \function{negedge}, or a tuple of signals and
 edge specifications.
 
-\item[The \keyword{while} statement.]
+\item[\keyword{while}]
 The optional \keyword{else}
 clause is not supported.
 
 \end{description}
+
+\subsection{Supported built-in functions\label{conv-subset-builtin}}
+
+The following is a list of the built-in functions that are supported by the
+Verilog converter.
+
+\begin{description}
+\item[\function{bool()}]
+This function can be used to typecast an object explictly to
+its boolean interpretation.
+
+\item[\function{len()}]
+For \class{Signal} and \class{intbv} object, function \function{len()}
+returns the bit width.
+
+\item[\function{int()}]
+This function can be used to typecast an object explictly to
+its integer interpretation.
+
+\end{description}
+
+\subsection{Excluding code from conversion \label{conv-subset-exclude}}
+For some tasks, such as debugging, it may be useful to insert arbitratry
+Python code that should not be converted.
+
+The Verilog convertor supports this by ignoring all code that is
+embedded in a \code{if __debug__} test. The value of the
+\code{__debug__} variable is not taken into account.
 
 \section{Methodology notes\label{conv-meth}}
 
