@@ -1,6 +1,9 @@
-Release 0.5.1 Development
+Release 0.5.1 28-Apr-2006 
 -------------------------
 
+Maintenance release for 0.5.
+
+See the bug tracker for fixed issues.
 
 Release 0.5 29-Dec-2005
 -----------------------
