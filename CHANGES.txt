@@ -1,4 +1,4 @@
-Release 0.5.1 28-Apr-2006 
+Release 0.5.1 1-May-2006 
 -------------------------
 
 Maintenance release for 0.5.
