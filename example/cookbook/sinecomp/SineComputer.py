@@ -16,7 +16,7 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset):
     -----
     cos_z0: cosine of the input angle
     sin_z0: sine of the input angle
-    done: output flag indicated completion of the computation
+    done: output flag indicating completion of the computation
     z0: input angle; -pi/2 <= z0 <= pi/2
     start: input that starts the computation on a posedge
     clock: clock input
