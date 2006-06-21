@@ -41,6 +41,7 @@ from myhdl._unparse import _unparse
 from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
+from myhdl._delay import delay
 from myhdl._toVerilog import _error, _access, _kind, _context, \
                              _ToVerilogMixin, _Label
 from myhdl._extractHierarchy import _isMem, _UserDefinedVerilog
@@ -481,6 +482,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = int()
         elif f in (posedge , negedge):
             node.obj = _EdgeDetector()
+        elif f is delay:
+            node.obj = delay(0)
         elif f in myhdlObjects:
             pass
         elif f in builtinObjects:
@@ -728,7 +731,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.refStack.pop()
         y = node.body.nodes[0]
         if node.test.obj == True and \
-           isinstance(y, astNode.Yield):
+           isinstance(y, astNode.Yield) and \
+           not isinstance(self.getObj(y.value), delay):
             node.kind = _kind.ALWAYS
         self.require(node, node.else_ is None, "while-else not supported")
         self.labelStack.pop()
@@ -743,7 +747,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 if not type(n.obj) in (Signal, _EdgeDetector):
                     self.raiseError(node, _error.UnsupportedYield)
         else:
-            if not type(n.obj) in (Signal, _EdgeDetector):
+            if not type(n.obj) in (Signal, _EdgeDetector, delay):
                 self.raiseError(node, _error.UnsupportedYield)
         
 

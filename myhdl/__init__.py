@@ -116,6 +116,10 @@ from _instance import instance
 from _enum import enum, EnumType, EnumItemType
 from _traceSignals import traceSignals
 from _toVerilog._convert import toVerilog
+try:
+    from _toVHDL._convert import toVHDL
+except:
+    toVHDL = None
 
 __all__ = ["bin",
            "concat",
@@ -140,6 +144,7 @@ __all__ = ["bin",
            "EnumItemType",
            "traceSignals",
            "toVerilog",
+           "toVHDL"
            ]
 
 
