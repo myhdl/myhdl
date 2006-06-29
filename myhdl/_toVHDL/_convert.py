@@ -155,7 +155,7 @@ def _writeModuleHeader(f, intf):
 
 
 def _writeSigDecls(f, intf, siglist, memlist):
-    print >> f, "architecture MYHDL of %s is" % intf.name
+    print >> f, "architecture MyHDL of %s is" % intf.name
     print >> f
     constwires = []
     for s in siglist:
@@ -170,7 +170,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               )
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print >> f, "signal %s%s %s;" % (p, r, s._name)
+            print >> f, "signal %s %s%s;" % (s._name, p, r)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -191,7 +191,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
             
 
 def _writeModuleFooter(f):
-    print >> f, "end architecture MYHDL;"
+    print >> f, "end architecture MyHDL;"
     
 
 def _writeTestBench(f, intf):
@@ -420,7 +420,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         assert node.attrname == 'next'
         self.isSigAss = True
         self.visit(node.expr)
-
+        node.obj = self.getObj(node.expr)
     def visitAssert(self, node, *args):
         # XXX
         pass
@@ -462,6 +462,8 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.isSigAss = False
         else:
             self.write(' = ')
+        node.expr.target = self.getObj(node.nodes[0])
+        print node.expr.target
         self.visit(node.expr)
         self.write(';')
 
@@ -564,7 +566,17 @@ class _ConvertVisitor(_ToVerilogMixin):
         if context == _context.PRINT:
             self.write('"%s"' % node.value)
         else:
-            self.write(node.value)
+            target = self.getTarget(node)
+            if target is not None:
+                if isinstance(target, Signal):
+                    if target._type is bool:
+                        self.write("'%s'" % node.value)
+                    elif target._type is intbv:
+                        self.write('"%s"' % bin(node.value, len(target)))
+                    else:
+                        self.write(node.value)
+            else:
+                self.write(node.value)
 
     def visitContinue(self, node, *args):
         self.write("disable %s;" % self.labelStack[-1])

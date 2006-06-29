@@ -54,7 +54,8 @@ class _PosedgeWaiterList(_WaiterList):
     def _toVerilog(self):
         return "posedge %s" % self.sig._name
     def _toVHDL(self):
-        return "rising_edge(%s)" % self.sig._name
+        return self.sig._name
+        #return "rising_edge(%s)" % self.sig._name
     
 class _NegedgeWaiterList(_WaiterList):
     def __init__(self, sig):
@@ -62,7 +63,8 @@ class _NegedgeWaiterList(_WaiterList):
     def _toVerilog(self):
         return "negedge %s" % self.sig._name
     def _toVHDL(self):
-        return "falling_edge(%s)" % self.sig._name
+        return self.sig._name
+        #return "falling_edge(%s)" % self.sig._name
 
 
 def posedge(sig):
@@ -260,7 +262,8 @@ class Signal(object):
 
     # length
     def __len__(self):
-        return len(self._val)
+        return self._nrbits
+        # return len(self._val)
 
     # indexing and slicing methods
 

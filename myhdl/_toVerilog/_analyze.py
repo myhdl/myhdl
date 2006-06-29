@@ -129,7 +129,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            # print ast
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -142,7 +142,7 @@ def _analyzeGens(top, absnames):
                         assert isinstance(obj, (int, long, Signal)) or \
                                _isMem(obj) or isTupleOfInts(obj)
                     ast.symdict[n] = obj
-            ast.name = absnames.get(id(g), _Label("BLOCK"))
+            ast.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
             if isinstance(g, _AlwaysComb):
@@ -157,13 +157,13 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            # print ast
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
             ast.symdict.update(f.f_locals)
             ast.callstack = []
-            ast.name = absnames.get(id(g), _Label("BLOCK"))
+            ast.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
             v = _NotSupportedVisitor(ast)
             compiler.walk(ast, v)
             v = _AnalyzeBlockVisitor(ast)
@@ -480,8 +480,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             node.obj = bool()
         elif f is int:
             node.obj = int()
-        elif f in (posedge , negedge):
-            node.obj = _EdgeDetector()
+##         elif f in (posedge , negedge):
+##             node.obj = _EdgeDetector()
         elif f is delay:
             node.obj = delay(0)
         elif f in myhdlObjects:
@@ -540,10 +540,31 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if n.signed:
                 node.signed = True
         op, arg = node.ops[0]
-        if op == '==':
-            if isinstance(node.expr, astNode.Name) and \
-               isinstance(arg.obj, EnumItemType):
+        # detect specialized case for the test
+        if op == '==' and isinstance(node.expr, astNode.Name):
+            n = node.expr.name
+            # check wether it can be a case
+            if isinstance(arg.obj, EnumItemType):
                 node.case = (node.expr, arg.obj)
+            # check whether it can be part of an edge check
+            elif n in self.ast.sigdict:
+                sig = self.ast.sigdict[n]
+                if isinstance(arg.obj, astNode.Const):
+                    v = arg.obj.value
+                    if value == 0:
+                        node.edge = sig.negedge
+                    elif value == 1:
+                        node.edge = sig.posedge
+                elif isinstance(arg.obj, astNode.Name):
+                    c = arg.obj.name
+                    if c in self.ast.symdict:
+                        a = self.ast.symdict[n]
+                        if isinstance(a, int):
+                            if a == 0:
+                                node.edge = sig.negedge
+                            elif a == 1:
+                                node.edge = sig.posedge
+                        
 
     def visitConst(self, node, *args):
         node.signed = False

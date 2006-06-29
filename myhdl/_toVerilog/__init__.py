@@ -91,6 +91,11 @@ class _ToVerilogMixin(object):
         if hasattr(node, 'obj'):
             return node.obj
         return None
+    
+    def getTarget(self, node):
+        if hasattr(node, 'target'):
+            return node.target
+        return None
 
     def getKind(self, node):
         if hasattr(node, 'kind'):

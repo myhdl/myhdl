@@ -185,7 +185,7 @@ class _HierExtr(object):
         top_inst = hierarchy[0]
         obj, subs = top_inst.obj, top_inst.subs
         names[id(obj)] = name
-        absnames[id(obj)] = '_' + name
+        absnames[id(obj)] = name
         for inst in hierarchy:
             obj, subs = inst.obj, inst.subs
             assert id(obj) in names
