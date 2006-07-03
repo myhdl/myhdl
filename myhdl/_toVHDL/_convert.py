@@ -48,7 +48,8 @@ from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind,_context, \
      _ToVerilogMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
-     _Ram, _Rom, _EdgeDetector
+     _Ram, _Rom
+from myhdl._Signal import _WaiterList
             
 _converting = 0
 _profileFunc = None
@@ -134,6 +135,10 @@ toVHDL = _ToVHDLConvertor()
 
 
 def _writeModuleHeader(f, intf):
+    print >> f, "library IEEE;"
+    print >> f, "use IEEE.std_logic_1164.all;"
+    print >> f, "use IEEE.numeric_std.all;"
+    print >> f
     print >> f, "entity %s is" % intf.name
     if intf.argnames:
         print >> f, "    port ("
@@ -170,7 +175,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               )
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print >> f, "signal %s %s%s;" % (s._name, p, r)
+            print >> f, "signal %s: %s%s;" % (s._name, p, r)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -185,9 +190,11 @@ def _writeSigDecls(f, intf, siglist, memlist):
             continue
         r = _getRangeString(m.elObj)
         print >> f, "reg %s%s [0:%s-1];" % (r, m.name, m.depth)
-    print >> f
     for s in constwires:
         print >> f, "%s <= %s;" % (s._name, int(s._val))
+    print >> f
+    print >> f, "begin"
+    print >> f
             
 
 def _writeModuleFooter(f):
@@ -463,7 +470,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             self.write(' = ')
         node.expr.target = self.getObj(node.nodes[0])
-        print node.expr.target
         self.visit(node.expr)
         self.write(';')
 
@@ -559,6 +565,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         if op == "==":
             op = "="
         self.write(" %s " % op)
+        print context
         self.visit(code, context)
         self.write(")")
 
@@ -726,14 +733,21 @@ class _ConvertVisitor(_ToVerilogMixin):
                 ifstring = "elsif"
                 self.writeline()
             self.write(ifstring)
-            self.visit(test)
+            self.visit(test, _context.BOOLEAN)
             self.write(" then")
             self.indent()
             self.visit(suite)
             self.dedent()
         if node.else_:
             self.writeline()
-            self.write("else")
+            edges = self.getEdge(node.else_)
+            if edges is not None:
+                edgeTests = [e._toVHDL() for e in edges]
+                self.write("elsif ")
+                self.write("or ".join(edgeTests))
+                self.write(" then")
+            else:
+                self.write("else")
             self.indent()
             self.visit(node.else_)
             self.dedent()
@@ -765,13 +779,19 @@ class _ConvertVisitor(_ToVerilogMixin):
         elif n in self.ast.symdict:
             obj = self.ast.symdict[n]
             if isinstance(obj, bool):
-                s = "%s" % int(obj)
+                s = "'%s'" % int(obj)
             elif isinstance(obj, (int, long)):
                 self.writeIntSize(obj)
                 s = str(obj)
             elif isinstance(obj, Signal):
-                addSignBit = isMixedExpr
-                s = str(obj)
+                if context == _context.PRINT:
+                    s = "integer'image(to_integer(%s))" % str(obj)
+                elif context == _context.BOOLEAN and \
+                     obj._type is bool:
+                    s = "%s = '1'" % str(obj)
+                else:
+                    addSignBit = isMixedExpr
+                    s = str(obj)
             elif _isMem(obj):
                 m = _getMemInfo(obj)
                 assert m.name
@@ -796,13 +816,11 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.write("// pass")
 
     def handlePrint(self, node):
-        self.write('$display(')
+        assert len(node.nodes) == 1
+        self.write('report ')
         s = node.nodes[0]
         self.visit(s, _context.PRINT)
-        for s in node.nodes[1:]:
-            self.write(', , ')
-            self.visit(s, _context.PRINT)
-        self.write(');')
+        self.write(';')
     
     def visitPrint(self, node, *args):
         self.handlePrint(node)
@@ -912,7 +930,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         yieldObj = self.getObj(node.value)
         if isinstance(yieldObj, delay):
             self.write("for ")
-        elif isinstance(yieldObj, _EdgeDetector):
+        elif isinstance(yieldObj, _WaiterList):
             self.write("until ")
         else:
             self.write("on ")
@@ -954,7 +972,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visitFunction(self, node, *args):
-        self.write("%s: process begin" % self.ast.name) 
+        self.write("%s: process is\nbegin" % self.ast.name)
         self.indent()
         self.writeDeclarations()
         self.visit(node.code)
@@ -1012,13 +1030,45 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visitFunction(self, node, *args):
-        self.write("%s: process (" % self.ast.name)
         assert self.ast.senslist
-        for e in self.ast.senslist[:-1]:
-            self.write(e._toVHDL())
+        senslist = self.ast.senslist
+        first = senslist[0]
+        if isinstance(first, _WaiterList):
+            bt = _WaiterList
+        elif isinstance(first, Signal):
+            bt = Signal
+        elif isinstance(first, delay):
+            bt  = delay
+        assert bt
+        for e in senslist:
+            if not isinstance(e, bt):
+                self.raiseError(node, "base type error in sensitivity list")
+        if len(senslist) >= 2 and bt == _WaiterList:
+            ifnode = node.code.nodes[0]
+            assert isinstance(ifnode, astNode.If)
+            asyncEdges = []
+            for test, suite in ifnode.tests:
+                e = self.getEdge(test)
+                if e is None:
+                    self.raiseError(node, "no edge test")
+                asyncEdges.append(e)
+            if ifnode.else_ is None:
+                self.raiseError(node, "no else test")
+            edges = []
+            for s in senslist:
+                for e in asyncEdges:
+                    if s is e:
+                        break
+                else:
+                    edges.append(s)
+            ifnode.else_.edge = edges
+            senslist = [s.sig for s in senslist]    
+        self.write("%s: process (" % self.ast.name)
+        for e in senslist[:-1]:
+            self.write(e)
             self.write(', ')
-        self.write(self.ast.senslist[-1]._toVHDL())
-        self.write(")")
+        self.write(senslist[-1])
+        self.write(") is")
         self.writeline()
         self.write("begin")
         self.indent()

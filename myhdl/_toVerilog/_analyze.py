@@ -45,6 +45,7 @@ from myhdl._delay import delay
 from myhdl._toVerilog import _error, _access, _kind, _context, \
                              _ToVerilogMixin, _Label
 from myhdl._extractHierarchy import _isMem, _UserDefinedVerilog
+from myhdl._Signal import _WaiterList
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
@@ -129,7 +130,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            #print ast
+            print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -157,7 +158,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            #print ast
+            print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -270,6 +271,7 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         if node.dest is not None:
             self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
         self.visitChildNodes(node, *args)
+        self.ast.hasPrint = True
         
     visitPrint = visitPrintnl
 
@@ -308,8 +310,8 @@ class ReferenceStack(list):
         return False
 
 # auxiliary types to aid type checking
-class _EdgeDetector(object):
-    pass
+## class _EdgeDetector(object):
+##     pass
 
 class _Ram(object):
     __slots__ = ['elObj', 'depth']
@@ -339,6 +341,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         ast.kind = None
         ast.isGen = False
         ast.hasRom = False
+        ast.hasPrint = False
         self.ast = ast
         self.labelStack = []
         self.refStack = ReferenceStack()
@@ -540,6 +543,11 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if n.signed:
                 node.signed = True
         op, arg = node.ops[0]
+        node.expr.target = self.getObj(arg)
+        print type(self.getObj(arg))
+        arg.target = self.getObj(node.expr)
+        print type(self.getObj(node.expr))
+        print arg.target._type
         # detect specialized case for the test
         if op == '==' and isinstance(node.expr, astNode.Name):
             n = node.expr.name
@@ -549,21 +557,12 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             # check whether it can be part of an edge check
             elif n in self.ast.sigdict:
                 sig = self.ast.sigdict[n]
-                if isinstance(arg.obj, astNode.Const):
-                    v = arg.obj.value
-                    if value == 0:
+                v = self.getValue(arg)
+                if v is not None:
+                    if v == 0:
                         node.edge = sig.negedge
-                    elif value == 1:
+                    elif v == 1:
                         node.edge = sig.posedge
-                elif isinstance(arg.obj, astNode.Name):
-                    c = arg.obj.name
-                    if c in self.ast.symdict:
-                        a = self.ast.symdict[n]
-                        if isinstance(a, int):
-                            if a == 0:
-                                node.edge = sig.negedge
-                            elif a == 1:
-                                node.edge = sig.posedge
                         
 
     def visitConst(self, node, *args):
@@ -605,8 +604,10 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         node.signed = False
         obj = self.ast.symdict[node.expr.name]
         if isinstance(obj, Signal):
-            if node.attrname in ('posedge', 'negedge'):
-                node.obj = _EdgeDetector()
+            if node.attrname == 'posedge':
+                node.obj = obj.posedge
+            elif node.attrname == 'negedge':
+                node.obj = obj.negedge
             elif node.attrname == 'val':
                 node.obj = obj.val
         elif isinstance(obj, EnumType):
@@ -698,11 +699,14 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if isTupleOfInts(node.obj):
                 node.obj = _Rom(node.obj)
                 self.ast.hasRom = True
+            elif isinstance(node.obj, int):
+                node.value = node.obj
         elif n in __builtin__.__dict__:
             node.obj = __builtin__.__dict__[n]
         else:
             pass
         node.signed = _isNegative(node.obj)
+        node.target = node.obj
 
     def visitReturn(self, node, *args):
         self.raiseError(node, _error.NotSupported, "return statement")
@@ -763,13 +767,16 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.ast.isGen = True
         n = node.value
         self.visit(n)
+        senslist = []
         if isinstance(n, astNode.Tuple):
             for n in n.nodes:
-                if not type(n.obj) in (Signal, _EdgeDetector):
+                if not isinstance(n.obj, (Signal, _WaiterList)):
                     self.raiseError(node, _error.UnsupportedYield)
+                senslist.append(n.obj)
         else:
-            if not type(n.obj) in (Signal, _EdgeDetector, delay):
+            if not isinstance(n.obj, (Signal, _WaiterList, delay)):
                 self.raiseError(node, _error.UnsupportedYield)
+                senlist = [n.obj]
         
 
 class _AnalyzeBlockVisitor(_AnalyzeVisitor):

@@ -102,6 +102,16 @@ class _ToVerilogMixin(object):
             return node.kind
         return None
 
+    def getEdge(self, node):
+        if hasattr(node, 'edge'):
+            return node.edge
+        return None
+
+    def getValue(self, node):
+        if hasattr(node, 'value'):
+            return node.value
+        return None
+
     def getVal(self, node):
         val = eval(_unparse(node), self.ast.symdict)
         return val
