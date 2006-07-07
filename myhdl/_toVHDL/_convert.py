@@ -333,7 +333,14 @@ class _ConvertVisitor(_ToVerilogMixin):
         
 
     def writeDeclarations(self):
+        if self.ast.hasPrint:
+            self.writeline()
+            self.write("use std.textio.all;")
+            self.writeline()
+            self.write("variable L: line;")
         for name, obj in self.ast.vardict.items():
+            if isinstance(obj, int):
+                continue # hack for loop vars
             self.writeline()
             self.writeDeclaration(obj, name, "reg")
                 
@@ -607,7 +614,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         assert len(args) <= 3
         if f is range:
             cmp = '<'
-            op = '+'
+            op = 'to'
             oneoff = ''
             if len(args) == 1:
                 start, stop, step = None, args[0], None
@@ -617,7 +624,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                 start, stop, step = args
         else: # downrange
             cmp = '>='
-            op = '-'
+            op = 'downto'
             oneoff ='-1'
             if len(args) == 1:
                 start, stop, step = args[0], None, None
@@ -628,29 +635,24 @@ class _ConvertVisitor(_ToVerilogMixin):
         if node.breakLabel.isActive:
             self.write("begin: %s" % node.breakLabel)
             self.writeline()
-        self.write("for (%s=" % var)
+        self.write("for %s in " % var)
         if start is None:
             self.write("0")
         else:
             self.visit(start)
-        self.write("%s; %s%s" % (oneoff, var, cmp))
+        self.write(" %s " % op)
         if stop is None:
             self.write("0")
         else:
             self.visit(stop)
-        self.write("; %s=%s%s" % (var, var, op))
-        if step is None:
-            self.write("1")
-        else:
-            self.visit(step)
-        self.write(") begin")
+        self.write(" loop")
         if node.loopLabel.isActive:
             self.write(": %s" % node.loopLabel)
         self.indent()
         self.visit(node.body)
         self.dedent()
         self.writeline()
-        self.write("end")
+        self.write("end loop;")
         if node.breakLabel.isActive:
             self.writeline()
             self.write("end")
@@ -785,7 +787,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                 s = str(obj)
             elif isinstance(obj, Signal):
                 if context == _context.PRINT:
-                    s = "integer'image(to_integer(%s))" % str(obj)
+                    s = "write(L, to_integer(%s))" % str(obj)
                 elif context == _context.BOOLEAN and \
                      obj._type is bool:
                     s = "%s = '1'" % str(obj)
@@ -817,10 +819,12 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def handlePrint(self, node):
         assert len(node.nodes) == 1
-        self.write('report ')
         s = node.nodes[0]
         self.visit(s, _context.PRINT)
         self.write(';')
+        self.writeline()
+        self.write("writeline(output, L);")
+        
     
     def visitPrint(self, node, *args):
         self.handlePrint(node)
@@ -972,9 +976,13 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visitFunction(self, node, *args):
-        self.write("%s: process is\nbegin" % self.ast.name)
+        self.write("%s: process is" % self.ast.name)
         self.indent()
         self.writeDeclarations()
+        self.dedent()
+        self.writeline()
+        self.write("begin")
+        self.indent()
         self.visit(node.code)
         self.writeline()
         self.write("wait;")

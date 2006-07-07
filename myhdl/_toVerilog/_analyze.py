@@ -271,7 +271,6 @@ class _NotSupportedVisitor(_ToVerilogMixin):
         if node.dest is not None:
             self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
         self.visitChildNodes(node, *args)
-        self.ast.hasPrint = True
         
     visitPrint = visitPrintnl
 
@@ -710,6 +709,12 @@ class _AnalyzeVisitor(_ToVerilogMixin):
 
     def visitReturn(self, node, *args):
         self.raiseError(node, _error.NotSupported, "return statement")
+        
+    def visitPrintnl(self, node, *args):
+        self.ast.hasPrint = True
+        self.visitChildNodes(node, *args)
+        
+    visitPrint = visitPrintnl
             
     def visitSlice(self, node, access=_access.INPUT, kind=_kind.NORMAL, *args):
         node.signed = False

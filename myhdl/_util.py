@@ -46,13 +46,13 @@ def downrange(start, stop=0, step=1):
     """ Return a downward range. """
     return range(start-1, stop-1, -step)
         
-class StopSimulation(exceptions.Exception):
-    """ Basic exception to stop a Simulation """
-    pass
+## class StopSimulation(exceptions.Exception):
+##     """ Basic exception to stop a Simulation """
+##     pass
 
-class SuspendSimulation(exceptions.Exception):
-    """ Basic exception to suspend a Simulation """
-    pass
+## class SuspendSimulation(exceptions.Exception):
+##     """ Basic exception to suspend a Simulation """
+##     pass
 
 def _printExcInfo():
     kind, value  = sys.exc_info()[:2]
@@ -60,7 +60,7 @@ def _printExcInfo():
     msg = msg[msg.rindex('.')+1:]
     if str(value):
         msg += ": %s" % value
-        print msg
+        print >> sys.stderr, msg
 
 def _isGenFunc(obj):
     if isinstance(obj, FunctionType):
