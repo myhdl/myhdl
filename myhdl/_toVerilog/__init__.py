@@ -135,7 +135,7 @@ class _ToVerilogMixin(object):
 def _LabelGenerator():
     i = 1
     while 1:
-        yield "_MYHDL%s" % i
+        yield "MYHDL%s" % i
         i += 1
         
 _genLabel = _LabelGenerator()

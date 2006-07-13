@@ -476,7 +476,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.isSigAss = False
         else:
             self.write(' = ')
-        node.expr.target = self.getObj(node.nodes[0])
+        node.expr.target = obj = self.getObj(node.nodes[0])
         self.visit(node.expr)
         self.write(';')
 
@@ -892,10 +892,7 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def visitTuple(self, node, context=None, *args):
         assert context != None
-        if context == _context.PRINT:
-            sep = ", "
-        else:
-            sep = " or "
+        sep = ", "
         tpl = node.nodes
         self.visit(tpl[0])
         for elt in tpl[1:]:
@@ -955,10 +952,12 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.write("%s: process (" % self.ast.name)
         self.visit(sl, _context.YIELD)
         self.write(")")
+        self.indent()
+        self.writeDeclarations()
+        self.dedent()
         self.writeline()
         self.write("begin")
         self.indent()
-        self.writeDeclarations()
         assert isinstance(w.body, astNode.Stmt)
         for stmt in w.body.nodes[1:]:
             self.writeline()
