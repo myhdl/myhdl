@@ -338,7 +338,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         ast.outputs = Set()
         ast.argnames = []
         ast.kind = None
-        ast.isGen = False
+        ast.hasYield = 0
         ast.hasRom = False
         ast.hasPrint = False
         self.ast = ast
@@ -762,6 +762,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         y = node.body.nodes[0]
         if node.test.obj == True and \
            isinstance(y, astNode.Yield) and \
+           not self.ast.hasYield > 1 and \
            not isinstance(self.getObj(y.value), delay):
             node.kind = _kind.ALWAYS
         self.require(node, node.else_ is None, "while-else not supported")
@@ -769,7 +770,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         self.labelStack.pop()
 
     def visitYield(self, node, *args):
-        self.ast.isGen = True
+        self.ast.hasYield += 1
         n = node.value
         self.visit(n)
         senslist = []
@@ -896,7 +897,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
                 self.ast.sigdict[n] = v
         self.visit(node.code)
         self.refStack.pop()
-        if self.ast.isGen:
+        if self.ast.hasYield:
             self.raiseError(node, _error.NotSupported,
                             "call to a generator function")
         if self.ast.kind == _kind.TASK:
