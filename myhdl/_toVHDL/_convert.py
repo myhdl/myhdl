@@ -117,6 +117,7 @@ class _ToVHDLConvertor(object):
         intf.name = name
 
         _writeModuleHeader(vfile, intf)
+        _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _convertGens(genlist, vfile)
         _writeModuleFooter(vfile)
@@ -159,11 +160,26 @@ def _writeModuleHeader(f, intf):
         print >> f, "    );"
     print >> f, "end entity %s;" % intf.name
     print >> f
+    print >> f, "architecture MyHDL of %s is" % intf.name
+    print >> f
+
+
+funcdecls = """\
+function to_std_logic (arg : boolean) return std_logic is begin
+    if arg then
+        return '1';
+    else
+        return '0';
+    end if;
+end function to_std_logic;
+"""
+
+def _writeFuncDecls(f):
+    print >> f, funcdecls
+    
 
 
 def _writeSigDecls(f, intf, siglist, memlist):
-    print >> f, "architecture MyHDL of %s is" % intf.name
-    print >> f
     constwires = []
     for s in siglist:
         if s._name in intf.argnames:
@@ -194,8 +210,6 @@ def _writeSigDecls(f, intf, siglist, memlist):
         print >> f, "reg %s%s [0:%s-1];" % (r, m.name, m.depth)
     for s in constwires:
         print >> f, "%s <= %s;" % (s._name, int(s._val))
-    print >> f
-    print >> f, "begin"
     print >> f
             
 
@@ -275,6 +289,8 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(ast, blockBuf, funcBuf)
         compiler.walk(ast, v)
+    print >> vfile, "begin"
+    print >> vfile
     vfile.write(funcBuf.getvalue()); funcBuf.close()
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
@@ -485,6 +501,8 @@ class _ConvertVisitor(_ToVerilogMixin):
             else:
                 convOpen, convClose = "to_unsigned(", ", %s)" % lhs.vhdlObj.size
                 rhs.vhdlObj = vhdl_integer()
+        elif isinstance(lhs.vhdlObj, vhdl_std_logic):
+            rhs.vhdlObj = vhdl_std_logic()
         self.visit(node.nodes[0])
         if self.isSigAss:
             self.write(' <= ')
@@ -583,11 +601,15 @@ class _ConvertVisitor(_ToVerilogMixin):
         context = None
         if node.signed:
             context = _context.SIGNED
+        if isinstance(node.vhdlObj, vhdl_std_logic):
+            self.write("to_std_logic")
         self.write("(")
         self.visit(node.expr, context)
         op, code = node.ops[0]
         if op == "==":
             op = "="
+        elif op == "!=":
+            op = "/="
         self.write(" %s " % op)
         self.visit(code, context)
         self.write(")")
@@ -1201,11 +1223,15 @@ class vhdl_signed(vhdl_type):
 class vhdl_integer(vhdl_type):
     pass
         
-class _AnnotateTypesVisitor(object):
+class _AnnotateTypesVisitor(_ToVerilogMixin):
 
     def visitAssAttr(self, node):
         self.visit(node.expr)
         node.vhdlObj = node.expr.vhdlObj
+
+    def visitCompare(self, node):
+        node.vhdlObj = vhdl_boolean
+        self.visitChildNodes(node)
 
     def visitConst(self, node):
         node.vhdlObj = vhdl_integer()
