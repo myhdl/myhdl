@@ -108,7 +108,7 @@ def incTaskFreeVar(count, enable, clock, reset, n):
 
 def tb_inc():
 
-    NR_CYCLES = 200
+    NR_CYCLES = 201
       
     m = 8
     n = 2 ** m
