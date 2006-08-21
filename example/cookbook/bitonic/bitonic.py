@@ -73,7 +73,7 @@ def Array8Sorter_v(a0, a1, a2, a3, a4, a5, a6, a7,
     toVerilog(Array8Sorter, a0, a1, a2, a3, a4, a5, a6, a7,
                             z0, z1, z2, z3, z4, z5, z6, z7)
     cmd = "cver -q +loadvpi=myhdl_vpi:vpi_compat_bootstrap " + \
-          "bitonic_ref.v tb_Array8Sorter.v"
+          "Array8Sorter.v tb_Array8Sorter.v"
     return Cosimulation(cmd, **locals())
 
 
