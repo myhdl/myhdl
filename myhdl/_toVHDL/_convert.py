@@ -104,8 +104,6 @@ class _ToVHDLConvertor(object):
 
         vpath = name + ".vhd"
         vfile = open(vpath, 'w')
-        tbpath = "tb_" + vpath
-        tbfile = open(tbpath, 'w')
 
         siglist, memlist = _analyzeSigs(h.hierarchy)
         arglist = _flatten(h.top)
@@ -121,10 +119,9 @@ class _ToVHDLConvertor(object):
         _writeSigDecls(vfile, intf, siglist, memlist)
         _convertGens(genlist, vfile)
         _writeModuleFooter(vfile)
-        _writeTestBench(tbfile, intf)
 
         vfile.close()
-        tbfile.close()
+        # tbfile.close()
 
         # clean up signal names
         for sig in siglist:
@@ -184,8 +181,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for s in siglist:
         if s._name in intf.argnames:
             continue
+        if isinstance(s._val, EnumItemType):
+            _declareEnumType(f, s)
         r = _getRangeString(s)
-        p = _getSignString(s)
+        p = _getTypeString(s)
         if s._driven:
             if not s._read:
                 warnings.warn("%s: %s" % (_error.UnusedSignal, s._name),
@@ -215,45 +214,21 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
 def _writeModuleFooter(f):
     print >> f, "end architecture MyHDL;"
+
     
+def _declareEnumType(f, s):
+    enumType = s._val._type
+    if enumType._isDeclared():
+        return
+    else:
+        print >> f, enumType._toVHDL(s._name)
+        enumType._setDeclared()
 
-def _writeTestBench(f, intf):
-    print >> f, "module tb_%s;" % intf.name
-    print >> f
-    fr = StringIO()
-    to = StringIO()
-    pm = StringIO()
-    for portname in intf.argnames:
-        s = intf.argdict[portname]
-        r = _getRangeString(s)
-        if s._driven:
-            print >> f, "wire %s%s;" % (r, portname)
-            print >> to, "        %s," % portname
-        else:
-            print >> f, "reg %s%s;" % (r, portname)
-            print >> fr, "        %s," % portname
-        print >> pm, "    %s," % portname
-    print >> f
-    print >> f, "initial begin"
-    if fr.getvalue():
-        print >> f, "    $from_myhdl("
-        print >> f, fr.getvalue()[:-2]
-        print >> f, "    );"
-    if to.getvalue():
-        print >> f, "    $to_myhdl("
-        print >> f, to.getvalue()[:-2]
-        print >> f, "    );" 
-    print >> f, "end"
-    print >> f
-    print >> f, "%s dut(" % intf.name
-    print >> f, pm.getvalue()[:-2]
-    print >> f, ");"
-    print >> f
-    print >> f, "endmodule"
-
-
+    
 def _getRangeString(s):
-    if s._type is bool:
+    if isinstance(s._val, EnumItemType):
+        return ''
+    elif s._type is bool:
         return ''
     elif s._nrbits is not None:
         nrbits = s._nrbits
@@ -261,8 +236,11 @@ def _getRangeString(s):
     else:
         raise AssertionError
 
-def _getSignString(s):
-    if s._type is bool:
+
+def _getTypeString(s):
+    if isinstance(s._val, EnumItemType):
+        return s._val._type._name
+    elif s._type is bool:
         return "std_logic"
     if s._min is not None and s._min < 0:
         return "signed "
@@ -326,7 +304,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             if dir == "input ":
                 self.write("input %s;" % name)
                 self.writeline()
-            self.write("integer %s" % name)
+            self.write("variable %s: integer" % name)
         elif isinstance(obj, _Ram):
             self.write("reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth))
         elif hasattr(obj, '_nrbits'):
@@ -342,7 +320,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         # disable for cver
         if False:
             if isinstance(obj, EnumItemType):
-                inival = obj._toVerilog()
+                inival = obj._toVHDL()
             else:
                 inival = int(obj)
             self.write(" = %s;" % inival)
@@ -355,7 +333,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.writeline()
             self.write("variable L: line;")
         for name, obj in self.ast.vardict.items():
-            if isinstance(obj, int):
+            if isinstance(obj, _loopInt):
                 continue # hack for loop vars
             self.writeline()
             self.writeDeclaration(obj, name, "reg")
@@ -368,8 +346,6 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def binaryOp(self, node, op=None):
         if isinstance(node.vhdlObj, vhdl_integer):
-            print "YES"
-            print node.left.vhdlObj
             node.left.vhdlObj = vhdl_integer()
             node.right.vhdlObj = vhdl_integer()
         context = None
@@ -466,29 +442,27 @@ class _ConvertVisitor(_ToVerilogMixin):
         if isinstance(node.expr, astNode.Subscript) and \
                isinstance(node.expr.expr.obj, _Rom):
             rom = node.expr.expr.obj.rom
-            self.write("// synthesis parallel_case full_case")
-            self.writeline()
-            self.write("case (")
+            self.write("case ")
             self.visit(node.expr.subs[0])
-            self.write(")")
+            self.write(" is")
             self.indent()
             for i, n in enumerate(rom):
                 self.writeline()
                 if i == len(rom)-1:
-                    self.write("default: ")
+                    self.write("when others => ")
                 else:
-                    self.write("%s: " % i)
+                    self.write("when %s => " % i)
                 self.visit(node.nodes[0])
                 if self.isSigAss:
                     self.write(' <= ')
                     self.isSigAss = False
                 else:
-                    self.write(' = ')
+                    self.write(' := ')
                 self.writeIntSize(n)
                 self.write("%s;" % n)
             self.dedent()
             self.writeline()
-            self.write("endcase")
+            self.write("end case;")
             return
         # default behavior
         convOpen, convClose = "", ""
@@ -510,7 +484,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             self.write(' = ')
         self.write(convOpen)
-        node.expr.target = obj = self.getObj(node.nodes[0])
+        # node.expr.target = obj = self.getObj(node.nodes[0])
         self.visit(node.expr)
         self.write(convClose)
         self.write(';')
@@ -618,15 +592,10 @@ class _ConvertVisitor(_ToVerilogMixin):
         if context == _context.PRINT:
             self.write('"%s"' % node.value)
         else:
-            target = self.getTarget(node)
-            if target is not None:
-                if isinstance(target, Signal):
-                    if target._type is bool:
-                        self.write("'%s'" % node.value)
+            if isinstance(node.vhdlObj, vhdl_std_logic):
+                self.write("'%s'" % node.value)
 ##                     elif target._type is intbv:
 ##                         self.write('"%s"' % bin(node.value, len(target)))
-                    else:
-                        self.write(node.value)
             else:
                 self.write(node.value)
 
@@ -683,6 +652,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write("0")
         else:
             self.visit(stop)
+            self.write("-1")
         self.write(" loop")
         if node.loopLabel.isActive:
             self.write(": %s" % node.loopLabel)
@@ -721,7 +691,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         elif isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             e = getattr(obj, node.attrname)
-            self.write(e._toVerilog())
+            self.write(e._toVHDL())
 
     def visitIf(self, node, *args):
         if node.ignore:
@@ -733,35 +703,28 @@ class _ConvertVisitor(_ToVerilogMixin):
 
     def mapToCase(self, node, *args):
         var = node.caseVar
-        self.write("// synthesis parallel_case")
-        if node.isFullCase:
-            self.write(" full_case")
-        self.writeline()
-        self.write("casez (")
+        self.write("case ")
         self.visit(var)
-        self.write(")")
+        self.write(" is")
         self.indent()
         for test, suite in node.tests:
             self.writeline()
             item = test.ops[0][1].obj
-            self.write(item._toVerilog(dontcare=True))
-            self.write(": begin")
+            self.write("when ")
+            self.write(item._toVHDL())
+            self.write(" =>")
             self.indent()
             self.visit(suite)
             self.dedent()
-            self.writeline()
-            self.write("end")
         if node.else_:
             self.writeline()
-            self.write("default: begin")
+            self.write("when others =>")
             self.indent()
             self.visit(node.else_)
             self.dedent()
-            self.writeline()
-            self.write("end")
         self.dedent()
         self.writeline()
-        self.write("endcase")
+        self.write("end case;")
         
     def mapToIf(self, node, *args):
         first = True
@@ -802,8 +765,6 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.visit(stmt)
        
     def visitName(self, node, context=None, *args):
-        print node.name
-        print node.vhdlObj
         addSignBit = False
         isMixedExpr = (not node.signed) and (context == _context.SIGNED)
         n = node.name
@@ -828,7 +789,15 @@ class _ConvertVisitor(_ToVerilogMixin):
                 s = str(obj)
             elif isinstance(obj, Signal):
                 if context == _context.PRINT:
-                    s = "write(L, to_integer(%s))" % str(obj)
+                    if obj._type is intbv:
+                        s = "write(L, to_integer(%s))" % str(obj)
+                    elif obj._type is bool:
+                        s = "write(L, to_bit(%s))" % str(obj)
+                    else:
+                        typename = "UNDEF"
+                        if isinstance(obj._val, EnumItemType):
+                            typename = obj._val._type._name
+                        s = "write(L, %s'image(%s))" % (typename, str(obj))
                 elif context == _context.BOOLEAN and \
                      obj._type is bool:
                     s = "%s = '1'" % str(obj)
@@ -844,7 +813,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                     self.raiseError(node, _error.ListElementNotUnique, m.name)
                 s = m.name
             elif isinstance(obj, EnumItemType):
-                s = obj._toVerilog()
+                s = obj._toVHDL()
             elif type(obj) is ClassType and issubclass(obj, Exception):
                 s = n
             else:
@@ -876,8 +845,8 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.handlePrint(node)
     
     def visitRaise(self, node, *args):
-        pass
-##         self.write("assert False severity Failure;")
+#        pass
+        self.write('assert False report "End of Simulation" severity Failure;')
 ##         self.write('$display("')
 ##         self.visit(node.expr1)
 ##         self.write('");')
@@ -983,7 +952,42 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.visit(node.value, _context.YIELD)
         self.write(";")
 
-        
+    def manageEdges(self, node, senslist):
+        """ Helper method to convert MyHDL style template into VHDL style"""
+        first = senslist[0]
+        if isinstance(first, _WaiterList):
+            bt = _WaiterList
+        elif isinstance(first, Signal):
+            bt = Signal
+        elif isinstance(first, delay):
+            bt  = delay
+        assert bt
+        for e in senslist:
+            if not isinstance(e, bt):
+                self.raiseError(node, "base type error in sensitivity list")
+        if len(senslist) >= 2 and bt == _WaiterList:
+            ifnode = node.code.nodes[0]
+            assert isinstance(ifnode, astNode.If)
+            asyncEdges = []
+            for test, suite in ifnode.tests:
+                e = self.getEdge(test)
+                if e is None:
+                    self.raiseError(node, "no edge test")
+                asyncEdges.append(e)
+            if ifnode.else_ is None:
+                self.raiseError(node, "no else test")
+            edges = []
+            for s in senslist:
+                for e in asyncEdges:
+                    if s is e:
+                        break
+                else:
+                    edges.append(s)
+            ifnode.else_.edge = edges
+            senslist = [s.sig for s in senslist]
+        return senslist
+
+            
 class _ConvertAlwaysVisitor(_ConvertVisitor):
     
     def __init__(self, ast, blockBuf, funcBuf):
@@ -994,20 +998,37 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         w = node.code.nodes[-1]
         assert isinstance(w.body.nodes[0], astNode.Yield)
         sl = w.body.nodes[0].value
+        senslist = w.body.nodes[0].senslist
+        senslist = self.manageEdges(w.body.nodes[1], senslist)
+        singleEdge = (len(senslist) == 1) and isinstance(senslist[0], _WaiterList)
         self.write("%s: process (" % self.ast.name)
-        self.visit(sl, _context.YIELD)
-        self.write(")")
+        if singleEdge:
+            self.write(senslist[0].sig)
+        else:
+            for e in senslist[:-1]:
+                self.write(e)
+                self.write(', ')
+            self.write(senslist[-1])
+        self.write(") is")
         self.indent()
         self.writeDeclarations()
         self.dedent()
         self.writeline()
         self.write("begin")
         self.indent()
+        if singleEdge:
+            self.writeline()
+            self.write("if %s then" % senslist[0]._toVHDL())
+            self.indent()
         assert isinstance(w.body, astNode.Stmt)
         for stmt in w.body.nodes[1:]:
             self.writeline()
             self.visit(stmt)
         self.dedent()
+        if singleEdge:
+            self.writeline()
+            self.write("end if;")
+            self.dedent()
         self.writeline()
         self.write("end process %s;" % self.ast.name)
         self.writeline(2)
@@ -1084,37 +1105,38 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
     def visitFunction(self, node, *args):
         assert self.ast.senslist
         senslist = self.ast.senslist
-        first = senslist[0]
-        if isinstance(first, _WaiterList):
-            bt = _WaiterList
-        elif isinstance(first, Signal):
-            bt = Signal
-        elif isinstance(first, delay):
-            bt  = delay
-        assert bt
-        for e in senslist:
-            if not isinstance(e, bt):
-                self.raiseError(node, "base type error in sensitivity list")
-        if len(senslist) >= 2 and bt == _WaiterList:
-            ifnode = node.code.nodes[0]
-            assert isinstance(ifnode, astNode.If)
-            asyncEdges = []
-            for test, suite in ifnode.tests:
-                e = self.getEdge(test)
-                if e is None:
-                    self.raiseError(node, "no edge test")
-                asyncEdges.append(e)
-            if ifnode.else_ is None:
-                self.raiseError(node, "no else test")
-            edges = []
-            for s in senslist:
-                for e in asyncEdges:
-                    if s is e:
-                        break
-                else:
-                    edges.append(s)
-            ifnode.else_.edge = edges
-            senslist = [s.sig for s in senslist]    
+        senslist = self.manageEdges(node, senslist)
+##         first = senslist[0]
+##         if isinstance(first, _WaiterList):
+##             bt = _WaiterList
+##         elif isinstance(first, Signal):
+##             bt = Signal
+##         elif isinstance(first, delay):
+##             bt  = delay
+##         assert bt
+##         for e in senslist:
+##             if not isinstance(e, bt):
+##                 self.raiseError(node, "base type error in sensitivity list")
+##         if len(senslist) >= 2 and bt == _WaiterList:
+##             ifnode = node.code.nodes[0]
+##             assert isinstance(ifnode, astNode.If)
+##             asyncEdges = []
+##             for test, suite in ifnode.tests:
+##                 e = self.getEdge(test)
+##                 if e is None:
+##                     self.raiseError(node, "no edge test")
+##                 asyncEdges.append(e)
+##             if ifnode.else_ is None:
+##                 self.raiseError(node, "no else test")
+##             edges = []
+##             for s in senslist:
+##                 for e in asyncEdges:
+##                     if s is e:
+##                         break
+##                 else:
+##                     edges.append(s)
+##             ifnode.else_.edge = edges
+##             senslist = [s.sig for s in senslist]    
         self.write("%s: process (" % self.ast.name)
         for e in senslist[:-1]:
             self.write(e)
@@ -1222,8 +1244,14 @@ class vhdl_signed(vhdl_type):
     pass
 class vhdl_integer(vhdl_type):
     pass
+
+class _loopInt(int):
+    pass
         
 class _AnnotateTypesVisitor(_ToVerilogMixin):
+
+    def __init__(self, ast):
+        self.ast = ast
 
     def visitAssAttr(self, node):
         self.visit(node.expr)
@@ -1235,7 +1263,13 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
 
     def visitConst(self, node):
         node.vhdlObj = vhdl_integer()
-    
+
+    def visitFor(self, node):
+        self.visitChildNodes(node)
+        var = node.assign.name
+        # make it possible to detect loop variable
+        self.ast.vardict[var] = _loopInt()
+
     def visitName(self, node):
         obj = node.obj
         node.vhdlObj = None
@@ -1266,12 +1300,22 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
     def visitNot(self, node):
         node.vhdlObj = None
         self.visit(node.expr)
+
+    def visitSlice(self, node):
+        self.visit(node.expr)
+        upper = node.expr.vhdlObj.size
+        lower = 0
+        if node.upper:
+            upper = self.getVal(node.upper)
+        if node.lower:
+            lower = self.getVal(node.lower)
+        node.vhdlObj = type(node.expr.vhdlObj)(upper-lower)
         
 
 
 def _annotateTypes(genlist):
-    v = _AnnotateTypesVisitor()
     for ast in genlist:
+        v = _AnnotateTypesVisitor(ast)
         compiler.walk(ast, v)
 
     

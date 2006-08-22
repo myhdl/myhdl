@@ -71,11 +71,13 @@ def enum(*args, **kwargs):
         i += 1
        
     class EnumItem(EnumItemType):
-        def __init__(self, index, arg):
+        def __init__(self, index, arg, type):
             self._index = index
+            self._name = arg
             self._val = codedict[arg]
             self._nrbits = nrbits
             self._nritems = len(args)
+            self._type = type
         def __repr__(self):
             return argdict[self._index]
         def __hex__(self):
@@ -89,12 +91,15 @@ def enum(*args, **kwargs):
                 elif encoding == "one_cold":
                     val = val.replace('1', '?')
             return "%d'b%s" % (self._nrbits, val)
+        def _toVHDL(self):
+            return self._name
 
     class Enum(EnumType):
         def __init__(self):
             for index, slot in enumerate(args):
-                self.__dict__[slot] = EnumItem(index, slot)
+                self.__dict__[slot] = EnumItem(index, slot, self)
             self.__dict__['_nrbits'] = nrbits
+            self.__dict__['_declared'] = False
         def __setattr__(self, attr, val):
             raise AttributeError("Cannot assign to enum attributes")
         def __len__(self):
@@ -102,6 +107,20 @@ def enum(*args, **kwargs):
         def __repr__(self):
             return "<Enum: %s>" % ", ".join(args)
         __str__ = __repr__
+        def _isDeclared(self):
+            return self._declared
+        def _setDeclared(self):
+            self.__dict__['_declared'] = True
+        _toVHDL = __str__
+        def _toVHDL(self, name):
+            typename = "t_enum_%s" % name
+            self.__dict__['_name'] = typename
+            # XXX name generation
+            str = "type %s is (\n    " % typename
+            str += ",\n    ".join(args)         
+            str += "\n);"
+            return str
+            
         
     return Enum()
 

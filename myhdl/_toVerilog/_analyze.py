@@ -53,7 +53,8 @@ builtinObjects = __builtin__.__dict__.values()
 
 def _makeName(n, prefixes):
     if len(prefixes) > 1:
-        name = '_' + '_'.join(prefixes[1:]) + '_' + n
+#        name = '_' + '_'.join(prefixes[1:]) + '_' + n
+        name = '_'.join(prefixes[1:]) + '_' + n
     else:
         name = n
     if '[' in name or ']' in name:
@@ -130,7 +131,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -158,7 +159,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -320,6 +321,7 @@ class _Rom(object):
     __slots__ = ['rom']
     def __init__(self, rom):
         self.rom = rom
+
 
 def _isNegative(obj):
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
@@ -542,11 +544,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             if n.signed:
                 node.signed = True
         op, arg = node.ops[0]
-        node.expr.target = self.getObj(arg)
-        print type(self.getObj(arg))
-        arg.target = self.getObj(node.expr)
-        print type(self.getObj(node.expr))
-        print arg.target._type
+##         node.expr.target = self.getObj(arg)
+##         arg.target = self.getObj(node.expr)
         # detect specialized case for the test
         if op == '==' and isinstance(node.expr, astNode.Name):
             n = node.expr.name
@@ -705,7 +704,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         else:
             pass
         node.signed = _isNegative(node.obj)
-        node.target = node.obj
+##         node.target = node.obj
 
     def visitReturn(self, node, *args):
         self.raiseError(node, _error.NotSupported, "return statement")
@@ -745,6 +744,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 self.raiseError(node, _error.ListElementAssign)
             else:
                 node.obj = node.expr.obj.elObj
+        elif isinstance(node.expr.obj, _Rom):
+            node.obj = int()
         elif isinstance(node.expr.obj, intbv):
             node.obj = bool()
         else:
@@ -782,7 +783,8 @@ class _AnalyzeVisitor(_ToVerilogMixin):
         else:
             if not isinstance(n.obj, (Signal, _WaiterList, delay)):
                 self.raiseError(node, _error.UnsupportedYield)
-                senlist = [n.obj]
+            senslist = [n.obj]
+        node.senslist = senslist
         
 
 class _AnalyzeBlockVisitor(_AnalyzeVisitor):
