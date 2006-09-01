@@ -455,20 +455,21 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.visit(node.expr.subs[0])
             self.write(" is")
             self.indent()
+            target = node.nodes[0]
+            size = target.vhdlObj.size
             for i, n in enumerate(rom):
                 self.writeline()
                 if i == len(rom)-1:
                     self.write("when others => ")
                 else:
                     self.write("when %s => " % i)
-                self.visit(node.nodes[0])
+                self.visit(target)
                 if self.isSigAss:
                     self.write(' <= ')
                     self.isSigAss = False
                 else:
                     self.write(' := ')
-                self.writeIntSize(n)
-                self.write("%s;" % n)
+                self.write('"%s";' % bin(n, size))
             self.dedent()
             self.writeline()
             self.write("end case;")
@@ -534,6 +535,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
         opening, closing = '(', ')'
+        sep = ", "
         if f is bool:
             self.write("(")
             self.visit(node.args[0])
@@ -560,7 +562,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write(" ns")
             return
         elif f is concat:
-            opening, closing = '{', '}'
+            sep = " & "
         elif hasattr(node, 'ast'):
             self.write(node.ast.name)
         else:
@@ -569,7 +571,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write(opening)
             self.visit(node.args[0])
             for arg in node.args[1:]:
-                self.write(", ")
+                self.write(sep)
                 self.visit(arg)
             self.write(closing)
         if hasattr(node, 'ast'):
@@ -656,6 +658,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write("0")
         else:
             self.visit(start)
+            self.write("-1")
         self.write(" %s " % op)
         if stop is None:
             self.write("0")
@@ -797,8 +800,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             if isinstance(obj, bool):
                 s = "'%s'" % int(obj)
             elif isinstance(obj, (int, long)):
-                self.writeIntSize(obj)
-                s = str(obj)
+                s = '"%s"' % bin(obj, node.vhdlObj.size)
             elif isinstance(obj, Signal):
                 if context == _context.PRINT:
                     if obj._type is intbv:
@@ -883,17 +885,17 @@ class _ConvertVisitor(_ToVerilogMixin):
         # special shortcut case for [:] slice
         if node.lower is None and node.upper is None:
             return
-        self.write("[")
+        self.write("(")
         if node.lower is None:
             self.write("%s" % node.obj._nrbits)
         else:
             self.visit(node.lower)
-        self.write("-1:")
+        self.write("-1 downto ")
         if node.upper is None:
             self.write("0")
         else:
             self.visit(node.upper)
-        self.write("]")
+        self.write(")")
         if addSignBit:
             self.write("})")
 
@@ -1252,9 +1254,11 @@ class vhdl_type(object):
     def __init__(self, size=0):
         self.size = size
 class vhdl_std_logic(vhdl_type):
-    pass
+    def __init__(self, size=0):
+        self.size = 1
 class vhdl_boolean(vhdl_type):
-    pass
+    def __init__(self, size=0):
+        self.size = 1
 class vhdl_unsigned(vhdl_type):
     pass
 class vhdl_signed(vhdl_type):
@@ -1264,6 +1268,16 @@ class vhdl_integer(vhdl_type):
 
 class _loopInt(int):
     pass
+
+def maxType(t1, t2):
+    if t1 is vhdl_signed or t2 is vhdl_signed:
+        return vhdl_signed
+    elif t1 is vhdl_unsigned or t2 is vhdl_unsigned:
+        return vhdl_unsigned
+    elif t1 is vhdl_std_logic or t2 is vhdl_std_logic:
+        return vhdl_std_logic
+    else:
+        return None
         
 class _AnnotateTypesVisitor(_ToVerilogMixin):
 
@@ -1273,7 +1287,20 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
     def visitAssAttr(self, node):
         self.visit(node.expr)
         node.vhdlObj = node.expr.vhdlObj
-
+        
+    def visitCallFunc(self, node, *args):
+        fn = node.node
+        assert isinstance(fn, astNode.Name)
+        f = self.getObj(fn)
+        if f is intbv:
+            return
+        self.visitChildNodes(node)
+        if f is concat:
+            s = 0
+            for a in node.args:
+                s += a.vhdlObj.size
+            node.vhdlObj = vhdl_unsigned(s)
+    
     def visitCompare(self, node):
         node.vhdlObj = vhdl_boolean
         self.visitChildNodes(node)
@@ -1299,6 +1326,8 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
         elif (isinstance(obj, Signal) and obj._type is bool) or \
              isinstance(obj, bool):
             node.vhdlObj = vhdl_std_logic()
+        elif isinstance(obj, (int, long)):
+            node.vhdlObj = vhdl_integer()
 
     # visitAssName = visitName
     def visitAssName(self, node):
@@ -1318,24 +1347,42 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
             node.vhdlObj = vhdl_integer()
             
     visitAdd = visitSub = visitMod = binaryOp
+    
+    def multiBitOp(self, node):
+        self.visitChildNodes(node)
+        t = vhdl_std_logic
+        s = 0
+        for n in node.nodes:
+            s = max(s, n.vhdlObj.size)
+            t = maxType(t, type(n.vhdlObj))
+        for n in node.nodes:
+            n.vhdlObj = t(s)
+        node.vhdlObj = t(s)
+
+    def multiBoolOp(self, node):
+        self.visitChildNodes(node)
+        node.vhdlObj = vhdl_boolean()
+
+    visitAnd = visitOr = multiBoolOp
+    visitBitand = visitBitor = visitBitxor = multiBitOp
 
     def visitNot(self, node):
         node.vhdlObj = None
         self.visit(node.expr)
 
     def visitSlice(self, node):
-        self.visit(node.expr)
-        upper = 0
-        ut = vhdl_unsigned
-        if hasattr(node.expr, 'vhdlObj'):
-            upper = node.expr.vhdlObj.size
-            t = type(node.expr.vhdlObj)
+        self.visitChildNodes(node)
         lower = 0
-        if node.upper:
-            upper = self.getVal(node.upper)
+        t = vhdl_unsigned
+        if hasattr(node.expr, 'vhdlObj'):
+            lower = node.expr.vhdlObj.size
+            t = type(node.expr.vhdlObj)
         if node.lower:
             lower = self.getVal(node.lower)
-        node.vhdlObj = ut(upper-lower)
+        upper  = 0
+        if node.upper:
+            upper = self.getVal(node.upper)
+        node.vhdlObj = t(lower-upper)
 
     def visitSubscript(self, node):
         self.visitChildNodes(node)
