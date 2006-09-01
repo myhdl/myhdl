@@ -53,6 +53,7 @@ from myhdl._Signal import _WaiterList
             
 _converting = 0
 _profileFunc = None
+_enumTypeList = []
 
 def _checkArgs(arglist):
     for arg in arglist:
@@ -126,6 +127,11 @@ class _ToVHDLConvertor(object):
         # clean up signal names
         for sig in siglist:
             sig._name = None
+            sig._driven = False
+            sig._read = False
+        # clean up enum type names
+        for enumType in _enumTypeList:
+            enumType._clearDeclared()
 
         return h.top
     
@@ -223,6 +229,7 @@ def _declareEnumType(f, s):
     else:
         print >> f, enumType._toVHDL(s._name)
         enumType._setDeclared()
+        _enumTypeList.append(enumType)
 
     
 def _getRangeString(s):
@@ -299,7 +306,9 @@ class _ConvertVisitor(_ToVerilogMixin):
     def writeDeclaration(self, obj, name, dir):
         if dir: dir = dir + ' '
         if type(obj) is bool:
-            self.write("%s%s" % (dir, name))
+            self.write("%s%s: std_logic" % (dir, name))
+        elif isinstance(obj, EnumItemType):
+            self.write("%s%s: %s" % (dir, name, obj._type._name))
         elif isinstance(obj, int):
             if dir == "input ":
                 self.write("input %s;" % name)
@@ -775,6 +784,9 @@ class _ConvertVisitor(_ToVerilogMixin):
         elif n in self.ast.vardict:
             addSignBit = isMixedExpr
             s = n
+            obj = self.ast.vardict[n]
+            if isinstance(obj, intbv) and isinstance(node.vhdlObj, vhdl_integer):
+                s = "to_integer(%s)" % n
         elif n in self.ast.argnames:
             assert n in self.ast.symdict
             addSignBit = isMixedExpr
@@ -953,7 +965,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.visit(node.value, _context.YIELD)
         self.write(";")
 
-    def manageEdges(self, node, senslist):
+    def manageEdges(self, ifnode, senslist):
         """ Helper method to convert MyHDL style template into VHDL style"""
         first = senslist[0]
         if isinstance(first, _WaiterList):
@@ -967,7 +979,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             if not isinstance(e, bt):
                 self.raiseError(node, "base type error in sensitivity list")
         if len(senslist) >= 2 and bt == _WaiterList:
-            ifnode = node.code.nodes[0]
+            # ifnode = node.code.nodes[0]
             assert isinstance(ifnode, astNode.If)
             asyncEdges = []
             for test, suite in ifnode.tests:
@@ -1110,7 +1122,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
     def visitFunction(self, node, *args):
         assert self.ast.senslist
         senslist = self.ast.senslist
-        senslist = self.manageEdges(node, senslist)
+        senslist = self.manageEdges(node.code.nodes[0], senslist)
 ##         first = senslist[0]
 ##         if isinstance(first, _WaiterList):
 ##             bt = _WaiterList

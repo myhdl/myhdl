@@ -111,6 +111,8 @@ def enum(*args, **kwargs):
             return self._declared
         def _setDeclared(self):
             self.__dict__['_declared'] = True
+        def _clearDeclared(self):
+            self.__dict__['_declared'] = False
         _toVHDL = __str__
         def _toVHDL(self, name):
             typename = "t_enum_%s" % name
