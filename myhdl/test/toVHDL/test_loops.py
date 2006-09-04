@@ -1,12 +1,11 @@
 import os
 path = os.path
-import unittest
 from random import randrange
 
 
 from myhdl import *
+from myhdl.test import verifyConversion
 
-from util import setupCosimulation
 
 def ForLoop1(a, out):
     while 1:
@@ -199,103 +198,69 @@ def WhileBreakContinueLoop(a, out):
             out.next = i
             break
     
-        
-def LoopTest_v(name, a, out):
-    return setupCosimulation(**locals())
 
-class TestLoops(unittest.TestCase):
 
-    def bench(self, LoopTest):
-        
-        a = Signal(intbv(-1)[16:])
-        out_v = Signal(intbv(0)[16:])
-        out = Signal(intbv(0)[16:])
+def LoopBench(LoopTest):
 
-        looptest_inst = toVerilog(LoopTest, a, out)
-        # looptest_inst = LoopTest(hec, header)
-        looptest_v_inst = LoopTest_v(LoopTest.func_name, a, out_v)
- 
-        def stimulus():
-            for i in range(100):
-                a.next = randrange(2**min(i, 16))
-                yield delay(10)
-                # print "%s %s" % (out, out_v)
-                self.assertEqual(out, out_v)
+    a = Signal(intbv(-1)[16:])
+    z = Signal(intbv(0)[16:])
 
-        return stimulus(), looptest_inst, looptest_v_inst
+    looptest_inst = LoopTest(a, z)
+    data = tuple([randrange(2**min(i, 16)) for i in range(100)])
 
-    def testForLoop1(self):
-        sim = self.bench(ForLoop1)
-        Simulation(sim).run()
-        
-    def testForLoop2(self):
-        sim = self.bench(ForLoop2)
-        Simulation(sim).run()
-        
-    def testForLoop3(self):
-        sim = self.bench(ForLoop3)
-        Simulation(sim).run()
-        
-    def testForLoop4(self):
-        sim = self.bench(ForLoop4)
-        Simulation(sim).run()
-        
-    def testForLoop5(self):
-        sim = self.bench(ForLoop5)
-        Simulation(sim).run()
-        
-    def testForLoop6(self):
-        sim = self.bench(ForLoop6)
-        Simulation(sim).run()
-        
-    def testForContinueLoop(self):
-        sim = self.bench(ForContinueLoop)
-        Simulation(sim).run()
-        
-    def testForBreakLoop(self):
-        sim = self.bench(ForBreakLoop)
-        Simulation(sim).run()
-        
-    def testForBreakContinueLoop(self):
-        sim = self.bench(ForBreakContinueLoop)
-        Simulation(sim).run()
-        
-    def testNestedForLoop1(self):
-        sim = self.bench(NestedForLoop1)
-        Simulation(sim).run()
-        
-    def testNestedForLoop2(self):
-        sim = self.bench(NestedForLoop2)
-        Simulation(sim).run()
-        
-    def testNestedForLoop2(self):
-        sim = self.bench(NestedForLoop2)
-        Simulation(sim).run()
+    @instance
+    def stimulus():
+        for i in range(100):
+            a.next = data[i]
+            yield delay(10)
+            print z
 
-    def testFunctionCall(self):
-        sim = self.bench(FunctionCall)
-        Simulation(sim).run()
-        
-    def testTaskCall(self):
-        sim = self.bench(TaskCall)
-        Simulation(sim).run()
-       
-    def testWhileLoop(self):
-        sim = self.bench(WhileLoop)
-        Simulation(sim).run()
+    return stimulus, looptest_inst
 
-    def testWhileContinueLoop(self):
-        sim = self.bench(WhileContinueLoop)
-        Simulation(sim).run()
 
-    def testWhileBreakLoop(self):
-        sim = self.bench(WhileBreakLoop)
-        Simulation(sim).run()
-        
-    def testWhileBreakContinueLoop(self):
-        sim = self.bench(WhileBreakContinueLoop)
-        Simulation(sim).run()
 
-        
-if __name__ == '__main__':
-    unittest.main()
+def testForLoop1():
+    assert verifyConversion(LoopBench, ForLoop1) == 0
+def testForLoop2():
+    assert verifyConversion(LoopBench, ForLoop2) == 0
+def testForLoop4():
+    assert verifyConversion(LoopBench, ForLoop4) == 0
+def testForLoop5():
+    assert verifyConversion(LoopBench, ForLoop5) == 0
+
+# for loop 3 and 6 can't work in vhdl
+
+def testForContinueLoop():
+  assert verifyConversion(LoopBench, ForContinueLoop) == 0
+
+def testForBreakLoop():
+   assert verifyConversion(LoopBench, ForBreakLoop) == 0
+
+def testForBreakContinueLoop():
+   assert verifyConversion(LoopBench, ForBreakContinueLoop) == 0
+
+def testNestedForLoop1():
+   assert verifyConversion(LoopBench, NestedForLoop1) == 0
+
+def testNestedForLoop2():
+   assert verifyConversion(LoopBench, NestedForLoop2) == 0
+
+def testWhileLoop():
+    assert verifyConversion(LoopBench, FunctionCall) == 0
+
+## def testTaskCall(self):
+##     sim = self.bench(TaskCall)
+##     Simulation(sim).run()
+
+def testWhileLoop():
+    assert verifyConversion(LoopBench, WhileLoop) == 0
+
+def testWhileContinueLoop():
+    assert verifyConversion(LoopBench, WhileContinueLoop) == 0
+
+def testWhileBreakLoop():
+    assert verifyConversion(LoopBench, WhileBreakLoop) == 0
+
+def testWhileBreakContinueLoop():
+    assert verifyConversion(LoopBench, WhileBreakContinueLoop) == 0
+

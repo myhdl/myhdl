@@ -30,11 +30,11 @@ def verifyConversion(func, *args, **kwargs):
     ret = subprocess.call(["ghdl", "-a", "--workdir=work", "%s.vhd" % topname])
     if ret != 0:
         print "Analysis failed"
-        return
+        return ret
     ret = subprocess.call(["ghdl", "-e", "--workdir=work", topname])
     if ret != 0:
         print "Elaboration failed"
-        return
+        return ret
     g = tempfile.TemporaryFile()
     ret = subprocess.call(["ghdl", "-r", topname], stdout=g)
 #    if ret != 0:
@@ -59,12 +59,17 @@ def verifyConversion(func, *args, **kwargs):
 
 
     s = "".join(g)
+    f = open(MyHDLLog, 'w')
+    g = open(GHDLLog, 'w')
+    f.writelines(flinesNorm)
+    g.writelines(glinesNorm)
+
+    
     if not s:
         print "Conversion verification succeeded"
     else:
         print "Conversion verification failed"
         print s ,
-    f = open(MyHDLLog, 'w')
-    g = open(GHDLLog, 'w')
-    f.writelines(flinesNorm)
-    g.writelines(glinesNorm)
+        return 1
+
+    return 0

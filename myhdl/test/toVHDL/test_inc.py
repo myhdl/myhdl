@@ -1,8 +1,6 @@
 import sys
 import os
 path = os.path
-import unittest
-from unittest import TestCase
 import random
 from random import randrange
 random.seed(2)

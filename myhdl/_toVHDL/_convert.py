@@ -274,9 +274,10 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(ast, blockBuf, funcBuf)
         compiler.walk(ast, v)
-    print >> vfile, "begin"
     print >> vfile
     vfile.write(funcBuf.getvalue()); funcBuf.close()
+    print >> vfile, "begin"
+    print >> vfile
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
 class _ConvertVisitor(_ToVerilogMixin):
@@ -303,7 +304,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             size = int(math.ceil(math.log(n+1,2))) + 1  # sign bit!
             self.write("%s'sd" % size)
 
-    def writeDeclaration(self, obj, name, dir):
+    def writeDeclaration(self, obj, name, dir, endchar=";"):
         if dir: dir = dir + ' '
         if type(obj) is bool:
             self.write("%s%s: std_logic" % (dir, name))
@@ -321,7 +322,10 @@ class _ConvertVisitor(_ToVerilogMixin):
             if isinstance(obj, (intbv, Signal)):
                 if obj._min is not None and obj._min < 0:
                     s = "signed "
-            self.write("%s%s: %s(%s-1 downto 0)" % (dir, name, s, obj._nrbits))
+            if dir == "in ":
+                self.write("%s: %s %s(%s-1 downto 0)" % (name, dir, s, obj._nrbits))
+            else:
+                self.write("%s%s: %s(%s-1 downto 0)" % (dir, name, s, obj._nrbits))
         else:
             raise AssertionError("var %s has unexpected type %s" % (name, type(obj)))
         # initialize regs
@@ -334,7 +338,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                 inival = int(obj)
             self.write(" = %s;" % inival)
         else:
-            self.write(";")
+            self.write(endchar)
         
 
     def writeDeclarations(self):
@@ -521,14 +525,15 @@ class _ConvertVisitor(_ToVerilogMixin):
         op = opmap[node.op]
         # XXX apparently no signed context required for augmented assigns
         self.visit(node.node)
-        self.write(" = ")
+        self.write(" := ")
         self.visit(node.node)
         self.write(" %s " % op)
         self.visit(node.expr)
         self.write(";")
          
     def visitBreak(self, node, *args):
-        self.write("disable %s;" % self.labelStack[-2])
+        # self.write("disable %s;" % self.labelStack[-2])
+        self.write("exit;")
 
     def visitCallFunc(self, node, *args):
         fn = node.node
@@ -611,7 +616,8 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.write(node.value)
 
     def visitContinue(self, node, *args):
-        self.write("disable %s;" % self.labelStack[-1])
+        # self.write("next %s;" % self.labelStack[-1])
+        self.write("next;")
 
     def visitDiscard(self, node, *args):
         expr = node.expr
@@ -650,32 +656,35 @@ class _ConvertVisitor(_ToVerilogMixin):
                 start, stop, step = args[0], args[1], None
             else:
                 start, stop, step = args
-        if node.breakLabel.isActive:
-            self.write("begin: %s" % node.breakLabel)
-            self.writeline()
+        assert step is None
+ ##        if node.breakLabel.isActive:
+##             self.write("begin: %s" % node.breakLabel)
+##             self.writeline()
+##         if node.loopLabel.isActive:
+##             self.write("%s: " % node.loopLabel)
         self.write("for %s in " % var)
         if start is None:
             self.write("0")
         else:
             self.visit(start)
-            self.write("-1")
+            if f is downrange:
+                self.write("-1")
         self.write(" %s " % op)
         if stop is None:
             self.write("0")
         else:
             self.visit(stop)
-            self.write("-1")
+            if f is range:
+                self.write("-1")
         self.write(" loop")
-        if node.loopLabel.isActive:
-            self.write(": %s" % node.loopLabel)
         self.indent()
         self.visit(node.body)
         self.dedent()
         self.writeline()
         self.write("end loop;")
-        if node.breakLabel.isActive:
-            self.writeline()
-            self.write("end")
+##         if node.breakLabel.isActive:
+##             self.writeline()
+##             self.write("end")
         self.labelStack.pop()
         self.labelStack.pop()
 
@@ -800,7 +809,10 @@ class _ConvertVisitor(_ToVerilogMixin):
             if isinstance(obj, bool):
                 s = "'%s'" % int(obj)
             elif isinstance(obj, (int, long)):
-                s = '"%s"' % bin(obj, node.vhdlObj.size)
+                if isinstance(node.vhdlObj, vhdl_integer):
+                    s = "%s" % int(obj)
+                else:
+                    s = '"%s"' % bin(obj, node.vhdlObj.size)
             elif isinstance(obj, Signal):
                 if context == _context.PRINT:
                     if obj._type is intbv:
@@ -841,7 +853,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write("})")       
 
     def visitPass(self, node, *args):
-        self.write("// pass")
+        self.write("null;")
 
     def handlePrint(self, node):
         assert len(node.nodes) == 1
@@ -931,27 +943,15 @@ class _ConvertVisitor(_ToVerilogMixin):
     def visitWhile(self, node, *args):
         self.labelStack.append(node.breakLabel)
         self.labelStack.append(node.loopLabel)
-        if node.breakLabel.isActive:
-            self.write("begin: %s" % node.breakLabel)
-            self.writeline()
-        if node.loopLabel.isActive:
-            self.write("%s:" % node.loopLabel)
         self.write("while ")
         self.visit(node.test)
         self.write(" loop")
-        if node.loopLabel.isActive:
-            self.write(": %s" % node.loopLabel)
         self.indent()
         self.visit(node.body)
         self.dedent()
         self.writeline()
         self.write("end loop")
-        if node.loopLabel.isActive:
-            self.write(" %s" % node.loopLabel)
         self.write(";")
-        if node.breakLabel.isActive:
-            self.writeline()
-            self.write("end")
         self.labelStack.pop()
         self.labelStack.pop()
         
@@ -1182,38 +1182,42 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
 
     def writeOutputDeclaration(self):
         obj = self.ast.returnObj
-        self.writeDeclaration(obj, self.ast.name, dir='')
+        # self.writeDeclaration(obj, self.ast.name, dir='')
+        self.write(inferVhdlObj(obj))
 
     def writeInputDeclarations(self):
+        endchar = ""
         for name in self.ast.argnames:
+            self.write(endchar)
+            enchar = ";"
             obj = self.ast.symdict[name]
             self.writeline()
-            self.writeDeclaration(obj, name, "input")
+            self.writeDeclaration(obj, name, "in", endchar="")
             
     def visitFunction(self, node, *args):
-        self.write("function ")
-        self.writeOutputDeclaration()
+        self.write("function %s(" % self.ast.name)
         self.indent()
         self.writeInputDeclarations()
+        self.writeline()
+        self.write(") return ")
+        self.writeOutputDeclaration()
+        self.writeline()
+        self.write("is")
         self.writeDeclarations()
         self.dedent()
         self.writeline()
-        self.write("begin: %s" % self.returnLabel)
+        self.write("begin")
         self.indent()
         self.visit(node.code)
         self.dedent()
         self.writeline()
-        self.write("end")
-        self.writeline()
-        self.write("endfunction")
+        self.write("end function %s;" % self.ast.name)
         self.writeline(2)
 
     def visitReturn(self, node, *args):
-        self.write("%s = " % self.ast.name)
+        self.write("return ")
         self.visit(node.value)
         self.write(";")
-        self.writeline()
-        self.write("disable %s;" % self.returnLabel)
     
     
 class _ConvertTaskVisitor(_ConvertVisitor):
@@ -1253,18 +1257,30 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 class vhdl_type(object):
     def __init__(self, size=0):
         self.size = size
+        
 class vhdl_std_logic(vhdl_type):
     def __init__(self, size=0):
         self.size = 1
+    def __str__(self):
+        return 'std_logic'
+        
 class vhdl_boolean(vhdl_type):
     def __init__(self, size=0):
         self.size = 1
+    def __str__(self):
+        return 'boolean'
+    
 class vhdl_unsigned(vhdl_type):
-    pass
+    def __str__(self):
+        return "unsigned(%s downto 0)" % (self.size-1)
+    
 class vhdl_signed(vhdl_type):
-    pass
+    def __str__(self):
+        return "signed(%s downto 0)" % (self.size-1)
+    
 class vhdl_integer(vhdl_type):
-    pass
+    def __str__(self):
+        return "integer"
 
 class _loopInt(int):
     pass
@@ -1276,8 +1292,26 @@ def maxType(t1, t2):
         return vhdl_unsigned
     elif t1 is vhdl_std_logic or t2 is vhdl_std_logic:
         return vhdl_std_logic
+    elif t1 is vhdl_integer or t2 is vhdl_integer:
+        return vhdl_integer
     else:
         return None
+    
+def inferVhdlObj(obj):
+    vhdlObj = None
+    if (isinstance(obj, Signal) and obj._type is intbv) or \
+       isinstance(obj, intbv):
+        if obj.min < 0:
+            vhdlObj = vhdl_signed(len(obj))
+        else:
+            vhdlObj = vhdl_unsigned(len(obj))
+    elif (isinstance(obj, Signal) and obj._type is bool) or \
+         isinstance(obj, bool):
+        vhdlObj = vhdl_std_logic()
+    elif isinstance(obj, (int, long)):
+        vhdlObj = vhdl_integer()
+    return vhdlObj
+
         
 class _AnnotateTypesVisitor(_ToVerilogMixin):
 
@@ -1300,10 +1334,23 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
             for a in node.args:
                 s += a.vhdlObj.size
             node.vhdlObj = vhdl_unsigned(s)
+        elif f is len:
+            node.vhdlObj = vhdl_integer()
+        elif hasattr(node, 'ast'):
+            v = _AnnotateTypesVisitor(node.ast)
+            compiler.walk(node.ast, v)
+            vhdlObj = inferVhdlObj(node.ast.returnObj)
+            node.vhdlObj = self.ast.vhdlObj = vhdlObj
     
     def visitCompare(self, node):
-        node.vhdlObj = vhdl_boolean
+        node.vhdlObj = vhdl_boolean()
         self.visitChildNodes(node)
+        expr = node.expr
+        op, code = node.ops[0]
+        s = max(expr.vhdlObj.size, code.vhdlObj.size)
+        t = maxType(type(expr.vhdlObj), type(code.vhdlObj))
+        expr.vhdlObj = t(s)
+        code.vhdlObj = t(s)
 
     def visitConst(self, node):
         node.vhdlObj = vhdl_integer()
@@ -1315,20 +1362,8 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
         self.ast.vardict[var] = _loopInt()
 
     def visitName(self, node):
-        obj = node.obj
-        node.vhdlObj = None
-        if (isinstance(obj, Signal) and obj._type is intbv) or \
-           isinstance(obj, intbv):
-            if obj.min < 0:
-                node.vhdlObj = vhdl_signed(len(obj))
-            else:
-                node.vhdlObj = vhdl_unsigned(len(obj))
-        elif (isinstance(obj, Signal) and obj._type is bool) or \
-             isinstance(obj, bool):
-            node.vhdlObj = vhdl_std_logic()
-        elif isinstance(obj, (int, long)):
-            node.vhdlObj = vhdl_integer()
-
+        node.vhdlObj = inferVhdlObj(node.obj)
+ 
     # visitAssName = visitName
     def visitAssName(self, node):
         node.obj = self.ast.vardict[node.name]
