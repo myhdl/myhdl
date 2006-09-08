@@ -71,7 +71,8 @@ def bin2grayBench(width, bin2gray):
 ##         sim = self.bench(width=8, bin2gray=bin2gray2)
 ##         Simulation(sim).run()
     
-
-verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray)
-verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray2)
+def test1():
+    assert verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray) == 0
+def test2():
+    assert verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray2) == 0
 

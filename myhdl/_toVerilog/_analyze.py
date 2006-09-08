@@ -131,7 +131,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -159,7 +159,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            print ast
+            #print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -518,6 +518,7 @@ class _AnalyzeVisitor(_ToVerilogMixin):
             compiler.walk(ast, v)
             v = _AnalyzeFuncVisitor(ast, node.args)
             compiler.walk(ast, v)
+            node.obj = ast.returnObj
             node.ast = ast
             for i, arg in enumerate(node.args):
                 if isinstance(arg, astNode.Keyword):
@@ -785,6 +786,13 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 self.raiseError(node, _error.UnsupportedYield)
             senslist = [n.obj]
         node.senslist = senslist
+
+##     def visitModule(self, node, *args):
+##         self.visit(node.node)
+##         for n in self.ast.inputs:
+##             s = self.ast.sigdict[n]
+##             s._read = True
+        
         
 
 class _AnalyzeBlockVisitor(_AnalyzeVisitor):

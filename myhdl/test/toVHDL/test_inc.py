@@ -104,7 +104,7 @@ def incTaskFreeVar(count, enable, clock, reset, n):
     return incTaskGen
 
 
-def tb_inc(inc):
+def IncBench(inc):
 
     NR_CYCLES = 201
       
@@ -140,10 +140,12 @@ def tb_inc(inc):
     return inc_inst, clockgen, monitor
 
 
-    
-verifyConversion(tb_inc, incRef) 
-verifyConversion(tb_inc, inc) 
-verifyConversion(tb_inc, inc2) 
+def test_incReg():  
+    assert verifyConversion(IncBench, incRef) == 0
+def test_inc():  
+    assert verifyConversion(IncBench, inc) == 0
+def test_inc2():  
+    assert verifyConversion(IncBench, inc2) == 0
     
 
 

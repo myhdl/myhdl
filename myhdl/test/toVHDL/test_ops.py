@@ -144,7 +144,14 @@ def binaryBench(m, n):
 ##             self.assertEqual(RightShift, RightShift_v)
 ##             self.assertEqual(Sub, Sub_v)
 ##             self.assertEqual(Sum, Sum_v)
-            print Sum
+##             print Sub
+##             print Sum
+            print int(EQ)
+##             print NE
+##             print LT
+##             print GT
+##             print LE
+##             print GE
 ##             self.assertEqual(EQ, EQ_v)
 ##             self.assertEqual(NE, NE_v)
 ##             self.assertEqual(LT, LT_v)
@@ -157,8 +164,12 @@ def binaryBench(m, n):
     return binops, stimulus(), check()
 
 
-for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
-    verifyConversion(binaryBench, m, n)
+def testBinary():
+    for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
+        yield checkBinary, m, n
+
+def checkBinary(m, n):
+    assert verifyConversion(binaryBench, m, n) == 0
 
 
 

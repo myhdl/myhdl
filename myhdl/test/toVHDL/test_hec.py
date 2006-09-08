@@ -155,4 +155,5 @@ def HecBench(HecCalculator):
 ##     sim = self.bench(HecCalculatorTask2)
 ##     Simulation(sim).run()
 
-verifyConversion(HecBench, HecCalculatorPlain)
+def testPlain():
+    assert verifyConversion(HecBench, HecCalculatorPlain) == 0
