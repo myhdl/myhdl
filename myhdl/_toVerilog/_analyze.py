@@ -673,7 +673,12 @@ class _AnalyzeVisitor(_ToVerilogMixin):
                 self.raiseError(node, _error.UnboundLocal, n)
             self.globalRefs.add(n)
         if n in self.ast.sigdict:
-            node.obj = self.ast.sigdict[n]
+            node.obj = sig = self.ast.sigdict[n]
+            if not isinstance(sig, Signal):
+                print "not a signal: %s" % n
+            else:
+                if sig._type is bool:
+                    node.edge = sig.posedge
             if access == _access.INPUT:
                 self.ast.inputs.add(n)
             elif access == _access.OUTPUT:

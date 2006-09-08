@@ -126,6 +126,8 @@ class _ToVerilogConvertor(object):
         # clean up signal names
         for sig in siglist:
             sig._name = None
+            sig._driven = False
+            sig._read = False
 
         return h.top
     

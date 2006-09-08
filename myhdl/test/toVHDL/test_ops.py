@@ -54,8 +54,8 @@ def binaryOps(
         GT.next = left > right
         LE.next = left <= right
         GE.next = left >= right
-##         Booland.next = bool(left) and bool(right)
-##         Boolor.next = bool(left) or bool(right)
+        Booland.next = bool(left) and bool(right)
+        Boolor.next = bool(left) or bool(right)
 
 
 def binaryBench(m, n):
@@ -144,14 +144,16 @@ def binaryBench(m, n):
 ##             self.assertEqual(RightShift, RightShift_v)
 ##             self.assertEqual(Sub, Sub_v)
 ##             self.assertEqual(Sum, Sum_v)
-##             print Sub
-##             print Sum
+            print Sub
+            print Sum
             print int(EQ)
-##             print NE
-##             print LT
-##             print GT
-##             print LE
-##             print GE
+            print int(NE)
+            print int(LT)
+            print int(GT)
+            print int(LE)
+            print int(GE)
+            print int(Booland)
+            print int(Boolor)
 ##             self.assertEqual(EQ, EQ_v)
 ##             self.assertEqual(NE, NE_v)
 ##             self.assertEqual(LT, LT_v)
