@@ -394,8 +394,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.binaryOp(node, '+')
     def visitFloorDiv(self, node, *args):
         self.binaryOp(node, '/')
-    def visitLeftShift(self, node, *args):
-        self.binaryOp(node, '<<')
     def visitMod(self, node, context=None, *args):
         if context == _context.PRINT:
             self.visit(node.left, _context.PRINT)
@@ -409,13 +407,22 @@ class _ConvertVisitor(_ToVerilogMixin):
          self.binaryOp(node, '**')
     def visitSub(self, node, *args):
         self.binaryOp(node, "-")
-    def visitRightShift(self, node, *args):
-        # self.binaryOp(node, '<<')
-        self.write("shift_right(")
+
+
+    def shiftOp(self, node, op=None):
+        if isinstance(node.vhdlObj, vhdl_int):
+            self.write("to_integer(")
+        self.write("%s(" % op)
         self.visit(node.left)
         self.write(", ")
         self.visit(node.right)
+        if isinstance(node.vhdlObj, vhdl_int):
+            self.write(")")
         self.write(")")
+    def visitLeftShift(self, node, *args):
+        self.shiftOp(node, "shift_left")
+    def visitRightShift(self, node, *args):
+        self.shiftOp(node, "shift_right")
 
     def checkOpWithNegIntbv(self, node, op):
         if op in ("+", "-", "*", "&&", "||", "!"):
@@ -527,7 +534,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         convOpen, convClose = "", ""
         if isinstance(lhs.vhdlObj, vhdl_unsigned):
             if isinstance(rhs.vhdlObj, vhdl_unsigned) and \
-                   (lhs.vhdlObj.size == rhs.vhdlObj.size):
+               (lhs.vhdlObj.size == rhs.vhdlObj.size):
                 pass
             else:
                 convOpen, convClose = "to_unsigned(", ", %s)" % lhs.vhdlObj.size
@@ -1484,6 +1491,10 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
         self.visit(node.right)
         r = node.right.vhdlObj
         l = node.left.vhdlObj
+        if op in ('+', '-', '%'):
+            s = max(l.size, r.size)
+        elif op in ('*',):
+            s = l.size + r.size
         if isinstance(r, vhdl_int) and isinstance(l, vhdl_int):
             node.vhdlObj = vhdl_int()
         elif isinstance(r, (vhdl_signed, vhdl_int)) and isinstance(l, (vhdl_signed, vhdl_int)):
@@ -1492,8 +1503,16 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
             node.vhdlObj = vhdl_unsigned(max(l.size, r.size))
         else:
             node.vhdlObj = vhdl_int()
-            
-    visitAdd = visitSub = visitMod = binaryOp
+
+    def visitAdd(self, node):
+        self.binaryOp(node, op='+')
+    def visitSub(self, node):
+        self.binaryOp(node, op='-')
+    def visitMod(self, node):
+        self.binaryOp(node, op='%')
+    def visitMul(self, node):
+        self.binaryOp(node, op='+')
+
     
     def multiBitOp(self, node):
         self.visitChildNodes(node)

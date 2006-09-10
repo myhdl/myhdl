@@ -35,16 +35,16 @@ def binaryOps(
 ##         Bitxor.next = left ^ right
 ##         if right != 0:
 ##             FloorDiv.next = left // right
-##         if left < 256 and right < 40:
-##             LeftShift.next = left << right
+        if left < 256 and right < 40:
+            LeftShift.next = left << right
 ##         if right != 0:
 ##             Modulo.next = left % right
-##         Mul.next = left * right
+        Mul.next = left * right
         # Icarus doesn't support ** yet
         #if left < 256 and right < 40:
         #    Pow.next = left ** right
 ##         Pow.next = 0
-##         RightShift.next = left >> right
+        RightShift.next = left >> right
         if left >= right:
             Sub.next = left - right
         Sum.next = left + right
@@ -137,37 +137,33 @@ def binaryBench(m, n):
 ##             self.assertEqual(Bitor, Bitor_v)
 ##             self.assertEqual(Bitxor, Bitxor_v)
 ##             self.assertEqual(FloorDiv, FloorDiv_v)
-##             self.assertEqual(LeftShift, LeftShift_v)
+            
+##             print LeftShift
+
+
 ##             self.assertEqual(Modulo, Modulo_v)
-##             self.assertEqual(Mul, Mul_v)
 ##             # self.assertEqual(Pow, Pow_v)
-##             self.assertEqual(RightShift, RightShift_v)
-##             self.assertEqual(Sub, Sub_v)
-##             self.assertEqual(Sum, Sum_v)
+
+            
+##             print RightShift
+##             print Mul
             print Sub
             print Sum
-            print int(EQ)
-            print int(NE)
-            print int(LT)
-            print int(GT)
-            print int(LE)
-            print int(GE)
-            print int(Booland)
-            print int(Boolor)
-##             self.assertEqual(EQ, EQ_v)
-##             self.assertEqual(NE, NE_v)
-##             self.assertEqual(LT, LT_v)
-##             self.assertEqual(GT, GT_v)
-##             self.assertEqual(LE, LE_v)
-##             self.assertEqual(GE, GE_v)
-##             self.assertEqual(Booland, Booland_v)
-##             self.assertEqual(Boolor, Boolor_v)
+##             print int(EQ)
+##             print int(NE)
+##             print int(LT)
+##             print int(GT)
+##             print int(LE)
+##             print int(GE)
+##             print int(Booland)
+##             print int(Boolor)
 
     return binops, stimulus(), check()
 
 
 def testBinary():
-    for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
+    # for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
+    for m, n in ((4, 4,),):
         yield checkBinary, m, n
 
 def checkBinary(m, n):
