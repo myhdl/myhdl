@@ -4,7 +4,8 @@ import unittest
 from random import randrange
 
 from myhdl import *
-from myhdl._toVerilog import ToVerilogError, _error
+from myhdl import ConversionError
+from myhdl._toVerilog import _error
 
 from util import setupCosimulation
 
@@ -103,7 +104,7 @@ class TestErrors(unittest.TestCase):
     def check(self, *args):
         try:
             i = toVerilog(*args)
-        except ToVerilogError, e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         except:
             self.fail()
@@ -116,7 +117,7 @@ class TestErrors(unittest.TestCase):
         out = Signal(intbv(0)[16:])
         try:
             infertest_inst = toVerilog(Infertest, a, out)
-        except ToVerilogError, e:
+        except ConversionError, e:
             self.assertEqual(e.kind, err)
         except:
             self.fail()

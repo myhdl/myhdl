@@ -39,14 +39,14 @@ import warnings
 
 import myhdl
 from myhdl import *
-from myhdl import ToVerilogError, ToVerilogWarning
+from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo, \
      _UserDefinedVerilog, _userDefinedVerilogMap
 
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind,_context, \
-     _ToVerilogMixin, _Label
+     _ConversionMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
      _Ram, _Rom
 from myhdl._Signal import _WaiterList
@@ -58,7 +58,7 @@ _enumTypeList = []
 def _checkArgs(arglist):
     for arg in arglist:
         if not type(arg) in (GeneratorType, _AlwaysComb, _Always, _UserDefinedVerilog):
-            raise ToVerilogError(_error.ArgType, arg)
+            raise ToVHDLError(_error.ArgType, arg)
         
 def _flatten(*args):
     arglist = []
@@ -89,9 +89,9 @@ class _ToVHDLConvertor(object):
             sys.setprofile(None)
         from myhdl import _traceSignals
         if _traceSignals._tracing:
-            raise ToVerilogError("Cannot use toVerilog while tracing signals")
+            raise ToVHDLError("Cannot use toVerilog while tracing signals")
         if not callable(func):
-            raise ToVerilogError(_error.FirstArgType, "got %s" % type(func))
+            raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
 
         _converting = 1
         if self.name is None:
@@ -154,7 +154,7 @@ def _writeModuleHeader(f, intf):
             f.write("%s" % c)
             c = ';'
             if s._name is None:
-                raise ToVerilogError(_error.ShadowingSignal, portname)
+                raise ToVHDLError(_error.ShadowingSignal, portname)
             # make sure signal name is equal to its port name
             s._name = portname
             r = _getRangeString(s)
@@ -197,17 +197,17 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if s._driven:
             if not s._read:
                 warnings.warn("%s: %s" % (_error.UnusedSignal, s._name),
-                              category=ToVerilogWarning
+                              category=ToVHDLWarning
                               )
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
             print >> f, "signal %s: %s%s;" % (s._name, p, r)
         elif s._read:
             # the original exception
-            # raise ToVerilogError(_error.UndrivenSignal, s._name)
+            # raise ToVHDLError(_error.UndrivenSignal, s._name)
             # changed to a warning and a continuous assignment to a wire
             warnings.warn("%s: %s" % (_error.UndrivenSignal, s._name),
-                          category=ToVerilogWarning
+                          category=ToVHDLWarning
                           )
             constwires.append(s)
             print >> f, "wire %s%s;" % (r, s._name)
@@ -283,7 +283,7 @@ def _convertGens(genlist, vfile):
     print >> vfile
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
-class _ConvertVisitor(_ToVerilogMixin):
+class _ConvertVisitor(_ConversionMixin):
     
     def __init__(self, ast, buf):
         self.ast = ast
@@ -1528,7 +1528,7 @@ def inferVhdlObj(obj):
     return vhd
 
         
-class _AnnotateTypesVisitor(_ToVerilogMixin):
+class _AnnotateTypesVisitor(_ConversionMixin):
 
     def __init__(self, ast):
         self.ast = ast

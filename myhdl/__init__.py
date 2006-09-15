@@ -88,8 +88,18 @@ class ToVerilogError(Error):
     pass
 class TraceSignalsError(Error):
     pass
+class ConversionError(Error):
+    pass
+class ToVerilogError(ConversionError):
+    pass
+class ToVHDLError(ConversionError):
+    pass
 
-class ToVerilogWarning(UserWarning):
+class ConversionWarning(UserWarning):
+    pass
+class ToVerilogWarning(ConversionWarning):
+    pass
+class ToVHDLWarning(ConversionWarning):
     pass
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
 

@@ -30,7 +30,7 @@ from compiler import ast as astNode
 
 import myhdl
 from myhdl import *
-from myhdl import ToVerilogError
+from myhdl import ConversionError
 from myhdl._util import _flatten
 from myhdl._unparse import _unparse
 
@@ -75,7 +75,7 @@ _kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB", "SIMPL
 _context = enum("BOOLEAN", "YIELD", "PRINT" ,"SIGNED", "UNKNOWN")
 
     
-class _ToVerilogMixin(object):
+class _ConversionMixin(object):
     
     def getLineNo(self, node):
         lineno = node.lineno
@@ -120,7 +120,7 @@ class _ToVerilogMixin(object):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
               (self.ast.sourcefile, self.ast.lineoffset+lineno)
-        raise ToVerilogError(kind, msg, info)
+        raise ConversionError(kind, msg, info)
 
     def require(self, node, test, msg=""):
         assert isinstance(node, astNode.Node)

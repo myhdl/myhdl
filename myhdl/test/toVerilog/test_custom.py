@@ -10,7 +10,8 @@ from myhdl import *
 
 from util import setupCosimulation
 
-from myhdl._toVerilog import ToVerilogError, _error
+from myhdl import ConversionError
+from myhdl._toVerilog import _error
 
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
@@ -264,7 +265,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
             inc_inst = toVerilog(incGen, count_v, enable, clock, reset, n=n)
-        except ToVerilogError, e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -277,7 +278,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
             inc_inst = toVerilog(incErr, count_v, enable, clock, reset, n=n)
-        except ToVerilogError, e:
+        except ConversionError, e:
             pass
         else:
             self.fail()

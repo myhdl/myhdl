@@ -3,14 +3,15 @@ path = os.path
 import unittest
 
 from myhdl import *
-from myhdl._toVerilog import ToVerilogError, _error
+from myhdl import ConversionError
+from myhdl._toVerilog import _error
 
 class TestNotSupported(unittest.TestCase):
     
     def check(self, *args):
         try:
             i = toVerilog(*args)
-        except ToVerilogError, e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         except:
             self.fail()

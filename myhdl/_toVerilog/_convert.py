@@ -46,7 +46,7 @@ from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo, \
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._toVerilog import _error, _access, _kind,_context, \
-     _ToVerilogMixin, _Label
+     _ConversionMixin, _Label
 from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
      _Ram, _Rom
             
@@ -275,7 +275,7 @@ def _convertGens(genlist, vfile):
     vfile.write(funcBuf.getvalue()); funcBuf.close()
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
-class _ConvertVisitor(_ToVerilogMixin):
+class _ConvertVisitor(_ConversionMixin):
     
     def __init__(self, ast, buf):
         self.ast = ast
@@ -284,7 +284,13 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.ind = ''
         self.isSigAss = False
         self.labelStack = []
- 
+
+    def raiseError(self, node, kind, msg=""):
+        lineno = self.getLineNo(node)
+        info = "in file %s, line %s:\n    " % \
+              (self.ast.sourcefile, self.ast.lineoffset+lineno)
+        raise ToVerilogError(kind, msg, info)
+
     def write(self, arg):
         self.buf.write("%s" % arg)
 

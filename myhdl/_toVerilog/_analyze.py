@@ -36,14 +36,14 @@ import __builtin__
 
 import myhdl
 from myhdl import *
-from myhdl import ToVerilogError
+from myhdl import ConversionError
 from myhdl._unparse import _unparse
 from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._delay import delay
 from myhdl._toVerilog import _error, _access, _kind, _context, \
-                             _ToVerilogMixin, _Label
+                             _ConversionMixin, _Label
 from myhdl._extractHierarchy import _isMem, _UserDefinedVerilog
 from myhdl._Signal import _WaiterList
 
@@ -88,7 +88,7 @@ def _analyzeSigs(hierarchy):
                 continue
             s._name = _makeName(n, prefixes)
             if not s._nrbits:
-                raise ToVerilogError(_error.UndefinedBitWidth, s._name)
+                raise ConversionError(_error.UndefinedBitWidth, s._name)
             siglist.append(s)
         # list of signals
         for n, m in memdict.items():
@@ -109,11 +109,11 @@ def _analyzeSigs(hierarchy):
         for i, s in enumerate(m.mem):
             s._name = "%s[%s]" % (m.name, i)
             if not s._nrbits:
-                raise ToVerilogError(_error.UndefinedBitWidth, s._name)
+                raise ConversionError(_error.UndefinedBitWidth, s._name)
             if type(s.val) != type(m.elObj.val):
-                raise ToVerilogError(_error.InconsistentType, s._name)
+                raise ConversionError(_error.InconsistentType, s._name)
             if s._nrbits != m.elObj._nrbits:
-                raise ToVerilogError(_error.InconsistentBitWidth, s._name)
+                raise ConversionError(_error.InconsistentBitWidth, s._name)
             
     return siglist, memlist
 
@@ -174,7 +174,7 @@ def _analyzeGens(top, absnames):
     return genlist
 
 
-class _NotSupportedVisitor(_ToVerilogMixin):
+class _NotSupportedVisitor(_ConversionMixin):
     
     def __init__(self, ast):
         self.ast = ast
@@ -331,7 +331,7 @@ def _isNegative(obj):
     return False
 
 
-class _AnalyzeVisitor(_ToVerilogMixin):
+class _AnalyzeVisitor(_ConversionMixin):
     
     def __init__(self, ast):
         ast.sigdict = {}
