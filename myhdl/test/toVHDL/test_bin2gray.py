@@ -62,17 +62,9 @@ def bin2grayBench(width, bin2gray):
     return stimulus, bin2gray_inst
 
 
-
-##     def test1(self):
-##         sim = self.bench(width=8, bin2gray=bin2gray)
-##         Simulation(sim).run()
-        
-##     def test2(self):
-##         sim = self.bench(width=8, bin2gray=bin2gray2)
-##         Simulation(sim).run()
-    
 def test1():
     assert verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray) == 0
+    
 def test2():
     assert verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray2) == 0
 

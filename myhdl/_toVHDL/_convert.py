@@ -319,8 +319,8 @@ class _ConvertVisitor(_ToVerilogMixin):
         elif isinstance(obj, _Ram):
             tipe = "reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth)
         else:
-            vhdlObj = inferVhdlObj(obj)
-            tipe = vhdlObj.toStr(constr)
+            vhd = inferVhdlObj(obj)
+            tipe = vhd.toStr(constr)
         if kind: kind += " "
         if dir: dir += " "
         self.write("%s%s: %s%s%s" % (kind, name, dir, tipe, endchar))
@@ -379,17 +379,59 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.ind = self.ind[:-4]
 
     def binaryOp(self, node, op=None):
-        if isinstance(node.vhdlObj, vhdl_int):
-            node.left.vhdlObj = vhdl_int()
-            node.right.vhdlObj = vhdl_int()
+        pre, suf = "", ""
+        prel, sufl = "", ""
+        prer, sufr = "", ""
+        if isinstance(node.vhd, vhd_type):
+            ts = node.vhd.size
+        if isinstance(node.left.vhd, vhd_int) and isinstance(node.right.vhd, vhd_int):
+            if isinstance(node.vhd, vhd_unsigned):
+                pre, suf = "to_unsigned(", ", %s)" % node.vhd.size
+            elif isinstance(node.vhd, vhd_signed):
+                pre, suf = "to_signed(", ", %s)" % node.vhd.size
+            elif isinstance(node.vhd, vhd_int):
+                pass
+            else:
+                raise NotImplementedError
+        elif isinstance(node.left.vhd, vhd_unsigned) and isinstance(node.right.vhd, vhd_int):
+            if op == '*':
+                ns = 2 * node.left.vhd.size
+            else:
+                ns = node.left.vhd.size
+            ds = ts - ns
+            if isinstance(node.vhd, vhd_unsigned):
+                if ds > 0:
+                    prel, sufl = "resize(", ", %s)" % node.vhd.size
+                elif ds < 0:
+                    pre, suf = "resize(", ", %s)" % node.vhd.size
+            else:
+                assert NotImplementedError
+        elif isinstance(node.left.vhd, vhd_unsigned) and isinstance(node.right.vhd, vhd_unsigned):
+            if op == '*':
+                ns = node.left.vhd.size + node.right.vhd.size
+            else:
+                ns = max(node.left.vhd.size, node.right.vhd.size)
+            ds = ts - ns
+            if isinstance(node.vhd, vhd_unsigned):
+                if ds > 0:
+                    prel, sufl = "resize(", ", %s)" % ts
+                elif ds < 0:
+                    pre, suf = "resize(", ", %s)" % ts
+            else:
+                assertNotImplementedError
+            
         context = None
-        if node.signed:
-            context = _context.SIGNED
+        self.write(pre)
         self.write("(")
+        self.write(prel)
         self.visit(node.left, context)
+        self.write(sufl)
         self.write(" %s " % op)
+        self.write(prer)
         self.visit(node.right, context)
+        self.write(sufr)
         self.write(")")
+        self.write(suf)
     def visitAdd(self, node, *args):
         self.binaryOp(node, '+')
     def visitFloorDiv(self, node, *args):
@@ -410,15 +452,45 @@ class _ConvertVisitor(_ToVerilogMixin):
 
 
     def shiftOp(self, node, op=None):
-        if isinstance(node.vhdlObj, vhdl_int):
-            self.write("to_integer(")
+        pre, suf = "", ""
+        prel, sufl = "", ""
+        prer, sufr = "", ""
+        if isinstance(node.vhd, vhd_type):
+            ts = node.vhd.size
+        if isinstance(node.left.vhd, vhd_int):
+            if isinstance(node.vhd, vhd_unsigned):
+                pre, suf = "to_unsigned(", ", %s)" % ts
+            elif isinstance(node.vhd, vhd_signed):
+                pre, suf = "to_signed(", ", %s)" % ts
+            else:
+                raise NotImplementedError
+        elif isinstance(node.left.vhd, vhd_unsigned):
+            ns = node.left.vhd.size
+            ds = ts - ns
+            if isinstance(node.vhd, vhd_unsigned):
+                if ds > 0:
+                    prel, sufl = "resize(", ", %s)" % ts
+                elif ds < 0:
+                    pre, suf = "resize(", ", %s)" % ts
+            else:
+                assertNotImplementedError
+        else:
+            assertNotImplementedError
+        self.write(pre)
         self.write("%s(" % op)
+        self.write(prel)
         self.visit(node.left)
+        self.write(sufl)
         self.write(", ")
+        self.write(prer)
         self.visit(node.right)
-        if isinstance(node.vhdlObj, vhdl_int):
-            self.write(")")
+        self.write(sufr)
         self.write(")")
+        self.write(suf)
+
+
+
+        
     def visitLeftShift(self, node, *args):
         self.shiftOp(node, "shift_left")
     def visitRightShift(self, node, *args):
@@ -436,7 +508,7 @@ class _ConvertVisitor(_ToVerilogMixin):
     def multiBoolOp(self, node, op):
         for n in node.nodes:
             self.checkOpWithNegIntbv(n, op)
-        if isinstance(node.vhdlObj, vhdl_std_logic):
+        if isinstance(node.vhd, vhd_std_logic):
             self.write("to_std_logic")
         self.write("(")
         self.visit(node.nodes[0])
@@ -478,7 +550,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         self.unaryOp(node, '-', context)
     def visitNot(self, node, context=None):
         self.checkOpWithNegIntbv(node.expr, 'not ')
-        if isinstance(node.vhdlObj, vhdl_std_logic):
+        if isinstance(node.vhd, vhd_std_logic):
             self.write("to_std_logic")
         self.write("(not ")
         self.visit(node.expr, context)
@@ -507,7 +579,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.visit(node.expr.subs[0])
             self.write(" is")
             self.indent()
-            size = lhs.vhdlObj.size
+            size = lhs.vhd.size
             for i, n in enumerate(rom):
                 self.writeline()
                 if i == len(rom)-1:
@@ -520,9 +592,9 @@ class _ConvertVisitor(_ToVerilogMixin):
                     self.isSigAss = False
                 else:
                     self.write(' := ')
-                if isinstance(lhs.vhdlObj, vhdl_std_logic):
+                if isinstance(lhs.vhd, vhd_std_logic):
                     self.write("'%s';" % n)
-                elif isinstance(lhs.vhdlObj, vhdl_int):
+                elif isinstance(lhs.vhd, vhd_int):
                     self.write("%s;" % n)
                 else:
                     self.write('"%s";' % bin(n, size))
@@ -532,22 +604,24 @@ class _ConvertVisitor(_ToVerilogMixin):
             return
         # default behavior
         convOpen, convClose = "", ""
-        if isinstance(lhs.vhdlObj, vhdl_unsigned):
-            if isinstance(rhs.vhdlObj, vhdl_unsigned) and \
-               (lhs.vhdlObj.size == rhs.vhdlObj.size):
-                pass
-            else:
-                convOpen, convClose = "to_unsigned(", ", %s)" % lhs.vhdlObj.size
-                rhs.vhdlObj = vhdl_int()
-        elif isinstance(lhs.vhdlObj, vhdl_signed):
-            if isinstance(rhs.vhdlObj, vhdl_signed) and \
-                   (lhs.vhdlObj.size == rhs.vhdlObj.size):
-                pass
-            else:
-                convOpen, convClose = "to_signed(", ", %s)" % lhs.vhdlObj.size
-                rhs.vhdlObj = vhdl_int()
-        elif isinstance(lhs.vhdlObj, vhdl_std_logic):
-            rhs.vhdlObj = vhdl_std_logic()
+##         if isinstance(lhs.vhd, vhd_unsigned):
+##             if isinstance(rhs.vhd, vhd_unsigned) and \
+##                (lhs.vhd.size == rhs.vhd.size):
+##                 pass
+##             else:
+##                 convOpen, convClose = "to_unsigned(", ", %s)" % lhs.vhd.size
+##                 rhs.vhd = vhd_int()
+##         elif isinstance(lhs.vhd, vhd_signed):
+##             if isinstance(rhs.vhd, vhd_signed) and \
+##                    (lhs.vhd.size == rhs.vhd.size):
+##                 pass
+##             else:
+##                 convOpen, convClose = "to_signed(", ", %s)" % lhs.vhd.size
+##                 rhs.vhd = vhd_int()
+##         elif isinstance(lhs.vhd, vhd_std_logic):
+##             rhs.vhd = vhd_std_logic()
+        if isinstance(lhs.vhd, vhd_type):
+            rhs.vhd = lhs.vhd
         self.visit(node.nodes[0])
         if self.isSigAss:
             self.write(' <= ')
@@ -602,7 +676,7 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.write("(")
             arg = node.args[0]
             self.visit(arg)
-            if isinstance(arg, vhdl_std_logic):
+            if isinstance(arg, vhd_std_logic):
                 test = "'0'"
             else:
                 test = "0"
@@ -617,7 +691,14 @@ class _ConvertVisitor(_ToVerilogMixin):
         elif f in (int, long):
             opening, closing = '', ''
         elif f is intbv:
+            pre, post = "", ""
+            if isinstance(node.vhd, vhd_unsigned):
+                pre, post = "to_unsigned(", ", %s)" % node.vhd.size
+            elif isinstance(node.vhd, vhd_signed):
+                pre, post = "to_signed(", ", %s)" % node.vhd.size
+            self.write(pre)
             self.visit(node.args[0])
+            self.write(post)
             return
         elif type(f) is ClassType and issubclass(f, Exception):
             self.write(f.__name__)
@@ -653,7 +734,7 @@ class _ConvertVisitor(_ToVerilogMixin):
         context = None
         if node.signed:
             context = _context.SIGNED
-        if isinstance(node.vhdlObj, vhdl_std_logic):
+        if isinstance(node.vhd, vhd_std_logic):
             self.write("to_std_logic")
         self.write("(")
         self.visit(node.expr, context)
@@ -670,12 +751,14 @@ class _ConvertVisitor(_ToVerilogMixin):
         if context == _context.PRINT:
             self.write('"%s"' % node.value)
         else:
-            if isinstance(node.vhdlObj, vhdl_std_logic):
+            if isinstance(node.vhd, vhd_std_logic):
                 self.write("'%s'" % node.value)
 ##                     elif target._type is intbv:
 ##                         self.write('"%s"' % bin(node.value, len(target)))
-            elif isinstance(node.vhdlObj, vhdl_boolean):
+            elif isinstance(node.vhd, vhd_boolean):
                 self.write("%s" % bool(node.value))
+            elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
+                self.write('"%s"' % bin(node.value, node.vhd.size))
             else:
                 self.write(node.value)
 
@@ -850,49 +933,59 @@ class _ConvertVisitor(_ToVerilogMixin):
             self.visit(stmt)
        
     def visitName(self, node, context=None, *args):
-        addSignBit = False
-        isMixedExpr = (not node.signed) and (context == _context.SIGNED)
         n = node.name
         if n == 'False':
-            if isinstance(node.vhdlObj, vhdl_std_logic):
+            if isinstance(node.vhd, vhd_std_logic):
                 s = "'0'"
             else:
                 s = "False"
         elif n == 'True':
-            if isinstance(node.vhdlObj, vhdl_std_logic):
+            if isinstance(node.vhd, vhd_std_logic):
                 s = "'1'"
             else:
                 s = "True"
         elif n in self.ast.vardict:
-            addSignBit = isMixedExpr
             s = n
             obj = self.ast.vardict[n]
-            vhdlObj = inferVhdlObj(obj)
-            if isinstance(obj, intbv) and isinstance(node.vhdlObj, vhdl_int):
-                s = "to_integer(%s)" % n
-            elif isinstance(vhdlObj, vhdl_std_logic) and isinstance(node.vhdlObj, vhdl_boolean):
+            vhd = inferVhdlObj(obj)
+            if isinstance(vhd, vhd_unsigned):
+                if isinstance(node.vhd, vhd_int):
+                    s = "to_integer(%s)" % n
+                elif isinstance(node.vhd, vhd_unsigned):
+                    if vhd.size != node.vhd.size:
+                        s = "resize(%s, %s)" % (n, node.vhd.size)
+                else:
+                    raise NotImplementedError
+
+                
+            elif isinstance(vhd, vhd_std_logic) and isinstance(node.vhd, vhd_boolean):
                 s = "(%s = '1')" %  n
+            elif isinstance(vhd, vhd_int):
+                if isinstance(node.vhd, vhd_unsigned):
+                    s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
+                elif isinstance(node.vhd, vhd_signed):
+                    s = "to_signed(%s, %s)" % (n, node.vhd.size)
+             
         elif n in self.ast.argnames:
             assert n in self.ast.symdict
-            addSignBit = isMixedExpr
             obj = self.ast.symdict[n]
-            vhdlObj = inferVhdlObj(obj)
-            if isinstance(vhdlObj, vhdl_std_logic) and isinstance(node.vhdlObj, vhdl_boolean):
+            vhd = inferVhdlObj(obj)
+            if isinstance(vhd, vhd_std_logic) and isinstance(node.vhd, vhd_boolean):
                 s = "(%s = '1')" %  n
             else:
                 s = n
         elif n in self.ast.symdict:
             obj = self.ast.symdict[n]
-            #obj = node.obj
+            s = n
             if isinstance(obj, bool):
                 s = "'%s'" % int(obj)
             elif isinstance(obj, (int, long)):
-                if isinstance(node.vhdlObj, vhdl_int):
+                if isinstance(node.vhd, vhd_int):
                     s = "%s" % int(obj)
-                elif isinstance(node.vhdlObj, vhdl_std_logic):
+                elif isinstance(node.vhd, vhd_std_logic):
                     s = "'%s'" % int(obj)
                 else:
-                    s = '"%s"' % bin(obj, node.vhdlObj.size)
+                    s = '"%s"' % bin(obj, node.vhd.size)
             elif isinstance(obj, Signal):
                 if context == _context.PRINT:
                     if obj._type is intbv:
@@ -904,13 +997,30 @@ class _ConvertVisitor(_ToVerilogMixin):
                         if isinstance(obj._val, EnumItemType):
                             typename = obj._val._type._name
                         s = "write(L, %s'image(%s))" % (typename, str(obj))
-                elif isinstance(node.vhdlObj, vhdl_boolean) and obj._type is bool:
-                    s = "(%s = '1')" % str(obj)
-                elif (obj._type is intbv) and isinstance(node.vhdlObj, vhdl_int):
-                    s = "to_integer(%s)" % str(obj)
                 else:
-                    addSignBit = isMixedExpr
-                    s = str(obj)
+                    vhd = inferVhdlObj(obj)
+                    n = s = str(obj)
+                    if isinstance(vhd, vhd_unsigned):
+                        if isinstance(node.vhd, vhd_int):
+                            s = "to_integer(%s)" % n
+                        elif isinstance(node.vhd, vhd_unsigned):
+                            if vhd.size != node.vhd.size:
+                                s = "resize(%s, %s)" % (n, node.vhd.size)
+                        else:
+                            raise NotImplementedError
+
+
+                    elif isinstance(vhd, vhd_std_logic) and isinstance(node.vhd, vhd_boolean):
+                        s = "(%s = '1')" %  n
+                    elif isinstance(vhd, vhd_int):
+                        if isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
+                            s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
+                        elif isinstance(node.vhd, vhd_signed):
+                            s = "to_signed(%s, %s)" % (n, node.vhd.size)
+                        else:
+                            raise NotImplementedError
+                    else:
+                        s = str(obj)
             elif _isMem(obj):
                 m = _getMemInfo(obj)
                 assert m.name
@@ -925,11 +1035,7 @@ class _ConvertVisitor(_ToVerilogMixin):
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:
             raise AssertionError("name ref: %s" % n)
-##         if addSignBit:
-##             self.write("$signed({1'b0, ")
         self.write(s)
-##         if addSignBit:
-##             self.write("})")       
 
     def visitPass(self, node, *args):
         self.write("null;")
@@ -965,13 +1071,16 @@ class _ConvertVisitor(_ToVerilogMixin):
         if isinstance(node.expr, astNode.CallFunc) and \
            node.expr.node.obj is intbv:
             c = self.getVal(node)
-##             self.write("%s'h" % c._nrbits)
-##             self.write("%x" % c._val)
+            pre, post = "", ""
+            if isinstance(node.vhd, vhd_unsigned):
+                print "YES"
+                pre, post = "to_unsigned(", ", %s)" % node.vhd.size
+            elif isinstance(node.vhd, vhd_signed):
+                pre, post = "to_signed(", ", %s)" % node.vhd.size
+            self.write(pre)
             self.write("%s" % c._val)
+            self.write(post)
             return
-        addSignBit = (node.flags == 'OP_APPLY') and (context == _context.SIGNED)
-        if addSignBit:
-            self.write("$signed({1'b0, ")
         self.visit(node.expr)
         # special shortcut case for [:] slice
         if node.lower is None and node.upper is None:
@@ -987,8 +1096,6 @@ class _ConvertVisitor(_ToVerilogMixin):
         else:
             self.visit(node.upper)
         self.write(")")
-        if addSignBit:
-            self.write("})")
 
     def visitStmt(self, node, *args):
         for stmt in node.nodes:
@@ -1274,7 +1381,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.returnLabel = _Label("RETURN")
 
     def writeOutputDeclaration(self):
-        self.write(self.ast.vhdlObj.toStr(constr=False))
+        self.write(self.ast.vhd.toStr(constr=False))
 
     def writeInputDeclarations(self):
         endchar = ""
@@ -1342,11 +1449,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.writeline()
         self.write("begin")
         self.indent()
-        print 'here'
-        print node.code.nodes[0]
         t = node.code.nodes[0].tests[0][0]
-        print t
-        print t.vhdlObj
         self.visit(node.code)
         self.dedent()
         self.writeline()
@@ -1354,37 +1457,37 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.writeline(2)
 
 
-class vhdl_type(object):
+class vhd_type(object):
     def __init__(self, size=0):
         self.size = size
         
-class vhdl_std_logic(vhdl_type):
+class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
         self.size = 1
     def toStr(self, constr=True):
         return 'std_logic'
         
-class vhdl_boolean(vhdl_type):
+class vhd_boolean(vhd_type):
     def __init__(self, size=0):
         self.size = 1
     def toStr(self, constr=True):
         return 'boolean'
     
-class vhdl_unsigned(vhdl_type):
+class vhd_unsigned(vhd_type):
     def toStr(self, constr=True):
         if constr:
             return "unsigned(%s downto 0)" % (self.size-1)
         else:
             return "unsigned"
     
-class vhdl_signed(vhdl_type):
+class vhd_signed(vhd_type):
     def toStr(self, constr=True):
         if constr:
             return "signed(%s downto 0)" % (self.size-1)
         else:
             return "signed"
     
-class vhdl_int(vhdl_type):
+class vhd_int(vhd_type):
     def toStr(self, constr=True):
         return "integer"
 
@@ -1393,36 +1496,36 @@ class _loopInt(int):
 
 def maxType(o1, o2):
     s1 = s2 = 0
-    if isinstance(o1, vhdl_type):
+    if isinstance(o1, vhd_type):
         s1 = o1.size
-    if isinstance(o2, vhdl_type):
+    if isinstance(o2, vhd_type):
         s2 = o2.size
     s = max(s1, s2)
-    if isinstance(o1, vhdl_signed) or isinstance(o2, vhdl_signed):
-        return vhdl_signed(s)
-    elif isinstance(o1, vhdl_unsigned) or isinstance(o2, vhdl_unsigned):
-        return vhdl_unsigned(s)
-    elif isinstance(o1, vhdl_std_logic) or isinstance(o2, vhdl_std_logic):
-        return vhdl_std_logic()
-    elif isinstance(o1, vhdl_int) or isinstance(o2, vhdl_int):
-        return vhdl_int()
+    if isinstance(o1, vhd_signed) or isinstance(o2, vhd_signed):
+        return vhd_signed(s)
+    elif isinstance(o1, vhd_unsigned) or isinstance(o2, vhd_unsigned):
+        return vhd_unsigned(s)
+    elif isinstance(o1, vhd_std_logic) or isinstance(o2, vhd_std_logic):
+        return vhd_std_logic()
+    elif isinstance(o1, vhd_int) or isinstance(o2, vhd_int):
+        return vhd_int()
     else:
         return None
     
 def inferVhdlObj(obj):
-    vhdlObj = None
+    vhd = None
     if (isinstance(obj, Signal) and obj._type is intbv) or \
        isinstance(obj, intbv):
         if obj.min < 0:
-            vhdlObj = vhdl_signed(len(obj))
+            vhd = vhd_signed(len(obj))
         else:
-            vhdlObj = vhdl_unsigned(len(obj))
+            vhd = vhd_unsigned(len(obj))
     elif (isinstance(obj, Signal) and obj._type is bool) or \
          isinstance(obj, bool):
-        vhdlObj = vhdl_std_logic()
+        vhd = vhd_std_logic()
     elif isinstance(obj, (int, long)):
-        vhdlObj = vhdl_int()
-    return vhdlObj
+        vhd = vhd_int()
+    return vhd
 
         
 class _AnnotateTypesVisitor(_ToVerilogMixin):
@@ -1432,41 +1535,42 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
 
     def visitAssAttr(self, node):
         self.visit(node.expr)
-        node.vhdlObj = node.expr.vhdlObj
+        node.vhd = node.expr.vhd
         
     def visitCallFunc(self, node, *args):
         fn = node.node
         assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
-        node.vhdlObj = inferVhdlObj(node.obj)
+        node.vhd = inferVhdlObj(node.obj)
         self.visitChildNodes(node)
         if f is concat:
             s = 0
             for a in node.args:
-                s += a.vhdlObj.size
-            node.vhdlObj = vhdl_unsigned(s)
+                s += a.vhd.size
+            node.vhd = vhd_unsigned(s)
         elif f is int:
-            node.vhdlObj = vhdl_int()
-            node.args[0].vhdlObj = vhdl_int()
+            node.vhd = vhd_int()
+            node.args[0].vhd = vhd_int()
         elif f is intbv:
-            node.vhdlObj = vhdl_int()
+            node.vhd = vhd_int()
         elif f is len:
-            node.vhdlObj = vhdl_int()
+            node.vhd = vhd_int()
         elif hasattr(node, 'ast'):
             v = _AnnotateTypesVisitor(node.ast)
             compiler.walk(node.ast, v)
-            node.vhdlObj = node.ast.vhdlObj = inferVhdlObj(node.ast.returnObj)
+            node.vhd = node.ast.vhd = inferVhdlObj(node.ast.returnObj)
     
     def visitCompare(self, node):
-        node.vhdlObj = vhdl_boolean()
+        node.vhd = vhd_boolean()
         self.visitChildNodes(node)
         expr = node.expr
         op, code = node.ops[0]
-        o = maxType(expr.vhdlObj, code.vhdlObj)
-        expr.vhdlObj = code.vhdlObj = o
+        o = maxType(expr.vhd, code.vhd)
+        if isinstance(o, vhd_std_logic):
+            expr.vhd = code.vhd = o
 
     def visitConst(self, node):
-        node.vhdlObj = vhdl_int()
+        node.vhd = vhd_int()
 
     def visitFor(self, node):
         self.visitChildNodes(node)
@@ -1476,33 +1580,34 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
 
     def visitGetattr(self, node):
         self.visitChildNodes(node)
-        node.vhdlObj = node.expr.vhdlObj
+        node.vhd = node.expr.vhd
         
     def visitName(self, node):
-        node.vhdlObj = inferVhdlObj(node.obj)
+        node.vhd = inferVhdlObj(node.obj)
  
     # visitAssName = visitName
     def visitAssName(self, node):
         node.obj = self.ast.vardict[node.name]
         self.visitName(node)
         
+        
     def binaryOp(self, node, op=None):
         self.visit(node.left)
         self.visit(node.right)
-        r = node.right.vhdlObj
-        l = node.left.vhdlObj
+        r = node.right.vhd
+        l = node.left.vhd
         if op in ('+', '-', '%'):
             s = max(l.size, r.size)
         elif op in ('*',):
             s = l.size + r.size
-        if isinstance(r, vhdl_int) and isinstance(l, vhdl_int):
-            node.vhdlObj = vhdl_int()
-        elif isinstance(r, (vhdl_signed, vhdl_int)) and isinstance(l, (vhdl_signed, vhdl_int)):
-            node.vhdlObj = vhdl_signed(max(l.size, r.size))
-        elif isinstance(r, (vhdl_unsigned, vhdl_int)) and isinstance(l, (vhdl_unsigned, vhdl_int)):
-            node.vhdlObj = vhdl_unsigned(max(l.size, r.size))
+        if isinstance(r, vhd_int) and isinstance(l, vhd_int):
+            node.vhd = vhd_int()
+        elif isinstance(r, (vhd_signed, vhd_int)) and isinstance(l, (vhd_signed, vhd_int)):
+            node.vhd = vhd_signed(max(l.size, r.size))
+        elif isinstance(r, (vhd_unsigned, vhd_int)) and isinstance(l, (vhd_unsigned, vhd_int)):
+            node.vhd = vhd_unsigned(max(l.size, r.size))
         else:
-            node.vhdlObj = vhdl_int()
+            node.vhd = vhd_int()
 
     def visitAdd(self, node):
         self.binaryOp(node, op='+')
@@ -1518,62 +1623,61 @@ class _AnnotateTypesVisitor(_ToVerilogMixin):
         self.visitChildNodes(node)
         o = None
         for n in node.nodes:
-            o = maxType(o, n.vhdlObj)
+            o = maxType(o, n.vhd)
         for n in node.nodes:
-            n.vhdlObj = o
-        node.vhdlObj = o
+            n.vhd = o
+        node.vhd = o
     visitBitand = visitBitor = visitBitxor = multiBitOp
 
     def multiBoolOp(self, node):
         self.visitChildNodes(node)
         for n in node.nodes:
-            n.vhdlObj = vhdl_boolean()
-        node.vhdlObj = vhdl_boolean()
+            n.vhd = vhd_boolean()
+        node.vhd = vhd_boolean()
     visitAnd = visitOr = multiBoolOp
 
     def visitNot(self, node):
         self.visit(node.expr)
-        node.vhdlObj = node.expr.vhdlObj = vhdl_boolean()
+        node.vhd = node.expr.vhd = vhd_boolean()
 
     def visitIf(self, node):
         self.visitChildNodes(node)
         for test, suite in node.tests:
-            test.vhdlObj = vhdl_boolean()
+            test.vhd = vhd_boolean()
 
     def shift(self, node):
         self.visitChildNodes(node)
-        node.vhdlObj = node.left.vhdlObj
-        node.right.vhdlObj = vhdl_int()
+        node.vhd = node.left.vhd
+        node.right.vhd = vhd_int()
     visitRightShift = visitLeftShift = shift
 
     def visitSlice(self, node):
         self.visitChildNodes(node)
         lower = 0
-        t = vhdl_unsigned
-        if hasattr(node.expr, 'vhdlObj'):
-            print node.expr
-            lower = node.expr.vhdlObj.size
-            t = type(node.expr.vhdlObj)
+        t = vhd_unsigned
+        if hasattr(node.expr, 'vhd'):
+            lower = node.expr.vhd.size
+            t = type(node.expr.vhd)
         if node.lower:
             lower = self.getVal(node.lower)
         upper  = 0
         if node.upper:
             upper = self.getVal(node.upper)
-        node.vhdlObj = t(lower-upper)
+        node.vhd = t(lower-upper)
 
     def visitSubscript(self, node):
         self.visitChildNodes(node)
-        node.vhdlObj = vhdl_std_logic()
+        node.vhd = vhd_std_logic()
         
     def unaryOp(self, node):
         self.visit(node.expr)
-        node.vhdlObj = node.expr.vhdlObj
+        node.vhd = node.expr.vhd
 
     visitUnaryAdd = visitUnarySub = unaryOp
 
     def visitWhile(self, node):
         self.visitChildNodes(node)
-        node.test.vhdlObj = vhdl_boolean()
+        node.test.vhd = vhd_boolean()
         
         
 

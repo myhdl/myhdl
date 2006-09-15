@@ -7,6 +7,8 @@ random.seed(2)
 from myhdl import *
 from myhdl.test import verifyConversion
 
+NRTESTS = 10
+
 def binaryOps(
               Bitand,
               Bitor,
@@ -63,6 +65,9 @@ def binaryBench(m, n):
     M = 2**m
     N = 2**n
     P = min(M, N)
+    seqP = tuple(range(P))
+    seqM = tuple([randrange(M) for i in range(NRTESTS)])
+    seqN = tuple([randrange(N) for i in range(NRTESTS)])
 
     left = Signal(intbv(0)[m:])
     right = Signal(intbv(0)[n:])
@@ -102,15 +107,6 @@ def binaryBench(m, n):
                        left, right)
 
     def stimulus():
-##         for i in range(P):
-##             print i
-##             left.next = intbv(i)
-##             right.next = intbv(i)
-##             yield delay(10)
-##         for i in range(100):
-##             left.next = randrange(M)
-##             right.next = randrange(N)
-##             yield delay(10)
         left.next = 1
         right.next = 1
         yield delay(10)
@@ -125,6 +121,14 @@ def binaryBench(m, n):
         yield delay(10)
         left.next = M-1
         right.next = N-1
+        for i in range(len(seqP)):
+            left.next = seqP[i]
+            right.next = seqP[i]
+            yield delay(10)
+        for i in range(NRTESTS):
+            left.next = seqM[i]
+            right.next = seqN[i]
+            yield delay(10)
         # raise StopSimulation
 
 
@@ -138,25 +142,25 @@ def binaryBench(m, n):
 ##             self.assertEqual(Bitxor, Bitxor_v)
 ##             self.assertEqual(FloorDiv, FloorDiv_v)
             
-##             print LeftShift
+            print LeftShift
 
 
 ##             self.assertEqual(Modulo, Modulo_v)
 ##             # self.assertEqual(Pow, Pow_v)
 
             
-##             print RightShift
-##             print Mul
+            print RightShift
+            print Mul
             print Sub
             print Sum
-##             print int(EQ)
-##             print int(NE)
-##             print int(LT)
-##             print int(GT)
-##             print int(LE)
-##             print int(GE)
-##             print int(Booland)
-##             print int(Boolor)
+            print int(EQ)
+            print int(NE)
+            print int(LT)
+            print int(GT)
+            print int(LE)
+            print int(GE)
+            print int(Booland)
+            print int(Boolor)
 
     return binops, stimulus(), check()
 

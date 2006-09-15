@@ -178,13 +178,14 @@ def testDec():
     
 def testDecFunc():
     assert verifyConversion(DecBench, decFunc) == 0
-
-## def testDecTaskFreeVar():
-##     assert verifyConversion(DecBench, decTaskFreeVar) == 0
     
 def testDecTask():
     assert verifyConversion(DecBench, decTask) == 0
+
     
+    
+## def testDecTaskFreeVar():
+##     assert verifyConversion(DecBench, decTaskFreeVar) == 0
 
 ##     def testDecRef(self):
 ##         sim = self.bench(decRef)
