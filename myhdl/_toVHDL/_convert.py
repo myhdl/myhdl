@@ -473,9 +473,9 @@ class _ConvertVisitor(_ToVerilogMixin):
                 elif ds < 0:
                     pre, suf = "resize(", ", %s)" % ts
             else:
-                assertNotImplementedError
+                raise NotImplementedError
         else:
-            assertNotImplementedError
+            assert NotImplementedError
         self.write(pre)
         self.write("%s(" % op)
         self.write(prel)
