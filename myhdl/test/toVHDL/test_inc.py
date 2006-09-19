@@ -6,7 +6,7 @@ from random import randrange
 random.seed(2)
 
 from myhdl import *
-from myhdl.test import verifyConversion
+from myhdl.conversion import verify
 
 
 ACTIVE_LOW, INACTIVE_HIGH = bool(0), bool(1)
@@ -141,11 +141,12 @@ def IncBench(inc):
 
 
 def test_incReg():  
-    assert verifyConversion(IncBench, incRef) == 0
+    assert verify(IncBench, incRef) == 0
 def test_inc():  
-    assert verifyConversion(IncBench, inc) == 0
+    assert verify(IncBench, inc) == 0
 def test_inc2():  
-    assert verifyConversion(IncBench, inc2) == 0
+    assert verify(IncBench, inc2) == 0
     
 
 
+test_incReg()

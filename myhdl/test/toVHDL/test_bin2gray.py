@@ -2,7 +2,7 @@ import os
 path = os.path
 
 from myhdl import *
-from myhdl.test import verifyConversion
+from myhdl.conversion import verify
 
 def bin2gray2(B, G, width):
     """ Gray encoder.
@@ -63,8 +63,8 @@ def bin2grayBench(width, bin2gray):
 
 
 def test1():
-    assert verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray) == 0
+    assert verify(bin2grayBench, width=8, bin2gray=bin2gray) == 0
     
 def test2():
-    assert verifyConversion(bin2grayBench, width=8, bin2gray=bin2gray2) == 0
+    assert verify(bin2grayBench, width=8, bin2gray=bin2gray2) == 0
 

@@ -5,7 +5,7 @@ from random import randrange
 random.seed(2)
 
 from myhdl import *
-from myhdl.test import verifyConversion
+from myhdl.conversion import verify
 
 NRTESTS = 10
 
@@ -171,7 +171,7 @@ def testBinary():
         yield checkBinary, m, n
 
 def checkBinary(m, n):
-    assert verifyConversion(binaryBench, m, n) == 0
+    assert verify(binaryBench, m, n) == 0
 
 
 

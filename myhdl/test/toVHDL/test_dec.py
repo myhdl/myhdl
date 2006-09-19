@@ -5,7 +5,7 @@ from random import randrange
 random.seed(2)
 
 from myhdl import *
-from myhdl.test import verifyConversion
+from myhdl.conversion import verify
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
@@ -171,21 +171,21 @@ def DecBench(dec):
 
 
 def testDecRef():
-    assert verifyConversion(DecBench, decRef) == 0
+    assert verify(DecBench, decRef) == 0
     
 def testDec():
-    assert verifyConversion(DecBench, dec) == 0
+    assert verify(DecBench, dec) == 0
     
 def testDecFunc():
-    assert verifyConversion(DecBench, decFunc) == 0
+    assert verify(DecBench, decFunc) == 0
     
 def testDecTask():
-    assert verifyConversion(DecBench, decTask) == 0
+    assert verify(DecBench, decTask) == 0
 
     
     
 ## def testDecTaskFreeVar():
-##     assert verifyConversion(DecBench, decTaskFreeVar) == 0
+##     assert verify(DecBench, decTaskFreeVar) == 0
 
 ##     def testDecRef(self):
 ##         sim = self.bench(decRef)

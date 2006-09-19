@@ -4,7 +4,7 @@ from random import randrange
 
 
 from myhdl import *
-from myhdl.test import verifyConversion
+from myhdl.conversion import verify
 
 
 def ForLoop1(a, out):
@@ -220,47 +220,47 @@ def LoopBench(LoopTest):
 
 
 def testForLoop1():
-    assert verifyConversion(LoopBench, ForLoop1) == 0
+    assert verify(LoopBench, ForLoop1) == 0
 def testForLoop2():
-    assert verifyConversion(LoopBench, ForLoop2) == 0
+    assert verify(LoopBench, ForLoop2) == 0
 def testForLoop4():
-    assert verifyConversion(LoopBench, ForLoop4) == 0
+    assert verify(LoopBench, ForLoop4) == 0
 def testForLoop5():
-    assert verifyConversion(LoopBench, ForLoop5) == 0
+    assert verify(LoopBench, ForLoop5) == 0
 
 # for loop 3 and 6 can't work in vhdl
 
 def testForContinueLoop():
-  assert verifyConversion(LoopBench, ForContinueLoop) == 0
+  assert verify(LoopBench, ForContinueLoop) == 0
 
 def testForBreakLoop():
-   assert verifyConversion(LoopBench, ForBreakLoop) == 0
+   assert verify(LoopBench, ForBreakLoop) == 0
 
 def testForBreakContinueLoop():
-   assert verifyConversion(LoopBench, ForBreakContinueLoop) == 0
+   assert verify(LoopBench, ForBreakContinueLoop) == 0
 
 def testNestedForLoop1():
-   assert verifyConversion(LoopBench, NestedForLoop1) == 0
+   assert verify(LoopBench, NestedForLoop1) == 0
 
 def testNestedForLoop2():
-   assert verifyConversion(LoopBench, NestedForLoop2) == 0
+   assert verify(LoopBench, NestedForLoop2) == 0
 
 def testWhileLoop():
-    assert verifyConversion(LoopBench, FunctionCall) == 0
+    assert verify(LoopBench, FunctionCall) == 0
 
 ## def testTaskCall(self):
 ##     sim = self.bench(TaskCall)
 ##     Simulation(sim).run()
 
 def testWhileLoop():
-    assert verifyConversion(LoopBench, WhileLoop) == 0
+    assert verify(LoopBench, WhileLoop) == 0
 
 def testWhileContinueLoop():
-    assert verifyConversion(LoopBench, WhileContinueLoop) == 0
+    assert verify(LoopBench, WhileContinueLoop) == 0
 
 def testWhileBreakLoop():
-    assert verifyConversion(LoopBench, WhileBreakLoop) == 0
+    assert verify(LoopBench, WhileBreakLoop) == 0
 
 def testWhileBreakContinueLoop():
-    assert verifyConversion(LoopBench, WhileBreakContinueLoop) == 0
+    assert verify(LoopBench, WhileBreakContinueLoop) == 0
 

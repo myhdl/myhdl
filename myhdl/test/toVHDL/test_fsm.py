@@ -2,7 +2,7 @@ import os
 path = os.path
 
 from myhdl import *
-from myhdl.test import verifyConversion
+from myhdl.conversion import verify
 
 # SEARCH, CONFIRM, SYNC = range(3)
 ACTIVE_LOW = bool(0)
@@ -199,10 +199,10 @@ def FSMBench(FramerCtrl, t_State):
 
 
 def testRef():
-    assert verifyConversion(FSMBench, FramerCtrl, t_State_b) == 0
+    assert verify(FSMBench, FramerCtrl, t_State_b) == 0
 
 def testAlt():
-    assert verifyConversion(FSMBench, FramerCtrl_alt, t_State_b) == 0
+    assert verify(FSMBench, FramerCtrl_alt, t_State_b) == 0
 
 ## def testRef(self):
 ##     for t_State in (t_State_b, t_State_oc, t_State_oh):

@@ -3,7 +3,7 @@ path = os.path
 from random import randrange
 
 from myhdl import *
-from myhdl.test import verifyConversion
+from myhdl.conversion import verify
 
 COSET = 0x55
 
@@ -156,4 +156,4 @@ def HecBench(HecCalculator):
 ##     Simulation(sim).run()
 
 def testPlain():
-    assert verifyConversion(HecBench, HecCalculatorPlain) == 0
+    assert verify(HecBench, HecCalculatorPlain) == 0
