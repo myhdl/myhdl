@@ -40,15 +40,15 @@ import warnings
 import myhdl
 from myhdl import *
 from myhdl import ToVHDLError, ToVHDLWarning
-from myhdl._extractHierarchy import _HierExtr, _isMem, _getMemInfo, \
-     _UserDefinedVerilog, _userDefinedVerilogMap
+from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
+                                     _UserDefinedVerilog, _userDefinedVerilogMap)
 
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
-from myhdl._toVerilog import _error, _access, _kind,_context, \
-     _ConversionMixin, _Label
-from myhdl._toVerilog._analyze import _analyzeSigs, _analyzeGens, _analyzeTopFunc, \
-     _Ram, _Rom
+from myhdl.conversion._misc import (_error, _access, _kind,_context,
+                                    _ConversionMixin, _Label)
+from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
+                                       _Ram, _Rom)
 from myhdl._Signal import _WaiterList
             
 _converting = 0

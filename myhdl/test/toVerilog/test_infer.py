@@ -5,7 +5,7 @@ from random import randrange
 
 from myhdl import *
 from myhdl import ConversionError
-from myhdl._toVerilog import _error
+from myhdl.conversion._misc import _error
 
 from util import setupCosimulation
 

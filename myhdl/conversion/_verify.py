@@ -4,7 +4,9 @@ import tempfile
 import subprocess
 import difflib
 
-from myhdl import *
+from myhdl._Simulation import Simulation
+from myhdl.conversion._toVHDL import toVHDL
+from myhdl.conversion._toVerilog import toVerilog
 
 _simulators = []
 _analyzeCommands = {}

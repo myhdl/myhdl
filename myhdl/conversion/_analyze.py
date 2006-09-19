@@ -42,8 +42,8 @@ from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._delay import delay
-from myhdl._toVerilog import _error, _access, _kind, _context, \
-                             _ConversionMixin, _Label
+from myhdl.conversion._misc import (_error, _access, _kind, _context,
+                                    _ConversionMixin, _Label)
 from myhdl._extractHierarchy import _isMem, _UserDefinedVerilog
 from myhdl._Signal import _WaiterList
 

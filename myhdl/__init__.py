@@ -125,9 +125,9 @@ from _always import always
 from _instance import instance
 from _enum import enum, EnumType, EnumItemType
 from _traceSignals import traceSignals
-from _toVerilog._convert import toVerilog
 
-from _toVHDL._convert import toVHDL
+from conversion import toVerilog
+from conversion import toVHDL
 
 
 __all__ = ["bin",
