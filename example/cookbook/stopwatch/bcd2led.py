@@ -30,5 +30,7 @@ def convert():
     bcd = Signal(intbv(0)[4:])
     clock = Signal(False)
     toVerilog(bcd2led, led, bcd, clock)
+    toVHDL(bcd2led, led, bcd, clock)
+
 
 convert()

@@ -39,6 +39,7 @@ simulate(20000)
 def convert():
     q, d, g = [Signal(bool(0)) for i in range(3)]
     toVerilog(latch, q, d, g)
+    conversion.analyze(latch, q, d, g)
  
 convert()
  

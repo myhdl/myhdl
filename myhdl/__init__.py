@@ -126,6 +126,7 @@ from _instance import instance
 from _enum import enum, EnumType, EnumItemType
 from _traceSignals import traceSignals
 
+from myhdl import conversion
 from conversion import toVerilog
 from conversion import toVHDL
 
@@ -153,7 +154,8 @@ __all__ = ["bin",
            "EnumItemType",
            "traceSignals",
            "toVerilog",
-           "toVHDL"
+           "toVHDL",
+           "conversion"
            ]
 
 

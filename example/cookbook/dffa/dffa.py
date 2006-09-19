@@ -50,6 +50,7 @@ simulate(20000)
 def convert():
     q, d, clk, rst = [Signal(bool(0)) for i in range(4)]
     toVerilog(dffa, q, d, clk, rst)
+    conversion.analyze(dffa, q, d, clk, rst)
  
 convert()
  

@@ -32,6 +32,7 @@ def convert():
     startstop, reset, clock = [Signal(bool(0)) for i in range(3)]
 
     toVerilog(StopWatch, tens_led, ones_led, tenths_led, startstop, reset, clock)
+    conversion.analyze(StopWatch, tens_led, ones_led, tenths_led, startstop, reset, clock)
                           
 
 convert()

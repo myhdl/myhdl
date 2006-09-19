@@ -76,6 +76,7 @@ def convert():
     tens, ones, tenths = [Signal(intbv(0)[4:]) for i in range(3)]
     startstop, reset, clock = [Signal(LOW) for i in range(3)]
 
-    dut_v = toVerilog(TimeCount, tens, ones, tenths, startstop, reset, clock)
+    toVerilog(TimeCount, tens, ones, tenths, startstop, reset, clock)
+    toVHDL(TimeCount, tens, ones, tenths, startstop, reset, clock)
 
 convert()

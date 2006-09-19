@@ -59,10 +59,6 @@ class  _VerificationClass(object):
         if elaborate is not None:
             elaborate = elaborate % vals
         simulate = _simulateCommands[hdl] % vals
-
-        print analyze
-        print elaborate
-        print simulate
         
         inst = toVHDL(func, *args, **kwargs)
         
@@ -74,6 +70,7 @@ class  _VerificationClass(object):
             return ret
 
         if self._analyzeOnly:
+            print >> sys.stderr, "Analysis succeeded"
             return 0
 
         f = tempfile.TemporaryFile()

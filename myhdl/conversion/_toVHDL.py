@@ -1292,8 +1292,8 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visitAssAttr(self, node, *args):
-        self.write("assign ")
         self.visit(node.expr)
+        self.isSigAss = True
 
     def visitFunction(self, node, *args):
         self.visit(node.code)

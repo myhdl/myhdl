@@ -105,6 +105,7 @@ def SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset):
 
 def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset):
     toVerilog(SineComputer, cos_z0, sin_z0, done, z0, start, clock, reset)
+    conversion.analyze(SineComputer, cos_z0, sin_z0, done, z0, start, clock, reset)
     cmd = "cver -q +loadvpi=myhdl_vpi:vpi_compat_bootstrap " + \
           "SineComputer.v tb_SineComputer.v"
     return Cosimulation(cmd, **locals())
@@ -115,5 +116,3 @@ def SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset):
 
        
 
-
-    

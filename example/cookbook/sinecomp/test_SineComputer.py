@@ -35,8 +35,8 @@ def bench(fractionSize, errorMargin, nrTests=100):
     reset = Signal(True)
 
     # design under test
-    dut = SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset)
-    # dut = SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset)
+    # dut = SineComputer(cos_z0, sin_z0, done, z0, start, clock, reset)
+    dut = SineComputer_v(cos_z0, sin_z0, done, z0, start, clock, reset)
 
     # clock generator
     @always(delay(10))

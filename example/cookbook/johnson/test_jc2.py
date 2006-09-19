@@ -9,6 +9,7 @@ def convert(jc2):
     goLeft, goRight, stop, clk = [Signal(INACTIVE) for i in range(4)]
     q = Signal(intbv(0)[4:])
     toVerilog(jc2, goLeft, goRight, stop, clk, q)
+    conversion.analyze(jc2, goLeft, goRight, stop, clk, q)
 
 convert(jc2)
 convert(jc2_alt)
