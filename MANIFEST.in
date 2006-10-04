@@ -16,3 +16,4 @@ graft doc/html/manual
 prune myhdl/experiments
 exclude myhdl/test/toVerilog/*.v
 exclude myhdl/test/toVerilog/*.vhd
+exclude example/cookbook/nco
