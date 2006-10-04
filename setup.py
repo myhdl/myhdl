@@ -32,7 +32,7 @@ Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
 
     
 setup(name="myhdl",
-      version="0.5.1",
+      version="0.6dev1",
       description="Python as a Hardware Description Language",
       long_description = "See home page.",
       author="Jan Decaluwe",

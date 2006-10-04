@@ -11,7 +11,8 @@ prune doc
 graft doc/html/manual
 #graft doc/html/icons
 #graft doc/html/whatsnew*
-include doc/paper-a4/MyHDL.pdf
-include doc/paper-letter/MyHDL.pdf
+#include doc/paper-a4/MyHDL.pdf
+#include doc/paper-letter/MyHDL.pdf
 prune myhdl/experiments
 exclude myhdl/test/toVerilog/*.v
+exclude myhdl/test/toVerilog/*.vhd
