@@ -8,7 +8,7 @@ global-include makefile*
 global-include *.v
 prune dist
 prune doc
-graft doc/html/manual
+#graft doc/html/manual
 #graft doc/html/icons
 #graft doc/html/whatsnew*
 #include doc/paper-a4/MyHDL.pdf
