@@ -675,7 +675,8 @@ class _AnalyzeVisitor(_ConversionMixin):
         if n in self.ast.sigdict:
             node.obj = sig = self.ast.sigdict[n]
             if not isinstance(sig, Signal):
-                print "not a signal: %s" % n
+                # print "not a signal: %s" % n
+                pass 
             else:
                 if sig._type is bool:
                     node.edge = sig.posedge
