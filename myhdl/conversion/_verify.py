@@ -127,7 +127,7 @@ class  _VerificationClass(object):
             print >> sys.stderr, "Conversion verification succeeded"
         else:
             print >> sys.stderr, "Conversion verification failed"
-            print >> sys.stderr, s ,
+            # print >> sys.stderr, s ,
             return 1
 
         return 0

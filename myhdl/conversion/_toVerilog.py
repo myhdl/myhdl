@@ -32,7 +32,7 @@ import inspect
 import compiler
 from compiler import ast as astNode
 from sets import Set
-from types import GeneratorType, FunctionType, ClassType
+from types import GeneratorType, FunctionType, ClassType, TypeType
 from cStringIO import StringIO
 import __builtin__
 import warnings
@@ -529,7 +529,7 @@ class _ConvertVisitor(_ConversionMixin):
         elif f is intbv:
             self.visit(node.args[0])
             return
-        elif type(f) is ClassType and issubclass(f, Exception):
+        elif type(f) in (ClassType, TypeType) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -769,7 +769,7 @@ class _ConvertVisitor(_ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVerilog()
-            elif type(obj) is ClassType and issubclass(obj, Exception):
+            elif type(obj) in (ClassType, TypeType) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
@@ -905,8 +905,11 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
 
     def visitFunction(self, node, *args):
         w = node.code.nodes[-1]
-        assert isinstance(w.body.nodes[0], astNode.Yield)
-        sl = w.body.nodes[0].value
+        y = w.body.nodes[0]
+        if isinstance(y, astNode.Discard):
+            y = y.expr
+        assert isinstance(y, astNode.Yield)
+        sl = y.value
         self.write("always @(")
         self.visit(sl, _context.YIELD)
         self.write(") begin: %s" % self.ast.name)

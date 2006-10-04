@@ -382,44 +382,28 @@ class _ConvertVisitor(_ConversionMixin):
         pre, suf = "", ""
         prel, sufl = "", ""
         prer, sufr = "", ""
-        if isinstance(node.vhd, vhd_type):
-            ts = node.vhd.size
-        if isinstance(node.left.vhd, vhd_int) and isinstance(node.right.vhd, vhd_int):
-            if isinstance(node.vhd, vhd_unsigned):
+        n, o, l, r = node.vhd, node.vhdOri, node.left.vhd, node.right.vhd
+        ns, os, ls, rs = n.size, o.size, l.size, r.size
+        ds = ns - os
+        if isinstance(o, vhd_int):
+            if isinstance(n, vhd_unsigned):
                 pre, suf = "to_unsigned(", ", %s)" % node.vhd.size
-            elif isinstance(node.vhd, vhd_signed):
+            elif isinstance(n, vhd_signed):
                 pre, suf = "to_signed(", ", %s)" % node.vhd.size
-            elif isinstance(node.vhd, vhd_int):
+            elif isinstance(n, vhd_int):
                 pass
             else:
-                raise NotImplementedError
-        elif isinstance(node.left.vhd, vhd_unsigned) and isinstance(node.right.vhd, vhd_int):
-            if op == '*':
-                ns = 2 * node.left.vhd.size
-            else:
-                ns = node.left.vhd.size
-            ds = ts - ns
-            if isinstance(node.vhd, vhd_unsigned):
-                if ds > 0:
-                    prel, sufl = "resize(", ", %s)" % node.vhd.size
-                elif ds < 0:
-                    pre, suf = "resize(", ", %s)" % node.vhd.size
-            else:
-                assert NotImplementedError
-        elif isinstance(node.left.vhd, vhd_unsigned) and isinstance(node.right.vhd, vhd_unsigned):
-            if op == '*':
-                ns = node.left.vhd.size + node.right.vhd.size
-            else:
-                ns = max(node.left.vhd.size, node.right.vhd.size)
-            ds = ts - ns
-            if isinstance(node.vhd, vhd_unsigned):
-                if ds > 0:
-                    prel, sufl = "resize(", ", %s)" % ts
-                elif ds < 0:
-                    pre, suf = "resize(", ", %s)" % ts
-            else:
-                assertNotImplementedError
-            
+                self.raiseError(node, "Not implemented")
+        elif isinstance(l, vhd_unsigned) and isinstance(r, (vhd_int, vhd_unsigned)):
+##             if op == '+':
+##                 print ns
+##                 print os
+##                 print ds
+            if ds > 0:
+                prel, sufl = "resize(", ", %s)" % ns
+            elif ds < 0:
+                pre, suf = "resize(", ", %s)" % ns
+
         context = None
         self.write(pre)
         self.write("(")
@@ -642,13 +626,13 @@ class _ConvertVisitor(_ConversionMixin):
                  "-=" : "-",
                  "*=" : "*",
                  "//=" : "/",
-                 "%=" : "%",
+                 "%=" : "mod",
                  "**=" : "**",
-                 "|=" : "|",
+                 "|=" : "or",
                  ">>=" : ">>>",
                  "<<=" : "<<",
-                 "&=" : "&",
-                 "^=" : "^"
+                 "&=" : "and",
+                 "^=" : "xor"
                  }
         if node.op not in opmap:
             self.raiseError(node, _error.NotSupported,
@@ -1006,7 +990,10 @@ class _ConvertVisitor(_ConversionMixin):
                         elif isinstance(node.vhd, vhd_unsigned):
                             if vhd.size != node.vhd.size:
                                 s = "resize(%s, %s)" % (n, node.vhd.size)
+                        elif isinstance(node.vhd, vhd_boolean):
+                            s = "(%s /= 0)" % n
                         else:
+                            print node.vhd
                             raise NotImplementedError
 
 
@@ -1197,9 +1184,11 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
 
     def visitFunction(self, node, *args):
         w = node.code.nodes[-1]
-        assert isinstance(w.body.nodes[0], astNode.Yield)
-        sl = w.body.nodes[0].value
-        senslist = w.body.nodes[0].senslist
+        y = w.body.nodes[0]
+        if isinstance(y, astNode.Discard):
+            y = y.expr
+        assert isinstance(y, astNode.Yield)
+        senslist = y.senslist
         senslist = self.manageEdges(w.body.nodes[1], senslist)
         singleEdge = (len(senslist) == 1) and isinstance(senslist[0], _WaiterList)
         self.write("%s: process (" % self.ast.name)
@@ -1472,15 +1461,18 @@ class vhd_boolean(vhd_type):
         self.size = 1
     def toStr(self, constr=True):
         return 'boolean'
+
+class vhd_vector(vhd_type):
+    pass
     
-class vhd_unsigned(vhd_type):
+class vhd_unsigned(vhd_vector):
     def toStr(self, constr=True):
         if constr:
             return "unsigned(%s downto 0)" % (self.size-1)
         else:
             return "unsigned"
     
-class vhd_signed(vhd_type):
+class vhd_signed(vhd_vector):
     def toStr(self, constr=True):
         if constr:
             return "signed(%s downto 0)" % (self.size-1)
@@ -1594,20 +1586,46 @@ class _AnnotateTypesVisitor(_ConversionMixin):
     def binaryOp(self, node, op=None):
         self.visit(node.left)
         self.visit(node.right)
-        r = node.right.vhd
-        l = node.left.vhd
-        if op in ('+', '-', '%'):
-            s = max(l.size, r.size)
-        elif op in ('*',):
-            s = l.size + r.size
+        r, l = node.right.vhd, node.left.vhd
+        rs, ls = r.size, l.size
+        if isinstance(r, vhd_signed) and isinstance(r, vhd_unsigned):
+            rs += 1
+        if isinstance(r, vhd_unsigned) and isinstance(r, vhd_signed):
+            ls += 1
+        if isinstance(r, vhd_vector) and isinstance(l, vhd_vector):
+            if op in ('+', '-'):
+                s = max(ls, rs)
+            elif op == '%':
+                s = rs
+            elif op == '/':
+                s = ls
+            elif op == '*':
+                s = ls + rs
+            else:
+                self.raiseError(node, "Not implemented: %s" % op)
+        elif isinstance(l, vhd_vector) and isinstance(r, vhd_int):
+            if op in ('+', '-', '%', '/'):
+                s = ls
+            elif op == '*':
+                 s = 2 * ls
+            else:
+                self.raiseError(node, "Not implemented")
+        elif isinstance(l, vhd_int) and isinstance(r, vhd_vector):
+            if op in ('+', '-', '%', '/'):
+                s = rs
+            elif op == '*':
+                s = 2 * rs
+            else:
+                self.raiseError(node, "Not implemented: %s" % op)
         if isinstance(r, vhd_int) and isinstance(l, vhd_int):
             node.vhd = vhd_int()
         elif isinstance(r, (vhd_signed, vhd_int)) and isinstance(l, (vhd_signed, vhd_int)):
-            node.vhd = vhd_signed(max(l.size, r.size))
+            node.vhd = vhd_signed(s)
         elif isinstance(r, (vhd_unsigned, vhd_int)) and isinstance(l, (vhd_unsigned, vhd_int)):
-            node.vhd = vhd_unsigned(max(l.size, r.size))
+            node.vhd = vhd_unsigned(s)
         else:
             node.vhd = vhd_int()
+        node.vhdOri = node.vhd
 
     def visitAdd(self, node):
         self.binaryOp(node, op='+')
@@ -1616,7 +1634,9 @@ class _AnnotateTypesVisitor(_ConversionMixin):
     def visitMod(self, node):
         self.binaryOp(node, op='%')
     def visitMul(self, node):
-        self.binaryOp(node, op='+')
+        self.binaryOp(node, op='*')
+    def visitFloorDiv(self, node):
+        self.binaryOp(node, op='/')
 
     
     def multiBitOp(self, node):
@@ -1686,6 +1706,10 @@ def _annotateTypes(genlist):
     for ast in genlist:
         v = _AnnotateTypesVisitor(ast)
         compiler.walk(ast, v)
+
+
+
+    
 
     
  

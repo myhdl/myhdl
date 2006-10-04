@@ -767,6 +767,8 @@ class _AnalyzeVisitor(_ConversionMixin):
         self.visit(node.body, *args)
         self.refStack.pop()
         y = node.body.nodes[0]
+        if isinstance(y, astNode.Discard):
+            y = y.expr
         if node.test.obj == True and \
            isinstance(y, astNode.Yield) and \
            not self.ast.hasYield > 1 and \
