@@ -182,11 +182,13 @@ end function to_std_logic;
 
 def _writeFuncDecls(f):
     print >> f, funcdecls
-    
+
+
+constwires = []
 
 
 def _writeSigDecls(f, intf, siglist, memlist):
-    constwires = []
+    del constwires[:]
     for s in siglist:
         if s._name in intf.argnames:
             continue
@@ -210,14 +212,12 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           category=ToVHDLWarning
                           )
             constwires.append(s)
-            print >> f, "wire %s%s;" % (r, s._name)
+            print >> f, "signal %s: %s%s;" % (s._name, p, r)
     for m in memlist:
         if not m.decl:
             continue
         r = _getRangeString(m.elObj)
         print >> f, "reg %s%s [0:%s-1];" % (r, m.name, m.depth)
-    for s in constwires:
-        print >> f, "%s <= %s;" % (s._name, int(s._val))
     print >> f
             
 
@@ -280,6 +280,20 @@ def _convertGens(genlist, vfile):
     # print >> vfile
     vfile.write(funcBuf.getvalue()); funcBuf.close()
     print >> vfile, "begin"
+    print >> vfile
+    for s in constwires:
+        if s._type is bool:
+            pre, suf = "'", "'"
+        elif s._type is intbv:
+            w = len(s)
+            assert w != 0
+            if s._min < 0:
+                pre, suf = "to_signed(", ", %s)" % w
+            else:
+                pre, suf = "to_unsigned(", ", %s)" % w
+        else:
+            assert 0
+        print >> vfile, "%s <= %s%s%s;" % (s._name, pre, int(s._val), suf)
     print >> vfile
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
