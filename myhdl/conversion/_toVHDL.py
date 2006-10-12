@@ -217,7 +217,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if not m.decl:
             continue
         r = _getRangeString(m.elObj)
-        print >> f, "reg %s%s [0:%s-1];" % (r, m.name, m.depth)
+        p = _getTypeString(m.elObj)
+        t = "t_array_%s" % m.name
+        print >> f, "type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r)
+        print >> f, "signal %s: %s;" % (m.name, t)
     print >> f
             
 
@@ -331,7 +334,10 @@ class _ConvertVisitor(_ConversionMixin):
                 _enumTypeList.append(enumType)
             tipe = obj._type._name
         elif isinstance(obj, _Ram):
-            tipe = "reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth)
+            tipe = "t_array_%s" % name
+            elt = inferVhdlObj(obj.elObj).toStr(True)
+            self.write("type %s is array(0 to %s-1) of %s;" % (tipe, obj.depth, elt))
+            self.writeline()
         else:
             vhd = inferVhdlObj(obj)
             tipe = vhd.toStr(constr)
@@ -923,6 +929,7 @@ class _ConvertVisitor(_ConversionMixin):
         self.writeline()
         self.write("end if;")
 
+
     def visitKeyword(self, node, *args):
         self.visit(node.expr)
 
@@ -1007,6 +1014,7 @@ class _ConvertVisitor(_ConversionMixin):
                         elif isinstance(node.vhd, vhd_boolean):
                             s = "(%s /= 0)" % n
                         else:
+                            print node
                             print node.vhd
                             raise NotImplementedError
 
@@ -1685,6 +1693,9 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         node.right.vhd = vhd_int()
     visitRightShift = visitLeftShift = shift
 
+    def visitListComp(self, node):
+        pass # do nothing
+
     def visitSlice(self, node):
         self.visitChildNodes(node)
         lower = 0
@@ -1701,8 +1712,18 @@ class _AnnotateTypesVisitor(_ConversionMixin):
 
     def visitSubscript(self, node):
         self.visitChildNodes(node)
-        node.vhd = vhd_std_logic()
-        
+        node.vhd = vhd_std_logic() # XXX default
+        o = node.expr.obj
+        if isinstance(o, list):
+            assert len(o)
+            node.vhd = inferVhdlObj(o[0])
+        elif isinstance(o, _Ram):
+            node.vhd = inferVhdlObj(o.elObj)
+        elif isinstance(o, _Rom):
+            node.vhd = vhd_int()
+        elif isinstance(o, intbv):
+            node.vhd = vhd_std_logic()
+            
     def unaryOp(self, node):
         self.visit(node.expr)
         node.vhd = node.expr.vhd
