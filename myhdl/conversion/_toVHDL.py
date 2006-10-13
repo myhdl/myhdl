@@ -328,7 +328,7 @@ class _ConvertVisitor(_ConversionMixin):
         if isinstance(obj, EnumItemType):
             enumType = obj._type
             if not enumType._isDeclared():
-                self.write(enumType._toVHDL('XXX'))
+                self.write(enumType._toVHDL(name))
                 self.writeline()
                 enumType._setDeclared()
                 _enumTypeList.append(enumType)
