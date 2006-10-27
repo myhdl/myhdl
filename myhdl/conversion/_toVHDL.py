@@ -642,6 +642,9 @@ class _ConvertVisitor(_ConversionMixin):
         self.write(node.name)
 
     def visitAugAssign(self, node, *args):
+        if node.op in ("|=", "&=", "^="):
+            self.bitOpAugAssign(node, *args)
+            return
         opmap = {"+=" : "+",
                  "-=" : "-",
                  "*=" : "*",
@@ -665,6 +668,36 @@ class _ConvertVisitor(_ConversionMixin):
         self.write(" %s " % op)
         self.visit(node.expr)
         self.write(";")
+
+    def bitOpAugAssign(self, node, *args):
+        opmap = {"|=" : "or",
+                 "&=" : "and",
+                 "^=" : "xor"
+                }
+        op = opmap[node.op]
+        prer, sufr = "", ""
+        n, r = node.vhd, node.expr.vhd
+        ns, rs = n.size, r.size
+        if isinstance(n, vhd_unsigned):
+            if isinstance(r, vhd_int):
+                prer, sufr = "to_unsigned(", ", %s)" % ns
+            elif isinstance(r, vhd_unsigned):
+                if ns != rs:
+                    prer, sufr = "resize(", ", %s)" % ns
+            else:
+                self.raiseError(node, "Not implemeted")
+        else:
+            self.raiseError(node, "Not implemeted")
+        self.visit(node.node)
+        self.write(" := ")
+        self.visit(node.node)
+        self.write(" %s " % op)
+        self.write(prer)
+        self.visit(node.expr)
+        self.write(sufr)
+        self.write(";")
+    
+     
          
     def visitBreak(self, node, *args):
         # self.write("disable %s;" % self.labelStack[-2])
@@ -1550,8 +1583,13 @@ class _AnnotateTypesVisitor(_ConversionMixin):
     def visitAssAttr(self, node):
         self.visit(node.expr)
         node.vhd = node.expr.vhd
+                   
+    def visitAugAssign(self, node):
+        self.visit(node.node)
+        self.visit(node.expr)
+        node.vhd = node.node.vhd
         
-    def visitCallFunc(self, node, *args):
+    def visitCallFunc(self, node):
         fn = node.node
         assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)

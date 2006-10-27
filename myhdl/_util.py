@@ -57,7 +57,7 @@ def downrange(start, stop=0, step=1):
 def _printExcInfo():
     kind, value  = sys.exc_info()[:2]
     msg = str(kind)
-    msg = msg[msg.rindex('.')+1:]
+    # msg = msg[msg.rindex('.')+1:]
     if str(value):
         msg += ": %s" % value
         print >> sys.stderr, msg
