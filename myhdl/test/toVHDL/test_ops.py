@@ -40,8 +40,8 @@ def binaryOps(
 ##         if left < 256 and right < 40:
         if left < 256 and right < 26: # fails in ghdl for > 26
             LeftShift.next = left << right
-##         if right != 0:
-##             Modulo.next = left % right
+        if right != 0:
+            Modulo.next = left % right
         Mul.next = left * right
         # Icarus doesn't support ** yet
         #if left < 256 and right < 40:
@@ -144,9 +144,9 @@ def binaryBench(m, n):
             print FloorDiv
             print LeftShift
 
-##             print Modulo, Modulo_v)
-##             # print Pow, Pow_v)
+            # print Pow, Pow_v
 
+            print Modulo
             print RightShift
             print Mul
             print Sub
@@ -403,14 +403,24 @@ def augmBench(m, n):
                        left, right)
 
     def stimulus():
+        left.next = 1
+        right.next = 1
+        yield delay(10)
+        left.next = 0
+        right.next = 0
+        yield delay(10)
+        left.next = 0
+        right.next = N-1
+        yield delay(10)
+        left.next = M-1
+        right.next = 0
+        yield delay(10)
+        left.next = M-1
+        right.next = N-1
         for i in range(NRTESTS):
             left.next = seqM[i]
             right.next = seqN[i]
             yield delay(10)
-##         for j, k in ((0, 0), (0, N-1), (M-1, 0), (M-1, N-1)):
-##             left.next = j
-##             right.next = k
-##             yield delay(10)
             
 
     def check():

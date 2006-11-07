@@ -437,12 +437,17 @@ class _ConvertVisitor(_ConversionMixin):
             else:
                 self.raiseError(node, "Not implemented")
         elif isinstance(l, vhd_unsigned) and isinstance(r, (vhd_int, vhd_unsigned)):
+            print "HERE1"
+            print op
             if ds < 0:
                 nc.pre, nc.suf = "resize(", ", %s)" % ns
             elif ds > 0:
+                print "HERE"
+                print op
                 if op in ('+', '-', '/'):
                     lc.pre, lc.suf = "resize(", ", %s)" % ns
-                elif op in ('mod'):
+                elif op in ('mod', ):
+                    print 'MOD HERE'
                     nc.pre, nc.suf = "resize(", ", %s)" % ns
                 else:
                     self.raiseError(node, "Not implemented")
@@ -1601,7 +1606,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.expr.vhd = vhd_int()           
             node.vhdOri = node.vhd
         else:
-             r, l = node.node.vhd, node.expr.vhd
+             l, r = node.node.vhd, node.expr.vhd
              self.inferBinaryOpType(node, l, r, node.op)
              node.vhdOri = node.vhd
         node.vhd = node.node.vhd
@@ -1668,8 +1673,8 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         node.vhdOri = node.vhd
 
 
-    def inferBinaryOpType(self, node, r, l, op=None):
-        rs, ls = r.size, l.size
+    def inferBinaryOpType(self, node, l, r, op=None):
+        ls, rs = l.size, r.size
         if isinstance(r, vhd_signed) and isinstance(r, vhd_unsigned):
             rs += 1
         if isinstance(r, vhd_unsigned) and isinstance(r, vhd_signed):
