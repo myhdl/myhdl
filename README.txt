@@ -1,4 +1,4 @@
-MyHDL Release 0.6dev2
+MyHDL Release 0.6dev3
 =====================
 
 OVERVIEW

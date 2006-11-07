@@ -300,6 +300,14 @@ def _convertGens(genlist, vfile):
     print >> vfile
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
+
+class _Cast(object):
+    __slots__ = ["pre", "suf"]
+    def __init__(self):
+        self.pre = ""
+        self.suf = ""
+    
+
 class _ConvertVisitor(_ConversionMixin):
     
     def __init__(self, ast, buf):
@@ -400,37 +408,46 @@ class _ConvertVisitor(_ConversionMixin):
 
     def binaryOp(self, node, op=None):
         n, o, l, r = node.vhd, node.vhdOri, node.left.vhd, node.right.vhd
-        self.inferBinaryOpCasts(node, n, o, l, r, op)
+        nc, rc, lc = self.inferBinaryOpCasts(node, n, o, l, r, op)
         context = None
-        self.write(n.pre)
+        self.write(nc.pre)
         self.write("(")
-        self.write(l.pre)
+        self.write(lc.pre)
         self.visit(node.left, context)
-        self.write(l.suf)
+        self.write(lc.suf)
         self.write(" %s " % op)
-        self.write(r.pre)
+        self.write(rc.pre)
         self.visit(node.right, context)
-        self.write(r.suf)
+        self.write(rc.suf)
         self.write(")")
-        self.write(n.suf)
+        self.write(nc.suf)
         
     def inferBinaryOpCasts(self, node, n, o, l, r, op):
         ns, os, ls, rs = n.size, o.size, l.size, r.size
         ds = ns - os
+        # print op, ns, os, ls, rs
+        nc, lc, rc = [_Cast() for i in range(3)]
         if isinstance(o, vhd_int):
             if isinstance(n, vhd_unsigned):
-                n.pre, n.suf = "to_unsigned(", ", %s)" % node.vhd.size
+                nc.pre, nc.suf = "to_unsigned(", ", %s)" % node.vhd.size
             elif isinstance(n, vhd_signed):
-                n.pre, n.suf = "to_signed(", ", %s)" % node.vhd.size
+                nc.pre, nc.suf = "to_signed(", ", %s)" % node.vhd.size
             elif isinstance(n, vhd_int):
                 pass
             else:
                 self.raiseError(node, "Not implemented")
         elif isinstance(l, vhd_unsigned) and isinstance(r, (vhd_int, vhd_unsigned)):
-            if ds > 0:
-                l.pre, l.suf = "resize(", ", %s)" % ns
-            elif ds < 0:
-                n.pre, n.suf = "resize(", ", %s)" % ns
+            if ds < 0:
+                nc.pre, nc.suf = "resize(", ", %s)" % ns
+            elif ds > 0:
+                if op in ('+', '-', '/'):
+                    lc.pre, lc.suf = "resize(", ", %s)" % ns
+                elif op in ('mod'):
+                    nc.pre, nc.suf = "resize(", ", %s)" % ns
+                else:
+                    self.raiseError(node, "Not implemented")
+                
+        return nc, lc, rc
 
      
     def visitAdd(self, node, *args):
@@ -453,43 +470,42 @@ class _ConvertVisitor(_ConversionMixin):
 
 
     def shiftOp(self, node, op=None):
-        pre, suf = "", ""
-        prel, sufl = "", ""
-        prer, sufr = "", ""
-        if isinstance(node.vhd, vhd_type):
-            ts = node.vhd.size
-        if isinstance(node.left.vhd, vhd_int):
-            if isinstance(node.vhd, vhd_unsigned):
-                pre, suf = "to_unsigned(", ", %s)" % ts
-            elif isinstance(node.vhd, vhd_signed):
-                pre, suf = "to_signed(", ", %s)" % ts
+        n, l, r = node.vhd, node.left.vhd, node.right.vhd
+        nc, lc, rc = self.inferShiftOpCasts(node, n, l, r, op)
+        self.write(nc.pre)
+        self.write("%s(" % op)
+        self.write(lc.pre)
+        self.visit(node.left)
+        self.write(lc.suf)
+        self.write(", ")
+        self.write(rc.pre)
+        self.visit(node.right)
+        self.write(rc.suf)
+        self.write(")")
+        self.write(nc.suf)
+
+    def inferShiftOpCasts(self, node, n, l, r, op):
+        ns, ls, rs = n.size,  l.size, r.size
+        nc, lc, rc = [_Cast() for i in range(3)]
+        if isinstance(l, vhd_int):
+            if isinstance(n, vhd_unsigned):
+                nc.pre, nc.suf = "to_unsigned(", ", %s)" % ns
+            elif isinstance(n, vhd_signed):
+                nc.pre, nc.suf = "to_signed(", ", %s)" % ns
             else:
                 raise NotImplementedError
-        elif isinstance(node.left.vhd, vhd_unsigned):
-            ns = node.left.vhd.size
-            ds = ts - ns
-            if isinstance(node.vhd, vhd_unsigned):
+        elif isinstance(l, vhd_unsigned):
+            ds = ns - ls
+            if isinstance(n, vhd_unsigned):
                 if ds > 0:
-                    prel, sufl = "resize(", ", %s)" % ts
+                    lc.pre, lc.suf = "resize(", ", %s)" % ns
                 elif ds < 0:
-                    pre, suf = "resize(", ", %s)" % ts
+                    nc.pre, nc.suf = "resize(", ", %s)" % ns
             else:
                 raise NotImplementedError
         else:
             assert NotImplementedError
-        self.write(pre)
-        self.write("%s(" % op)
-        self.write(prel)
-        self.visit(node.left)
-        self.write(sufl)
-        self.write(", ")
-        self.write(prer)
-        self.visit(node.right)
-        self.write(sufr)
-        self.write(")")
-        self.write(suf)
-
-
+        return nc, lc, rc
 
         
     def visitLeftShift(self, node, *args):
@@ -649,60 +665,72 @@ class _ConvertVisitor(_ConversionMixin):
                  "%=" : "mod",
                  "**=" : "**",
                  "|=" : "or",
-                 ">>=" : ">>>",
-                 "<<=" : "<<",
+                 ">>=" : "shift_right",
+                 "<<=" : "shift_left",
                  "&=" : "and",
                  "^=" : "xor"
                  }
         if node.op not in opmap:
             self.raiseError(node, _error.NotSupported,
                             "augmented assignment %s" % node.op)
-        # XXX apparently no signed context required for augmented assigns
-        n, l, r, = node.vhd, node.vhd, node.expr.vhd
-        if node.op[:-1] in ('+', '-', '*' '%', '//'):
-            o = node.vhdOri
-            self.inferBinaryOpCasts(node, n, o, l, r, node.op[:-1])
         op = opmap[node.op]
+        # XXX apparently no signed context required for augmented assigns
+        n, l, r, = node.vhd, node.node.vhd, node.expr.vhd
+        nc, lc, rc = [_Cast() for i in range(3)]
+        isFunc = False
+        if op in ('+', '-', '*', 'mod', '/'):
+            o = node.vhdOri
+            nc, lc, rc = self.inferBinaryOpCasts(node, n, o, l, r, op)
+        elif op in ("shift_left", "shift_right"):
+            isFunc = True
+            nc, lc, rc = self.inferShiftOpCasts(node, n, l, r, op)
         self.visit(node.node)
         self.write(" := ")
-        self.write(n.pre)
-        self.write(l.pre)
+        self.write(nc.pre)
+        if isFunc:
+            self.write("%s(" % op)
+        self.write(lc.pre)
         self.visit(node.node)
-        self.write(l.suf)
-        self.write(" %s " % op)
-        self.write(r.pre)
+        self.write(lc.suf)
+        if isFunc:
+            self.write(", ")
+        else:
+            self.write(" %s " % op)
+        self.write(rc.pre)
         self.visit(node.expr)
-        self.write(r.suf)
-        self.write(n.suf)
+        self.write(rc.suf)
+        if isFunc:
+            self.write(")")
+        self.write(nc.suf)
         self.write(";")
 
-    def bitOpAugAssign(self, node, *args):
-        opmap = {"|=" : "or",
-                 "&=" : "and",
-                 "^=" : "xor"
-                }
-        op = opmap[node.op]
-        prer, sufr = "", ""
-        n, r = node.vhd, node.expr.vhd
-        ns, rs = n.size, r.size
-        if isinstance(n, vhd_unsigned):
-            if isinstance(r, vhd_int):
-                prer, sufr = "to_unsigned(", ", %s)" % ns
-            elif isinstance(r, vhd_unsigned):
-                if ns != rs:
-                    prer, sufr = "resize(", ", %s)" % ns
-            else:
-                self.raiseError(node, "Not implemeted")
-        else:
-            self.raiseError(node, "Not implemeted")
-        self.visit(node.node)
-        self.write(" := ")
-        self.visit(node.node)
-        self.write(" %s " % op)
-        self.write(prer)
-        self.visit(node.expr)
-        self.write(sufr)
-        self.write(";")
+##     def bitOpAugAssign(self, node, *args):
+##         opmap = {"|=" : "or",
+##                  "&=" : "and",
+##                  "^=" : "xor"
+##                 }
+##         op = opmap[node.op]
+##         prer, sufr = "", ""
+##         n, r = node.vhd, node.expr.vhd
+##         ns, rs = n.size, r.size
+##         if isinstance(n, vhd_unsigned):
+##             if isinstance(r, vhd_int):
+##                 prer, sufr = "to_unsigned(", ", %s)" % ns
+##             elif isinstance(r, vhd_unsigned):
+##                 if ns != rs:
+##                     prer, sufr = "resize(", ", %s)" % ns
+##             else:
+##                 self.raiseError(node, "Not implemeted")
+##         else:
+##             self.raiseError(node, "Not implemeted")
+##         self.visit(node.node)
+##         self.write(" := ")
+##         self.visit(node.node)
+##         self.write(" %s " % op)
+##         self.write(prer)
+##         self.visit(node.expr)
+##         self.write(sufr)
+##         self.write(";")
     
      
          
@@ -1480,8 +1508,6 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 class vhd_type(object):
     def __init__(self, size=0):
         self.size = size
-        self.pre = ""
-        self.suf = ""
         
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
@@ -1569,7 +1595,11 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         self.visit(node.expr)
         if node.op in ("|=", "&=", "^="):
             node.expr.vhd = node.node.vhd
-            node.vhdlOri = node.node.vhd
+            node.vhdOri = node.node.vhd
+        elif node.op in ("<<=", ">>="):
+            node.vhd = node.node.vhd
+            node.expr.vhd = vhd_int()           
+            node.vhdOri = node.vhd
         else:
              r, l = node.node.vhd, node.expr.vhd
              self.inferBinaryOpType(node, l, r, node.op)
@@ -1647,7 +1677,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         if isinstance(r, vhd_vector) and isinstance(l, vhd_vector):
             if op in ('+', '-', '+=', '-='):
                 s = max(ls, rs)
-            elif op in ('%' '%='):
+            elif op in ('%', '%='):
                 s = rs
             elif op in ('/', '//='):
                 s = ls

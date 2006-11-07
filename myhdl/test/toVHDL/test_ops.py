@@ -325,8 +325,9 @@ def augmOps(  Bitand,
               Sub,
               Sum,
               left, right):
-##     var = intbv(0)[min(64, len(left) + len(right)):]
+    # var = intbv(0)[min(64, len(left) + len(right)):]
     var = intbv(0)[len(left) + len(right):]
+    var2 = intbv(0)[64:]
     while True:
         yield left, right
         var[:] = left
@@ -341,6 +342,7 @@ def augmOps(  Bitand,
         if right != 0:
             var[:] = left
             var //= right
+            FloorDiv.next = var
         if left >= right:
             var[:] = left
             var -= right
@@ -348,24 +350,20 @@ def augmOps(  Bitand,
         var[:] = left
         var += right
         Sum.next = var
-            
-#            FloorDiv.next = var
-
-##         if left < 256 and right < 40:
-##             var[:] = left
-##             var <<= right
-##             LeftShift.next = var
-
-##         if right != 0:
-##             var[:] = left
-##             var %= right
-##             Modulo.next = var
+        if left < 256 and right < 26:
+            var2[:] = left
+            var2 <<= right
+            LeftShift.next = var2
+        if right != 0:
+            var[:] = left
+            var %= right
+            Modulo.next = var
         var[:] = left
-        #var *= right
-        #Mul.next = var
-##         var[:] = left
-##         var >>= right
-##         RightShift.next = var
+        var *= right
+        Mul.next = var
+        var[:] = left
+        var >>= right
+        RightShift.next = var
 
 
         
@@ -424,11 +422,11 @@ def augmBench(m, n):
             print Bitxor
             print Sub
             print Sum
-#            print FloorDiv
-##             print LeftShift
-#            print Modulo
-            #print Mul
-##             print RightShift
+            print FloorDiv
+            print LeftShift
+            print Modulo
+            print Mul
+            print RightShift
             
     return augmops, stimulus(), check()
 
