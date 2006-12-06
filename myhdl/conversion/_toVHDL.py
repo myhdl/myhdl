@@ -1748,6 +1748,10 @@ class _AnnotateTypesVisitor(_ConversionMixin):
 
 
     def inferBinaryOpType(self, node, left, right, op=None):
+        if isinstance(left.vhd, (vhd_boolean, vhd_std_logic)):
+            left.vhd = vhd_unsigned(1)
+        if isinstance(right.vhd, (vhd_boolean, vhd_std_logic)):
+            right.vhd = vhd_unsigned(1)
         if maybeNegative(left.vhd) and isinstance(right.vhd, vhd_unsigned):
             right.vhd = vhd_signed(right.vhd.size + 1)
         if isinstance(left.vhd, vhd_unsigned) and maybeNegative(right.vhd):

@@ -171,7 +171,7 @@ class TestBinaryOps(TestCase):
 
         def stimulus():
             for i in range(100):
-                bit.next = False
+                # bit.next = False
                 left.next = randrange(Ll, Ml)
                 right.next = randrange(Lr, Mr)
                 yield delay(10)

@@ -7,235 +7,192 @@ random.seed(2)
 from myhdl import *
 
 
+NRTESTS = 10
 
+def binaryOps(
+##                 Bitand,
+##               Bitor,
+##               Bitxor,
+##               FloorDiv,
+                 LeftShift,
+##               Mod,
+                 Mul,
+##               Pow,
+                 RightShift,
+                 Sub,
+                 Sum, Sum1, Sum2, Sum3,
+                 EQ,
+                 NE,
+                 LT,
+                 GT,
+                 LE,
+                 GE,
+                 BoolAnd,
+                 BoolOr,
+                 left, right, bit):
 
-## def binaryOps(
-## ##                 Bitand,
-## ##               Bitor,
-## ##               Bitxor,
-## ##               FloorDiv,
-##               LeftShift,
-## ##               Mod,
-##                  Mul,
-## ##               Pow,
-##                  RightShift,
-##                  Sub,
-##                  Sum, Sum1, Sum2, Sum3,
-##                  EQ,
-##                  NE,
-##                  LT,
-##                  GT,
-##                  LE,
-##                  GE,
-##                  And,
-##                  Or,
-##                  left, right, bit):
-
-##     while 1:
-##         yield left, right
-## ##        Bitand.next = left & right
-## ##         Bitor.next = left | right
-## ##         Bitxor.next = left ^ right
-## ##         if right != 0:
-## ##             FloorDiv.next = left // right
+    while 1:
+        yield left, right
+##        Bitand.next = left & right
+##         Bitor.next = left | right
+##         Bitxor.next = left ^ right
+##         if right != 0:
+##             FloorDiv.next = left // right
 ##         if left < 256 and right < 40  and right >= 0:
 ##             LeftShift.next = left << right
-## ##         if right != 0:
-## ##             Mod.next = left % right
+##         if right != 0:
+##             Mod.next = left % right
 ##         Mul.next = left * right
-## ##         # Icarus doesn't support ** yet
-## ##         #if left < 256 and right < 40:
-## ##         #    Pow.next = left ** right
-## ##         Pow.next = 0
+##         # Icarus doesn't support ** yet
+##         #if left < 256 and right < 40:
+##         #    Pow.next = left ** right
+##         Pow.next = 0
 ##         if right >= -0:
 ##            RightShift.next = left >> right
-##             ## RightShift.next = left
-##         Sub.next = left - right
-##         Sum.next = left + right
+            ## RightShift.next = left
+        Sub.next = left - right
+        Sum.next = left + right
 ##         Sum1.next = left + right[2:]
 ##         Sum2.next = left + right[1]
 ##         Sum3.next = left + bit
-##         EQ.next = left == right
-##         NE.next = left != right
-##         LT.next = left < right
-##         GT.next = left > right
-##         LE.next = left <= right
-##         GE.next = left >= right
-##         And.next = bool(left) and bool(right)
-##         Or.next = bool(left) or bool(right)
+        EQ.next = left == right
+        NE.next = left != right
+        LT.next = left < right
+        GT.next = left > right
+        LE.next = left <= right
+        GE.next = left >= right
+        BoolAnd.next = bool(left) and bool(right)
+        BoolOr.next = bool(left) or bool(right)
 
 
 
-## def binaryOps_v(name,
-## ##                Bitand,
-## ##                 Bitor,
-## ##                 Bitxor,
-## ##                 FloorDiv,
-##                 LeftShift,
-## ##                 Mod,
-##                 Mul,
-## ##                 Pow,
-##                 RightShift,
-##                 Sub,
-##                 Sum, Sum1, Sum2, Sum3,
-##                 EQ,
-##                 NE,
-##                 LT,
-##                 GT,
-##                 LE,
-##                 GE,
-##                 And,
-##                 Or,
-##                 left, right, bit):
-##     return setupCosimulation(**locals())
+def binaryBench(Ll, Ml, Lr, Mr):
 
-## class TestBinaryOps(TestCase):
+    seqL = []
+    seqR = []
+    for i in range(NRTESTS):
+        seqL.append(randrange(Ll, Ml))
+        seqR.append(randrange(Lr, Mr))
+    for j, k in ((Ll, Lr), (Ml-1, Mr-1), (Ll, Mr-1), (Ml-1, Lr)):
+        seqL.append(j)
+        seqR.append(k)
+    seqL = tuple(seqL)
+    seqR = tuple(seqR)
+        
 
-##     def binaryBench(self, Ll, Ml, Lr, Mr):
+    bit = Signal(bool(0))
+    left = Signal(intbv(min=Ll, max=Ml))
+    right = Signal(intbv(min=Lr, max=Mr))
+    M = 2**14
+##        Bitand = Signal(intbv(0, min=-2**17, max=2**17))
+##        Bitand_v = Signal(intbv(0, min=-2**17, max=2**17))
+##         Bitor = Signal(intbv(0)[max(m, n):])
+##         Bitor_v = Signal(intbv(0)[max(m, n):])
+##         Bitxor = Signal(intbv(0)[max(m, n):])
+##         Bitxor_v = Signal(intbv(0)[max(m, n):])
+##         FloorDiv = Signal(intbv(0)[m:])
+##         FloorDiv_v = Signal(intbv(0)[m:])
+    LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
+##         Mod = Signal(intbv(0)[m:])
+    Mul = Signal(intbv(0, min=-2**17, max=2**17))
+##         Pow = Signal(intbv(0)[64:])
+    RightShift = Signal(intbv(0, min=-M, max=M))
+    Sub, Sub1, Sub2, Sub3 = [Signal(intbv(min=-M, max=M)) for i in range(4)]
+    Sum, Sum1, Sum2, Sum3 = [Signal(intbv(min=-M, max=M)) for i in range(4)]
+    EQ, NE, LT, GT, LE, GE = [Signal(bool()) for i in range(6)]
+    BoolAnd, BoolOr = [Signal(bool()) for i in range(2)]
 
-##         bit = Signal(bool(0))
-##         left = Signal(intbv(min=Ll, max=Ml))
-##         right = Signal(intbv(min=Lr, max=Mr))
-##         M = 2**14
-## ##        Bitand = Signal(intbv(0, min=-2**17, max=2**17))
-## ##        Bitand_v = Signal(intbv(0, min=-2**17, max=2**17))
-## ##         Bitor = Signal(intbv(0)[max(m, n):])
-## ##         Bitor_v = Signal(intbv(0)[max(m, n):])
-## ##         Bitxor = Signal(intbv(0)[max(m, n):])
-## ##         Bitxor_v = Signal(intbv(0)[max(m, n):])
-## ##         FloorDiv = Signal(intbv(0)[m:])
-## ##         FloorDiv_v = Signal(intbv(0)[m:])
-##         LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
-##         LeftShift_v = Signal(intbv(0, min=-2**64, max=2**64))
-## ##         Mod = Signal(intbv(0)[m:])
-## ##         Mod_v = Signal(intbv(0)[m:])
-##         Mul = Signal(intbv(0, min=-2**17, max=2**17))
-##         Mul_v = Signal(intbv(0, min=-2**17, max=2**17))
-## ##         Pow = Signal(intbv(0)[64:])
-## ##         Pow_v = Signal(intbv(0)[64:])
-##         RightShift = Signal(intbv(0, min=-M, max=M))
-##         RightShift_v = Signal(intbv(0, min=-M, max=M))
-##         Sub, Sub1, Sub2, Sub3 = [Signal(intbv(min=-M, max=M)) for i in range(4)]
-##         Sub_v, Sub1_v, Sub2_v, Sub3_v = [Signal(intbv(min=-M, max=M)) for i in range(4)]
-##         Sum, Sum1, Sum2, Sum3 = [Signal(intbv(min=-M, max=M)) for i in range(4)]
-##         Sum_v, Sum1_v, Sum2_v, Sum3_v = [Signal(intbv(min=-M, max=M)) for i in range(4)]
-##         EQ, NE, LT, GT, LE, GE = [Signal(bool()) for i in range(6)]
-##         EQ_v, NE_v, LT_v, GT_v, LE_v, GE_v = [Signal(bool()) for i in range(6)]
-##         And, Or = [Signal(bool()) for i in range(2)]
-##         And_v, Or_v, = [Signal(bool()) for i in range(2)]
+    binops = binaryOps(
+##                            Bitand,
+##                            Bitor,
+##                            Bitxor,
+##                            FloorDiv,
+        LeftShift,
+##                            Mod,
+        Mul,
+##                            Pow,
+       RightShift,
+       Sub,
+       Sum, Sum1, Sum2, Sum3,
+       EQ,
+       NE,
+       LT,
+       GT,
+       LE,
+       GE,
+       BoolAnd,
+       BoolOr,
+       left, right, bit)
 
-##         binops = toVerilog(binaryOps,
-## ##                            Bitand,
-## ##                            Bitor,
-## ##                            Bitxor,
-## ##                            FloorDiv,
-##                            LeftShift,
-## ##                            Mod,
-##                            Mul,
-## ##                            Pow,
-##                            RightShift,
-##                            Sub,
-##                            Sum, Sum1, Sum2, Sum3,
-##                            EQ,
-##                            NE,
-##                            LT,
-##                            GT,
-##                            LE,
-##                            GE,
-##                            And,
-##                            Or,
-##                            left, right, bit)
-##         binops_v = binaryOps_v(binaryOps.func_name,
-## ##                                Bitand_v,
-## ##                                Bitor_v,
-## ##                                Bitxor_v,
-## ##                                FloorDiv_v,
-##                                LeftShift_v,
-## ##                                Mod_v,
-##                                Mul_v,
-## ##                                Pow_v,
-##                                RightShift_v,
-##                                Sub_v,
-##                                Sum_v, Sum1_v, Sum2_v, Sum3_v,
-##                                EQ_v,
-##                                NE_v,
-##                                LT_v,
-##                                GT_v,
-##                                LE_v,
-##                                GE_v,
-##                                And_v,
-##                                Or_v,
-##                                left, right, bit)
 
-##         def stimulus():
-##             for i in range(100):
-##                 bit.next = False
-##                 left.next = randrange(Ll, Ml)
-##                 right.next = randrange(Lr, Mr)
-##                 yield delay(10)
-##             for j, k in ((Ll, Lr), (Ml-1, Mr-1), (Ll, Mr-1), (Ml-1, Lr)):
-##                 left.next = j
-##                 right.next = k
-##                 yield delay(10)
+    def stimulus():
+        for i in range(len(seqL)):
+            left.next = seqL[i]
+            right.next = seqR[i]
+            yield delay(10)
 
-##         def check():
-##             while 1:
-##                 yield left, right
-##                 bit.next = not bit
-##                 yield delay(1)
+    def check():
+        while 1:
+            yield left, right
+            bit.next = not bit
+            yield delay(1)
             
-##                 #print "%s %s %s %s" % (left, right, Mul, Mul_v)
-##                 #print "%s %s %s %s" % (left, right, bin(Mul), bin(Mul_v))
-##                 #print "%s %s %s %s" % (left, right, Sum, Sum_v)
-##                 #print "%s %s %s %s" % (left, right, bin(Sum), bin(Sum_v))
-## ##                 print left
-## ##                 print right
-## ##                 print bin(left)
-## ##                 print bin(right)
-## ##                 print bin(Bitand)
-## ##                 print bin(Bitand_v)
-## ##                 print Bitand
-## ##                 print Bitand_v
-## ##                self.assertEqual(Bitand, Bitand_v)
-##                 #w = len(Bitand)
-##                 #self.assertEqual(bin(Bitand, w), bin(Bitand_v,w ))
-## ##                 self.assertEqual(Bitor, Bitor_v)
-## ##                 self.assertEqual(Bitxor, Bitxor_v)
+                #print "%s %s %s %s" % (left, right, Mul, Mul_v)
+                #print "%s %s %s %s" % (left, right, bin(Mul), bin(Mul_v))
+                #print "%s %s %s %s" % (left, right, Sum, Sum_v)
+                #print "%s %s %s %s" % (left, right, bin(Sum), bin(Sum_v))
+##                 print left
+##                 print right
+##                 print bin(left)
+##                 print bin(right)
+##                 print bin(Bitand)
+##                 print bin(Bitand_v)
+##                 print Bitand
+##                 print Bitand_v
+##                self.assertEqual(Bitand, Bitand_v)
+                #w = len(Bitand)
+                #self.assertEqual(bin(Bitand, w), bin(Bitand_v,w ))
+##                 self.assertEqual(Bitor, Bitor_v)
+##                 self.assertEqual(Bitxor, Bitxor_v)
 ## ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-##                 self.assertEqual(LeftShift, LeftShift_v)
-## ##                 self.assertEqual(Mod, Mod_v)
-##                 self.assertEqual(Mul, Mul_v)
-##                 # self.assertEqual(Pow, Pow_v)
-##                 self.assertEqual(RightShift, RightShift_v)
-##                 self.assertEqual(Sub, Sub_v)
-##                 self.assertEqual(Sum, Sum_v)
-##                 self.assertEqual(Sum1, Sum1_v)
-##                 self.assertEqual(Sum2, Sum2_v)
-##                 self.assertEqual(Sum3, Sum3_v)
-##                 self.assertEqual(EQ, EQ_v)
-##                 self.assertEqual(NE, NE_v)
-##                 self.assertEqual(LT, LT_v)
-##                 self.assertEqual(GT, GT_v)
-##                 self.assertEqual(LE, LE_v)
-##                 self.assertEqual(GE, GE_v)
-##                 self.assertEqual(And, And_v)
-##                 self.assertEqual(Or, Or_v)
+##             print LeftShift
+##                 self.assertEqual(Mod, Mod_v)
+##             print Mul
+                # self.assertEqual(Pow, Pow_v)
+##             print RightShift
+            print Sub
+            print Sum
+##             print Sum1
+##             print Sum2
+##             print Sum3
+            print int(EQ)
+            print int(NE)
+            print int(LT)
+            print int(GT)
+            print int(LE)
+            print int(GE)
+            print int(BoolAnd)
+            print int(BoolOr)
 
-##         return binops, binops_v, stimulus(), check()
+    return binops, stimulus(), check()
     
 
-##     def testBinaryOps(self):
-##         for Ll, Ml, Lr, Mr in (
-##                                 (-254, 236, 0, 4),
-##                                 (-128, 128, -128, 128),
-##                                 (-53, 25, -23, 123),
-##                                 (-23, 145, -66, 12),
-##                                 (23, 34, -34, -16),
-##                                 (-54, -20, 45, 73),
-##                                 (-25, -12, -123, -66),
-##                               ):
-##             sim = self.binaryBench(Ll, Ml, Lr, Mr)
-##             Simulation(sim).run()
+def checkBinaryOps( Ll, Ml, Lr, Mr):
+    assert conversion.verify(binaryBench, Ll, Ml, Lr, Mr ) == 0
+
+def testBinaryOps():
+    for Ll, Ml, Lr, Mr in (
+                            (-254, 236, 0, 4),
+                            (-128, 128, -128, 128),
+                            (-53, 25, -23, 123),
+                            (-23, 145, -66, 12),
+                            (23, 34, -34, -16),
+                            (-54, -20, 45, 73),
+                            (-25, -12, -123, -66),
+                           ):
+        yield checkBinaryOps, Ll, Ml, Lr, Mr
+
+
 
 
             
