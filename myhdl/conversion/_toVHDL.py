@@ -50,6 +50,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,_context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
 from myhdl._Signal import _WaiterList
+from myhdl.conversion._toVHDLPackage import package
             
 _converting = 0
 _profileFunc = None
@@ -170,43 +171,9 @@ def _writeModuleHeader(f, intf):
     print >> f
 
 
-funcdecls = """\
-function to_std_logic (arg: boolean) return std_logic is
-begin
-    if arg then
-        return '1';
-    else
-        return '0';
-    end if;
-end function to_std_logic;
-
-function to_unsigned (arg: boolean; size: natural) return unsigned is
-    variable res: unsigned(size-1 downto 0) := (others => '0');
-begin
-    if arg then
-        res(0):= '1';
-    end if;
-    return res;
-end function to_unsigned;
-
-function to_signed (arg: boolean; size: natural) return signed is
-    variable res: signed(size-1 downto 0) := (others => '0');
-begin
-    if arg then
-        res(0) := '1';
-    end if;
-    return res; 
-end function to_signed;
-
-function "-" (arg: unsigned) return signed is
-begin
-    return - signed(resize(arg, arg'length+1));
-end function "-";
-
-"""
 
 def _writeFuncDecls(f):
-    print >> f, funcdecls
+    print >> f, package
 
 
 constwires = []
@@ -350,6 +317,40 @@ class _ConvertVisitor(_ConversionMixin):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
 
+    def inferCast(self, vhd, ori):
+        pre, suf = "", ""
+        if isinstance(vhd, vhd_int):
+            if not isinstance(ori, vhd_int):
+                pre, suf = "to_integer(", ")"
+        elif isinstance(vhd, vhd_unsigned):
+            if isinstance(ori, vhd_unsigned):
+                if vhd.size != ori.size:
+                    pre, suf = "resize(", ", %s)" % vhd.size
+            elif isinstance(ori, vhd_signed):
+                if vhd.size != ori.size:
+                    pre, suf = "unsigned(resize(", ", %s))" % vhd.size
+                else:
+                    pre, suf = "unsigned(", ")"
+            else:
+                pre, suf = "to_unsigned(", ", %s)" % vhd.size
+        elif isinstance(vhd, vhd_signed):
+            if isinstance(ori, vhd_signed):
+                if vhd.size != ori.size:
+                    pre, suf = "resize(", ", %s)" % vhd.size
+            elif isinstance(ori, vhd_unsigned):
+                if vhd.size != ori.size:
+                    pre, suf = "signed(resize(", ", %s))" % vhd.size
+                else:
+                    pre, suf = "signed(", ")"
+            else:
+                pre, suf = "to_signed(", ", %s)" % vhd.size
+        elif isinstance(vhd, vhd_boolean):
+            if not isinstance(ori, vhd_boolean):
+                pre, suf = "to_boolean(", ")"
+                
+        return pre, suf
+
+                    
     def writeIntSize(self, n):
         # write size for large integers (beyond 32 bits signed)
         # with some safety margin
@@ -1077,32 +1078,10 @@ class _ConvertVisitor(_ConversionMixin):
         elif n in self.ast.vardict:
             s = n
             obj = self.ast.vardict[n]
-            vhd = inferVhdlObj(obj)
-            if isinstance(vhd, vhd_unsigned):
-                if isinstance(node.vhd, vhd_int):
-                    s = "to_integer(%s)" % n
-                elif isinstance(node.vhd, vhd_unsigned):
-                    if vhd.size != node.vhd.size:
-                        s = "resize(%s, %s)" % (n, node.vhd.size)
-                elif isinstance(node.vhd, vhd_signed):
-                    if vhd.size != node.vhd.size:
-                        s = "signed(resize(%s, %s))" % (n, node.vhd.size)
-                    else:
-                        s = "signed(%s)" % n
-                elif isinstance(node.vhd, vhd_boolean):
-                    s = "(%s /= 0)" % n
-                else:
-                    raise NotImplementedError
-
-                
-            elif isinstance(vhd, vhd_std_logic) and isinstance(node.vhd, vhd_boolean):
-                s = "(%s = '1')" %  n
-            elif isinstance(vhd, vhd_int):
-                if isinstance(node.vhd, vhd_unsigned):
-                    s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
-                elif isinstance(node.vhd, vhd_signed):
-                    s = "to_signed(%s, %s)" % (n, node.vhd.size)
-             
+            ori = inferVhdlObj(obj)
+            pre, suf = self.inferCast(node.vhd, ori)
+            s = "%s%s%s" % (pre, s, suf)
+                       
         elif n in self.ast.argnames:
             assert n in self.ast.symdict
             obj = self.ast.symdict[n]
@@ -1135,35 +1114,11 @@ class _ConvertVisitor(_ConversionMixin):
                             typename = obj._val._type._name
                         s = "write(L, %s'image(%s))" % (typename, str(obj))
                 else:
-                    vhd = inferVhdlObj(obj)
-                    n = s = str(obj)
-                    if isinstance(vhd, vhd_unsigned):
-                        if isinstance(node.vhd, vhd_int):
-                            s = "to_integer(%s)" % n
-                        elif isinstance(node.vhd, vhd_unsigned):
-                            if vhd.size != node.vhd.size:
-                                s = "resize(%s, %s)" % (n, node.vhd.size)
-                        elif isinstance(node.vhd, vhd_signed):
-                            if vhd.size != node.vhd.size:
-                                s = "signed(resize(%s, %s))" % (n, node.vhd.size)
-                            else:
-                                s = "signed(%s)" % n
-                        elif isinstance(node.vhd, vhd_boolean):
-                            s = "(%s /= 0)" % n
-                        else:
-                            raise NotImplementedError
-
-                    elif isinstance(vhd, vhd_std_logic) and isinstance(node.vhd, vhd_boolean):
-                        s = "(%s = '1')" %  n
-                    elif isinstance(vhd, vhd_int):
-                        if isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
-                            s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
-                        elif isinstance(node.vhd, vhd_signed):
-                            s = "to_signed(%s, %s)" % (n, node.vhd.size)
-                        else:
-                            raise NotImplementedError
-                    else:
-                        s = str(obj)
+                    s = str(obj)
+                    ori = inferVhdlObj(obj)
+                    pre, suf = self.inferCast(node.vhd, ori)
+                    s = "%s%s%s" % (pre, s, suf)
+                       
             elif _isMem(obj):
                 m = _getMemInfo(obj)
                 assert m.name
