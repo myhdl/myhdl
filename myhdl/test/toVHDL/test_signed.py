@@ -10,7 +10,7 @@ from myhdl import *
 NRTESTS = 10
 
 def binaryOps(
-##                 Bitand,
+                Bitand,
 ##               Bitor,
 ##               Bitxor,
 ##               FloorDiv,
@@ -33,7 +33,7 @@ def binaryOps(
 
     while 1:
         yield left, right, aBit
-##        Bitand.next = left & right
+##         Bitand.next = left & right
 ##         Bitor.next = left | right
 ##         Bitxor.next = left ^ right
 ##         if right != 0:
@@ -42,7 +42,7 @@ def binaryOps(
 ##             LeftShift.next = left << right
 ##         if right != 0:
 ##             Mod.next = left % right
-##         Mul.next = left * right
+        # Mul.next = left * right
 ##         # Icarus doesn't support ** yet
 ##         #if left < 256 and right < 40:
 ##         #    Pow.next = left ** right
@@ -84,7 +84,8 @@ def binaryBench(Ll, Ml, Lr, Mr):
     left = Signal(intbv(min=Ll, max=Ml))
     right = Signal(intbv(min=Lr, max=Mr))
     M = 2**14
-##        Bitand = Signal(intbv(0, min=-2**17, max=2**17))
+    
+    Bitand = Signal(intbv(0, min=-2**17, max=2**17))
 ##        Bitand_v = Signal(intbv(0, min=-2**17, max=2**17))
 ##         Bitor = Signal(intbv(0)[max(m, n):])
 ##         Bitor_v = Signal(intbv(0)[max(m, n):])
@@ -103,7 +104,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
     BoolAnd, BoolOr = [Signal(bool()) for i in range(2)]
 
     binops = binaryOps(
-##                            Bitand,
+        Bitand,
 ##                            Bitor,
 ##                            Bitxor,
 ##                            FloorDiv,
@@ -196,253 +197,222 @@ def testBinaryOps():
 
 
             
-## def unaryOps(
-##              Not,
-##              Invert,
-##              UnaryAdd,
-##              UnarySub,
-##              arg):
-##     while 1:
-##         yield arg
-##         Not.next = not arg
-##         # Invert.next = ~arg
-##         UnaryAdd.next = +arg
-##         UnarySub.next = --arg
+def unaryOps(
+             BoolNot,
+             Invert,
+             UnaryAdd,
+             UnarySub,
+             arg):
+    while 1:
+        yield arg
+        # BoolNot.next = not arg
+        # Invert.next = ~arg
+        # UnaryAdd.next = +arg
+        UnarySub.next = --arg
 
-## def unaryOps_v(name,
-##                Not,
-##                Invert,
-##                UnaryAdd,
-##                UnarySub,
-##                arg):
-##    return setupCosimulation(**locals())
 
 
             
-## class TestUnaryOps(TestCase):
 
-##     def unaryBench(self, m):
+def unaryBench( m):
 
-##         M = 2**m
+    M = 2**m
+    seqM = tuple([i for i in range(-M, M)])
 
-##         arg = Signal(intbv(0, min=-M, max=+M))
-##         Not = Signal(bool(0))
-##         Not_v = Signal(bool(0))
-##         Invert = Signal(intbv(0, min=-M, max=+M))
-##         Invert_v = Signal(intbv(0, min=-M, max=+M))
-##         UnaryAdd = Signal(intbv(0, min=-M, max=+M))
-##         UnaryAdd_v = Signal(intbv(0, min=-M, max=+M))
-##         UnarySub = Signal(intbv(0, min=-M, max=+M))
-##         UnarySub_v = Signal(intbv(0, min=-M, max=+M))
+    arg = Signal(intbv(0, min=-M, max=+M))
+    BoolNot = Signal(bool(0))
+    Invert = Signal(intbv(0, min=-M, max=+M))
+    UnaryAdd = Signal(intbv(0, min=-M, max=+M))
+    UnarySub = Signal(intbv(0, min=-M, max=+M))
 
-##         unaryops = toVerilog(unaryOps,
-##                              Not,
-##                              Invert,
-##                              UnaryAdd,
-##                              UnarySub,
-##                              arg)
-##         unaryops_v = unaryOps_v(unaryOps.func_name,
-##                                 Not_v,
-##                                 Invert_v,
-##                                 UnaryAdd_v,
-##                                 UnarySub_v,
-##                                 arg)
+    unaryops = unaryOps(
+                         BoolNot,
+                         Invert,
+                         UnaryAdd,
+                         UnarySub,
+                         arg)
 
-##         def stimulus():
-##             for i in range(-M, M):
-##                 arg.next = intbv(i)
-##                 yield delay(10)
-##             for i in range(100):
-##                 arg.next = randrange(-M, M)
-##                 yield delay(10)
-##             raise StopSimulation
+    @instance
+    def stimulus():
+        for i in range(len(seqM)):
+            arg.next = seqM[i]
+            yield delay(10)
+        raise StopSimulation
 
-##         def check():
-##             while 1:
-##                 yield arg
-##                 yield delay(1)
-##                 self.assertEqual(Not, Not_v)
-##                 #self.assertEqual(Invert, Invert_v)
-##                 self.assertEqual(UnaryAdd, UnaryAdd_v)
-##                 self.assertEqual(UnarySub, UnarySub_v)
+    @instance
+    def check():
+        while 1:
+            yield arg
+            yield delay(1)
+            # print BoolNot
+            # print Invert
+            # print UnaryAdd
+            print UnarySub
 
-##         return unaryops, unaryops_v, stimulus(), check()
-
-##     def testUnaryOps(self):
-##         for m in (4, 7):
-##             sim = self.unaryBench(m)
-##             Simulation(sim).run()
+                             
+    return unaryops, stimulus, check
 
 
-## def augmOps(
-## ##               Bitand,
-## ##               Bitor,
-## ##               Bitxor,
-## ##               FloorDiv,
-##               LeftShift,
-## ##               Mod,
-##               Mul,
-##               RightShift,
-##               Sub,
-##               Sum,
-##               left, right):
-##     var = intbv(0, min=-2**17, max=+2**17)
-##     var2 = intbv(0, min=-2**64, max=+2**64)
-##     while 1:
-##         yield left, right
-## ##         var[:] = left
-## ##         var &= right
-## ##         Bitand.next = var
-## ##         var[:] = left
-## ##         var |= right
-## ##         Bitor.next = var
-## ##         var[:] = left
-## ##         var ^= left
-## ##         Bitxor.next = var
-## ##         if right != 0:
-## ##             var[:] = left
-## ##             var //= right
-## ##             FloorDiv.next = var
-##         if left < 256 and right < 40 and right >= 0:
-##             var2[:] = left
-##             var2 <<= right
-##             LeftShift.next = var2
-## ##         if right != 0:
-## ##             var[:] = left
-## ##             var %= right
-## ##             Mod.next = var
-##         var[:] = left
-##         var *= right
-##         Mul.next = var
-        
-##         var[:] = left
-##         if right >= 0:
-##             var >>= right
-##             RightShift.next = var
-        
-##         var[:] = left
-##         var -= right
-##         Sub.next = var
-##         var[:] = left
-##         var += right
-##         Sum.next = var
-
-
-## def augmOps_v(  name,
-## ##                 Bitand,
-## ##                 Bitor,
-## ##                 Bitxor,
-## ##                 FloorDiv,
-##                 LeftShift,
-## ##                 Mod,
-##                 Mul,
-##                 RightShift,
-##                 Sub,
-##                 Sum,
-##                 left, right):
-##     return setupCosimulation(**locals())
-
-## class TestAugmOps(TestCase):
-
-##     def augmBench(self, Ll, Ml, Lr, Mr):
-
-        
-##         left = Signal(intbv(min=Ll, max=Ml))
-##         right = Signal(intbv(min=Lr, max=Mr))
-##         M = 2**17
-
-        
-## ##         Bitand = Signal(intbv(0)[max(m, n):])
-## ##         Bitand_v = Signal(intbv(0)[max(m, n):])
-## ##         Bitor = Signal(intbv(0)[max(m, n):])
-## ##         Bitor_v = Signal(intbv(0)[max(m, n):])
-## ##         Bitxor = Signal(intbv(0)[max(m, n):])
-## ##         Bitxor_v = Signal(intbv(0)[max(m, n):])
-        
-## ##         FloorDiv = Signal(intbv(0)[m:])
-## ##         FloorDiv_v = Signal(intbv(0)[m:])
-##         LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
-##         LeftShift_v = Signal(intbv(0, min=-2**64, max=2**64))
-## ##         Mod = Signal(intbv(0)[m:])
-## ##         Mod_v = Signal(intbv(0)[m:])
-        
-##         Mul = Signal(intbv(0, min=-M, max=+M))
-##         Mul_v = Signal(intbv(0, min=-M, max=+M))
-        
-##         RightShift = Signal(intbv(0, min=-M, max=+M))
-##         RightShift_v = Signal(intbv(0, min=-M, max=+M))
-
-##         Sub = Signal(intbv(0, min=-M, max=+M))
-##         Sub_v = Signal(intbv(0, min=-M, max=+M))
-##         Sum = Signal(intbv(0, min=-M, max=+M))
-##         Sum_v = Signal(intbv(0, min=-M, max=+M))
-
-##         augmops = toVerilog(augmOps,
-## ##                            Bitand,
-## ##                            Bitor,
-## ##                            Bitxor,
-## ##                            FloorDiv,
-##                            LeftShift,
-## ##                            Mod,
-##                            Mul,
-##                            RightShift,
-##                            Sub,
-##                            Sum,
-##                            left, right)
-##         augmops_v = augmOps_v( augmOps.func_name,
-## ##                                Bitand_v,
-## ##                                Bitor_v,
-## ##                                Bitxor_v,
-## ##                                FloorDiv_v,
-##                                LeftShift_v,
-## ##                                Mod_v,
-##                                Mul_v,
-##                                RightShift_v,
-##                                Sub_v,
-##                                Sum_v,
-##                                left, right)
-
-##         def stimulus():
-##             for i in range(100):
-##                 left.next = randrange(Ll, Ml)
-##                 right.next = randrange(Lr, Mr)
-##                 yield delay(10)
-##             for j, k in ((Ll, Lr), (Ml-1, Mr-1), (Ll, Mr-1), (Ml-1, Lr)):
-##                 left.next = j
-##                 right.next = k
-##                 yield delay(10)
-
-##         def check():
-##             while 1:
-##                 yield left, right
-##                 yield delay(1)
-##                 # print "%s %s %s %s" % (left, right, Or, Or_v)
-## ##                 self.assertEqual(Bitand, Bitand_v)
-## ##                 self.assertEqual(Bitor, Bitor_v)
-## ##                 self.assertEqual(Bitxor, Bitxor_v)
-## ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-## ##                 self.assertEqual(LeftShift, LeftShift_v)
-## ##                 self.assertEqual(Mod, Mod_v)
-##                 self.assertEqual(Mul, Mul_v)
-##                 self.assertEqual(RightShift, RightShift_v)
-##                 self.assertEqual(Sub, Sub_v)
-##                 self.assertEqual(Sum, Sum_v)
-
-##         return augmops, augmops_v, stimulus(), check()
+## def checkUnaryOps(m):
+##     assert conversion.verify(unaryBench, m) == 0
     
 
-##     def testAugmOps(self):
-##        for Ll, Ml, Lr, Mr in (
-##                                 (-254, 236, 0, 4),
-##                                 (-128, 128, -128, 128),
-##                                 (-53, 25, -23, 123),
-##                                 (-23, 145, -66, 12),
-##                                 (23, 34, -34, -16),
-##                                 (-54, -20, 45, 73),
-##                                 (-25, -12, -123, -66),
-##                               ):
-##             sim = self.augmBench(Ll, Ml, Lr, Mr)
-##             Simulation(sim).run()
+## def testUnaryOps():
+##     for m in (4, 7):
+##         yield checkUnaryOps, m
+
+
+
+
+def augmOps(
+##               Bitand,
+##               Bitor,
+##               Bitxor,
+##               FloorDiv,
+              # LeftShift,
+##               Mod,
+              Mul,
+              RightShift,
+              Sub,
+              Sum,
+              left, right):
+
+    M = 2**17
+    N = 2**64
+    @instance
+    def logic():
+        var = intbv(0, min=-M, max=+M)
+        var2 = intbv(0, min=-N, max=+N)
+        while 1:
+            yield left, right
+    ##         var[:] = left
+    ##         var &= right
+    ##         Bitand.next = var
+    ##         var[:] = left
+    ##         var |= right
+    ##         Bitor.next = var
+    ##         var[:] = left
+    ##         var ^= left
+    ##         Bitxor.next = var
+    ##         if right != 0:
+    ##             var[:] = left
+    ##             var //= right
+    ##             FloorDiv.next = var
+##             if left < 256 and right < 40 and right >= 0:
+##                 var2[:] = left
+##                 var2 <<= right
+##                 LeftShift.next = var2
+    ##         if right != 0:
+    ##             var[:] = left
+    ##             var %= right
+    ##             Mod.next = var
+##             var[:] = left
+##             var *= right
+##             Mul.next = var
+
+##             var[:] = left
+##             if right >= 0:
+##                 var >>= right
+##                 RightShift.next = var
+
+            var[:] = left
+            var -= right
+            Sub.next = var
+            var[:] = left
+            var += right
+            Sum.next = var
+
+    return logic
+
+
+
+def augmBench( Ll, Ml, Lr, Mr):
+    
+    M = 2**17
+    
+    seqL = []
+    seqR = []
+    for i in range(NRTESTS):
+        seqL.append(randrange(Ll, Ml))
+        seqR.append(randrange(Lr, Mr))
+    for j, k in ((Ll, Lr), (Ml-1, Mr-1), (Ll, Mr-1), (Ml-1, Lr)):
+        seqL.append(j)
+        seqR.append(k)
+    seqL = tuple(seqL)
+    seqR = tuple(seqR)
+    
+    left = Signal(intbv(min=Ll, max=Ml))
+    right = Signal(intbv(min=Lr, max=Mr))
+
+        
+##         Bitand = Signal(intbv(0)[max(m, n):])
+##         Bitor = Signal(intbv(0)[max(m, n):])
+##         Bitxor = Signal(intbv(0)[max(m, n):])
+        
+##         FloorDiv = Signal(intbv(0)[m:])
+   #  LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
+##         Mod = Signal(intbv(0)[m:])
+        
+    Mul = Signal(intbv(0, min=-M, max=+M))
+        
+    RightShift = Signal(intbv(0, min=-M, max=+M))
+
+    Sub = Signal(intbv(0, min=-M, max=+M))
+    Sum = Signal(intbv(0, min=-M, max=+M))
+
+    augmops = augmOps(
+##                            Bitand,
+##                            Bitor,
+##                            Bitxor,
+##                            FloorDiv,
+        #LeftShift,
+##                            Mod,
+        Mul,
+        RightShift,
+        Sub,
+        Sum,
+        left, right)
+
+    @instance
+    def stimulus():
+        for i in range(len(seqL)):
+            left.next = seqL[i]
+            right.next = seqR[i]
+            yield delay(10)
+    @instance
+    def check():
+        while 1:
+            yield left, right
+            yield delay(1)
+                # print "%s %s %s %s" % (left, right, Or, Or_v)
+##                 self.assertEqual(Bitand, Bitand_v)
+##                 self.assertEqual(Bitor, Bitor_v)
+##                 self.assertEqual(Bitxor, Bitxor_v)
+##                 self.assertEqual(FloorDiv, FloorDiv_v)
+##                 self.assertEqual(LeftShift, LeftShift_v)
+##                 self.assertEqual(Mod, Mod_v)
+            print Mul
+            print RightShift
+            print Sub
+            print Sum
+
+    return augmops,  stimulus, check
+    
+            
+def checkAugmOps( Ll, Ml, Lr, Mr):
+    assert conversion.verify(augmBench, Ll, Ml, Lr, Mr ) == 0
+
+def testAugmOps():
+    for Ll, Ml, Lr, Mr in (
+                            (-254, 236, 0, 4),
+                            (-128, 128, -128, 128),
+                            (-53, 25, -23, 123),
+                            (-23, 145, -66, 12),
+                            (23, 34, -34, -16),
+                            (-54, -20, 45, 73),
+                            (-25, -12, -123, -66),
+                           ):
+        yield checkAugmOps, Ll, Ml, Lr, Mr
 
 
 def expressions(a, b, clk):
