@@ -29,10 +29,10 @@ def binaryOps(
                  GE,
                  BoolAnd,
                  BoolOr,
-                 left, right, bit):
+                 left, right, aBit):
 
     while 1:
-        yield left, right
+        yield left, right, aBit
 ##        Bitand.next = left & right
 ##         Bitor.next = left | right
 ##         Bitxor.next = left ^ right
@@ -52,9 +52,9 @@ def binaryOps(
             ## RightShift.next = left
         Sub.next = left - right
         Sum.next = left + right
-##         Sum1.next = left + right[2:]
-##         Sum2.next = left + right[1]
-##         Sum3.next = left + bit
+        Sum1.next = left + right[2:]
+        Sum2.next = left + right[1]
+        Sum3.next = left + aBit
         EQ.next = left == right
         NE.next = left != right
         LT.next = left < right
@@ -80,7 +80,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
     seqR = tuple(seqR)
         
 
-    bit = Signal(bool(0))
+    aBit = Signal(bool(0))
     left = Signal(intbv(min=Ll, max=Ml))
     right = Signal(intbv(min=Lr, max=Mr))
     M = 2**14
@@ -122,7 +122,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
        GE,
        BoolAnd,
        BoolOr,
-       left, right, bit)
+       left, right, aBit)
 
 
     def stimulus():
@@ -134,7 +134,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
     def check():
         while 1:
             yield left, right
-            bit.next = not bit
+            aBit.next = not aBit
             yield delay(1)
             
                 #print "%s %s %s %s" % (left, right, Mul, Mul_v)
@@ -159,12 +159,12 @@ def binaryBench(Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Mod, Mod_v)
 ##             print Mul
                 # self.assertEqual(Pow, Pow_v)
-##             print RightShift
+            print RightShift
             print Sub
             print Sum
-##             print Sum1
-##             print Sum2
-##             print Sum3
+            print Sum1
+            print Sum2
+            print Sum3
             print int(EQ)
             print int(NE)
             print int(LT)
@@ -514,8 +514,8 @@ def expressionsBench():
     return expr, check, clkgen
 
 
-def testExpressions():
-    assert conversion.verify(expressionsBench) == 0
+## def testExpressions():
+##     assert conversion.verify(expressionsBench) == 0
 
 
 

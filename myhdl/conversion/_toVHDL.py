@@ -1179,9 +1179,15 @@ class _ConvertVisitor(_ConversionMixin):
             self.write("%s" % c._val)
             self.write(post)
             return
+        pre, suf = self.inferCast(node.vhd, node.vhdOri)
+        if isinstance(node.expr.vhd, vhd_signed) and node.flags != 'OP_ASSIGN':
+            pre = pre + "unsigned("
+            suf = ")" + suf
+        self.write(pre)
         self.visit(node.expr)
         # special shortcut case for [:] slice
         if node.lower is None and node.upper is None:
+            self.write(suf)
             return
         self.write("(")
         if node.lower is None:
@@ -1194,6 +1200,7 @@ class _ConvertVisitor(_ConversionMixin):
         else:
             self.visit(node.upper)
         self.write(")")
+        self.write(suf)
 
     def visitStmt(self, node, *args):
         for stmt in node.nodes:
@@ -1204,16 +1211,14 @@ class _ConvertVisitor(_ConversionMixin):
                 self.write(';')
 
     def visitSubscript(self, node, context=None, *args):
-        addSignBit = (node.flags == 'OP_APPLY') and (context == _context.SIGNED)
-        if addSignBit:
-            self.write("$signed({1'b0, ")
+        pre, suf = self.inferCast(node.vhd, node.vhdOri)
+        self.write(pre)
         self.visit(node.expr)
         self.write("(")
         assert len(node.subs) == 1
         self.visit(node.subs[0])
         self.write(")")
-        if addSignBit:
-            self.write("})")
+        self.write(suf)
 
     def visitTuple(self, node, context=None, *args):
         assert context != None
@@ -1798,17 +1803,24 @@ class _AnnotateTypesVisitor(_ConversionMixin):
 
     def visitSlice(self, node):
         self.visitChildNodes(node)
-        lower = 0
-        t = vhd_unsigned
-        if hasattr(node.expr, 'vhd'):
-            lower = node.expr.vhd.size
-            t = type(node.expr.vhd)
+##         lower = 0
+##         t = vhd_unsigned
+##         if hasattr(node.expr, 'vhd'):
+##             lower = node.expr.vhd.size
+##             t = type(node.expr.vhd)
+        lower = node.expr.vhd.size
+        t = type(node.expr.vhd)
+        # node.expr.vhd = vhd_unsigned(node.expr.vhd.size)
         if node.lower:
             lower = self.getVal(node.lower)
-        upper  = 0
+        upper = 0
         if node.upper:
             upper = self.getVal(node.upper)
-        node.vhd = t(lower-upper)
+        if node.flags == 'OP_ASSIGN':
+            node.vhd = t(lower-upper)
+        else:
+            node.vhd = vhd_unsigned(lower-upper)
+        node.vhdOri = node.vhd
 
     def visitSubscript(self, node):
         self.visitChildNodes(node)
@@ -1823,6 +1835,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = vhd_int()
         elif isinstance(o, intbv):
             node.vhd = vhd_std_logic()
+        node.vhdOri = node.vhd
             
     def unaryOp(self, node):
         self.visit(node.expr)
