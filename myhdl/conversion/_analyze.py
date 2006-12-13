@@ -699,8 +699,6 @@ class _AnalyzeVisitor(_ConversionMixin):
                     obj = int(0)
                     self.ast.vardict[n] = obj
             node.obj = obj
-            print n
-            print obj
         elif n in self.ast.symdict:
             node.obj = self.ast.symdict[n]
             if isTupleOfInts(node.obj):
