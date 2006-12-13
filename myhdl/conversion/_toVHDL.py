@@ -472,6 +472,8 @@ class _ConvertVisitor(_ConversionMixin):
                 else:
                     raise AssertionError("unexpected op %s" % op)
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
+        if pre == "":
+            pre, suf = "(", ")"
         return pre, suf
         
  
@@ -1536,7 +1538,11 @@ def inferVhdlObj(obj):
          isinstance(obj, bool):
         vhd = vhd_std_logic()
     elif isinstance(obj, (int, long)):
-        vhd = vhd_int()
+        if obj >= 0:
+            vhd = vhd_nat()
+        else:
+            vhd = vhd_int()
+        # vhd = vhd_int()
     return vhd
 
 def maybeNegative(vhd):
@@ -1607,20 +1613,20 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             code.vhd = vhd_signed(code.vhd.size + 1)
 
     def visitConst(self, node):
-        node.vhd = vhd_nat()
+        node.vhd = node.vhdOri = vhd_nat()
 
     def visitFor(self, node):
-        self.visitChildNodes(node)
         var = node.assign.name
         # make it possible to detect loop variable
-        self.ast.vardict[var] = _loopInt()
+        self.ast.vardict[var] = _loopInt(-1)
+        self.visitChildNodes(node)
 
     def visitGetattr(self, node):
         self.visitChildNodes(node)
-        node.vhd = node.expr.vhd
+        node.vhd = node.vhdOri = node.expr.vhd
         
     def visitName(self, node):
-        node.vhd = inferVhdlObj(node.obj)
+        node.vhd = node.vhdOri = inferVhdlObj(node.obj)
  
     # visitAssName = visitName
     def visitAssName(self, node):
@@ -1671,11 +1677,11 @@ class _AnnotateTypesVisitor(_ConversionMixin):
                 s = 2 * rs
             else:
                 raise AssertionError("unexpected op %s" % op)
-        if isinstance(r, vhd_int) and isinstance(l, vhd_int):
+        if isinstance(l, vhd_int) and isinstance(r, vhd_int):
             node.vhd = vhd_int()
-        elif isinstance(r, (vhd_signed, vhd_int)) and isinstance(l, (vhd_signed, vhd_int)):
+        elif isinstance(l, (vhd_signed, vhd_int)) and isinstance(r, (vhd_signed, vhd_int)):
             node.vhd = vhd_signed(s)
-        elif isinstance(r, (vhd_unsigned, vhd_int)) and isinstance(l, (vhd_unsigned, vhd_int)):
+        elif isinstance(l, (vhd_unsigned, vhd_int)) and isinstance(r, (vhd_unsigned, vhd_int)):
             node.vhd = vhd_unsigned(s)
         else:
             node.vhd = vhd_int()

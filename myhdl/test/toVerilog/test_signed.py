@@ -16,7 +16,7 @@ def binaryOps(
 ##               Bitor,
 ##               Bitxor,
 ##               FloorDiv,
-              LeftShift,
+                 LeftShift,
 ##               Mod,
                  Mul,
 ##               Pow,

@@ -352,7 +352,7 @@ class _AnalyzeVisitor(_ConversionMixin):
     def binaryOp(self, node, *args):
         self.visit(node.left)
         self.visit(node.right)
-        node.obj = int()
+        node.obj = int(-1)
         node.signed = node.left.signed or node.right.signed
     visitAdd = binaryOp
     visitFloorDiv = binaryOp
@@ -404,11 +404,11 @@ class _AnalyzeVisitor(_ConversionMixin):
         node.signed = node.expr.signed
     def visitUnaryAdd(self, node, *args):
         self.visit(node.expr)
-        node.obj = int()
+        node.obj = int(-1)
         node.signed = node.expr.signed
     def visitUnarySub(self, node, *args):
         self.visit(node.expr)
-        node.obj = int()
+        node.obj = int(-1)
         node.signed = node.expr.signed
         if isinstance(node.expr, astNode.Const):
             node.signed = True
@@ -479,11 +479,11 @@ class _AnalyzeVisitor(_ConversionMixin):
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
         elif f is len:
-            node.obj = int() # XXX
+            node.obj = int(0) # XXX
         elif f is bool:
             node.obj = bool()
         elif f is int:
-            node.obj = int()
+            node.obj = int(-1)
 ##         elif f in (posedge , negedge):
 ##             node.obj = _EdgeDetector()
         elif f is delay:
@@ -584,7 +584,7 @@ class _AnalyzeVisitor(_ConversionMixin):
         self.refStack.push()
         self.visit(node.assign)
         var = node.assign.name
-        self.ast.vardict[var] = int()
+        self.ast.vardict[var] = int(-1)
         self.visit(node.list)
         self.visit(node.body, *args)
         self.refStack.pop()
@@ -696,9 +696,11 @@ class _AnalyzeVisitor(_ConversionMixin):
             if access == _access.INOUT:
                 # upgrade bool to int for augmented assignments
                 if isinstance(obj, bool):
-                    obj = int()
+                    obj = int(0)
                     self.ast.vardict[n] = obj
             node.obj = obj
+            print n
+            print obj
         elif n in self.ast.symdict:
             node.obj = self.ast.symdict[n]
             if isTupleOfInts(node.obj):
@@ -752,7 +754,7 @@ class _AnalyzeVisitor(_ConversionMixin):
             else:
                 node.obj = node.expr.obj.elObj
         elif isinstance(node.expr.obj, _Rom):
-            node.obj = int()
+            node.obj = int(-1)
         elif isinstance(node.expr.obj, intbv):
             node.obj = bool()
         else:

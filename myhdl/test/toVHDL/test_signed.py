@@ -10,26 +10,26 @@ from myhdl import *
 NRTESTS = 10
 
 def binaryOps(
-                Bitand,
+    Bitand,
 ##               Bitor,
 ##               Bitxor,
 ##               FloorDiv,
-                 LeftShift,
-##               Mod,
-                 Mul,
+    LeftShift,
+    Modulo,
+    Mul,
 ##               Pow,
-                 RightShift,
-                 Sub,
-                 Sum, Sum1, Sum2, Sum3,
-                 EQ,
-                 NE,
-                 LT,
-                 GT,
-                 LE,
-                 GE,
-                 BoolAnd,
-                 BoolOr,
-                 left, right, aBit):
+    RightShift,
+    Sub,
+    Sum, Sum1, Sum2, Sum3,
+    EQ,
+    NE,
+    LT,
+    GT,
+    LE,
+    GE,
+    BoolAnd,
+    BoolOr,
+    left, right, aBit):
 
     while 1:
         yield left, right, aBit
@@ -38,11 +38,11 @@ def binaryOps(
 ##         Bitxor.next = left ^ right
 ##         if right != 0:
 ##             FloorDiv.next = left // right
-##         if left < 256 and right < 40  and right >= 0:
-##             LeftShift.next = left << right
+        if left < 256 and right < 40  and right >= 0:
+            LeftShift.next = left << right
 ##         if right != 0:
-##             Mod.next = left % right
-        # Mul.next = left * right
+##             Modulo.next = left % right
+        Mul.next = left * right
 ##         # Icarus doesn't support ** yet
 ##         #if left < 256 and right < 40:
 ##         #    Pow.next = left ** right
@@ -94,7 +94,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
 ##         FloorDiv = Signal(intbv(0)[m:])
 ##         FloorDiv_v = Signal(intbv(0)[m:])
     LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
-##         Mod = Signal(intbv(0)[m:])
+    Modulo = Signal(intbv(0)[M:])
     Mul = Signal(intbv(0, min=-2**17, max=2**17))
 ##         Pow = Signal(intbv(0)[64:])
     RightShift = Signal(intbv(0, min=-M, max=M))
@@ -109,21 +109,21 @@ def binaryBench(Ll, Ml, Lr, Mr):
 ##                            Bitxor,
 ##                            FloorDiv,
         LeftShift,
-##                            Mod,
+        Modulo,
         Mul,
-##                            Pow,
-       RightShift,
-       Sub,
-       Sum, Sum1, Sum2, Sum3,
-       EQ,
-       NE,
-       LT,
-       GT,
-       LE,
-       GE,
-       BoolAnd,
-       BoolOr,
-       left, right, aBit)
+   ##                            Pow,
+        RightShift,
+        Sub,
+        Sum, Sum1, Sum2, Sum3,
+        EQ,
+        NE,
+        LT,
+        GT,
+        LE,
+        GE,
+        BoolAnd,
+        BoolOr,
+        left, right, aBit)
 
 
     def stimulus():
@@ -156,9 +156,9 @@ def binaryBench(Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ## ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-##             print LeftShift
-##                 self.assertEqual(Mod, Mod_v)
-##             print Mul
+            print LeftShift
+            # print Modulo
+            print Mul
                 # self.assertEqual(Pow, Pow_v)
             print RightShift
             print Sub
@@ -253,13 +253,13 @@ def unaryBench( m):
     return unaryops, stimulus, check
 
 
-## def checkUnaryOps(m):
-##     assert conversion.verify(unaryBench, m) == 0
+def checkUnaryOps(m):
+    assert conversion.verify(unaryBench, m) == 0
     
 
-## def testUnaryOps():
-##     for m in (4, 7):
-##         yield checkUnaryOps, m
+def testUnaryOps():
+    for m in (4, 7):
+        yield checkUnaryOps, m
 
 
 
@@ -269,8 +269,8 @@ def augmOps(
 ##               Bitor,
 ##               Bitxor,
 ##               FloorDiv,
-              # LeftShift,
-##               Mod,
+              LeftShift,
+##               Modulo,
               Mul,
               RightShift,
               Sub,
@@ -298,22 +298,22 @@ def augmOps(
     ##             var[:] = left
     ##             var //= right
     ##             FloorDiv.next = var
-##             if left < 256 and right < 40 and right >= 0:
-##                 var2[:] = left
-##                 var2 <<= right
-##                 LeftShift.next = var2
+            if left < 256 and right < 30 and right >= 0:
+                var2[:] = left
+                var2 <<= right
+                LeftShift.next = var2
     ##         if right != 0:
     ##             var[:] = left
     ##             var %= right
-    ##             Mod.next = var
-##             var[:] = left
-##             var *= right
-##             Mul.next = var
+    ##             Modulo.next = var
+            var[:] = left
+            var *= right
+            Mul.next = var
 
-##             var[:] = left
-##             if right >= 0:
-##                 var >>= right
-##                 RightShift.next = var
+            var[:] = left
+            if right >= 0:
+                var >>= right
+                RightShift.next = var
 
             var[:] = left
             var -= right
@@ -350,8 +350,8 @@ def augmBench( Ll, Ml, Lr, Mr):
 ##         Bitxor = Signal(intbv(0)[max(m, n):])
         
 ##         FloorDiv = Signal(intbv(0)[m:])
-   #  LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
-##         Mod = Signal(intbv(0)[m:])
+    LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
+##         Modulo = Signal(intbv(0)[m:])
         
     Mul = Signal(intbv(0, min=-M, max=+M))
         
@@ -365,8 +365,8 @@ def augmBench( Ll, Ml, Lr, Mr):
 ##                            Bitor,
 ##                            Bitxor,
 ##                            FloorDiv,
-        #LeftShift,
-##                            Mod,
+        LeftShift,
+##                            Modulo,
         Mul,
         RightShift,
         Sub,
@@ -389,8 +389,8 @@ def augmBench( Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-##                 self.assertEqual(LeftShift, LeftShift_v)
-##                 self.assertEqual(Mod, Mod_v)
+            print LeftShift
+##                 self.assertEqual(Modulo, Modulo_v)
             print Mul
             print RightShift
             print Sub
@@ -484,8 +484,8 @@ def expressionsBench():
     return expr, check, clkgen
 
 
-## def testExpressions():
-##     assert conversion.verify(expressionsBench) == 0
+def testExpressions():
+    assert conversion.verify(expressionsBench) == 0
 
 
 

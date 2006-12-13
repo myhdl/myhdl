@@ -448,4 +448,3 @@ def testAugmOps():
     for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
         yield checkAugmOps, m, n
 
-# Simulation(augmBench(4, 4))
