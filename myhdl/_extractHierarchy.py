@@ -142,8 +142,8 @@ class _HierExtr(object):
     def __init__(self, name, dut, *args, **kwargs):
         
         global _profileFunc
-        global _memInfoMap
-        _memInfoMap = {}
+        _memInfoMap.clear()
+        _userDefinedVerilogMap.clear()
         self.skipNames = ('always_comb', 'always', '_always_decorator', 'instance', \
                           'instances', 'processes', 'posedge', 'negedge')
         self.skip = 0

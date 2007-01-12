@@ -11,7 +11,7 @@ from myhdl import *
 from util import setupCosimulation
 
 from myhdl import ConversionError
-from myhdl._toVerilog import _error
+from myhdl.conversion._misc import _error
 
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
