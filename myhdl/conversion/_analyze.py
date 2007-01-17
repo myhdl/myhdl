@@ -44,7 +44,7 @@ from myhdl._always import _Always
 from myhdl._delay import delay
 from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label)
-from myhdl._extractHierarchy import _isMem, _UserDefinedVerilog
+from myhdl._extractHierarchy import _isMem, _UserCode
 from myhdl._Signal import _WaiterList
 
 myhdlObjects = myhdl.__dict__.values()
@@ -122,7 +122,7 @@ def _analyzeSigs(hierarchy):
 def _analyzeGens(top, absnames):
     genlist = []
     for g in top:
-        if isinstance(g, _UserDefinedVerilog):
+        if isinstance(g, _UserCode):
             ast = g
         elif isinstance(g, (_AlwaysComb, _Always)):
             f = g.func

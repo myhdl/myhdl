@@ -43,7 +43,7 @@ import myhdl
 from myhdl import *
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
-                                     _UserDefinedVerilog, _userDefinedVerilogMap)
+                                     _UserVhdl, _userCodeMap)
 
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
@@ -60,14 +60,14 @@ _enumTypeList = []
 
 def _checkArgs(arglist):
     for arg in arglist:
-        if not type(arg) in (GeneratorType, _AlwaysComb, _Always, _UserDefinedVerilog):
+        if not type(arg) in (GeneratorType, _AlwaysComb, _Always, _UserVhdl):
             raise ToVHDLError(_error.ArgType, arg)
         
 def _flatten(*args):
     arglist = []
     for arg in args:
-        if id(arg) in _userDefinedVerilogMap:
-            arglist.append(_userDefinedVerilogMap[id(arg)])
+        if id(arg) in _userCodeMap['vhdl']:
+            arglist.append(_userCodeMap['vhdl'][id(arg)])
         elif isinstance(arg, (list, tuple, Set)):
             for item in arg:
                 arglist.extend(_flatten(item))
@@ -266,7 +266,7 @@ def _convertGens(genlist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for ast in genlist:
-        if isinstance(ast, _UserDefinedVerilog):
+        if isinstance(ast, _UserVhdl):
             blockBuf.write(str(ast))
             continue
         if ast.kind == _kind.ALWAYS:
@@ -1801,9 +1801,10 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         
         
 
-
 def _annotateTypes(genlist):
     for ast in genlist:
+        if isinstance(ast, _UserVhdl):
+            continue
         v = _AnnotateTypesVisitor(ast)
         compiler.walk(ast, v)
 

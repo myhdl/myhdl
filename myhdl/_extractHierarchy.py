@@ -36,7 +36,7 @@ from compiler import ast
 import linecache
 from sets import Set
 
-from myhdl import Signal, ExtractHierarchyError, ToVerilogError
+from myhdl import Signal, ExtractHierarchyError, ToVerilogError, ToVHDLError
 from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
 from myhdl._always_comb import _AlwaysComb
@@ -84,9 +84,11 @@ def _makeMemInfo(mem):
 def _isMem(mem):
     return id(mem) in _memInfoMap
 
-_userDefinedVerilogMap = {}
+_userCodeMap = {'verilog' : {},
+                'vhdl' : {}
+               }
 
-class _UserDefinedVerilog(object):
+class _UserCode(object):
     __slots__ = ['code', 'namespace', 'sourcefile', 'funcname', 'sourceline']
     def __init__(self, code, namespace, sourcefile, funcname, sourceline):
         self.code = code
@@ -103,13 +105,24 @@ class _UserDefinedVerilog(object):
             info = "in file %s, function %s starting on line %s:\n    " % \
                    (self.sourcefile, self.funcname, self.sourceline)
             msg = "%s: %s" % (type, value)
-            raise ToVerilogError("Error in user defined Verilog code", msg, info)
+            self.raiseError(msg, info)
         code = "\n%s\n" % code
         return code
 
-def _addUserDefinedVerilog(arg, code, namespace, sourcefile, funcname, sourceline):
-    assert id(arg) not in _userDefinedVerilogMap
-    _userDefinedVerilogMap[id(arg)] = _UserDefinedVerilog(code, namespace, sourcefile, funcname, sourceline)
+class _UserVerilog(_UserCode):
+    def raiseError(self, msg, info):
+        raise ToVerilogError("Error in user defined Verilog code", msg, info)
+    
+class _UserVhdl(_UserCode):
+    def raiseError(self, msg, info):
+        raise ToVHDLError("Error in user defined VHDL code", msg, info)
+
+def _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline):
+    classMap = {'verilog' : _UserVerilog,
+                'vhdl' :_UserVhdl
+               }
+    assert id(arg) not in _userCodeMap[hdl]
+    _userCodeMap[hdl][id(arg)] = classMap[hdl](code, namespace, sourcefile, funcname, sourceline)
         
 
 def _isListOfSigs(obj):
@@ -143,7 +156,8 @@ class _HierExtr(object):
         
         global _profileFunc
         _memInfoMap.clear()
-        _userDefinedVerilogMap.clear()
+        for hdl in _userCodeMap:
+            _userCodeMap[hdl].clear()
         self.skipNames = ('always_comb', 'always', '_always_decorator', 'instance', \
                           'instances', 'processes', 'posedge', 'negedge')
         self.skip = 0
@@ -216,14 +230,16 @@ class _HierExtr(object):
             if not self.skip:
                 isGenSeq = _isGenSeq(arg)
                 if isGenSeq:
-                    if "__verilog__" in frame.f_locals:
-                        code = frame.f_locals["__verilog__"]
-                        namespace = frame.f_globals.copy()
-                        namespace.update(frame.f_locals)
-                        sourcefile = inspect.getsourcefile(frame)
-                        funcname = frame.f_code.co_name
-                        sourceline = inspect.getsourcelines(frame)[1]
-                        _addUserDefinedVerilog(arg, code, namespace, sourcefile, funcname, sourceline)
+                    for hdl in _userCodeMap:
+                        key = "__%s__" % hdl
+                        if key in frame.f_locals:
+                            code = frame.f_locals[key]
+                            namespace = frame.f_globals.copy()
+                            namespace.update(frame.f_locals)
+                            sourcefile = inspect.getsourcefile(frame)
+                            funcname = frame.f_code.co_name
+                            sourceline = inspect.getsourcelines(frame)[1]
+                            _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline)
                 # building hierarchy only makes sense if there are generators
                 if isGenSeq and arg:
                     sigdict = {}
