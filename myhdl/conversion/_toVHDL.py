@@ -350,6 +350,9 @@ class _ConvertVisitor(_ConversionMixin):
         elif isinstance(vhd, vhd_boolean):
             if not isinstance(ori, vhd_boolean):
                 pre, suf = "to_boolean(", ")"
+        elif isinstance(vhd, vhd_string):
+            if isinstance(ori, vhd_enum):
+                pre, suf = "%s'image(" % ori._type._name, ")"
                 
         return pre, suf
 
@@ -737,16 +740,19 @@ class _ConvertVisitor(_ConversionMixin):
         opening, closing = '(', ')'
         sep = ", "
         if f is bool:
-            self.write("(")
+            opening, closing = '', ''
             arg = node.args[0]
-            self.visit(arg)
-            if isinstance(arg, vhd_std_logic):
-                test = "'0'"
-            else:
-                test = "0"
-            self.write(" /= %s)" % test)
-            # self.write(" ? 1'b1 : 1'b0)")
-            return
+            arg.vhd = node.vhd
+##             self.write("(")
+##             arg = node.args[0]
+##             self.visit(arg)
+##             if isinstance(arg, vhd_std_logic):
+##                 test = "'0'"
+##             else:
+##                 test = "0"
+##             self.write(" /= %s)" % test)
+##             # self.write(" ? 1'b1 : 1'b0)")
+##             return
         elif f is len:
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
@@ -818,18 +824,18 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitConst(self, node, context=None, *args):
         if context == _context.PRINT:
-            self.write('"%s"' % node.value)
+            # self.write('"%s"' % node.value)
+            pass
+        if isinstance(node.vhd, vhd_std_logic):
+            self.write("'%s'" % node.value)
+        elif isinstance(node.vhd, vhd_boolean):
+            self.write("%s" % bool(node.value))
+        elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
+            self.write('"%s"' % bin(node.value, node.vhd.size))
+        elif isinstance(node.vhd, vhd_string):
+            self.write("string'(\"%s\")" % node.value)
         else:
-            if isinstance(node.vhd, vhd_std_logic):
-                self.write("'%s'" % node.value)
-##                     elif target._type is intbv:
-##                         self.write('"%s"' % bin(node.value, len(target)))
-            elif isinstance(node.vhd, vhd_boolean):
-                self.write("%s" % bool(node.value))
-            elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
-                self.write('"%s"' % bin(node.value, node.vhd.size))
-            else:
-                self.write(node.value)
+            self.write(node.value)
 
     def visitContinue(self, node, *args):
         # self.write("next %s;" % self.labelStack[-1])
@@ -1043,20 +1049,20 @@ class _ConvertVisitor(_ConversionMixin):
                     s = '"%s"' % bin(obj, node.vhd.size)
             elif isinstance(obj, Signal):
                 if context == _context.PRINT:
-                    if obj._type is intbv:
-                        s = "write(L, to_integer(%s))" % str(obj)
-                    elif obj._type is bool:
-                        s = "write(L, to_bit(%s))" % str(obj)
-                    else:
-                        typename = "UNDEF"
-                        if isinstance(obj._val, EnumItemType):
-                            typename = obj._val._type._name
-                        s = "write(L, %s'image(%s))" % (typename, str(obj))
-                else:
-                    s = str(obj)
-                    ori = inferVhdlObj(obj)
-                    pre, suf = self.inferCast(node.vhd, ori)
-                    s = "%s%s%s" % (pre, s, suf)
+                    pass
+##                     if obj._type is intbv:
+##                         s = "write(L, to_integer(%s))" % str(obj)
+##                     elif obj._type is bool:
+##                         s = "write(L, to_bit(%s))" % str(obj)
+##                     else:
+##                         typename = "UNDEF"
+##                         if isinstance(obj._val, EnumItemType):
+##                             typename = obj._val._type._name
+##                         s = "write(L, %s'image(%s))" % (typename, str(obj))
+                s = str(obj)
+                ori = inferVhdlObj(obj)
+                pre, suf = self.inferCast(node.vhd, ori)
+                s = "%s%s%s" % (pre, s, suf)
                        
             elif _isMem(obj):
                 m = _getMemInfo(obj)
@@ -1080,7 +1086,15 @@ class _ConvertVisitor(_ConversionMixin):
     def handlePrint(self, node):
         assert len(node.nodes) == 1
         s = node.nodes[0]
+        if isinstance(s.vhdOri, vhd_vector):
+            s.vhd = vhd_int()
+        elif isinstance(s.vhdOri, vhd_std_logic):
+            s.vhd = vhd_string()
+        elif isinstance(s.vhdOri, vhd_enum):
+            s.vhd = vhd_string()
+        self.write("write(L, ")
         self.visit(s, _context.PRINT)
+        self.write(")")
         self.write(';')
         self.writeline()
         self.write("writeline(output, L);")
@@ -1110,7 +1124,6 @@ class _ConvertVisitor(_ConversionMixin):
             c = self.getVal(node)
             pre, post = "", ""
             if isinstance(node.vhd, vhd_unsigned):
-                print "YES"
                 pre, post = "to_unsigned(", ", %s)" % node.vhd.size
             elif isinstance(node.vhd, vhd_signed):
                 pre, post = "to_signed(", ", %s)" % node.vhd.size
@@ -1473,6 +1486,13 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 class vhd_type(object):
     def __init__(self, size=0):
         self.size = size
+
+class vhd_string(vhd_type):
+    pass
+
+class vhd_enum(vhd_type):
+    def __init__(self, tipe):
+        self._type = tipe
         
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
@@ -1546,6 +1566,13 @@ def inferVhdlObj(obj):
     elif (isinstance(obj, Signal) and obj._type is bool) or \
          isinstance(obj, bool):
         vhd = vhd_std_logic()
+    elif (isinstance(obj, Signal) and isinstance(obj._val, EnumItemType)) or\
+         isinstance(obj, EnumItemType):
+        if isinstance(obj, Signal):
+            tipe = obj._val._type
+        else:
+            tipe = obj._type
+        vhd = vhd_enum(tipe)   
     elif isinstance(obj, (int, long)):
         if obj >= 0:
             vhd = vhd_nat()
@@ -1597,6 +1624,8 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             for a in node.args:
                 s += a.vhd.size
             node.vhd = vhd_unsigned(s)
+        elif f is bool:
+            node.vhd = vhd_boolean()
         elif f is int:
             node.vhd = vhd_int()
             node.args[0].vhd = vhd_int()
@@ -1608,6 +1637,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             v = _AnnotateTypesVisitor(node.ast)
             compiler.walk(node.ast, v)
             node.vhd = node.ast.vhd = inferVhdlObj(node.ast.returnObj)
+        node.vhdOri = node.vhd
     
     def visitCompare(self, node):
         node.vhd = node.vhdOri = vhd_boolean()
@@ -1622,7 +1652,10 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             code.vhd = vhd_signed(code.vhd.size + 1)
 
     def visitConst(self, node):
-        node.vhd = node.vhdOri = vhd_nat()
+        if isinstance(node.value, str):
+            node.vhd = node.vhdOri = vhd_string()
+        else:
+            node.vhd = node.vhdOri = vhd_nat()
 
     def visitFor(self, node):
         var = node.assign.name

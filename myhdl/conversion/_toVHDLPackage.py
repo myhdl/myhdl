@@ -46,6 +46,24 @@ begin
     return res; 
 end function to_signed;
 
+function to_integer(arg: boolean) return integer is
+begin
+    if arg then
+        return 1;
+    else
+        return 0;
+    end if;
+end function to_integer;
+
+function to_integer(arg: std_logic) return integer is
+begin
+    if arg = '1' then
+        return 1;
+    else
+        return 0;
+    end if;
+end function to_integer;
+
 function to_unsigned (arg: std_logic; size: natural) return unsigned is
     variable res: unsigned(size-1 downto 0) := (others => '0');
 begin
