@@ -1,6 +1,9 @@
 from myhdl import *
 
 def PrintBench():
+    si1 = Signal(intbv(0)[8:])
+    si2 = Signal(intbv(0, min=-10, max=12))
+    sb = Signal(bool(0))
 
     @instance
     def logic():
@@ -8,16 +11,19 @@ def PrintBench():
         i2 = intbv(0, min=-10, max=12)
         b = bool(1)
         i1[:] = 10
-        print int(i1)
-        yield delay(10)
-        print "Test"
+        si1.next = 11
+        i2[:] = -7
+        si2.next = -5
         yield delay(10)
         print i1
-        yield delay(10)
-        i2[:] = -7
         print i2
+        print si1
+        print si2
+        yield delay(10)
+        print "This is a test"
         yield delay(10)
         print int(b)
+        print int(sb)
         yield delay(10)
 
     return logic
