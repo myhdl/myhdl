@@ -104,7 +104,7 @@ class ToVHDLWarning(ConversionWarning):
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
 
 def showwarning(message, category, filename, lineno):
-    print >> sys.stderr, "%s: %s" % (category, message)
+    print >> sys.stderr, "** %s: %s" % (category.__name__, message)
 
 warnings.showwarning = showwarning
 
@@ -129,6 +129,8 @@ from _traceSignals import traceSignals
 from myhdl import conversion
 from conversion import toVerilog
 from conversion import toVHDL
+
+from _tristate import TristateBus
 
 
 __all__ = ["bin",
@@ -155,7 +157,8 @@ __all__ = ["bin",
            "traceSignals",
            "toVerilog",
            "toVHDL",
-           "conversion"
+           "conversion",
+           "TristateBus"           
            ]
 
 

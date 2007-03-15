@@ -17,7 +17,7 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl toVerilog conversion module.
+""" myhdl toVHDL conversion module.
 
 """
 
@@ -92,7 +92,7 @@ class _ToVHDLConvertor(object):
             sys.setprofile(None)
         from myhdl import _traceSignals
         if _traceSignals._tracing:
-            raise ToVHDLError("Cannot use toVerilog while tracing signals")
+            raise ToVHDLError("Cannot use toVHDL while tracing signals")
         if not callable(func):
             raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
 
