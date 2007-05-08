@@ -1,6 +1,6 @@
 import warnings
 
-from myhdl._Signal import Signal
+from myhdl._Signal import Signal, DelayedSignal
 from myhdl._simulator import _siglist
 
 class BusContentionWarning(UserWarning):
@@ -9,10 +9,19 @@ class BusContentionWarning(UserWarning):
 warnings.filterwarnings('always', r".*", BusContentionWarning)
 
 class TristateBus(Signal):
-
+    
+    def __new__(cls, val, delay=None):
+        """ Return a new TristateBus (default or delay 0) or DelayedTristateBus """
+        if delay is not None:
+            if delay < 0:
+                raise TypeError("Signal: delay should be >= 0")
+            return object.__new__(DelayedTristateBus)
+        else:
+            return object.__new__(cls)
+        
     def __init__(self, val):
         self._drivers = []
-        Signal.__init__(self, val)
+        super(TristateBus, self).__init__(val)
         self._val = None
 
     def driver(self):
@@ -33,7 +42,7 @@ class TristateBus(Signal):
 
     def _update(self):
         self._resolve()
-        return Signal._update(self)
+        return super(TristateBus, self)._update()
 
 
 class _TristateDriver(Signal):
@@ -52,4 +61,15 @@ class _TristateDriver(Signal):
              self._setNextVal(val)
          _siglist.append(self._bus)   
     next = property(Signal._get_next, _set_next, None, "'next' access methods")
+
     
+class DelayedTristateBus(DelayedSignal, TristateBus):
+
+    def __init__(self, val, delay=1):
+        self._drivers = []
+        super(DelayedTristateBus, self).__init__(val, delay)
+        self._val = None
+        
+    def _update(self):
+        self._resolve()
+        return super(DelayedTristateBus, self)._update()
