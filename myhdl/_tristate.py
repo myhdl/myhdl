@@ -8,20 +8,20 @@ class BusContentionWarning(UserWarning):
 
 warnings.filterwarnings('always', r".*", BusContentionWarning)
 
-class TristateBus(Signal):
+class Tristate(Signal):
     
     def __new__(cls, val, delay=None):
         """ Return a new TristateBus (default or delay 0) or DelayedTristateBus """
         if delay is not None:
             if delay < 0:
                 raise TypeError("Signal: delay should be >= 0")
-            return object.__new__(DelayedTristateBus)
+            return object.__new__(DelayedTristate)
         else:
             return object.__new__(cls)
         
     def __init__(self, val):
         self._drivers = []
-        super(TristateBus, self).__init__(val)
+        super(Tristate, self).__init__(val)
         self._val = None
 
     def driver(self):
@@ -42,7 +42,7 @@ class TristateBus(Signal):
 
     def _update(self):
         self._resolve()
-        return super(TristateBus, self)._update()
+        return super(Tristate, self)._update()
 
 
 class _TristateDriver(Signal):
@@ -63,13 +63,13 @@ class _TristateDriver(Signal):
     next = property(Signal._get_next, _set_next, None, "'next' access methods")
 
     
-class DelayedTristateBus(DelayedSignal, TristateBus):
+class DelayedTristate(DelayedSignal, Tristate):
 
     def __init__(self, val, delay=1):
         self._drivers = []
-        super(DelayedTristateBus, self).__init__(val, delay)
+        super(DelayedTristate, self).__init__(val, delay)
         self._val = None
         
     def _update(self):
         self._resolve()
-        return super(DelayedTristateBus, self)._update()
+        return super(DelayedTristate, self)._update()

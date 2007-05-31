@@ -130,7 +130,7 @@ from myhdl import conversion
 from conversion import toVerilog
 from conversion import toVHDL
 
-from _tristate import TristateBus
+from _tristate import Tristate
 
 
 __all__ = ["bin",
@@ -158,7 +158,7 @@ __all__ = ["bin",
            "toVerilog",
            "toVHDL",
            "conversion",
-           "TristateBus"           
+           "Tristate"           
            ]
 
 

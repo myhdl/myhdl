@@ -27,7 +27,7 @@ def PrintBench():
         yield delay(10)
         #print "i1 is %s" % i1
         yield delay(10)
-        print "%% %s" % i1
+        # print "%% %s" % i1
 
     return logic
 
