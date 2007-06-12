@@ -1083,28 +1083,59 @@ class _ConvertVisitor(_ConversionMixin):
     def visitPass(self, node, *args):
         self.write("null;")
 
-    def handlePrint(self, node):
-        assert len(node.nodes) == 1
-        s = node.nodes[0]
-        if isinstance(s.vhdOri, vhd_vector):
-            s.vhd = vhd_int()
-        elif isinstance(s.vhdOri, vhd_std_logic):
-            s.vhd = vhd_string()
-        elif isinstance(s.vhdOri, vhd_enum):
-            s.vhd = vhd_string()
-        self.write("write(L, ")
-        self.visit(s, _context.PRINT)
-        self.write(")")
-        self.write(';')
-        self.writeline()
-        self.write("writeline(output, L);")
+##     def handlePrint(self, node):
+##         assert len(node.nodes) == 1
+##         s = node.nodes[0]
+##         if isinstance(s.vhdOri, vhd_vector):
+##             s.vhd = vhd_int()
+##         elif isinstance(s.vhdOri, vhd_std_logic):
+##             s.vhd = vhd_string()
+##         elif isinstance(s.vhdOri, vhd_enum):
+##             s.vhd = vhd_string()
+##         self.write("write(L, ")
+##         self.visit(s, _context.PRINT)
+##         self.write(")")
+##         self.write(';')
+##         self.writeline()
+##         self.write("writeline(output, L);")
         
     
-    def visitPrint(self, node, *args):
-        self.handlePrint(node)
+##     def visitPrint(self, node, *args):
+##         self.handlePrint(node)
 
     def visitPrintnl(self, node, *args):
-        self.handlePrint(node)
+        print node.format
+##         self.handlePrint(node)
+        argnr = 0
+        for s in node.format:
+            if isinstance(s, str):
+                self.write('write(L, string\'("%s"));' % s)
+            else:
+                a = node.args[argnr]
+                argnr += 1
+                print s.conv
+                if s.conv is int:
+                    a.vhd = vhd_int()
+                else:
+                    if isinstance(a.vhdOri, vhd_vector):
+                        a.vhd = vhd_int()
+                    elif isinstance(a.vhdOri, vhd_std_logic):
+                        a.vhd = vhd_boolean()
+                    elif isinstance(a.vhdOri, vhd_enum):
+                        a.vhd = vhd_string()
+                self.write("write(L, ")
+                self.visit(a, _context.PRINT)
+                if s.justified == 'LEFT':
+                    self.write(", justified=>LEFT")
+                if s.width:
+                    self.write(", field=>%s" % s.width)
+                self.write(")")
+                self.write(';')
+            self.writeline()
+        self.write("writeline(output, L);")
+        
+                
+               
     
     def visitRaise(self, node, *args):
 #        pass
@@ -1735,7 +1766,12 @@ class _AnnotateTypesVisitor(_ConversionMixin):
     def visitSub(self, node):
         self.binaryOp(node, op='-')
     def visitMod(self, node):
-        self.binaryOp(node, op='%')
+        # detect format string use
+        if (isinstance(node.left, astNode.Const) and isinstance(node.left.value, str)):
+            self.visit(node.left)
+            self.visit(node.right)
+        else:
+            self.binaryOp(node, op='%')
     def visitMul(self, node):
         self.binaryOp(node, op='*')
     def visitFloorDiv(self, node):

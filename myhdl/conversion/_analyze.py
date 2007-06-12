@@ -131,7 +131,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            #print ast
+            # print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.func_globals.copy()
@@ -159,7 +159,7 @@ def _analyzeGens(top, absnames):
             s = re.sub(r"@.*", "", s)
             s = s.lstrip()
             ast = compiler.parse(s)
-            #print ast
+            # print ast
             ast.sourcefile = inspect.getsourcefile(f)
             ast.lineoffset = inspect.getsourcelines(f)[1]-1
             ast.symdict = f.f_globals.copy()
@@ -269,11 +269,16 @@ class _NotSupportedVisitor(_ConversionMixin):
             self.visit(node.else_)
         
     def visitPrintnl(self, node, *args):
+        if len(node.nodes) > 1:
+            self.raiseError(node, _error.NotSupported, "print with more than one argument")
         if node.dest is not None:
             self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
         self.visitChildNodes(node, *args)
+
+    def visitPrint(self, node, *args):
+        self.raiseError(node, _error.NotSupported, "printing without newline")
         
-    visitPrint = visitPrintnl
+    # visitPrint = visitPrintnl
 
 
 def isTupleOfInts(obj):
@@ -330,6 +335,23 @@ def _isNegative(obj):
         return True
     return False
 
+re_str = re.compile(r"[^%]+")
+re_ConvSpec = re.compile(r"%(?P<justified>[-]?)(?P<width>[0-9]*)(?P<conv>[sd])")
+
+class ConvSpec(object):
+    def __init__(self, **kwargs):
+        self.justified = "RIGHT"
+        self.width = 0
+        self.conv = str
+        if kwargs['justified'] == '-':
+            self.justified = "LEFT"
+        if kwargs['width']:
+            self.width = int(kwargs['width'])
+        if kwargs['conv'] == 'd':
+            self.conv = int
+
+defaultConvSpec = ConvSpec(**re_ConvSpec.match(r"%s").groupdict())
+        
 
 class _AnalyzeVisitor(_ConversionMixin):
     
@@ -718,6 +740,46 @@ class _AnalyzeVisitor(_ConversionMixin):
         
     def visitPrintnl(self, node, *args):
         self.ast.hasPrint = True
+        node.format = "%s"
+        n = node.nodes[0]
+        if isinstance(n, astNode.Mod) and \
+           (isinstance(n.left, astNode.Const) and isinstance(n.left.value, str)):
+            if isinstance(n.right, astNode.Tuple):
+                node.args = n.right.nodes
+            else:
+                node.args = (n.right, )
+            s = n.left.value
+            f = []
+            nrargs = 0 
+            while s:
+                if not s:
+                    break
+                if s[:2] == "%%":
+                    f.append("%")
+                    s = s[2:]
+                    continue
+                m = re_ConvSpec.match(s)
+                if m:
+                    f.append(ConvSpec(**m.groupdict()))
+                    s = s[m.end():]
+                    nrargs += 1
+                    continue
+                m = re_str.match(s)
+                if m:
+                    f.append(s[:m.end()])
+                    s = s[m.end():]
+                    continue
+                print s
+                self.raiseError(node, _error.UnsupportedFormatString, "%s" % s)
+            node.format = f
+        else:
+            node.format = (defaultConvSpec,)
+            node.args = (node.nodes[0],)
+            nrargs = 1
+        if len(node.args) < nrargs:
+            self.raiseError(node, _error.FormatString, "not enough arguments")
+        if len(node.args) > nrargs:
+            self.raiseError(node, _error.FormatString, "too many arguments")
         self.visitChildNodes(node, *args)
         
     visitPrint = visitPrintnl
@@ -757,6 +819,10 @@ class _AnalyzeVisitor(_ConversionMixin):
             node.obj = bool()
         else:
             node.obj = bool() # XXX default
+
+    def visitTuple(self, node, *args):
+        node.signed = False
+        self.visitChildNodes(node, *args)
 
     def visitWhile(self, node, *args):
         node.breakLabel = _Label("BREAK")

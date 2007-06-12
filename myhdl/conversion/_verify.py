@@ -119,8 +119,8 @@ class  _VerificationClass(object):
         s = "".join(g)
         f = open(MyHDLLog, 'w')
         g = open(HDLLog, 'w')
-        f.writelines(flinesNorm)
-        g.writelines(glinesNorm)
+        f.writelines(flines)
+        g.writelines(glines)
 
 
         if not s:

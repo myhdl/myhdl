@@ -68,6 +68,8 @@ _error.UnsupportedType = "Object type is not supported in this context"
 _error.InconsistentType = "Signal elements should have the same base type"
 _error.InconsistentBitWidth = "Signal elements should have the same bit width"
 _error.ListElementNotUnique = "List contains Signals that are not unique to it"
+_error.UnsupportedFormatString = "Unsupported format conversion specifier"
+_error.FormatString = "Format string error"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
