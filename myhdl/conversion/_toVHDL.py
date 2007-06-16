@@ -52,8 +52,9 @@ from myhdl.conversion._misc import (_error, _access, _kind,_context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
 from myhdl._Signal import _WaiterList
-from myhdl.conversion._toVHDLPackage import package
-            
+from myhdl.conversion._toVHDLPackage import _package
+
+_version = myhdl.__version__.replace('.','')
 _converting = 0
 _profileFunc = None
 _enumTypeList = []
@@ -108,6 +109,10 @@ class _ToVHDLConvertor(object):
 
         vpath = name + ".vhd"
         vfile = open(vpath, 'w')
+        ppath = "pck_myhdl_%s.vhd" % _version
+        pfile = None
+        if not os.path.isfile(ppath):
+            pfile = open(ppath, 'w')
 
         siglist, memlist = _analyzeSigs(h.hierarchy)
         arglist = _flatten(h.top)
@@ -117,6 +122,11 @@ class _ToVHDLConvertor(object):
         _annotateTypes(genlist)
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
+
+        if pfile:
+            _writeFileHeader(pfile, ppath)
+            print >> pfile, _package
+            pfile.close()
 
         _writeFileHeader(vfile, vpath)
         _writeModuleHeader(vfile, intf)
@@ -155,6 +165,8 @@ def _writeModuleHeader(f, intf):
     print >> f, "use IEEE.numeric_std.all;"
     print >> f, "use std.textio.all;"
     print >> f
+    print >> f, "use work.pck_myhdl_%s.all;" % _version
+    print >> f
     print >> f, "entity %s is" % intf.name
     if intf.argnames:
         f.write("    port (")
@@ -182,7 +194,8 @@ def _writeModuleHeader(f, intf):
 
 
 def _writeFuncDecls(f):
-    print >> f, package
+    return
+    # print >> f, package
 
 
 constwires = []

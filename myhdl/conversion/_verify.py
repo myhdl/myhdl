@@ -4,10 +4,12 @@ import tempfile
 import subprocess
 import difflib
 
+import myhdl
 from myhdl._Simulation import Simulation
 from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
 
+_version = myhdl.__version__.replace('.','')
 _simulators = []
 _analyzeCommands = {}
 _elaborateCommands = {}
@@ -30,7 +32,7 @@ def registerSimulator(name=None, analyze=None, elaborate=None, simulate=None):
     _simulateCommands[name] = simulate
 
 registerSimulator(name="GHDL",
-                  analyze="ghdl -a --workdir=work %(topname)s.vhd",
+                  analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
                   elaborate="ghdl -e --workdir=work %(topname)s",
                   simulate="ghdl -r %(topname)s")
 
@@ -48,6 +50,7 @@ class  _VerificationClass(object):
 
         vals = {}
         vals['topname'] = func.func_name
+        vals['version'] = _version
 
         hdl = self.simulator
         if not hdl:
