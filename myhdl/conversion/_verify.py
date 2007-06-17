@@ -11,13 +11,16 @@ from myhdl.conversion._toVerilog import toVerilog
 
 _version = myhdl.__version__.replace('.','')
 _simulators = []
+_conversionCommands = {}
 _analyzeCommands = {}
 _elaborateCommands = {}
 _simulateCommands = {}
 
-def registerSimulator(name=None, analyze=None, elaborate=None, simulate=None):
+def registerSimulator(name=None, convert=None, analyze=None, elaborate=None, simulate=None):
     if not isinstance(name, str) or (name.strip() == ""):
         raise ValueError("Invalid simulator name")
+    if convert not in (toVHDL, toVerilog):
+        raise ValueError("Invalid convert command")
     if not isinstance(analyze, str) or (analyze.strip() == ""):
         raise ValueError("Invalid analyzer command")
     # elaborate command is optional
@@ -27,15 +30,22 @@ def registerSimulator(name=None, analyze=None, elaborate=None, simulate=None):
     if not isinstance(simulate, str) or (simulate.strip() == ""):
         raise ValueError("Invalid simulator command")
     _simulators.append(name)
+    _conversionCommands[name] = convert
     _analyzeCommands[name] = analyze
     _elaborateCommands[name] = elaborate
     _simulateCommands[name] = simulate
 
 registerSimulator(name="GHDL",
+                  convert=toVHDL,
                   analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
                   elaborate="ghdl -e --workdir=work %(topname)s",
                   simulate="ghdl -r %(topname)s")
 
+registerSimulator(name="icarus",
+                  convert=toVerilog,
+                  analyze="iverilog -o %(topname)s.o %(topname)s.v",
+                  simulate="vvp %(topname)s.o")
+                 
 
 class  _VerificationClass(object):
 
@@ -57,16 +67,18 @@ class  _VerificationClass(object):
             raise ValueError("No simulator specified")
         if  not hdl in _simulators:
             raise ValueError("Simulator %s is not registered" % hdl)
+        convert = _conversionCommands[hdl]
         analyze = _analyzeCommands[hdl] % vals
         elaborate = _elaborateCommands[hdl]
         if elaborate is not None:
             elaborate = elaborate % vals
         simulate = _simulateCommands[hdl] % vals
         
-        inst = toVHDL(func, *args, **kwargs)
-        
-        if not os.path.exists("work"):
-            os.mkdir("work")
+        inst = convert(func, *args, **kwargs)
+
+        if convert is toVHDL:
+            if not os.path.exists("work"):
+                os.mkdir("work")
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
             print >> sys.stderr, "Analysis failed"
