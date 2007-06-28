@@ -75,6 +75,7 @@ def RomBench(rom):
 
     @instance
     def clkgen():
+        clk.next = 1
         while 1:
             yield delay(10)
             clk.next = not clk

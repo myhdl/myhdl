@@ -136,6 +136,7 @@ def RamBench(ram, depth=128):
 
     @instance
     def clkgen():
+        clk.next = 1
         while True:
             yield delay(10)
             clk.next = not clk

@@ -56,7 +56,7 @@ def bin2grayBench(width, bin2gray):
             #print "B: " + bin(B, width) + "| G_v: " + bin(G_v, width)
             #print bin(G, width)
             #print bin(G_v, width)
-            print "%0d" % G
+            print "%d" % G
 
 
     return stimulus, bin2gray_inst

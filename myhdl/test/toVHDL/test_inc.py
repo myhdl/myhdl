@@ -121,7 +121,7 @@ def IncBench(inc):
 
     @instance
     def clockgen():
-        clock.next = 0
+        clock.next = 1
         for i in range(NR_CYCLES):
             yield delay(10)
             clock.next = not clock
