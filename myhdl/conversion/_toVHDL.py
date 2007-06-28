@@ -1117,7 +1117,6 @@ class _ConvertVisitor(_ConversionMixin):
 ##         self.handlePrint(node)
 
     def visitPrintnl(self, node, *args):
-        print node.format
 ##         self.handlePrint(node)
         argnr = 0
         for s in node.format:
@@ -1126,7 +1125,6 @@ class _ConvertVisitor(_ConversionMixin):
             else:
                 a = node.args[argnr]
                 argnr += 1
-                print s.conv
                 if s.conv is int:
                     a.vhd = vhd_int()
                 else:
@@ -1267,6 +1265,7 @@ class _ConvertVisitor(_ConversionMixin):
                 self.raiseError(node, "base type error in sensitivity list")
         if len(senslist) >= 2 and bt == _WaiterList:
             # ifnode = node.code.nodes[0]
+            # print ifnode
             assert isinstance(ifnode, astNode.If)
             asyncEdges = []
             for test, suite in ifnode.tests:
@@ -1411,7 +1410,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
     def visitFunction(self, node, *args):
         assert self.ast.senslist
         senslist = self.ast.senslist
-        senslist = self.manageEdges(node.code.nodes[0], senslist)
+        senslist = self.manageEdges(node.code.nodes[-1], senslist)
         singleEdge = (len(senslist) == 1) and isinstance(senslist[0], _WaiterList)
         self.write("%s: process (" % self.ast.name)
         if singleEdge:
@@ -1421,10 +1420,10 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
                 self.write(e)
                 self.write(', ')
             self.write(senslist[-1])
+        self.write(") is")
         self.indent()
         self.writeDeclarations()
         self.dedent()
-        self.write(") is")
         self.writeline()
         self.write("begin")
         self.indent()

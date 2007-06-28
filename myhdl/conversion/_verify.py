@@ -11,16 +11,17 @@ from myhdl.conversion._toVerilog import toVerilog
 
 _version = myhdl.__version__.replace('.','')
 _simulators = []
-_conversionCommands = {}
+_hdlMap = {}
 _analyzeCommands = {}
 _elaborateCommands = {}
 _simulateCommands = {}
+_offsets = {}
 
-def registerSimulator(name=None, convert=None, analyze=None, elaborate=None, simulate=None):
+def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, offset=0):
     if not isinstance(name, str) or (name.strip() == ""):
         raise ValueError("Invalid simulator name")
-    if convert not in (toVHDL, toVerilog):
-        raise ValueError("Invalid convert command")
+    if hdl not in ("VHDL", "Verilog"):
+        raise ValueError("Invalid hdl %s" % hdl)
     if not isinstance(analyze, str) or (analyze.strip() == ""):
         raise ValueError("Invalid analyzer command")
     # elaborate command is optional
@@ -30,21 +31,28 @@ def registerSimulator(name=None, convert=None, analyze=None, elaborate=None, sim
     if not isinstance(simulate, str) or (simulate.strip() == ""):
         raise ValueError("Invalid simulator command")
     _simulators.append(name)
-    _conversionCommands[name] = convert
+    _hdlMap[name] = hdl
     _analyzeCommands[name] = analyze
     _elaborateCommands[name] = elaborate
     _simulateCommands[name] = simulate
+    _offsets[name] = offset
 
 registerSimulator(name="GHDL",
-                  convert=toVHDL,
+                  hdl="VHDL",
                   analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
                   elaborate="ghdl -e --workdir=work %(topname)s",
                   simulate="ghdl -r %(topname)s")
 
 registerSimulator(name="icarus",
-                  convert=toVerilog,
+                  hdl="Verilog",
                   analyze="iverilog -o %(topname)s.o %(topname)s.v",
                   simulate="vvp %(topname)s.o")
+
+registerSimulator(name="cver",
+                  hdl="Verilog",
+                  analyze="cver -c -q %(topname)s.v",
+                  simulate="cver -q %(topname)s.v",
+                  offset=3)
                  
 
 class  _VerificationClass(object):
@@ -62,21 +70,25 @@ class  _VerificationClass(object):
         vals['topname'] = func.func_name
         vals['version'] = _version
 
-        hdl = self.simulator
-        if not hdl:
+        hdlsim = self.simulator
+        if not hdlsim:
             raise ValueError("No simulator specified")
-        if  not hdl in _simulators:
-            raise ValueError("Simulator %s is not registered" % hdl)
-        convert = _conversionCommands[hdl]
-        analyze = _analyzeCommands[hdl] % vals
-        elaborate = _elaborateCommands[hdl]
+        if  not hdlsim in _simulators:
+            raise ValueError("Simulator %s is not registered" % hdlsim)
+        hdl  = _hdlMap[hdlsim]
+        analyze = _analyzeCommands[hdlsim] % vals
+        elaborate = _elaborateCommands[hdlsim]
         if elaborate is not None:
             elaborate = elaborate % vals
-        simulate = _simulateCommands[hdl] % vals
-        
-        inst = convert(func, *args, **kwargs)
+        simulate = _simulateCommands[hdlsim] % vals
+        offset = _offsets[hdlsim]
 
-        if convert is toVHDL:
+        if hdl == "VHDL":
+            inst = toVHDL(func, *args, **kwargs)
+        else:
+            inst = toVerilog(func, *args, **kwargs)
+
+        if hdl == "VHDL":
             if not os.path.exists("work"):
                 os.mkdir("work")
         ret = subprocess.call(analyze, shell=True)
@@ -117,13 +129,13 @@ class  _VerificationClass(object):
         g.flush()
         g.seek(0)
 
-        glines = g.readlines()
+        glines = g.readlines()[offset:]
         flinesNorm = [line.lower() for line in flines]
         glinesNorm = [line.lower() for line in glines]
-        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile=hdl, tofile="VHDL")
+        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile=hdlsim, tofile=hdl)
 
         MyHDLLog = "MyHDL.log"
-        HDLLog = hdl + ".log"
+        HDLLog = hdlsim + ".log"
         try:
             os.remove(MyHDLLog)
             os.remove(HDLLog)

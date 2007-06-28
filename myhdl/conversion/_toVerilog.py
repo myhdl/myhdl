@@ -545,6 +545,9 @@ class _ConvertVisitor(_ConversionMixin):
             self.write(f.__name__)
         elif f is concat:
             opening, closing = '{', '}'
+        elif f is delay:
+            self.visit(node.args[0])
+            return
         elif hasattr(node, 'ast'):
             self.write(node.ast.name)
         else:
@@ -793,26 +796,60 @@ class _ConvertVisitor(_ConversionMixin):
     def visitPass(self, node, *args):
         self.write("// pass")
 
-    def handlePrint(self, node):
-        self.write('$display(')
-        s = node.nodes[0]
-        self.visit(s, _context.PRINT)
-        for s in node.nodes[1:]:
-            self.write(', , ')
-            self.visit(s, _context.PRINT)
-        self.write(');')
+##     def handlePrint(self, node):
+##         self.write('$display(')
+##         s = node.nodes[0]
+##         self.visit(s, _context.PRINT)
+##         for s in node.nodes[1:]:
+##             self.write(', , ')
+##             self.visit(s, _context.PRINT)
+##         self.write(');')
     
-    def visitPrint(self, node, *args):
-        self.handlePrint(node)
+##     def visitPrint(self, node, *args):
+##         self.handlePrint(node)
 
     def visitPrintnl(self, node, *args):
-        self.handlePrint(node)
+        argnr = 0
+        for s in node.format:
+            if isinstance(s, str):
+                self.write('write(L, string\'("%s"));' % s)
+            else:
+                a = node.args[argnr]
+                argnr += 1
+                obj = a.obj
+                if (s.conv is str) and isinstance(obj, bool):
+                    w = 5
+                else:
+                    w = len(obj)
+                if s.width > w:
+                    self.write('$write(" ";' % (s.width-w))
+                    self.writeline()
+                    fs = "%d"
+                else:
+                    fs = "%0d"
+                if (s.conv is str) and isinstance(obj, bool):
+                    self.write('if (')
+                    self.visit(a, _context.PRINT)
+                    self.write(')')
+                    self.writeline()
+                    self.write('    $write(" True");')
+                    self.writeline()
+                    self.write('else')
+                    self.writeline()
+                    self.write('    $write("False");')
+                else:
+                    self.write('$write("%s", ' % fs)
+                    self.visit(a, _context.PRINT)
+                    self.write(');')
+            self.writeline()
+        self.write('$write("\\n");')
+        
     
     def visitRaise(self, node, *args):
-        self.write('$display("')
-        self.visit(node.expr1)
-        self.write('");')
-        self.writeline()
+##         self.write('$display("')
+##         self.visit(node.expr1)
+##         self.write('");')
+##         self.writeline()
         self.write("$finish;")
         
     def visitReturn(self, node, *args):
@@ -901,9 +938,16 @@ class _ConvertVisitor(_ConversionMixin):
         self.labelStack.pop()
         
     def visitYield(self, node, *args):
-        self.write("@ (")
+        yieldObj = self.getObj(node.value)
+        if isinstance(yieldObj, delay):
+            self.write("# ")
+        else:
+            self.write("@ (")
         self.visit(node.value, _context.YIELD)
-        self.write(");")
+        if isinstance(yieldObj, delay):
+            self.write(";")
+        else:
+            self.write(");")
 
         
 class _ConvertAlwaysVisitor(_ConvertVisitor):
