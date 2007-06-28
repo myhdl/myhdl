@@ -1,4 +1,4 @@
-Release 0.6dev4
+Release 0.6dev5
 ---------------
 
 Release 0.5.1 1-May-2006 
