@@ -120,6 +120,7 @@ def RamBench(ram, depth=128):
     @instance
     def stimulus():
         for i in range(depth):
+            yield clk.negedge
             din.next = i
             addr.next = i
             we.next = True
@@ -127,7 +128,6 @@ def RamBench(ram, depth=128):
         we.next = False
         for i in range(depth):
             addr.next = i
-            yield clk.negedge
             yield clk.posedge
             yield delay(1)
             assert dout == i
