@@ -157,6 +157,7 @@ def DecBench(dec):
 
     @instance
     def check():
+        yield reset.negedge
         yield reset.posedge
         print count
         while 1:
