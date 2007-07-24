@@ -590,7 +590,7 @@ class _AnalyzeVisitor(_ConversionMixin):
         node.signed = False
         if node.value in (0, 1):
             node.obj = bool(node.value)
-        elif isinstance(node.value, int):
+        elif isinstance(node.value, (int, str)):
             node.obj = node.value
         else:
             node.obj = None

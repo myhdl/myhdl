@@ -812,27 +812,33 @@ class _ConvertVisitor(_ConversionMixin):
         argnr = 0
         for s in node.format:
             if isinstance(s, str):
-                self.write('write(L, string\'("%s"));' % s)
+                self.write('$write("%s");' % s)
             else:
                 a = node.args[argnr]
                 argnr += 1
                 obj = a.obj
-                if (s.conv is str) and isinstance(obj, bool):
-                    w = 5
-                else:
-                    w = len(obj)
+                w = 0
+                if isinstance(obj, bool):
+                    w = 1
+                elif isinstance(obj, (intbv, Signal)):
+                    w = len(str(2**len(obj)))
                 if s.width > w:
-                    self.write('$write(" ";' % (s.width-w))
+                    j = " " * (s.width-w)
+                    self.write('$write("%s");' % j)
                     self.writeline()
                     fs = "%d"
                 else:
                     fs = "%0d"
-                if (s.conv is str) and isinstance(obj, bool):
+                if isinstance(obj, str):
+                    self.write('$write(')
+                    self.visit(a, _context.PRINT)
+                    self.write(');')
+                elif (s.conv is str) and isinstance(obj, bool):
                     self.write('if (')
                     self.visit(a, _context.PRINT)
                     self.write(')')
                     self.writeline()
-                    self.write('    $write(" True");')
+                    self.write('    $write("True");')
                     self.writeline()
                     self.write('else')
                     self.writeline()
