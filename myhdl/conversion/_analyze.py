@@ -475,9 +475,9 @@ class _AnalyzeVisitor(_ConversionMixin):
 
     def visitAssName(self, node, *args):
         n = node.name
-        if n ==  "__verilog__":
+        if n in ("__verilog__", "__vhdl__"):
             self.raiseError(node, _error.NotSupported,
-                            "__verilog__ in generator function")
+                            "%s in generator function" % n)
         # XXX ?
         if n in self.globalRefs:
             self.raiseError(node, _error.UnboundLocal, n)
