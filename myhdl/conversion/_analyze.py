@@ -620,7 +620,8 @@ class _AnalyzeVisitor(_ConversionMixin):
     def visitGetattr(self, node, *args):
         self.visit(node.expr, *args)
         assert isinstance(node.expr, astNode.Name)
-        assert node.expr.name in self.ast.symdict
+        if node.expr.name not in self.ast.symdict:
+            raise AssertionError("attr target: %s" % node.expr.name)
         node.obj = None
         node.signed = False
         obj = self.ast.symdict[node.expr.name]

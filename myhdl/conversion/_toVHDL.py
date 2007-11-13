@@ -182,8 +182,16 @@ def _writeModuleHeader(f, intf):
             r = _getRangeString(s)
             p = _getTypeString(s)
             if s._driven:
+                if s._read:
+                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                                  category=ToVHDLWarning
+                                  )
                 f.write("\n        %s: out %s%s" % (portname, p, r))
             else:
+                if not s._read:
+                    warnings.warn("%s: %s" % (_error.UnusedPort, portname),
+                                  category=ToVHDLWarning
+                                  )
                 f.write("\n        %s: in %s%s" % (portname, p, r))
         f.write("\n    );\n")
     print >> f, "end entity %s;" % intf.name
@@ -1712,7 +1720,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         
     def visitName(self, node):
         node.vhd = node.vhdOri = inferVhdlObj(node.obj)
- 
+  
     # visitAssName = visitName
     def visitAssName(self, node):
         node.obj = self.ast.vardict[node.name]

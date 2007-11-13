@@ -40,8 +40,8 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
 registerSimulator(name="GHDL",
                   hdl="VHDL",
                   analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-                  elaborate="ghdl -e --workdir=work %(topname)s",
-                  simulate="ghdl -r %(topname)s")
+                  elaborate="ghdl -e --workdir=work -o  %(topname)s_ghdl %(topname)s",
+                  simulate="ghdl -r %(topname)s_ghdl")
 
 registerSimulator(name="icarus",
                   hdl="Verilog",

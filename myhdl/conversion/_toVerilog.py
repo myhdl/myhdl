@@ -162,12 +162,20 @@ def _writeModuleHeader(f, intf):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
+            if s._read:
+                warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                              category=ToVerilogWarning
+                              )
             print >> f, "output %s%s%s;" % (p, r, portname)
             if s._driven == 'reg':
                 print >> f, "reg %s%s%s;" % (p, r, portname)
             else:
                 print >> f, "wire %s%s%s;" % (p, r, portname)
         else:
+            if not s._read:
+                warnings.warn("%s: %s" % (_error.UnusedPort, portname),
+                              category=ToVerilogWarning
+                              )
             print >> f, "input %s%s%s;" % (p, r, portname)
     print >> f
 
