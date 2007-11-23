@@ -36,6 +36,6 @@ class delay(object):
         val -- a natural integer representing the desired delay
 
         """
-        if not isinstance(val, int) or val < 0:
+        if not isinstance(val, (int, long)) or val < 0:
             raise TypeError, _errmsg
         self._time = val
