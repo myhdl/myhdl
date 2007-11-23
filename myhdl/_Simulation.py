@@ -31,7 +31,7 @@ from sets import Set
 
 from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
-from myhdl._simulator import _siglist, _futureEvents
+from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _flatten, _printExcInfo
 from myhdl._always_comb import _AlwaysComb
@@ -82,6 +82,9 @@ class Simulation(object):
         if _simulator._tracing:
             _simulator._tracing = 0
             _simulator._tf.close()
+        # clean up for potential new run with same signals
+        for s in _signals:
+            s._clear()
         self._finished = True
             
         

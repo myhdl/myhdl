@@ -34,7 +34,7 @@ from inspect import currentframe, getouterframes
 from copy import deepcopy as copy
 
 from myhdl import _simulator as sim
-from myhdl._simulator import _siglist, _futureEvents, now
+from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
 
@@ -140,6 +140,12 @@ class Signal(object):
         self._negedgeWaiters = _NegedgeWaiterList(self)
         self._code = ""
         self._tracing = 0
+        _signals.append(self)
+
+    def _clear(self):
+        del self._eventWaiters[:]
+        del self._posedgeWaiters[:]
+        del self._negedgeWaiters[:]
         
     def _update(self):
         val, next = self._val, self._next
