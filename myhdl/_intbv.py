@@ -155,6 +155,7 @@ class intbv(object):
                 self._val |= (1L << i)
             else:
                 self._val &= ~(1L << i)
+            self._checkBounds()
         elif isinstance(key, slice):
             i, j = key.start, key.stop
             if j is None: # default
