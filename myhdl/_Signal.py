@@ -83,7 +83,7 @@ class Signal(object):
 
     """
 
-    __slots__ = ('_next', '_val', '_min', '_max', '_type', 
+    __slots__ = ('_next', '_val', '_min', '_max', '_type', '_init',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                  '_code', '_tracing', '_nrbits', '_checkVal', '_setNextVal',
                  '_printVcd', '_driven' ,'_read', '_name'
@@ -104,7 +104,7 @@ class Signal(object):
         val -- initial value
         
         """
-        self._next = self._val = val
+        self._next = self._val = self._init = val
         self._min = self._max = None
         self._name = self._read = self._driven = None
         self._nrbits = 0
@@ -146,6 +146,7 @@ class Signal(object):
         del self._eventWaiters[:]
         del self._posedgeWaiters[:]
         del self._negedgeWaiters[:]
+        self._next = self._val = self._init
         
     def _update(self):
         val, next = self._val, self._next
