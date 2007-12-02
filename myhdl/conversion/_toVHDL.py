@@ -79,10 +79,13 @@ def _flatten(*args):
 
 class _ToVHDLConvertor(object):
 
-    __slots__ = ("name", )
+    __slots__ = ("name",
+                 "component_declarations",
+                 )
 
     def __init__(self):
         self.name = None
+        self.component_declarations = None
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -106,6 +109,8 @@ class _ToVHDLConvertor(object):
             h = _HierExtr(name, func, *args, **kwargs)
         finally:
             _converting = 0
+
+        compDecls = self.component_declarations
 
         vpath = name + ".vhd"
         vfile = open(vpath, 'w')
@@ -132,6 +137,7 @@ class _ToVHDLConvertor(object):
         _writeModuleHeader(vfile, intf)
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
+        _writeCompDecls(vfile, compDecls)
         _convertGens(genlist, vfile)
         _writeModuleFooter(vfile)
 
@@ -146,6 +152,9 @@ class _ToVHDLConvertor(object):
         # clean up enum type names
         for enumType in _enumTypeList:
             enumType._clearDeclared()
+        # clean up attributes
+        self.name = None
+        self.component_declarations = None
 
         return h.top
     
@@ -244,7 +253,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
         print >> f, "type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r)
         print >> f, "signal %s: %s;" % (m.name, t)
     print >> f
-            
+
+def _writeCompDecls(f,  compDecls):
+    if compDecls is not None:
+        print >> f, compDecls
 
 def _writeModuleFooter(f):
     print >> f, "end architecture MyHDL;"
