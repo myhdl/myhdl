@@ -40,8 +40,16 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
 registerSimulator(name="GHDL",
                   hdl="VHDL",
                   analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-                  elaborate="ghdl -e --workdir=work -o  %(topname)s_ghdl %(topname)s",
-                  simulate="ghdl -r %(topname)s_ghdl")
+                  elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
+                  simulate="ghdl -r %(unitname)s_ghdl"
+                 )
+
+## registerSimulator(name="GHDL",
+##                   hdl="VHDL",
+##                   analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+##                   elaborate="ghdl -e --workdir=work %(topname)s",
+##                   simulate="ghdl -r %(topname)s"
+##                   )
 
 registerSimulator(name="icarus",
                   hdl="Verilog",
@@ -68,6 +76,7 @@ class  _VerificationClass(object):
 
         vals = {}
         vals['topname'] = func.func_name
+        vals['unitname'] = func.func_name.lower()
         vals['version'] = _version
 
         hdlsim = self.simulator

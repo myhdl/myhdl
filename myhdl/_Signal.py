@@ -104,7 +104,7 @@ class Signal(object):
         val -- initial value
         
         """
-        self._next = self._val = self._init = val
+        self._next = self._val = self._init = copy(val)
         self._min = self._max = None
         self._name = self._read = self._driven = None
         self._nrbits = 0
