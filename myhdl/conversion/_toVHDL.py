@@ -195,7 +195,9 @@ def _writeModuleHeader(f, intf):
                     warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
                                   category=ToVHDLWarning
                                   )
-                f.write("\n        %s: out %s%s" % (portname, p, r))
+                    f.write("\n        %s: inout %s%s" % (portname, p, r))
+                else:
+                    f.write("\n        %s: out %s%s" % (portname, p, r))
             else:
                 if not s._read:
                     warnings.warn("%s: %s" % (_error.UnusedPort, portname),
