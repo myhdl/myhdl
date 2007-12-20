@@ -366,7 +366,8 @@ class _ConvertVisitor(_ConversionMixin):
                     pre, suf = "resize(", ", %s)" % vhd.size
             elif isinstance(ori, vhd_signed):
                 if vhd.size != ori.size:
-                    pre, suf = "unsigned(resize(", ", %s))" % vhd.size
+                    # note the order of resizing and casting here (otherwise bug!)
+                    pre, suf = "resize(unsigned(", "), %s)" % vhd.size
                 else:
                     pre, suf = "unsigned(", ")"
             else:
@@ -377,6 +378,7 @@ class _ConvertVisitor(_ConversionMixin):
                     pre, suf = "resize(", ", %s)" % vhd.size
             elif isinstance(ori, vhd_unsigned):
                 if vhd.size != ori.size:
+                    # I think this should be the order of resizing and casting here
                     pre, suf = "signed(resize(", ", %s))" % vhd.size
                 else:
                     pre, suf = "signed(", ")"
