@@ -61,9 +61,9 @@ class SigTest(TestCase):
         self.negedgeWaiters = [object() for i in range(7)]
 
     def testPublicInterface(self):
-        """ public interface of a sig: val, next, posedge, negedge, min, max, driven"""
+        """ public interface of a sig: val, next, posedge, negedge, min, max, driven, read"""
         s1 = Signal(1)
-        expected = ['next', 'val', 'posedge', 'negedge', 'min', 'max', 'driven']
+        expected = ['next', 'val', 'posedge', 'negedge', 'min', 'max', 'driven', 'read']
         iface = [attr for attr in dir(s1) if attr[0] != '_']
         expected.sort()
         iface.sort()

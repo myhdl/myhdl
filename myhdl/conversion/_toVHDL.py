@@ -646,7 +646,14 @@ class _ConvertVisitor(_ConversionMixin):
         node.obj = self.getObj(node.expr)
     def visitAssert(self, node, *args):
         # XXX
-        pass
+        self.write("assert ")
+        self.visit(node.test)
+        self.indent()
+        self.writeline()
+        self.write('report "AssertionError"')
+        self.writeline()
+        self.write("severity error;")
+        self.dedent()
 
     def visitAssign(self, node, *args):
         assert len(node.nodes) == 1
@@ -794,6 +801,12 @@ class _ConvertVisitor(_ConversionMixin):
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
             self.write(`val`)
+            return
+        elif f is now:
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
+            self.write(pre)
+            self.write("(now / 1 ns)")
+            self.write(suf)
             return
         elif f in (int, long):
             opening, closing = '', ''
@@ -1664,6 +1677,10 @@ class _AnnotateTypesVisitor(_ConversionMixin):
     def visitAssAttr(self, node):
         self.visit(node.expr)
         node.vhd = node.expr.vhd
+        
+    def visitAssert(self, node):
+        self.visit(node.test)
+        node.test.vhd = vhd_boolean()
                    
     def visitAugAssign(self, node):
         self.visit(node.node)
@@ -1700,6 +1717,8 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = vhd_int()
         elif f is len:
             node.vhd = vhd_int()
+        elif f is now:
+            node.vhd = vhd_nat()
         elif hasattr(node, 'ast'):
             v = _AnnotateTypesVisitor(node.ast)
             compiler.walk(node.ast, v)
@@ -1832,6 +1851,8 @@ class _AnnotateTypesVisitor(_ConversionMixin):
     visitAnd = visitOr = multiBoolOp
 
     def visitIf(self, node):
+        if node.ignore:
+            return
         self.visitChildNodes(node)
         for test, suite in node.tests:
             test.vhd = vhd_boolean()

@@ -69,7 +69,8 @@ def RomBench(rom):
             yield clk.negedge
             yield clk.posedge
             yield delay(1)
-            assert dout == ROM[i]
+            if __debug__:
+                assert dout == ROM[i]
             print dout
         raise StopSimulation()
 

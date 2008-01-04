@@ -210,6 +210,15 @@ class Signal(object):
             raise ValueError('Expected value "reg", "wire", or True, got "%s"' % val)
         self._driven = val
     driven = property(_get_driven, _set_driven, None, "'driven' access methods")
+    
+    # support for the 'read' attribute
+    def _get_read(self):
+        return self._read
+    def _set_read(self, val):
+        if not val in (True, ):
+            raise ValueError('Expected value True, got "%s"' % val)
+        self._read = val
+    read = property(_get_read, _set_read, None, "'read' access methods")
 
     # set next methods
     def _setNextBool(self, val):
