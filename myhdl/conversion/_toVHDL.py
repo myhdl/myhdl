@@ -812,12 +812,13 @@ class _ConvertVisitor(_ConversionMixin):
             opening, closing = '', ''
         elif f is intbv:
             pre, post = "", ""
+            arg = node.args[0]
             if isinstance(node.vhd, vhd_unsigned):
                 pre, post = "to_unsigned(", ", %s)" % node.vhd.size
             elif isinstance(node.vhd, vhd_signed):
                 pre, post = "to_signed(", ", %s)" % node.vhd.size
             self.write(pre)
-            self.visit(node.args[0])
+            self.visit(arg)
             self.write(post)
             return
         elif type(f) is ClassType and issubclass(f, Exception):
@@ -1200,14 +1201,22 @@ class _ConvertVisitor(_ConversionMixin):
     def visitSlice(self, node, context=None, *args):
         if isinstance(node.expr, astNode.CallFunc) and \
            node.expr.node.obj is intbv:
-            c = self.getVal(node)
+            c = self.getVal(node)._val
             pre, post = "", ""
-            if isinstance(node.vhd, vhd_unsigned):
-                pre, post = "to_unsigned(", ", %s)" % node.vhd.size
-            elif isinstance(node.vhd, vhd_signed):
-                pre, post = "to_signed(", ", %s)" % node.vhd.size
+            if node.vhd.size <= 30:
+                if isinstance(node.vhd, vhd_unsigned):
+                    pre, post = "to_unsigned(", ", %s)" % node.vhd.size
+                elif isinstance(node.vhd, vhd_signed):
+                    pre, post = "to_signed(", ", %s)" % node.vhd.size
+            else:
+                if isinstance(node.vhd, vhd_unsigned):
+                    pre, post = "unsigned'(", ")"
+                    c = '"%s"' % bin(c, node.vhd.size)
+                elif isinstance(node.vhd, vhd_signed):
+                    pre, post = "signed'(", ")"
+                    c = '"%s"' % bin(c, node.vhd.size)
             self.write(pre)
-            self.write("%s" % c._val)
+            self.write("%s" % c)
             self.write(post)
             return
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
