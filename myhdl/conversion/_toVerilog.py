@@ -105,8 +105,6 @@ class _ToVerilogConvertor(object):
 
         vpath = name + ".v"
         vfile = open(vpath, 'w')
-        tbpath = "tb_" + vpath
-        tbfile = open(tbpath, 'w')
 
         siglist, memlist = _analyzeSigs(h.hierarchy)
         arglist = _flatten(h.top)
@@ -121,10 +119,15 @@ class _ToVerilogConvertor(object):
         _writeSigDecls(vfile, intf, siglist, memlist)
         _convertGens(genlist, vfile)
         _writeModuleFooter(vfile)
-        _writeTestBench(tbfile, intf)
 
         vfile.close()
-        tbfile.close()
+
+        # don't write testbench if module has no ports
+        if len(intf.argnames) > 0:
+            tbpath = "tb_" + vpath
+            tbfile = open(tbpath, 'w')
+            _writeTestBench(tbfile, intf)
+            tbfile.close()
 
         # clean up signal names
         for sig in siglist:
@@ -192,9 +195,12 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 warnings.warn("%s: %s" % (_error.UnusedSignal, s._name),
                               category=ToVerilogWarning
                               )
+            k = 'wire'
+            if s._driven == 'reg':
+                k = 'reg'
             # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print >> f, "%s %s%s%s;" % (s._driven, p, r, s._name)
+            # print >> f, "%s %s%s = %s;" % (k, r, s._name, int(s._val))
+            print >> f, "%s %s%s%s;" % (k, p, r, s._name)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -451,8 +457,17 @@ class _ConvertVisitor(_ConversionMixin):
         self.visit(node.expr)
 
     def visitAssert(self, node, *args):
-        # XXX
-        pass
+        self.write("if (!")
+        self.visit(node.test)
+        self.write(") begin")
+        self.indent()
+        self.writeline()
+        self.write('$display("AssertionError");')
+        self.writeline()
+        self.write('$finish;')
+        self.dedent()
+        self.writeline()
+        self.write("end")
 
     def visitAssign(self, node, *args):
         assert len(node.nodes) == 1
@@ -540,6 +555,9 @@ class _ConvertVisitor(_ConversionMixin):
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
             self.write(`val`)
+            return
+        elif f is now:
+            self.write("$time")
             return
         elif f in (int, long):
             opening, closing = '', ''
