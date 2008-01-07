@@ -222,6 +222,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
     print >> f
     for s in constwires:
         print >> f, "assign %s = %s;" % (s._name, int(s._val))
+    print >> f
             
 
 def _writeModuleFooter(f):
@@ -460,14 +461,14 @@ class _ConvertVisitor(_ConversionMixin):
         self.visit(node.expr)
 
     def visitAssert(self, node, *args):
-        self.write("if (!")
+        self.write("if (")
         self.visit(node.test)
-        self.write(") begin")
+        self.write(" !== 1) begin")
         self.indent()
         self.writeline()
         self.write('$display("AssertionError");')
-        self.writeline()
-        self.write('$finish;')
+        # self.writeline()
+        # self.write('$finish;')
         self.dedent()
         self.writeline()
         self.write("end")
