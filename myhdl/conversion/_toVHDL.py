@@ -149,9 +149,11 @@ class _ToVHDLConvertor(object):
             sig._name = None
             sig._driven = False
             sig._read = False
+            
         # clean up enum type names
         for enumType in _enumTypeList:
             enumType._clearDeclared()
+            
         # clean up attributes
         self.name = None
         self.component_declarations = None
@@ -650,7 +652,7 @@ class _ConvertVisitor(_ConversionMixin):
         self.visit(node.test)
         self.indent()
         self.writeline()
-        self.write('report "AssertionError"')
+        self.write('report "*** AssertionError ***"')
         self.writeline()
         self.write("severity error;")
         self.dedent()

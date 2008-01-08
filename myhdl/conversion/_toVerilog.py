@@ -135,6 +135,9 @@ class _ToVerilogConvertor(object):
             sig._name = None
             sig._driven = False
             sig._read = False
+            
+        # clean up attributes
+        self.name = None
 
         return h.top
     
@@ -466,7 +469,7 @@ class _ConvertVisitor(_ConversionMixin):
         self.write(" !== 1) begin")
         self.indent()
         self.writeline()
-        self.write('$display("AssertionError");')
+        self.write('$display("*** AssertionError ***");')
         # self.writeline()
         # self.write('$finish;')
         self.dedent()
