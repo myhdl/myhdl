@@ -812,6 +812,9 @@ class _ConvertVisitor(_ConversionMixin):
             return
         elif f in (int, long):
             opening, closing = '', ''
+            # convert number argument to integer
+            if isinstance(node.args[0], astNode.Const):
+                node.args[0].value = int(node.args[0].value)
         elif f is intbv:
             pre, post = "", ""
             arg = node.args[0]
