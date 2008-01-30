@@ -625,7 +625,7 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitDiscard(self, node, *args):
         expr = node.expr
-        # skip extra semicolons
+        # skip extra semicolons and wrongly-placed docstrings
         if isinstance(expr, astNode.Const):
             return
         self.visit(expr)
