@@ -72,6 +72,7 @@ _error.InconsistentBitWidth = "Signal elements should have the same bit width"
 _error.ListElementNotUnique = "List contains Signals that are not unique to it"
 _error.UnsupportedFormatString = "Unsupported format conversion specifier"
 _error.FormatString = "Format string error"
+_error.UnsupportedAttribute = "Unsupported attribute"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")

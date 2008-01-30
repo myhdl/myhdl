@@ -141,6 +141,7 @@ def _analyzeGens(top, absnames):
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
                     if isinstance(g, _AlwaysComb):
+                        # print type(obj)
                         assert isinstance(obj, (int, long, Signal)) or \
                                _isMem(obj) or isTupleOfInts(obj)
                     ast.symdict[n] = obj
@@ -620,21 +621,39 @@ class _AnalyzeVisitor(_ConversionMixin):
     def visitGetattr(self, node, *args):
         self.visit(node.expr, *args)
         assert isinstance(node.expr, astNode.Name)
-        if node.expr.name not in self.ast.symdict:
-            raise AssertionError("attr target: %s" % node.expr.name)
         node.obj = None
         node.signed = False
-        obj = self.ast.symdict[node.expr.name]
+        n = node.expr.name
+        if n in self.ast.vardict:
+            obj = self.ast.vardict[n]
+        elif n in self.ast.symdict:
+            obj = self.ast.symdict[n]
+        else:
+            raise AssertionError("attribute target: %s" % n)
         if isinstance(obj, Signal):
             if node.attrname == 'posedge':
                 node.obj = obj.posedge
             elif node.attrname == 'negedge':
                 node.obj = obj.negedge
-            elif node.attrname == 'val':
+            elif node.attrname in ('val', 'next'):
                 node.obj = obj.val
-        elif isinstance(obj, EnumType):
+            elif node.attrname == 'min':
+                node.obj = obj.min
+            elif node.attrname == 'max':
+                node.obj = obj.max
+            else:
+                self.raiseError(node, _error.UnsupportedAttribute, node.attrname)
+        if isinstance(obj, intbv):
+            if node.attrname == 'min':
+                node.obj = obj.min
+            elif node.attrname == 'max':
+                node.obj = obj.max
+            else:
+                self.raiseError(node, _error.UnsupportedAttribute, node.attrname)
+        if isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
+            
             
     def visitIf(self, node, *args):
         if node.ignore:

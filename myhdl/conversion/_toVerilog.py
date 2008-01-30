@@ -697,16 +697,27 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitGetattr(self, node, *args):
         assert isinstance(node.expr, astNode.Name)
-        assert node.expr.name in self.ast.symdict
-        obj = self.ast.symdict[node.expr.name]
+        n = node.expr.name
+        if n in self.ast.symdict:
+            obj = self.ast.symdict[n]
+        elif n in self.ast.vardict:
+            obj = self.ast.vardict[n]
+        else:
+            raise AssertionError("object not found")
         if isinstance(obj, Signal):
             if node.attrname == 'next':
                 self.isSigAss = True
+                self.visit(node.expr)
             elif node.attrname in ('posedge', 'negedge'):
                 self.write(node.attrname)
                 self.write(' ')
-            self.visit(node.expr)
-        elif isinstance(obj, EnumType):
+                self.visit(node.expr)
+            elif node.attrname == 'val':
+                self.visit(node.expr)
+        if isinstance(obj, (Signal, intbv)):
+            if node.attrname in ('min', 'max'):
+                self.write("%s" % node.obj)
+        if isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             e = getattr(obj, node.attrname)
             self.write(e._toVerilog())
