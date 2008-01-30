@@ -899,6 +899,9 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitDiscard(self, node, *args):
         expr = node.expr
+        # skip extra semicolons
+        if isinstance(expr, astNode.Const):
+            return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, astNode.CallFunc) and hasattr(expr, 'ast'):
