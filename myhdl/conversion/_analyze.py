@@ -449,6 +449,8 @@ class _AnalyzeVisitor(_ConversionMixin):
             self.visit(expr, _access.INPUT, _kind.DECLARATION)
             node.kind = _kind.DECLARATION
             n = target.name
+            if n in self.ast.sigdict:
+                self.raiseError(node, _error.ShadowingVar)
             obj = self.getObj(expr)
             if obj is None:
                 self.raiseError(node, _error.TypeInfer, n)
