@@ -206,7 +206,7 @@ def unaryOps(
     while 1:
         yield arg
         # BoolNot.next = not arg
-        # Invert.next = ~arg
+        Invert.next = ~arg
         # UnaryAdd.next = +arg
         UnarySub.next = --arg
 
@@ -245,7 +245,7 @@ def unaryBench( m):
             yield arg
             yield delay(1)
             # print BoolNot
-            # print Invert
+            print Invert
             # print UnaryAdd
             print UnarySub
 

@@ -250,7 +250,7 @@ def unaryOps(
     while 1:
         yield arg
         Not.next = not arg
-        # Invert.next = ~arg
+        Invert.next = ~arg
         UnaryAdd.next = +arg
         UnarySub.next = --arg
 
@@ -307,7 +307,7 @@ class TestUnaryOps(TestCase):
                 yield arg
                 yield delay(1)
                 self.assertEqual(Not, Not_v)
-                #self.assertEqual(Invert, Invert_v)
+                self.assertEqual(Invert, Invert_v)
                 self.assertEqual(UnaryAdd, UnaryAdd_v)
                 self.assertEqual(UnarySub, UnarySub_v)
 

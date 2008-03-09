@@ -416,7 +416,7 @@ class _ConvertVisitor(_ConversionMixin):
         self.binaryOp(node, '>>>')
 
     def checkOpWithNegIntbv(self, node, op):
-        if op in ("+", "-", "*", "&&", "||", "!"):
+        if op in ("+", "-", "*", "~", "&&", "||", "!"):
             return
         if isinstance(node, astNode.Name):
             o = node.obj

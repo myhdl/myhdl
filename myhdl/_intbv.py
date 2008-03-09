@@ -402,7 +402,7 @@ class intbv(object):
         return abs(self._val)
 
     def __invert__(self):
-        if self._nrbits:
+        if self._nrbits and self._min >= 0:
             return intbv(~self._val & (1L << self._nrbits)-1)
         else:
             return intbv(~self._val)

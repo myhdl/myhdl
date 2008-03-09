@@ -573,7 +573,7 @@ class _ConvertVisitor(_ConversionMixin):
         self.shiftOp(node, "shift_right")
 
     def checkOpWithNegIntbv(self, node, op):
-        if op in ("+", "-", "*", "&&", "||", "!"):
+        if op in ("+", "-", "not ", "*", "&&", "||", "!"):
             return
         if isinstance(node, astNode.Name):
             o = node.obj
