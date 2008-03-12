@@ -638,9 +638,7 @@ class _ConvertVisitor(_ConversionMixin):
         self.labelStack.append(node.loopLabel)
         var = node.assign.name
         cf = node.list
-        # self.require(node, isinstance(cf, astNode.CallFunc), "Expected (down)range call")
         f = self.getObj(cf.node)
-        # self.require(node, f in (range, downrange), "Expected (down)range call")
         args = cf.args
         assert len(args) <= 3
         if f is range:
@@ -680,6 +678,8 @@ class _ConvertVisitor(_ConversionMixin):
         if step is None:
             self.write("1")
         else:
+            v = self.getVal(step)
+            self.require(node, v >= 0, "step should be >= 0")
             self.visit(step)
         self.write(") begin")
         if node.loopLabel.isActive:

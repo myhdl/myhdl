@@ -912,11 +912,10 @@ class _ConvertVisitor(_ConversionMixin):
         self.labelStack.append(node.loopLabel)
         var = node.assign.name
         cf = node.list
-        #self.require(node, isinstance(cf, astNode.CallFunc), "Expected (down)range call")
         f = self.getObj(cf.node)
-        #self.require(node, f in (range, downrange), "Expected (down)range call")
         args = cf.args
         assert len(args) <= 3
+        self.require(node, len(args) < 3, "explicit step not supported")
         if f is range:
             cmp = '<'
             op = 'to'
