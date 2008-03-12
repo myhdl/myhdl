@@ -1,3 +1,3 @@
-from myhdl.conversion import verify
+from myhdl.conversion import verify, analyze
 
-verify.simulator = "GHDL"
+verify.simulator = analyze.simulator = "GHDL"

@@ -610,7 +610,13 @@ class _AnalyzeVisitor(_ConversionMixin):
         self.visit(node.assign)
         var = node.assign.name
         self.ast.vardict[var] = int(-1)
-        self.visit(node.list)
+        
+        cf = node.list
+        self.visit(cf)
+        self.require(node, isinstance(cf, astNode.CallFunc), "Expected (down)range call")
+        f = self.getObj(cf.node)
+        self.require(node, f in (range, downrange), "Expected (down)range call")
+        
         self.visit(node.body, *args)
         self.refStack.pop()
         self.require(node, node.else_ is None, "for-else not supported")

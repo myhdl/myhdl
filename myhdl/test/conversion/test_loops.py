@@ -4,7 +4,27 @@ from random import randrange
 
 
 from myhdl import *
-from myhdl.conversion import verify
+from myhdl.conversion import verify, analyze
+from myhdl import ConversionError
+from myhdl.conversion._misc import _error
+
+def ForLoopError1(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in (1, 2, 3):
+            if a[i] == 1:
+                var += 1
+        out.next = var
+        
+def ForLoopError2(a, out):
+    while 1:
+        yield a
+        var = 0
+        for i in list((1, 2, 3)):
+            if a[i] == 1:
+                var += 1
+        out.next = var
 
 
 def ForLoop1(a, out):
@@ -263,4 +283,22 @@ def testWhileBreakLoop():
 
 def testWhileBreakContinueLoop():
     assert verify(LoopBench, WhileBreakContinueLoop) == 0
+
+def testForLoopError1():
+    try:
+        analyze(LoopBench, ForLoopError1)
+    except ConversionError, e:
+        assert e.kind == _error.Requirement
+    else:
+        assert False
+    
+def testForLoopError2():
+    try:
+        analyze(LoopBench, ForLoopError2)
+    except ConversionError, e:
+        assert e.kind == _error.Requirement
+    else:
+        assert False
+    
+    
 
