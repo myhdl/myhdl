@@ -11,13 +11,13 @@ def setupCosimulationIcarus(**kwargs):
         os.remove(objfile)
     analyze_cmd = "iverilog -o %s %s.v tb_%s.v" % (objfile, name, name)
     os.system(analyze_cmd)
-    simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+    simulate_cmd = "vvp -m ../../../../cosimulation/icarus/myhdl.vpi %s" % objfile
     return Cosimulation(simulate_cmd, **kwargs)
 
 # cver
 def setupCosimulationCver(**kwargs):
     name = kwargs['name']
-    cmd = "cver -q +loadvpi=../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap " + \
+    cmd = "cver -q +loadvpi=../../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap " + \
           "%s.v tb_%s.v " % (name, name)
     return Cosimulation(cmd, **kwargs)
 
