@@ -11,8 +11,8 @@ MyHDL is a free, open-source (LGPL) package for using Python as a
 hardware description and verification language. Python is a very high
 level language, and hardware designers can use its full power to model
 and simulate their designs. Moreover, MyHDL can convert a design to
-Verilog. In combination with an external synthesis tool, it provides a
-complete path from Python to a silicon implementation.
+Verilog or VHDL. In combination with an external synthesis tool, it
+provides a complete path from Python to a silicon implementation.
 
 Modeling
 ~~~~~~~~
