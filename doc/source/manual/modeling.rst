@@ -531,7 +531,7 @@ When we run the test bench, it generates a VCD file called
 :file:`testbench.vcd`. When we load this file into :program:`gtkwave`, we can
 view the waveforms:
 
-tbfsm.png
+.. image:: tbfsm.png
 
 Signals are dumped in a suitable format. This format is inferred at the
 :class:`Signal` construction time, from the type of the initial value. In
