@@ -113,14 +113,14 @@ htmlhelp_basename = 'MyHDLdoc'
 # ------------------------
 
 # The paper size ('letter' or 'a4').
-#latex_paper_size = 'letter'
+latex_paper_size = 'a4'
 
 # The font size ('10pt', '11pt' or '12pt').
-#latex_font_size = '10pt'
+latex_font_size = '11pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-#latex_documents = []
+latex_documents = [('manual/MyHDL', 'MyHDL.tex', 'MyHDL manual', 'Jan Decaluwe', 'manual')]
 
 # Additional stuff for the LaTeX preamble.
 #latex_preamble = ''
