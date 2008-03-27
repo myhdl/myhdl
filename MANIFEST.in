@@ -9,6 +9,7 @@ global-include *.v
 global-include *.vhd
 prune dist
 prune doc
+prune olddoc
 #graft doc/html/manual
 #graft doc/html/icons
 #graft doc/html/whatsnew*
