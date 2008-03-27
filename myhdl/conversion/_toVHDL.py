@@ -38,6 +38,7 @@ from types import GeneratorType, FunctionType, ClassType
 from cStringIO import StringIO
 import __builtin__
 import warnings
+from copy import copy
 
 import myhdl
 from myhdl import *
@@ -562,7 +563,7 @@ class _ConvertVisitor(_ConversionMixin):
         ds = ns - os
         if ds > 0:
             if isinstance(node.left.vhd, vhd_vector):
-                node.left.size = ns
+                left.vhd.size = ns
                 node.vhdOri.size = ns
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         return pre, suf
@@ -618,8 +619,6 @@ class _ConvertVisitor(_ConversionMixin):
         self.write("(%s" % op)
         self.visit(node.expr, context)
         self.write(")")
-    def visitInvert(self, node, context=None, *args):
-        self.unaryOp(node, 'not ', context)
     def visitUnaryAdd(self, node, context=None, *args):
         self.unaryOp(node, '+', context)
         
@@ -627,6 +626,14 @@ class _ConvertVisitor(_ConversionMixin):
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
         self.write("(-")
+        self.visit(node.expr)
+        self.write(")")
+        self.write(suf)
+
+    def visitInvert(self, node, context=None, *args):
+        pre, suf = self.inferCast(node.vhd, node.vhdOri)
+        self.write(pre)
+        self.write("(not ")
         self.visit(node.expr)
         self.write(")")
         self.write(suf)
@@ -638,7 +645,6 @@ class _ConvertVisitor(_ConversionMixin):
         self.write("(not ")
         self.visit(node.expr, context)
         self.write(")")
-
         
 
     def visitAssAttr(self, node, *args):
@@ -1593,6 +1599,8 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 class vhd_type(object):
     def __init__(self, size=0):
         self.size = size
+    def __repr__(self):
+        return "%s(%s)" % (type(self).__name__, self.size)
 
 class vhd_string(vhd_type):
     pass
@@ -1703,7 +1711,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
 
     def visitAssAttr(self, node):
         self.visit(node.expr)
-        node.vhd = node.expr.vhd
+        node.vhd = copy(node.expr.vhd)
         
     def visitAssert(self, node):
         self.visit(node.test)
@@ -1713,16 +1721,15 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         self.visit(node.node)
         self.visit(node.expr)
         if node.op in ("|=", "&=", "^="):
-            node.expr.vhd = node.node.vhd
+            node.expr.vhd = copy(node.node.vhd)
             node.vhdOri = node.node.vhd
         elif node.op in ("<<=", ">>="):
-            node.vhd = node.node.vhd
             node.expr.vhd = vhd_int()           
-            node.vhdOri = node.vhd
+            node.vhdOri = copy(node.node.vhd)
         else:
              left, right = node.node, node.expr
              self.inferBinaryOpType(node, left, right, node.op)
-        node.vhd = node.node.vhd
+        node.vhd = copy(node.node.vhd)
         
     def visitCallFunc(self, node):
         fn = node.node
@@ -1750,10 +1757,10 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             v = _AnnotateTypesVisitor(node.ast)
             compiler.walk(node.ast, v)
             node.vhd = node.ast.vhd = inferVhdlObj(node.ast.returnObj)
-        node.vhdOri = node.vhd
+        node.vhdOri = copy(node.vhd)
     
     def visitCompare(self, node):
-        node.vhd = node.vhdOri = vhd_boolean()
+        node.vhd = vhd_boolean()
         self.visitChildNodes(node)
         expr = node.expr
         op, code = node.ops[0]
@@ -1763,12 +1770,14 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             expr.vhd = vhd_signed(expr.vhd.size + 1)
         elif maybeNegative(expr.vhd) and isinstance(code.vhd, vhd_unsigned):
             code.vhd = vhd_signed(code.vhd.size + 1)
+        node.vhdOri = copy(node.vhd)
 
     def visitConst(self, node):
         if isinstance(node.value, str):
-            node.vhd = node.vhdOri = vhd_string()
+            node.vhd = vhd_string()
         else:
-            node.vhd = node.vhdOri = vhd_nat()
+            node.vhd = vhd_nat()
+        node.vhdOri = copy(node.vhd)
 
     def visitFor(self, node):
         var = node.assign.name
@@ -1778,23 +1787,23 @@ class _AnnotateTypesVisitor(_ConversionMixin):
 
     def visitGetattr(self, node):
         self.visitChildNodes(node)
-        node.vhd = node.vhdOri = node.expr.vhd
+        node.vhd = copy(node.expr.vhd)
+        node.vhdOri = copy(node.vhd)
         
     def visitName(self, node):
-        node.vhd = node.vhdOri = inferVhdlObj(node.obj)
+        node.vhd = inferVhdlObj(node.obj)
+        node.vhdOri = copy(node.vhd)
   
     # visitAssName = visitName
     def visitAssName(self, node):
         node.obj = self.ast.vardict[node.name]
         self.visitName(node)
         
-        
     def binaryOp(self, node, op=None):
         self.visit(node.left)
         self.visit(node.right)
         left, right = node.left, node.right
         self.inferBinaryOpType(node, left, right, op)
-
 
     def inferBinaryOpType(self, node, left, right, op=None):
         if isinstance(left.vhd, (vhd_boolean, vhd_std_logic)):
@@ -1840,8 +1849,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = vhd_unsigned(s)
         else:
             node.vhd = vhd_int()
-        node.vhdOri = node.vhd
-        
+        node.vhdOri = copy(node.vhd)
 
     def visitAdd(self, node):
         self.binaryOp(node, op='+')
@@ -1868,6 +1876,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         for n in node.nodes:
             n.vhd = o
         node.vhd = o
+        node.vhdOri = copy(node.vhd)
     visitBitand = visitBitor = visitBitxor = multiBitOp
 
     def multiBoolOp(self, node):
@@ -1875,6 +1884,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         for n in node.nodes:
             n.vhd = vhd_boolean()
         node.vhd = vhd_boolean()
+        node.vhdOri = copy(node.vhd)
     visitAnd = visitOr = multiBoolOp
 
     def visitIf(self, node):
@@ -1886,8 +1896,9 @@ class _AnnotateTypesVisitor(_ConversionMixin):
 
     def shift(self, node):
         self.visitChildNodes(node)
-        node.vhd = node.vhdOri = node.left.vhd
+        node.vhd = copy(node.left.vhd)
         node.right.vhd = vhd_nat()
+        node.vhdOri = copy(node.vhd)
     visitRightShift = visitLeftShift = shift
 
     def visitListComp(self, node):
@@ -1916,7 +1927,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = t(lower-upper)
         else:
             node.vhd = vhd_unsigned(lower-upper)
-        node.vhdOri = node.vhd
+        node.vhdOri = copy(node.vhd)
 
     def visitSubscript(self, node):
         self.visitChildNodes(node)
@@ -1931,13 +1942,19 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = vhd_int()
         elif isinstance(o, intbv):
             node.vhd = vhd_std_logic()
-        node.vhdOri = node.vhd
+        node.vhdOri = copy(node.vhd)
             
     def unaryOp(self, node):
         self.visit(node.expr)
-        node.vhd = node.expr.vhd
+        node.vhd = copy(node.expr.vhd)
+        node.vhdOri = copy(node.vhd)
 
     visitUnaryAdd = unaryOp
+##     visitInvert = unaryOp
+    def visitInvert(self, node):
+        self.visit(node.expr)
+        node.vhd = copy(node.expr.vhd)
+        node.vhdOri = copy(node.vhd)
     
     def visitUnarySub(self, node):
         self.visit(node.expr)
@@ -1946,7 +1963,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = vhd_signed(node.vhd.size + 1)
         elif isinstance(node.vhd, vhd_nat):
             node.vhd = vhd_int()
-        node.vhdOri = node.vhd
+        node.vhdOri = copy(node.vhd)
 
     def visitWhile(self, node):
         self.visitChildNodes(node)

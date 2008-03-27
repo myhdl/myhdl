@@ -525,6 +525,13 @@ def expressions(a, b, clk):
         yield clk.posedge
         a.next = -c
         yield clk.posedge
+        c.next = 46
+        yield clk.posedge
+        a.next = ~d + 1
+        b.next = ~c + 1
+        yield clk.posedge
+        a.next = ~c + 1
+        b.next = ~d + 1
 
 
         yield clk.posedge
