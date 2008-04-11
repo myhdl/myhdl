@@ -123,7 +123,7 @@ latex_font_size = '11pt'
 latex_documents = [('manual/MyHDL', 'MyHDL.tex', 'MyHDL manual', 'Jan Decaluwe', 'manual')]
 
 # Additional stuff for the LaTeX preamble.
-#latex_preamble = ''
+latex_preamble = '\usepackage{palatino}'
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []

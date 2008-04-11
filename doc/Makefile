@@ -2,12 +2,14 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS   =
-SPHINXBUILD  = sphinx-build
-PAPER        =
+SPHINXOPTS    =
+SPHINXBUILD   = sphinx-build
+PAPER         =
 
-ALLSPHINXOPTS = -d build/doctrees -D latex_paper_size=$(PAPER) \
-                $(SPHINXOPTS) source
+# Internal variables.
+PAPEROPT_a4     = -D latex_paper_size=a4
+PAPEROPT_letter = -D latex_paper_size=letter
+ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
 .PHONY: help clean html web htmlhelp latex changes linkcheck
 
