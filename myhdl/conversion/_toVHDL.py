@@ -22,8 +22,8 @@
 """
 
 __author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__revision__ = "$Revision: 811 $"
-__date__ = "$Date: 2006-03-31 22:09:27 +0200 (Fri, 31 Mar 2006) $"
+__revision__ = "$Revision$"
+__date__ = "$Date$"
 
 import sys
 import os
