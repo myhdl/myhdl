@@ -1,4 +1,13 @@
 syntax: glob
 *~
 *.pyc
+*.v
+*.vhd
+*_ghdl
+*.o
+*.so
+*.log
+*.cf
+*.vpi
+*.orig
 doc/build
