@@ -44,10 +44,9 @@ class intbv(object):
             self._min = min
             self._max = max
             if max is not None and min is not None:
-                _nrbits = maxfunc(len(bin(max-1)), len(bin(min)))
                 if min >= 0:
                     _nrbits = len(bin(max-1))
-                elif max <= 0:
+                elif max <= 1:
                     _nrbits = len(bin(min))
                 else:
                     # make sure there is a leading zero bit in positive numbers
