@@ -34,7 +34,7 @@ from datetime import datetime
 import compiler
 from compiler import ast as astNode
 from sets import Set
-from types import GeneratorType, FunctionType, ClassType
+from types import GeneratorType, FunctionType, ClassType, StringType
 from cStringIO import StringIO
 import __builtin__
 import warnings
@@ -816,6 +816,15 @@ class _ConvertVisitor(_ConversionMixin):
             self.write("(now / 1 ns)")
             self.write(suf)
             return
+        elif f is ord:
+            opening, closing = '', ''
+            if isinstance(node.args[0], astNode.Const):
+                if  type(node.args[0].value) != StringType:
+                    self.raiseError(node, _error.UnsupportedType, "%s" % (type(node.args[0].value)))
+                elif len(node.args[0].value) > 1:
+                    self.raiseError(node, _error.UnsupportedType, "Strings with length > 1" )
+                else:
+                    node.args[0].value = ord(node.args[0].value)
         elif f in (int, long):
             opening, closing = '', ''
             # convert number argument to integer
