@@ -1753,7 +1753,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = vhd_unsigned(s)
         elif f is bool:
             node.vhd = vhd_boolean()
-        elif f is int:
+        elif f in (int, long, ord):
             node.vhd = vhd_int()
             node.args[0].vhd = vhd_int()
         elif f is intbv:

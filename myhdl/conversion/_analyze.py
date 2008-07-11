@@ -507,7 +507,7 @@ class _AnalyzeVisitor(_ConversionMixin):
             node.obj = int(0) # XXX
         elif f is bool:
             node.obj = bool()
-        elif f is int:
+        elif f in (int, long, ord):
             node.obj = int(-1)
 ##         elif f in (posedge , negedge):
 ##             node.obj = _EdgeDetector()
@@ -768,7 +768,6 @@ class _AnalyzeVisitor(_ConversionMixin):
         
     def visitPrintnl(self, node, *args):
         self.ast.hasPrint = True
-        node.format = "%s"
         n = node.nodes[0]
         if isinstance(n, astNode.Mod) and \
            (isinstance(n.left, astNode.Const) and isinstance(n.left.value, str)):

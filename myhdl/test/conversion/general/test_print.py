@@ -43,10 +43,16 @@ def PrintBench():
         print b
         print "%% %s" % i1
         yield delay(10)
+        
 #        print state
 ##         print "the state is %s" % state
 ##         print "the state is %s" % (state,)
 ##         print "i1 is %s and the state is %s" % (i1, state)
+
+        yield delay(10)
+        # ord test
+        print ord('y')
+        print ord('2')
 
     return logic
 
