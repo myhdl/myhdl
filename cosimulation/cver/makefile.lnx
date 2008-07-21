@@ -2,7 +2,8 @@
 WARNS=-Wall
 
 # change this path to point to the pli include files directory for cver
-INCS=-I$(HOME)/tools/gplcver-2.11a.src/pli_incs
+INCS=-I$(HOME)/Tools/gplcver-2.12a.src/pli_incs
+
 # maybe want -O<something> and/or -g
 CFLAGS= -fPIC -Wall -g $(INCS)
 LFLAGS= -G -shared -export-dynamic

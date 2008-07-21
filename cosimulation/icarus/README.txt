@@ -3,8 +3,8 @@ To run co-simulation on Windows, compile and use all tools involved
 (including Python itself) on a Unix-like environment for Windows, such
 as cygwin.
 
-A working Icarus installation is required, so that the commands
-'iverilog' and 'vvp' are available.
+For co-simulation with Icarus, a working Icarus installation is required,
+so that the commands 'iverilog' and 'vvp' are available.
 
 Run the Makefile by typing 'make'. This should generate a 'myhdl.vpi'
 PLI module. Install it in an appropriate location, where 'vvp' can
