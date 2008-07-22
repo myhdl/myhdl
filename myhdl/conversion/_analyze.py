@@ -32,6 +32,7 @@ from sets import Set
 from types import GeneratorType, FunctionType, ClassType, MethodType
 from cStringIO import StringIO
 import re
+import warnings
 import __builtin__
 
 import myhdl
@@ -271,7 +272,7 @@ class _NotSupportedVisitor(_ConversionMixin):
         
     def visitPrintnl(self, node, *args):
         if len(node.nodes) > 1:
-            self.raiseError(node, _error.NotSupported, "print with more than one argument")
+            warnings.warn("print with more than one argument: %s"%node)
         if node.dest is not None:
             self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
         self.visitChildNodes(node, *args)

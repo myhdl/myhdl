@@ -1,6 +1,7 @@
 syntax: glob
 *~
 *.pyc
+*.swp
 *.v
 *.vhd
 *_ghdl
