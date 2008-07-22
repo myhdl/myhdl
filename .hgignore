@@ -11,3 +11,4 @@ syntax: glob
 *.vpi
 *.orig
 doc/build
+build/
