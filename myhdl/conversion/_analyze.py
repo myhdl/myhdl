@@ -272,7 +272,7 @@ class _NotSupportedVisitor(_ConversionMixin):
         
     def visitPrintnl(self, node, *args):
         if len(node.nodes) > 1:
-            warnings.warn("print with more than one argument: %s"%node)
+            warnings.warn("print with more than one argument not supported: %s"%node)
         if node.dest is not None:
             self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
         self.visitChildNodes(node, *args)
