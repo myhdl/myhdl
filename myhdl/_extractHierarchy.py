@@ -126,7 +126,7 @@ def _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline):
         
 
 def _isListOfSigs(obj):
-    if obj and isinstance(obj, list):
+    if obj != None and isinstance(obj, list):
         for e in obj:
             if not isinstance(e, Signal):
                 return False
