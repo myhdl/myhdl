@@ -1,0 +1,21 @@
+# could add to CFLAGS to turn on warnings if you are using gcc                                                                       
+WARNS=-Wall
+# change path if not running test from installed directory location
+INCS=-I/opt/local/share/gplcver/pli_incs                      
+# you must use exactly these flags for OSX 
+CFLAGS= -fPIC  -Wall $(INCS) -dynamic -fno-common
+LFLAGS= -flat_namespace -bundle -undefined suppress
+# change to your compiler
+CC=gcc 
+
+all: myhdl_vpi.dylib
+
+myhdl_vpi.o:	myhdl_vpi.c 
+	$(CC) $(CFLAGS) -c myhdl_vpi.c
+
+# make rules for dynamic libaries
+myhdl_vpi.dylib:	myhdl_vpi.o
+	$(CC) $(LFLAGS) myhdl_vpi.o -o myhdl_vpi.dylib
+
+clean:
+	-rm *.o *.so
