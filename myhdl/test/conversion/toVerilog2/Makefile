@@ -1,4 +1,4 @@
-all: cver icarus
+all: cver 
 
 icarus:
 	py.test icarus.py test_*.py

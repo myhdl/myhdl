@@ -1,4 +1,4 @@
-all: GHDL cver icarus
+all: GHDL cver
 
 GHDL:
 	py.test GHDL.py test_*.py
