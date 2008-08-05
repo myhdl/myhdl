@@ -53,8 +53,8 @@ class TestIntbvSigned(TestCase):
     '''
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # in the following cases the .signed() function should classify the
-    # value of the intbv instance as unsigned and return a value based
-    # on the msb.
+    # value of the intbv instance as unsigned and return the 2's
+    # complement value of the bits as specified by _nrbits.
     #
     
     # intbv with positive range, pos number, and msb not set, return signed()
@@ -64,6 +64,8 @@ class TestIntbvSigned(TestCase):
     self.assertEqual(b, 0x3b)
     
     # intbv with positive range, pos number, and msb set, return signed()
+    # test various bit patterns to see that the 2's complement
+    # conversion works correct
     # Expect the number to be converted to a negative number
     a = intbv(7, min=0, max=8)
     b = a.signed()
@@ -77,8 +79,8 @@ class TestIntbvSigned(TestCase):
     b = a.signed()
     self.assertEqual(b, -3)
     
-    # set bit #3 and increase the range that the set bit is considered
-    # the sign bit
+    # set bit #3 and increase the range so that the set bit is considered
+    # the sign bit. Here min = 0
     # Expect to return -4
     a = intbv(4, min=0, max=5)
     b = a.signed()
@@ -99,6 +101,31 @@ class TestIntbvSigned(TestCase):
     # here it is not the sign bit anymore
     # Expect the value to be 4
     a = intbv(4, min=0, max=9)
+    b = a.signed()
+    self.assertEqual(b, 4)
+    
+    # set bit #3 and increase the range so that the set bit is considered
+    # the sign bit. Here min > 0
+    # Expect to return -4
+    a = intbv(4, min=1, max=5)
+    b = a.signed()
+    self.assertEqual(b, -4)
+    
+    a = intbv(4, min=2, max=6)
+    b = a.signed()
+    self.assertEqual(b, -4)
+    
+    a = intbv(4, min=3, max=7)
+    b = a.signed()
+    self.assertEqual(b, -4)
+    
+    a = intbv(4, min=4, max=8)
+    b = a.signed()
+    self.assertEqual(b, -4)
+    
+    # again with min > 0, here it is not the sign bit anymore
+    # Expect the value to be 4
+    a = intbv(4, min=2, max=9)
     b = a.signed()
     self.assertEqual(b, 4)
     
