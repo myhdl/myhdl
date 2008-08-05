@@ -444,9 +444,10 @@ class intbv(object):
       The intbv.signed() function will classify the value of the intbv
       instance either as signed or unsigned. If the value is classified
       as signed it will be returned unchanged as integer value. If the
-      value is considered unsigned, the value will be returned as
-      integer value, with the sign being considered by the msb. The msb
-      is the msb as specified by _nrbits.
+      value is considered unsigned, the bits as specified by _nrbits
+      will be considered as 2's complement number and returned. This
+      feature will allow to create slices and have the sliced bits be
+      considered a 2's complement number.
 
       The classification is based on the following possible combinations
       of the min and max value.
@@ -470,12 +471,14 @@ class intbv(object):
       based on the _nrbits value.
       
       So the test will be if min >= 0 and _nrbits > 0. Then the instance
-      is considered unsigned and the value is change based on the msb.
+      is considered unsigned and the value is returned as 2's complement
+      number.
       '''
 
       # value is considered unsigned
       if self.min >= 0 and self._nrbits > 0:
 
+        # get 2's complement value of bits
         msb = self._nrbits-1
 
         sign = ((self._val >> msb) & 0x1) > 0
