@@ -17,13 +17,11 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl miscellaneous objects.
+""" MyHDL miscellaneous public objects.
 
-This module provides the following myhdl objects:
+This module provides the following public myhdl objects:
 instances -- function that returns instances in a generator function
-             these are all generators in the local namespace
-processes -- function that returns processes in a generator function
-             these are generators obtained by calling local generator functions
+downrange -- function that returns a downward range
 
 """
 
@@ -37,10 +35,7 @@ import inspect
 from types import GeneratorType
 
 from myhdl import Cosimulation
-from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
-from myhdl._always_comb import _AlwaysComb
-
 
     
 def instances():
@@ -48,9 +43,7 @@ def instances():
     d = inspect.getouterframes(f)[1][0].f_locals
     l = []
     for v in d.values():
-      if isinstance(v, (GeneratorType, Cosimulation, _AlwaysComb)):
-         l.append(v)
-      elif _isGenSeq(v):
+      if _isGenSeq(v):
          l.append(v)
     return l
     
