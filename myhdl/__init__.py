@@ -116,10 +116,9 @@ from _join import join
 from _Signal import posedge, negedge, Signal
 from _simulator import now
 from _delay import delay
-from _util import downrange
 from _Cosimulation import Cosimulation
 from _Simulation import Simulation
-from _misc import instances, processes
+from _misc import instances, downrange
 from _always_comb import always_comb
 from _always import always
 from _instance import instance
@@ -148,7 +147,6 @@ __all__ = ["bin",
            "Simulation",
            "instances",
            "instance",
-           "processes",
            "always_comb",
            "always",
            "enum",

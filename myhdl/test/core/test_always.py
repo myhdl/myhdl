@@ -32,7 +32,7 @@ from unittest import TestCase
 import inspect
 from sets import Set
 
-from myhdl import Signal, Simulation, instances, processes, AlwaysError, \
+from myhdl import Signal, Simulation, instances, AlwaysError, \
                   intbv, delay, StopSimulation, now
 
 from myhdl._always import always, _Always, _error

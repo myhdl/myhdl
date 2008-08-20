@@ -42,18 +42,6 @@ import compiler
 from compiler.consts import CO_GENERATOR
 
 
-def downrange(start, stop=0, step=1):
-    """ Return a downward range. """
-    return range(start-1, stop-1, -step)
-        
-## class StopSimulation(exceptions.Exception):
-##     """ Basic exception to stop a Simulation """
-##     pass
-
-## class SuspendSimulation(exceptions.Exception):
-##     """ Basic exception to suspend a Simulation """
-##     pass
-
 def _printExcInfo():
     kind, value  = sys.exc_info()[:2]
     msg = str(kind)

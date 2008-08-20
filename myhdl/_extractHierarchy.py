@@ -245,6 +245,7 @@ class _HierExtr(object):
                 if isGenSeq and arg:
                     sigdict = {}
                     memdict = {}
+                    # print frame.f_code.co_cellvars
                     for dict in (frame.f_globals, frame.f_locals):
                         for n, v in dict.items():
                             if isinstance(v, Signal):

@@ -31,7 +31,7 @@ from types import GeneratorType
 import unittest
 from unittest import TestCase
 
-from myhdl import instances, processes
+from myhdl import instances
 
 def A(n):
     yield None
@@ -70,36 +70,6 @@ class InstancesTest(TestCase):
         for e in (D_1, A_1, B_1, C_1):
             self.assert_(e in i)
 
-
-class ProcessesTest(TestCase):
-
-    def testProcesses(self):
-
-        def D():
-            yield None
-        D_1 = D()
-        d = 1
-
-        def A():
-            yield None
-        
-        a = [1, 2]
-
-        def E():
-            yield None
-        B_1 = B(1)
-        b = "string"
-        C_1 = C(1)
-        c = {}
-
-        p = processes()
-        self.assertEqual(len(p), 3)
-        for e in p:
-            self.assertEqual(type(e), GeneratorType)
-        n = [e.gi_frame.f_code.co_name for e in p]
-        for en in ['D', 'A', 'E']:
-            self.assert_(en in n)
-        
 
 if __name__ == "__main__":
     unittest.main()

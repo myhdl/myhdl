@@ -32,7 +32,7 @@ from unittest import TestCase
 import inspect
 from sets import Set
 
-from myhdl import Signal, Simulation, instances, processes, AlwaysCombError, \
+from myhdl import Signal, Simulation, instances, AlwaysCombError, \
                   intbv, delay, StopSimulation, now
 
 from myhdl._always_comb import always_comb, _AlwaysComb, _error
@@ -255,7 +255,7 @@ class AlwaysCombSimulationTest1(TestCase):
                 self.assertEqual(x, z)
             raise StopSimulation, "always_comb simulation test"
 
-        return instances(), processes()
+        return instances()
         
 
     def testAnd(self):

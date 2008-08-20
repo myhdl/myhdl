@@ -54,12 +54,6 @@ def instances():
          l.append(v)
     return l
     
-     
-def processes():
-    f = inspect.currentframe()
-    d = inspect.getouterframes(f)[1][0].f_locals
-    l = []
-    for v in d.values():
-      if _isGenFunc(v):
-         l.append(v()) # call it
-    return l
+def downrange(start, stop=0, step=1):
+    """ Return a downward range. """
+    return range(start-1, stop-1, -step)
