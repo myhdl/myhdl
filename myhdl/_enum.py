@@ -93,6 +93,10 @@ def enum(*args, **kwargs):
             return "%d'b%s" % (self._nrbits, val)
         def _toVHDL(self):
             return self._name
+        def __copy__(self):
+            return self
+        def __deepcopy__(self, memo=None):
+            return self
 
     class Enum(EnumType):
         def __init__(self):

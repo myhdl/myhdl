@@ -27,17 +27,20 @@ import random
 from random import randrange
 random.seed(1) # random, but deterministic
 
+import sys
+import copy
+
 import unittest
 from unittest import TestCase
-import sys
 
 from myhdl import enum
 
 
-class TestEnum(TestCase):
+t_State = enum("SEARCH", "CONFIRM", "SYNC")
+t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
 
-    t_State = enum("SEARCH", "CONFIRM", "SYNC")
-    t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
+
+class TestEnum(TestCase):
 
     def testUniqueLiterals(self):
         try:
@@ -49,16 +52,15 @@ class TestEnum(TestCase):
 
     def testWrongAttr(self):
         try:
-            self.t_State.TYPO
+            t_State.TYPO
         except AttributeError:
             pass
         else:
             self.fail()
 
     def testAttrAssign(self):
-        self.t_State.SEARCH
         try:
-            self.t_State.SEARCH = 4
+            t_State.SEARCH = 4
         except AttributeError:
             pass
         else:
@@ -66,17 +68,22 @@ class TestEnum(TestCase):
 
     def testWrongAttrAssign(self):
         try:
-            self.t_State.TYPO = 4
+            t_State.TYPO = 4
         except AttributeError:
             pass
         else:
             self.fail()
 
     def testHomograph(self):
-        self.assert_(self.t_State is not self.t_Homograph)
+        self.assert_(t_State is not t_Homograph)
         
     def testHomographLiteral(self):
-        self.assert_(self.t_State.SEARCH is not self.t_Homograph.SEARCH)
+        self.assert_(t_State.SEARCH is not t_Homograph.SEARCH)
+
+    def testItemCopy(self):
+        e = copy.deepcopy(t_State.SEARCH)
+        self.assert_(e == t_State.SEARCH)
+        self.assert_(e != t_State.CONFIRM)
 
 
 if __name__ == "__main__":
