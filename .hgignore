@@ -1,4 +1,6 @@
 syntax: glob
+CHANGELOG.txt
+MANIFEST
 *~
 *.pyc
 *.swp
@@ -11,5 +13,8 @@ syntax: glob
 *.cf
 *.vpi
 *.orig
+*.vcd
+*.0
 doc/build
 build/
+dist/
