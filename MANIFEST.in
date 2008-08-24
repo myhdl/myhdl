@@ -7,6 +7,7 @@ global-include Makefile
 global-include makefile*
 global-include *.v
 global-include *.vhd
+prune .hg
 prune dist
 prune doc
 prune olddoc
@@ -16,6 +17,6 @@ prune olddoc
 #include doc/paper-a4/MyHDL.pdf
 #include doc/paper-letter/MyHDL.pdf
 prune myhdl/experiments
-exclude myhdl/test/toVerilog/*.v
-exclude myhdl/test/toVHDL/*.vhd
+exclude myhdl/test/conversion/*/*.v
+exclude myhdl/test/conversion/*/*.vhd
 prune example/cookbook/nco
