@@ -25,11 +25,11 @@ __date__ = "$Date$"
 
 import test_Simulation, test_Signal, test_intbv, test_Cosimulation, test_misc, \
        test_always_comb, test_bin, test_traceSignals, test_enum, test_concat, \
-       test_unparse, test_inferWaiter, test_always, test_instance
+       test_unparse, test_inferWaiter, test_always, test_instance, test_signed
 
 modules = (test_Simulation, test_Signal, test_intbv, test_misc, test_always_comb,
            test_bin, test_traceSignals, test_enum, test_concat,
-           test_unparse, test_inferWaiter, test_always, test_instance
+           test_unparse, test_inferWaiter, test_always, test_instance, test_signed
           )
 
 import unittest
