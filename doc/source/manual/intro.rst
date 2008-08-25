@@ -450,8 +450,116 @@ one-off count issues in practice. For example, the slice ``hex[8:]`` has exactly
 about it as follows: for a slice ``[i:j]``, only bits below index ``i`` are
 included, and the bit with index ``j`` is the last bit included.
 
-When an intbv object is sliced, a new intbv object is returned. This new intbv
-object is always positive, even when the original object was negative.
+When an :class:`intbv` object is sliced, a new :class:`intbv` object is returned. 
+This new :class:`intbv` object is always positive, even when the original object was negative.
+
+Take the following example of a range restricted :class:`intbv`
+instance::
+
+  >>> a = intbv(6,min=-8,max=8)
+  >>> a._nrbits
+  4
+  >>> b = a[4:]
+  >>> b
+  intbv(6L)
+  >>> b.min
+  0
+  >>> b.max
+  16
+  >>>
+
+The value is set to 6 and the range to -8 to 7. Note that the max value
+is excluded. Checking the bit width with the *_nrbits* attribute shows
+that it occupies 4 bits. If we slice now all bits, by using the convention 
+a[4:], which means to slice the 4 lsb bits, the returned :class:`intbv` 
+instance will still have 4 bits, the value will not change, but the range 
+will be changed to min=0 and max=16.
+
+One thing to note here is that unlike bit width specified variables, 
+:class:`intbv` instances can be constructed with assymetric value range.
+
+Let's do a small variation to the above example::
+
+  >>> a = intbv(6,min=-4,max=8)
+  >>> a._nrbits
+  4
+
+The lower range got reduced to -4, but looking at the required number of
+bits, there are still 4 bits necessary to represent the value range.
+
+Let's change that and increase the number range for the negative
+numbers::
+
+  >>> a = intbv(6,min=-16,max=8)
+  >>> a._nrbits
+  5
+
+Here now 5 bits are necessary to represent the negative value range up
+to -16.
+  
+
+.. _intro-signed:
+
+Conversion to signed representation
+-----------------------------------
+
+.. index:: 
+    single: intbv; signed()
+    single: intbv; min
+    single: intbv; max
+    single: intbv; _nrbits
+
+
+When using the :class:`intbv` class with restricted bit width, the *min* and
+*max* attributes can be used to restrict the value range. From a
+:class:`intbv` instance with positve and negative value range we saw in
+the previous section that it is possible to slice bits and the returned
+:class:`intbv` instance will have a postive value range. In hardware
+description it is sometimes desirable to have a bit vector with positive
+value range and create from it a bit vector that allows positive and
+negative value range.
+
+As an example let's take a 8-bit wide data bus that would be modeled as
+follows::
+
+  intbv(0, min=0, max=256)
+
+Now consider that e.g. a complex number is transfered over this data
+bus. The upper 4 bits of the data bus are used to transfer the real value and
+the lower 4 bits for the imaginary value. As real and imaginary value
+have a positive and negative value range, it would be good to have a way
+to slice off bits and have them be considered of positive and negative
+value range. The ``signed`` member function of the :class:`intbv` will 
+allow to do just that.
+
+The basic functionality of the ``signed`` member function is to classify 
+the value of :class:`intbv` as either 'signed' or 'unsigned', based on the 
+*min* and *max* values. If the value is classified as 'signed', the ``signed``
+member function will return the value unchanged as integer value. If it is 
+considered 'unsigned' the bits of the value, as specified by *_nrbits* are 
+considered a 2's complement number and returned as integer. That means 
+that if the msb is set, the value is considered negative and if the msb 
+is not set, it is considered a positive value.
+
+The classification is done based on the *min* and *max* attributes. The
+value is classified as 'unsigned' if *min* >= 0 and *max* > *min*. In all
+other cases the value is classified as 'signed'.
+
+Let's look at a basic example::
+
+  >>> a = intbv(12, min=0, max=16)
+  >>> bin(a)
+  '1100'
+  >>> b = a.signed()
+  >>> b
+  -4L
+
+A 4-bits wide :class:`intbv` instance is assigned the value 12. In
+binary representation this is '1100', that means the msb is set. 
+The instance is create with min=0 and max=16, which qualifies it to be
+classified as 'unsigned' by the ``signed`` function. The function call
+will return the binary '1100' as 2's complement value, which is -4. Note
+that the return type is a integer/long type.
 
 
 .. _intro-python:
