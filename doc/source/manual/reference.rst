@@ -349,6 +349,14 @@ attributes:
    Read-only attribute that is the maximum value (exclusive) of an :class:`intbv`,
    or *None* for no  maximum.
 
+.. method:: intbv.signed()
+
+   Return the :class:`intbv` value as 2's complement number if the value is
+   classified as 'unsigned'. The value is classfied as 'unsigned' if the
+   *min* attribute is >= 0 and *max* > *min*.
+
+   :rtype: integer
+
 Unlike :class:`int` objects, :class:`intbv` objects are mutable; this is also
 the reason for their existence. Mutability is needed to support assignment to
 indexes and slices, as is common in hardware design. For the same reason,
