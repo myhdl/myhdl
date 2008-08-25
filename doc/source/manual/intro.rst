@@ -410,7 +410,9 @@ The simulation produces the following output::
 Bit slicing
 -----------
 
-.. index:: single: bit slicing
+.. index:: 
+   single: bit slicing
+   single: concat(); example usage
 
 For a change, we will use a traditional function as an example to illustrate
 slicing.  The following function calculates the HEC byte of an ATM header. ::
@@ -468,7 +470,7 @@ instance::
   16
   >>>
 
-The value is set to 6 and the range to -8 to 7. Note that the max value
+The value is set to 6 and the range to -8 ... 7. Note that the max value
 is excluded. Checking the bit width with the *_nrbits* attribute shows
 that it occupies 4 bits. If we slice now all bits, by using the convention 
 a[4:], which means to slice the 4 lsb bits, the returned :class:`intbv` 
@@ -494,7 +496,7 @@ numbers::
   >>> a._nrbits
   5
 
-Here now 5 bits are necessary to represent the negative value range up
+Here now 5 bits are necessary to represent the negative value range down
 to -16.
   
 

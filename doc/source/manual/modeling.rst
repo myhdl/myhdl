@@ -384,7 +384,7 @@ are defined. Also, the identifiers evaluate to integers, whereas a string
 representation of the identifiers would be preferable. To solve these issues, we
 need an *enumeration type*.
 
-.. index:: single: enum
+.. index:: single: enum(); example usage
 
 MyHDL supports enumeration types by providing a function :func:`enum`.  The
 arguments to :func:`enum` are the string representations of the identifiers, and

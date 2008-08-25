@@ -438,6 +438,8 @@ Miscellaneous modeling support functions
    This function complements the standard Python conversion functions ``hex`` and
    ``oct``. A binary string representation is often useful in hardware design.
 
+   :rtype: string
+
 
 .. function:: concat(base [, arg ...])
 
@@ -450,6 +452,7 @@ Miscellaneous modeling support functions
    the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
    :class:`long` objects are supported, as well as signals of such objects.
 
+   :rtype: :class:`intbv`
 
 .. function:: downrange(high [, low=0])
 
@@ -483,6 +486,8 @@ Miscellaneous modeling support functions
 .. function:: instances()
 
    Looks up all MyHDL instances in the local name space and returns them in a list.
+
+   :rtype: list
 
 
 .. _ref-cosim:
