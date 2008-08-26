@@ -452,6 +452,11 @@ one-off count issues in practice. For example, the slice ``hex[8:]`` has exactly
 about it as follows: for a slice ``[i:j]``, only bits below index ``i`` are
 included, and the bit with index ``j`` is the last bit included.
 
+.. index::    
+    single: intbv; min
+    single: intbv; max
+    single: intbv; _nrbits
+
 When an :class:`intbv` object is sliced, a new :class:`intbv` object is returned. 
 This new :class:`intbv` object is always positive, even when the original object was negative.
 
@@ -507,24 +512,20 @@ Conversion to signed representation
 
 .. index:: 
     single: intbv; signed()
-    single: intbv; min
-    single: intbv; max
-    single: intbv; _nrbits
 
 
 When using the :class:`intbv` class with restricted bit width, the *min* and
-*max* attributes can be used to restrict the value range. From a
-:class:`intbv` instance with positve and negative value range we saw in
-the previous section that it is possible to slice bits and the returned
-:class:`intbv` instance will have a postive value range. In hardware
-description it is sometimes desirable to have a bit vector with positive
-value range and create from it a bit vector that allows positive and
-negative value range.
+*max* attributes are used to restrict the value range. From a :class:`intbv` 
+instance with positve and negative value range we saw in the previous section
+that it is possible to slice bits and the returned :class:`intbv` instance 
+will have a postive value range. In hardware description it is sometimes 
+desirable to have a bit vector with positive value range and create from it 
+a bit vector that allows positive and negative value range.
 
 As an example let's take a 8-bit wide data bus that would be modeled as
 follows::
 
-  intbv(0, min=0, max=256)
+  data_bus = intbv(0, min=0, max=256)
 
 Now consider that e.g. a complex number is transfered over this data
 bus. The upper 4 bits of the data bus are used to transfer the real value and
@@ -539,9 +540,10 @@ the value of :class:`intbv` as either 'signed' or 'unsigned', based on the
 *min* and *max* values. If the value is classified as 'signed', the ``signed``
 member function will return the value unchanged as integer value. If it is 
 considered 'unsigned' the bits of the value, as specified by *_nrbits* are 
-considered a 2's complement number and returned as integer. That means 
+considered a two's complement number and returned as integer. That means 
 that if the msb is set, the value is considered negative and if the msb 
-is not set, it is considered a positive value.
+is not set, it is considered a positive value. The msb is here specified
+by *_nrbits*-1.
 
 The classification is done based on the *min* and *max* attributes. The
 value is classified as 'unsigned' if *min* >= 0 and *max* > *min*. In all
@@ -558,10 +560,17 @@ Let's look at a basic example::
 
 A 4-bits wide :class:`intbv` instance is assigned the value 12. In
 binary representation this is '1100', that means the msb is set. 
-The instance is create with min=0 and max=16, which qualifies it to be
-classified as 'unsigned' by the ``signed`` function. The function call
-will return the binary '1100' as 2's complement value, which is -4. Note
-that the return type is a integer/long type.
+The instance is create with min=0 and max=16, which qualifies it for the
+value to be classified as 'unsigned' by the ``signed`` function. The function
+call will return the binary '1100' as two's complement value, which is -4. 
+Note that the return type is a integer type.
+
+To come back to the initial data bus example, the ``signed`` function
+can be used in connection with a slice to slice the real and the
+imaginary part from the data bus as follows:
+
+ real = data_bus[].signed()
+ imag = data_bus[].signed()
 
 
 .. _intro-python:

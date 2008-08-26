@@ -351,9 +351,10 @@ attributes:
 
 .. method:: intbv.signed()
 
-   Return the :class:`intbv` value as 2's complement number if the value is
-   classified as 'unsigned'. The value is classfied as 'unsigned' if the
-   *min* attribute is >= 0 and *max* > *min*.
+   Return the bits as specified by the *_nrbits* attribute of the :class:`intbv` 
+   value as two's complement number when classified as 'unsigned'. The value is 
+   classfied as 'unsigned' if the *min* attribute is >= 0 and *max* > *min*. 
+   Bit # *_nrbits*-1 specifies then the sign of the value.
 
    :rtype: integer
 
