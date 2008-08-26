@@ -349,6 +349,15 @@ attributes:
    Read-only attribute that is the maximum value (exclusive) of an :class:`intbv`,
    or *None* for no  maximum.
 
+.. method:: intbv.signed()
+
+   Return the bits as specified by the *_nrbits* attribute of the :class:`intbv` 
+   value as two's complement number when classified as 'unsigned'. The value is 
+   classfied as 'unsigned' if the *min* attribute is >= 0 and *max* > *min*. 
+   Bit # *_nrbits*-1 specifies then the sign of the value.
+
+   :rtype: integer
+
 Unlike :class:`int` objects, :class:`intbv` objects are mutable; this is also
 the reason for their existence. Mutability is needed to support assignment to
 indexes and slices, as is common in hardware design. For the same reason,
@@ -430,6 +439,8 @@ Miscellaneous modeling support functions
    This function complements the standard Python conversion functions ``hex`` and
    ``oct``. A binary string representation is often useful in hardware design.
 
+   :rtype: string
+
 
 .. function:: concat(base [, arg ...])
 
@@ -442,6 +453,7 @@ Miscellaneous modeling support functions
    the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
    :class:`long` objects are supported, as well as signals of such objects.
 
+   :rtype: :class:`intbv`
 
 .. function:: downrange(high [, low=0])
 
@@ -475,6 +487,8 @@ Miscellaneous modeling support functions
 .. function:: instances()
 
    Looks up all MyHDL instances in the local name space and returns them in a list.
+
+   :rtype: list
 
 
 .. _ref-cosim:
