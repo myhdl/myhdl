@@ -258,30 +258,6 @@ class _HierExtr(object):
                             if elt is sub:
                                 subs.append((n, sub))
                                 
-                                # special handling of locally defined generators
-                                # outside the profiling mechanism
-                                if id(sub) in self.returned:
-                                    continue
-                                for obj in _getGens(sub):
-                                    if id(obj) in self.returned:
-                                        continue
-                                    gen = obj
-                                    # can't get signal info from contructed generators
-                                    if isinstance(obj, (_AlwaysComb, _Always)):
-                                        continue
-                                    gsigdict = {}
-                                    gmemdict = {}
-                                    for dict in (gen.gi_frame.f_globals,
-                                                 gen.gi_frame.f_locals):
-                                        for n, v in dict.items():
-                                            if isinstance(v, Signal):
-                                                gsigdict[n] = v
-                                            if _isListOfSigs(v):
-                                                gmemdict[n] = _makeMemInfo(v)
-                                    inst = _Instance(self.level+1, obj, (), gsigdict, gmemdict)
-                                    self.hierarchy.append(inst)
-                                    
-                    self.returned.add(id(arg))
                     inst = _Instance(self.level, arg, subs, sigdict, memdict)
                     self.hierarchy.append(inst)
                 self.level -= 1
