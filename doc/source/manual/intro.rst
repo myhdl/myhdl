@@ -483,7 +483,7 @@ instance will still have 4 bits, the value will not change, but the range
 will be changed to min=0 and max=16.
 
 One thing to note here is that unlike bit width specified variables, 
-:class:`intbv` instances can be constructed with assymetric value range.
+:class:`intbv` instances can be constructed with asymmetric value range.
 
 Let's do a small variation to the above example::
 
@@ -507,22 +507,22 @@ to -16.
 
 .. _intro-signed:
 
-Conversion to signed representation
------------------------------------
+Unsigned to signed conversion
+-----------------------------
 
 .. index:: 
     single: intbv; signed()
 
 
 When using the :class:`intbv` class with restricted bit width, the *min* and
-*max* attributes are used to restrict the value range. From a :class:`intbv` 
-instance with positve and negative value range we saw in the previous section
+*max* attributes are used to restrict the value range. From an :class:`intbv` 
+instance with positive and negative value range we saw in the previous section
 that it is possible to slice bits and the returned :class:`intbv` instance 
-will have a postive value range. In hardware description it is sometimes 
+will have a positive value range. In hardware description it is sometimes 
 desirable to have a bit vector with positive value range and create from it 
 a bit vector that allows positive and negative value range.
 
-As an example let's take a 8-bit wide data bus that would be modeled as
+As an example let's take a 8 bit wide data bus that would be modeled as
 follows::
 
   data_bus = intbv(0, min=0, max=256)
@@ -558,7 +558,7 @@ Let's look at a basic example::
   >>> b
   -4L
 
-A 4-bits wide :class:`intbv` instance is assigned the value 12. In
+A 4 bits wide :class:`intbv` instance is assigned the value 12. In
 binary representation this is '1100', that means the msb is set. 
 The instance is create with min=0 and max=16, which qualifies it for the
 value to be classified as 'unsigned' by the ``signed`` function. The function
