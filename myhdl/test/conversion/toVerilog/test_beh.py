@@ -13,20 +13,25 @@ from util import setupCosimulation
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 def behRef(count, enable, clock, reset, n):
-   while 1:
-       if reset == ACTIVE_LOW:
-           yield reset.posedge
-       for i in range(20):
-           yield clock.posedge
-           if enable:
-               count.next = i
-       j = 1
-       while j < 25:
-           if enable:
-               yield clock.posedge
-           yield clock.posedge
-           count.next = 2 * j
-           j += 1
+
+    @instance
+    def logic():
+        while 1:
+            if reset == ACTIVE_LOW:
+                yield reset.posedge
+            for i in range(20):
+                yield clock.posedge
+                if enable:
+                    count.next = i
+            j = 1
+            while j < 25:
+                if enable:
+                    yield clock.posedge
+                yield clock.posedge
+                count.next = 2 * j
+                j += 1
+
+    return logic
 
 objfile = "beh_inst.o"
 analyze_cmd = "iverilog -o %s beh_inst.v tb_beh_inst.v" % objfile

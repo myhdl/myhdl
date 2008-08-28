@@ -40,6 +40,7 @@ def multipleDrivenSignal(count, enable, clock, reset, n):
 
 def shadowingSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0)[8:])
+    @instance
     def incTaskGen():
         while 1:
             yield clock.posedge, reset.negedge
@@ -48,20 +49,24 @@ def shadowingSignal(count, enable, clock, reset, n):
             else:
                 if enable:
                     count.next = (count + 1) % n
-    return incTaskGen()
+    return incTaskGen
 
 def internalSignal(count, enable, clock, reset, n):
-    a = Signal(bool())
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = (count + 1) % n
+    @instance
+    def logic():
+        a = Signal(bool())
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return logic
 
 def undefinedBitWidthSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0))
+    @instance
     def incTaskGen():
         while 1:
             yield clock.posedge, reset.negedge
@@ -70,26 +75,21 @@ def undefinedBitWidthSignal(count, enable, clock, reset, n):
             else:
                 if enable:
                     count.next = (count + 1) % n
-    return incTaskGen()
+    return incTaskGen
                 
-## def negIntbv(count, enable, clock, reset, n):
-##     a = intbv(0, min=-2, max=45)
-##     while 1:
-##         yield clock.posedge, reset.negedge
-##         if reset == ACTIVE_LOW:
-##             count.next = 0
-##         else:
-##             if enable:
-##                 count.next = (count + 1) % n
+
 
 def yieldObject1(count, enable, clock, reset, n):
-    while 1:
-        yield clock.posedge, delay(5)
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = (count + 1) % n
+    @instance
+    def logic():
+        while 1:
+            yield clock.posedge, delay(5)
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return logic
                 
 def g1(clock):
         yield clock.posedge
@@ -97,13 +97,16 @@ def g2(reset):
         yield reset.negedge
       
 def yieldObject2(count, enable, clock, reset, n):
-    while 1:
-        yield g1(clock), g2(reset)
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = (count + 1) % n
+    @instance
+    def logic():
+        while 1:
+            yield g1(clock), g2(reset)
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return logic
 
 def f1(n):
     if n == 0:
@@ -124,102 +127,135 @@ def f3(n):
         return f2(n-1)
       
 def recursion1(count, enable, clock, reset, n):
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = f1(n)
+    @instance
+    def logic():
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = f1(n)
+    return logic
                 
 def recursion2(count, enable, clock, reset, n):
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = f2(n)
+    @instance
+    def logic():
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = f2(n)
+    return logic
 
 def h1(n):
     return None
 
 def functionNoReturnVal(count, enable, clock, reset, n):
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = h1(n)
+    @instance
+    def logic():
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = h1(n)
+    return logic
                 
 def h2(cnt):
     cnt[:] = cnt + 1
     return 1
 
 def taskReturnVal(count, enable, clock, reset, n):
-    cnt = intbv(0)[8:]
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                h2(cnt)
-                count.next = count + 1
+    @instance
+    def logic():
+        cnt = intbv(0)[8:]
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    h2(cnt)
+                    count.next = count + 1
+    return logic
 
 
 def printnlToFile(count, enable, clock, reset, n):
-    cnt = intbv(0)[8:]
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                print >> f, count
-                count.next = count + 1
+    @instance
+    def logic():
+        cnt = intbv(0)[8:]
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    print >> f, count
+                    count.next = count + 1
+    return logic
 
 def printToFile(count, enable, clock, reset, n):
-    cnt = intbv(0)[8:]
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                print >> f, count,
-                count.next = count + 1
+    @instance
+    def logic():
+        cnt = intbv(0)[8:]
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    print >> f, count,
+                    count.next = count + 1
+    return logic
 
 def listComp1(count, enable, clock, reset, n):
-    mem = [intbv(0)[8:] for i in range(4) for j in range(5)]
-    while 1:
-        yield clock.posedge, reset.negedge
-        count.next = count + 1
+    @instance
+    def logic():
+        mem = [intbv(0)[8:] for i in range(4) for j in range(5)]
+        while 1:
+            yield clock.posedge, reset.negedge
+            count.next = count + 1
+    return logic
 
 def listComp2(count, enable, clock, reset, n):
-    mem = [intbv(0)[8:] for i in downrange(4)]
-    while 1:
-        yield clock.posedge, reset.negedge
-        count.next = count + 1
+    @instance
+    def logic():
+        mem = [intbv(0)[8:] for i in downrange(4)]
+        while 1:
+            yield clock.posedge, reset.negedge
+            count.next = count + 1
+    return logic
 
 def listComp3(count, enable, clock, reset, n):
-    mem = [intbv(0)[8:] for i in range(1, 4)]
-    while 1:
-        yield clock.posedge, reset.negedge
-        count.next = count + 1
+    @instance
+    def logic():
+        mem = [intbv(0)[8:] for i in range(1, 4)]
+        while 1:
+            yield clock.posedge, reset.negedge
+            count.next = count + 1
+    return logic
         
 def listComp4(count, enable, clock, reset, n):
-    mem = [intbv(0) for i in range(4)]
-    while 1:
-        yield clock.posedge, reset.negedge
-        count.next = count + 1
+    @instance
+    def logic():
+        mem = [intbv(0) for i in range(4)]
+        while 1:
+            yield clock.posedge, reset.negedge
+            count.next = count + 1
+    return logic
 
 def listComp5(count, enable, clock, reset, n):
-    mem = [i for i in range(4)]
-    while 1:
-        yield clock.posedge, reset.negedge
-        count.next = count + 1
+    @instance
+    def logic():
+        mem = [i for i in range(4)]
+        while 1:
+            yield clock.posedge, reset.negedge
+            count.next = count + 1
+    return logic
 
 def undefinedBitWidthMem(count, enable, clock, reset, n):
     mem = [Signal(intbv(0)[8:]) for i in range(8)]

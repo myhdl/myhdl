@@ -2,4 +2,4 @@ all:
 	python test_all.py
 
 clean:
-	- rm *.o *.out *.v *.pyc *~ *.vcd*
+	- rm *.o *.out *.v *.pyc *~ *.vcd* \#*

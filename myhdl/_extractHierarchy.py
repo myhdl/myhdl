@@ -165,29 +165,13 @@ class _HierExtr(object):
         self.hierarchy = hierarchy = []
         self.absnames = absnames = {}
         self.level = 0
-        self.returned = Set()
-        
-        # handle special case of a top-level generator separately
-        if _isGenFunc(dut):
-            _top = dut(*args, **kwargs)
-            gsigdict = {}
-            gmemdict = {}
-            for dict in (_top.gi_frame.f_globals, _top.gi_frame.f_locals):
-                for n, v in dict.items():
-                    if isinstance(v, Signal):
-                        gsigdict[n] = v
-                    if _isListOfSigs(v):
-                        gmemdict[n] = _makeMemInfo(v)
-            inst = _Instance(1, _top, (), gsigdict, gmemdict)
-            self.hierarchy.append(inst)
-        # the normal case
-        else:
-            _profileFunc = self.extractor
-            sys.setprofile(_profileFunc)
-            _top = dut(*args, **kwargs)
-            sys.setprofile(None)
-            if not hierarchy:
-                raise ExtractHierarchyError(_error.NoInstances)
+
+        _profileFunc = self.extractor
+        sys.setprofile(_profileFunc)
+        _top = dut(*args, **kwargs)
+        sys.setprofile(None)
+        if not hierarchy:
+            raise ExtractHierarchyError(_error.NoInstances)
             
         self.top = _top
 

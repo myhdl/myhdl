@@ -94,16 +94,22 @@ class TestConstWires(unittest.TestCase):
 ### tests of code ignore facility during translation ###
 
 def adderRef(a, b, c):
-    while 1:
-        yield a, b
-        c.next = a + b
+    @instance
+    def logic():
+        while 1:
+            yield a, b
+            c.next = a + b
+    return logic
         
 def adderDebug(a, b, c):
-    while 1:
-        yield a, b
-        if __debug__:
-            import string
-        c.next = a + b
+    @instance
+    def logic():
+        while 1:
+            yield a, b
+            if __debug__:
+                import string
+            c.next = a + b
+    return logic
 
         
 def Ignorecode_v(name, a, b, c):

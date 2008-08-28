@@ -32,34 +32,37 @@ def binaryOps(
               And,
               Or,
               left, right):
-    while 1:
-        yield left, right
-        Bitand.next = left & right
-        Bitor.next = left | right
-        Bitxor.next = left ^ right
-        if right != 0:
-            FloorDiv.next = left // right
-        if left < 256 and right < 40:
-            LeftShift.next = left << right
-        if right != 0:
-            Mod.next = left % right
-        Mul.next = left * right
-        # Icarus doesn't support ** yet
-        #if left < 256 and right < 40:
-        #    Pow.next = left ** right
-        Pow.next = 0
-        RightShift.next = left >> right
-        if left >= right:
-            Sub.next = left - right
-        Sum.next = left + right
-        EQ.next = left == right
-        NE.next = left != right
-        LT.next = left < right
-        GT.next = left > right
-        LE.next = left <= right
-        GE.next = left >= right
-        And.next = bool(left) and bool(right)
-        Or.next = bool(left) or bool(right)
+    @instance
+    def logic():
+        while 1:
+            yield left, right
+            Bitand.next = left & right
+            Bitor.next = left | right
+            Bitxor.next = left ^ right
+            if right != 0:
+                FloorDiv.next = left // right
+            if left < 256 and right < 40:
+                LeftShift.next = left << right
+            if right != 0:
+                Mod.next = left % right
+            Mul.next = left * right
+            # Icarus doesn't support ** yet
+            #if left < 256 and right < 40:
+            #    Pow.next = left ** right
+            Pow.next = 0
+            RightShift.next = left >> right
+            if left >= right:
+                Sub.next = left - right
+            Sum.next = left + right
+            EQ.next = left == right
+            NE.next = left != right
+            LT.next = left < right
+            GT.next = left > right
+            LE.next = left <= right
+            GE.next = left >= right
+            And.next = bool(left) and bool(right)
+            Or.next = bool(left) or bool(right)
+    return logic
 
 
 
@@ -222,13 +225,16 @@ def multiOps(
               And,
               Or,
               argm, argn, argp):
-    while 1:
-        yield argm, argn, argp
-        Bitand.next = argm & argn & argp
-        Bitor.next = argm | argn | argp
-        Bitxor.next = argm ^ argn ^ argp
-        And.next = bool(argm) and bool(argn) and bool(argp)
-        Or.next = bool(argm) and bool(argn) and bool(argp)
+    @instance
+    def logic():
+        while 1:
+            yield argm, argn, argp
+            Bitand.next = argm & argn & argp
+            Bitor.next = argm | argn | argp
+            Bitxor.next = argm ^ argn ^ argp
+            And.next = bool(argm) and bool(argn) and bool(argp)
+            Or.next = bool(argm) and bool(argn) and bool(argp)
+    return logic
 
 
 def multiOps_v( name,
@@ -323,12 +329,15 @@ def unaryOps(
              UnaryAdd,
              UnarySub,
              arg):
-    while 1:
-        yield arg
-        Not.next = not arg
-        Invert.next = ~arg
-        UnaryAdd.next = +arg
-        UnarySub.next = --arg
+    @instance
+    def logic():
+        while 1:
+            yield arg
+            Not.next = not arg
+            Invert.next = ~arg
+            UnaryAdd.next = +arg
+            UnarySub.next = --arg
+    return logic
 
 def unaryOps_v(name,
                Not,
@@ -407,43 +416,46 @@ def augmOps(
               Sub,
               Sum,
               left, right):
-    var = intbv(0)[max(64, len(left) + len(right)):]
-    while 1:
-        yield left, right
-        var[:] = left
-        var &= right
-        Bitand.next = var
-        var[:] = left
-        var |= right
-        Bitor.next = var
-        var[:] = left
-        var ^= left
-        Bitxor.next = var
-        if right != 0:
+    @instance
+    def logic():
+        var = intbv(0)[max(64, len(left) + len(right)):]
+        while 1:
+            yield left, right
             var[:] = left
-            var //= right
-            FloorDiv.next = var
-        if left < 256 and right < 40:
+            var &= right
+            Bitand.next = var
             var[:] = left
-            var <<= right
-            LeftShift.next = var
-        if right != 0:
+            var |= right
+            Bitor.next = var
             var[:] = left
-            var %= right
-            Mod.next = var
-        var[:] = left
-        var *= right
-        Mul.next = var
-        var[:] = left
-        var >>= right
-        RightShift.next = var
-        if left >= right:
+            var ^= left
+            Bitxor.next = var
+            if right != 0:
+                var[:] = left
+                var //= right
+                FloorDiv.next = var
+            if left < 256 and right < 40:
+                var[:] = left
+                var <<= right
+                LeftShift.next = var
+            if right != 0:
+                var[:] = left
+                var %= right
+                Mod.next = var
             var[:] = left
-            var -= right
-            Sub.next = var
-        var[:] = left
-        var += right
-        Sum.next = var
+            var *= right
+            Mul.next = var
+            var[:] = left
+            var >>= right
+            RightShift.next = var
+            if left >= right:
+                var[:] = left
+                var -= right
+                Sub.next = var
+            var[:] = left
+            var += right
+            Sum.next = var
+    return logic
 
 
 def augmOps_v(  name,
