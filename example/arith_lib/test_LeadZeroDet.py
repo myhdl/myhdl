@@ -1,7 +1,7 @@
 import unittest
 from unittest import TestCase
 
-from myhdl import Signal, intbv, delay, Simulation
+from myhdl import *
 
 from arith_utils import BEHAVIOR, STRUCTURE
 from arith_utils import SLOW, FAST
@@ -33,6 +33,7 @@ class LeadZeroDetTest(TestCase):
         beh = LeadZeroDet(width, speed, A, ZB, architecture=BEHAVIOR)
         str = LeadZeroDet(width, speed, A, ZS, architecture=STRUCTURE)
 
+        @instance
         def stimulus():
             if nrsamples:
                 vals = [long(random()*(2**width)) for i in range(nrsamples)]
@@ -43,7 +44,7 @@ class LeadZeroDetTest(TestCase):
                 yield delay(10)
                 self.assertEqual(ZS, ZB)
 
-        return (beh, str, stimulus())
+        return (beh, str, stimulus)
 
     def testLeadZeroDetSmallSlow(self):
         Simulation(self.bench(width=8, speed=SLOW)).run()
