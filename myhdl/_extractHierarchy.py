@@ -36,7 +36,8 @@ from compiler import ast
 import linecache
 from sets import Set
 
-from myhdl import Signal, ExtractHierarchyError, ToVerilogError, ToVHDLError
+from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
+from myhdl._Signal import Signal, _isListOfSigs
 from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
 from myhdl._always_comb import _AlwaysComb
@@ -125,15 +126,6 @@ def _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline):
     _userCodeMap[hdl][id(arg)] = classMap[hdl](code, namespace, sourcefile, funcname, sourceline)
         
 
-def _isListOfSigs(obj):
-    """ Check if obj is a non-empty list of signals. """
-    if isinstance(obj, list) and len(obj) > 0:
-        for e in obj:
-            if not isinstance(e, Signal):
-                return False
-        return True
-    else:
-        return False
 
 class _CallFuncVisitor(object):
 

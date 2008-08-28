@@ -511,3 +511,12 @@ class _SignalWrap(object):
         return self.sig._apply(self.next, self.timeStamp)
 
    
+def _isListOfSigs(obj):
+    """ Check if obj is a non-empty list of signals. """
+    if isinstance(obj, list) and len(obj) > 0:
+        for e in obj:
+            if not isinstance(e, Signal):
+                return False
+        return True
+    else:
+        return False
