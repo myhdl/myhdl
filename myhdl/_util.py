@@ -59,3 +59,10 @@ def _flatten(*args):
             arglist.append(arg)
     return arglist
 
+def _isTupleOfInts(obj):
+    if not isinstance(obj, tuple):
+        return False
+    for e in obj:
+        if not isinstance(e, (int, long)):
+            return False
+    return True
