@@ -47,6 +47,7 @@ from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label)
 from myhdl._extractHierarchy import _isMem, _UserCode
 from myhdl._Signal import _WaiterList
+from myhdl._util import _isTupleOfInts
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
@@ -144,7 +145,7 @@ def _analyzeGens(top, absnames):
                     if isinstance(g, _AlwaysComb):
                         # print type(obj)
                         assert isinstance(obj, (int, long, Signal)) or \
-                               _isMem(obj) or isTupleOfInts(obj)
+                               _isMem(obj) or _isTupleOfInts(obj)
                     ast.symdict[n] = obj
             ast.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
             v = _NotSupportedVisitor(ast)
@@ -283,13 +284,6 @@ class _NotSupportedVisitor(_ConversionMixin):
     # visitPrint = visitPrintnl
 
 
-def isTupleOfInts(obj):
-    if not isinstance(obj, tuple):
-        return False
-    for e in obj:
-        if not isinstance(e, (int, long)):
-            return False
-    return True
 
 def getNrBits(obj):
     if hasattr(obj, '_nrbits'):
@@ -752,7 +746,7 @@ class _AnalyzeVisitor(_ConversionMixin):
             node.obj = obj
         elif n in self.ast.symdict:
             node.obj = self.ast.symdict[n]
-            if isTupleOfInts(node.obj):
+            if _isTupleOfInts(node.obj):
                 node.obj = _Rom(node.obj)
                 self.ast.hasRom = True
             elif isinstance(node.obj, int):

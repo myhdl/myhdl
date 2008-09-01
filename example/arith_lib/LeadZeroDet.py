@@ -1,4 +1,4 @@
-from myhdl import Signal, intbv, downrange
+from myhdl import *
 from arith_utils import BEHAVIOR
 from PrefixAnd import PrefixAnd
 
@@ -14,6 +14,7 @@ def LeadZeroDet(width, speed, A, Z, architecture=BEHAVIOR):
 
     """
 
+    @instance
     def Behavioral():
         while 1:
             yield A
@@ -30,6 +31,7 @@ def LeadZeroDet(width, speed, A, Z, architecture=BEHAVIOR):
         PIT = Signal(intbv(0))
         POT = Signal(intbv(0))
         prefix = PrefixAnd(width, speed, PIT, POT)
+        @instance
         def logic():
             while 1:
                 yield PI, POT, PO, A
@@ -39,10 +41,10 @@ def LeadZeroDet(width, speed, A, Z, architecture=BEHAVIOR):
                     PO.next[i] = POT[width-i-1]
                 Z.next[width-1] = A[width-1]
                 Z.next[width-1:] = PO[width:1] & A[width-1:]
-        return [prefix, logic()]
+        return [prefix, logic]
 
     if architecture == BEHAVIOR:
-        return Behavioral()
+        return Behavioral
     else:
         return Structural()
                 

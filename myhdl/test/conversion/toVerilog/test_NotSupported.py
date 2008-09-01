@@ -25,39 +25,51 @@ class TestNotSupported(unittest.TestCase):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.net = 1
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.net = 1
+            return logic
         self.check(g, z, a)
 
     def testAssList(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                [p, q] = 1, 2
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    [p, q] = 1, 2
+            return logic
         self.check(g, z, a)
             
     def testAssTuple(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                p, q = 1, 2
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    p, q = 1, 2
+            return logic
         self.check(g, z, a)
 
     def testBackquote(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                `a`
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    `a`
+            return logic
         self.check(g, z, a)
             
        
@@ -65,11 +77,14 @@ class TestNotSupported(unittest.TestCase):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                class c:
-                    pass
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    class c:
+                        pass
+            return logic
         self.check(g, z, a)
 
         
@@ -77,100 +92,130 @@ class TestNotSupported(unittest.TestCase):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                d = {}
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    d = {}
+            return logic
         self.check(g, z, a)
 
     def testDiv(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = z / a
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = z / a
+            return logic
         self.check(g, z, a)
 
     def testExec(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                exec "1 + 2"
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    exec "1 + 2" in globals , locals
+            return logic
         self.check(g, z, a)
         
     def testFrom(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                from os import path
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    from os import path
+            return logic
         self.check(g, z, a)
 
     def testFunction(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                def f():
-                    pass
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    def f():
+                        pass
+            return logic
         self.check(g, z, a)
 
     def testGlobal(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                global e
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    global e
+            return logic
         self.check(g, z, a)
 
     def testImport(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                import os
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    import os
+            return logic
         self.check(g, z, a)
 
     def testLambda(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                lambda: 1
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    lambda: 1
+            return logic
         self.check(g, z, a)
 
     def testListCompIf(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                l = [i for i in range(5) if i > 1]
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    l = [i for i in range(5) if i > 1]
+            return logic
         self.check(g, z, a)
 
     def testList(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                l = [1, 2, 3]
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    l = [1, 2, 3]
+            return logic
         self.check(g, z, a)
 
 ##     def testPower(self):
@@ -196,35 +241,44 @@ class TestNotSupported(unittest.TestCase):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                try:
-                    pass
-                except:
-                    pass
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    try:
+                        pass
+                    except:
+                        pass
+            return logic
         self.check(g, z, a)
 
     def testTryFinally(self):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a):
-            while 1:
-                yield a
-                z.next = 1
-                try:
-                    pass
-                finally:
-                    pass
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    z.next = 1
+                    try:
+                        pass
+                    finally:
+                        pass
+            return logic
         self.check(g, z, a)
 
     def testChainedCompare(self):
         a, b, c = [Signal(bool()) for i in range(3)]
         z = Signal(bool())
         def g(z, a, b, c):
-            while 1:
-                yield a, b, c
-                z.next = a <= b < c
+            @instance
+            def logic():
+                while 1:
+                    yield a, b, c
+                    z.next = a <= b < c
+            return logic
         self.check(g, z, a, b, c)
 
 ##     def testShortcutAnd(self):
@@ -256,12 +310,15 @@ class TestNotSupported(unittest.TestCase):
         b = intbv(0)[2:]
         z = Signal(bool())
         def g(z, a, b):
-            while 1:
-                yield a
-                if a:
-                    pass
-                else:
-                    z.next = a and b
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    if a:
+                        pass
+                    else:
+                        z.next = a and b
+            return logic
         self.check(g, z, a, b)
     
     def testNonBoolArgOr(self):
@@ -270,12 +327,15 @@ class TestNotSupported(unittest.TestCase):
         a = Signal(bool())
         z = Signal(bool())
         def g(z, a, b):
-            while 1:
-                yield a
-                if a:
-                    pass
-                else:
-                    z.next = a < (b or c)
+            @instance
+            def logic():
+                while 1:
+                    yield a
+                    if a:
+                        pass
+                    else:
+                        z.next = a < (b or c)
+            return logic
         self.check(g, z, a, b)
 
     def testExtraArguments(self):

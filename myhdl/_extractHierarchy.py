@@ -36,7 +36,8 @@ from compiler import ast
 import linecache
 from sets import Set
 
-from myhdl import Signal, ExtractHierarchyError, ToVerilogError, ToVHDLError
+from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
+from myhdl._Signal import Signal, _isListOfSigs
 from myhdl._util import _isGenFunc
 from myhdl._isGenSeq import _isGenSeq
 from myhdl._always_comb import _AlwaysComb
@@ -125,15 +126,6 @@ def _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline):
     _userCodeMap[hdl][id(arg)] = classMap[hdl](code, namespace, sourcefile, funcname, sourceline)
         
 
-def _isListOfSigs(obj):
-    """ Check if obj is a non-empty list of signals. """
-    if isinstance(obj, list) and len(obj) > 0:
-        for e in obj:
-            if not isinstance(e, Signal):
-                return False
-        return True
-    else:
-        return False
 
 class _CallFuncVisitor(object):
 
@@ -165,29 +157,13 @@ class _HierExtr(object):
         self.hierarchy = hierarchy = []
         self.absnames = absnames = {}
         self.level = 0
-        self.returned = Set()
-        
-        # handle special case of a top-level generator separately
-        if _isGenFunc(dut):
-            _top = dut(*args, **kwargs)
-            gsigdict = {}
-            gmemdict = {}
-            for dict in (_top.gi_frame.f_globals, _top.gi_frame.f_locals):
-                for n, v in dict.items():
-                    if isinstance(v, Signal):
-                        gsigdict[n] = v
-                    if _isListOfSigs(v):
-                        gmemdict[n] = _makeMemInfo(v)
-            inst = _Instance(1, _top, (), gsigdict, gmemdict)
-            self.hierarchy.append(inst)
-        # the normal case
-        else:
-            _profileFunc = self.extractor
-            sys.setprofile(_profileFunc)
-            _top = dut(*args, **kwargs)
-            sys.setprofile(None)
-            if not hierarchy:
-                raise ExtractHierarchyError(_error.NoInstances)
+
+        _profileFunc = self.extractor
+        sys.setprofile(_profileFunc)
+        _top = dut(*args, **kwargs)
+        sys.setprofile(None)
+        if not hierarchy:
+            raise ExtractHierarchyError(_error.NoInstances)
             
         self.top = _top
 
@@ -258,30 +234,6 @@ class _HierExtr(object):
                             if elt is sub:
                                 subs.append((n, sub))
                                 
-                                # special handling of locally defined generators
-                                # outside the profiling mechanism
-                                if id(sub) in self.returned:
-                                    continue
-                                for obj in _getGens(sub):
-                                    if id(obj) in self.returned:
-                                        continue
-                                    gen = obj
-                                    # can't get signal info from contructed generators
-                                    if isinstance(obj, (_AlwaysComb, _Always)):
-                                        continue
-                                    gsigdict = {}
-                                    gmemdict = {}
-                                    for dict in (gen.gi_frame.f_globals,
-                                                 gen.gi_frame.f_locals):
-                                        for n, v in dict.items():
-                                            if isinstance(v, Signal):
-                                                gsigdict[n] = v
-                                            if _isListOfSigs(v):
-                                                gmemdict[n] = _makeMemInfo(v)
-                                    inst = _Instance(self.level+1, obj, (), gsigdict, gmemdict)
-                                    self.hierarchy.append(inst)
-                                    
-                    self.returned.add(id(arg))
                     inst = _Instance(self.level, arg, subs, sigdict, memdict)
                     self.hierarchy.append(inst)
                 self.level -= 1

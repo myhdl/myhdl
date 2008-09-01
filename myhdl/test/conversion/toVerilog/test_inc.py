@@ -21,13 +21,16 @@ def incRef(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = (count + 1) % n
+    @instance
+    def logic():
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+    return logic
                 
 def inc(count, enable, clock, reset, n):
     

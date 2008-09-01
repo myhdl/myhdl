@@ -21,16 +21,19 @@ def decRef(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
-    while 1:
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                if count == -n:
-                    count.next = n-1
-                else:
-                    count.next = count - 1
+    @instance
+    def logic():
+        while 1:
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    if count == -n:
+                        count.next = n-1
+                    else:
+                        count.next = count - 1
+    return logic
                 
 def dec(count, enable, clock, reset, n):
     """ Decrementer with enable.

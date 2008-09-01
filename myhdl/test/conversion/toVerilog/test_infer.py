@@ -12,60 +12,84 @@ from util import setupCosimulation
 b = c = 2
 
 def UnboundError1(a, out):
-    while 1:
-        yield a
-        out.next = a + b
-        b = 1
+    @instance
+    def logic():
+        while 1:
+            yield a
+            out.next = a + b
+            b = 1
+    return logic
 
 def UnboundError2(a, out):
-    while 1:
-        yield a
-        if a == 1:
-            c = 1
-        else:
-            out.next = c
+    @instance
+    def logic():
+        while 1:
+            yield a
+            if a == 1:
+                c = 1
+            else:
+                out.next = c
+    return logic
 
 def UnboundError3(a, out):
-    while 1:
-        yield a
-        out.next = a + d
-        d = 1
+    @instance
+    def logic():
+        while 1:
+            yield a
+            out.next = a + d
+            d = 1
+    return logic
 
 def UnboundError4(a, out):
-    while 1:
-        yield a
-        if a == 1:
-            e = 1
-        else:
-            out.next = e
+    @instance
+    def logic():
+        while 1:
+            yield a
+            if a == 1:
+                e = 1
+            else:
+                out.next = e
+    return logic
 
 def InferError1(a, out):
-    yield a
-    b = 2
-    b = intbv(0)[5:]
-    b[:] = 4
-    out.next = b
+    @instance
+    def logic():
+        yield a
+        b = 2
+        b = intbv(0)[5:]
+        b[:] = 4
+        out.next = b
+    return logic
     
 def InferError2(a, out):
-    yield a
-    c = intbv(0)[5:]
-    c[:] = 4
-    c = intbv(0)[4:]
-    c[:] = 4
-    out.next = c
+    @instance
+    def logic():
+        yield a
+        c = intbv(0)[5:]
+        c[:] = 4
+        c = intbv(0)[4:]
+        c[:] = 4
+        out.next = c
+    return logic
 
 enumType = enum("a", "b", "c")
 
 def InferError3(a, out):
-    yield a
-    d = enumType.a
-    d = 4
-    out.next = b
+    @instance
+    def logic():
+        yield a
+        d = enumType.a
+        d = 4
+        out.next = b
+    return logic
 
 def InferError4(a, out):
-    h = intbv(0)
-    yield a
-    out.next = h
+    @instance
+    def logic():
+        h = intbv(0)
+        yield a
+        out.next = h
+    return logic
 
 def InferError5Func(a):
     h = intbv(0)[5:]
@@ -75,8 +99,11 @@ def InferError5Func(a):
         return 1
 
 def InferError5(a, out):
-    yield a
-    out.next = InferError5Func(a)
+    @instance
+    def logic():
+        yield a
+        out.next = InferError5Func(a)
+    return logic
     
 def InferError6Func(a):
     if a:
@@ -85,8 +112,11 @@ def InferError6Func(a):
         return intbv(1)
 
 def InferError6(a, out):
-    yield a
-    out.next = InferError6Func(a)
+    @instance
+    def logic():
+        yield a
+        out.next = InferError6Func(a)
+    return logic
     
 def InferError7Func(a):
     if a:
@@ -95,8 +125,12 @@ def InferError7Func(a):
         return intbv(0xff)[7:2]
 
 def InferError7(a, out):
-    yield a
-    out.next = InferError7Func(a)
+    @instance
+    def logic():
+        yield a
+        out.next = InferError7Func(a)
+    return logic
+
 
 
 class TestErrors(unittest.TestCase):
@@ -167,26 +201,32 @@ class TestErrors(unittest.TestCase):
 
 
 def Infer1(a, out):
-    while 1:
-        yield a
-        c = 5
-        c = a < 4
-        c = bool(0)
-        c = False
-        c = not a
-        c = True
-        out.next = c
+    @instance
+    def logic():
+        while 1:
+            yield a
+            c = 5
+            c = a < 4
+            c = bool(0)
+            c = False
+            c = not a
+            c = True
+            out.next = c
+    return logic
     
 def Infer2(a, out):
-    while 1:
-        yield a
-        c = a < 4
-        c = bool(0)
-        c = False
-        c = not a
-        c = True
-        c = 5
-        out.next = c
+    @instance
+    def logic():
+        while 1:
+            yield a
+            c = a < 4
+            c = bool(0)
+            c = False
+            c = not a
+            c = True
+            c = 5
+            out.next = c
+    return logic
 
 def Infer3Func(a):
     if True:
@@ -195,9 +235,12 @@ def Infer3Func(a):
         return 5
 
 def Infer3(a, out):
-    while 1:
-        yield a
-        out.next = Infer3Func(a)
+    @instance
+    def logic():
+        while 1:
+            yield a
+            out.next = Infer3Func(a)
+    return logic
     
 def Infer4Func(a):
     while 1:
@@ -207,29 +250,35 @@ def Infer4Func(a):
             return a < 3
 
 def Infer4(a, out):
-    while 1:
-        yield a
-        out.next = Infer4Func(a)
+    @instance
+    def logic():
+        while 1:
+            yield a
+            out.next = Infer4Func(a)
+    return logic
 
 def Infer5(a, out):
-    while 1:
-        yield a
-        c = a + 1
-        c = a - 1
-        c = a * 3
-        c = a // 2
-        c = a << 2
-        c = a >> 2
-        c = a % 16
-        c = + a
-        c = -( - a)
-        c = ~(-3)
-        c = not a
-        c = 5 & 4
-        c = 5 | 2
-        c = 6 ^ 3
-        c = bool(a) and 1
-        out.next = c
+    @instance
+    def logic():
+        while 1:
+            yield a
+            c = a + 1
+            c = a - 1
+            c = a * 3
+            c = a // 2
+            c = a << 2
+            c = a >> 2
+            c = a % 16
+            c = + a
+            c = -( - a)
+            c = ~(-3)
+            c = not a
+            c = 5 & 4
+            c = 5 | 2
+            c = 6 ^ 3
+            c = bool(a) and 1
+            out.next = c
+    return logic
 
 
         

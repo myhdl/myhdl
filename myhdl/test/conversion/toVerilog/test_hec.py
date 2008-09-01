@@ -63,50 +63,62 @@ def HecCalculatorPlain(hec, header):
 
     Plain version.
     """
-    h = intbv(0)[8:]
-    while 1:
-        yield header
-        h[:] = 0
-        for i in downrange(len(header)):
-            bit = header[i]
-            h[:] = concat(h[7:2],
-                          bit ^ h[1] ^ h[7],
-                          bit ^ h[0] ^ h[7],
-                          bit ^ h[7]
-                          )
-        hec.next = h ^ COSET
+    @instance
+    def logic():
+        h = intbv(0)[8:]
+        while 1:
+            yield header
+            h[:] = 0
+            for i in downrange(len(header)):
+                bit = header[i]
+                h[:] = concat(h[7:2],
+                              bit ^ h[1] ^ h[7],
+                              bit ^ h[0] ^ h[7],
+                              bit ^ h[7]
+                              )
+            hec.next = h ^ COSET
+    return logic
 
 def HecCalculatorFunc(hec, header):
     """ Hec calculation module.
 
     Version with function call.
     """
-    h = intbv(0)[8:]
-    while 1:
-        yield header
-        hec.next = calculateHecFunc(header=header)
+    @instance
+    def logic():
+        h = intbv(0)[8:]
+        while 1:
+            yield header
+            hec.next = calculateHecFunc(header=header)
+    return logic
 
 def HecCalculatorTask(hec, header):
     """ Hec calculation module.
 
     Version with task call.
     """
-    h = intbv(0)[8:]
-    while 1:
-        yield header
-        calculateHecTask(h, header)
-        hec.next = h
+    @instance
+    def logic():
+        h = intbv(0)[8:]
+        while 1:
+            yield header
+            calculateHecTask(h, header)
+            hec.next = h
+    return logic
         
 def HecCalculatorTask2(hec, header):
     """ Hec calculation module.
 
     Version with task call.
     """
-    h = intbv(0)[8:]
-    while 1:
-        yield header
-        calculateHecTask(header=header, hec=h)
-        hec.next = h
+    @instance
+    def logic():
+        h = intbv(0)[8:]
+        while 1:
+            yield header
+            calculateHecTask(header=header, hec=h)
+            hec.next = h
+    return logic
 
          
         

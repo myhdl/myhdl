@@ -14,12 +14,15 @@ def bin2gray2(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
-    Bext = intbv(0)[width+1:]
-    while 1:
-        yield B
-        Bext[:] = B
-        for i in range(width):
-            G.next[i] = Bext[i+1] ^ Bext[i]
+    @instance
+    def logic():
+        Bext = intbv(0)[width+1:]
+        while 1:
+            yield B
+            Bext[:] = B
+            for i in range(width):
+                G.next[i] = Bext[i+1] ^ Bext[i]
+    return logic
 
 def bin2gray(B, G, width):
     
