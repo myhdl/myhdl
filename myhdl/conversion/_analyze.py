@@ -640,22 +640,17 @@ class _AnalyzeVisitor(_ConversionMixin):
                 node.obj = obj.negedge
             elif node.attrname in ('val', 'next'):
                 node.obj = obj.val
-            elif node.attrname == 'min':
-                node.obj = obj.min
-            elif node.attrname == 'max':
-                node.obj = obj.max
-            else:
-                self.raiseError(node, _error.UnsupportedAttribute, node.attrname)
-        if isinstance(obj, intbv):
+        if isinstance(obj, (intbv, Signal)):
             if node.attrname == 'min':
                 node.obj = obj.min
             elif node.attrname == 'max':
                 node.obj = obj.max
-            else:
-                self.raiseError(node, _error.UnsupportedAttribute, node.attrname)
         if isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
+        if node.obj is None: # attribute lookup failed
+            self.raiseError(node, _error.UnsupportedAttribute, node.attrname)
+            
             
             
     def visitIf(self, node, *args):
