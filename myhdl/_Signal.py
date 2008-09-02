@@ -426,6 +426,10 @@ class Signal(object):
     def __cmp__(self, other):
         return cmp(self._val, other)
 
+    # method lookup delegation
+    def __getattr__(self, attr):
+        return getattr(self._val, attr)
+
     # representation 
     def __str__(self):
         if self._name:

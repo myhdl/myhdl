@@ -25,8 +25,8 @@ from unittest import TestCase
 
 from random import randrange
 
-from myhdl._intbv import intbv
-from myhdl._concat import concat
+from myhdl import *
+
 
 class TestIntbvSigned(TestCase):
     '''Test cases to verify the intbv.signed() member function'''
@@ -258,7 +258,9 @@ class TestIntbvSigned(TestCase):
                 lo = randrange(-L, L)
                 hi = randrange(lo+1, 2*L)
                 v = randrange(lo, hi)
-                self.checkInvariants(intbv(v, min=lo, max=hi))
+                a = intbv(v, min=lo, max=hi)
+                self.checkInvariants(a)
+                self.checkInvariants(Signal(a))
     
 
 
