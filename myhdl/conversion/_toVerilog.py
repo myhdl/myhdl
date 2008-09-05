@@ -970,10 +970,7 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitTuple(self, node, context=None, *args):
         assert context != None
-        if context == _context.PRINT:
-            sep = ", "
-        else:
-            sep = " or "
+        sep = ", "
         tpl = node.nodes
         self.visit(tpl[0])
         for elt in tpl[1:]:
@@ -1110,7 +1107,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         assert self.ast.senslist
         for e in self.ast.senslist[:-1]:
             self.write(e._toVerilog())
-            self.write(' or ')
+            self.write(', ')
         self.write(self.ast.senslist[-1]._toVerilog())
         self.write(") begin: %s" % self.ast.name)
         self.indent()
