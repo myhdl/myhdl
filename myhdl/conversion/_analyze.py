@@ -65,11 +65,14 @@ def _makeName(n, prefixes):
 ##     print name
     return name
                     
-def _analyzeSigs(hierarchy):
+def _analyzeSigs(hierarchy, hdl='Verilog'):
     curlevel = 0
     siglist = []
     memlist = []
     prefixes = []
+    open, close = '[', ']'
+    if hdl == 'VHDL':
+        open, close = '(', ')'
     
     for inst in hierarchy:
         level = inst.level
@@ -100,7 +103,7 @@ def _analyzeSigs(hierarchy):
             memlist.append(m)
 
     # handle the case where a named signal appears in a list also; such a list
-    # is not declared and references to it in a generator will be flagged as an error 
+    # is not declared and references to it in a generator will be flagged as an error
     for m in memlist:
         for s in m.mem:
             if s._name is not None:
@@ -109,7 +112,7 @@ def _analyzeSigs(hierarchy):
         if not m.decl:
             continue
         for i, s in enumerate(m.mem):
-            s._name = "%s[%s]" % (m.name, i)
+            s._name = "%s%s%s%s" % (m.name, open, i, close)
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
             if type(s.val) != type(m.elObj.val):

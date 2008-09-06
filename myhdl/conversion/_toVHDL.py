@@ -120,7 +120,7 @@ class _ToVHDLConvertor(object):
         if not os.path.isfile(ppath):
             pfile = open(ppath, 'w')
 
-        siglist, memlist = _analyzeSigs(h.hierarchy)
+        siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL')
         arglist = _flatten(h.top)
         # print h.top
         _checkArgs(arglist)
