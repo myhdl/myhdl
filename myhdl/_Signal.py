@@ -147,6 +147,7 @@ class Signal(object):
         del self._posedgeWaiters[:]
         del self._negedgeWaiters[:]
         self._next = self._val = self._init
+        self._name = self._read = self._driven = None
         
     def _update(self):
         val, next = self._val, self._next

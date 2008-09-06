@@ -221,9 +221,12 @@ class _HierExtr(object):
                 if isGenSeq and arg:
                     sigdict = {}
                     memdict = {}
-                    # print frame.f_code.co_cellvars
+                    cellvars = frame.f_code.co_cellvars
                     for dict in (frame.f_globals, frame.f_locals):
                         for n, v in dict.items():
+                            # only include objects that are used in generators
+##                             if not n in cellvars:
+##                                 continue
                             if isinstance(v, Signal):
                                 sigdict[n] = v
                             if _isListOfSigs(v):

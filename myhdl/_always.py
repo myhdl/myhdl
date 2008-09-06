@@ -42,7 +42,11 @@ _error.DecNrOfArgs = "decorator should have arguments"
 
 def always(*args):
     for arg in args:
-        if not isinstance(arg, (Signal, _WaiterList, delay)):
+        if isinstance(arg, Signal):
+            arg._read = True
+        elif isinstance(arg, _WaiterList):
+            arg.sig._read = True
+        elif not isinstance(arg, delay):
             raise AlwaysError(_error.DecArgType)
     def _always_decorator(func):
         if not isinstance(func, FunctionType):
