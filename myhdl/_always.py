@@ -44,8 +44,10 @@ def always(*args):
     for arg in args:
         if isinstance(arg, Signal):
             arg._read = True
+            arg._used = True
         elif isinstance(arg, _WaiterList):
             arg.sig._read = True
+            arg.sig._used = True
         elif not isinstance(arg, delay):
             raise AlwaysError(_error.DecArgType)
     def _always_decorator(func):

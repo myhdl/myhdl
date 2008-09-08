@@ -55,99 +55,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
     return FSM
 
 
-def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
-    
-    """ Framing control FSM.
-
-    SOF -- start-of-frame output bit
-    state -- FramerState output
-    syncFlag -- sync pattern found indication input
-    clk -- clock input
-    reset_n -- active low reset
-    
-    """
-    
- 
-    def FSM():
-        index = intbv(0)[8:] # position in frame
-        state_var = t_State.SEARCH
-        while True:
-            yield clk.posedge, reset_n.negedge
-            if reset_n == ACTIVE_LOW:
-                SOF.next = 0
-                index[:] = 0
-                state_var = t_State.SEARCH
-                state.next = t_State.SEARCH
-            else:
-                SOF_var = 0
-                if state == t_State.SEARCH:
-                    index[:] = 0
-                    if syncFlag:
-                        state_var = t_State.CONFIRM
-                elif state == t_State.CONFIRM:
-                    if index == 0:
-                        if syncFlag:
-                            state_var = t_State.SYNC
-                        else:
-                            state_var = t_State.SEARCH
-                elif state == t_State.SYNC:
-                    if index == 0:
-                        if not syncFlag:
-                            state_var = t_State.SEARCH
-                    SOF_var = (index == FRAME_SIZE-1)
-                else:
-                    raise ValueError("Undefined state")
-                index[:]= (index + 1) % FRAME_SIZE
-                SOF.next = SOF_var
-                state.next = state_var
-
-    FSM_1 = FSM()
-    return FSM_1
-
-
-def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
-    
-    """ Framing control FSM.
-
-    SOF -- start-of-frame output bit
-    state -- FramerState output
-    syncFlag -- sync pattern found indication input
-    clk -- clock input
-    reset_n -- active low reset
-    
-    """
-    
-    index = intbv(0, min=0, max=8) # position in frame
-    while 1:
-        yield clk.posedge, reset_n.negedge
-        if reset_n == ACTIVE_LOW:
-            SOF.next = 0
-            index[:] = 0
-            state.next = t_State.SEARCH
-        else:
-            SOF.next = 0
-            if state == t_State.SEARCH:
-                index[:] = 0
-                if syncFlag:
-                    state.next = t_State.CONFIRM
-            elif state == t_State.CONFIRM:
-                if index == 0:
-                    if syncFlag:
-                        state.next = t_State.SYNC
-                    else:
-                        state.next = t_State.SEARCH
-            elif state == t_State.SYNC:
-                if index == 0:
-                    if not syncFlag:
-                        state.next = t_State.SEARCH
-                SOF.next = (index == FRAME_SIZE-1)
-            else:
-                raise ValueError("Undefined state")
-            index[:]= (index + 1) % FRAME_SIZE
-
-
-    
-    
+  
 def FSMBench(FramerCtrl, t_State):
 
     SOF = Signal(bool(0))
@@ -190,36 +98,10 @@ def FSMBench(FramerCtrl, t_State):
         while True:
             yield clk.negedge
             print state
-            # print clk
-#            print state
-            # print "MyHDL: %s %s" % (SOF, hex(state))
-            # print "Verilog: %s %s" % (SOF_v, hex(state_v))
 
     return framerctrl_inst,  clkgen(), stimulus(), check()
 
 
-def testRef():
+def test():
     assert verify(FSMBench, FramerCtrl, t_State_b) == 0
-
-## def testAlt():
-##     assert verify(FSMBench, FramerCtrl_alt, t_State_b) == 0
-
-## def testRef(self):
-##     for t_State in (t_State_b, t_State_oc, t_State_oh):
-##         tb_fsm = self.bench(FramerCtrl_ref, t_State)
-##         sim = Simulation(tb_fsm)
-##         sim.run()
-
-
-
-## def testAlt(self):
-##     for t_State in (t_State_b, t_State_oc, t_State_oh):
-##         tb_fsm = self.bench(FramerCtrl_alt, t_State)
-##         sim = Simulation(tb_fsm)
-##         sim.run()
-
-## def testDoc(self):
-##     tb_fsm = self.bench(FramerCtrl, t_State_oh)
-##     sim = Simulation(tb_fsm)
-##     sim.run()
 

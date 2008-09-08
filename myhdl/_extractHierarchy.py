@@ -64,13 +64,14 @@ class _Instance(object):
 _memInfoMap = {}
 
 class _MemInfo(object):
-    __slots__ = ['mem', 'name', 'elObj', 'depth', 'decl']
+    __slots__ = ['mem', 'name', 'elObj', 'depth', 'decl', '_used']
     def __init__(self, mem):
         self.mem = mem
         self.decl = True
         self.name = None
         self.depth = len(mem)
         self.elObj = mem[0]
+        self._used = False
 
 
 def _getMemInfo(mem):
@@ -224,13 +225,21 @@ class _HierExtr(object):
                     cellvars = frame.f_code.co_cellvars
                     for dict in (frame.f_globals, frame.f_locals):
                         for n, v in dict.items():
+                            # extract signals and memories
+                            # also keep track of whether they are used in generators
                             # only include objects that are used in generators
 ##                             if not n in cellvars:
 ##                                 continue
                             if isinstance(v, Signal):
                                 sigdict[n] = v
+                                if n in cellvars:
+                                    v._used = True
                             if _isListOfSigs(v):
-                                memdict[n] = _makeMemInfo(v)
+                                m = _makeMemInfo(v)
+                                memdict[n] = m
+                                if n in cellvars:
+                                    m._used = True
+                                
                     subs = []
                     for n, sub in frame.f_locals.items():
                         for elt in _inferArgs(arg):

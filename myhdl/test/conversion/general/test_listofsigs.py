@@ -32,11 +32,9 @@ def intbv2list():
     return extract, assemble, stimulus
             
     
-def test_intbv2list():
-    assert conversion.verify(intbv2list) == 0
 
 def inv(z, a):
-    @always_comb
+    @always(a)
     def logic():
         z.next = not a
     return logic
@@ -45,9 +43,9 @@ def processlist():
     """Extract list from intbv, do some processing, reassemble."""
     
     N = 8
-    M= 2**N
-    a = Signal(intbv(0)[N:])
-    b = [Signal(bool(0)) for i in range(len(a))]
+    M = 2**N
+    a = Signal(intbv(1)[N:])
+    b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
     z = Signal(intbv(0)[N:])
 
@@ -68,6 +66,7 @@ def processlist():
     @instance
     def stimulus():
         for i in range(M):
+            yield delay(10)
             a.next = i
             yield delay(10)
             assert z == ~a
@@ -75,11 +74,15 @@ def processlist():
         raise StopSimulation
 
     return extract, inst, assemble, stimulus
+
+
+# test runs
             
+def test_intbv2list():
+    assert conversion.verify(intbv2list) == 0
     
-## def test_processlist():
-##     # Simulation(processlist()).run()
-##     assert conversion.verify(processlist) == 0
+def test_processlist():
+    assert conversion.verify(processlist) == 0
 
 
 

@@ -263,7 +263,7 @@ def undefinedBitWidthMem(count, enable, clock, reset, n):
     def f():
         while 1:
             yield clock.posedge, reset.negedge
-            count.next = count + 1
+            count.next = mem[0] + 1
     return f()
 
 def inconsistentTypeMem(count, enable, clock, reset, n):
@@ -272,7 +272,7 @@ def inconsistentTypeMem(count, enable, clock, reset, n):
     def f():
         while 1:
             yield clock.posedge, reset.negedge
-            count.next = count + 1
+            count.next = mem[0] + 1
     return f()
 
 def inconsistentBitWidthMem(count, enable, clock, reset, n):
@@ -281,18 +281,18 @@ def inconsistentBitWidthMem(count, enable, clock, reset, n):
     def f():
         while 1:
             yield clock.posedge, reset.negedge
-            count.next = count + 1
+            count.next = mem[0] + 1
     return f()
 
 
-def listElementNotUnique(count, enable, clock, reset, n):
-    mem = [Signal(intbv(0)[8:]) for i in range(8)]
-    mem2 = mem[4:]
-    def f():
-        while 1:
-            yield clock.posedge, reset.negedge
-            count.next = mem[0] + mem2[1]
-    return f()
+## def listElementNotUnique(count, enable, clock, reset, n):
+##     mem = [Signal(intbv(0)[8:]) for i in range(8)]
+##     mem2 = mem[4:]
+##     def f():
+##         while 1:
+##             yield clock.posedge, reset.negedge
+##             count.next = mem[0] + mem2[1]
+##     return f()
 
 
 class TestErr(TestCase):
@@ -525,13 +525,13 @@ class TestErr(TestCase):
         else:
             self.fail()
             
-    def testListElementNotUnique(self):
-        try:
-            self.bench(listElementNotUnique)
-        except ConversionError, e:
-            self.assertEqual(e.kind, _error.ListElementNotUnique)
-        else:
-            self.fail()
+##     def testListElementNotUnique(self):
+##         try:
+##             self.bench(listElementNotUnique)
+##         except ConversionError, e:
+##             self.assertEqual(e.kind, _error.ListElementNotUnique)
+##         else:
+##             self.fail()
 
 
 if __name__ == '__main__':

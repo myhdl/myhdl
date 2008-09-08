@@ -102,16 +102,13 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
             m.name = _makeName(n, prefixes)
             memlist.append(m)
 
-    # handle the case where a named signal appears in a list also; such a list
-    # is not declared and references to it in a generator will be flagged as an error
+    # handle the case where a named signal appears in a list also by giving
+    # priority to the list and marking the signals as unused
     for m in memlist:
-        for s in m.mem:
-            if s._name is not None:
-                m.decl = False
-                break
-        if not m.decl:
+        if not m._used:
             continue
         for i, s in enumerate(m.mem):
+            s._used = False
             s._name = "%s%s%s%s" % (m.name, open, i, close)
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)

@@ -11,9 +11,12 @@ from util import setupCosimulation
 
 # example from Frank Palazollo
 def or_gate(a,b,c):
-    while 1:
-        c.next = a | b
-        yield a, b
+    @instance
+    def logic():
+        while 1:
+            c.next = a | b
+            yield a, b
+    return logic
         
 def my_bundle(p,q):
 	r = Signal(bool(0))
@@ -29,9 +32,12 @@ def ConstWire2(p, q):
     return inst1, inst2
 
 def adder(a, b, c):
-    while 1:
-        yield a, b
-        c.next = a + b
+    @instance
+    def logic():
+        while 1:
+            yield a, b
+            c.next = a + b
+    return logic
 
 def ConstWire3(p, q):
     t = Signal(intbv(17)[5:])

@@ -226,6 +226,8 @@ constwires = []
 def _writeSigDecls(f, intf, siglist, memlist):
     del constwires[:]
     for s in siglist:
+        if not s._used:
+            continue
         if s._name in intf.argnames:
             continue
         if isinstance(s._val, EnumItemType):
@@ -250,7 +252,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
             constwires.append(s)
             print >> f, "signal %s: %s%s;" % (s._name, p, r)
     for m in memlist:
-        if not m.decl:
+        if not m._used:
             continue
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)

@@ -192,6 +192,8 @@ def _writeModuleHeader(f, intf):
 def _writeSigDecls(f, intf, siglist, memlist):
     constwires = []
     for s in siglist:
+        if not s._used:
+            continue
         if s._name in intf.argnames:
             continue
         r = _getRangeString(s)
@@ -218,7 +220,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print >> f, "wire %s%s;" % (r, s._name)
     print >> f
     for m in memlist:
-        if not m.decl:
+        if not m._used:
             continue
         r = _getRangeString(m.elObj)
         print >> f, "reg %s%s [0:%s-1];" % (r, m.name, m.depth)
