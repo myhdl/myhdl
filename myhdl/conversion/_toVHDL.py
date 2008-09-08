@@ -1153,8 +1153,6 @@ class _ConvertVisitor(_ConversionMixin):
             elif _isMem(obj):
                 m = _getMemInfo(obj)
                 assert m.name
-                if not m.decl:
-                    self.raiseError(node, _error.ListElementNotUnique, m.name)
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVHDL()
