@@ -39,7 +39,18 @@ from myhdl._intbv import intbv
 from myhdl._bin import bin
 
 _schedule = _futureEvents.append
-        
+
+   
+def _isListOfSigs(obj):
+    """ Check if obj is a non-empty list of signals. """
+    if isinstance(obj, list) and len(obj) > 0:
+        for e in obj:
+            if not isinstance(e, Signal):
+                return False
+        return True
+    else:
+        return False
+     
        
 class _WaiterList(list):
 
@@ -516,13 +527,3 @@ class _SignalWrap(object):
     def apply(self):
         return self.sig._apply(self.next, self.timeStamp)
 
-   
-def _isListOfSigs(obj):
-    """ Check if obj is a non-empty list of signals. """
-    if isinstance(obj, list) and len(obj) > 0:
-        for e in obj:
-            if not isinstance(e, Signal):
-                return False
-        return True
-    else:
-        return False

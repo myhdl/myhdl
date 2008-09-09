@@ -76,7 +76,7 @@ def case1(z, a, inv):
 def case2(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
-    @always(a)
+    @always_comb
     def extract():
         for i in range(len(a)):
             b[i].next = a[i]
@@ -85,7 +85,7 @@ def case2(z, a, inv):
     for i in range(len(b)):
         inst[i] = inv(c[i], b[i])
 
-    @always(*c)
+    @always_comb
     def assemble():
         for i in range(len(c)):
             z.next[i] = c[i]
@@ -121,11 +121,14 @@ def processlist(case, inv):
 
 # tests
     
-def test_processlist1():
+def test_processlist11():
     assert conversion.verify(processlist, case1, inv1) == 0
     
-def test_processlist2():
+def test_processlist12():
     assert conversion.verify(processlist, case1, inv2) == 0
+    
+def test_processlist22():
+    assert conversion.verify(processlist, case2, inv2) == 0
 
 
 

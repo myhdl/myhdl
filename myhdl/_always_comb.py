@@ -31,6 +31,7 @@ from sets import Set
 import re
 
 from myhdl import Signal, AlwaysCombError
+from myhdl._Signal import _isListOfSigs
 from myhdl._util import _isGenFunc
 from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
@@ -42,6 +43,7 @@ _error.NrOfArgs = "always_comb argument should be a function without arguments"
 _error.Scope = "always_comb argument should be a local function"
 _error.SignalAsInout = "signal used as inout in always_comb function argument"
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
+_error.EmptySensitivityList= "sensitivity list is empty"
     
 def always_comb(func):
     if not isinstance( func, FunctionType):
@@ -51,29 +53,27 @@ def always_comb(func):
     if func.func_code.co_argcount > 0:
         raise AlwaysCombError(_error.NrOfArgs)
     varnames = func.func_code.co_varnames
-    sigdict = {}
+    symdict = {}
     for n, v in func.func_globals.items():
-        if isinstance(v, Signal) and \
-           n not in varnames:
-            sigdict[n] = v
+        if n not in varnames:
+            symdict[n] = v
     # handle free variables
     if func.func_code.co_freevars:
         for n, c in zip(func.func_code.co_freevars, func.func_closure):
             obj = _cell_deref(c)
-            if isinstance(obj, Signal):
-                sigdict[n] = obj
-    c = _AlwaysComb(func, sigdict)
+            symdict[n] = obj
+    c = _AlwaysComb(func, symdict)
     return c
    
 
 INPUT, OUTPUT, INOUT = range(3)
 
 class _SigNameVisitor(object):
-    def __init__(self, sigdict):
+    def __init__(self, symdict):
         self.inputs = Set()
         self.outputs = Set()
         self.toplevel = 1
-        self.sigdict = sigdict
+        self.symdict = symdict
 
     def visitModule(self, node):
         inputs = self.inputs
@@ -100,16 +100,18 @@ class _SigNameVisitor(object):
             self.visit(n)
             
     def visitName(self, node, access=INPUT):
-        if node.name not in self.sigdict:
+        if node.name not in self.symdict:
             return
-        if access == INPUT:
-            self.inputs.add(node.name)
-        elif access == OUTPUT:
-            self.outputs.add(node.name)
-        elif access == INOUT:
-            raise AlwaysCombError(_error.SignalAsInout)
-        else:
-            raise AlwaysCombError
+        s = self.symdict[node.name]
+        if isinstance(s, Signal) or _isListOfSigs(s):
+            if access == INPUT:
+                self.inputs.add(node.name)
+            elif access == OUTPUT:
+                self.outputs.add(node.name)
+            elif access == INOUT:
+                raise AlwaysCombError(_error.SignalAsInout)
+            else:
+                raise AlwaysCombError
             
     def visitAssign(self, node, access=OUTPUT):
         for n in node.nodes:
@@ -150,20 +152,29 @@ class _SigNameVisitor(object):
 
 class _AlwaysComb(object):
 
-    def __init__(self, func, sigdict):
+    def __init__(self, func, symdict):
         self.func = func
-        self.sigdict = sigdict
+        self.symdict = symdict
         s = inspect.getsource(func)
         # remove decorators
         s = re.sub(r"@.*", "", s)
         s = s.lstrip()
         tree = compiler.parse(s)
-        v = _SigNameVisitor(sigdict)
+        v = _SigNameVisitor(symdict)
         compiler.walk(tree, v)
         self.inputs = v.inputs
         self.outputs = v.outputs
-        self.senslist = tuple([self.sigdict[n] for n in self.inputs])
+        senslist = []
+        for n in self.inputs:
+            s = self.symdict[n]
+            if isinstance(s, Signal):
+                senslist.append(s)
+            else: # list of sigs
+                senslist.extend(s)
+        self.senslist = tuple(senslist)
         self.gen = self.genfunc()
+        if len(self.senslist) == 0:
+            raise AlwaysCombError(_error.EmptySensitivityList)
         if len(self.senslist) == 1:
             W = _SignalWaiter
         else:
