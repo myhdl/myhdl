@@ -1,6 +1,8 @@
 from myhdl import *
 
 
+### A first case that already worked with 5.0 list of signal constraints ###
+
 def intbv2list():
     """Conversion between intbv and list of boolean signals."""
     
@@ -30,25 +32,31 @@ def intbv2list():
         raise StopSimulation
 
     return extract, assemble, stimulus
+
+# test
+
+def test_intbv2list():
+    assert conversion.verify(intbv2list) == 0
             
     
+### A number of cases with relaxed constraints, for various decorator types ###
 
-def inv(z, a):
+def inv1(z, a):
     @always(a)
     def logic():
         z.next = not a
     return logic
-    
-def processlist():
-    """Extract list from intbv, do some processing, reassemble."""
-    
-    N = 8
-    M = 2**N
-    a = Signal(intbv(1)[N:])
+
+def inv2(z, a):
+    @always_comb
+    def logic():
+        z.next = not a
+    return logic
+
+
+def case1(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
-    z = Signal(intbv(0)[N:])
-
     @always(a)
     def extract():
         for i in range(len(a)):
@@ -63,6 +71,41 @@ def processlist():
         for i in range(len(c)):
             z.next[i] = c[i]
 
+    return extract, inst, assemble
+
+def case2(z, a, inv):
+    b = [Signal(bool(1)) for i in range(len(a))]
+    c = [Signal(bool(0)) for i in range(len(a))]
+    @always(a)
+    def extract():
+        for i in range(len(a)):
+            b[i].next = a[i]
+
+    inst = [None] * len(b)
+    for i in range(len(b)):
+        inst[i] = inv(c[i], b[i])
+
+    @always(*c)
+    def assemble():
+        for i in range(len(c)):
+            z.next[i] = c[i]
+
+    return extract, inst, assemble
+
+
+
+def processlist(case, inv):
+    """Extract list from intbv, do some processing, reassemble."""
+    
+    N = 8
+    M = 2**N
+    a = Signal(intbv(1)[N:])
+    b = [Signal(bool(1)) for i in range(len(a))]
+    c = [Signal(bool(0)) for i in range(len(a))]
+    z = Signal(intbv(0)[N:])
+
+    case_inst = case(z, a, inv)
+
     @instance
     def stimulus():
         for i in range(M):
@@ -73,16 +116,16 @@ def processlist():
             print z
         raise StopSimulation
 
-    return extract, inst, assemble, stimulus
+    return case_inst, stimulus
 
 
-# test runs
-            
-def test_intbv2list():
-    assert conversion.verify(intbv2list) == 0
+# tests
     
-def test_processlist():
-    assert conversion.verify(processlist) == 0
+def test_processlist1():
+    assert conversion.verify(processlist, case1, inv1) == 0
+    
+def test_processlist2():
+    assert conversion.verify(processlist, case1, inv2) == 0
 
 
 

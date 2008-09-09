@@ -64,13 +64,14 @@ class _Instance(object):
 _memInfoMap = {}
 
 class _MemInfo(object):
-    __slots__ = ['mem', 'name', 'elObj', 'depth', '_used']
+    __slots__ = ['mem', 'name', 'elObj', 'depth', '_used', '_driven']
     def __init__(self, mem):
         self.mem = mem
         self.name = None
         self.depth = len(mem)
         self.elObj = mem[0]
         self._used = False
+        self._driven = None
 
 
 def _getMemInfo(mem):

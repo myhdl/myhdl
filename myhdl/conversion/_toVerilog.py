@@ -223,7 +223,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if not m._used:
             continue
         r = _getRangeString(m.elObj)
-        print >> f, "reg %s%s [0:%s-1];" % (r, m.name, m.depth)
+        k = 'reg'
+        if m.mem[0]._driven == 'wire':
+            k = 'wire'
+        print >> f, "%s %s%s [0:%s-1];" % (k, r, m.name, m.depth)
     print >> f
     for s in constwires:
         print >> f, "assign %s = %s;" % (s._name, int(s._val))

@@ -107,6 +107,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
     for m in memlist:
         if not m._used:
             continue
+        m._driven = 'reg'
         for i, s in enumerate(m.mem):
             s._used = False
             s._name = "%s%s%s%s" % (m.name, open, i, close)
