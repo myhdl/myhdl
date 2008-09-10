@@ -64,6 +64,15 @@ def inv3(z, a):
             z.next = not a
     return logic
 
+def inv4(z, a):
+    @instance
+    def logic():
+        while True:
+            yield a
+            yield delay(1)
+            z.next = not a
+    return logic
+
 
 def case1(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
@@ -129,6 +138,36 @@ def case3(z, a, inv):
     return extract, inst, assemble
 
 
+def case4(z, a, inv):
+    b = [Signal(bool(1)) for i in range(len(a))]
+    c = [Signal(bool(0)) for i in range(len(a))]
+    @instance
+    def extract():
+        while True:
+            yield a
+            yield delay(1)
+            for i in range(len(a)):
+                b[i].next = a[i]
+
+    inst = [None] * len(b)
+    for i in range(len(b)):
+        inst[i] = inv(c[i], b[i])
+
+    @instance
+    def assemble():
+        while True:
+            yield c
+            yield delay(1)
+            for i in range(len(c)):
+                z.next[i] = c[i]
+
+    return extract, inst, assemble
+
+
+
+
+
+
 def processlist(case, inv):
     """Extract list from intbv, do some processing, reassemble."""
     
@@ -163,6 +202,9 @@ def test_processlist22():
     
 def test_processlist33():
     assert conversion.verify(processlist, case3, inv3) == 0
+
+def test_processlist44():
+    assert conversion.verify(processlist, case4, inv4) == 0
 
 
 
