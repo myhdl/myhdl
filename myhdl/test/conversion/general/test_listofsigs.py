@@ -1,13 +1,14 @@
 from myhdl import *
 
+N = 8
+M= 2**N
+
 
 ### A first case that already worked with 5.0 list of signal constraints ###
 
 def intbv2list():
     """Conversion between intbv and list of boolean signals."""
     
-    N = 8
-    M= 2**N
     a = Signal(intbv(0)[N:])
     b = [Signal(bool(0)) for i in range(len(a))]
     z = Signal(intbv(0)[N:])
@@ -47,10 +48,20 @@ def inv1(z, a):
         z.next = not a
     return logic
 
+
 def inv2(z, a):
     @always_comb
     def logic():
         z.next = not a
+    return logic
+
+
+def inv3(z, a):
+    @instance
+    def logic():
+        while True:
+            yield a
+            z.next = not a
     return logic
 
 
@@ -73,6 +84,7 @@ def case1(z, a, inv):
 
     return extract, inst, assemble
 
+
 def case2(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
@@ -93,15 +105,34 @@ def case2(z, a, inv):
     return extract, inst, assemble
 
 
+def case3(z, a, inv):
+    b = [Signal(bool(1)) for i in range(len(a))]
+    c = [Signal(bool(0)) for i in range(len(a))]
+    @instance
+    def extract():
+        while True:
+            yield a
+            for i in range(len(a)):
+                b[i].next = a[i]
+
+    inst = [None] * len(b)
+    for i in range(len(b)):
+        inst[i] = inv(c[i], b[i])
+
+    @instance
+    def assemble():
+        while True:
+            yield c
+            for i in range(len(c)):
+                z.next[i] = c[i]
+
+    return extract, inst, assemble
+
 
 def processlist(case, inv):
     """Extract list from intbv, do some processing, reassemble."""
     
-    N = 8
-    M = 2**N
     a = Signal(intbv(1)[N:])
-    b = [Signal(bool(1)) for i in range(len(a))]
-    c = [Signal(bool(0)) for i in range(len(a))]
     z = Signal(intbv(0)[N:])
 
     case_inst = case(z, a, inv)
@@ -129,6 +160,9 @@ def test_processlist12():
     
 def test_processlist22():
     assert conversion.verify(processlist, case2, inv2) == 0
+    
+def test_processlist33():
+    assert conversion.verify(processlist, case3, inv3) == 0
 
 
 

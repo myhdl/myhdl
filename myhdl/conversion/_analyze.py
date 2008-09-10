@@ -873,10 +873,12 @@ class _AnalyzeVisitor(_ConversionMixin):
                 if not isinstance(n.obj, (Signal, _WaiterList)):
                     self.raiseError(node, _error.UnsupportedYield)
                 senslist.append(n.obj)
-        else:
-            if not isinstance(n.obj, (Signal, _WaiterList, delay)):
-                self.raiseError(node, _error.UnsupportedYield)
+        elif isinstance(n.obj, (Signal, _WaiterList, delay)):
             senslist = [n.obj]
+        elif _isMem(n.obj):
+            senslist = n.obj
+        else:
+            self.raiseError(node, _error.UnsupportedYield)
         node.senslist = senslist
 
 ##     def visitModule(self, node, *args):

@@ -1028,8 +1028,13 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
             y = y.expr
         assert isinstance(y, astNode.Yield)
         sl = y.value
+        assert y.senslist
+        self.ast.senslist = y.senslist
         self.write("always @(")
-        self.visit(sl, _context.YIELD)
+        for e in self.ast.senslist[:-1]:
+            self.write(e._toVerilog())
+            self.write(', ')
+        self.write(self.ast.senslist[-1]._toVerilog())
         self.write(") begin: %s" % self.ast.name)
         self.indent()
         self.writeDeclarations()
