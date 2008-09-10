@@ -1004,14 +1004,18 @@ class _ConvertVisitor(_ConversionMixin):
         
     def visitYield(self, node, *args):
         yieldObj = self.getObj(node.value)
+        assert node.senslist
+        senslist = node.senslist
         if isinstance(yieldObj, delay):
             self.write("# ")
-        else:
-            self.write("@ (")
-        self.visit(node.value, _context.YIELD)
-        if isinstance(yieldObj, delay):
+            self.visit(node.value, _context.YIELD)
             self.write(";")
         else:
+            self.write("@ (")
+            for e in senslist[:-1]:
+                self.write(e._toVerilog())
+                self.write(', ')
+            self.write(senslist[-1]._toVerilog())
             self.write(");")
 
         
