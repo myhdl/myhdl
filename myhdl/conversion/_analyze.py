@@ -859,6 +859,7 @@ class _AnalyzeVisitor(_ConversionMixin):
            not self.ast.hasYield > 1 and \
            not isinstance(self.getObj(y.value), delay):
             node.kind = _kind.ALWAYS
+            self.ast.senslist = y.senslist
         self.require(node, node.else_ is None, "while-else not supported")
         self.labelStack.pop()
         self.labelStack.pop()

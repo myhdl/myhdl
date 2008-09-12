@@ -332,6 +332,12 @@ class _ConvertVisitor(_ConversionMixin):
     def writeline(self, nr=1):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
+            
+    def indent(self):
+        self.ind += ' ' * 4
+
+    def dedent(self):
+        self.ind = self.ind[:-4]
 
     def writeIntSize(self, n):
         # write size for large integers (beyond 32 bits signed)
@@ -376,12 +382,22 @@ class _ConvertVisitor(_ConversionMixin):
         for name, obj in self.ast.vardict.items():
             self.writeline()
             self.writeDeclaration(obj, name, "reg")
-                
-    def indent(self):
-        self.ind += ' ' * 4
 
-    def dedent(self):
-        self.ind = self.ind[:-4]
+    def writeAlwaysHeader(self):
+        assert self.ast.senslist
+        senslist = self.ast.senslist
+        self.write("always ")
+        self.writeSensitivityList(senslist)
+        self.write(" begin: %s" % self.ast.name)
+        self.indent()
+
+    def writeSensitivityList(self, senslist):
+        self.write("@(")
+        for e in senslist[:-1]:
+            self.write(e._toVerilog())
+            self.write(', ')
+        self.write(senslist[-1]._toVerilog())
+        self.write(")")
 
     def binaryOp(self, node, op=None):
         context = None
@@ -1011,12 +1027,8 @@ class _ConvertVisitor(_ConversionMixin):
             self.visit(node.value, _context.YIELD)
             self.write(";")
         else:
-            self.write("@ (")
-            for e in senslist[:-1]:
-                self.write(e._toVerilog())
-                self.write(', ')
-            self.write(senslist[-1]._toVerilog())
-            self.write(");")
+            self.writeSensitivityList(senslist)
+            self.write(";")
 
         
 class _ConvertAlwaysVisitor(_ConvertVisitor):
@@ -1031,16 +1043,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         if isinstance(y, astNode.Discard):
             y = y.expr
         assert isinstance(y, astNode.Yield)
-        sl = y.value
-        assert y.senslist
-        self.ast.senslist = y.senslist
-        self.write("always @(")
-        for e in self.ast.senslist[:-1]:
-            self.write(e._toVerilog())
-            self.write(', ')
-        self.write(self.ast.senslist[-1]._toVerilog())
-        self.write(") begin: %s" % self.ast.name)
-        self.indent()
+        self.writeAlwaysHeader()
         self.writeDeclarations()
         assert isinstance(w.body, astNode.Stmt)
         for stmt in w.body.nodes[1:]:
@@ -1076,14 +1079,7 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visitFunction(self, node, *args):
-        self.write("always @(")
-        assert self.ast.senslist
-        for s in self.ast.senslist[:-1]:
-            self.write(s._name)
-            self.write(', ')
-        self.write(self.ast.senslist[-1]._name)
-        self.write(") begin: %s" % self.ast.name)
-        self.indent()
+        self.writeAlwaysHeader()
         self.writeDeclarations()
         self.visit(node.code)
         self.dedent()
@@ -1115,14 +1111,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visitFunction(self, node, *args):
-        self.write("always @(")
-        assert self.ast.senslist
-        for e in self.ast.senslist[:-1]:
-            self.write(e._toVerilog())
-            self.write(', ')
-        self.write(self.ast.senslist[-1]._toVerilog())
-        self.write(") begin: %s" % self.ast.name)
-        self.indent()
+        self.writeAlwaysHeader()
         self.writeDeclarations()
         self.visit(node.code)
         self.dedent()
