@@ -33,9 +33,24 @@ import sys
 import inspect
 
 from types import GeneratorType
+from sets import Set
+from types import GeneratorType, ListType, TupleType
 
-from myhdl import Cosimulation
-from myhdl._isGenSeq import _isGenSeq
+from myhdl._Cosimulation import Cosimulation
+from myhdl._always_comb import _AlwaysComb
+from myhdl._always import _Always
+      
+def _isGenSeq(obj):
+    if isinstance(obj, (GeneratorType, Cosimulation, _AlwaysComb, _Always)):
+        return True
+    if not isinstance(obj, (ListType, TupleType, Set)):
+        return False
+##     if not obj:
+##         return False
+    for e in obj:
+        if not _isGenSeq(e):
+            return False
+    return True
 
     
 def instances():

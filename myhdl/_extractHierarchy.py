@@ -39,9 +39,7 @@ from sets import Set
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
 from myhdl._Signal import Signal, _isListOfSigs
 from myhdl._util import _isGenFunc
-from myhdl._isGenSeq import _isGenSeq
-from myhdl._always_comb import _AlwaysComb
-from myhdl._always import _Always
+from myhdl._misc import _isGenSeq
 
 
 _profileFunc = None
@@ -254,18 +252,6 @@ class _HierExtr(object):
             if func_name in self.skipNames:
                 self.skip = 0
                 
-
-
-def _getGens(arg):
-    if isinstance(arg, (GeneratorType, _AlwaysComb, _Always)):
-        return [arg]
-    else:
-        gens = []
-        for elt in arg:
-            if isinstance(elt,  (GeneratorType, _AlwaysComb, _Always)):
-                gens.append(elt)
-        return gens
-
 
 def _inferArgs(arg):
     c = [arg]
