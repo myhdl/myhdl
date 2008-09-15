@@ -342,9 +342,13 @@ class TestNotSupported(unittest.TestCase):
         a, b, c = [Signal(bool()) for i in range(3)]
         c = [1, 2]
         def g(a, *args):
-            yield a
+            return a
         def f(a, b, c, *args):
-            return g(a, b)
+            @instance
+            def logic():
+                g(a, b)
+                yield a
+            return logic
         self.check(f, a, b, c)
 
     def testExtraPositionalArgsInCall(self):
@@ -354,8 +358,11 @@ class TestNotSupported(unittest.TestCase):
         def h(b):
             return b
         def g(a):
-            h(*c)
-            yield a
+            @instance
+            def logic():
+                h(*c)
+                yield a
+            return logic
         def f(a, b, c):
             return g(a)
         x = self.check(f, a, b, c)
@@ -367,8 +374,11 @@ class TestNotSupported(unittest.TestCase):
         def h(b):
             return b
         def g(a):
-            h(**d)
-            yield a
+            @instance
+            def logic():
+                h(**d)
+                yield a
+            return logic
         def f(a, b, c):
             return g(a)
         x = self.check(f, a, b, c)
@@ -383,8 +393,11 @@ class TestMisc(unittest.TestCase):
         def h(b):
             return b
         def g(a):
-            h(a)
-            yield a
+            @instance
+            def logic():
+                h(a)
+                yield a
+            return logic
         def f(a, b, c):
             return g(a)
         f(a, b, c)

@@ -61,18 +61,21 @@ def HecCalculatorPlain(hec, header):
 
     Plain version.
     """
-    h = intbv(0)[8:]
-    while 1:
-        yield header
-        h[:] = 0
-        for i in downrange(len(header)):
-            bit = header[i]
-            h[:] = concat(h[7:2],
-                          bit ^ h[1] ^ h[7],
-                          bit ^ h[0] ^ h[7],
-                          bit ^ h[7]
-                          )
-        hec.next = h ^ COSET
+    @instance
+    def logic():
+        h = intbv(0)[8:]
+        while 1:
+            yield header
+            h[:] = 0
+            for i in downrange(len(header)):
+                bit = header[i]
+                h[:] = concat(h[7:2],
+                              bit ^ h[1] ^ h[7],
+                              bit ^ h[0] ^ h[7],
+                              bit ^ h[7]
+                              )
+            hec.next = h ^ COSET
+    return logic
 
 def HecCalculatorFunc(hec, header):
     """ Hec calculation module.

@@ -26,6 +26,7 @@ __date__ = "$Date$"
 import random
 from random import randrange
 random.seed(1) # random, but deterministic
+from types import GeneratorType
 
 import unittest
 from unittest import TestCase
@@ -138,9 +139,13 @@ class InferWaiterTest(TestCase):
         a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
 
         gen_inst_r = genFunc(a, b, c, d, r)
+        if not isinstance(gen_inst_r, GeneratorType): # decorator type
+            gen_inst_r = gen_inst_r.gen
         self.assertEqual(type(_inferWaiter(gen_inst_r)), waiterType)
         
         gen_inst_s = genFunc(a, b, c, d, s)
+        if not isinstance(gen_inst_s, GeneratorType): # decorator type
+            gen_inst_s = gen_inst_s.gen
 
         def stimulus():
             for i in range(1000):

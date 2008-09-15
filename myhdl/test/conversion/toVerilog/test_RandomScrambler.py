@@ -14,18 +14,14 @@ from util import setupCosimulation
 N = 8
 M = 2 ** N
 DEPTH = 5
-
-def XorGate(z, a, b, c):
-    while 1:
-        yield a, b, c
-        z.next = a ^ b ^ c
         
 def XorGate(z, a, b, c):
+    @instance
     def logic():
         while 1:
             yield a, b, c
             z.next = a ^ b ^ c
-    return logic()
+    return logic
 
 def randOthers(i, n):
     l = range(n)

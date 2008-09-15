@@ -44,6 +44,7 @@ def dec(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
+    @instance
     def decProcess():
         while 1:
             yield clock.posedge, reset.negedge
@@ -55,7 +56,7 @@ def dec(count, enable, clock, reset, n):
                         count.next = n-1
                     else:
                         count.next = count - 1
-    return decProcess()
+    return decProcess
 
 
 def decFunc(count, enable, clock, reset, n):
@@ -87,7 +88,8 @@ def decTask(count, enable, clock, reset, n):
                 cnt.next = n-1
             else:
                 cnt.next = cnt - 1
- 
+
+    @instance
     def decTaskGen():
         cnt = intbv(0, min=-n, max=n)
         while 1:
@@ -100,7 +102,7 @@ def decTask(count, enable, clock, reset, n):
                 decTaskFunc(cnt, enable, reset, n)
                 count.next = cnt
 
-    return decTaskGen()
+    return decTaskGen
 
 
 def decTaskFreeVar(count, enable, clock, reset, n):
@@ -111,7 +113,8 @@ def decTaskFreeVar(count, enable, clock, reset, n):
                 count.next = n-1
             else:
                 count.next = count - 1
- 
+
+    @instance
     def decTaskGen():
         while 1:
             yield clock.posedge, reset.negedge
@@ -121,7 +124,7 @@ def decTaskFreeVar(count, enable, clock, reset, n):
                 # print count
                 decTaskFunc()
 
-    return decTaskGen()
+    return decTaskGen
 
 
       

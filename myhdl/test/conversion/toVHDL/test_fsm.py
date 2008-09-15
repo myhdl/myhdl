@@ -68,6 +68,7 @@ def FSMBench(FramerCtrl, t_State):
 
     framerctrl_inst = FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State)
 
+    @instance
     def clkgen():
         clk.next = 0
         reset_n.next = 1
@@ -82,6 +83,7 @@ def FSMBench(FramerCtrl, t_State):
 
     table = (12, 8, 8, 4, 11, 8, 8, 7, 6, 8, 8)
 
+    @instance
     def stimulus():
         for i in range(3):
             yield clk.posedge
@@ -94,12 +96,13 @@ def FSMBench(FramerCtrl, t_State):
                 yield clk.posedge
         raise StopSimulation
 
+    @instance
     def check():
         while True:
             yield clk.negedge
             print state
 
-    return framerctrl_inst,  clkgen(), stimulus(), check()
+    return framerctrl_inst,  clkgen, stimulus, check
 
 
 def test():

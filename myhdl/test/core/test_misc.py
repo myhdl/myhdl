@@ -31,13 +31,19 @@ from types import GeneratorType
 import unittest
 from unittest import TestCase
 
-from myhdl import instances
+from myhdl import instance, instances
 
 def A(n):
-    yield None
+    @instance
+    def logic():
+        yield None
+    return logic
 
 def B(n):
-    yield None
+    @instance
+    def logic():
+        yield None
+    return logic
 
 def C(n):
     A_1 = A(1)
@@ -51,9 +57,9 @@ class InstancesTest(TestCase):
 
     def testInstances(self):
 
-        def D():
+        @instance
+        def D_1():
             yield None
-        D_1 = D()
         d = 1
 
         A_1 = A(1)

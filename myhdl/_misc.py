@@ -37,11 +37,10 @@ from sets import Set
 from types import GeneratorType, ListType, TupleType
 
 from myhdl._Cosimulation import Cosimulation
-from myhdl._always_comb import _AlwaysComb
-from myhdl._always import _Always
+from myhdl._instance import _Instantiator
       
 def _isGenSeq(obj):
-    if isinstance(obj, (GeneratorType, Cosimulation, _AlwaysComb, _Always)):
+    if isinstance(obj, (Cosimulation, _Instantiator)):
         return True
     if not isinstance(obj, (ListType, TupleType, Set)):
         return False

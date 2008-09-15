@@ -31,7 +31,8 @@ def ram_clocked(dout, din, addr, we, clk, depth=128):
     """ Ram model """
     
     mem = [Signal(intbv(0)[8:]) for i in range(depth)]
-    
+
+    @instance
     def access():
         while 1:
             yield clk.posedge
@@ -39,7 +40,7 @@ def ram_clocked(dout, din, addr, we, clk, depth=128):
                 mem[int(addr)].next = din
             dout.next = mem[int(addr)]
             
-    return access()
+    return access
 
 def ram_deco1(dout, din, addr, we, clk, depth=128):
     """  Ram model """
@@ -81,41 +82,21 @@ def ram2(dout, din, addr, we, clk, depth=128):
         
     # memL = [intbv(0,min=dout._min,max=dout._max) for i in range(depth)]
     memL = [Signal(intbv()[len(dout):]) for i in range(depth)]
+
+    @instance
     def wrLogic() :
         while 1:
             yield clk.posedge
             if we:
                 memL[int(addr)].next = din
 
+    @instance
     def rdLogic() :
         while 1:
             yield clk.posedge
             dout.next = memL[int(addr)]
 
-    WL = wrLogic()
-    RL = rdLogic()
-    return WL,RL
-
-def ram3(dout, din, addr, we, clk, depth=128):
-        
-    memL = [Signal(intbv(0)[len(dout):]) for i in range(depth)]
-    read_addr = Signal(intbv(0)[len(addr):])
-    # mem = memL[:]
-    # p = memL[3]
-
-    def wrLogic() :
-        while 1:
-            yield clk.posedge
-            if we:
-                memL[int(addr)].next = din
-            read_addr.next = addr
-    WL = wrLogic()
-            
-    def rdLogic() :
-        dout.next = memL[int(read_addr)]
-    RL = always_comb(rdLogic)
-    
-    return WL,RL
+    return wrLogic, rdLogic
 
   
 def ram_v(name, dout, din, addr, we, clk, depth=4):
@@ -169,10 +150,6 @@ class TestMemory(TestCase):
         sim = self.bench(ram2)
         Simulation(sim).run()
         
-    def test3(self):
-        sim = self.bench(ram3)
-        Simulation(sim).run()
-
     def testram_clocked(self):
         sim = self.bench(ram_clocked)
         Simulation(sim).run()

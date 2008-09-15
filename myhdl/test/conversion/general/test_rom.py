@@ -10,30 +10,31 @@ ROM = tuple([randrange(D) for i in range(D)])
 
 def rom1(dout, addr, clk):
 
+    @instance
     def rdLogic() :
         while 1:
             yield clk.posedge
             dout.next = ROM[int(addr)]
 
-    RL = rdLogic()
-    return RL
+    return rdLogic
 
 def rom2(dout, addr, clk):
     
     theROM = ROM
-    
+
+    @instance
     def rdLogic() :
         while 1:
             yield clk.posedge
             dout.next = theROM[int(addr)]
 
-    RL = rdLogic()
-    return RL
+    return rdLogic
 
 
 def rom3(dout, addr, clk):
 
 
+    @instance
     def rdLogic() :
         tmp = intbv(0)[8:]
         while 1:
@@ -41,8 +42,8 @@ def rom3(dout, addr, clk):
             tmp[:] = ROM[int(addr)]
             dout.next = tmp
 
-    RL = rdLogic()
-    return RL
+    return rdLogic
+
 
 def rom4(dout, addr, clk):
 

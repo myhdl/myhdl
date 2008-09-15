@@ -8,13 +8,16 @@ from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
 def ForLoopError1(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in range(1, 4, 3):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in range(1, 4, 3):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
 
 
 def LoopBench(LoopTest):

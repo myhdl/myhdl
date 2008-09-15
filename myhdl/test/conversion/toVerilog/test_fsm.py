@@ -70,7 +70,8 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
     
     """
     
- 
+
+    @instance
     def FSM():
         index = intbv(0)[8:] # position in frame
         state_var = t_State.SEARCH
@@ -104,8 +105,7 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
                 SOF.next = SOF_var
                 state.next = state_var
 
-    FSM_1 = FSM()
-    return FSM_1
+    return FSM
 
 
 def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):

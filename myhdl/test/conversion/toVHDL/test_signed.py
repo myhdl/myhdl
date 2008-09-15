@@ -31,38 +31,41 @@ def binaryOps(
     BoolOr,
     left, right, aBit):
 
-    while 1:
-        yield left, right, aBit
-##         Bitand.next = left & right
-##         Bitor.next = left | right
-##         Bitxor.next = left ^ right
-##         if right != 0:
-##             FloorDiv.next = left // right
-        if left < 256 and right < 40  and right >= 0:
-            LeftShift.next = left << right
-##         if right != 0:
-##             Modulo.next = left % right
-        Mul.next = left * right
-##         # Icarus doesn't support ** yet
-##         #if left < 256 and right < 40:
-##         #    Pow.next = left ** right
-##         Pow.next = 0
-##         if right >= -0:
-##            RightShift.next = left >> right
-            ## RightShift.next = left
-        Sub.next = left - right
-        Sum.next = left + right
-        Sum1.next = left + right[2:]
-        Sum2.next = left + right[1]
-        Sum3.next = left + aBit
-        EQ.next = left == right
-        NE.next = left != right
-        LT.next = left < right
-        GT.next = left > right
-        LE.next = left <= right
-        GE.next = left >= right
-        BoolAnd.next = bool(left) and bool(right)
-        BoolOr.next = bool(left) or bool(right)
+    @instance
+    def logic():
+        while 1:
+            yield left, right, aBit
+    ##         Bitand.next = left & right
+    ##         Bitor.next = left | right
+    ##         Bitxor.next = left ^ right
+    ##         if right != 0:
+    ##             FloorDiv.next = left // right
+            if left < 256 and right < 40  and right >= 0:
+                LeftShift.next = left << right
+    ##         if right != 0:
+    ##             Modulo.next = left % right
+            Mul.next = left * right
+    ##         # Icarus doesn't support ** yet
+    ##         #if left < 256 and right < 40:
+    ##         #    Pow.next = left ** right
+    ##         Pow.next = 0
+    ##         if right >= -0:
+    ##            RightShift.next = left >> right
+                ## RightShift.next = left
+            Sub.next = left - right
+            Sum.next = left + right
+            Sum1.next = left + right[2:]
+            Sum2.next = left + right[1]
+            Sum3.next = left + aBit
+            EQ.next = left == right
+            NE.next = left != right
+            LT.next = left < right
+            GT.next = left > right
+            LE.next = left <= right
+            GE.next = left >= right
+            BoolAnd.next = bool(left) and bool(right)
+            BoolOr.next = bool(left) or bool(right)
+    return logic
 
 
 
@@ -126,12 +129,14 @@ def binaryBench(Ll, Ml, Lr, Mr):
         left, right, aBit)
 
 
+    @instance
     def stimulus():
         for i in range(len(seqL)):
             left.next = seqL[i]
             right.next = seqR[i]
             yield delay(10)
 
+    @instance
     def check():
         while 1:
             yield left, right
@@ -175,7 +180,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
             print int(BoolAnd)
             print int(BoolOr)
 
-    return binops, stimulus(), check()
+    return binops, stimulus, check
     
 
 def checkBinaryOps( Ll, Ml, Lr, Mr):
@@ -203,12 +208,15 @@ def unaryOps(
              UnaryAdd,
              UnarySub,
              arg):
-    while 1:
-        yield arg
-        # BoolNot.next = not arg
-        Invert.next = ~arg
-        # UnaryAdd.next = +arg
-        UnarySub.next = --arg
+    @instance
+    def logic():
+        while 1:
+            yield arg
+            # BoolNot.next = not arg
+            Invert.next = ~arg
+            # UnaryAdd.next = +arg
+            UnarySub.next = --arg
+    return logic
 
 
 

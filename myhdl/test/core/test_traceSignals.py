@@ -35,15 +35,18 @@ from unittest import TestCase
 import shutil
 import glob
 
-from myhdl import delay, Signal, Simulation, _simulator
+from myhdl import delay, Signal, Simulation, _simulator, instance
 from myhdl._traceSignals import traceSignals, TraceSignalsError, _error
 
 QUIET=1
 
 def gen(clk):
-    while 1:
-        yield delay(10)
-        clk.next = not clk
+    @instance
+    def logic():
+        while 1:
+            yield delay(10)
+            clk.next = not clk
+    return logic
 
 def fun():
     clk = Signal(bool(0))
@@ -122,8 +125,7 @@ class TestTraceSigs(TestCase):
         try:
             dut = traceSignals(dummy)
         except ExtractHierarchyError, e:
-            self.assertEqual(e.kind, _error.NoInstances)
-            pass
+            self.assertEqual(e.kind, _error.InconsistentHierarchy)
         else:
             self.fail()
 
@@ -138,18 +140,6 @@ class TestTraceSigs(TestCase):
         dut = traceSignals(top)
         self.assert_(path.exists(pdut))
         self.assert_(not path.exists(psub))
-
-##     def testIndexedName(self):
-##         p = "dut[1][0].vcd"
-##         dut = [[None] * 3 for i in range(4)]
-##         i, j = 0, 2
-##         dut[i+1][j-2] = traceSignals(top)
-##         self.assert_(path.exists(p))
-
-##     def testIndexedName2(self):
-##         p = "inst[1][key].vcd"
-##         top2()
-##         self.assert_(path.exists(p))
 
     def testBackupOutputFile(self):
         p = "%s.vcd" % fun.func_name

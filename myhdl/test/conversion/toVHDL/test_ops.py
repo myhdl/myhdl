@@ -30,35 +30,39 @@ def binaryOps(
               Booland,
               Boolor,
               left, right):
-    while 1:
-        yield left, right
-        Bitand.next = left & right
-        Bitor.next = left | right
-        Bitxor.next = left ^ right
-        if right != 0:
-            FloorDiv.next = left // right
-##         if left < 256 and right < 40:
-        if left < 256 and right < 26: # fails in ghdl for > 26
-            LeftShift.next = left << right
-        if right != 0:
-            Modulo.next = left % right
-        Mul.next = left * right
-        # Icarus doesn't support ** yet
-        #if left < 256 and right < 40:
-        #    Pow.next = left ** right
-##         Pow.next = 0
-        RightShift.next = left >> right
-        if left >= right:
-            Sub.next = left - right
-        Sum.next = left + right
-        EQ.next = left == right
-        NE.next = left != right
-        LT.next = left < right
-        GT.next = left > right
-        LE.next = left <= right
-        GE.next = left >= right
-        Booland.next = bool(left) and bool(right)
-        Boolor.next = bool(left) or bool(right)
+
+    @instance
+    def logic():
+        while 1:
+            yield left, right
+            Bitand.next = left & right
+            Bitor.next = left | right
+            Bitxor.next = left ^ right
+            if right != 0:
+                FloorDiv.next = left // right
+    ##         if left < 256 and right < 40:
+            if left < 256 and right < 26: # fails in ghdl for > 26
+                LeftShift.next = left << right
+            if right != 0:
+                Modulo.next = left % right
+            Mul.next = left * right
+            # Icarus doesn't support ** yet
+            #if left < 256 and right < 40:
+            #    Pow.next = left ** right
+    ##         Pow.next = 0
+            RightShift.next = left >> right
+            if left >= right:
+                Sub.next = left - right
+            Sum.next = left + right
+            EQ.next = left == right
+            NE.next = left != right
+            LT.next = left < right
+            GT.next = left > right
+            LE.next = left <= right
+            GE.next = left >= right
+            Booland.next = bool(left) and bool(right)
+            Boolor.next = bool(left) or bool(right)
+    return logic
 
 
 def binaryBench(m, n):
@@ -107,6 +111,7 @@ def binaryBench(m, n):
                        Boolor,
                        left, right)
 
+    @instance
     def stimulus():
         left.next = 1
         right.next = 1
@@ -133,6 +138,7 @@ def binaryBench(m, n):
         # raise StopSimulation
 
 
+    @instance
     def check():
         while True:
             yield left, right
@@ -160,7 +166,7 @@ def binaryBench(m, n):
             print int(Booland)
             print int(Boolor)
 
-    return binops, stimulus(), check()
+    return binops, stimulus, check
 
 def checkBinary(m, n):
     assert verify(binaryBench, m, n) == 0
@@ -180,13 +186,16 @@ def multiOps(
               Booland,
               Boolor,
               argm, argn, argp):
-    while 1:
-        yield argm, argn, argp
-        Bitand.next = argm & argn & argp
-        Bitor.next = argm | argn | argp
-        Bitxor.next = argm ^ argn ^ argp
-        Booland.next = bool(argm) and bool(argn) and bool(argp)
-        Boolor.next = bool(argm) and bool(argn) and bool(argp)
+    @instance
+    def logic():
+        while 1:
+            yield argm, argn, argp
+            Bitand.next = argm & argn & argp
+            Bitor.next = argm | argn | argp
+            Bitxor.next = argm ^ argn ^ argp
+            Booland.next = bool(argm) and bool(argn) and bool(argp)
+            Boolor.next = bool(argm) and bool(argn) and bool(argp)
+    return logic
 
 
 
@@ -217,6 +226,7 @@ def multiBench(m, n, p):
                         Boolor,
                         argm, argn, argp)
 
+    @instance
     def stimulus():
         for i in range(len(seqQ)):
             argm.next = seqQ[i]
@@ -236,6 +246,7 @@ def multiBench(m, n, p):
 ##             argp.next = l
 ##             yield delay(10)
 
+    @instance
     def check():
         while 1:
             yield argm, argn, argp
@@ -247,7 +258,7 @@ def multiBench(m, n, p):
             print int(Booland)
             print int(Boolor)
 
-    return multiops, stimulus(), check()
+    return multiops, stimulus, check
 
 def checkMultiOps(m, n, p):
     assert verify(multiBench, m, n, p) == 0
@@ -263,13 +274,16 @@ def unaryOps(
              UnaryAdd,
              UnarySub,
              arg):
-    while 1:
-        yield arg
-        Not_kw.next = not arg
-        Invert.next = ~arg
-        # unary operators not supported ?
-        #UnaryAdd.next = +arg
-        # UnarySub.next = --arg
+    @instance
+    def logic():
+        while 1:
+            yield arg
+            Not_kw.next = not arg
+            Invert.next = ~arg
+            # unary operators not supported ?
+            #UnaryAdd.next = +arg
+            # UnarySub.next = --arg
+    return logic
 
 def unaryBench(m):
 
@@ -288,12 +302,14 @@ def unaryBench(m):
                         UnarySub,
                         arg)
 
+    @instance
     def stimulus():
         for i in range(NRTESTS):
             arg.next = seqM[i]
             yield delay(10)
         raise StopSimulation
 
+    @instance
     def check():
         while 1:
             yield arg
@@ -304,7 +320,7 @@ def unaryBench(m):
             # print UnaryAdd
             # print UnarySub
 
-    return unaryops, stimulus(), check()
+    return unaryops, stimulus, check
 
 def checkUnaryOps(m):
     assert verify(unaryBench, m) == 0
@@ -325,45 +341,48 @@ def augmOps(  Bitand,
               Sub,
               Sum,
               left, right):
-    # var = intbv(0)[min(64, len(left) + len(right)):]
-    var = intbv(0)[len(left) + len(right):]
-    var2 = intbv(0)[64:]
-    while True:
-        yield left, right
-        var[:] = left
-        var &= right
-        Bitand.next = var
-        var[:] = left
-        var |= right
-        Bitor.next = var
-        var[:] = left
-        var ^= left
-        Bitxor.next = var
-        if right != 0:
+    @instance
+    def logic():
+        # var = intbv(0)[min(64, len(left) + len(right)):]
+        var = intbv(0)[len(left) + len(right):]
+        var2 = intbv(0)[64:]
+        while True:
+            yield left, right
             var[:] = left
-            var //= right
-            FloorDiv.next = var
-        if left >= right:
+            var &= right
+            Bitand.next = var
             var[:] = left
-            var -= right
-            Sub.next = var
-        var[:] = left
-        var += right
-        Sum.next = var
-        if left < 256 and right < 26:
-            var2[:] = left
-            var2 <<= right
-            LeftShift.next = var2
-        if right != 0:
+            var |= right
+            Bitor.next = var
             var[:] = left
-            var %= right
-            Modulo.next = var
-        var[:] = left
-        var *= right
-        Mul.next = var
-        var[:] = left
-        var >>= right
-        RightShift.next = var
+            var ^= left
+            Bitxor.next = var
+            if right != 0:
+                var[:] = left
+                var //= right
+                FloorDiv.next = var
+            if left >= right:
+                var[:] = left
+                var -= right
+                Sub.next = var
+            var[:] = left
+            var += right
+            Sum.next = var
+            if left < 256 and right < 26:
+                var2[:] = left
+                var2 <<= right
+                LeftShift.next = var2
+            if right != 0:
+                var[:] = left
+                var %= right
+                Modulo.next = var
+            var[:] = left
+            var *= right
+            Mul.next = var
+            var[:] = left
+            var >>= right
+            RightShift.next = var
+    return logic
 
 
         
@@ -402,6 +421,7 @@ def augmBench(m, n):
                        Sum,
                        left, right)
 
+    @instance
     def stimulus():
         left.next = 1
         right.next = 1
@@ -423,6 +443,7 @@ def augmBench(m, n):
             yield delay(10)
             
 
+    @instance
     def check():
         while True:
             yield left, right
@@ -438,7 +459,7 @@ def augmBench(m, n):
             print Mul
             print RightShift
             
-    return augmops, stimulus(), check()
+    return augmops, stimulus, check
 
 
 def checkAugmOps(m, n):

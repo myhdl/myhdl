@@ -34,8 +34,8 @@ from myhdl import _simulator, SimulationError
 from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _flatten, _printExcInfo
-from myhdl._always_comb import _AlwaysComb
-from myhdl._always import _Always
+from myhdl._instance import _Instantiator
+
 
 
 schedule = _futureEvents.append
@@ -210,7 +210,7 @@ def _checkArgs(arglist):
     for arg in arglist:
         if isinstance(arg, GeneratorType):
             waiters.append(_inferWaiter(arg))
-        elif isinstance(arg, (_Always, _AlwaysComb)):
+        elif isinstance(arg, _Instantiator):
             waiters.append(arg.waiter)
         elif isinstance(arg, Cosimulation):
             if cosim is not None:

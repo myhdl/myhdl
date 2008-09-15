@@ -21,14 +21,17 @@ def inc_initial(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
-    for i in range(100):
-        yield clock.posedge, reset.negedge
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = (count + 1) % n
-    raise StopSimulation
+    @instance
+    def logic():
+        for i in range(100):
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+        raise StopSimulation
+    return logic
 
 objfile = "inc_initial_1.o"
 analyze_cmd = "iverilog -o %s inc_initial_1.v tb_inc_initial_1.v" % objfile

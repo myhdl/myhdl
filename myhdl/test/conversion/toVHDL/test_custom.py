@@ -178,42 +178,52 @@ def inc3(count, enable, clock, reset, n):
 
 
 def clockGen(clock):
-    clock.next = 1
-    while 1:
-        yield delay(10)
-        clock.next = not clock
+    @instance
+    def logic():
+        clock.next = 1
+        while 1:
+            yield delay(10)
+            clock.next = not clock
+    return logic
 
 NRTESTS = 1000
 
 ENABLES = tuple([min(1, randrange(5)) for i in range(NRTESTS)])
 
 def stimulus(enable, clock, reset):
-    reset.next = INACTIVE_HIGH
-    yield clock.negedge
-    reset.next = ACTIVE_LOW
-    yield clock.negedge
-    reset.next = INACTIVE_HIGH
-    for i in range(NRTESTS):
-        enable.next = 1
+    @instance
+    def logic():
+        reset.next = INACTIVE_HIGH
         yield clock.negedge
-    for i in range(NRTESTS):
-        enable.next = ENABLES[i]
+        reset.next = ACTIVE_LOW
         yield clock.negedge
-    raise StopSimulation
+        reset.next = INACTIVE_HIGH
+        for i in range(NRTESTS):
+            enable.next = 1
+            yield clock.negedge
+        for i in range(NRTESTS):
+            enable.next = ENABLES[i]
+            yield clock.negedge
+        raise StopSimulation
+    return logic
+
 
 def check(count, enable, clock, reset, n):
-    expect = 0
-    yield reset.posedge
-    # assert count == expect
-    print count
-    while 1:
-        yield clock.posedge
-        if enable:
-            expect = (expect + 1) % n
-        yield delay(1)
-        # print "%d count %s expect %s count_v %s" % (now(), count, expect, count_v)
+    @instance
+    def logic():
+        expect = 0
+        yield reset.posedge
         # assert count == expect
         print count
+        while 1:
+            yield clock.posedge
+            if enable:
+                expect = (expect + 1) % n
+            yield delay(1)
+            # print "%d count %s expect %s count_v %s" % (now(), count, expect, count_v)
+            # assert count == expect
+            print count
+    return logic
 
 
 def customBench(inc):
@@ -225,7 +235,7 @@ def customBench(inc):
     enable = Signal(bool(0))
     clock, reset = [Signal(bool(1)) for i in range(2)]
 
-    inc_inst= inc(count, enable, clock, reset, n=n)
+    inc_inst = inc(count, enable, clock, reset, n=n)
     clk_1 = clockGen(clock)
     st_1 = stimulus(enable, clock, reset)
     ch_1 = check(count, enable, clock, reset, n=n)

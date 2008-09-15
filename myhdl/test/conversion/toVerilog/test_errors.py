@@ -18,6 +18,7 @@ def freeVarTypeError(count, enable, clock, reset, n):
     def incTaskFunc():
         if enable:
             cnt[:] = (cnt + 1) % n
+    @instance
     def incTaskGen():
         while 1:
             yield clock.posedge, reset.negedge
@@ -25,9 +26,10 @@ def freeVarTypeError(count, enable, clock, reset, n):
                cnt[:]= 0
             else:
                 incTaskFunc()
-    return incTaskGen()
+    return incTaskGen
 
 def multipleDrivenSignal(count, enable, clock, reset, n):
+    @instance
     def incTaskGen():
         while 1:
             yield clock.posedge, reset.negedge
@@ -36,7 +38,7 @@ def multipleDrivenSignal(count, enable, clock, reset, n):
             else:
                 if enable:
                     count.next = (count + 1) % n
-    return incTaskGen(), incTaskGen()
+    return incTaskGen, incTaskGen
 
 def shadowingSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0)[8:])
@@ -260,29 +262,32 @@ def listComp5(count, enable, clock, reset, n):
 def undefinedBitWidthMem(count, enable, clock, reset, n):
     mem = [Signal(intbv(0)[8:]) for i in range(8)]
     mem[7] = Signal(intbv(0))
+    @instance
     def f():
         while 1:
             yield clock.posedge, reset.negedge
             count.next = mem[0] + 1
-    return f()
+    return f
 
 def inconsistentTypeMem(count, enable, clock, reset, n):
     mem = [Signal(intbv(0)[8:]) for i in range(8)]
     mem[3] = Signal(bool())
+    @instance
     def f():
         while 1:
             yield clock.posedge, reset.negedge
             count.next = mem[0] + 1
-    return f()
+    return f
 
 def inconsistentBitWidthMem(count, enable, clock, reset, n):
     mem = [Signal(intbv(0)[8:]) for i in range(8)]
     mem[4] = Signal(intbv(0)[7:])
+    @instance
     def f():
         while 1:
             yield clock.posedge, reset.negedge
             count.next = mem[0] + 1
-    return f()
+    return f
 
 
 ## def listElementNotUnique(count, enable, clock, reset, n):

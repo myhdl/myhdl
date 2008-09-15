@@ -31,6 +31,7 @@ from myhdl._delay import delay
 from myhdl._Signal import Signal, _WaiterList, posedge, negedge
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
                           _DelayWaiter, _EdgeWaiter, _EdgeTupleWaiter
+from myhdl._instance import _Instantiator
 
 class _error:
     pass
@@ -61,7 +62,7 @@ def always(*args):
     return _always_decorator
         
 
-class _Always(object):
+class _Always(_Instantiator):
 
     def __init__(self, func, args):
         self.func = func

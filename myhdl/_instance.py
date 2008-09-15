@@ -27,6 +27,7 @@ from types import FunctionType
 
 from myhdl import InstanceError
 from myhdl._util import _isGenFunc
+from myhdl._Waiter import _inferWaiter
 
 class _error:
     pass
@@ -41,5 +42,12 @@ def instance(genFunc):
         raise InstanceError(_error.ArgType)
     if genFunc.func_code.co_argcount > 0:
         raise InstanceError(_error.NrOfArgs)
-    return genFunc()
+    return _Instantiator(genFunc)
 
+class _Instantiator(object):
+    
+    def __init__(self, genFunc):
+        self.genfunc = genFunc
+        self.gen = genFunc()
+        self.waiter = _inferWaiter(self.gen)
+        

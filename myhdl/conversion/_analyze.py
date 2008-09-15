@@ -156,8 +156,8 @@ def _analyzeGens(top, absnames):
             else:
                 v = _AnalyzeAlwaysDecoVisitor(ast, g.senslist)
             compiler.walk(ast, v)
-        else:
-            f = g.gi_frame
+        else: # @instance
+            f = g.gen.gi_frame
             s = inspect.getsource(f)
             # remove decorators
             s = re.sub(r"@.*", "", s)

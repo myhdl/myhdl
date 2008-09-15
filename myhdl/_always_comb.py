@@ -35,6 +35,7 @@ from myhdl._Signal import _isListOfSigs
 from myhdl._util import _isGenFunc
 from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
+from myhdl._instance import _Instantiator
 
 class _error:
     pass
@@ -150,7 +151,7 @@ class _SigNameVisitor(object):
         pass # skip
         
 
-class _AlwaysComb(object):
+class _AlwaysComb(_Instantiator):
 
     def __init__(self, func, symdict):
         self.func = func

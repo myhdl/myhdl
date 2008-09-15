@@ -47,6 +47,7 @@ from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
 
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
+from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error, _access, _kind,_context, 
                                     _ConversionMixin, _Label)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
@@ -57,7 +58,7 @@ _profileFunc = None
 
 def _checkArgs(arglist):
     for arg in arglist:
-        if not type(arg) in (GeneratorType, _AlwaysComb, _Always, _UserVerilog):
+        if not isinstance(arg, (GeneratorType, _Instantiator, _UserVerilog)):
             raise ToVerilogError(_error.ArgType, arg)
         
 def _flatten(*args):

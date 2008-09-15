@@ -9,148 +9,190 @@ from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
 def ForLoopError1(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in (1, 2, 3):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in (1, 2, 3):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
         
 def ForLoopError2(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in list((1, 2, 3)):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in list((1, 2, 3)):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
 
 
 def ForLoop1(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in downrange(len(a)):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in downrange(len(a)):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
 
 def ForLoop2(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in downrange(len(a), 5):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in downrange(len(a), 5):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
 
 def ForLoop3(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in downrange(len(a), 3, 2):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in downrange(len(a), 3, 2):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
         
 def ForLoop4(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in range(len(a)):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in range(len(a)):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
 
 def ForLoop5(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in range(6, len(a)):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in range(6, len(a)):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
 
 def ForLoop6(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in range(5, len(a), 3):
-            if a[i] == 1:
-                var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in range(5, len(a), 3):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+    return logic
 
 def ForContinueLoop(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in downrange(len(a)):
-            if a[i] == 0:
-                continue
-            var += 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in downrange(len(a)):
+                if a[i] == 0:
+                    continue
+                var += 1
+            out.next = var
+    return logic
 
 def ForBreakLoop(a, out):
-    while 1:
-        yield a
-        out.next = 0
-        for i in downrange(len(a)):
-            if a[i] == 1:
-                out.next = i
-                break
+    @instance
+    def logic():
+        while 1:
+            yield a
+            out.next = 0
+            for i in downrange(len(a)):
+                if a[i] == 1:
+                    out.next = i
+                    break
+    return logic
 
 def ForBreakContinueLoop(a, out):
-    while 1:
-        yield a
-        out.next = 0
-        for i in downrange(len(a)):
-            if a[i] == 0:
-                continue
-            out.next = i
-            break
+    @instance
+    def logic():
+        while 1:
+            yield a
+            out.next = 0
+            for i in downrange(len(a)):
+                if a[i] == 0:
+                    continue
+                out.next = i
+                break
+    return logic
 
 def NestedForLoop1(a, out):
-    while 1:
-        yield a
-        var = 0
-        for i in downrange(len(a)):
-            if a[i] == 0:
-                continue
-            else:
-                for j in downrange(i):
-                    if a[j] == 0:
-                        var +=1
-                break
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in downrange(len(a)):
+                if a[i] == 0:
+                    continue
+                else:
+                    for j in downrange(i):
+                        if a[j] == 0:
+                            var +=1
+                    break
+            out.next = var
+    return logic
 
 def NestedForLoop2(a, out):
-    while 1:
-        yield a
-        var = 0
-        out.next = 0
-        for i in downrange(len(a)):
-            if a[i] == 0:
-                continue
-            else:
-                for j in downrange(i-1):
-                    if a[j] == 0:
-                        pass
-                    else:
-                        out.next = j
-                        break
-                break
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            out.next = 0
+            for i in downrange(len(a)):
+                if a[i] == 0:
+                    continue
+                else:
+                    for j in downrange(i-1):
+                        if a[j] == 0:
+                            pass
+                        else:
+                            out.next = j
+                            break
+                    break
+    return logic
 
 def ReturnFromFunction(a):
-       for i in downrange(len(a)):
-            if a[i] == 1:
-                return i
-       return 0
+    for i in downrange(len(a)):
+        if a[i] == 1:
+            return i
+    return 0
 
 def FunctionCall(a, out):
-    while 1:
-        yield a
-        out.next = ReturnFromFunction(a)
+    @instance
+    def logic():
+        while 1:
+            yield a
+            out.next = ReturnFromFunction(a)
+    return logic
 
 # During the following check, I noticed that non-blocking assignments
 # are not scheduled when a task is disabled in Icarus. Apparently
@@ -163,60 +205,75 @@ def ReturnFromTask(a, out):
     out[:] = 23 # to notice it
 
 def TaskCall(a, out):
-    var = intbv(0)[8:]
-    while 1:
-        yield a
-        ReturnFromTask(a, var)
-        out.next = var
+    @instance
+    def logic():
+        var = intbv(0)[8:]
+        while 1:
+            yield a
+            ReturnFromTask(a, var)
+            out.next = var
+    return logic
 
 def WhileLoop(a, out):
-    while 1:
-        yield a
-        var = 0
-        i = len(a)-1
-        while i >= 0:
-            if a[i] == 1:
-                var += 1
-            i -= 1
-        out.next = var
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            i = len(a)-1
+            while i >= 0:
+                if a[i] == 1:
+                    var += 1
+                i -= 1
+            out.next = var
+    return logic
 
 def WhileContinueLoop(a, out):
-    while 1:
-        yield a
-        var = 0
-        i = len(a)-1
-        while i >= 0:
-            if a[i] == 0:
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            i = len(a)-1
+            while i >= 0:
+                if a[i] == 0:
+                    i -= 1
+                    continue
+                var += 1
                 i -= 1
-                continue
-            var += 1
-            i -= 1
-        out.next = var
+            out.next = var
+    return logic
         
 def WhileBreakLoop(a, out):
-    while 1:
-        yield a
-        var = 0
-        i = len(a)-1
-        out.next = 0
-        while i >= 0:
-            if a[i] == 1:
-                out.next = i
-                break
-            i -= 1
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            i = len(a)-1
+            out.next = 0
+            while i >= 0:
+                if a[i] == 1:
+                    out.next = i
+                    break
+                i -= 1
+    return logic
     
 def WhileBreakContinueLoop(a, out):
-    while 1:
-        yield a
-        var = 0
-        i = len(a)-1
-        out.next = 0
-        while i >= 0:
-            if a[i] == 0:
-                 i -= 1
-                 continue
-            out.next = i
-            break
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            i = len(a)-1
+            out.next = 0
+            while i >= 0:
+                if a[i] == 0:
+                     i -= 1
+                     continue
+                out.next = i
+                break
+    return logic
     
 
 

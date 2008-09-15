@@ -47,6 +47,7 @@ _profileFunc = None
 class _error:
     pass
 _error.NoInstances = "No instances found"
+_error.InconsistentHierarchy = "Inconsistent hierarchy - are all instances returned?"
 
 
 class _Instance(object):
@@ -168,17 +169,18 @@ class _HierExtr(object):
 
         # streamline hierarchy
         hierarchy.reverse()
-##         from pprint import pprint
-##         pprint(hierarchy)
         # walk the hierarchy to define relative and absolute names
         names = {}
         top_inst = hierarchy[0]
         obj, subs = top_inst.obj, top_inst.subs
         names[id(obj)] = name
         absnames[id(obj)] = name
+        if not top_inst.level == 1:
+                raise ExtractHierarchyError(_error.InconsistentHierarchy)
         for inst in hierarchy:
             obj, subs = inst.obj, inst.subs
-            assert id(obj) in names
+            if id(obj) not in names:
+                raise ExtractHierarchyError(_error.InconsistentHierarchy)
             inst.name = names[id(obj)]
             tn = absnames[id(obj)]
             for sn, so in subs:
