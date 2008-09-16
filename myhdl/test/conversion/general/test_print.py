@@ -19,8 +19,10 @@ def PrintBench():
         i2[:] = -7
         si2.next = -5
         yield delay(10)
+        print
         print i1
         print i2
+        print i1, i2
         print si1
         print si2
         yield delay(10)

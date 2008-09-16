@@ -273,8 +273,6 @@ class _NotSupportedVisitor(_ConversionMixin):
             self.visit(node.else_)
         
     def visitPrintnl(self, node, *args):
-        if len(node.nodes) > 1:
-            warnings.warn("print with more than one argument not supported: %s"%node)
         if node.dest is not None:
             self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
         self.visitChildNodes(node, *args)
@@ -759,45 +757,50 @@ class _AnalyzeVisitor(_ConversionMixin):
         
     def visitPrintnl(self, node, *args):
         self.ast.hasPrint = True
-        n = node.nodes[0]
-        if isinstance(n, astNode.Mod) and \
-           (isinstance(n.left, astNode.Const) and isinstance(n.left.value, str)):
-            if isinstance(n.right, astNode.Tuple):
-                node.args = n.right.nodes
+        f = []
+        nr = 0
+        a = []
+        for n in node.nodes:
+            if isinstance(n, astNode.Mod) and \
+               (isinstance(n.left, astNode.Const) and isinstance(n.left.value, str)):
+                if isinstance(n.right, astNode.Tuple):
+                    a.extend(n.right.nodes)
+                else:
+                    a.append(n.right)
+                s = n.left.value
+                while s:
+                    if not s:
+                        break
+                    if s[:2] == "%%":
+                        f.append("%")
+                        s = s[2:]
+                        continue
+                    m = re_ConvSpec.match(s)
+                    if m:
+                        f.append(ConvSpec(**m.groupdict()))
+                        s = s[m.end():]
+                        nr += 1
+                        continue
+                    m = re_str.match(s)
+                    if m:
+                        f.append(s[:m.end()])
+                        s = s[m.end():]
+                        continue
+                    self.raiseError(node, _error.UnsupportedFormatString, "%s" % s)
             else:
-                node.args = (n.right, )
-            s = n.left.value
-            f = []
-            nrargs = 0 
-            while s:
-                if not s:
-                    break
-                if s[:2] == "%%":
-                    f.append("%")
-                    s = s[2:]
-                    continue
-                m = re_ConvSpec.match(s)
-                if m:
-                    f.append(ConvSpec(**m.groupdict()))
-                    s = s[m.end():]
-                    nrargs += 1
-                    continue
-                m = re_str.match(s)
-                if m:
-                    f.append(s[:m.end()])
-                    s = s[m.end():]
-                    continue
-                print s
-                self.raiseError(node, _error.UnsupportedFormatString, "%s" % s)
-            node.format = f
-        else:
-            node.format = (defaultConvSpec,)
-            node.args = (node.nodes[0],)
-            nrargs = 1
-        if len(node.args) < nrargs:
+                f.append(defaultConvSpec)
+                a.append(n)
+                nr += 1
+            f.append(" ")
+        # remove last single space if it exists
+        if f:
+            f.pop()
+        node.format = f
+        node.args = a
+        if len(node.args) < nr:
             self.raiseError(node, _error.FormatString, "not enough arguments")
-        if len(node.args) > nrargs:
-            self.raiseError(node, _error.FormatString, "too many arguments")
+        if len(node.args) > nr:
+            self.raispoeError(node, _error.FormatString, "too many arguments")
         self.visitChildNodes(node, *args)
         
     visitPrint = visitPrintnl
