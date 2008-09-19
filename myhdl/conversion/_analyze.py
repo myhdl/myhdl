@@ -800,7 +800,7 @@ class _AnalyzeVisitor(_ConversionMixin):
         if len(node.args) < nr:
             self.raiseError(node, _error.FormatString, "not enough arguments")
         if len(node.args) > nr:
-            self.raispoeError(node, _error.FormatString, "too many arguments")
+            self.raiseError(node, _error.FormatString, "too many arguments")
         self.visitChildNodes(node, *args)
         
     visitPrint = visitPrintnl

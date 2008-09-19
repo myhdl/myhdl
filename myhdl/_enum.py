@@ -38,27 +38,25 @@ class EnumItemType(object):
         raise TypeError("class EnumItemType is only intended for type checking on subclasses")
 
 
-def enum(*args, **kwargs):
+def enum(*names, **kwargs):
 
     # args = args
     encoding = kwargs.get('encoding', 'binary')
-    argdict = {}
     codedict = {}
     if encoding == "binary":
-        nrbits = len(bin(len(args)-1))
+        nrbits = len(bin(len(names)-1))
     elif encoding in ("one_hot", "one_cold"):
-        nrbits = len(args)
+        nrbits = len(names)
     else:
         raise ValueError("Unsupported enum encoding: %s \n    Supported encodings:" + \
                          "    'binary', 'one_hot', 'one_cold'" % encoding)
     
     i = 0
-    for arg in args:
-        if not isinstance(arg, StringType):
+    for name in names:
+        if not isinstance(name, StringType):
             raise TypeError()
-        if codedict.has_key(arg):
+        if codedict.has_key(name):
             raise ValueError("enum literals should be unique")
-        argdict[i] = arg
         if encoding == "binary":
             code = bin(i, nrbits)
         elif encoding == "one_hot":
@@ -67,19 +65,20 @@ def enum(*args, **kwargs):
             code = bin(~(1<<i), nrbits)
         if len(code) > nrbits:
             code = code[-nrbits:]
-        codedict[arg] = code
+        codedict[name] = code
         i += 1
        
     class EnumItem(EnumItemType):
-        def __init__(self, index, arg, type):
+        def __init__(self, index, name, val, type):
             self._index = index
-            self._name = arg
-            self._val = codedict[arg]
-            self._nrbits = nrbits
-            self._nritems = len(args)
+            self._name = name
+            self._val = val
+            self._nrbits = type._nrbits
+            self._nritems = type._nritems
             self._type = type
         def __repr__(self):
-            return argdict[self._index]
+            return self._name
+        __str__ = __repr__
         def __hex__(self):
             return hex(int(self._val, 2))
         __str__ = __repr__
@@ -99,17 +98,20 @@ def enum(*args, **kwargs):
             return self
 
     class Enum(EnumType):
-        def __init__(self):
-            for index, slot in enumerate(args):
-                self.__dict__[slot] = EnumItem(index, slot, self)
+        def __init__(self, names, codedict, nrbits):
+            self.__dict__['_names'] = names
             self.__dict__['_nrbits'] = nrbits
             self.__dict__['_declared'] = False
+            self.__dict__['_nritems'] = len(names)
+            for index, name in enumerate(names):
+                val = codedict[name]
+                self.__dict__[name] = EnumItem(index, name, val, self)
         def __setattr__(self, attr, val):
             raise AttributeError("Cannot assign to enum attributes")
         def __len__(self):
-            return len(args)
+            return len(self.names)
         def __repr__(self):
-            return "<Enum: %s>" % ", ".join(args)
+            return "<Enum: %s>" % ", ".join(names)
         __str__ = __repr__
         def _isDeclared(self):
             return self._declared
@@ -123,12 +125,12 @@ def enum(*args, **kwargs):
             self.__dict__['_name'] = typename
             # XXX name generation
             str = "type %s is (\n    " % typename
-            str += ",\n    ".join(args)         
+            str += ",\n    ".join(self._names)         
             str += "\n);"
             return str
             
         
-    return Enum()
+    return Enum(names, codedict, nrbits)
 
 
 
