@@ -922,6 +922,20 @@ class _ConvertVisitor(_ConversionMixin):
                     self.write('else')
                     self.writeline()
                     self.write('    $write("False");')
+                elif isinstance(obj, EnumItemType):
+                    tipe = obj._type
+                    self.write('case (')
+                    self.visit(a, _context.PRINT)
+                    self.write(')')
+                    self.indent()
+                    for n in tipe._names:
+                        self.writeline()
+                        item = getattr(tipe, n)
+                        self.write("'b%s: " % item._val)
+                        self.write('$write("%s");' % n)
+                    self.dedent()
+                    self.writeline()
+                    self.write("endcase")
                 else:
                     self.write('$write("%s", ' % fs)
                     self.visit(a, _context.PRINT)
