@@ -120,7 +120,9 @@ latex_font_size = '11pt'
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = [('manual/MyHDL', 'MyHDL.tex', 'MyHDL manual', 'Jan Decaluwe', 'manual')]
+latex_documents = [('manual/index', 'MyHDL.tex', 'MyHDL manual', 'Jan Decaluwe', 'manual'),
+                   ('whatsnew/0.6', 'whatsnew0.6.tex', 'What\'s new in MyHDL 0.6', 'Jan Decaluwe', 'manual')
+                  ]
 
 # Additional stuff for the LaTeX preamble.
 latex_preamble = '\usepackage{palatino}'

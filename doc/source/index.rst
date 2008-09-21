@@ -10,7 +10,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   manual/MyHDL
+   whatsnew/0.6.rst
+   manual/index.rst
 
 Indices and tables
 ==================
