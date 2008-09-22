@@ -1,0 +1,536 @@
+***********************
+What's new in MyHDL 0.6
+***********************
+
+
+Conversion to VHDL
+==================
+
+
+Rationale
+---------
+
+Since the MyHDL to Verilog conversion has been developed, a path to
+implementation from MyHDL is available. Given the widespread support
+for Verilog, it could thus be argued that there was no real need for a
+convertor to VHDL.
+
+However, it turns out that VHDL is still very much alive and will
+remain so for the forseeable future. This is especially true for the
+FPGA market, where probably a majority of HDL designers use VHDL, not
+Verilog.
+
+The FPGA market is especially interesting for MyHDL. It seems much
+more dynamic and poised for growth than the ASIC market. Moreover,
+because of the nature of FPGA's, FPGA designers may be more willing to
+try out new ideas, such as open-source solutions in general and Python
+and MyHDL in particular.
+
+To convince designers to use a new tool, it should integrate with
+their current design flow. That is why the MyHDL to VHDL convertor is
+needed. It should lower the threshold for VHDL designers to start
+using MyHDL.
+
+Advantages
+----------
+
+MyHDL to VHDL conversion offers the following advantages:
+
+* **MyHDL integration in a VHDL-based design flow** Designers can
+  start using MyHDL and benefit from its power and flexibility, within
+  the context of their proven design flow.
+
+* **The convertor to VHDL automates certain hard tasks** Like its
+  Verilog counterpart, the convertor automates certain tasks that are
+  hard in VHDL directly. For example, getting the desired behavior right
+  when using ``unsigned`` and ``signed`` types is often not easy. In
+  contrast, a MyHDL designer can use the high-level ``intbv`` type
+  instead, and let the convertor deal with type conversions and
+  resizings automatically.
+
+* **MyHDL as an IP development platform**  The possibility to
+  convert the same MyHDL source to equivalent Verilog and VHDL creates a
+  novel application: using MyHDL as an IP development platform. IP
+  developers can serve customers for both target languages from a single
+  MyHDL source base. Morever, MyHDL's flexibility and outstanding
+  parametrizability are ideally suited to this application.
+
+Solution description
+--------------------
+
+Approach
+^^^^^^^^
+
+The approach followed to convert MyHDL code to VHDL is identical to
+the one followed for conversion to Verilog. For a detailed
+description, see `the chapter about conversion to Verilog
+<http://www.jandecaluwe.com/Tools/MyHDL/manual/conv.html>`_ in the
+manual.
+
+In particular, the MyHDL code analyzer in the convertor is identical
+for both target languages. The goal is that all MyHDL code that can be
+converted to Verilog conversion can be converted to VHDL also, and
+vice versa. This has been achieved except for a few minor issues due
+to limitations of the two languages.
+
+User interface
+^^^^^^^^^^^^^^
+
+Conversion to VHDL is implemented by the following function in the ``myhdl`` package:
+
+.. function:: toVHDL(func[, *args][, **kwargs])
+
+   Converts a MyHDL design instance to equivalent VHDL
+   code. *func* is a function that returns an instance. :func:`toVHDL`
+   calls *func* under its control and passes *\*args* and
+   *\*\*kwargs* to the call.
+
+   The return value is the same as would be returned by the call
+   ``func(*args, **kwargs)``. It can be assigned to an instance name.
+   The top-level instance name and the basename of the Verilog
+   output filename is ``func.func_name`` by default.
+	
+The :func:`toVHDL` callable has the following attribute:
+
+.. attribute:: toVHDL.name
+
+  This attribute is used to overwrite the default top-level
+  instance name and the basename of the VHDL output.
+
+Type handling
+^^^^^^^^^^^^^
+
+
+In contrast to Verilog, VHDL is a strongly typed language. The
+convertor has to carefully perform type inferencing, and handle type
+conversions and resizings appropriately. To do this right, a
+well-chosen mapping from MyHDL types to VHDL types is crucial.
+
+MyHDL types are mapped to VHDL types according to the following table:
+
+
++--------------------------------------------------+-----------------------------------+
+|  MyHDL type                                      | VHDL type                         |
++==================================================+===================================+
+| ``bool``                                         | ``IEEE.std_logic_1164.std_logic`` |
++--------------------------------------------------+-----------------------------------+
+| ``intbv``, attribute ``min >= 0``                | ``IEEE.numeric_std.signed``       |
++--------------------------------------------------+-----------------------------------+
+| ``intbv``, attribute ``min < 0``                 | ``IEEE.numeric_std.unsigned``     |
++--------------------------------------------------+-----------------------------------+
+| ``enum``                                         | dedicated enumeration type        |
++--------------------------------------------------+-----------------------------------+
+| ``tuple``of ``int``                              | mapped to case statement          |
++--------------------------------------------------+-----------------------------------+
+| ``list`` of ``bool``                             | ``array`` of ``std_logic``        |
++--------------------------------------------------+-----------------------------------+
+| ``list`` of ``intbv``, attribute ``min >= 0``    | ``array of unsigned``             |
++--------------------------------------------------+-----------------------------------+
+| ``list`` of ``intbv``, attribute ``min < 0``     | ``array of signed``               |
++--------------------------------------------------+-----------------------------------+
+
+
+Additional remarks and constraints:
+
+* The convertor only supports MyHDL signals that use ``bool``,
+  ``intbv`` or ``enum`` objects as their underlying type.
+
+* a MyHDL signal is mapped to a VHDL signal with the appropriate type as above
+
+* a MyHDL list of signals is not always directly mapped to a VHDL
+  type. This only happens when all signals in the list are "anonymous",
+  that is, they don't have a name in some other module in the
+  hierarchy. In that case, it is mapped to a VHDL signal of an array
+  type. Otherwise, the signals are mapped to VHDL individually.
+
+* a MyHDL list of anonymous signals is used for RAM inference, and
+  can only be used in a very specific way: an indexing operation into
+  the list should be the rhs or the lhs of an assignment.
+
+* a MyHDL tuple of ints is used for ROM inference, and can only be
+  used in a very specific way: an indexing operation into the tuple
+  should be the rhs of an assignment.
+
+* the handling of lists and tuples is identical to what the
+  convertor to Verilog does. See the manual for more details.
+
+Template transformation
+^^^^^^^^^^^^^^^^^^^^^^^
+
+There is a difference between VHDL and Verilog in the way in which
+sensitivity to signal edges is specified. In Verilog, edge specifiers
+can be used directly in the sensitvity list. In VHDL, this is not
+possible: only signals can be used in the sensitivity list. To check
+for an edge, one uses the ``rising_edge()`` or ``falling_edge()``
+functions in the code.
+
+MyHDL follows the Verilog scheme to specify edges in the sensitivity
+list. Consequently, when mapping such code to VHDL, it needs to be
+transformed to equivalent VHDL. This is an important issue because it
+affects all synthesizable templates that infer sequential logic.
+
+We will illustrate this feature with some examples. This is the MyHDL
+code for a D flip-flop::
+
+
+    @always(clk.posedge)
+    def logic():
+        q.next = d
+
+
+It is converted to VHDL as follows::
+
+
+    DFF_LOGIC: process (clk) is
+    begin
+        if rising_edge(clk) then
+            q <= d;
+        end if;
+    end process DFF_LOGIC;
+
+
+The convertor can handle the more general case. For example, this is
+MyHDL code for a D flip-flop with asynchronous set, asynchronous
+reset, and preference of set over reset::
+
+
+    @always(clk.posedge, set.negedge, rst.negedge)
+    def logic():
+        if set == 0:
+            q.next = 1
+        elif rst == 0:
+            q.next = 0
+        else:
+            q.next = d
+
+
+This is converted to VHDL as follows::
+
+
+    DFFSR_LOGIC: process (clk, set, rst) is
+    begin
+        if (set = '0') then
+            q <= '1';
+        elsif (rst = '0') then
+            q <= '0';
+        elsif rising_edge(clk) then
+            q <= d;
+        end if;
+    end process DFFSR_LOGIC;
+
+
+All cases with practical utility can be handled in this way. However,
+there are other cases that cannot be transformed to equivalent
+VHDL. The convertor will detect those and give an error.
+
+Conversion output verification without co-simulation
+====================================================
+
+
+Background
+----------
+
+Obviously, we want to verify that the conversion to VHDL really
+works. More specifically, there has to be an easy way to verify that
+the behavior of the generated VHDL code is identical to the behavior
+of the original MyHDL code.
+
+
+In previous MyHDL versions, we had the same problem with conversion to
+Verilog. The proposed verification technique was co-simulation: use
+the same MyHDL test bench to simulate the converted Verilog code and
+the original MyHDL code. This works well, but of course it relies on
+the availability of reliable co-simulation.  There are a number of
+issues with co-simulation:
+
+* Co-simulation requires that the HDL simulator has an interface to
+  its internal workings, such as ``vpi`` for Verilog and ``vhpi`` for
+  VHDL.
+
+* vpi`` for Verilog is well-established and available for
+  open-source simulators such as Icarus and cver). However, ``vhpi`` for
+  VHDL is much less established; it is unclear whether there is an open
+  source solution that is powerful enough for MyHDL's purposes.
+
+* Even though ``vpi`` is a "standard", there are differences between
+  various simulators. Therefore, some customization is likely required
+  per Verilog simulator.
+
+* MyHDL co-simulation uses unix-style interprocess communication
+  that doesn't work on Windows natively. This is an exception to the
+  rest of MyHDL that should run on any Python platform.
+
+The conclusion is that co-simulation is probably not a viable solution
+for the VHDL case, and it has severe disadvantages for Verilog as
+well. To find a solution, let's first review the applications for
+co-simulation. I can see two major applications:
+
+  - With co-simulation, MyHDL can be used as a Hardware Verification
+    Language for designs that are done in a different HDL.
+  - Co-simulation can be used to verify that the MyHDL convertor to
+    Verilog (or VHDL) works.
+
+For the first case, co-simulation clearly is a must. However, for the
+second case, we would be more than happy to use some other
+verification method if one were available. Imagine for example that
+there would exist a formal verification tool that compares MyHDL code
+and converted output code. A formal tool is not very likely in the
+forseeable future, but perhaps we may find other ways.
+
+Approach
+--------
+
+To verify the VHDL output, a methodology has been developed and
+implemented that doesn't rely on co-simulation. The solution works for
+Verilog as well.
+
+The idea is basically to convert the test bench as well as the
+functional code. In particular, ``print`` statements in MyHDL are
+converted to equivalent statements in the HDL. The verification
+process consists of running both the MyHDL and the HDL simulation,
+comparing the simulation output, and reporting any differences.
+
+The goal is to make the verfication process as easy as possible. The
+use of ``print`` statements to debug a design is a very common and
+simple technique. The verification process itself is implemented in a
+single function with an interface that is identical to ``toVHDL`` and
+``toVerilog``.
+
+As this is a native Python solution, it runs on any platform on which
+the HDL simulator runs. Moreover, any HDL simulator can be used as no
+``vpi`` or ``vhpi`` capabilities are needed. Of course, per HDL
+simulator some customization is required to define the details on how
+it is used. This needs to be done once per HDL simulator and is fully
+under user control.
+
+
+Print statement conversion
+--------------------------
+
+Background
+^^^^^^^^^^
+
+In previous MyHDL versions, print statement conversion to Verilog was
+supported in a quick (and dirty) way, by merely copying the format
+string without checks. With the advent of VHDL conversion, this has
+now been done more rigourously. This was necessary because VHDL
+doesn't work with format strings. Rather, the format string
+specification has to be converted to a sequence of VHDL ``write`` and
+``writeline`` calls. The new method results in some restrictions, but
+these are not expected to be significant.
+
+Supported print statement forms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following print statement forms are supported by the convertor::
+
+
+    print arg
+    print formatstring % arg
+    print formatstring % (arg1, arg2, ...)
+
+
+where ``arg`` is a ``bool``, ``int``, ``intbv``, ``enum``, or a
+``Signal`` of these types.
+
+The ``formatstring`` contains ordinary characters and conversion
+specifiers as in Python. However, the supported conversion specifiers
+are limited to the following form (in regular expression format)::
+
+    ``%[-]?[0-9]*[sd]``
+
+This means that you can specify left justification or not, a field
+width or not, and ask for a "string" or an integer representation.
+
+Unsupported print statement forms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is probably useful to explicitly point out some of the print
+statement features that are not supported by the converter.
+
+Any format specifier that doesn't match the pattern from the previous
+section is not supported. This implies that features such as key name
+mapping, floating point format, and zero filling are not
+supported. The convertor will issue an error when an unsupported
+format specifier is encountered in the format string.
+
+A print statement with multiple arguments::
+
+    print arg1, arg2, ...
+
+is not supported. This is not a big issue, because it is equivalent to
+the following supported form::
+
+
+    print "%s %s ..." % (arg1, arg2, ...)
+
+
+Printing without a newline::
+
+   print arg1 ,
+
+is not supported. This is because the solution is based on
+``std.textio``. In VHDL ``std.textio``, subsequent ``write`` calls to
+a line are only flushed (printed) upon a ``writeline`` call. As a
+normal ``print`` implies a newline, the correct behavior can be
+guaranteed, but for a ``print`` without newline this is not
+possible. In the future, other techniques may be used and this
+restricion may be lifted.
+
+
+Verification interface
+----------------------
+
+
+All functions related to conversion verification are implemented in
+the ``myhdl.conversion`` package. (To keep the ``myhdl`` namespace
+clean, they are not available from the ``myhdl`` namespace directly.)
+
+.. function:: verify(func[, *args][, **kwargs])
+
+  Used like ``toVHDL()``. It converts MyHDL code,
+  simulates both the MyHDL code and the HDL code and reports any
+  differences. The default HDL simulator is GHDL.
+
+.. function:: analyze(func[, *args][, **kwargs])
+
+  Used like ``toVHDL()``. It converts MyHDL code, and analyzes the
+  resulting HDL. 
+  Used to verify whether the HDL output is syntactically correct.
+
+The two previous functions have the following attribute:
+
+.. attribute:: simulator
+
+  Used to set the name of the required HDL simulator and
+  analyzer. The predefined GHDL simulator is the default.
+
+HDL simulator registration
+--------------------------
+
+To be able to use a HDL simulator to verify conversions, it needs to
+be registered first. This is needed once per simulator (or rather, per
+set of analysis and simulation commands). Registering is done with the
+following function:
+
+.. function:: registerSimulator(name=None, analyze=None, elaborate=None, simulate=None)
+
+   Registers a particular HDL simulator to be used by  :func:`verify()`
+   and :func`:analyze()`
+
+   *name* is the name of the simulator
+
+   *analyze* is a command string to analyze the HDL source code
+
+   *elaborate* is a command string to elaborate the HDL
+   code. This command is optional.
+
+   *simulate* is a command string to simulate the HDL code.
+
+   The command strings should be string templates that refer to the
+   ``topname`` variable that specifies the design name.
+   The command strings can assume that a subdirectory called
+   ``work`` is available in the current working directory. Analysis and
+   elaboration results can be put there if desired.
+
+   The :func:`analyze()` function uses the *analyze* command.
+
+   The :func:`verify()` function uses the *analyze* command, then the
+   *elaborate* command if any, and then the *simulate* command.
+
+   The GHDL simulator is registered by default, but its
+   registration can be overwritten if required.
+
+
+Example: registering a HDL simulator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As an example of registering a HDL simulator, we will show how the
+GHDL simulator is registered in the MyHDL distribution. The command is
+the following::
+
+
+    registerSimulator(name="GHDL",
+                      analyze="ghdl -a --workdir=work %(topname)s.vhd",
+                      elaborate="ghdl -e --workdir=work %(topname)s",
+                      simulate="ghdl -r %(topname)s")
+
+
+These commands assume that the GHDL simulator is set up and available
+from the ``ghdl`` command. The analysis and elaboration results will
+be put in subdirectory ``work``. ``topname`` is a string that refers
+to the top-level design name. ``name``, ``analyze``, and ``simulate``
+are mandatory parameters. The ``elaborate`` command can be omitted if
+the ``simulate`` command does elaboration and simulation in a single
+pass.
+
+Methodology notes
+-----------------
+
+Test bench coverage
+^^^^^^^^^^^^^^^^^^^
+
+Test bench complexity
+^^^^^^^^^^^^^^^^^^^^^
+
+The proposed method to verify the convertor output is to convert not
+only the design under test but also the test bench itself to VHDL. Of
+course, test bench code that needs to be converted will have to obey
+constraints related to convertible code. This raises the question
+whether the convertor is powerful enough to convert test-bench
+oriented code.  This may seem problematic at first. For functional
+verification, we would like to use the full power of Python. That
+should be one of the attractive features of MyHDL. Clearly, full
+generality is beyond the scope of the convertor.
+
+However, things are not that bad.  To start with, note that the test
+bench in question is not intended to demonstrate the functional
+correctness of a design. Instead, it is intended to verify the
+equivalence between the MyHDL code and the VHDL code from the
+convertor. This difference is similar to the one between functional
+RTL simulation and the simulation of gate-level net list to verify the
+correctness of the synthesized result.
+
+Functional simulation is the primary verification tool of the
+designer. It should be used at all levels and as early as possible. A
+unit-test driven approach is ideal for that.  In contrast, it is not
+necessary to convert to VHDL at all levels, except for quick
+experiments, e.g to check whether code can be converted at all. It is
+sufficient to convert at the top level that will be comitted to
+silicon, preferably after the design has been thoroughly verified
+functionally. Consequently, we want to verify the convertor output at
+that same top level, using some test bench with a good functional
+coverage. It it reasonable to expect that most of the times no
+problems will be found at all. (Otherwise, the quality of the MyHDL
+development, verification, and release procedures would be
+unacceptable.) If a problem is found anyway, one can then track it
+down at lower levels.
+
+The following techniques can be used to create very complex test
+benches that can still be converted:
+
+* A complex functional top-level test bench with a good coverage can
+  be used to generate a simplified test bench with the same coverage,
+  but that can always be converted. One can simply sample inputs and
+  outputs and store them in some table format. This is similar to what
+  is commonly done to generate some of the production test vectors for
+  ASICs.
+
+* Coding techniques can move some of the required complexity out of
+  the convertor. For example, arbitrary complex test vectors sequences
+  can be set up on beforehand instead of being generated on the
+  fly. They are then converted in the same way as a ROM table.
+
+Conversion at multiple levels
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Backwards incompatible changes
+==============================
+
+Printing without a newline
+--------------------------
+
+Printing without a newline (a print statement followed by a comma) is
+no longer supported by the convertor to Verilog. This is done to be
+compatible with the convertor to VHDL. Printing without a newline
+cannot be reliably converted to VHDL.
