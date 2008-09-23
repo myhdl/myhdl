@@ -17,10 +17,7 @@ convertor to VHDL.
 
 However, it turns out that VHDL is still very much alive and will
 remain so for the forseeable future. This is especially true for the
-FPGA market, where probably a majority of HDL designers use VHDL, not
-Verilog.
-
-The FPGA market is especially interesting for MyHDL. It seems much
+FPGA market, which is especially interesting for MyHDL. It seems much
 more dynamic and poised for growth than the ASIC market. Moreover,
 because of the nature of FPGA's, FPGA designers may be more willing to
 try out new ideas, such as open-source solutions in general and Python
@@ -46,7 +43,7 @@ MyHDL to VHDL conversion offers the following advantages:
   when using ``unsigned`` and ``signed`` types is often not easy. In
   contrast, a MyHDL designer can use the high-level ``intbv`` type
   instead, and let the convertor deal with type conversions and
-  resizings automatically.
+  resizings.
 
 * **MyHDL as an IP development platform**  The possibility to
   convert the same MyHDL source to equivalent Verilog and VHDL creates a
@@ -71,7 +68,7 @@ In particular, the MyHDL code analyzer in the convertor is identical
 for both target languages. The goal is that all MyHDL code that can be
 converted to Verilog conversion can be converted to VHDL also, and
 vice versa. This has been achieved except for a few minor issues due
-to limitations of the two languages.
+to limitations of the target languages.
 
 User interface
 ^^^^^^^^^^^^^^
@@ -112,11 +109,11 @@ MyHDL types are mapped to VHDL types according to the following table:
 +--------------------------------------------------+-----------------------------------+
 |  MyHDL type                                      | VHDL type                         |
 +==================================================+===================================+
-| ``bool``                                         | ``IEEE.std_logic_1164.std_logic`` |
+| ``bool``                                         | ``std_logic``                     |
 +--------------------------------------------------+-----------------------------------+
-| ``intbv``, attribute ``min >= 0``                | ``IEEE.numeric_std.signed``       |
+| ``intbv``, attribute ``min >= 0``                | ``signed``                        |
 +--------------------------------------------------+-----------------------------------+
-| ``intbv``, attribute ``min < 0``                 | ``IEEE.numeric_std.unsigned``     |
+| ``intbv``, attribute ``min < 0``                 | ``unsigned``                      |
 +--------------------------------------------------+-----------------------------------+
 | ``enum``                                         | dedicated enumeration type        |
 +--------------------------------------------------+-----------------------------------+
@@ -132,27 +129,26 @@ MyHDL types are mapped to VHDL types according to the following table:
 
 Additional remarks and constraints:
 
+* The VHDL ``std_logic`` type is defined in the standard VHDL package
+  ``IEEE.std_logic_1164``
+
+* The VHDL ``unsigned`` and ``signed`` types used are those from the
+  standard VHDL packages ``IEEE.numeric_std``
+
 * The convertor only supports MyHDL signals that use ``bool``,
   ``intbv`` or ``enum`` objects as their underlying type.
 
 * a MyHDL signal is mapped to a VHDL signal with the appropriate type as above
 
 * a MyHDL list of signals is not always directly mapped to a VHDL
-  type. This only happens when all signals in the list are "anonymous",
-  that is, they don't have a name in some other module in the
-  hierarchy. In that case, it is mapped to a VHDL signal of an array
-  type. Otherwise, the signals are mapped to VHDL individually.
-
-* a MyHDL list of anonymous signals is used for RAM inference, and
-  can only be used in a very specific way: an indexing operation into
-  the list should be the rhs or the lhs of an assignment.
+  type. If the list is used purely for structure, list syntax is
+  not used within generator code. In that case, the signals are mapped
+  to VHDL individually.
 
 * a MyHDL tuple of ints is used for ROM inference, and can only be
   used in a very specific way: an indexing operation into the tuple
   should be the rhs of an assignment.
 
-* the handling of lists and tuples is identical to what the
-  convertor to Verilog does. See the manual for more details.
 
 Template transformation
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -223,9 +219,73 @@ All cases with practical utility can be handled in this way. However,
 there are other cases that cannot be transformed to equivalent
 VHDL. The convertor will detect those and give an error.
 
+
+
+Better support for test bench conversion
+========================================
+
+Background
+----------
+
+Print statement conversion
+--------------------------
+
+In previous MyHDL versions, print statement conversion to Verilog was
+supported in a quick (and dirty) way, by merely copying the format
+string without checks. With the advent of VHDL conversion, this has
+now been done more rigourously. This was necessary because VHDL
+doesn't work with format strings. Rather, the format string
+specification has to be converted to a sequence of VHDL ``write`` and
+``writeline`` calls. 
+
+A print statement with multiple arguments::
+
+    print arg1, arg2, ...
+
+is supported. However, there are restrictions on the arguments.
+First, they should be of one of the following forms::
+
+    arg
+    formatstring % arg
+    formatstring % (arg1, arg2, ...)
+
+where ``arg`` is a ``bool``, ``int``, ``intbv``, ``enum``, or a
+``Signal`` of these types.
+
+The ``formatstring`` contains ordinary characters and conversion
+specifiers as in Python. However, the only supported conversion specifiers
+are ``%s`` and ``%d``.
+Things like justification and width specification are thus not
+supported.
+
+Printing without a newline::
+
+   print arg1 ,
+
+is not supported. This is because the solution is based on
+``std.textio``. In VHDL ``std.textio``, subsequent ``write`` calls to
+a line are only flushed (printed) upon a ``writeline`` call. As a
+normal ``print`` implies a newline, the correct behavior can be
+guaranteed, but for a ``print`` without newline this is not
+possible. In the future, other techniques may be used and this
+restricion may be lifted.
+
+Assert statement conversion
+---------------------------
+
+Methodology notes
+-----------------
+
+
+
+
+
 Conversion output verification without co-simulation
 ====================================================
 
+.. note:: This functionality is not needed in a typical
+          design flow. It is only relevant to debug the
+          MyHDL convertor functionality itself.
 
 Background
 ----------
@@ -234,7 +294,6 @@ Obviously, we want to verify that the conversion to VHDL really
 works. More specifically, there has to be an easy way to verify that
 the behavior of the generated VHDL code is identical to the behavior
 of the original MyHDL code.
-
 
 In previous MyHDL versions, we had the same problem with conversion to
 Verilog. The proposed verification technique was co-simulation: use
@@ -304,83 +363,8 @@ it is used. This needs to be done once per HDL simulator and is fully
 under user control.
 
 
-Print statement conversion
---------------------------
-
-Background
-^^^^^^^^^^
-
-In previous MyHDL versions, print statement conversion to Verilog was
-supported in a quick (and dirty) way, by merely copying the format
-string without checks. With the advent of VHDL conversion, this has
-now been done more rigourously. This was necessary because VHDL
-doesn't work with format strings. Rather, the format string
-specification has to be converted to a sequence of VHDL ``write`` and
-``writeline`` calls. The new method results in some restrictions, but
-these are not expected to be significant.
-
-Supported print statement forms
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The following print statement forms are supported by the convertor::
-
-
-    print arg
-    print formatstring % arg
-    print formatstring % (arg1, arg2, ...)
-
-
-where ``arg`` is a ``bool``, ``int``, ``intbv``, ``enum``, or a
-``Signal`` of these types.
-
-The ``formatstring`` contains ordinary characters and conversion
-specifiers as in Python. However, the supported conversion specifiers
-are limited to the following form (in regular expression format)::
-
-    ``%[-]?[0-9]*[sd]``
-
-This means that you can specify left justification or not, a field
-width or not, and ask for a "string" or an integer representation.
-
-Unsupported print statement forms
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-It is probably useful to explicitly point out some of the print
-statement features that are not supported by the converter.
-
-Any format specifier that doesn't match the pattern from the previous
-section is not supported. This implies that features such as key name
-mapping, floating point format, and zero filling are not
-supported. The convertor will issue an error when an unsupported
-format specifier is encountered in the format string.
-
-A print statement with multiple arguments::
-
-    print arg1, arg2, ...
-
-is not supported. This is not a big issue, because it is equivalent to
-the following supported form::
-
-
-    print "%s %s ..." % (arg1, arg2, ...)
-
-
-Printing without a newline::
-
-   print arg1 ,
-
-is not supported. This is because the solution is based on
-``std.textio``. In VHDL ``std.textio``, subsequent ``write`` calls to
-a line are only flushed (printed) upon a ``writeline`` call. As a
-normal ``print`` implies a newline, the correct behavior can be
-guaranteed, but for a ``print`` without newline this is not
-possible. In the future, other techniques may be used and this
-restricion may be lifted.
-
-
 Verification interface
 ----------------------
-
 
 All functions related to conversion verification are implemented in
 the ``myhdl.conversion`` package. (To keep the ``myhdl`` namespace
@@ -527,10 +511,14 @@ Conversion at multiple levels
 Backwards incompatible changes
 ==============================
 
-Printing without a newline
---------------------------
+Conversion of printing without a newline
+----------------------------------------
 
 Printing without a newline (a print statement followed by a comma) is
 no longer supported by the convertor to Verilog. This is done to be
-compatible with the convertor to VHDL. Printing without a newline
-cannot be reliably converted to VHDL.
+compatible with the convertor to VHDL. Currently, the VHDL solution
+relies on ``std.textio`` and this implies that printing without a
+newline cannot be reliably converted.
+
+Decorators become mandatory for conversion and signal tracing
+-------------------------------------------------------------
