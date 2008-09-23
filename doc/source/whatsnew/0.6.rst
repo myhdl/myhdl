@@ -176,7 +176,6 @@ code for a D flip-flop::
 
 It is converted to VHDL as follows::
 
-
     DFF_LOGIC: process (clk) is
     begin
         if rising_edge(clk) then
@@ -217,18 +216,57 @@ This is converted to VHDL as follows::
 
 All cases with practical utility can be handled in this way. However,
 there are other cases that cannot be transformed to equivalent
-VHDL. The convertor will detect those and give an error.
+VHDL. The convertor will detect those cases and give an error.
+
+
+Conversion of lists of signals
+==============================
 
 
 
-Better support for test bench conversion
-========================================
+Conversion of test benches
+==========================
 
 Background
 ----------
 
-Print statement conversion
---------------------------
+After conversion, we obviously want to verify that the VHDL or Verilog
+code works correctly. In previous MyHDL versions, the proposed
+verification technique was co-simulation: use the same MyHDL test
+bench to simulate the converted Verilog code and the original MyHDL
+code. While co-simulation works well, there are a number of issues
+with it:
+
+* Co-simulation requires that the HDL simulator has an interface to
+  its internal workings, such as ``vpi`` for Verilog and ``vhpi`` for
+  VHDL.
+
+* vpi`` for Verilog is well-established and available for
+  open-source simulators such as Icarus and cver). However, ``vhpi`` for
+  VHDL is much less established; it is unclear whether there is an open
+  source solution that is powerful enough for MyHDL's purposes.
+
+* Even though ``vpi`` is a "standard", there are differences between
+  various simulators. Therefore, some customization is likely required
+  per Verilog simulator.
+
+* MyHDL co-simulation uses unix-style interprocess communication
+  that doesn't work on Windows natively. This is an exception to the
+  rest of MyHDL that should run on any Python platform.
+
+The conclusion is that co-simulation is probably not a viable solution
+for the VHDL case, and it has some disadvantages for Verilog as well.
+
+The proposed alternative is to convert the test bench itself, so that
+both test bench and design can be run in the HDL simulator. Of course,
+this is not a fully general solution either, as there are important
+constraints on the kind of code that can be converted. However, with
+the additional features that have been developed, it should be a
+useful solution for the purpose of verifying converted code.
+
+
+Print statement
+---------------
 
 In previous MyHDL versions, print statement conversion to Verilog was
 supported in a quick (and dirty) way, by merely copying the format
@@ -270,71 +308,55 @@ guaranteed, but for a ``print`` without newline this is not
 possible. In the future, other techniques may be used and this
 restricion may be lifted.
 
-Assert statement conversion
----------------------------
+Assert statement
+----------------
+
+An assert statement in Python looks as follow::
+
+    assert test_expression
+
+It can be converted provided ``test_expression`` is convertible.
+
+
+Delay objects
+-------------
+
+Delay objects are constructed as follows::
+
+    delay(t)
+
+with ``t`` an integer. They are used in ``yield`` statements and
+as the argument of ``always`` decorators, to specify delays.
+They can now be converted.
+
 
 Methodology notes
 -----------------
 
+The following techniques can be used to create complex test
+benches that can still be converted:
+
+* A complex functional top-level test bench with a good coverage can
+  be used to generate a simplified test bench with the same coverage,
+  but that can always be converted. One can simply sample inputs and
+  outputs and store them in some table format. This is similar to what
+  is commonly done to generate some of the production test vectors for
+  ASICs.
+
+* Coding techniques can move some of the required complexity out of
+  the convertor. For example, arbitrary complex test vectors sequences
+  can be set up on beforehand instead of being generated on the
+  fly. They are then converted in the same way as a ROM table.
 
 
 
-
-Conversion output verification without co-simulation
-====================================================
+Conversion output verification
+==============================
 
 .. note:: This functionality is not needed in a typical
           design flow. It is only relevant to debug the
           MyHDL convertor functionality itself.
 
-Background
-----------
-
-Obviously, we want to verify that the conversion to VHDL really
-works. More specifically, there has to be an easy way to verify that
-the behavior of the generated VHDL code is identical to the behavior
-of the original MyHDL code.
-
-In previous MyHDL versions, we had the same problem with conversion to
-Verilog. The proposed verification technique was co-simulation: use
-the same MyHDL test bench to simulate the converted Verilog code and
-the original MyHDL code. This works well, but of course it relies on
-the availability of reliable co-simulation.  There are a number of
-issues with co-simulation:
-
-* Co-simulation requires that the HDL simulator has an interface to
-  its internal workings, such as ``vpi`` for Verilog and ``vhpi`` for
-  VHDL.
-
-* vpi`` for Verilog is well-established and available for
-  open-source simulators such as Icarus and cver). However, ``vhpi`` for
-  VHDL is much less established; it is unclear whether there is an open
-  source solution that is powerful enough for MyHDL's purposes.
-
-* Even though ``vpi`` is a "standard", there are differences between
-  various simulators. Therefore, some customization is likely required
-  per Verilog simulator.
-
-* MyHDL co-simulation uses unix-style interprocess communication
-  that doesn't work on Windows natively. This is an exception to the
-  rest of MyHDL that should run on any Python platform.
-
-The conclusion is that co-simulation is probably not a viable solution
-for the VHDL case, and it has severe disadvantages for Verilog as
-well. To find a solution, let's first review the applications for
-co-simulation. I can see two major applications:
-
-  - With co-simulation, MyHDL can be used as a Hardware Verification
-    Language for designs that are done in a different HDL.
-  - Co-simulation can be used to verify that the MyHDL convertor to
-    Verilog (or VHDL) works.
-
-For the first case, co-simulation clearly is a must. However, for the
-second case, we would be more than happy to use some other
-verification method if one were available. Imagine for example that
-there would exist a formal verification tool that compares MyHDL code
-and converted output code. A formal tool is not very likely in the
-forseeable future, but perhaps we may find other ways.
 
 Approach
 --------
@@ -384,10 +406,15 @@ clean, they are not available from the ``myhdl`` namespace directly.)
 
 The two previous functions have the following attribute:
 
-.. attribute:: simulator
+.. attribute:: analyze.simulator
 
-  Used to set the name of the required HDL simulator and
-  analyzer. The predefined GHDL simulator is the default.
+  Used to set the name of the HDL analyzer. GHDL
+  is the default.
+
+.. attribute:: verify.simulator
+
+  Used to set the name of the HDL simulator. GHDL simulator
+  is the default.
 
 HDL simulator registration
 --------------------------
@@ -400,15 +427,10 @@ following function:
 .. function:: registerSimulator(name=None, analyze=None, elaborate=None, simulate=None)
 
    Registers a particular HDL simulator to be used by  :func:`verify()`
-   and :func`:analyze()`
-
-   *name* is the name of the simulator
-
-   *analyze* is a command string to analyze the HDL source code
-
+   and :func:`analyze()`. *name* is the name of the simulator.
+   *analyze* is a command string to analyze the HDL source code.
    *elaborate* is a command string to elaborate the HDL
    code. This command is optional.
-
    *simulate* is a command string to simulate the HDL code.
 
    The command strings should be string templates that refer to the
@@ -418,7 +440,6 @@ following function:
    elaboration results can be put there if desired.
 
    The :func:`analyze()` function uses the *analyze* command.
-
    The :func:`verify()` function uses the *analyze* command, then the
    *elaborate* command if any, and then the *simulate* command.
 
@@ -426,8 +447,8 @@ following function:
    registration can be overwritten if required.
 
 
-Example: registering a HDL simulator
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example
+^^^^^^^
 
 As an example of registering a HDL simulator, we will show how the
 GHDL simulator is registered in the MyHDL distribution. The command is
@@ -439,77 +460,16 @@ the following::
                       elaborate="ghdl -e --workdir=work %(topname)s",
                       simulate="ghdl -r %(topname)s")
 
+This assumes that the GHDL simulator is properly set up.
 
-These commands assume that the GHDL simulator is set up and available
-from the ``ghdl`` command. The analysis and elaboration results will
-be put in subdirectory ``work``. ``topname`` is a string that refers
-to the top-level design name. ``name``, ``analyze``, and ``simulate``
-are mandatory parameters. The ``elaborate`` command can be omitted if
-the ``simulate`` command does elaboration and simulation in a single
-pass.
-
-Methodology notes
------------------
-
-Test bench coverage
-^^^^^^^^^^^^^^^^^^^
-
-Test bench complexity
-^^^^^^^^^^^^^^^^^^^^^
-
-The proposed method to verify the convertor output is to convert not
-only the design under test but also the test bench itself to VHDL. Of
-course, test bench code that needs to be converted will have to obey
-constraints related to convertible code. This raises the question
-whether the convertor is powerful enough to convert test-bench
-oriented code.  This may seem problematic at first. For functional
-verification, we would like to use the full power of Python. That
-should be one of the attractive features of MyHDL. Clearly, full
-generality is beyond the scope of the convertor.
-
-However, things are not that bad.  To start with, note that the test
-bench in question is not intended to demonstrate the functional
-correctness of a design. Instead, it is intended to verify the
-equivalence between the MyHDL code and the VHDL code from the
-convertor. This difference is similar to the one between functional
-RTL simulation and the simulation of gate-level net list to verify the
-correctness of the synthesized result.
-
-Functional simulation is the primary verification tool of the
-designer. It should be used at all levels and as early as possible. A
-unit-test driven approach is ideal for that.  In contrast, it is not
-necessary to convert to VHDL at all levels, except for quick
-experiments, e.g to check whether code can be converted at all. It is
-sufficient to convert at the top level that will be comitted to
-silicon, preferably after the design has been thoroughly verified
-functionally. Consequently, we want to verify the convertor output at
-that same top level, using some test bench with a good functional
-coverage. It it reasonable to expect that most of the times no
-problems will be found at all. (Otherwise, the quality of the MyHDL
-development, verification, and release procedures would be
-unacceptable.) If a problem is found anyway, one can then track it
-down at lower levels.
-
-The following techniques can be used to create very complex test
-benches that can still be converted:
-
-* A complex functional top-level test bench with a good coverage can
-  be used to generate a simplified test bench with the same coverage,
-  but that can always be converted. One can simply sample inputs and
-  outputs and store them in some table format. This is similar to what
-  is commonly done to generate some of the production test vectors for
-  ASICs.
-
-* Coding techniques can move some of the required complexity out of
-  the convertor. For example, arbitrary complex test vectors sequences
-  can be set up on beforehand instead of being generated on the
-  fly. They are then converted in the same way as a ROM table.
-
-Conversion at multiple levels
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Backwards incompatible changes
 ==============================
+
+Decorator usage
+---------------
+
+
 
 Conversion of printing without a newline
 ----------------------------------------
@@ -520,5 +480,5 @@ compatible with the convertor to VHDL. Currently, the VHDL solution
 relies on ``std.textio`` and this implies that printing without a
 newline cannot be reliably converted.
 
-Decorators become mandatory for conversion and signal tracing
--------------------------------------------------------------
+
+
