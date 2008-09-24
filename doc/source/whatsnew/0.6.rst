@@ -141,9 +141,8 @@ Additional remarks and constraints:
 * a MyHDL signal is mapped to a VHDL signal with the appropriate type as above
 
 * a MyHDL list of signals is not always directly mapped to a VHDL
-  type. If the list is used purely for structure, list syntax is
-  not used within generator code. In that case, the signals are mapped
-  to VHDL individually.
+  type. This only happens when list syntax is actually used within
+  generator code.
 
 * a MyHDL tuple of ints is used for ROM inference, and can only be
   used in a very specific way: an indexing operation into the tuple
@@ -223,6 +222,9 @@ Conversion of lists of signals
 ==============================
 
 
+
+
+.. _new-test:
 
 Conversion of test benches
 ==========================
@@ -333,21 +335,6 @@ They can now be converted.
 Methodology notes
 -----------------
 
-The following techniques can be used to create complex test
-benches that can still be converted:
-
-* A complex functional top-level test bench with a good coverage can
-  be used to generate a simplified test bench with the same coverage,
-  but that can always be converted. One can simply sample inputs and
-  outputs and store them in some table format. This is similar to what
-  is commonly done to generate some of the production test vectors for
-  ASICs.
-
-* Coding techniques can move some of the required complexity out of
-  the convertor. For example, arbitrary complex test vectors sequences
-  can be set up on beforehand instead of being generated on the
-  fly. They are then converted in the same way as a ROM table.
-
 
 
 Conversion output verification
@@ -355,16 +342,17 @@ Conversion output verification
 
 .. note:: This functionality is not needed in a typical
           design flow. It is only relevant to debug the
-          MyHDL convertor functionality itself.
+          MyHDL convertor itself.
 
 
 Approach
 --------
 
-To verify the VHDL output, a methodology has been developed and
-implemented that doesn't rely on co-simulation. The solution works for
-Verilog as well.
+To verify the convertor output, a methodology has been developed and
+implemented that doesn't rely on co-simulation and works for both
+Verilog and VHDL.
 
+The solution builds on the features explained in Section. :ref:`new-test`.
 The idea is basically to convert the test bench as well as the
 functional code. In particular, ``print`` statements in MyHDL are
 converted to equivalent statements in the HDL. The verification
@@ -383,7 +371,6 @@ the HDL simulator runs. Moreover, any HDL simulator can be used as no
 simulator some customization is required to define the details on how
 it is used. This needs to be done once per HDL simulator and is fully
 under user control.
-
 
 Verification interface
 ----------------------
@@ -462,6 +449,15 @@ the following::
 
 This assumes that the GHDL simulator is properly set up.
 
+
+New modeling features
+=====================
+
+New signed() method for intbv
+-----------------------------
+
+@always_comb and list of signals
+--------------------------------
 
 Backwards incompatible changes
 ==============================
