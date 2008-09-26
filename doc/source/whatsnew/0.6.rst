@@ -49,7 +49,7 @@ MyHDL to VHDL conversion offers the following advantages:
   convert the same MyHDL source to equivalent Verilog and VHDL creates a
   novel application: using MyHDL as an IP development platform. IP
   developers can serve customers for both target languages from a single
-  MyHDL source base. Morever, MyHDL's flexibility and outstanding
+  MyHDL source base. Moreover, MyHDL's flexibility and outstanding
   parametrizability are ideally suited to this application.
 
 Solution description
@@ -87,12 +87,18 @@ Conversion to VHDL is implemented by the following function in the ``myhdl`` pac
    The top-level instance name and the basename of the Verilog
    output filename is ``func.func_name`` by default.
 	
-The :func:`toVHDL` callable has the following attribute:
+The :func:`toVHDL` callable has the following attributes:
 
 .. attribute:: toVHDL.name
 
   This attribute is used to overwrite the default top-level
   instance name and the basename of the VHDL output.
+
+.. attribute:: toVHDL.component_declarations
+
+  This attribute can be used to add component declarations to the
+  VHDL output. When a string is assigned to it, it will be copied
+  to the appropriate place in the output file.
 
 Type handling
 ^^^^^^^^^^^^^
@@ -154,7 +160,7 @@ Template transformation
 
 There is a difference between VHDL and Verilog in the way in which
 sensitivity to signal edges is specified. In Verilog, edge specifiers
-can be used directly in the sensitvity list. In VHDL, this is not
+can be used directly in the sensitivity list. In VHDL, this is not
 possible: only signals can be used in the sensitivity list. To check
 for an edge, one uses the ``rising_edge()`` or ``falling_edge()``
 functions in the code.
@@ -221,10 +227,38 @@ VHDL. The convertor will detect those cases and give an error.
 Conversion of lists of signals
 ==============================
 
+Lists of signals are useful for many purposes. For example, they make
+it easy to create a repetitive structure. Another application is the
+description of memory behavior.
 
+The convertor output is non-hierarchical. That implies that all
+signals are declared at the top-level in VHDL or Verilog (as VHDL
+signals, or Verilog regs and wires.)  However, some signals that are a
+list member at some level in the MyHDL design hierarchy may be used as
+a plain signal at a lower level. For such signals, a choice has to be
+made whether to declare a Verilog memory or VHDL array, or a number of
+plain signal names.
+
+If possible, plain signal declarations are preferred, because Verilog
+memories and arrays have some restrictions in usage and tool support.
+This is possible if the list syntax is strictly used outside generator
+code, for example when lists of signals are used to describe
+structure.
+
+Conversely, when list syntax is used in some generator, then a Verilog
+memory or VHDL array will be declared. The typical example is the
+description of RAM memories.
+
+The convertor in the previous MyHDL release had a severe restriction
+on the latter case: it didn't allow that, for a certain signal, list
+syntax was used in some generator, and plain signal syntax in another.
+This restriction, together with its rather obscure error message, has
+caused regular user complaints. In this release, this restriction has
+been lifted.
 
 
 .. _new-test:
+
 
 Conversion of test benches
 ==========================
@@ -270,15 +304,15 @@ useful solution for the purpose of verifying converted code.
 Print statement
 ---------------
 
-In previous MyHDL versions, print statement conversion to Verilog was
+In previous MyHDL versions, :keyword:`print` statement conversion to Verilog was
 supported in a quick (and dirty) way, by merely copying the format
 string without checks. With the advent of VHDL conversion, this has
-now been done more rigourously. This was necessary because VHDL
+now been done more rigorously. This was necessary because VHDL
 doesn't work with format strings. Rather, the format string
 specification has to be converted to a sequence of VHDL ``write`` and
 ``writeline`` calls. 
 
-A print statement with multiple arguments::
+A :keyword:`print` statement with multiple arguments::
 
     print arg1, arg2, ...
 
@@ -295,46 +329,76 @@ where ``arg`` is a ``bool``, ``int``, ``intbv``, ``enum``, or a
 The ``formatstring`` contains ordinary characters and conversion
 specifiers as in Python. However, the only supported conversion specifiers
 are ``%s`` and ``%d``.
-Things like justification and width specification are thus not
-supported.
+Justification and width specification are thus not supported.
 
 Printing without a newline::
 
    print arg1 ,
 
 is not supported. This is because the solution is based on
-``std.textio``. In VHDL ``std.textio``, subsequent ``write`` calls to
-a line are only flushed (printed) upon a ``writeline`` call. As a
-normal ``print`` implies a newline, the correct behavior can be
-guaranteed, but for a ``print`` without newline this is not
+``std.textio``. In VHDL ``std.textio``, subsequent ``write()`` calls to
+a line are only printed upon a ``writeline()`` call. As a
+normal :keyword:`print` implies a newline, the correct behavior can be
+guaranteed, but for a :keyword:`print` without newline this is not
 possible. In the future, other techniques may be used and this
-restricion may be lifted.
+restriction may be lifted.
 
 Assert statement
 ----------------
 
-An assert statement in Python looks as follow::
+An :keyword:`assert` statement in Python looks as follow::
 
     assert test_expression
 
 It can be converted provided ``test_expression`` is convertible.
 
 
-Delay objects
--------------
+Delay statements
+----------------
 
 Delay objects are constructed as follows::
 
     delay(t)
 
-with ``t`` an integer. They are used in ``yield`` statements and
-as the argument of ``always`` decorators, to specify delays.
+with ``t`` an integer. They are used in :keyword:`yield` statements and
+as the argument of :func:`always` decorators, to specify delays.
 They can now be converted.
-
 
 Methodology notes
 -----------------
 
+The question is whether the conversion restrictions permit to develop
+sufficiently complex test benches. In this section, we present some
+insights about this.
+
+The most important restrictions are the types that can be used. These
+remain "hardware-oriented" as before.
+
+Even in the previous MyHDL release, the "convertible subset" was much
+wider than the "synthesis subset". For example, :keyword:`while` and
+:keyword:`raise` statement were already convertible.
+
+The support for delay statements is the most important new feature
+to write high-level models and test benches.
+
+With the :keyword:`print` statement, simple debugging can be done.
+
+Of particular interest is the :keyword:`assert` statement. Originally,
+:keyword:`assert` statements were only intended to insert debugging
+assertions in code. Recently, there is a tendency to use them to write
+self-checking unit tests, controlled by unit test frameworks such as
+``py.test``. In particular, they are a powerful way to write
+self-checking test benches for MyHDL designs. As :keyword:`assert`
+statements are now convertible, a whole test suite in MyHDL can be
+converted to an equivalent test suite in Verilog and VHDL.
+
+Finally, the same techniques as for synthesizable code can be used
+to master complexity. In particular, any code outside generators
+is executed during elaboration, and therefore not considered in
+the conversion process. This feature can for example be used for
+complex calculations that set up constants or expected results.
+Furthermore, a tuple of ints can be used to hold a table of
+values that will be mapped to a case statement in Verilog and VHDL.
 
 
 Conversion output verification
@@ -352,14 +416,14 @@ To verify the convertor output, a methodology has been developed and
 implemented that doesn't rely on co-simulation and works for both
 Verilog and VHDL.
 
-The solution builds on the features explained in Section. :ref:`new-test`.
+The solution builds on the features explained in section :ref:`new-test`.
 The idea is basically to convert the test bench as well as the
 functional code. In particular, ``print`` statements in MyHDL are
 converted to equivalent statements in the HDL. The verification
 process consists of running both the MyHDL and the HDL simulation,
 comparing the simulation output, and reporting any differences.
 
-The goal is to make the verfication process as easy as possible. The
+The goal is to make the verification process as easy as possible. The
 use of ``print`` statements to debug a design is a very common and
 simple technique. The verification process itself is implemented in a
 single function with an interface that is identical to ``toVHDL`` and
@@ -381,13 +445,13 @@ clean, they are not available from the ``myhdl`` namespace directly.)
 
 .. function:: verify(func[, *args][, **kwargs])
 
-  Used like ``toVHDL()``. It converts MyHDL code,
+  Used like :func:`toVHDL()`. It converts MyHDL code,
   simulates both the MyHDL code and the HDL code and reports any
   differences. The default HDL simulator is GHDL.
 
 .. function:: analyze(func[, *args][, **kwargs])
 
-  Used like ``toVHDL()``. It converts MyHDL code, and analyzes the
+  Used like :func:`toVHDL()`. It converts MyHDL code, and analyzes the
   resulting HDL. 
   Used to verify whether the HDL output is syntactically correct.
 
@@ -456,15 +520,69 @@ New modeling features
 New signed() method for intbv
 -----------------------------
 
-@always_comb and list of signals
---------------------------------
+The :class:`intbv` object has a new method :meth:`signed()` that
+implements sign extension. The extended bit is the msb bit. The msb
+bit is the highest-order bit of the smallest bit vector that can
+represent all values of the :class:`intbv` object.
+
+Clearly, this method only has an effect for :class:`intbv` objects
+whose valid values are a finite range of positive integers.
+
+
+This method can be converted to VHDL and Verilog.
+
+.. warning:: Conversion is not yet implemented.
+
+
+always_comb and list of signals
+-------------------------------
+
+In the previous MyHDL release, one could use lists of signals
+in an :func:`always_comb` block, but they were not considered to infer
+the sensitivity list. To several users, this was unexpected
+behavior, or even a bug.
+
+In the present release, lists of signals are considered and
+the corresponding signals are added to the sensitivity list.
+The convertor to Verilog and VHDL is adapted accordingly.
+
 
 Backwards incompatible changes
 ==============================
 
+
+.. _new-deco:
+
 Decorator usage
 ---------------
 
+The basic building block of a MyHDL design is a specialized Python
+generator.
+
+In MyHDL 0.5, decorators were introduced to make it easier to create
+useful MyHDL generators. Moreover, they make the code clearer. As a
+result, they are now the de facto standard to describe hardware
+modules in MyHDL.
+
+The implementation of certain tasks, such a signal tracing and
+conversion, can be simplified significantly if decorators are used to
+create the generators. These simplifications have now been adopted in
+the code. This means that decorator usage is assumed.  Legacy code
+written for the mentioned purposes without decorators, can always be
+easily converted into code with decorators.
+
+For pure modeling, it doesn't matter how generators are created and
+this will remain so. Therefore, designers can continue to experiment
+with innovative modeling concepts in the fullest generality.
+
+instances() function
+--------------------
+
+The :func:`instances()` function can be used to automatically lookup and
+return the instances that are defined in a MyHDL module.  In accordance
+with the section :ref:`new-deco`, its functionality has been
+changed. Only generators created by decorators are considered when
+looking up instances.
 
 
 Conversion of printing without a newline
