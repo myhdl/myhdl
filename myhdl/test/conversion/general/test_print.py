@@ -1,5 +1,6 @@
 from myhdl import *
 from myhdl import ConversionError
+from myhdl.conversion._misc import _error
 
 t_State = enum("START", "RUN", "STOP")
 
@@ -47,9 +48,9 @@ def PrintBench():
         yield delay(10)
         
         print state
-##         print "the state is %s" % state
-##         print "the state is %s" % (state,)
-##         print "i1 is %s and the state is %s" % (i1, state)
+        print "the state is %s" % state
+        print "the state is %s" % (state,)
+        print "i1 is %s and the state is %s" % (i1, state)
 
         yield delay(10)
         # ord test
@@ -61,52 +62,55 @@ def PrintBench():
 def testPrint():
     assert conversion.verify(PrintBench) == 0
 
-## def PrintError1():
-##      @instance
-##      def logic():
-##          i1 = intbv(12)[8:]
-##          yield delay(10)
-##          print "floating point %f end" % i1
-##      return logic
 
-## def testPrintError1():
-##     try:
-##         conversion.verify(PrintError1)
-##     except ConversionError, e:
-##         pass
-##     else:
-##         assert False
+# format string errors and unsupported features
+
+def PrintError1():
+     @instance
+     def logic():
+         i1 = intbv(12)[8:]
+         yield delay(10)
+         print "floating point %f end" % i1
+     return logic
+
+def testPrintError1():
+    try:
+        conversion.verify(PrintError1)
+    except ConversionError, e:
+        assert e.kind == _error.UnsupportedFormatString
+    else:
+        assert False
         
-## def PrintError2():
-##      @instance
-##      def logic():
-##          i1 = intbv(12)[8:]
-##          yield delay(10)
-##          print "begin %s %s end" % i1
-##      return logic
+def PrintError2():
+     @instance
+     def logic():
+         i1 = intbv(12)[8:]
+         yield delay(10)
+         print "begin %s %s end" % i1
+     return logic
 
-## def testPrintError2():
-##     try:
-##         conversion.verify(PrintError2)
-##     except ConversionError, e:
-##         pass
-##     else:
-##         assert False
+def testPrintError2():
+    try:
+        conversion.verify(PrintError2)
+    except ConversionError, e:
+        assert e.kind == _error.FormatString
+    else:
+        assert False
        
-## def PrintError3():
-##      @instance
-##      def logic():
-##          i1 = intbv(12)[8:]
-##          i2 = intbv(13)[8:]
-##          yield delay(10)
-##          print "begin %s end" % (i1, i2)
-##      return logic
+def PrintError3():
+     @instance
+     def logic():
+         i1 = intbv(12)[8:]
+         i2 = intbv(13)[8:]
+         yield delay(10)
+         print "begin %s end" % (i1, i2)
+     return logic
 
-## def testPrintError3():
-##     try:
-##         conversion.verify(PrintError3)
-##     except ConversionError, e:
-##         pass
-##     else:
-##         assert False
+def testPrintError3():
+    try:
+        conversion.verify(PrintError3)
+    except ConversionError, e:
+        assert e.kind == _error.FormatString
+    else:
+        assert False
        

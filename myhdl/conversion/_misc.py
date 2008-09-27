@@ -70,7 +70,7 @@ _error.NotASignal = "Non-local object should be a Signal"
 _error.UnsupportedType = "Object type is not supported in this context"
 _error.InconsistentType = "Signal elements should have the same base type"
 _error.InconsistentBitWidth = "Signal elements should have the same bit width"
-_error.UnsupportedFormatString = "Unsupported format conversion specifier"
+_error.UnsupportedFormatString = "Unsupported format string"
 _error.FormatString = "Format string error"
 _error.UnsupportedAttribute = "Unsupported attribute"
 
