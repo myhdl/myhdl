@@ -1,4 +1,6 @@
 from myhdl import *
+from myhdl import ConversionError
+from myhdl.conversion._misc import _error
 
 N = 8
 M= 2**N
@@ -189,7 +191,7 @@ def processlist(case, inv):
     return case_inst, stimulus
 
 
-# tests
+# functional tests
     
 def test_processlist11():
     assert conversion.verify(processlist, case1, inv1) == 0
@@ -208,6 +210,55 @@ def test_processlist44():
 
 
 
+# error tests
+
+def portInList(z, a, b):
+
+    m = [a, b]
+
+    @always_comb
+    def logic():
+        z.next = m[0] + m[1]
+
+    return logic
+
+
+def test_portInList():
+    z, a, b = [Signal(intbv(0)[8:]) for i in range(3)]
+
+    try:
+        inst = conversion.analyze(portInList, z, a, b)
+    except ConversionError, e:
+        assert e.kind == _error.PortInList
+    else:
+        assert False
+       
+    
+
+def sigInMultipleLists():
+
+    z, a, b = [Signal(intbv(0)[8:]) for i in range(3)]
+
+    m1 = [a, b]
+    m2 = [a, b]
+
+    @always_comb
+    def logic():
+        z.next = m1[0] + m2[1]
+
+    return logic
+
+def test_sigInMultipleLists():
+
+    try:
+        inst = conversion.analyze(sigInMultipleLists)
+    except ConversionError, e:
+        assert e.kind == _error.SignalInMultipleLists
+    else:
+        assert False
+       
+
+        
         
 
     

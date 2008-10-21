@@ -190,7 +190,10 @@ def _writeModuleHeader(f, intf):
             c = ';'
             if s._name is None:
                 raise ToVHDLError(_error.ShadowingSignal, portname)
+            if s._inList:
+                raise ToVHDLError(_error.PortInList, portname)
             # make sure signal name is equal to its port name
+            assert s._name == portname
             s._name = portname
             r = _getRangeString(s)
             p = _getTypeString(s)

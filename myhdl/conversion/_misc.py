@@ -73,6 +73,8 @@ _error.InconsistentBitWidth = "Signal elements should have the same bit width"
 _error.UnsupportedFormatString = "Unsupported format string"
 _error.FormatString = "Format string error"
 _error.UnsupportedAttribute = "Unsupported attribute"
+_error.PortInList = "Port in list is not supported"
+_error.SignalInMultipleLists = "Signal in multiple list is not supported"
 
 
 _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
