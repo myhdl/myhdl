@@ -26,34 +26,32 @@ def PrintBench():
         print i1, i2
         print si1
         print si2
+        
         yield delay(10)
         print "This is a test"
+        
         yield delay(10)
         print int(b)
         print int(sb)
+        
         yield delay(10)
         print "i1 is %s" % i1
-        print "i1 is %10s" % i1
-#        print "i1 is %-10s" % i1
+        
         yield delay(10)
         print "i1 is %s, i2 is %s" % (i1, i2)
-#        print "i1 is %-9s, i2 is %9s" % (i1, i2)
-##         print "i1 is %5s, i2 is %-5s" % (i1, i2)
-##         print "i1 is %1s, i2 is %-1s" % (i1, i2)
-##         yield delay(10)
         print "i1 %s i2 %s b %s si1 %s si2 %s" % (i1, i2, b, si1, si2)
         print "i1 %d i2 %d b %d si1 %d si2 %d" % (i1, i2, b, si1, si2)
         print b
         print "%% %s" % i1
-        yield delay(10)
         
+        yield delay(10)       
         print state
         print "the state is %s" % state
         print "the state is %s" % (state,)
         print "i1 is %s and the state is %s" % (i1, state)
 
-        yield delay(10)
         # ord test
+        yield delay(10)
         print ord('y')
         print ord('2')
 
@@ -114,3 +112,34 @@ def testPrintError3():
     else:
         assert False
        
+def PrintError4():
+     @instance
+     def logic():
+         i1 = intbv(12)[8:]
+         yield delay(10)
+         print "%10s" % i1
+     return logic
+
+def testPrintError4():
+    try:
+        conversion.verify(PrintError4)
+    except ConversionError, e:
+        assert e.kind == _error.UnsupportedFormatString
+    else:
+        assert False
+        
+def PrintError5():
+     @instance
+     def logic():
+         i1 = intbv(12)[8:]
+         yield delay(10)
+         print "%-10s" % i1
+     return logic
+
+def testPrintError5():
+    try:
+        conversion.verify(PrintError5)
+    except ConversionError, e:
+        assert e.kind == _error.UnsupportedFormatString
+    else:
+        assert False

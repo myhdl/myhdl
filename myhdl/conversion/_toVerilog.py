@@ -899,18 +899,7 @@ class _ConvertVisitor(_ConversionMixin):
                 a = node.args[argnr]
                 argnr += 1
                 obj = a.obj
-                w = 0
-                if isinstance(obj, bool):
-                    w = 1
-                elif isinstance(obj, (intbv, Signal)):
-                    w = len(str(2**len(obj)))
-                if s.width > w:
-                    j = " " * (s.width-w)
-                    self.write('$write("%s");' % j)
-                    self.writeline()
-                    fs = "%d"
-                else:
-                    fs = "%0d"
+                fs = "%0d"
                 if isinstance(obj, str):
                     self.write('$write(')
                     self.visit(a, _context.PRINT)

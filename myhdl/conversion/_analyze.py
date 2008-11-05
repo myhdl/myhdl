@@ -780,7 +780,14 @@ class _AnalyzeVisitor(_ConversionMixin):
                         continue
                     m = re_ConvSpec.match(s)
                     if m:
-                        f.append(ConvSpec(**m.groupdict()))
+                        c = ConvSpec(**m.groupdict())
+                        if c.justified != "RIGHT":
+                            self.raiseError(node,_error.UnsupportedFormatString,
+                                            "format justification specification: %s" %s)
+                        if c.width != 0:
+                            self.raiseError(node,_error.UnsupportedFormatString,
+                                            "format width specification: %s" %s)
+                        f.append(c)
                         s = s[m.end():]
                         nr += 1
                         continue
