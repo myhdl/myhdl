@@ -37,32 +37,33 @@ class EnumItemType(object):
     def __init__(self):
         raise TypeError("class EnumItemType is only intended for type checking on subclasses")
 
+supported_encodings = ("binary", "one_hot", "one_cold")
 
 def enum(*names, **kwargs):
 
     # args = args
-    encoding = kwargs.get('encoding', 'binary')
-    codedict = {}
-    if encoding == "binary":
-        nrbits = len(bin(len(names)-1))
-    elif encoding in ("one_hot", "one_cold"):
+    encoding = kwargs.get('encoding', None)
+    if encoding is not None and encoding not in supported_encodings:
+        raise ValueError("Unsupported enum encoding: %s\n    Supported encodings: %s" % \
+                         (encoding, supported_encodings))
+    if encoding in ("one_hot", "one_cold"):
         nrbits = len(names)
-    else:
-        raise ValueError("Unsupported enum encoding: %s \n    Supported encodings:" + \
-                         "    'binary', 'one_hot', 'one_cold'" % encoding)
+    else: # binary as default
+        nrbits = len(bin(len(names)-1))
     
+    codedict = {}
     i = 0
     for name in names:
         if not isinstance(name, StringType):
             raise TypeError()
         if codedict.has_key(name):
             raise ValueError("enum literals should be unique")
-        if encoding == "binary":
-            code = bin(i, nrbits)
-        elif encoding == "one_hot":
+        if encoding == "one_hot":
             code = bin(1<<i, nrbits)
-        else: # one_cold
+        elif encoding == "one_code":
             code = bin(~(1<<i), nrbits)
+        else: # binary as default
+            code = bin(i, nrbits)
         if len(code) > nrbits:
             code = code[-nrbits:]
         codedict[name] = code
@@ -98,11 +99,13 @@ def enum(*names, **kwargs):
             return self
 
     class Enum(EnumType):
-        def __init__(self, names, codedict, nrbits):
+        def __init__(self, names, codedict, nrbits, encoding):
             self.__dict__['_names'] = names
             self.__dict__['_nrbits'] = nrbits
             self.__dict__['_declared'] = False
             self.__dict__['_nritems'] = len(names)
+            self.__dict__['_codedict'] = codedict
+            self.__dict__['_encoding'] = encoding
             for index, name in enumerate(names):
                 val = codedict[name]
                 self.__dict__[name] = EnumItem(index, name, val, self)
@@ -127,10 +130,13 @@ def enum(*names, **kwargs):
             str = "type %s is (\n    " % typename
             str += ",\n    ".join(self._names)         
             str += "\n);"
+            if self._encoding is not None:
+                codes = " ".join([self._codedict[name] for name in self._names])
+                str += '\nattribute enum_encoding of %s: type is "%s";' % (typename, codes)
             return str
             
         
-    return Enum(names, codedict, nrbits)
+    return Enum(names, codedict, nrbits, encoding)
 
 
 

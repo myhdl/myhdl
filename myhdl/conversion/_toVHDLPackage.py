@@ -28,6 +28,8 @@ use ieee.numeric_std.all;
 
 package pck_myhdl_%(version)s is
 
+    attribute enum_encoding: string;
+
     function to_std_logic (arg: boolean) return std_logic;
 
     function to_unsigned (arg: boolean; size: natural) return unsigned;
