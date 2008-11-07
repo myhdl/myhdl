@@ -37,31 +37,29 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
     _simulateCommands[name] = simulate
     _offsets[name] = offset
 
-registerSimulator(name="GHDL",
-                  hdl="VHDL",
-                  analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-                  elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
-                  simulate="ghdl -r %(unitname)s_ghdl"
-                 )
+registerSimulator(
+    name="GHDL",
+    hdl="VHDL",
+    analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+    elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
+    simulate="ghdl -r %(unitname)s_ghdl"
+    )
 
-## registerSimulator(name="GHDL",
-##                   hdl="VHDL",
-##                   analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-##                   elaborate="ghdl -e --workdir=work %(topname)s",
-##                   simulate="ghdl -r %(topname)s"
-##                   )
+registerSimulator(
+    name="icarus",
+    hdl="Verilog",
+    analyze="iverilog -o %(topname)s.o %(topname)s.v",
+    simulate="vvp %(topname)s.o"
+    )
 
-registerSimulator(name="icarus",
-                  hdl="Verilog",
-                  analyze="iverilog -o %(topname)s.o %(topname)s.v",
-                  simulate="vvp %(topname)s.o")
+registerSimulator(
+    name="cver",
+    hdl="Verilog",
+    analyze="cver -c -q %(topname)s.v",
+    simulate="cver -q %(topname)s.v",
+    offset=3
+    )
 
-registerSimulator(name="cver",
-                  hdl="Verilog",
-                  analyze="cver -c -q %(topname)s.v",
-                  simulate="cver -q %(topname)s.v",
-                  offset=3)
-                 
 
 class  _VerificationClass(object):
 

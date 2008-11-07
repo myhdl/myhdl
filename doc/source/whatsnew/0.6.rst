@@ -123,7 +123,7 @@ MyHDL types are mapped to VHDL types according to the following table:
 +--------------------------------------------------+-----------------------------------+
 | ``enum``                                         | dedicated enumeration type        |
 +--------------------------------------------------+-----------------------------------+
-| ``tuple``of ``int``                              | mapped to case statement          |
+| ``tuple`` of ``int``                             | mapped to case statement          |
 +--------------------------------------------------+-----------------------------------+
 | ``list`` of ``bool``                             | ``array`` of ``std_logic``        |
 +--------------------------------------------------+-----------------------------------+
@@ -257,7 +257,7 @@ caused regular user complaints. In this release, this restriction has
 been lifted.
 
 
-.. _new-test:
+.. _new06-test:
 
 
 Conversion of test benches
@@ -416,7 +416,7 @@ To verify the convertor output, a methodology has been developed and
 implemented that doesn't rely on co-simulation and works for both
 Verilog and VHDL.
 
-The solution builds on the features explained in section :ref:`new-test`.
+The solution builds on the features explained in section :ref:`new06-test`.
 The idea is basically to convert the test bench as well as the
 functional code. In particular, ``print`` statements in MyHDL are
 converted to equivalent statements in the HDL. The verification
@@ -464,7 +464,7 @@ The two previous functions have the following attribute:
 
 .. attribute:: verify.simulator
 
-  Used to set the name of the HDL simulator. GHDL simulator
+  Used to set the name of the HDL simulator. GHDL
   is the default.
 
 HDL simulator registration
@@ -475,17 +475,22 @@ be registered first. This is needed once per simulator (or rather, per
 set of analysis and simulation commands). Registering is done with the
 following function:
 
-.. function:: registerSimulator(name=None, analyze=None, elaborate=None, simulate=None)
+.. function:: registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, offset=0)
 
    Registers a particular HDL simulator to be used by  :func:`verify()`
    and :func:`analyze()`. *name* is the name of the simulator.
+   *hdl* specifies the HDL: ``"VHDL"`` or ``"Verilog"``.
    *analyze* is a command string to analyze the HDL source code.
    *elaborate* is a command string to elaborate the HDL
    code. This command is optional.
    *simulate* is a command string to simulate the HDL code.
+   *offset* is an integer specifying the number of initial lines to be ignored
+   from the HDL simulator output. 
 
    The command strings should be string templates that refer to the
-   ``topname`` variable that specifies the design name.
+   ``topname`` variable that specifies the design name. The templates
+   can also use the ``unitname`` variable which is the lower case
+   version of ``topname``.
    The command strings can assume that a subdirectory called
    ``work`` is available in the current working directory. Analysis and
    elaboration results can be put there if desired.
@@ -498,20 +503,45 @@ following function:
    registration can be overwritten if required.
 
 
-Example
-^^^^^^^
+Example: preregistered HDL simulators
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-As an example of registering a HDL simulator, we will show how the
-GHDL simulator is registered in the MyHDL distribution. The command is
-the following::
+A number of open-source HDL simulators are preregistered in the
+MyHDL distribution. If they are installed in the typical way, they
+are therefore readily available for conversion verification.
+We will illustrate the registration process by showing the
+registrations of these simulators.
+
+GHDL registration::
+
+    registerSimulator(
+        name="GHDL",
+        hdl="VHDL",
+        analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+        elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
+        simulate="ghdl -r %(unitname)s_ghdl"
+        )
 
 
-    registerSimulator(name="GHDL",
-                      analyze="ghdl -a --workdir=work %(topname)s.vhd",
-                      elaborate="ghdl -e --workdir=work %(topname)s",
-                      simulate="ghdl -r %(topname)s")
+Icarus registration::
 
-This assumes that the GHDL simulator is properly set up.
+    registerSimulator(
+        name="icarus",
+        hdl="Verilog",
+        analyze="iverilog -o %(topname)s.o %(topname)s.v",
+        simulate="vvp %(topname)s.o"
+        )
+
+
+cver registration::
+
+    registerSimulator(
+        name="cver",
+        hdl="Verilog",
+        analyze="cver -c -q %(topname)s.v",
+        simulate="cver -q %(topname)s.v",
+        offset=3
+        )
 
 
 New modeling features
@@ -551,7 +581,7 @@ Backwards incompatible changes
 ==============================
 
 
-.. _new-deco:
+.. _new06-deco:
 
 Decorator usage
 ---------------
@@ -580,7 +610,7 @@ instances() function
 
 The :func:`instances()` function can be used to automatically lookup and
 return the instances that are defined in a MyHDL module.  In accordance
-with the section :ref:`new-deco`, its functionality has been
+with the section :ref:`new06-deco`, its functionality has been
 changed. Only generators created by decorators are considered when
 looking up instances.
 
