@@ -1,0 +1,15 @@
+{% extends "!layout.html" %}
+
+{% block relbar1 %}
+<div style="background-color: white; text-align: left; padding: 5px 5px 2px 15px">
+<a href="http://www.myhdl.org">
+    <img src="{{ pathto("_static/myhdl_logo_header.png", 1) }}" border=0 alt="MyHDL" />
+</a>
+</div>
+{{ super() }}
+{% endblock %}
+
+{# put the sidebar before the body #}
+{% block sidebar1 %}{{ sidebar() }}{% endblock %}
+{% block sidebar2 %}{% endblock %}
+
