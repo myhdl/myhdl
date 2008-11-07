@@ -18,10 +18,8 @@ convertor to VHDL.
 However, it turns out that VHDL is still very much alive and will
 remain so for the forseeable future. This is especially true for the
 FPGA market, which is especially interesting for MyHDL. It seems much
-more dynamic and poised for growth than the ASIC market. Moreover,
-because of the nature of FPGA's, FPGA designers may be more willing to
-try out new ideas, such as open-source solutions in general and Python
-and MyHDL in particular.
+more dynamic than the ASIC market. Moreover, because of the nature of
+FPGA's, FPGA designers may be more willing to try out new ideas.
 
 To convince designers to use a new tool, it should integrate with
 their current design flow. That is why the MyHDL to VHDL convertor is
@@ -33,24 +31,26 @@ Advantages
 
 MyHDL to VHDL conversion offers the following advantages:
 
-* **MyHDL integration in a VHDL-based design flow** Designers can
-  start using MyHDL and benefit from its power and flexibility, within
-  the context of their proven design flow.
+MyHDL integration in a VHDL-based design flow 
+    Designers can start using MyHDL and benefit from its power and
+    flexibility, within the context of their proven design flow.
 
-* **The convertor to VHDL automates certain hard tasks** Like its
-  Verilog counterpart, the convertor automates certain tasks that are
-  hard in VHDL directly. For example, getting the desired behavior right
-  when using ``unsigned`` and ``signed`` types is often not easy. In
-  contrast, a MyHDL designer can use the high-level ``intbv`` type
-  instead, and let the convertor deal with type conversions and
-  resizings.
+The convertor automates a number of hard tasks 
+    The convertor automates a number of tasks that are hard to do in
+    VHDL directly. For example, when mixing `unsigned`` and ``signed``
+    types it can be difficult to describe the desired behavior
+    correctly.  In contrast, a MyHDL designer can use the high-level
+    ``intbv`` type instead, and let the convertor deal with type
+    conversions and resizings.
 
-* **MyHDL as an IP development platform**  The possibility to
-  convert the same MyHDL source to equivalent Verilog and VHDL creates a
-  novel application: using MyHDL as an IP development platform. IP
-  developers can serve customers for both target languages from a single
-  MyHDL source base. Moreover, MyHDL's flexibility and outstanding
-  parametrizability are ideally suited to this application.
+MyHDL as an IP development platform 
+    The possibility to convert the same MyHDL source to equivalent
+    Verilog and VHDL creates a novel application: using MyHDL as an IP
+    development platform. IP developers can serve customers for both
+    target languages from a single MyHDL coe base. Moreover, MyHDL's
+    flexibility and parametrizability make it ideally suited to this
+    application.
+
 
 Solution description
 --------------------
@@ -59,10 +59,7 @@ Approach
 ^^^^^^^^
 
 The approach followed to convert MyHDL code to VHDL is identical to
-the one followed for conversion to Verilog. For a detailed
-description, see `the chapter about conversion to Verilog
-<http://www.jandecaluwe.com/Tools/MyHDL/manual/conv.html>`_ in the
-manual.
+the one followed for conversion to Verilog in previous MyHDL releases.
 
 In particular, the MyHDL code analyzer in the convertor is identical
 for both target languages. The goal is that all MyHDL code that can be
@@ -87,12 +84,12 @@ Conversion to VHDL is implemented by the following function in the ``myhdl`` pac
    The top-level instance name and the basename of the Verilog
    output filename is ``func.func_name`` by default.
 	
-The :func:`toVHDL` callable has the following attributes:
+:func:`toVHDL` has the following attributes:
 
 .. attribute:: toVHDL.name
 
   This attribute is used to overwrite the default top-level
-  instance name and the basename of the VHDL output.
+  instance name and the basename of the VHDL output.g
 
 .. attribute:: toVHDL.component_declarations
 
