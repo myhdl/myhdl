@@ -1,9 +1,9 @@
 
 .. _cosim:
 
-***********************************
-Co-simulation with Verilog and VHDL
-***********************************
+**************************
+Co-simulation with Verilog
+**************************
 
 
 .. _cosim-intro:

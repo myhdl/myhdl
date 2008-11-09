@@ -127,7 +127,7 @@ About decorators
 
 .. index:: single: decorators; about
 
-Python 2.4 introduced a new feature called decorators. MyHDL 0.5 takes advantage
+Python 2.4 introduced a new feature called decorators. MyHDL takes advantage
 of this new feature by defining a number of decorators that facilitate hardware
 descriptions. However, many users may not yet be familiar with decorators.
 Therefore, an introduction is included here.
@@ -152,7 +152,7 @@ Note that the decorator statement goes directly in front of the function
 declaration, and that the function name :func:`func` is automatically reused for
 the final result.
 
-MyHDL 0.5 uses decorators to create ready-to-simulate generators from local
+MyHDL uses decorators to create ready-to-simulate generators from local
 function definitions. Their functionality and usage will be described
 extensively in this manual.
 
@@ -161,7 +161,7 @@ e.g. at http://www.python.org/doc/2.4/whatsnew/node6.html.
 
 .. warning::
 
-   Because MyHDL 0.5 uses decorators, it requires Python 2.4 or a later version.
+   Because MyHDL uses decorators, it requires Python 2.4 or a later version.
 
 .. rubric:: Footnotes
 

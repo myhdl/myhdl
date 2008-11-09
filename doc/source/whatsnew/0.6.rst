@@ -37,10 +37,10 @@ MyHDL integration in a VHDL-based design flow
 
 The convertor automates a number of hard tasks 
     The convertor automates a number of tasks that are hard to do in
-    VHDL directly. For example, when mixing `unsigned`` and ``signed``
+    VHDL directly. For example, when mixing ``unsigned`` and ``signed``
     types it can be difficult to describe the desired behavior
     correctly.  In contrast, a MyHDL designer can use the high-level
-    ``intbv`` type instead, and let the convertor deal with type
+    ``intbv`` type, and let the convertor deal with type
     conversions and resizings.
 
 MyHDL as an IP development platform 
@@ -89,7 +89,7 @@ Conversion to VHDL is implemented by the following function in the ``myhdl`` pac
 .. attribute:: toVHDL.name
 
   This attribute is used to overwrite the default top-level
-  instance name and the basename of the VHDL output.g
+  instance name and the basename of the VHDL output.
 
 .. attribute:: toVHDL.component_declarations
 
@@ -350,8 +350,8 @@ An :keyword:`assert` statement in Python looks as follow::
 It can be converted provided ``test_expression`` is convertible.
 
 
-Delay statements
-----------------
+Delay objects
+-------------
 
 Delay objects are constructed as follows::
 
@@ -375,7 +375,7 @@ Even in the previous MyHDL release, the "convertible subset" was much
 wider than the "synthesis subset". For example, :keyword:`while` and
 :keyword:`raise` statement were already convertible.
 
-The support for delay statements is the most important new feature
+The support for :func:`delay()` objects is the most important new feature
 to write high-level models and test benches.
 
 With the :keyword:`print` statement, simple debugging can be done.

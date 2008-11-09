@@ -5,7 +5,9 @@
 Reference
 *********
 
-MyHDL is implemented as a Python package called ``myhdl``. This chapter
+.. module:: myhdl
+
+MyHDL is implemented as a Python package called :mod:`myhdl`. This chapter
 describes the objects that are exported by this package.
 
 
@@ -535,19 +537,11 @@ Verilog
    the simulation.
 
 
-.. _ref-cosim-vhdl:
-
-VHDL
-----
-
-Not implemented yet.
-
 
 .. _ref-conv:
 
-Conversion to Verilog
-=====================
-
+Conversion to Verilog and VHDL
+==============================
 
 
 
@@ -573,7 +567,7 @@ Conversion
    For more information about the restrictions on convertible MyHDL code, see
    section :ref:`conv-subset` in Chapter :ref:`conv`.
 
-The :func:`toVerilog` callable has the following attribute:
+:func:`toVerilog` has the following attribute:
 
 
 .. attribute:: toVerilog.name
@@ -582,23 +576,177 @@ The :func:`toVerilog` callable has the following attribute:
    basename of the Verilog output filename.
 
 
+
+.. function:: toVHDL(func[, *args][, **kwargs])
+
+   Converts a MyHDL design instance to equivalent VHDL
+   code. *func* is a function that returns an instance. :func:`toVHDL`
+   calls *func* under its control and passes *\*args* and
+   *\*\*kwargs* to the call.
+
+   The return value is the same as would be returned by the call
+   ``func(*args, **kwargs)``. It can be assigned to an instance name.
+   The top-level instance name and the basename of the Verilog
+   output filename is ``func.func_name`` by default.
+	
+:func:`toVHDL` has the following attributes:
+
+.. attribute:: toVHDL.name
+
+  This attribute is used to overwrite the default top-level
+  instance name and the basename of the VHDL output.
+
+.. attribute:: toVHDL.component_declarations
+
+  This attribute can be used to add component declarations to the
+  VHDL output. When a string is assigned to it, it will be copied
+  to the appropriate place in the output file.
+
+
+
 .. _ref-conv-user:
 
-User-defined Verilog code
--------------------------
+User-defined Verilog and VHDL code
+----------------------------------
 
-A user can insert user-defined code in the Verilog output by using the
-``__verilog__`` hook.
+A user can insert user-defined code in the Verilog or VHDL output by using the
+``__verilog__`` or ``__vhdl__`` hook respectively.
 
 
 .. data:: __verilog__
 
-   When defined within a function under elaboration, the ``__verilog__`` hook
-   variable specifies user-defined code that should be used instead of converted
+   When defined within a function under elaboration, this
+   variable specifies user-defined code that should be used instead of Verilog converted
    code for that function.  The user-defined code should be a Python format string
    that uses keys to refer to the variables that should be interpolated in the
    string. Any variable in the function context can be referred to.
 
-   Note that this hook cannot be used inside generator functions or decorated local
-   functions, as these are not elaborated.
 
+.. data:: __vhdl__
+
+   When defined within a function under elaboration, this
+   variable specifies user-defined code that should be used instead of VHDL converted
+   code for that function.  The user-defined code should be a Python format string
+   that uses keys to refer to the variables that should be interpolated in the
+   string. Any variable in the function context can be referred to.
+
+
+These hooks cannot be used inside generator functions or decorated local
+functions, as these are not elaborated. In other words, they should be used 
+in functions that define structure.
+
+
+
+Conversion output verification
+==============================
+
+.. module:: myhdl.conversion
+
+Verification interface
+----------------------
+
+All functions related to conversion verification are implemented in
+the :mod:`myhdl.conversion` package.
+
+.. function:: verify(func[, *args][, **kwargs])
+
+  Used like :func:`toVHDL()`. It converts MyHDL code,
+  simulates both the MyHDL code and the HDL code and reports any
+  differences. The default HDL simulator is GHDL.
+
+.. function:: analyze(func[, *args][, **kwargs])
+
+  Used like :func:`toVHDL()`. It converts MyHDL code, and analyzes the
+  resulting HDL. 
+  Used to verify whether the HDL output is syntactically correct.
+
+The two previous functions have the following attribute:
+
+.. attribute:: analyze.simulator
+
+  Used to set the name of the HDL analyzer. GHDL
+  is the default.
+
+.. attribute:: verify.simulator
+
+  Used to set the name of the HDL simulator. GHDL
+  is the default.
+
+HDL simulator registration
+--------------------------
+
+To be able to use a HDL simulator to verify conversions, it needs to
+be registered first. This is needed once per simulator (or rather, per
+set of analysis and simulation commands). Registering is done with the
+following function:
+
+.. function:: registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, offset=0)
+
+   Registers a particular HDL simulator to be used by  :func:`verify()`
+   and :func:`analyze()`. *name* is the name of the simulator.
+   *hdl* specifies the HDL: ``"VHDL"`` or ``"Verilog"``.
+   *analyze* is a command string to analyze the HDL source code.
+   *elaborate* is a command string to elaborate the HDL
+   code. This command is optional.
+   *simulate* is a command string to simulate the HDL code.
+   *offset* is an integer specifying the number of initial lines to be ignored
+   from the HDL simulator output. 
+
+   The command strings should be string templates that refer to the
+   ``topname`` variable that specifies the design name. The templates
+   can also use the ``unitname`` variable which is the lower case
+   version of ``topname``.
+   The command strings can assume that a subdirectory called
+   ``work`` is available in the current working directory. Analysis and
+   elaboration results can be put there if desired.
+
+   The :func:`analyze()` function uses the *analyze* command.
+   The :func:`verify()` function uses the *analyze* command, then the
+   *elaborate* command if any, and then the *simulate* command.
+
+
+Preregistered HDL simulators
+----------------------------
+
+A number of open-source HDL simulators are preregistered in the
+MyHDL distribution, as follows:
+
+GHDL
+^^^^
+
+::
+
+    registerSimulator(
+        name="GHDL",
+        hdl="VHDL",
+        analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+        elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
+        simulate="ghdl -r %(unitname)s_ghdl"
+        )
+
+
+Icarus 
+^^^^^^
+
+::
+
+    registerSimulator(
+        name="icarus",
+        hdl="Verilog",
+        analyze="iverilog -o %(topname)s.o %(topname)s.v",
+        simulate="vvp %(topname)s.o"
+        )
+
+
+cver
+^^^^
+
+::
+
+    registerSimulator(
+        name="cver",
+        hdl="Verilog",
+        analyze="cver -c -q %(topname)s.v",
+        simulate="cver -q %(topname)s.v",
+        offset=3
+        )

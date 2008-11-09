@@ -1,9 +1,9 @@
 
 .. _conv:
 
-*********************
-Conversion to Verilog
-*********************
+******************************
+Conversion to Verilog and VHDL
+******************************
 
 
 .. _conv-intro:
