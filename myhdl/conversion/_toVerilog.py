@@ -227,10 +227,11 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if not m._used:
             continue
         r = _getRangeString(m.elObj)
+        p = _getSignString(m.elObj)
         k = 'reg'
         if m.mem[0]._driven == 'wire':
             k = 'wire'
-        print >> f, "%s %s%s [0:%s-1];" % (k, r, m.name, m.depth)
+        print >> f, "%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth)
     print >> f
     for s in constwires:
         print >> f, "assign %s = %s;" % (s._name, int(s._val))
@@ -983,7 +984,9 @@ class _ConvertVisitor(_ConversionMixin):
                 self.write(';')
 
     def visitSubscript(self, node, context=None, *args):
-        addSignBit = (node.flags == 'OP_APPLY') and (context == _context.SIGNED)
+        addSignBit = (node.flags == 'OP_APPLY') and \
+                     (not node.signed) and \
+                     (context == _context.SIGNED)
         if addSignBit:
             self.write("$signed({1'b0, ")
         self.visit(node.expr)

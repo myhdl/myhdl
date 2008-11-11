@@ -835,7 +835,6 @@ class _AnalyzeVisitor(_ConversionMixin):
             
  
     def visitSubscript(self, node, access=_access.INPUT, *args):
-        node.signed = False
         self.visit(node.expr, access)
         assert len(node.subs) == 1
         self.visit(node.subs[0], _access.INPUT)
@@ -844,12 +843,15 @@ class _AnalyzeVisitor(_ConversionMixin):
                 self.raiseError(node, _error.ListElementAssign)
             else:
                 node.obj = node.expr.obj.elObj
+        elif _isMem(node.expr.obj):
+            node.obj = node.expr.obj[0]
         elif isinstance(node.expr.obj, _Rom):
             node.obj = int(-1)
         elif isinstance(node.expr.obj, intbv):
             node.obj = bool()
         else:
             node.obj = bool() # XXX default
+        node.signed = _isNegative(node.obj)
 
     def visitTuple(self, node, *args):
         node.signed = False

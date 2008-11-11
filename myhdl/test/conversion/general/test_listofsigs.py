@@ -210,6 +210,74 @@ def test_processlist44():
 
 
 
+# signed and unsigned
+def unsigned():
+    z = Signal(intbv(0)[8:])
+    a = [Signal(intbv(0)[8:]) for i in range(3)]
+
+    @always_comb
+    def logic():
+        z.next = a[1] + a[2]
+
+    @instance
+    def stimulus():
+        a[0].next = 2
+        a[1].next = 5
+        yield delay(10)
+        print z
+
+    return logic, stimulus
+
+
+def test_unsigned():
+    conversion.verify(unsigned)
+        
+
+def signed():
+    z = Signal(intbv(0, min=-10, max=34))
+    a = [Signal(intbv(0, min=-5, max=17)) for i in range(3)]
+
+    @always_comb
+    def logic():
+        z.next = a[1] + a[2]
+
+    @instance
+    def stimulus():
+        a[0].next = 2
+        a[1].next = -5
+        yield delay(10)
+        print z
+
+    return logic, stimulus
+
+
+def test_signed():
+    conversion.verify(signed)
+        
+
+def mixed():
+    z = Signal(intbv(0, min=0, max=34))
+    a = [Signal(intbv(0, min=-11, max=17)) for i in range(3)]
+    b = [Signal(intbv(0)[5:]) for i in range(3)]
+
+    @always_comb
+    def logic():
+        z.next = a[1] + b[2]
+
+    @instance
+    def stimulus():
+        a[0].next = -6
+        b[2].next = 15
+        yield delay(10)
+        print z
+
+    return logic, stimulus
+
+
+def test_mixed():
+    conversion.verify(mixed)
+        
+
 # error tests
 
 def portInList(z, a, b):
