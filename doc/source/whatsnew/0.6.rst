@@ -1,3 +1,5 @@
+.. _new06:
+
 ***********************
 What's new in MyHDL 0.6
 ***********************
@@ -97,7 +99,7 @@ Conversion to VHDL is implemented by the following function in the ``myhdl`` pac
   VHDL output. When a string is assigned to it, it will be copied
   to the appropriate place in the output file.
 
-Type handling
+Type mapping
 ^^^^^^^^^^^^^
 
 
@@ -108,48 +110,57 @@ well-chosen mapping from MyHDL types to VHDL types is crucial.
 
 MyHDL types are mapped to VHDL types according to the following table:
 
++--------------------------------------------+-----------------------------------+-----------+
+|  MyHDL type                                | VHDL type                         | Notes     |
++============================================+===================================+===========+
+| ``bool``                                   | ``std_logic``                     | \(1)      |
++--------------------------------------------+-----------------------------------+-----------+
+| ``intbv`` with ``min >= 0``                | ``signed``                        | \(2)      |
++--------------------------------------------+-----------------------------------+-----------+
+| ``intbv`` with  ``min < 0``                | ``unsigned``                      | \(2)      |
++--------------------------------------------+-----------------------------------+-----------+
+| ``enum``                                   | dedicated enumeration type        |           |
++--------------------------------------------+-----------------------------------+-----------+
+| ``tuple`` of ``int``                       | mapped to case statement          | \(3)      |
++--------------------------------------------+-----------------------------------+-----------+
+| ``list`` of ``bool``                       | ``array`` of ``std_logic``        |           |
++--------------------------------------------+-----------------------------------+-----------+
+| ``list`` of ``intbv`` with ``min >= 0``    | ``array of unsigned``             | \(4)      |
++--------------------------------------------+-----------------------------------+-----------+
+| ``list`` of ``intbv`` with ``min < 0``     | ``array of signed``               | \(4)      |
++--------------------------------------------+-----------------------------------+-----------+
 
-+--------------------------------------------------+-----------------------------------+
-|  MyHDL type                                      | VHDL type                         |
-+==================================================+===================================+
-| ``bool``                                         | ``std_logic``                     |
-+--------------------------------------------------+-----------------------------------+
-| ``intbv``, attribute ``min >= 0``                | ``signed``                        |
-+--------------------------------------------------+-----------------------------------+
-| ``intbv``, attribute ``min < 0``                 | ``unsigned``                      |
-+--------------------------------------------------+-----------------------------------+
-| ``enum``                                         | dedicated enumeration type        |
-+--------------------------------------------------+-----------------------------------+
-| ``tuple`` of ``int``                             | mapped to case statement          |
-+--------------------------------------------------+-----------------------------------+
-| ``list`` of ``bool``                             | ``array`` of ``std_logic``        |
-+--------------------------------------------------+-----------------------------------+
-| ``list`` of ``intbv``, attribute ``min >= 0``    | ``array of unsigned``             |
-+--------------------------------------------------+-----------------------------------+
-| ``list`` of ``intbv``, attribute ``min < 0``     | ``array of signed``               |
-+--------------------------------------------------+-----------------------------------+
 
+Notes:
 
-Additional remarks and constraints:
+(1) 
+   The VHDL ``std_logic`` type is defined in the standard VHDL package
+   ``IEEE.std_logic_1164``.
 
-* The VHDL ``std_logic`` type is defined in the standard VHDL package
-  ``IEEE.std_logic_1164``
+(2)
+  The VHDL ``unsigned`` and ``signed`` types used are those from the
+  standard VHDL packages ``IEEE.numeric_std``.
 
-* The VHDL ``unsigned`` and ``signed`` types used are those from the
-  standard VHDL packages ``IEEE.numeric_std``
-
-* The convertor only supports MyHDL signals that use ``bool``,
-  ``intbv`` or ``enum`` objects as their underlying type.
-
-* a MyHDL signal is mapped to a VHDL signal with the appropriate type as above
-
-* a MyHDL list of signals is not always directly mapped to a VHDL
-  type. This only happens when list syntax is actually used within
-  generator code.
-
-* a MyHDL tuple of ints is used for ROM inference, and can only be
+(3)
+  A MyHDL ``tuple`` of ``int`` is used for ROM inference, and can only be
   used in a very specific way: an indexing operation into the tuple
   should be the rhs of an assignment.
+
+(4)
+  All list members should have identical value constraints.
+
+The table as presented applies to MyHDL variables. They are mapped to
+VHDL variables (except for the case of a ``tuple`` of ``int``).
+
+The convertor also supports MyHDL signals that use ``bool``,
+``intbv`` or ``enum`` objects as their underlying type. These are mapped to
+VHDL signals with a type as specified in the table above.
+
+The convertor supports MyHDL list of signals provided the underlying
+signal type is either ``bool`` or ``intbv``. They may be mapped to a VHDL
+signal with a VHDL type as specified in the table.
+However, list of signals are not always mapped to a corresponding VHDL
+signal. See :ref:`new06-listofsigs` for more info.
 
 
 Template transformation
@@ -220,6 +231,8 @@ All cases with practical utility can be handled in this way. However,
 there are other cases that cannot be transformed to equivalent
 VHDL. The convertor will detect those cases and give an error.
 
+
+.. _new06-listofsigs:
 
 Conversion of lists of signals
 ==============================
