@@ -1,4 +1,6 @@
 
+.. currentmodule:: myhdl
+
 .. _conv:
 
 ******************************
@@ -12,7 +14,7 @@ Introduction
 ============
 
 MyHDL supports the automatic conversion of implementation-oriented MyHDL code to
-Verilog code. This feature provides a direct path from Python to an FPGA or ASIC
+Verilog or VHDL code. This feature provides a direct path from Python to an FPGA or ASIC
 implementation.
 
 
@@ -21,14 +23,19 @@ implementation.
 Solution description
 ====================
 
-The solution works as follows. The hardware description should satisfy certain
-constraints that are typical for implementation-oriented hardware modeling.
-Subsequently, such a design is converted to an equivalent model in the Verilog
-language, using the function :func:`toVerilog` from the MyHDL\ library. Finally,
-a third-party *synthesis tool* is used to convert the Verilog design to a gate
-implementation for an ASIC or FPGA. There are a number of Verilog synthesis
-tools available, varying in price, capabilities, and target implementation
-technology.
+To be convertible, the hardware description should satisfy certain restrictions.
+Although the restrictions are significant, the convertible subset is much
+broader than the RTL synthesis subset widely used in industry. In other words,
+MyHDL code written according to the RTL synthesis rules, should always be
+convertible.
+
+A convertible design can be converted to an equivalent model in Verilog
+or VHDL, using the function :func:`toVerilog` or :func:`toVHDL`  from the MyHDL 
+library. 
+
+When the design is intended for implementation
+a third-party :dfn:`synthesis tool` is used to convert the Verilog or VHDL
+design to a gate implementation for an ASIC or FPGA.
 
 The conversion does not start from source files, but from an instantiated design
 that has been *elaborated* by the Python interpreter. The converter uses the
@@ -44,134 +51,84 @@ Features
 ========
 
 
-.. _conv-features-elab:
-
-The design is converted after elaboration
------------------------------------------
-
-*Elaboration* refers to the initial processing of a hardware description to
-achieve a representation of a design instance that is ready for simulation or
-synthesis. In particular, structural parameters and constructs are processed in
-this step. In MyHDL, the Python interpreter itself is used for elaboration.  A
-:class:`Simulation` object is constructed with elaborated design instances as
-arguments.  Likewise, the Verilog conversion works on an elaborated design
-instance. The Python interpreter is thus used as much as possible.
+Conversion after elaboration
+  *Elaboration* refers to the initial processing of a hardware description to
+  achieve a representation of a design instance that is ready for simulation or
+  synthesis. In particular, structural parameters and constructs are processed in
+  this step. In MyHDL, the Python interpreter itself is used for elaboration.  A
+  :class:`Simulation` object is constructed with elaborated design instances as
+  arguments.  Likewise, conversion works on an elaborated design
+  instance. The Python interpreter is thus used as much as possible.
 
 
-.. _conv-features-struc:
-
-The structural description can be arbitrarily complex and hierarchical
-----------------------------------------------------------------------
-
-As the conversion works on an elaborated design instance, any modeling
-constraints only apply to the leaf elements of the design structure, that is,
-the co-operating generators. In other words, there are no restrictions on the
-description of the design structure: Python's full power can be used for that
-purpose. Also, the design hierarchy can be arbitrarily deep.
+Arbitrarily complex structure
+  As the conversion works on an elaborated design instance, any modeling
+  constraints only apply to the leaf elements of the design structure, that is,
+  the co-operating generators. In other words, there are no restrictions on the
+  description of the design structure: Python's full power can be used for that
+  purpose. Also, the design hierarchy can be arbitrarily deep.
 
 
-.. _conv-features-gen:
-
-Generators are mapped to Verilog always or initial blocks
----------------------------------------------------------
-
-The converter analyzes the code of each generator and maps it to a Verilog
-``always`` blocks if possible, and to  an ``initial`` block otherwise. The
-converted Verilog design will be a flat "net list of blocks".
+Generators are mapped to Verilog or VHDL code
+  The converter analyzes the code of each generator and maps it to a Verilog
+  ``always`` blocks if possible, and to  an ``initial`` block otherwise. The
+  converted Verilog design will be a flat "net list of blocks".
 
 
-.. _conv-features-intf:
+The module interface is inferred from signal usage
+  In MyHDL, the input or output direction of interface signals is not explicitly
+  declared. The converter investigates signal usage in the design hierarchy to
+  infer whether a signal is used as input, output, or as an internal signal.
+  Internal signals are given a hierarchical name in the Verilog or VHDL output.
 
-The Verilog module interface is inferred from signal usage
-----------------------------------------------------------
-
-In MyHDL, the input or output direction of interface signals is not explicitly
-declared. The converter investigates signal usage in the design hierarchy to
-infer whether a signal is used as input, output, or as an internal signal.
-Internal signals are given a hierarchical name in the Verilog output.
-
-
-.. _conv-features-func:
 
 Function calls are mapped to a unique Verilog function or task call
--------------------------------------------------------------------
+  The converter analyzes function calls and function code to see if they should be
+  mapped to Verilog functions or to tasks. Python functions are much more powerful
+  than Verilog subprograms; for example, they are inherently generic, and they can
+  be called with named association.  To support this power in Verilog, a unique
+  Verilog function or task is generated per Python function call.
 
-The converter analyzes function calls and function code to see if they should be
-mapped to Verilog functions or to tasks. Python functions are much more powerful
-than Verilog subprograms; for example, they are inherently generic, and they can
-be called with named association.  To support this power in Verilog, a unique
-Verilog function or task is generated per Python function call.
-
-
-.. _conv-features-if:
-
-If-then-else structures may be mapped to Verilog case statements
-----------------------------------------------------------------
-
-Python does not provide a case statement. However,  the converter recognizes if-
-then-else structures in which a variable is sequentially compared to items of an
-enumeration type, and maps such a structure to a Verilog case statement with the
-appropriate synthesis attributes.
-
-
-.. _conv-features-enum:
+If-then-else structures may be mapped to case statements
+  Python does not provide a case statement. However,  the converter recognizes if-
+  then-else structures in which a variable is sequentially compared to items of an
+  enumeration type, and maps such a structure to a Verilog case statement with the
+  appropriate synthesis attributes.
 
 Choice of encoding schemes for enumeration types
-------------------------------------------------
+  The :func:`enum` function in MyHDL returns an enumeration type. This function
+  takes an additional parameter *encoding* that specifies the desired encoding in
+  the implementation: binary, one hot, or one cold. The Verilog converter
+  generates the appropriate code.
 
-The :func:`enum` function in MyHDL returns an enumeration type. This function
-takes an additional parameter *encoding* that specifies the desired encoding in
-the implementation: binary, one hot, or one cold. The Verilog converter
-generates the appropriate code.
+RAM memory
+  Certain synthesis tools can map Verilog memories or VHDL arrays to RAM structures. To support
+  this interesting feature, the converter maps lists of signals to Verilog
+  memories or VHDL arrays.
 
+ROM memory
+  Some synthesis tools can infer a ROM from a case statement. The
+  converter does the expansion into a case statement automatically, based on a
+  higher level description. The ROM access is described in a single line, by
+  indexing into a tuple of integers.
 
-.. _conf-features-ram:
+Signed arithmetic
+  In MyHDL, working with negative numbers is trivial: one just uses ``intbv``
+  objects with negative values. By contrast, negative numbers are tricky in
+  Verilog. The language makes a difference between an unsigned and a signed
+  representation, and the user has to declare signed variables explicitly.  When
+  the two representations are mixed in an expression, all operands are interpreted
+  as unsigned, which typically leads to unexpected results.
 
-Support for RAM inference
--------------------------
+  The Verilog converter handles negative ``intbv`` objects by using a signed
+  Verilog representation. Also, it automatically performs sign extension and
+  casting to a signed representation when unsigned numbers are used in a mixed
+  expression. In this way, it automates a task which is notoriously hard to get
+  right in Verilog directly.
 
-Certain synthesis tools can map Verilog memories to RAM structures. To support
-this interesting feature, the Verilog converter maps lists of signals to Verilog
-memories.
-
-
-.. _conf-features-rom:
-
-Support for ROM memory
-----------------------
-
-Some synthesis tools can infer a ROM from a case statement. The Verilog
-converter does the expansion into a case statement automatically, based on a
-higher level description. The ROM access is described in a single line, by
-indexing into a tuple of integers.
-
-
-.. _conf-features-signed:
-
-Support for signed arithmetic
------------------------------
-
-In MyHDL, working with negative numbers is trivial: one just uses ``intbv``
-objects with negative values. By contrast, negative numbers are tricky in
-Verilog. The language makes a difference between an unsigned and a signed
-representation, and the user has to declare signed variables explicitly.  When
-the two representations are mixed in an expression, all operands are interpreted
-as unsigned, which typically leads to unexpected results.
-
-The Verilog converter handles negative ``intbv`` objects by using a signed
-Verilog representation. Also, it automatically performs sign extension and
-casting to a signed representation when unsigned numbers are used in a mixed
-expression. In this way, it automates a task which is notoriously hard to get
-right in Verilog directly.
-
-
-.. _conf-features-udfv:
-
-Support for user-defined Verilog code
--------------------------------------
-
-If desired, the user can bypass the regular Verilog conversion and describe
-user-defined code to be inserted instead.
+User-defined code
+  If desired, the user can bypass the regular conversion and describe
+  user-defined code to be inserted instead.
 
 
 .. _conv-subset:

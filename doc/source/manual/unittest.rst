@@ -1,3 +1,4 @@
+.. currentmodule:: myhdl
 
 .. _unittest:
 

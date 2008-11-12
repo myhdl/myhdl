@@ -1,11 +1,12 @@
 
+.. module:: myhdl
+
 .. _ref:
 
 *********
 Reference
 *********
 
-.. module:: myhdl
 
 MyHDL is implemented as a Python package called :mod:`myhdl`. This chapter
 describes the objects that are exported by this package.
