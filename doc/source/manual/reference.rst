@@ -182,7 +182,7 @@ MyHDL generators are standard Python generators with specialized
 statements are called  *sensitivity lists*. The general format of
 :keyword:`yield` statements in in MyHDL generators is:
 
-.. % 
+:keyword:`yield` clause [, clause ...]
 
 When a generator executes a :keyword:`yield` statement, its execution is
 suspended at that point. At the same time, each *clause* is a *trigger object*
@@ -194,7 +194,7 @@ that occurs.
 In this section, the trigger objects and their functionality will be described.
 
 Some MyHDL objects that are described elsewhere can directly be used as trigger
-objects. In particular, a signal can be used as a trigger object. Whenever a
+objects. In particular, a :class:`Signal` can be used as a trigger object. Whenever a
 signal changes value, the generator resumes. Likewise, the objects referred to
 by the signal attributes ``posedge`` and ``negedge`` are trigger objects. The
 generator resumes on the occurrence of a positive or a negative edge on the
@@ -233,8 +233,6 @@ are forked, while the original generator resumes immediately.
 
 Decorator functions
 -------------------
-
-.
 
 MyHDL defines a number of decorator functions, that make it easier to create
 generators from local generator functions.

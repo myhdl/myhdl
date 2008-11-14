@@ -24,13 +24,9 @@ standard Verilog or VHDL based design environment.
 Solution description
 ====================
 
-To be convertible, the hardware description should satisfy certain restrictions.
-Although the restrictions are significant, the convertible subset is much
-broader than the RTL synthesis subset widely used in industry. In other words,
-MyHDL code written according to the RTL synthesis rules, should always be
-convertible, but it is also possible to write convertible code for non-synthesizable
-models or test benches. The convertible subset is described in
-detail in :ref:`conv-subset`.
+To be convertible, the hardware description should satisfy certain restrictions,
+defined as the :dfn:`convertible subset`. This is described
+in detail in :ref:`conv-subset`.
 
 A convertible design can be converted to an equivalent model in Verilog
 or VHDL, using the function :func:`toVerilog` or :func:`toVHDL`  from the MyHDL 
@@ -152,29 +148,20 @@ The convertible subset
 Introduction
 ------------
 
-Unsurprisingly, not all MyHDL code can be converted. In fact, there
-are significant restrictions.  As the goal of the conversion functionality is
-implementation, this should not be a big issue: anyone familiar with synthesis
-is used to similar restrictions in the *synthesizable subset* of Verilog and
-VHDL. The converter attempts to issue clear error messages when it encounters a
-construct that cannot be converted.
+Unsurprisingly, not all MyHDL code can be converted.  Although the
+restrictions are significant, the convertible subset is much broader
+than the RTL synthesis subset which is an industry standard.  In other
+words, MyHDL code written according to the RTL synthesis rules, should
+always be convertible. However, it is also possible to write
+convertible code for non-synthesizable models or test benches.
 
-In practice, the synthesizable subset usually refers to RTL synthesis, which is
-by far the most popular type of synthesis today. There are industry standards
-that define the RTL synthesis subset.  However, those were not used as a model
-for the restrictions of the MyHDL converter, but as a minimal starting point.
-On that basis, whenever it was judged easy or useful to support an additional
-feature, this was done. For example, it is actually easier to convert
-:keyword:`while` loops than :keyword:`for` loops even though they are not RTL-
-synthesizable.  As another example, :keyword:`print` is supported because it's
-so useful for debugging, even though it's not synthesizable.  In summary, the
-convertible subset is a superset of the standard RTL synthesis subset, and
-supports synthesis tools with more advanced capabilities, such as behavioral
-synthesis.
+The converter attempts to issue clear error messages when it
+encounters a construct that cannot be converted.
 
-Recall that any restrictions only apply to the design post elaboration.  In
-practice, this means that they apply only to the code of the generators, that
-are the leaf functional blocks in a MyHDL design.
+Recall that any restrictions only apply to the design after
+elaboration.  In practice, this means that they apply only to the code
+of the generators, that are the leaf functional blocks in a MyHDL
+design.
 
 
 .. _conv-subset-style:
@@ -184,9 +171,12 @@ Coding style
 
 A natural restriction on convertible code is that it should be written in MyHDL
 style: cooperating generators, communicating through signals, and with
-sensitivity lists specifying wait points and resume conditions.  Supported
-resume conditions are a signal edge, a signal change, or a tuple of such
-conditions.
+sensitivity lists of trigger objects that specify resume conditions.  The
+supported trigger objects are:
+
+* a :class:`Signal` 
+* a :attr:`Signal.posedge` or :attr:`Signal.negedge`
+* a :func:`delay`
 
 
 .. _conv-subset-types:
