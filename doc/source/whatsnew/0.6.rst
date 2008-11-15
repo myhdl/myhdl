@@ -113,17 +113,19 @@ MyHDL types are mapped to VHDL types according to the following table:
 +--------------------------------------------+-----------------------------------+-----------+
 |  MyHDL type                                | VHDL type                         | Notes     |
 +============================================+===================================+===========+
+| ``int``                                    | ``integer``                       |           |
++--------------------------------------------+-----------------------------------+-----------+
 | ``bool``                                   | ``std_logic``                     | \(1)      |
 +--------------------------------------------+-----------------------------------+-----------+
-| ``intbv`` with ``min >= 0``                | ``signed``                        | \(2)      |
+| ``intbv`` with ``min >= 0``                | ``unsigned``                      | \(2)      |
 +--------------------------------------------+-----------------------------------+-----------+
-| ``intbv`` with  ``min < 0``                | ``unsigned``                      | \(2)      |
+| ``intbv`` with  ``min < 0``                | ``signed``                        | \(2)      |
 +--------------------------------------------+-----------------------------------+-----------+
 | ``enum``                                   | dedicated enumeration type        |           |
 +--------------------------------------------+-----------------------------------+-----------+
 | ``tuple`` of ``int``                       | mapped to case statement          | \(3)      |
 +--------------------------------------------+-----------------------------------+-----------+
-| ``list`` of ``bool``                       | ``array`` of ``std_logic``        |           |
+| ``list`` of ``bool``                       | ``array of std_logic``            |           |
 +--------------------------------------------+-----------------------------------+-----------+
 | ``list`` of ``intbv`` with ``min >= 0``    | ``array of unsigned``             | \(4)      |
 +--------------------------------------------+-----------------------------------+-----------+
@@ -138,16 +140,16 @@ Notes:
    ``IEEE.std_logic_1164``.
 
 (2)
-  The VHDL ``unsigned`` and ``signed`` types used are those from the
-  standard VHDL packages ``IEEE.numeric_std``.
+   The VHDL ``unsigned`` and ``signed`` types used are those from the
+   standard VHDL packages ``IEEE.numeric_std``.
 
 (3)
-  A MyHDL ``tuple`` of ``int`` is used for ROM inference, and can only be
-  used in a very specific way: an indexing operation into the tuple
-  should be the rhs of an assignment.
+   A MyHDL ``tuple`` of ``int`` is used for ROM inference, and can only be
+   used in a very specific way: an indexing operation into the tuple
+   should be the rhs of an assignment.
 
 (4)
-  All list members should have identical value constraints.
+   All list members should have identical value constraints.
 
 The table as presented applies to MyHDL variables. They are mapped to
 VHDL variables (except for the case of a ``tuple`` of ``int``).

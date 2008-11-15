@@ -171,47 +171,103 @@ Coding style
 
 A natural restriction on convertible code is that it should be written in MyHDL
 style: cooperating generators, communicating through signals, and with
-sensitivity lists of trigger objects that specify resume conditions.  The
-supported trigger objects are:
-
-* a :class:`Signal` 
-* a :attr:`Signal.posedge` or :attr:`Signal.negedge`
-* a :func:`delay`
-
+sensitivity specify resume conditions. 
 
 .. _conv-subset-types:
 
 Supported types
 ---------------
 
-The most important restriction regards object types. Verilog is an almost
-typeless language, while Python is strongly (albeit dynamically) typed. The
-converter has to infer the types of names used in the code, and map those names
-to Verilog variables.
-
-Only a limited amount of types can be converted. Python :class:`int` and
-:class:`long` objects are mapped to Verilog integers. All other supported types
-are mapped to Verilog regs (or wires), and therefore need to have a defined bit
-width. The supported types are the Python :class:`bool` type, the MyHDL
+The most important restriction regards object types.  Only a limited
+amount of types can be converted. Python :class:`int` and
+:class:`long` objects are mapped to Verilog or VHDL integers. All
+other supported types are mapped need to have a defined bit width. The
+supported types are the Python :class:`bool` type, the MyHDL
 :class:`intbv` type, and MyHDL enumeration types returned by function
-:func:`enum`. The latter objects can also be used as the base object of a
-:class:`Signal`.
+:func:`enum`.
 
-:class:`intbv` objects must be constructed so that a bit width can be inferred.
-This can be done by specifying minimum and maximum values, e.g. as follows::
+:class:`intbv` objects must be constructed so that a bit width can be
+inferred.  This can be done by specifying minimum and maximum values,
+e.g. as follows::
 
    index = intbv(0, min=MIN, max=MAX)
 
-The Verilog converter supports :class:`intbv` objects that can take negative
-values.
+The Verilog converter supports :class:`intbv` objects that can take
+negative values.
 
-Alternatively, a slice can be taken from an :class:`intbv` object as follows::
+Alternatively, a slice can be taken from an :class:`intbv` object as
+follows::
 
    index = intbv(0)[N:]
 
-Such as slice returns a new :class:`intbv` object, with minimum value ``0`` ,
-and maximum value ``2**N``.
+Such as slice returns a new :class:`intbv` object, with minimum value
+``0`` , and maximum value ``2**N``.
 
+In addition to the scalar types described above, a the convertor also
+supports a number of tuple and list based types. The mapping from
+MyHDL types is summarized in the following table.
+
+
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+|  MyHDL type                                | VHDL type                         | Notes     | Verilog type                      | Notes     |
++============================================+===================================+===========+===================================+===========+
+| ``int``                                    | ``integer``                       |           | ``integer``                       |           |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``bool``                                   | ``std_logic``                     | \(1)      | ``reg``                           |           |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``intbv`` with ``min >= 0``                | ``unsigned``                      | \(2)      | ``reg``                           |           |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``intbv`` with  ``min < 0``                | ``signed``                        | \(2)      | ``reg signed``                    |           |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``enum``                                   | dedicated enumeration type        |           | ``reg``                           |           |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``tuple`` of ``int``                       | mapped to case statement          | \(3)      | mapped to case statement          | \(3)      |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``list`` of ``bool``                       | ``array of std_logic``            |           | ``reg``                           | \(5)      |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``list`` of ``intbv`` with ``min >= 0``    | ``array of unsigned``             | \(4)      | ``reg``                           | \(4)\(5)  |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+| ``list`` of ``intbv`` with ``min < 0``     | ``array of signed``               | \(4)      | ``reg signed``                    | \(4)\(5)  |
++--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
+
+
+Notes:
+
+(1) 
+   The VHDL ``std_logic`` type is defined in the standard VHDL package
+   ``IEEE.std_logic_1164``.
+
+(2)
+   The VHDL ``unsigned`` and ``signed`` types used are those from the
+   standard VHDL packages ``IEEE.numeric_std``.
+
+(3)
+   A MyHDL ``tuple`` of ``int`` is used for ROM inference, and can only be
+   used in a very specific way: an indexing operation into the tuple
+   should be the rhs of an assignment.
+
+(4)
+   All list members should have identical value constraints.
+
+  
+(5)
+   Lists are mapped to Verilog memories. 
+
+
+The table as presented applies to MyHDL variables. The convertor also
+supports MyHDL signals that use ``bool``, ``intbv`` or ``enum``
+objects as their underlying type. For VHDL, these are mapped to VHDL signals
+with an underlying type as specified in the table above. Verilog doesn't have
+the signal concept. For Verilog, a MyHDL signal is mapped to a Verilog
+``reg`` as in the table above, or to a Verilog ``wire``, depending
+on the signal usage.
+
+The convertor supports MyHDL list of signals provided the underlying
+signal type is either ``bool`` or ``intbv``. They may be mapped to a
+VHDL signal with a VHDL type as specified in the table, or to a
+Verilog memory.  However, list of signals are not always mapped to a
+corresponding VHDL or Verilog object.  See :ref:`conv-listofsigs` for
+more info.
 
 .. _conv-subset-statements:
 
@@ -221,6 +277,13 @@ Supported statements
 The following is a list of the statements that are supported by the Verilog
 converter, possibly qualified with restrictions or usage notes.
 
+:keyword:`assert`
+  An :keyword:`assert` statement in Python looks as follow::
+
+      assert test_expression
+
+  It can be converted provided ``test_expression`` is convertible.
+
 :keyword:`break`
 
 :keyword:`continue`
@@ -229,7 +292,7 @@ converter, possibly qualified with restrictions or usage notes.
 
 :keyword:`for`
    The only supported iteration scheme is iterating through sequences of integers
-   returned by built-in function :func:`range` or MyHDL\ function
+   returned by built-in function :func:`range` or MyHDL function
    :func:`downrange`.  The optional :keyword:`else` clause is not supported.
 
 :keyword:`if`
@@ -238,20 +301,44 @@ converter, possibly qualified with restrictions or usage notes.
 :keyword:`pass`
 
 :keyword:`print`
-   When printing an interpolated string, the format specifiers are copied verbatim
-   to the Verilog output.  Printing to a file (with syntax ``'>>'``) is not
-   supported.
 
+  A :keyword:`print` statement with multiple arguments::
+
+      print arg1, arg2, ...
+
+  is supported. However, there are restrictions on the arguments.
+  First, they should be of one of the following forms::
+
+      arg
+      formatstring % arg
+      formatstring % (arg1, arg2, ...)
+
+  where ``arg`` is a ``bool``, ``int``, ``intbv``, ``enum``, or a
+  ``Signal`` of these types.
+
+  The ``formatstring`` contains ordinary characters and conversion
+  specifiers as in Python. However, the only supported conversion specifiers
+  are ``%s`` and ``%d``.
+  Justification and width specification are thus not supported.
+
+  Printing without a newline::
+
+     print arg1 ,
+
+  is not supported.
+
+ 
 :keyword:`raise`
-   This statement is mapped to Verilog statements that end the simulation with an
+   This statement is mapped to statements that end the simulation with an
    error message.
 
 :keyword:`return`
 
 :keyword:`yield`
-   The yielded expression can be a signal, a signal edge as specified by MyHDL
-   functions :func:`posedge` or :func:`negedge`, or a tuple of signals and edge
-   specifications.
+   A `yield` expression is used to specify a sensitivity list.
+   The yielded expression can be a :class:`Signal`, a signal edge as specified by MyHDL
+   functions :attr:`Signal.posedge` or :attr:`Signal.negedge`, or a tuple of signals and edge
+   specifications. It can also be a :func:`delay` object.
 
 :keyword:`while`
    The optional :keyword:`else` clause is not supported.
@@ -263,7 +350,7 @@ Supported built-in functions
 ----------------------------
 
 The following is a list of the built-in functions that are supported by the
-Verilog converter.
+converter.
 
 :func:`bool`
    This function can be used to typecast an object explictly to its boolean
@@ -286,9 +373,38 @@ Excluding code from conversion
 For some tasks, such as debugging, it may be useful to insert arbitratry Python
 code that should not be converted.
 
-The Verilog convertor supports this by ignoring all code that is embedded in a
+The convertor supports this by ignoring all code that is embedded in a
 ``if __debug__`` test. The value of the ``__debug__`` variable is not taken into
 account.
+
+
+
+.. _conv-listofsigs:
+
+Conversion of lists of signals
+==============================
+
+Lists of signals are useful for many purposes. For example, they make
+it easy to create a repetitive structure. Another application is the
+description of memory behavior.
+
+The convertor output is non-hierarchical. That implies that all
+signals are declared at the top-level in VHDL or Verilog (as VHDL
+signals, or Verilog regs and wires.)  However, some signals that are a
+list member at some level in the MyHDL design hierarchy may be used as
+a plain signal at a lower level. For such signals, a choice has to be
+made whether to declare a Verilog memory or VHDL array, or a number of
+plain signal names.
+
+If possible, plain signal declarations are preferred, because Verilog
+memories and arrays have some restrictions in usage and tool support.
+This is possible if the list syntax is strictly used outside generator
+code, for example when lists of signals are used to describe
+structure.
+
+Conversely, when list syntax is used in some generator, then a Verilog
+memory or VHDL array will be declared. The typical example is the
+description of RAM memories.
 
 
 .. _conv-meth:
