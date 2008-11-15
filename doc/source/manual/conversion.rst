@@ -208,27 +208,27 @@ supports a number of tuple and list based types. The mapping from
 MyHDL types is summarized in the following table.
 
 
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-|  MyHDL type                                | VHDL type                         | Notes     | Verilog type                      | Notes     |
-+============================================+===================================+===========+===================================+===========+
-| ``int``                                    | ``integer``                       |           | ``integer``                       |           |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``bool``                                   | ``std_logic``                     | \(1)      | ``reg``                           |           |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``intbv`` with ``min >= 0``                | ``unsigned``                      | \(2)      | ``reg``                           |           |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``intbv`` with  ``min < 0``                | ``signed``                        | \(2)      | ``reg signed``                    |           |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``enum``                                   | dedicated enumeration type        |           | ``reg``                           |           |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``tuple`` of ``int``                       | mapped to case statement          | \(3)      | mapped to case statement          | \(3)      |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``list`` of ``bool``                       | ``array of std_logic``            |           | ``reg``                           | \(5)      |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``list`` of ``intbv`` with ``min >= 0``    | ``array of unsigned``             | \(4)      | ``reg``                           | \(4)\(5)  |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
-| ``list`` of ``intbv`` with ``min < 0``     | ``array of signed``               | \(4)      | ``reg signed``                    | \(4)\(5)  |
-+--------------------------------------------+-----------------------------------+-----------+-----------------------------------+-----------+
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+|  MyHDL type                                | VHDL type                     | Notes     | Verilog type                  | Notes     |
++============================================+===============================+===========+===============================+===========+
+| ``int``                                    | ``integer``                   |           | ``integer``                   |           |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+| ``bool``                                   | ``std_logic``                 | \(1)      | ``reg``                       |           |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+| ``intbv`` with ``min >= 0``                | ``unsigned``                  | \(2)      | ``reg``                       |           |
++--------------------------------------------+-----------------------------------+-----------+---------------------------+-----------+
+| ``intbv`` with  ``min < 0``                | ``signed``                    | \(2)      | ``reg signed``                |           |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+| ``enum``                                   | dedicated enumeration type    |           | ``reg``                       |           |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+| ``tuple`` of ``int``                       | mapped to case statement      | \(3)      | mapped to case statement      | \(3)      |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+| ``list`` of ``bool``                       | ``array of std_logic``        |           | ``reg``                       | \(5)      |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+| ``list`` of ``intbv`` with ``min >= 0``    | ``array of unsigned``         | \(4)      | ``reg``                       | \(4)\(5)  |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
+| ``list`` of ``intbv`` with ``min < 0``     | ``array of signed``           | \(4)      | ``reg signed``                | \(4)\(5)  |
++--------------------------------------------+-------------------------------+-----------+-------------------------------+-----------+
 
 
 Notes:
@@ -365,18 +365,6 @@ converter.
    interpretation.
 
 
-.. _conv-subset-exclude:
-
-Excluding code from conversion
-------------------------------
-
-For some tasks, such as debugging, it may be useful to insert arbitratry Python
-code that should not be converted.
-
-The convertor supports this by ignoring all code that is embedded in a
-``if __debug__`` test. The value of the ``__debug__`` variable is not taken into
-account.
-
 
 
 .. _conv-listofsigs:
@@ -407,51 +395,16 @@ memory or VHDL array will be declared. The typical example is the
 description of RAM memories.
 
 
-.. _conv-meth:
-
-Methodology notes
-=================
-
-
-.. _conv-meth-sim:
-
-Simulation
-----------
-
-In the Python philosophy, the run-time rules. The Python compiler doesn't
-attempt to detect a lot of errors beyond syntax errors, which given Python's
-ultra-dynamic nature would be an almost impossible task anyway. To verify a
-Python program, one should run it, preferably using unit testing to verify each
-feature.
-
-The same philosophy should be used when converting a MyHDL description to
-Verilog: make sure the simulation runs fine first. Although the converter checks
-many things and attempts to issue clear error messages, there is no guarantee
-that it does a meaningful job unless the simulation runs fine.
-
-
-.. _conv-meth-conv:
-
-Conversion output verification
-------------------------------
-
-It is always prudent to verify the converted Verilog output. To make this task
-easier, the converter also generates a test bench that makes it possible to
-simulate the Verilog design using the Verilog co-simulation interface. This
-permits to verify the Verilog code with the same test bench used for the MyHDL
-code. This is also how the Verilog converter development is being verified.
-
-
 .. _conv-meth-assign:
 
 Assignment issues
------------------
+=================
 
 
 .. _conv-meth-assign-python:
 
 Name assignment in Python
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 Name assignment in Python is a different concept than in many other languages.
 This point is very important for effective modeling in Python, and even more so
@@ -470,16 +423,15 @@ exist. Instead, assignment merely creates a new binding of a name to a certain
 object, that replaces any previous binding. So in the example, the name *a* is
 bound a  number of different objects in sequence.
 
-The Verilog converter has to investigate name assignment and usage in MyHDL
-code, and to map names to Verilog variables. To achieve that, it tries to infer
+The converter has to investigate name assignment and usage in MyHDL
+code, and to map names to Verilog or VHDL objects. To achieve that, it tries to infer
 the type and possibly the bit width of each expression that is assigned to a
 name.
 
 Multiple assignments to the same name can be supported if it can be determined
 that a consistent type and bit width is being used in the assignments. This can
 be done for boolean expressions, numeric expressions, and enumeration type
-literals. In Verilog, the corresponding name is mapped to a single bit ``reg``,
-an ``integer``, or a ``reg`` with the appropriate width, respectively.
+literals.
 
 In other cases, a single assignment should be used when an object is created.
 Subsequent value changes are then achieved by modification of an existing
@@ -490,52 +442,69 @@ objects.
 .. _conv-meth-assign-signal:
 
 Signal assignment
-^^^^^^^^^^^^^^^^^
+-----------------
 
 Signal assignment in MyHDL is implemented using attribute assignment to
 attribute ``next``.  Value changes are thus modeled by modification of the
 existing object. The converter investigates the :class:`Signal` object to infer
-the type and bit width of the corresponding Verilog variable.
+the type and bit width of the corresponding Verilog or VHDL object.
 
 
 .. _conv-meth-assign-intbv:
 
 :class:`intbv` objects
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
-Type :class:`intbv` is likely to be the workhorse for synthesizable modeling in
-MyHDL. An :class:`intbv` instance behaves like a (mutable) integer whose
-individual bits can be accessed and modified. Also, it is possible to constrain
-its set of values. In addition to error checking, this makes it possible to
-infer a bit width, which is required for implementation.
+Type :class:`intbv` is likely to be the workhorse for synthesizable
+modeling in MyHDL. An :class:`intbv` instance behaves like a (mutable)
+integer whose individual bits can be accessed and modified. Also, it
+is possible to constrain its set of values. In addition to error
+checking, this makes it possible to infer a bit width, which is
+required for implementation.
 
-In Verilog, an :class:`intbv` instance will be mapped to a ``reg`` with an
-appropriate width. As noted before, it is not possible to modify its value using
-name assignment. In the following, we will show how it can be done instead.
-Consider::
+As noted before, it is not possible to modify value of a an
+:class:`intbv` object using name assignment. In the following, we will
+show how it can be done instead.  Consider::
 
    a = intbv(0)[8:]
 
-This is an :class:`intbv` object with initial value ``0`` and bit width 8. The
-change its value to ``5``, we can use slice assignment::
+This is an :class:`intbv` object with initial value ``0`` and bit
+width 8. The change its value to ``5``, we can use slice assignment::
 
    a[8:] = 5
 
-The same can be achieved by leaving the bit width unspecified,  which has the
-meaning to change "all" bits::
+The same can be achieved by leaving the bit width unspecified, which
+has the meaning to change "all" bits::
 
    a[:] = 5
 
-Often the new value will depend on the old one. For example, to increment an
-:class:`intbv` with the technique above::
+Often the new value will depend on the old one. For example, to
+increment an :class:`intbv` with the technique above::
 
    a[:] = a + 1
 
-Python also provides *augmented* assignment operators, which can be used to
-implement in-place operations. These are supported on :class:`intbv` objects and
-by the converter, so that the increment can also be done as follows::
+Python also provides *augmented* assignment operators, which can be
+used to implement in-place operations. These are supported on
+:class:`intbv` objects and by the converter, so that the increment can
+also be done as follows::
 
    a += 1
+
+
+
+
+.. _conv-subset-exclude:
+
+Excluding code from conversion
+==============================
+
+For some tasks, such as debugging, it may be useful to insert arbitratry Python
+code that should not be converted.
+
+The convertor supports this by ignoring all code that is embedded in a
+``if __debug__`` test. The value of the ``__debug__`` variable is not taken into
+account.
+
 
 
 .. _conv-usage:
@@ -1134,6 +1103,42 @@ Verilog. To decide which value to use, consider how the signal should be
 declared in Verilog after the user-defined code is inserted.
 
 
+
+.. _conv-meth:
+
+Methodology notes
+=================
+
+
+.. _conv-meth-sim:
+
+Simulation
+----------
+
+In the Python philosophy, the run-time rules. The Python compiler doesn't
+attempt to detect a lot of errors beyond syntax errors, which given Python's
+ultra-dynamic nature would be an almost impossible task anyway. To verify a
+Python program, one should run it, preferably using unit testing to verify each
+feature.
+
+The same philosophy should be used when converting a MyHDL description to
+Verilog: make sure the simulation runs fine first. Although the converter checks
+many things and attempts to issue clear error messages, there is no guarantee
+that it does a meaningful job unless the simulation runs fine.
+
+
+.. _conv-meth-conv:
+
+Conversion output verification
+------------------------------
+
+It is always prudent to verify the converted Verilog output. To make this task
+easier, the converter also generates a test bench that makes it possible to
+simulate the Verilog design using the Verilog co-simulation interface. This
+permits to verify the Verilog code with the same test bench used for the MyHDL
+code. This is also how the Verilog converter development is being verified.
+
+
 .. _conv-issues:
 
 Known issues
@@ -1153,13 +1158,11 @@ Synthesis pragmas are specified as Verilog comments.
    used.
 
 Inconsistent place of the sensitivity list inferred from ``always_comb``.
-   The semantics of ``always_comb``, both in Verilog and MyHDL, is to have an
-   implicit sensitivity list at the end of the code. However, this may not be
-   synthesizable. Therefore, the inferred sensitivity list is put at the top of the
-   corresponding ``always`` block. This may cause inconsistent behavior at the
-   start of the simulation. The workaround is to create events at time 0.
+   The semantics of ``always_comb``, both in Verilog and MyHDL, is to
+   have an implicit sensitivity list at the end of the code. However,
+   this may not be synthesizable. Therefore, the inferred sensitivity
+   list is put at the top of the corresponding ``always`` block or
+   ``process`. This may cause inconsistent behavior at the start of
+   the simulation. The workaround is to create events at time 0.
 
-Non-blocking assignments to task arguments don't work.
-   Non-blocking (signal) assignments to task arguments don't work for an as yet
-   unknown reason.
 
