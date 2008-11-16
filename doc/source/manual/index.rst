@@ -15,5 +15,6 @@ Contents:
    unittest
    cosimulation
    conversion
+   conversion_examples
    reference
 
