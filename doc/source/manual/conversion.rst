@@ -508,6 +508,76 @@ The convertor supports this by ignoring all code that is embedded in a
 account.
 
 
+Template transformation
+=======================
+
+.. note:: This section is only revelant for VHDL.
+
+There is a difference between VHDL and Verilog in the way in which
+sensitivity to signal edges is specified. In Verilog, edge specifiers
+can be used directly in the sensitivity list. In VHDL, this is not
+possible: only signals can be used in the sensitivity list. To check
+for an edge, one uses the ``rising_edge()`` or ``falling_edge()``
+functions in the code.
+
+MyHDL follows the Verilog scheme to specify edges in the sensitivity
+list. Consequently, when mapping such code to VHDL, it needs to be
+transformed to equivalent VHDL. This is an important issue because it
+affects all synthesizable templates that infer sequential logic.
+
+We will illustrate this feature with some examples. This is the MyHDL
+code for a D flip-flop::
+
+
+    @always(clk.posedge)
+    def logic():
+        q.next = d
+
+
+It is converted to VHDL as follows::
+
+    DFF_LOGIC: process (clk) is
+    begin
+        if rising_edge(clk) then
+            q <= d;
+        end if;
+    end process DFF_LOGIC;
+
+
+The convertor can handle the more general case. For example, this is
+MyHDL code for a D flip-flop with asynchronous set, asynchronous
+reset, and preference of set over reset::
+
+
+    @always(clk.posedge, set.negedge, rst.negedge)
+    def logic():
+        if set == 0:
+            q.next = 1
+        elif rst == 0:
+            q.next = 0
+        else:
+            q.next = d
+
+
+This is converted to VHDL as follows::
+
+
+    DFFSR_LOGIC: process (clk, set, rst) is
+    begin
+        if (set = '0') then
+            q <= '1';
+        elsif (rst = '0') then
+            q <= '0';
+        elsif rising_edge(clk) then
+            q <= d;
+        end if;
+    end process DFFSR_LOGIC;
+
+
+All cases with practical utility can be handled in this way. However,
+there are other cases that cannot be transformed to equivalent
+VHDL. The convertor will detect those cases and give an error.
+
 
 
 
