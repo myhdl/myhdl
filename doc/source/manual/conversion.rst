@@ -579,6 +579,59 @@ there are other cases that cannot be transformed to equivalent
 VHDL. The convertor will detect those cases and give an error.
 
 
+.. _conv-testbench:
+
+Conversion of test benches
+==========================
+
+
+After conversion, we obviously want to verify that the VHDL or Verilog
+code works correctly. In previous MyHDL versions, the proposed
+verification technique was co-simulation: use the same MyHDL test
+bench to simulate the converted Verilog code and the original MyHDL
+code.
+
+
+The proposed alternative is to convert the test bench itself, so that
+both test bench and design can be run in the HDL simulator. Of course,
+this is not a fully general solution either, as there are important
+constraints on the kind of code that can be converted. However, with
+the additional features that have been developed, it should be a
+useful solution for the purpose of verifying converted code.
+
+The question is whether the conversion restrictions permit to develop
+sufficiently complex test benches. In this section, we present some
+insights about this.
+
+The most important restrictions are the types that can be used. These
+remain "hardware-oriented" as before.
+
+Even in the previous MyHDL release, the "convertible subset" was much
+wider than the "synthesis subset". For example, :keyword:`while` and
+:keyword:`raise` statement were already convertible.
+
+The support for :func:`delay()` objects is the most important new feature
+to write high-level models and test benches.
+
+With the :keyword:`print` statement, simple debugging can be done.
+
+Of particular interest is the :keyword:`assert` statement. Originally,
+:keyword:`assert` statements were only intended to insert debugging
+assertions in code. Recently, there is a tendency to use them to write
+self-checking unit tests, controlled by unit test frameworks such as
+``py.test``. In particular, they are a powerful way to write
+self-checking test benches for MyHDL designs. As :keyword:`assert`
+statements are now convertible, a whole test suite in MyHDL can be
+converted to an equivalent test suite in Verilog and VHDL.
+
+Finally, the same techniques as for synthesizable code can be used
+to master complexity. In particular, any code outside generators
+is executed during elaboration, and therefore not considered in
+the conversion process. This feature can for example be used for
+complex calculations that set up constants or expected results.
+Furthermore, a tuple of ints can be used to hold a table of
+values that will be mapped to a case statement in Verilog and VHDL.
+
 
 
 .. _conv-meth:

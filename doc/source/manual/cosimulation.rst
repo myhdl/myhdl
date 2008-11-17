@@ -404,14 +404,28 @@ for Python exceptions that cannot be easily explained.
 
 .. _cosim-impl-vhdl:
 
-VHDL
-----
+What about VHDL?
+----------------
 
 It would be nice to have an interface to VHDL simulators such as the Modelsim
-VHDL simulator. This will require a PLI module using the PLI of the VHDL
-simulator.
+VHDL simulator. Let us summarize the requirements to accomplish that:
 
-The MyHDL project currently has no access to commercial VHDL simulators, so
-progress in co-simulation support will depend on external interest and
-participation.
+* We need a procedural interface to the internals of the simulator.
+* The procedural interface should be a widely used industry standard so that we
+  can reuse the work in several simulators.
+* MyHDL is an open-source project and therefore there should be also be an open-source
+  simulator that implements the procedural interface.
 
+
+``vpi`` for Verilog matches these requirements. It is a widely used standard
+and is supported by the open-source Verilog simulators Icarus and cver.
+
+However, for VHDL the situation is different. While there exists a standard
+called ``vhpi``, it  much less popular than ``vpi``. Also, it is unclear
+whether there exists
+an open source VHDL simulator with ``vhdl`` capabilities that are powerful
+enough for MyHDL's purposes.
+
+
+Consequently, the development of cosimulation for VHDL is currently on
+hold. For some applications, there is an alternative: see :ref:`conv-testbench`.

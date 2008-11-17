@@ -289,8 +289,8 @@ with it:
   its internal workings, such as ``vpi`` for Verilog and ``vhpi`` for
   VHDL.
 
-* vpi`` for Verilog is well-established and available for
-  open-source simulators such as Icarus and cver). However, ``vhpi`` for
+* ``vpi`` for Verilog is well-established and available for
+  open-source simulators such as Icarus and cver. However, ``vhpi`` for
   VHDL is much less established; it is unclear whether there is an open
   source solution that is powerful enough for MyHDL's purposes.
 
