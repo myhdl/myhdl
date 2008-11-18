@@ -421,9 +421,9 @@ VHDL simulator. Let us summarize the requirements to accomplish that:
 and is supported by the open-source Verilog simulators Icarus and cver.
 
 However, for VHDL the situation is different. While there exists a standard
-called ``vhpi``, it  much less popular than ``vpi``. Also, it is unclear
-whether there exists
-an open source VHDL simulator with ``vhdl`` capabilities that are powerful
+called ``vhpi``, it  much less popular than ``vpi``. Also, to our knowledge
+there is only one credible open source VHDL simulator (GHDL) and it is unclear
+whether it has ``vhpi`` capabilities that are powerful
 enough for MyHDL's purposes.
 
 

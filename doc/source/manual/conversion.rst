@@ -175,6 +175,12 @@ A natural restriction on convertible code is that it should be written in MyHDL
 style: cooperating generators, communicating through signals, and with
 sensitivity specify resume conditions. 
 
+For pure modeling, it doesn't matter how generator are created.
+However, in convertible code they should be created using one
+of the MyHDL decorators: :func:`instance`, :func:`always` or
+:func:`always_comb`.
+
+
 .. _conv-subset-types:
 
 Supported types
@@ -579,52 +585,65 @@ there are other cases that cannot be transformed to equivalent
 VHDL. The convertor will detect those cases and give an error.
 
 
+.. _conv-meth-conv:
+
+Conversion output verification by co-simulation
+===============================================
+
+.. note:: This section is only revelant for Verilog.
+
+To verify the converted Verilog output, co-simulation can be used. To
+make this task easier, the converter also generates a test bench that
+makes it possible to simulate the Verilog design using the Verilog
+co-simulation interface. This permits to verify the Verilog code with
+the same test bench used for the MyHDL code.
+
+
 .. _conv-testbench:
 
 Conversion of test benches
 ==========================
 
-
 After conversion, we obviously want to verify that the VHDL or Verilog
-code works correctly. In previous MyHDL versions, the proposed
-verification technique was co-simulation: use the same MyHDL test
-bench to simulate the converted Verilog code and the original MyHDL
-code.
+code works correctly. For Verilog, we can use co-simulation as
+discussed earlier. However, for VHDL, co-simulation is currently
+not supported.
 
-
-The proposed alternative is to convert the test bench itself, so that
+An alternative is to convert the test bench itself, so that
 both test bench and design can be run in the HDL simulator. Of course,
-this is not a fully general solution either, as there are important
-constraints on the kind of code that can be converted. However, with
-the additional features that have been developed, it should be a
-useful solution for the purpose of verifying converted code.
-
-The question is whether the conversion restrictions permit to develop
+this is not a fully general solution, as there are important
+constraints on the kind of code that can be converted.
+Thus, the question is whether the conversion restrictions permit to develop
 sufficiently complex test benches. In this section, we present some
 insights about this.
 
-The most important restrictions are the types that can be used. These
-remain "hardware-oriented" as before.
+The most important restrictions regard the types that can be used, as
+discussed earlier in this chapter. However, the "convertible subset" is
+wider than the "synthesis subset". We will present a number of
+non-synthesizable feature that are of interest for test benches.
 
-Even in the previous MyHDL release, the "convertible subset" was much
-wider than the "synthesis subset". For example, :keyword:`while` and
-:keyword:`raise` statement were already convertible.
+the :keyword:`while` loop
+ :keyword:`while` loops can be used for high-level control structures.
+ 
+the :keyword:`raise` statement
+   A :keyword:`raise` statement can stop the simulation on an error condition.
 
-The support for :func:`delay()` objects is the most important new feature
-to write high-level models and test benches.
+:func:`delay()` objects
+   Delay modelling is essential for test benches.
 
-With the :keyword:`print` statement, simple debugging can be done.
+the :keyword:`print` statement
+   :keyword:`print` statements can be used for simple debugging.
 
-Of particular interest is the :keyword:`assert` statement. Originally,
-:keyword:`assert` statements were only intended to insert debugging
-assertions in code. Recently, there is a tendency to use them to write
-self-checking unit tests, controlled by unit test frameworks such as
-``py.test``. In particular, they are a powerful way to write
-self-checking test benches for MyHDL designs. As :keyword:`assert`
-statements are now convertible, a whole test suite in MyHDL can be
-converted to an equivalent test suite in Verilog and VHDL.
+the :keyword:`assert` statement.
+  Originally, :keyword:`assert` statements were only intended to insert debugging
+  assertions in code. Recently, there is a tendency to use them to write
+  self-checking unit tests, controlled by unit test frameworks such as
+  ``py.test``. In particular, they are a powerful way to write
+  self-checking test benches for MyHDL designs. As :keyword:`assert`
+  statements are convertible, a whole unittest suite in MyHDL can be
+  converted to an equivalent test suite in Verilog and VHDL.
 
-Finally, the same techniques as for synthesizable code can be used
+Additionally, the same techniques as for synthesizable code can be used
 to master complexity. In particular, any code outside generators
 is executed during elaboration, and therefore not considered in
 the conversion process. This feature can for example be used for
@@ -642,8 +661,8 @@ Methodology notes
 
 .. _conv-meth-sim:
 
-Simulation
-----------
+Simulate first
+--------------
 
 In the Python philosophy, the run-time rules. The Python compiler doesn't
 attempt to detect a lot of errors beyond syntax errors, which given Python's
@@ -657,16 +676,11 @@ many things and attempts to issue clear error messages, there is no guarantee
 that it does a meaningful job unless the simulation runs fine.
 
 
-.. _conv-meth-conv:
+.. _conv-meth-hier:
 
-Conversion output verification
-------------------------------
+Handling hierarchy
+------------------
 
-It is always prudent to verify the converted Verilog output. To make this task
-easier, the converter also generates a test bench that makes it possible to
-simulate the Verilog design using the Verilog co-simulation interface. This
-permits to verify the Verilog code with the same test bench used for the MyHDL
-code. This is also how the Verilog converter development is being verified.
 
 
 .. _conv-issues:
