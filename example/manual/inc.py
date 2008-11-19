@@ -62,7 +62,20 @@ tb = testbench()
 
 def main():
     Simulation(tb).run()
-    
+
+
+# conversion
+m = 8
+n = 2 ** m
+
+count = Signal(intbv(0)[m:])
+enable = Signal(bool(0))
+clock, reset = [Signal(bool()) for i in range(2)]
+
+inc_inst = Inc(count, enable, clock, reset, n=n)
+inc_inst = toVerilog(Inc, count, enable, clock, reset, n=n)
+inc_inst = toVHDL(Inc, count, enable, clock, reset, n=n)
+
 
 if __name__ == '__main__':
     main()

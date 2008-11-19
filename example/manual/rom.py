@@ -17,6 +17,7 @@ CONTENT = (17, 134, 52, 9)
 
 def main():
     toVerilog(rom, dout, addr, CONTENT)
+    toVHDL(rom, dout, addr, CONTENT)
 
 if __name__ == '__main__':
     main()

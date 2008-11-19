@@ -27,6 +27,7 @@ clk = Signal(bool(0))
 def main():
     toVerilog.name = 'ram_1'
     toVerilog(ram, dout, din, addr, we, clk)
+    toVHDL(ram, dout, din, addr, we, clk)
     
 if __name__ == '__main__':
     main()
