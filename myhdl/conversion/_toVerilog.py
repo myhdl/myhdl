@@ -49,7 +49,7 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error, _access, _kind,_context, 
-                                    _ConversionMixin, _Label)
+                                    _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
                                        _Ram, _Rom)
             
@@ -107,6 +107,9 @@ class _ToVerilogConvertor(object):
 
         vpath = name + ".v"
         vfile = open(vpath, 'w')
+        
+        ### initialize properly ###
+        _genUniqueSuffix.reset()
 
         siglist, memlist = _analyzeSigs(h.hierarchy)
         arglist = _flatten(h.top)
@@ -170,7 +173,6 @@ def _writeModuleHeader(f, intf):
         if s._inList:
             raise ToVerilogError(_error.PortInList, portname)
         # make sure signal name is equal to its port name
-        assert s._name == portname
         s._name = portname
         r = _getRangeString(s)
         p = _getSignString(s)

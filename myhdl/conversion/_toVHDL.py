@@ -50,9 +50,9 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error, _access, _kind,_context,
-                                    _ConversionMixin, _Label)
+                                    _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
-                                       _Ram, _Rom)
+                                       _Ram, _Rom, _enumTypeSet)
 from myhdl._Signal import _WaiterList
 from myhdl.conversion._toVHDLPackage import _package
 
@@ -121,6 +121,10 @@ class _ToVHDLConvertor(object):
         if not os.path.isfile(ppath):
             pfile = open(ppath, 'w')
 
+        ### initialize properly ###
+        _genUniqueSuffix.reset()
+        _enumTypeSet.clear()
+
         siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL')
         arglist = _flatten(h.top)
         # print h.top
@@ -130,13 +134,17 @@ class _ToVHDLConvertor(object):
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
 
+        needPck = len(_enumTypeSet) > 0
+        
         if pfile:
             _writeFileHeader(pfile, ppath)
             print >> pfile, _package
             pfile.close()
 
         _writeFileHeader(vfile, vpath)
-        _writeModuleHeader(vfile, intf)
+        if needPck:
+            _writeCustomPackage(vfile, intf)
+        _writeModuleHeader(vfile, intf, needPck)
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
@@ -146,15 +154,13 @@ class _ToVHDLConvertor(object):
         vfile.close()
         # tbfile.close()
 
+        ### clean-up properly ###
+        
         # clean up signal names
         for sig in siglist:
             sig._name = None
             sig._driven = False
             sig._read = False
-            
-        # clean up enum type names
-        for enumType in _enumTypeList:
-            enumType._clearDeclared()
             
         # clean up attributes
         self.name = None
@@ -172,7 +178,18 @@ def _writeFileHeader(f, fn):
     print >> f
 
 
-def _writeModuleHeader(f, intf):
+def _writeCustomPackage(f, intf):
+    print >> f
+    print >> f, "package pck_%s is" % intf.name
+    print >> f
+    for t in _enumTypeSet:
+        print >> f, "    %s" % t._toVHDL()
+    print >> f
+    print >> f, "end package pck_%s;" % intf.name
+    print >> f
+
+
+def _writeModuleHeader(f, intf, needPck):
     print >> f, "library IEEE;"
     print >> f, "use IEEE.std_logic_1164.all;"
     print >> f, "use IEEE.numeric_std.all;"
@@ -180,6 +197,9 @@ def _writeModuleHeader(f, intf):
     print >> f
     print >> f, "use work.pck_myhdl_%s.all;" % _version
     print >> f
+    if needPck:
+        print >> f, "use work.pck_%s.all;" % intf.name
+        print >> f
     print >> f, "entity %s is" % intf.name
     if intf.argnames:
         f.write("    port (")
@@ -193,7 +213,6 @@ def _writeModuleHeader(f, intf):
             if s._inList:
                 raise ToVHDLError(_error.PortInList, portname)
             # make sure signal name is equal to its port name
-            assert s._name == portname
             s._name = portname
             r = _getRangeString(s)
             p = _getTypeString(s)
@@ -234,8 +253,6 @@ def _writeSigDecls(f, intf, siglist, memlist):
             continue
         if s._name in intf.argnames:
             continue
-        if isinstance(s._val, EnumItemType):
-            _declareEnumType(f, s)
         r = _getRangeString(s)
         p = _getTypeString(s)
         if s._driven:
@@ -273,14 +290,6 @@ def _writeModuleFooter(f):
     print >> f, "end architecture MyHDL;"
 
     
-def _declareEnumType(f, s):
-    enumType = s._val._type
-    if enumType._isDeclared():
-        return
-    else:
-        print >> f, enumType._toVHDL(s._name)
-        enumType._setDeclared()
-        _enumTypeList.append(enumType)
 
     
 def _getRangeString(s):
@@ -412,12 +421,6 @@ class _ConvertVisitor(_ConversionMixin):
 
     def writeDeclaration(self, obj, name, kind="", dir="", endchar=";", constr=True):
         if isinstance(obj, EnumItemType):
-            enumType = obj._type
-            if not enumType._isDeclared():
-                self.write(enumType._toVHDL(name))
-                self.writeline()
-                enumType._setDeclared()
-                _enumTypeList.append(enumType)
             tipe = obj._type._name
         elif isinstance(obj, _Ram):
             tipe = "t_array_%s" % name

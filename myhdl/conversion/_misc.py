@@ -153,3 +153,16 @@ class _Label(object):
         self.isActive = False
     def __str__(self):
         return str(self.name)
+
+# this can be made more sophisticated to deal with existing suffixes
+# also, may require reset facility
+class _UniqueSuffixGenerator(object):
+    def __init__(self):
+        self.i = 0
+    def reset(self):
+        self.i = 0
+    def next(self):
+        self.i += 1
+        return "_%s" % self.i
+
+_genUniqueSuffix = _UniqueSuffixGenerator()

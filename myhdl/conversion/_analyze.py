@@ -44,13 +44,15 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._delay import delay
 from myhdl.conversion._misc import (_error, _access, _kind, _context,
-                                    _ConversionMixin, _Label)
+                                    _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl._extractHierarchy import _isMem, _UserCode
 from myhdl._Signal import _WaiterList
 from myhdl._util import _isTupleOfInts
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = __builtin__.__dict__.values()
+
+_enumTypeSet = set()
 
 
 def _makeName(n, prefixes):
@@ -650,6 +652,10 @@ class _AnalyzeVisitor(_ConversionMixin):
         if isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
+            if obj not in _enumTypeSet:
+                _enumTypeSet.add(obj)
+                suf = _genUniqueSuffix.next()
+                obj._setName(n+suf)
         if node.obj is None: # attribute lookup failed
             self.raiseError(node, _error.UnsupportedAttribute, node.attrname)
             

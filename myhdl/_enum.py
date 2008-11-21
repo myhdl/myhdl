@@ -102,7 +102,6 @@ def enum(*names, **kwargs):
         def __init__(self, names, codedict, nrbits, encoding):
             self.__dict__['_names'] = names
             self.__dict__['_nrbits'] = nrbits
-            self.__dict__['_declared'] = False
             self.__dict__['_nritems'] = len(names)
             self.__dict__['_codedict'] = codedict
             self.__dict__['_encoding'] = encoding
@@ -116,17 +115,12 @@ def enum(*names, **kwargs):
         def __repr__(self):
             return "<Enum: %s>" % ", ".join(names)
         __str__ = __repr__
-        def _isDeclared(self):
-            return self._declared
-        def _setDeclared(self):
-            self.__dict__['_declared'] = True
-        def _clearDeclared(self):
-            self.__dict__['_declared'] = False
-        _toVHDL = __str__
-        def _toVHDL(self, name):
+        def _setName(self, name):
             typename = "t_enum_%s" % name
             self.__dict__['_name'] = typename
-            # XXX name generation
+        _toVHDL = __str__
+        def _toVHDL(self):
+            typename =  self.__dict__['_name']
             str = "type %s is (\n    " % typename
             str += ",\n    ".join(self._names)         
             str += "\n);"
