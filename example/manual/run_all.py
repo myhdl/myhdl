@@ -3,6 +3,7 @@ modules = ('hello1',
            'greetings',
            'bin2gray',
            'bin2gray2',
+           'GrayInc',
            'hec',
            'rs232',
            'mux',
@@ -16,6 +17,7 @@ modules = ('hello1',
            'fifo',
            'rom',
            'ram',
+           'custom',
           )
 
 for n in modules:
