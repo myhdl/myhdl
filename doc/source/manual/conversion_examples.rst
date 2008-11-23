@@ -23,34 +23,35 @@ A small sequential design
 
 Consider the following MyHDL code for an incrementer module::
 
-   ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+  ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-   def inc(count, enable, clock, reset, n):
+  def Inc(count, enable, clock, reset, n):
 
-       """ Incrementer with enable.
+      """ Incrementer with enable.
 
-       count -- output
-       enable -- control input, increment when 1
-       clock -- clock input
-       reset -- asynchronous reset input
-       n -- counter max value
+      count -- output
+      enable -- control input, increment when 1
+      clock -- clock input
+      reset -- asynchronous reset input
+      n -- counter max value
 
-       """
+      """
 
-       @always(clock.posedge, reset.negedge)
-       def incProcess():
-           if reset == ACTIVE_LOW:
-               count.next = 0
-           else:
-               if enable:
-                   count.next = (count + 1) % n
+      @always(clock.posedge, reset.negedge)
+      def incLogic():
+	  if reset == ACTIVE_LOW:
+	      count.next = 0
+	  else:
+	      if enable:
+		  count.next = (count + 1) % n
 
-       return incProcess
+      return incLogic
+
 
 In Verilog terminology, function :func:`inc` corresponds to a module, while the
-decorated function :func:`incProcess` roughly corresponds to an always block.
+decorated function :func:`incLogic` roughly corresponds to an always block.
 
-Normally, to simulate the design, we would "elaborate" an instance as follows::
+Normally, to simulate the design, we would elaborate an instance as follows::
 
    m = 8
    n = 2 ** m
@@ -59,46 +60,84 @@ Normally, to simulate the design, we would "elaborate" an instance as follows::
    enable = Signal(bool(0))
    clock, reset = [Signal(bool()) for i in range(2)]
 
-   inc_inst = inc(count, enable, clock, reset, n=n)
+   inc_inst = Inc(count, enable, clock, reset, n=n)
 
 ``inc_inst`` is an elaborated design instance that can be simulated. To convert
 it to Verilog, we change the last line as follows::
 
-   inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
+   inc_inst = toVerilog(Inc, count, enable, clock, reset, n=n)
 
 Again, this creates an instance that can be simulated, but as a side effect, it
-also generates an equivalent Verilog module in file :file:`inc.v`. The Verilog
+also generates an equivalent Verilog module in file :file:`Inc.v`. The Verilog
 code looks as follows::
 
-   module inc_inst (
-       count,
-       enable,
-       clock,
-       reset
-   );
 
-   output [7:0] count;
-   reg [7:0] count;
-   input enable;
-   input clock;
-   input reset;
+    module Inc (
+	count,
+	enable,
+	clock,
+	reset
+    );
+
+    output [7:0] count;
+    reg [7:0] count;
+    input enable;
+    input clock;
+    input reset;
+
+    always @(posedge clock, negedge reset) begin: INC_INCLOGIC
+	if ((reset == 0)) begin
+	    count <= 0;
+	end
+	else begin
+	    if (enable) begin
+		count <= ((count + 1) % 256);
+	    end
+	end
+    end
+
+    endmodule
 
 
-   always @(posedge clock or negedge reset) begin: _MYHDL1_BLOCK
-       if ((reset == 0)) begin
-           count <= 0;
-       end
-       else begin
-           if (enable) begin
-               count <= ((count + 1) % 256);
-           end
-       end
-   end
+Similarly, we can convert to VHDL as follows::
 
-   endmodule
+   inc_inst = toVHDL(Inc, count, enable, clock, reset, n=n)
 
-You can see the module interface and the always block, as expected from the
-MyHDL design.
+This creates an equivalent VHDL module in file :file:`Inc.vhd`::
+
+
+  library IEEE;
+  use IEEE.std_logic_1164.all;
+  use IEEE.numeric_std.all;
+
+  use work.pck_myhdl_06.all;
+
+  entity Inc is
+      port (
+	  count: inout unsigned(7 downto 0);
+	  enable: in std_logic;
+	  clock: in std_logic;
+	  reset: in std_logic
+      );
+  end entity Inc;
+
+  architecture MyHDL of Inc is
+
+  begin
+
+  INC_INCLOGIC: process (clock, reset) is
+  begin
+      if (reset = '0') then
+	  count <= "00000000";
+      elsif rising_edge(clock) then
+	  if to_boolean(enable) then
+	      count <= ((count + 1) mod 256);
+	  end if;
+      end if;
+  end process INC_INCLOGIC;
+
+  end architecture MyHDL;
+
 
 
 .. _conv-usage-comb:
@@ -128,7 +167,7 @@ to Gray code converter from previous chapters::
 
        return logic
 
-As before, you can create an instance and convert to Verilog as follows::
+As before, you can create an instance and convert to Verilog and VHDL as follows::
 
    width = 8
 
@@ -136,29 +175,66 @@ As before, you can create an instance and convert to Verilog as follows::
    G = Signal(intbv(0)[width:])
 
    bin2gray_inst = toVerilog(bin2gray, B, G, width)
+   bin2gray_inst = toVHDL(bin2gray, B, G, width)
 
 The generated Verilog code looks as follows::
 
-   module bin2gray (
-       B,
-       G
-   );
+  module bin2gray (
+      B,
+      G
+  );
 
-   input [7:0] B;
-   output [7:0] G;
-   reg [7:0] G;
+  input [7:0] B;
+  output [7:0] G;
+  reg [7:0] G;
 
-   always @(B) begin: _bin2gray_logic
-       integer i;
-       reg [9-1:0] Bext;
-       Bext = 9'h0;
-       Bext = B;
-       for (i=0; i<8; i=i+1) begin
-           G[i] <= (Bext[(i + 1)] ^ Bext[i]);
-       end
-   end
 
-   endmodule
+  always @(B) begin: BIN2GRAY_LOGIC
+      integer i;
+      reg [9-1:0] Bext;
+      Bext = 9'h0;
+      Bext = B;
+      for (i=0; i<8; i=i+1) begin
+	  G[i] <= (Bext[(i + 1)] ^ Bext[i]);
+      end
+  end
+
+  endmodule
+
+
+The generated VHDL code looks as follows::
+
+
+  library IEEE;
+  use IEEE.std_logic_1164.all;
+  use IEEE.numeric_std.all;
+  use std.textio.all;
+
+  use work.pck_myhdl_06.all;
+
+  entity bin2gray is
+      port (
+	  B: in unsigned(7 downto 0);
+	  G: out unsigned(7 downto 0)
+      );
+  end entity bin2gray;
+
+  architecture MyHDL of bin2gray is
+
+  begin
+
+  BIN2GRAY_LOGIC: process (B) is
+      variable Bext: unsigned(8 downto 0);
+  begin
+      Bext := to_unsigned(0, 9);
+      Bext := resize(B, 9);
+      for i in 0 to 8-1 loop
+	  G(i) <= (Bext((i + 1)) xor Bext(i));
+      end loop;
+  end process BIN2GRAY_LOGIC;
+
+  end architecture MyHDL;
+
 
 
 .. _conv-usage-hier:
@@ -166,12 +242,11 @@ The generated Verilog code looks as follows::
 A hierarchical design
 =====================
 
-The Verilog converter can handle designs with an arbitrarily deep hierarchy.
+The converter can handle designs with an arbitrarily deep hierarchy.
 
 For example, suppose we want to design an incrementer with Gray code output.
 Using the designs from previous sections, we can proceed as follows::
 
-   ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
    def GrayInc(graycnt, enable, clock, reset, width):
 
@@ -206,54 +281,113 @@ We can convert this hierarchical design as before::
    width = 8
    graycnt = Signal(intbv()[width:])
    enable, clock, reset = [Signal(bool()) for i in range(3)]
+   toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+   toVHDL(GrayIncReg, graycnt, enable, clock, reset, width)
 
-   gray_inc_reg_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
 
 The Verilog output code looks as follows::
 
-   module GrayIncReg (
-       graycnt,
-       enable,
-       clock,
-       reset
-   );
+    module GrayIncReg (
+	graycnt,
+	enable,
+	clock,
+	reset
+    );
 
-   output [7:0] graycnt;
-   reg [7:0] graycnt;
-   input enable;
-   input clock;
-   input reset;
+    output [7:0] graycnt;
+    reg [7:0] graycnt;
+    input enable;
+    input clock;
+    input reset;
 
-   reg [7:0] graycnt_comb;
-   reg [7:0] _gray_inc_1_bincnt;
+    reg [7:0] graycnt_comb;
+    reg [7:0] gray_inc_1_bincnt;
 
 
-   always @(posedge clock or negedge reset) begin: _GrayIncReg_gray_inc_1_inc_1_incProcess
-       if ((reset == 0)) begin
-           _gray_inc_1_bincnt <= 0;
-       end
-       else begin
-           if (enable) begin
-               _gray_inc_1_bincnt <= ((_gray_inc_1_bincnt + 1) % 256);
-           end
-       end
-   end
 
-   always @(_gray_inc_1_bincnt) begin: _GrayIncReg_gray_inc_1_bin2gray_1_logic
-       integer i;
-       reg [9-1:0] Bext;
-       Bext = 9'h0;
-       Bext = _gray_inc_1_bincnt;
-       for (i=0; i<8; i=i+1) begin
-           graycnt_comb[i] <= (Bext[(i + 1)] ^ Bext[i]);
-       end
-   end
+    always @(posedge clock, negedge reset) begin: GRAYINCREG_GRAY_INC_1_INC_1_INCLOGIC
+	if ((reset == 0)) begin
+	    gray_inc_1_bincnt <= 0;
+	end
+	else begin
+	    if (enable) begin
+		gray_inc_1_bincnt <= ((gray_inc_1_bincnt + 1) % 256);
+	    end
+	end
+    end
 
-   always @(posedge clock) begin: _GrayIncReg_reg_1
-       graycnt <= graycnt_comb;
-   end
+    always @(gray_inc_1_bincnt) begin: GRAYINCREG_GRAY_INC_1_BIN2GRAY_1_LOGIC
+	integer i;
+	reg [9-1:0] Bext;
+	Bext = 9'h0;
+	Bext = gray_inc_1_bincnt;
+	for (i=0; i<8; i=i+1) begin
+	    graycnt_comb[i] <= (Bext[(i + 1)] ^ Bext[i]);
+	end
+    end
 
-   endmodule
+    always @(posedge clock) begin: GRAYINCREG_REG_1
+	graycnt <= graycnt_comb;
+    end
+
+    endmodule
+
+
+The VHDL output code looks as follows::
+
+    library IEEE;
+    use IEEE.std_logic_1164.all;
+    use IEEE.numeric_std.all;
+
+    use work.pck_myhdl_06.all;
+
+    entity GrayIncReg is
+	port (
+	    graycnt: out unsigned(7 downto 0);
+	    enable: in std_logic;
+	    clock: in std_logic;
+	    reset: in std_logic
+	);
+    end entity GrayIncReg;
+
+    architecture MyHDL of GrayIncReg is
+
+    signal graycnt_comb: unsigned(7 downto 0);
+    signal gray_inc_1_bincnt: unsigned(7 downto 0);
+
+    begin
+
+
+    GRAYINCREG_GRAY_INC_1_INC_1_INCLOGIC: process (clock, reset) is
+    begin
+	if (reset = '0') then
+	    gray_inc_1_bincnt <= "00000000";
+	elsif rising_edge(clock) then
+	    if to_boolean(enable) then
+		gray_inc_1_bincnt <= ((gray_inc_1_bincnt + 1) mod 256);
+	    end if;
+	end if;
+    end process GRAYINCREG_GRAY_INC_1_INC_1_INCLOGIC;
+
+    GRAYINCREG_GRAY_INC_1_BIN2GRAY_1_LOGIC: process (gray_inc_1_bincnt) is
+	variable Bext: unsigned(8 downto 0);
+    begin
+	Bext := to_unsigned(0, 9);
+	Bext := resize(gray_inc_1_bincnt, 9);
+	for i in 0 to 8-1 loop
+	    graycnt_comb(i) <= (Bext((i + 1)) xor Bext(i));
+	end loop;
+    end process GRAYINCREG_GRAY_INC_1_BIN2GRAY_1_LOGIC;
+
+    GRAYINCREG_REG_1: process (clock) is
+    begin
+	if rising_edge(clock) then
+	    graycnt <= graycnt_comb;
+	end if;
+    end process GRAYINCREG_REG_1;
+
+    end architecture MyHDL;
+
 
 Note that the output is a flat "net list of blocks", and that hierarchical
 signal names are generated as necessary.
@@ -290,51 +424,53 @@ a different encoding scheme.
 As an example, consider the following finite state machine, whose state variable
 uses the enumeration type defined above::
 
-   ACTIVE_LOW = 0
-   FRAME_SIZE = 8
+  ACTIVE_LOW = bool(0)
+  FRAME_SIZE = 8
+  t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 
-   def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
+  def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
 
-       """ Framing control FSM.
+      """ Framing control FSM.
 
-       SOF -- start-of-frame output bit
-       state -- FramerState output
-       syncFlag -- sync pattern found indication input
-       clk -- clock input
-       reset_n -- active low reset
+      SOF -- start-of-frame output bit
+      state -- FramerState output
+      syncFlag -- sync pattern found indication input
+      clk -- clock input
+      reset_n -- active low reset
 
-       """
+      """
 
-       index = Signal(intbv(0)[8:]) # position in frame
+      index = Signal(intbv(0)[8:]) # position in frame
 
-       @always(clk.posedge, reset_n.negedge)
-       def FSM():
-           if reset_n == ACTIVE_LOW:
-               SOF.next = 0
-               index.next = 0
-               state.next = t_State.SEARCH
-           else:
-               index.next = (index + 1) % FRAME_SIZE
-               SOF.next = 0
-               if state == t_State.SEARCH:
-                   index.next = 1
-                   if syncFlag:
-                       state.next = t_State.CONFIRM
-               elif state == t_State.CONFIRM:
-                   if index == 0:
-                       if syncFlag:
-                           state.next = t_State.SYNC
-                       else:
-                           state.next = t_State.SEARCH
-               elif state == t_State.SYNC:
-                   if index == 0:
-                       if not syncFlag:
-                           state.next = t_State.SEARCH
-                   SOF.next = (index == FRAME_SIZE-1)
-               else:
-                   raise ValueError("Undefined state")
+      @always(clk.posedge, reset_n.negedge)
+      def FSM():
+	  if reset_n == ACTIVE_LOW:
+	      SOF.next = 0
+	      index.next = 0
+	      state.next = t_State.SEARCH
+	  else:
+	      index.next = (index + 1) % FRAME_SIZE
+	      SOF.next = 0
+	      if state == t_State.SEARCH:
+		  index.next = 1
+		  if syncFlag:
+		      state.next = t_State.CONFIRM
+	      elif state == t_State.CONFIRM:
+		  if index == 0:
+		      if syncFlag:
+			  state.next = t_State.SYNC
+		      else:
+			  state.next = t_State.SEARCH
+	      elif state == t_State.SYNC:
+		  if index == 0:
+		      if not syncFlag:
+			  state.next = t_State.SEARCH
+		  SOF.next = (index == FRAME_SIZE-1)
+	      else:
+		  raise ValueError("Undefined state")
 
-       return FSM
+      return FSM
+
 
 The conversion is done as before::
 
@@ -343,73 +479,152 @@ The conversion is done as before::
    clk = Signal(bool(0))
    reset_n = Signal(bool(1))
    state = Signal(t_State.SEARCH)
-   framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
+   toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
+   toVHDL(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
+
 
 The Verilog output looks as follows::
 
-   module FramerCtrl (
-       SOF,
-       state,
-       syncFlag,
-       clk,
-       reset_n
-   );
+    module FramerCtrl (
+	SOF,
+	state,
+	syncFlag,
+	clk,
+	reset_n
+    );
 
-   output SOF;
-   reg SOF;
-   output [2:0] state;
-   reg [2:0] state;
-   input syncFlag;
-   input clk;
-   input reset_n;
+    output SOF;
+    reg SOF;
+    output [2:0] state;
+    reg [2:0] state;
+    input syncFlag;
+    input clk;
+    input reset_n;
 
-   reg [7:0] index;
+    reg [7:0] index;
 
 
-   always @(posedge clk or negedge reset_n) begin: _FramerCtrl_FSM
-       if ((reset_n == 0)) begin
-           SOF <= 0;
-           index <= 0;
-           state <= 3'b001;
-       end
-       else begin
-           index <= ((index + 1) % 8);
-           SOF <= 0;
-           // synthesis parallel_case full_case
-           casez (state)
-               3'b??1: begin
-                   index <= 1;
-                   if (syncFlag) begin
-                       state <= 3'b010;
-                   end
-               end
-               3'b?1?: begin
-                   if ((index == 0)) begin
-                       if (syncFlag) begin
-                           state <= 3'b100;
-                       end
-                       else begin
-                           state <= 3'b001;
-                       end
-                   end
-               end
-               3'b1??: begin
-                   if ((index == 0)) begin
-                       if ((!syncFlag)) begin
-                           state <= 3'b001;
-                       end
-                   end
-                   SOF <= (index == (8 - 1));
-               end
-               default: begin
-                   $display("ValueError(Undefined state)");
-                   $finish;
-               end
-           endcase
-       end
-   end
 
-   endmodule
+    always @(posedge clk, negedge reset_n) begin: FRAMERCTRL_FSM
+	if ((reset_n == 0)) begin
+	    SOF <= 0;
+	    index <= 0;
+	    state <= 3'b001;
+	end
+	else begin
+	    index <= ((index + 1) % 8);
+	    SOF <= 0;
+	    // synthesis parallel_case full_case
+	    casez (state)
+		3'b??1: begin
+		    index <= 1;
+		    if (syncFlag) begin
+			state <= 3'b010;
+		    end
+		end
+		3'b?1?: begin
+		    if ((index == 0)) begin
+			if (syncFlag) begin
+			    state <= 3'b100;
+			end
+			else begin
+			    state <= 3'b001;
+			end
+		    end
+		end
+		3'b1??: begin
+		    if ((index == 0)) begin
+			if ((!syncFlag)) begin
+			    state <= 3'b001;
+			end
+		    end
+		    SOF <= (index == (8 - 1));
+		end
+		default: begin
+		    $finish;
+		end
+	    endcase
+	end
+    end
+
+    endmodule
+
+The VHDL output looks as follows::
+
+    package pck_FramerCtrl is
+
+	type t_enum_t_State_1 is (
+	SEARCH,
+	CONFIRM,
+	SYNC
+    );
+    attribute enum_encoding of t_enum_t_State_1: type is "001 010 100";
+
+    end package pck_FramerCtrl;
+
+    library IEEE;
+    use IEEE.std_logic_1164.all;
+    use IEEE.numeric_std.all;
+    use std.textio.all;
+
+    use work.pck_myhdl_06.all;
+
+    use work.pck_FramerCtrl.all;
+
+    entity FramerCtrl is
+	port (
+	    SOF: out std_logic;
+	    state: inout t_enum_t_State_1;
+	    syncFlag: in std_logic;
+	    clk: in std_logic;
+	    reset_n: in std_logic
+	);
+    end entity FramerCtrl;
+
+    architecture MyHDL of FramerCtrl is
+
+    signal index: unsigned(7 downto 0);
+
+    begin
+
+
+    FRAMERCTRL_FSM: process (clk, reset_n) is
+    begin
+	if (reset_n = '0') then
+	    SOF <= '0';
+	    index <= "00000000";
+	    state <= SEARCH;
+	elsif rising_edge(clk) then
+	    index <= ((index + 1) mod 8);
+	    SOF <= '0';
+	    case state is
+		when SEARCH =>
+		    index <= "00000001";
+		    if to_boolean(syncFlag) then
+			state <= CONFIRM;
+		    end if;
+		when CONFIRM =>
+		    if (index = 0) then
+			if to_boolean(syncFlag) then
+			    state <= SYNC;
+			else
+			    state <= SEARCH;
+			end if;
+		    end if;
+		when SYNC =>
+		    if (index = 0) then
+			if (not to_boolean(syncFlag)) then
+			    state <= SEARCH;
+			end if;
+		    end if;
+		    SOF <= to_std_logic(signed(resize(index, 9)) = (8 - 1));
+		when others =>
+		    assert False report "End of Simulation" severity Failure;
+	    end case;
+	end if;
+    end process FRAMERCTRL_FSM;
+
+    end architecture MyHDL;
 
 
 .. _conf-usage-ram:
@@ -444,32 +659,75 @@ With the appropriate signal definitions for the interface ports, it is converted
 to the following Verilog code. Note how the list of signals ``mem`` is mapped to
 a Verilog memory. ::
 
-   module RAM (
-       dout,
-       din,
-       addr,
-       we,
-       clk
-   );
+    module ram (
+	dout,
+	din,
+	addr,
+	we,
+	clk
+    );
 
-   output [7:0] dout;
-   wire [7:0] dout;
-   input [7:0] din;
-   input [6:0] addr;
-   input we;
-   input clk;
+    output [7:0] dout;
+    wire [7:0] dout;
+    input [7:0] din;
+    input [6:0] addr;
+    input we;
+    input clk;
 
-   reg [7:0] mem [0:128-1];
 
-   always @(posedge clk) begin: _RAM_write
-       if (we) begin
-           mem[addr] <= din;
-       end
-   end
+    reg [7:0] mem [0:128-1];
 
-   assign dout = mem[addr];
 
-   endmodule
+    always @(posedge clk) begin: RAM_1_WRITE
+	if (we) begin
+	    mem[addr] <= din;
+	end
+    end
+
+
+    assign dout = mem[addr];
+
+    endmodule
+
+In VHDL, the list of MyHDL signals is modeled as a VHDL array signal::
+
+    library IEEE;
+    use IEEE.std_logic_1164.all;
+    use IEEE.numeric_std.all;
+
+    use work.pck_myhdl_06.all;
+
+    entity ram is
+	port (
+	    dout: out unsigned(7 downto 0);
+	    din: in unsigned(7 downto 0);
+	    addr: in unsigned(6 downto 0);
+	    we: in std_logic;
+	    clk: in std_logic
+	);
+    end entity ram;
+
+    architecture MyHDL of ram is
+
+    type t_array_mem is array(0 to 128-1) of unsigned(7 downto 0);
+    signal mem: t_array_mem;
+
+    begin
+
+    RAM_WRITE: process (clk) is
+    begin
+	if rising_edge(clk) then
+	    if to_boolean(we) then
+		mem(to_integer(addr)) <= din;
+	    end if;
+	end if;
+    end process RAM_WRITE;
+
+
+    dout <= mem(to_integer(addr));
+
+    end architecture MyHDL;
+
 
 
 .. _conf-usage-rom:
@@ -503,29 +761,69 @@ defined, the conversion can be performed::
    addr = Signal(intbv(0)[4:])
 
    toVerilog(rom, dout, addr, CONTENT)
+   toVHDL(rom, dout, addr, CONTENT)
 
 The Verilog output code is as follows::
 
-   module rom (
-       dout,
-       addr
-   );
+    module rom (
+	dout,
+	addr
+    );
 
-   output [7:0] dout;
-   reg [7:0] dout;
-   input [3:0] addr;
+    output [7:0] dout;
+    reg [7:0] dout;
+    input [3:0] addr;
 
-   always @(addr) begin: _rom_read
-       // synthesis parallel_case full_case
-       case (addr)
-           0: dout <= 17;
-           1: dout <= 134;
-           2: dout <= 52;
-           default: dout <= 9;
-       endcase
-   end
 
-   endmodule
+
+
+    always @(addr) begin: ROM_READ
+	// synthesis parallel_case full_case
+	case (addr)
+	    0: dout <= 17;
+	    1: dout <= 134;
+	    2: dout <= 52;
+	    default: dout <= 9;
+	endcase
+    end
+
+    endmodule
+
+
+The VHDL output code is as follows::
+
+
+    library IEEE;
+    use IEEE.std_logic_1164.all;
+    use IEEE.numeric_std.all;
+    use std.textio.all;
+
+    use work.pck_myhdl_06.all;
+
+    entity rom is
+	port (
+	    dout: out unsigned(7 downto 0);
+	    addr: in unsigned(3 downto 0)
+	);
+    end entity rom;
+
+    architecture MyHDL of rom is
+
+
+    begin
+
+
+    ROM_READ: process (addr) is
+    begin
+	case to_integer(addr) is
+	    when 0 => dout <= "00010001";
+	    when 1 => dout <= "10000110";
+	    when 2 => dout <= "00110100";
+	    when others => dout <= "00001001";
+	end case;
+    end process ROM_READ;
+
+    end architecture MyHDL;
 
 
 .. _conf-usage-custom:
@@ -533,67 +831,100 @@ The Verilog output code is as follows::
 User-defined code
 =================
 
-MyHDL provides a way  to include user-defined Verilog code during the conversion
-process.
+MyHDL provides a way to include user-defined code during the
+conversion process.
 
-MyHDL defines a hook that is understood by the converter but ignored by the
-simulator. The hook is called ``__verilog__``. It operates like a special return
-value. When a MyHDL function defines ``__verilog__``, the Verilog converter will
-use its value instead of the regular return value.
+MyHDL defines hooks that are understood by the converter but ignored
+by the simulator. The hooks are ``__verilog__`` for Verilog and
+``__vhdl__`` for VHDL.  They operate like a special return value. When
+defined in a MyHDL function.  the convertor will use its value instead
+of the regular return value.
 
-The value of ``__verilog__`` should be a format string that uses keys in its
-format specifiers. The keys refer to the variable names in the context of the
-string.
+The value of ``__verilog__`` or ``__vhdl__`` should be a format string
+that uses keys in its format specifiers. The keys refer to the
+variable names in the context of the string.
 
-Example::
+For example::
 
-   def inc_comb(nextCount, count, n):
+    def inc_comb(nextCount, count, n):
 
-       @always_comb
-       def logic():
-           # note: '-' instead of '+'
-           nextCount.next = (count - 1) % n
+	@always(count)
+	def logic():
+	    # do nothing here
+	    pass
 
-       nextCount.driven = "wire"
+	nextCount.driven = "wire"
 
-       __verilog__ =\
-   """
-   assign %(nextCount)s = (%(count)s + 1) %% %(n)s;
-   """
+	__verilog__ =\
+    """
+    assign %(nextCount)s = (%(count)s + 1) %% %(n)s;
+    """
 
-       return logic
+	__vhdl__ =\
+    """
+    %(nextCount)s <= (%(count)s + 1) mod %(n)s;
+    """
 
-The converted code looks as follows::
+	return logic
 
-   module inc_comb (
-       nextCount,
-       count
-   );
+The converted code looks as follows in Verilog::
 
-   output [7:0] nextCount;
-   wire [7:0] nextCount;
-   input [7:0] count;
+    module inc_comb (
+	nextCount,
+	count
+    );
 
-   assign nextCount = (count + 1) % 128;
+    output [7:0] nextCount;
+    wire [7:0] nextCount;
+    input [7:0] count;
 
-   endmodule
+    assign nextCount = (count + 1) % 256;
 
-In this example, conversion of the :func:`inc_comb` function is bypassed and the
-user-defined Verilog code is inserted instead. Note that the user-defined code
-refers to signals and parameters in the MyHDL context by using format
-specifiers. During conversion, the appropriate hierarchical names and parameter
-values will be filled in. Note also that the format specifier indicator % needs
-to be escaped (by doubling it) if it is required in the user-defined code.
+    endmodule
 
-There is one more issue that needs user attention. Normally, the Verilog
-converter infers inputs, internal signals, and outputs. It also detects undriven
-and multiple driven signals. To do this, it assumes that signals are not driven
-by default. It then processes the code to find out which signals are driven from
-where. However, it cannot do this for user-defined code. Without additional
-help, this will result in warnings or errors during the inference process, or in
-compilation errors from invalid Verilog code. The user should solve this by
-setting the ``driven`` attribute for signals that are driven from the user-
-defined code. In the example code above, note the following assignment::
+and as follows in VHDL::
+
+    library IEEE;
+    use IEEE.std_logic_1164.all;
+    use IEEE.numeric_std.all;
+
+    use work.pck_myhdl_06.all;
+
+    entity inc_comb is
+	port (
+	    nextCount: out unsigned(7 downto 0);
+	    count: in unsigned(7 downto 0)
+	);
+    end entity inc_comb;
+
+    architecture MyHDL of inc_comb is
+
+    begin
+
+    nextCount <= (count + 1) mod 256;
+
+    end architecture MyHDL;
+
+
+In this example, conversion of the :func:`inc_comb` function is
+bypassed and the user-defined code is inserted instead. Note that the
+user-defined code refers to signals and parameters in the MyHDL
+context by using format specifiers. During conversion, the appropriate
+hierarchical names and parameter values will be filled in. Note also
+that the format specifier indicator % needs to be escaped (by doubling
+it) if it is required in the user-defined code.
+
+There is one more issue that needs user attention for the Verilog
+case. Normally, the Verilog converter infers inputs, internal signals,
+and outputs. It also detects undriven and multiple driven signals. To
+do this, it assumes that signals are not driven by default. It then
+processes the code to find out which signals are driven from
+where. However, it cannot do this for user-defined code. Without
+additional help, this will result in warnings or errors during the
+inference process, or in compilation errors from invalid Verilog
+code. The user should solve this by setting the ``driven`` attribute
+for signals that are driven from the user- defined code. In the
+example code above, note the following assignment::
 
    nextCount.driven = "wire"
 
