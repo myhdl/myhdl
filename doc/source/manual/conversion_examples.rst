@@ -48,10 +48,7 @@ Consider the following MyHDL code for an incrementer module::
       return incLogic
 
 
-In Verilog terminology, function :func:`inc` corresponds to a module, while the
-decorated function :func:`incLogic` roughly corresponds to an always block.
-
-Normally, to simulate the design, we would elaborate an instance as follows::
+Normally, to simulate the design, we would elaborate it as follows::
 
    m = 8
    n = 2 ** m
@@ -98,6 +95,8 @@ code looks as follows::
 
     endmodule
 
+The convertor infers a proper Verilog module interface and maps
+the MyHDL generator to a Verilog always block.
 
 Similarly, we can convert to VHDL as follows::
 
@@ -138,6 +137,18 @@ This creates an equivalent VHDL module in file :file:`Inc.vhd`::
 
   end architecture MyHDL;
 
+The MyHDL generator is mapped to a VHDL process in this case.
+
+Note that the VHDL file refers to a VHDL package called
+``pck_myhdl_06``.  This package contains a number of convenience
+functions that make the conversion easier.
+
+Note also the use of an ``inout`` in the interface.  This is not
+recommended VHDL design practice, but it is required here to have a
+valid VHDL design that matches the behavior of the MyHDL design. As
+this is only an issue for ports and as the convertor output is
+non-hierarchical, the issue is not very common and has an easy
+workaround.
 
 
 .. _conv-usage-comb:
@@ -632,9 +643,9 @@ The VHDL output looks as follows::
 RAM inference
 =============
 
-Certain synthesis tools can map Verilog memories to RAM structures. To support
-this interesting feature, the Verilog converter maps lists of signals in MyHDL
-to Verilog memories.
+Certain synthesis tools can infer RAM structures. To support
+this feature, the converter maps lists of signals in MyHDL
+to Verilog memories and VHDL arrays.
 
 The following MyHDL example is a ram model that uses a list of signals to model
 the internal memory. ::
@@ -774,9 +785,6 @@ The Verilog output code is as follows::
     reg [7:0] dout;
     input [3:0] addr;
 
-
-
-
     always @(addr) begin: ROM_READ
 	// synthesis parallel_case full_case
 	case (addr)
@@ -812,7 +820,6 @@ The VHDL output code is as follows::
 
     begin
 
-
     ROM_READ: process (addr) is
     begin
 	case to_integer(addr) is
@@ -837,7 +844,7 @@ conversion process.
 MyHDL defines hooks that are understood by the converter but ignored
 by the simulator. The hooks are ``__verilog__`` for Verilog and
 ``__vhdl__`` for VHDL.  They operate like a special return value. When
-defined in a MyHDL function.  the convertor will use its value instead
+defined in a MyHDL function, the convertor will use their value instead
 of the regular return value.
 
 The value of ``__verilog__`` or ``__vhdl__`` should be a format string
