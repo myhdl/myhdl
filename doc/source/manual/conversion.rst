@@ -514,6 +514,39 @@ The convertor supports this by ignoring all code that is embedded in a
 account.
 
 
+.. _conv-custom:
+
+User-defined code
+=================
+
+MyHDL provides a way to include user-defined code during the
+conversion process. There are hooks that are understood by the
+converter but ignored by the simulator. The hooks are ``__verilog__``
+for Verilog and ``__vhdl__`` for VHDL.  They operate like a special
+return value. When defined in a MyHDL function, the convertor will use
+their value instead of the regular return value.  The value of
+``__verilog__`` or ``__vhdl__`` should be a format string that uses
+keys in its format specifiers. The keys refer to the variable names in
+the context of the string.
+
+There is one more issue that needs user attention for the Verilog
+case. Normally, the Verilog converter infers inputs, internal signals,
+and outputs. It also detects undriven and multiple driven signals. To
+do this, it assumes that signals are not driven by default. It then
+processes the code to find out which signals are driven from
+where. However, it cannot do this for user-defined code. Without
+additional help, this will result in warnings or errors during the
+inference process, or in compilation errors from invalid Verilog
+code. The user should solve this by setting the ``driven`` attribute
+for signals that are driven from the user- defined code. The allowed
+values of the driven attribute are ``'wire'`` and ``'reg'``.  The
+value specifies how the user-defined Verilog code drives the signal in
+Verilog. To decide which value to use, consider how the signal should
+be declared in Verilog after the user-defined code is inserted.
+
+For an example of user-defined code, see :ref:`conv-usage-custom`.
+
+
 Template transformation
 =======================
 
