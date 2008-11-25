@@ -524,10 +524,14 @@ conversion process. There are hooks that are understood by the
 converter but ignored by the simulator. The hooks are ``__verilog__``
 for Verilog and ``__vhdl__`` for VHDL.  They operate like a special
 return value. When defined in a MyHDL function, the convertor will use
-their value instead of the regular return value.  The value of
-``__verilog__`` or ``__vhdl__`` should be a format string that uses
-keys in its format specifiers. The keys refer to the variable names in
-the context of the string.
+their value instead of the regular return value. Effecctively, it will
+stop converting the current module at that point.
+
+The value of ``__verilog__`` or ``__vhdl__`` should be a format string
+that uses keys in its format specifiers. The keys refer to the
+variable names in the context of the string. The convertor will
+interpolate the string and insert it instead of the regular converted
+output.
 
 There is one more issue that needs user attention for the Verilog
 case. Normally, the Verilog converter infers inputs, internal signals,
@@ -714,7 +718,25 @@ that it does a meaningful job unless the simulation runs fine.
 Handling hierarchy
 ------------------
 
+Recall that conversion occurs after elaboration. A consquence is that
+the converted output is non-hierarchical. In many cases, this is not an
+issue. The purpose of conversion is to provide a path into a traditional
+design flow by using Verilog and VHDL as a "back-end" format. Hierarchy
+is quite relevant to humans, but much less so to tools.
 
+However, in some cases hierarchy is desirable. For example, if you convert
+a test bench you may prefer to keep its code separate from the design
+under test. In other words, conversion should stop at the design under test
+instance, and insert an instantiation instead.
+
+There is a workaround to accomplish this with a small amount of additional
+work. The workaround is to define user-defined code consisting of an
+instantiation of the design under test. As discussed in :ref:`conv-custom`,
+when the convertor sees the hook it will stop converting and insert the
+instantiation instead. Of course, you will want to convert the design
+under test itself also. Therefore, you should use a flag that controls
+whether the hook is defined or not and set it according to the
+desired conversion.
 
 .. _conv-issues:
 
