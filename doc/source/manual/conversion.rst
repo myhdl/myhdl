@@ -80,7 +80,7 @@ The module interface is inferred from signal usage
 
 Function calls are mapped to Verilog or VHDL subprograms
   The converter analyzes function calls and function code. Each function is
-  mapped to an appropriate subprograms in the target HDL:  a function or task in  Verilog,
+  mapped to an appropriate subprogram in the target HDL:  a function or task in  Verilog,
   and a function  or procedure in VHDL.
   In order to support the full power of Python functions,
   a unique subprogram is generated per Python function call.
@@ -175,7 +175,7 @@ A natural restriction on convertible code is that it should be written in MyHDL
 style: cooperating generators, communicating through signals, and with
 sensitivity specify resume conditions. 
 
-For pure modeling, it doesn't matter how generator are created.
+For pure modeling, it doesn't matter how generators are created.
 However, in convertible code they should be created using one
 of the MyHDL decorators: :func:`instance`, :func:`always` or
 :func:`always_comb`.
@@ -189,7 +189,7 @@ Supported types
 The most important restriction regards object types.  Only a limited
 amount of types can be converted. Python :class:`int` and
 :class:`long` objects are mapped to Verilog or VHDL integers. All
-other supported types are mapped need to have a defined bit width. The
+other supported types need to have a defined bit width. The
 supported types are the Python :class:`bool` type, the MyHDL
 :class:`intbv` type, and MyHDL enumeration types returned by function
 :func:`enum`.
@@ -477,7 +477,7 @@ show how it can be done instead.  Consider::
    a = intbv(0)[8:]
 
 This is an :class:`intbv` object with initial value ``0`` and bit
-width 8. The change its value to ``5``, we can use slice assignment::
+width 8. To change its value to ``5``, we can use slice assignment::
 
    a[8:] = 5
 
