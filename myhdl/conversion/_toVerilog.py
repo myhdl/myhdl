@@ -577,7 +577,7 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitCallFunc(self, node, *args):
         fn = node.node
-        assert isinstance(fn, astNode.Name)
+        # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
         opening, closing = '(', ')'
         if f is bool:
@@ -611,6 +611,14 @@ class _ConvertVisitor(_ConversionMixin):
         elif f is intbv:
             self.visit(node.args[0])
             return
+        elif f == intbv.signed: # note equality comparison
+            # comes from a getattr
+            opening, closing = '', ''
+            if not fn.expr.signed:
+                opening, closing = "$signed(", ")"
+            self.write(opening)
+            self.visit(fn.expr)
+            self.write(closing)
         elif type(f) in (ClassType, TypeType) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):

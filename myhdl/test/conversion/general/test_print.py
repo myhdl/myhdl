@@ -55,6 +55,13 @@ def PrintBench():
         print ord('y')
         print ord('2')
 
+        # signed
+        yield delay(10)
+        print i1.signed()
+        print i2.signed()
+        print si1.signed()
+        print si2.signed()
+
     return logic
 
 def testPrint():

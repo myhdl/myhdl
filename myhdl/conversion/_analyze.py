@@ -247,7 +247,7 @@ class _NotSupportedVisitor(_ConversionMixin):
             self.raiseError(node, _error.NotSupported, "extra positional arguments")
         if node.dstar_args:
             self.raiseError(node, _error.NotSupported, "extra named arguments")
-        f = eval(_unparse(node.node), self.ast.symdict)
+        # f = eval(_unparse(node.node), self.ast.symdict)
         self.visitChildNodes(node)
                 
     def visitCompare(self, node, *args):
@@ -328,7 +328,7 @@ class _Rom(object):
         self.rom = rom
 
 
-def _isNegative(obj):
+def _maybeNegative(obj):
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
         return True
     if isinstance(obj, (int, long)) and obj < 0:
@@ -512,6 +512,10 @@ class _AnalyzeVisitor(_ConversionMixin):
 ##             node.obj = _EdgeDetector()
         elif f is delay:
             node.obj = delay(0)
+        ### suprize: identity comparison on unbound methods doesn't work in python 2.5??
+        elif f == intbv.signed:
+            node.obj = int(-1)
+            node.signed = True
         elif f in myhdlObjects:
             pass
         elif f in builtinObjects:
@@ -649,6 +653,8 @@ class _AnalyzeVisitor(_ConversionMixin):
                 node.obj = obj.min
             elif node.attrname == 'max':
                 node.obj = obj.max
+            elif node.attrname == 'signed':
+                node.obj = intbv.signed
         if isinstance(obj, EnumType):
             assert hasattr(obj, node.attrname)
             node.obj = getattr(obj, node.attrname)
@@ -758,7 +764,7 @@ class _AnalyzeVisitor(_ConversionMixin):
             node.obj = __builtin__.__dict__[n]
         else:
             pass
-        node.signed = _isNegative(node.obj)
+        node.signed = _maybeNegative(node.obj)
 ##         node.target = node.obj
 
     def visitReturn(self, node, *args):
@@ -857,7 +863,7 @@ class _AnalyzeVisitor(_ConversionMixin):
             node.obj = bool()
         else:
             node.obj = bool() # XXX default
-        node.signed = _isNegative(node.obj)
+        node.signed = _maybeNegative(node.obj)
 
     def visitTuple(self, node, *args):
         node.signed = False

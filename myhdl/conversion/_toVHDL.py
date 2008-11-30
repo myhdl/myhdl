@@ -796,7 +796,7 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitCallFunc(self, node, *args):
         fn = node.node
-        assert isinstance(fn, astNode.Name)
+        # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
         opening, closing = '(', ')'
         sep = ", "
@@ -849,6 +849,19 @@ class _ConvertVisitor(_ConversionMixin):
             self.write(pre)
             self.visit(arg)
             self.write(post)
+            return
+        elif f == intbv.signed: # note equality comparison
+            # this call comes from a getattr
+            arg = fn.expr
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
+            opening, closing = '', ''
+            if isinstance(arg.vhd, vhd_unsigned):
+                opening, closing = "signed(", ")"
+            self.write(pre)
+            self.write(opening)
+            self.visit(arg)
+            self.write(closing)
+            self.write(suf)
             return
         elif type(f) is ClassType and issubclass(f, Exception):
             self.write(f.__name__)
@@ -1749,7 +1762,7 @@ class _AnnotateTypesVisitor(_ConversionMixin):
         
     def visitCallFunc(self, node):
         fn = node.node
-        assert isinstance(fn, astNode.Name)
+        # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
         node.vhd = inferVhdlObj(node.obj)
         self.visitChildNodes(node)
@@ -1769,6 +1782,9 @@ class _AnnotateTypesVisitor(_ConversionMixin):
             node.vhd = vhd_int()
         elif f is now:
             node.vhd = vhd_nat()
+        elif f == intbv.signed: # note equality comparison
+            # this comes from a getattr
+            node.vhd = vhd_signed(fn.expr.vhd.size)
         elif hasattr(node, 'ast'):
             v = _AnnotateTypesVisitor(node.ast)
             compiler.walk(node.ast, v)
