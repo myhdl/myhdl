@@ -502,6 +502,8 @@ class _AnalyzeVisitor(_ConversionMixin):
         node.signed = False
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
+        elif f is concat:
+            node.obj = self.getVal(node)
         elif f is len:
             node.obj = int(0) # XXX
         elif f is bool:
@@ -631,16 +633,13 @@ class _AnalyzeVisitor(_ConversionMixin):
            
     def visitGetattr(self, node, *args):
         self.visit(node.expr, *args)
-        assert isinstance(node.expr, astNode.Name)
         node.obj = None
         node.signed = False
-        n = node.expr.name
-        if n in self.ast.vardict:
-            obj = self.ast.vardict[n]
-        elif n in self.ast.symdict:
-            obj = self.ast.symdict[n]
-        else:
-            raise AssertionError("attribute target: %s" % n)
+        if isinstance(node.expr, astNode.Name):
+            n = node.expr.name
+            if (n not in self.ast.vardict) and (n not in self.ast.symdict):
+                raise AssertionError("attribute target: %s" % n)
+        obj = node.expr.obj
         if isinstance(obj, Signal):
             if node.attrname == 'posedge':
                 node.obj = obj.posedge

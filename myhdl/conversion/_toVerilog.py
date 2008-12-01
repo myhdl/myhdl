@@ -848,9 +848,9 @@ class _ConvertVisitor(_ConversionMixin):
         isMixedExpr = (not node.signed) and (context == _context.SIGNED)
         n = node.name
         if n == 'False':
-            s = "0"
+            s = "1'b0"
         elif n == 'True':
-            s = "1"
+            s = "1'b1"
         elif n in self.ast.vardict:
             addSignBit = isMixedExpr
             s = n

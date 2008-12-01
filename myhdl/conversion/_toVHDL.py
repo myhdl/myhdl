@@ -873,6 +873,7 @@ class _ConvertVisitor(_ConversionMixin):
             self.write(" ns")
             return
         elif f is concat:
+            opening, closing =  "unsigned'(", ")"
             sep = " & "
         elif hasattr(node, 'ast'):
             self.write(node.ast.name)

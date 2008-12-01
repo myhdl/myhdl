@@ -120,7 +120,7 @@ class _ConversionMixin(object):
         return None
 
     def getVal(self, node):
-        val = eval(_unparse(node), self.ast.symdict)
+        val = eval(_unparse(node), self.ast.symdict, self.ast.vardict)
         return val
     
     def raiseError(self, node, kind, msg=""):
