@@ -44,10 +44,6 @@ toVerilog -- function that converts a design to Verilog
 
 """
 
-__author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__revision__ = "$Revision$"
-__date__ = "$Date$"
-
 __version__ = "0.6dev10"
 
 import sys

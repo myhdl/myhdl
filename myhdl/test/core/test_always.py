@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003 Jan Decaluwe
+#  Copyright (C) 2003-2008 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -14,14 +14,11 @@
 #  Lesser General Public License for more details.
 
 #  You should have received a copy of the GNU Lesser General Public
-#  License along with this library; if not, write to the Free Software
+#  License along with this librardy; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for the @always decorator """
 
-__author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__revision__ = "$Revision$"
-__date__ = "$Date$"
 
 import random
 from random import randrange

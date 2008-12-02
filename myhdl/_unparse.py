@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003 Jan Decaluwe
+#  Copyright (C) 2003-2008 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -21,9 +21,6 @@
 
 """
 
-__author__ = "Jan Decaluwe <jan@jandecaluwe.com>"
-__revision__ = "$Revision$"
-__date__ = "$Date$"
 
 import compiler
 from cStringIO import StringIO
