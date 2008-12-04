@@ -497,7 +497,7 @@ class _ConvertVisitor(_ConversionMixin):
         ns, os = node.vhd.size, node.vhdOri.size
         ds = ns - os
         if ds > 0:
-            if isinstance(left.vhd, vhd_vector) and isinstance(left.vhd, vhd_vector):
+            if isinstance(left.vhd, vhd_vector) and isinstance(right.vhd, vhd_vector):
                 if op in ('+', '-'):
                     left.vhd.size = ns
                     node.vhdOri.size = ns
@@ -1146,7 +1146,10 @@ class _ConvertVisitor(_ConversionMixin):
                 s = "'%s'" % int(obj)
             elif isinstance(obj, (int, long)):
                 if isinstance(node.vhd, vhd_int):
-                    s = "%s" % int(obj)
+                    if obj >= 0:
+                        s = "%s" % int(obj)
+                    else:
+                        s = "(- %s)" % abs(int(obj))
                 elif isinstance(node.vhd, vhd_std_logic):
                     s = "'%s'" % int(obj)
                 else:
