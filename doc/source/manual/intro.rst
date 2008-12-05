@@ -565,14 +565,14 @@ binary representation this is '1100', that means the msb is set.
 The instance is create with min=0 and max=16, which qualifies it for the
 value to be classified as 'unsigned' by the ``signed`` function. The function
 call will return the binary '1100' as two's complement value, which is -4. 
-Note that the return type is a integer type.
+Note that the return type is an integer type.
 
 To come back to the initial data bus example, the ``signed`` function
 can be used in connection with a slice to slice the real and the
-imaginary part from the data bus as follows:
+imaginary part from the data bus as follows::
 
- real = data_bus[].signed()
- imag = data_bus[].signed()
+ real = data_bus[8:4].signed()
+ imag = data_bus[4:].signed()
 
 
 .. _intro-python:
