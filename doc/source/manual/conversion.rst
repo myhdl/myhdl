@@ -463,6 +463,8 @@ the type and bit width of the corresponding Verilog or VHDL object.
 :class:`intbv` objects
 ----------------------
 
+.. index:: single: intbv; conversion
+
 Type :class:`intbv` is likely to be the workhorse for synthesizable
 modeling in MyHDL. An :class:`intbv` instance behaves like a (mutable)
 integer whose individual bits can be accessed and modified. Also, it
