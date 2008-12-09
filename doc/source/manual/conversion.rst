@@ -194,6 +194,8 @@ supported types are the Python :class:`bool` type, the MyHDL
 :class:`intbv` type, and MyHDL enumeration types returned by function
 :func:`enum`.
 
+.. index:: single: intbv; conversion
+
 :class:`intbv` objects must be constructed so that a bit width can be
 inferred.  This can be done by specifying minimum and maximum values,
 e.g. as follows::
