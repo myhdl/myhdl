@@ -213,7 +213,7 @@ follows::
 Such as slice returns a new :class:`intbv` object, with minimum value
 ``0`` , and maximum value ``2**N``.
 
-In addition to the scalar types described above, a the convertor also
+In addition to the scalar types described above, the convertor also
 supports a number of tuple and list based types. The mapping from
 MyHDL types is summarized in the following table.
 
@@ -363,7 +363,7 @@ The following is a list of the built-in functions that are supported by the
 converter.
 
 :func:`bool`
-   This function can be used to typecast an object explictly to its boolean
+   This function can be used to typecast an object explicitly to its boolean
    interpretation.
 
 :func:`len`
@@ -371,7 +371,7 @@ converter.
    bit width.
 
 :func:`int`
-   This function can be used to typecast an object explictly to its integer
+   This function can be used to typecast an object explicitly to its integer
    interpretation.
 
 
@@ -474,7 +474,7 @@ is possible to constrain its set of values. In addition to error
 checking, this makes it possible to infer a bit width, which is
 required for implementation.
 
-As noted before, it is not possible to modify value of a an
+As noted before, it is not possible to modify value of an
 :class:`intbv` object using name assignment. In the following, we will
 show how it can be done instead.  Consider::
 
@@ -510,7 +510,7 @@ also be done as follows::
 Excluding code from conversion
 ==============================
 
-For some tasks, such as debugging, it may be useful to insert arbitratry Python
+For some tasks, such as debugging, it may be useful to insert arbitrary Python
 code that should not be converted.
 
 The convertor supports this by ignoring all code that is embedded in a
@@ -528,7 +528,7 @@ conversion process. There are hooks that are understood by the
 converter but ignored by the simulator. The hooks are ``__verilog__``
 for Verilog and ``__vhdl__`` for VHDL.  They operate like a special
 return value. When defined in a MyHDL function, the convertor will use
-their value instead of the regular return value. Effecctively, it will
+their value instead of the regular return value. Effectively, it will
 stop converting the current module at that point.
 
 The value of ``__verilog__`` or ``__vhdl__`` should be a format string
@@ -722,7 +722,7 @@ that it does a meaningful job unless the simulation runs fine.
 Handling hierarchy
 ------------------
 
-Recall that conversion occurs after elaboration. A consquence is that
+Recall that conversion occurs after elaboration. A consequence is that
 the converted output is non-hierarchical. In many cases, this is not an
 issue. The purpose of conversion is to provide a path into a traditional
 design flow by using Verilog and VHDL as a "back-end" format. Hierarchy

@@ -116,7 +116,7 @@ obtained obtained by running the ``iverilog`` compiler as follows::
    % iverilog -o bin2gray -Dwidth=4 bin2gray.v dut_bin2gray.v
 
 This generates a ``bin2gray`` executable for a parameter ``width`` of 4, by
-compiling the contributing verilog files.
+compiling the contributing Verilog files.
 
 The simulation itself is run by the ``vvp`` command::
 
@@ -427,5 +427,5 @@ whether it has ``vhpi`` capabilities that are powerful
 enough for MyHDL's purposes.
 
 
-Consequently, the development of cosimulation for VHDL is currently on
+Consequently, the development of co-simulation for VHDL is currently on
 hold. For some applications, there is an alternative: see :ref:`conv-testbench`.
