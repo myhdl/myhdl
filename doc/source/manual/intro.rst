@@ -303,6 +303,8 @@ The simulation produces the following output::
 Bit oriented operations
 =======================
 
+.. index:: single: intbv; basic usage
+
 Hardware design involves dealing with bits and bit-oriented operations. The
 standard Python type :class:`int` has most of the desired features, but lacks
 support for indexing and slicing. For this reason, MyHDL provides the
@@ -314,6 +316,97 @@ class :class:`int`, it provides access to the underlying two's complement
 representation for bitwise operations. In addition, it is a mutable type that
 provides indexing and slicing operations, and some additional bit-oriented
 support such as concatenation.
+
+The simples way to create an :class:`intbv` instance is::
+
+  >>> a = intbv(24)
+  
+.. index::  
+    single: intbv; min
+    single: intbv; max
+    single: intbv; _nrbits
+
+Let's look at some of the attributes, namely *min*, *max*, and
+*_nrbits*::
+  
+  >>> a.min
+  >>> a.max
+  >>> a._nrbits
+  0
+
+With the instantiation none of those got restricted, so *min* and *max*
+have no values and the :class:`intbv` instance has no bit restriction,
+which is shown here by *_nrbits* being zero.
+
+One way to create a bit width restricted :class:`intbv` instance is by
+setting the *min* and *max* values with the class instantiation in the
+way::
+
+  >>> a = intbv(24, min=0, max=25)
+
+Note that the *max* value is excluded, so we need to specify it as 25 in
+order for the value to fit.
+
+Checking the attributes again::
+
+  >>> a.min
+  0
+  >>> a.max
+  25
+  >>> a._nrbits
+  5
+
+We see now that based on the possible value range 0 .. 24, 5 bits are
+required to represent that value range.
+
+Specifying an :class:`intbv` instance with *min* and *max* values might
+require some getting used to for a hardware engineer who likes to think
+in terms of bit width and the following example shows a way how to do
+just that::
+
+  >>> a = intbv(24)[5:]
+
+Checking the attributes again shows::
+
+  >>> a.min
+  0
+  >>> a.max
+  32
+  >>> a._nrbits
+  5
+
+Note that the *max* attribute is set to 32, as with 5 bits it is
+possible to represent the numbers 0 .. 31. Instantiating an
+:class:`intbv` this way has the disadvantage that only positive value
+ranges can be specified. That means when an :class:`intbv` instance
+should represent signed numbers, it has to be instantiated via the *min*
+and *max* parameters during class instantiation.
+
+This last example uses the technique of bit slicing, which
+actually will be explained in detail in the next section. It is shown
+here as it fits into the subject of creating instances of
+:class:`intbv`. So what happens here in detail is that first an
+unrestricted :class:`intbv` instance is created, like shown in the first
+example. Then from that instance a slice of 5 bits is taken and bound to
+the variable. As mentioned earlier, the slicing will be explained in
+detail in the next section. Here only an interesting behavior of this two
+step instantiation should be pointed out::
+
+  >>> a = intbv(-3)[5:]
+
+As we saw earlier, the *min* attribute is set to 0 by this type of
+instantiation and that should cause an exception when setting the value
+to a negative number. However, as the instantiation happens in two
+steps, what is done here actually is, that an unrestricted :class:`intbv`
+instance with the value -3 is create and then from that, 5 bits are
+sliced off and bound to ``a``. The value -3 has the binary representation of
+'11101' and when considering that bit pattern as unsigned value, it
+represent the value of 29. So checking the value of :class:`intbv`
+instance ``a`` shows::
+
+  >>> a
+  intbv(29L)
+
 
 
 .. _intro-indexing:
@@ -454,13 +547,13 @@ one-off count issues in practice. For example, the slice ``hex[8:]`` has exactly
 about it as follows: for a slice ``[i:j]``, only bits below index ``i`` are
 included, and the bit with index ``j`` is the last bit included.
 
+When an :class:`intbv` object is sliced, a new :class:`intbv` object is returned. 
+This new :class:`intbv` object is always positive, even when the original object was negative.
+
 .. index::    
     single: intbv; min
     single: intbv; max
     single: intbv; _nrbits
-
-When an :class:`intbv` object is sliced, a new :class:`intbv` object is returned. 
-This new :class:`intbv` object is always positive, even when the original object was negative.
 
 Take the following example of a range restricted :class:`intbv`
 instance::
@@ -475,14 +568,13 @@ instance::
   0
   >>> b.max
   16
-  >>>
 
 The value is set to 6 and the range to -8 ... 7. Note that the max value
 is excluded. Checking the bit width with the *_nrbits* attribute shows
 that it occupies 4 bits. If we slice now all bits, by using the convention 
 a[4:], which means to slice the 4 lsb bits, the returned :class:`intbv` 
 instance will still have 4 bits, the value will not change, but the range 
-will be changed to min=0 and max=16.
+will change to min=0 and max=16.
 
 One thing to note here is that unlike bit width specified variables, 
 :class:`intbv` instances can be constructed with asymmetric value range.
@@ -504,8 +596,9 @@ numbers::
   5
 
 Here now 5 bits are necessary to represent the negative value range down
-to -16.
-  
+to -16. The *_nrbits* used for an :class:`intbv` instance with asymmetric 
+value range hence depends on the maximum absolute min or max value range.
+
 
 .. _intro-signed:
 
