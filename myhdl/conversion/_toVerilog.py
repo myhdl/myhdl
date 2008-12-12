@@ -46,7 +46,7 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error, _access, _kind,_context, 
-                                    _ConversionMixin, _Label, _genUniqueSuffix)
+                                    _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
                                        _Ram, _Rom)
             
@@ -632,10 +632,10 @@ class _ConvertVisitor(_ConversionMixin):
             self.write(f.__name__)
         if node.args:
             self.write(opening)
-            self.visit(node.args[0])
+            self.visit(node.args[0], *args)
             for arg in node.args[1:]:
                 self.write(", ")
-                self.visit(arg)
+                self.visit(arg, *args)
             self.write(closing)
         if hasattr(node, 'ast'):
             if node.ast.kind == _kind.TASK:
@@ -956,7 +956,8 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitSlice(self, node, context=None, *args):
         if isinstance(node.expr, astNode.CallFunc) and \
-           node.expr.node.obj is intbv:
+           node.expr.node.obj is intbv and \
+           _isConstant(node.expr.args[0], self.ast.symdict):
             c = self.getVal(node)
             self.write("%s'h" % c._nrbits)
             self.write("%x" % c._val)

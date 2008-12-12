@@ -23,6 +23,7 @@
 
 
 import inspect
+import compiler
 from compiler import ast as astNode
 
 import myhdl
@@ -163,3 +164,23 @@ class _UniqueSuffixGenerator(object):
         return "_%s" % self.i
 
 _genUniqueSuffix = _UniqueSuffixGenerator()
+
+
+# check if expression is constant
+def _isConstant(ast, symdict):
+    v = _namesVisitor()
+    compiler.walk(ast, v)
+    for name in v.names:
+        if name not in symdict:
+            return False
+        if not isinstance(symdict[name], int):
+            return False
+    return True
+
+class _namesVisitor(object):
+    
+    def __init__(self):
+        self.names = []
+
+    def visitName(self, node):
+        self.names.append(node.name)

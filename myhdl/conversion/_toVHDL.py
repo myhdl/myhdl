@@ -47,7 +47,7 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
 from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error, _access, _kind,_context,
-                                    _ConversionMixin, _Label, _genUniqueSuffix)
+                                    _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
 from myhdl._Signal import _WaiterList
@@ -1254,7 +1254,8 @@ class _ConvertVisitor(_ConversionMixin):
 
     def visitSlice(self, node, context=None, *args):
         if isinstance(node.expr, astNode.CallFunc) and \
-           node.expr.node.obj is intbv:
+           node.expr.node.obj is intbv and \
+           _isConstant(node.expr.args[0], self.ast.symdict):
             c = self.getVal(node)._val
             pre, post = "", ""
             if node.vhd.size <= 30:
