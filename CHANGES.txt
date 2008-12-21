@@ -1,5 +1,9 @@
-Release 0.6dev10
-----------------
+Release 0.6 22-Dec-2008
+-----------------------
+
+Full details about new features and changes can be found here:
+
+    http://www.myhdl.org/doc/0.6/whatsnew/0.6.html
 
 Release 0.5.1 1-May-2006 
 -------------------------
@@ -13,8 +17,7 @@ Release 0.5 29-Dec-2005
 
 Full details about new features and changes can be found here:
 
-  http://myhdl.jandecaluwe.com/doku.php/whatsnew:0.5
-
+    http://www.myhdl.org/doku.php/whatsnew:0.5
 
 Release 0.4.1 29-Dec-2004
 -------------------------
@@ -37,7 +40,7 @@ Release 0.4 4-Feb-2004
 
 For full details about the changes, consult:
 
-  http://www.jandecaluwe.com/Tools/MyHDL/whatsnew04/whatsnew04.html
+    http://www.myhdl.org/doc/0.4/whatsnew04/whatsnew04.html
 
 Release 0.3 30-Aug-2003
 -----------------------
