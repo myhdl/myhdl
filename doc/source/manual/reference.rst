@@ -354,7 +354,7 @@ attributes:
 
    Return the bits as specified by the *_nrbits* attribute of the :class:`intbv` 
    value as two's complement number when classified as 'unsigned'. The value is 
-   classfied as 'unsigned' if the *min* attribute is >= 0 and *max* > *min*. 
+   classified as 'unsigned' if the *min* attribute is >= 0 and *max* > *min*. 
    Bit # *_nrbits*-1 specifies then the sign of the value.
 
    :rtype: integer

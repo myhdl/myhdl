@@ -38,7 +38,7 @@ A small tutorial on generators
 
 Generators are a relatively recent Python feature. They were introduced in
 Python 2.2. Because generators are the key concept in MyHDL, a small tutorial is
-included a here.
+included here.
 
 Consider the following nonsensical function::
 

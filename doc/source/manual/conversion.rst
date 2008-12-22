@@ -558,7 +558,7 @@ For an example of user-defined code, see :ref:`conv-usage-custom`.
 Template transformation
 =======================
 
-.. note:: This section is only revelant for VHDL.
+.. note:: This section is only relevant for VHDL.
 
 There is a difference between VHDL and Verilog in the way in which
 sensitivity to signal edges is specified. In Verilog, edge specifiers
@@ -631,7 +631,7 @@ VHDL. The convertor will detect those cases and give an error.
 Conversion output verification by co-simulation
 ===============================================
 
-.. note:: This section is only revelant for Verilog.
+.. note:: This section is only relevant for Verilog.
 
 To verify the converted Verilog output, co-simulation can be used. To
 make this task easier, the converter also generates a test bench that
@@ -670,7 +670,7 @@ the :keyword:`raise` statement
    A :keyword:`raise` statement can stop the simulation on an error condition.
 
 :func:`delay()` objects
-   Delay modelling is essential for test benches.
+   Delay modeling is essential for test benches.
 
 the :keyword:`print` statement
    :keyword:`print` statements can be used for simple debugging.
@@ -681,7 +681,7 @@ the :keyword:`assert` statement.
   self-checking unit tests, controlled by unit test frameworks such as
   ``py.test``. In particular, they are a powerful way to write
   self-checking test benches for MyHDL designs. As :keyword:`assert`
-  statements are convertible, a whole unittest suite in MyHDL can be
+  statements are convertible, a whole unit test suite in MyHDL can be
   converted to an equivalent test suite in Verilog and VHDL.
 
 Additionally, the same techniques as for synthesizable code can be used

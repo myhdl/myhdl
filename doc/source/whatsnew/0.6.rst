@@ -49,7 +49,7 @@ MyHDL as an IP development platform
     The possibility to convert the same MyHDL source to equivalent
     Verilog and VHDL creates a novel application: using MyHDL as an IP
     development platform. IP developers can serve customers for both
-    target languages from a single MyHDL coe base. Moreover, MyHDL's
+    target languages from a single MyHDL code base. Moreover, MyHDL's
     flexibility and parametrizability make it ideally suited to this
     application.
 
@@ -572,8 +572,6 @@ whose valid values are a finite range of positive integers.
 
 
 This method can be converted to VHDL and Verilog.
-
-.. warning:: Conversion is not yet implemented.
 
 
 always_comb and list of signals
