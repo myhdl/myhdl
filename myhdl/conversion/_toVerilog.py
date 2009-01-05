@@ -632,10 +632,10 @@ class _ConvertVisitor(_ConversionMixin):
             self.write(f.__name__)
         if node.args:
             self.write(opening)
-            self.visit(node.args[0], *args)
+            self.visit(node.args[0])
             for arg in node.args[1:]:
                 self.write(", ")
-                self.visit(arg, *args)
+                self.visit(arg)
             self.write(closing)
         if hasattr(node, 'ast'):
             if node.ast.kind == _kind.TASK:
