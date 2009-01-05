@@ -66,6 +66,24 @@ def inc2(count, enable, clock, reset, n):
                 else:
                     count.next = count + 1
     return incProcess
+
+
+def incFunc(count, enable, clock, reset, n):
+    def incFuncFunc(cnt, enable):
+        count_next = intbv(0, min=0, max=n)
+        count_next[:] = cnt
+        if enable:
+            count_next[:] = cnt + 1
+        return count_next
+
+    @always(clock.posedge, reset.negedge)
+    def incFuncGen():
+        if reset == ACTIVE_LOW:
+            count.next = 0
+        else:
+            count.next = incFuncFunc(count, enable)
+
+    return incFuncGen
     
 
 def incTask(count, enable, clock, reset, n):
@@ -145,9 +163,17 @@ def IncBench(inc):
 
 def test_incReg():  
     assert verify(IncBench, incRef) == 0
+    
 def test_inc():  
     assert verify(IncBench, inc) == 0
+    
 def test_inc2():  
     assert verify(IncBench, inc2) == 0
+    
+def testIncTask():
+    assert verify(IncBench, incTask) == 0
+    
+def testIncFunc():
+    assert verify(IncBench, incFunc) == 0
     
 

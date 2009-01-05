@@ -1557,7 +1557,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         endchar = ""
         for name in self.ast.argnames:
             self.write(endchar)
-            enchar = ";"
+            endchar = ";"
             obj = self.ast.symdict[name]
             self.writeline()
             self.writeDeclaration(obj, name, dir="in", constr=False, endchar="")
