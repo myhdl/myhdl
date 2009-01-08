@@ -224,6 +224,10 @@ div.body a {
     text-decoration: underline;
 }
 
+div.body a.reference {
+    text-decoration: none;
+}
+
 div.sphinxsidebar {
     margin: 0;
     padding: 0.5em 15px 15px 0;

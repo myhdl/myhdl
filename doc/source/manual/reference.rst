@@ -322,8 +322,6 @@ The :class:`intbv` class
 ------------------------
 
 
-
-
 .. class:: intbv([val=None] [, min=None]  [, max=None])
 
    This class represents :class:`int`\ -like objects with some additional features
@@ -352,10 +350,9 @@ attributes:
 
 .. method:: intbv.signed()
 
-   Return the bits as specified by the *_nrbits* attribute of the :class:`intbv` 
-   value as two's complement number when classified as 'unsigned'. The value is 
-   classified as 'unsigned' if the *min* attribute is >= 0 and *max* > *min*. 
-   Bit # *_nrbits*-1 specifies then the sign of the value.
+   Interpretes the msb bit as as sign bit and extends it into the higher-order
+   bits of the underlying object value. The msb bit is the highest-order bit
+   within the object's bit width.
 
    :rtype: integer
 
@@ -374,7 +371,9 @@ together with :class:`int` objects. For mixed-type numeric operations, the
 result type is an :class:`int` or a :class:`long`. For mixed-type bitwise
 operations, the result type is an :class:`intbv`.
 
-In addition, :class:`intbv` objects support indexing and slicing operations:
+In addition, :class:`intbv` supports a number of sequence operators. 
+In particular, the :func:`len` function returns the object's bit width. Furthermore,
+:class:`intbv` objects support indexing and slicing operations:
 
 +-----------------+---------------------------------+--------+
 | Operation       | Result                          | Notes  |

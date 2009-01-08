@@ -17,9 +17,9 @@ don't worry: it it is one of the easiest programming languages to learn  [#]_.
 Learning Python is one of the best time investments that engineering
 professionals can make  [#]_.
 
-For starters, http://www.python.org/doc/current/tut/tut.html is probably the
+For starters, http://docs.python.org/tutorial is probably the
 best choice for an on-line tutorial. For alternatives, see
-http://www.python.org/doc/Newbies.html.
+http://wiki.python.org/moin/BeginnersGuide.
 
 A working knowledge of a hardware description language such as Verilog or VHDL
 is helpful.
@@ -105,21 +105,12 @@ VHDL and  :dfn:`always blocks` in Verilog.  Similarly, Python generators provide
 an elegant and efficient method to model concurrency, without having to resort
 to some form of threading.
 
-.. % 
-.. % 
-
 .. index:: single: sensitivity list
 
 The use of generators to model concurrency is the first key concept in MyHDL.
 The second key concept is a related one: in MyHDL, the yielded values are used
 to specify the conditions on which the generator should wait before resuming. In
 other words, :keyword:`yield` statements work as general  sensitivity lists.
-
-.. % 
-
-For more info about generators, consult the on-line Python documentation, e.g.
-at http://www.python.org/doc/2.2.2/whatsnew.
-
 
 .. _deco:
 
@@ -156,13 +147,6 @@ the final result.
 MyHDL uses decorators to create ready-to-simulate generators from local
 function definitions. Their functionality and usage will be described
 extensively in this manual.
-
-For more info about Python decorators, consult the on-line Python documentation,
-e.g. at http://www.python.org/doc/2.4/whatsnew/node6.html.
-
-.. warning::
-
-   Because MyHDL uses decorators, it requires Python 2.4 or a later version.
 
 .. rubric:: Footnotes
 

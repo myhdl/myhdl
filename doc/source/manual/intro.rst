@@ -15,7 +15,7 @@ A basic MyHDL simulation
 
 We will introduce MyHDL with a classic ``Hello World`` style example. All
 example code can be found in the distribution directory under
-:file:`example/manual/`.  Here are the contents of a MyHDL\ simulation script
+:file:`example/manual/`.  Here are the contents of a MyHDL simulation script
 called :file:`hello1.py`::
 
    from myhdl import Signal, delay, always, now, Simulation
@@ -80,7 +80,7 @@ Signals, ports, and concurrency
 ===============================
 
 In the previous section, we simulated a design with a single generator and no
-concurrency. On the other hand, real hardware descriptions are typically
+concurrency. Real hardware descriptions are typically
 massively concurrent. MyHDL supports this by allowing an arbitrary number of
 concurrently running generators.
 
@@ -133,9 +133,6 @@ signal is specified by assigning to its ``next`` attribute. This is the MyHDL
 equivalent of  the VHDL signal assignment and the  Verilog non-blocking
 assignment.
 
-.. % 
-.. % 
-
 .. index:: single: wait; for a rising edge
 
 The :func:`HelloWorld` function is modified from the first example. It now also
@@ -143,8 +140,6 @@ takes a clock signal as parameter. Its generator is made sensitive to a rising
 edge of the clock signal. This is specified by the ``posedge`` attribute of a
 signal. The edge specifier is the argument of the ``always`` decorator. As a
 result, the decorated function will be executed on every rising clock edge.
-
-.. % 
 
 The ``clk`` signal is constructed with an initial value ``0``. When creating an
 instance of each  hardware module, the same clock signal is passed as the
@@ -233,7 +228,6 @@ arbitrary number of hierarchical levels. Consequently, the general definition of
 a MyHDL instance is recursive: an instance is either a sequence of instances, or
 a generator.
 
-.. % 
 
 As an example, we will create a higher-level function with four instances of the
 lower-level functions, and simulate it::
@@ -284,24 +278,26 @@ The simulation produces the following output::
    is  a reusable block of hardware with a well defined interface. It can be reused
    in  another module by :dfn:`instantiating` it.
 
-   .. % 
-
    .. index:: single: instance; in Python versus hardware design
 
    An :dfn:`instance` in Python (and other object-oriented languages) refers to the
    object created by a class constructor. In hardware design, an instance is a
    particular incarnation of a hardware module.
 
-   .. % 
-
    Normally, the meaning should be clear from the context. Occasionally, I may
-   qualify terms  with the words 'hardware' or 'MyHDL' to  avoid ambiguity.
+   qualify terms  with the words "hardware" or "MyHDL" to  avoid ambiguity.
 
 
 .. _intro-bit:
 
 Bit oriented operations
 =======================
+
+.. _intro-intbv:
+
+The :class:`intbv` class
+------------------------
+
 
 .. index:: single: intbv; basic usage
 
@@ -311,102 +307,120 @@ support for indexing and slicing. For this reason, MyHDL provides the
 :class:`intbv` class. The name was chosen to suggest an integer with bit vector
 flavor.
 
-Class :class:`intbv` works transparently with other integer-like types. Like
+:class:`intbv` works transparently with other integer-like types. Like
 class :class:`int`, it provides access to the underlying two's complement
-representation for bitwise operations. In addition, it is a mutable type that
-provides indexing and slicing operations, and some additional bit-oriented
-support such as concatenation.
+representation for bitwise operations. However, unlike :class:`int`, it is
+a mutable type. This means that its a value can be changed after object
+creation, through methods and operators such as slice assignment.
 
-The simples way to create an :class:`intbv` instance is::
+:class:`intbv` supports the same operators as :class:`int` for arithmetic.
+In addition, it provides a number of features to make it
+suitable for hardware design. First, the range of allowed values can
+be constrained. This makes it possible to check the value at run time
+during simulation. Moreover, back end tools can determine the smallest
+possible bit width for representing the object.
+Secondly, it supports bit level operations by providing an indexing
+and slicing interface.
+
+:class:`intbv` objects are constructed in general as follows::
+
+    intbv([val=None] [, min=None]  [, max=None])
+
+*val* is the initial value. *min* and *max* can be used to constrain
+the value. Following the Python conventions, *min* is inclusive, and
+*max* is exclusive. Therefore, the allowed value range is *min* .. *max*-1.
+
+Let's us look at some examples. First, an unconstrained :class:`intbv`
+object is created as follows:
 
   >>> a = intbv(24)
   
 .. index::  
     single: intbv; min
     single: intbv; max
-    single: intbv; _nrbits
+    single: intbv; bit width
 
-Let's look at some of the attributes, namely *min*, *max*, and
-*_nrbits*::
+After object creation, *min* and *max* are available as attributes for
+inspection. Also, the standard Python function :func:`len` can be used
+to determine the bit width. If we inspect the previously created
+object, we get::
   
-  >>> a.min
-  >>> a.max
-  >>> a._nrbits
-  0
+  >>> print a.min
+  None
+  >>> print a.max
+  None
+  >>> print len(a)
+  None
 
-With the instantiation none of those got restricted, so *min* and *max*
-have no values and the :class:`intbv` instance has no bit restriction,
-which is shown here by *_nrbits* being zero.
+As the instantiation was unconstrained, the *min* and *max* attributes
+are undefined, as is the bit width.
 
-One way to create a bit width restricted :class:`intbv` instance is by
-setting the *min* and *max* values with the class instantiation in the
-way::
+A constrained :class:`intbv` object is created as follows:
 
   >>> a = intbv(24, min=0, max=25)
 
-Note that the *max* value is excluded, so we need to specify it as 25 in
-order for the value to fit.
 
-Checking the attributes again::
+Inspecting the object now gives::
 
   >>> a.min
   0
   >>> a.max
   25
-  >>> a._nrbits
+  >>> len(a)
   5
 
-We see now that based on the possible value range 0 .. 24, 5 bits are
-required to represent that value range.
+We see that the allowed value range is 0 .. 24,  and that 5 bits are
+required to represent the object.
 
-Specifying an :class:`intbv` instance with *min* and *max* values might
-require some getting used to for a hardware engineer who likes to think
-in terms of bit width and the following example shows a way how to do
-just that::
+Sometimes hardware engineers prefer to constrain an object by defining
+its bit width directly, instead of the range of allowed values.
+The following example shows how to do that::
 
   >>> a = intbv(24)[5:]
 
-Checking the attributes again shows::
+What actually happens here is that first an unconstrained :class:`intbv`
+is created, which is then sliced. Slicing an intbv returns a new
+:class:`intbv` with the constraints set up apppropriately. 
+Inspecting the object now shows::
 
   >>> a.min
   0
   >>> a.max
   32
-  >>> a._nrbits
+  >>> len(a)
   5
 
-Note that the *max* attribute is set to 32, as with 5 bits it is
-possible to represent the numbers 0 .. 31. Instantiating an
+
+Note that the *max* attribute is 32, as with 5 bits it is
+possible to represent the range 0 .. 31.
+Instantiating an
 :class:`intbv` this way has the disadvantage that only positive value
-ranges can be specified. That means when an :class:`intbv` instance
-should represent signed numbers, it has to be instantiated via the *min*
-and *max* parameters during class instantiation.
+ranges can be specified. Slicing is described in more detail
+in :ref:`intro-slicing`.
 
-This last example uses the technique of bit slicing, which
-actually will be explained in detail in the next section. It is shown
-here as it fits into the subject of creating instances of
-:class:`intbv`. So what happens here in detail is that first an
-unrestricted :class:`intbv` instance is created, like shown in the first
-example. Then from that instance a slice of 5 bits is taken and bound to
-the variable. As mentioned earlier, the slicing will be explained in
-detail in the next section. Here only an interesting behavior of this two
-step instantiation should be pointed out::
+To summarize, there are two ways to constrain an :class:`intbv` object: by
+defining its bit width, or by defining its value range. The bit
+width method is more traditional in hardware design. However, there
+are two reasons to use the range method instead: to represent
+negative values as observed above, and for fine-grained control over the
+value range.
 
-  >>> a = intbv(-3)[5:]
+Fine-grained control over the value range permits better error
+checking, as there is no need for the *min* and *max* bounds
+to be symmetric or powers of 2. In all cases, the bit width
+is set appropriately to represent all values in 
+the range. For example::
 
-As we saw earlier, the *min* attribute is set to 0 by this type of
-instantiation and that should cause an exception when setting the value
-to a negative number. However, as the instantiation happens in two
-steps, what is done here actually is, that an unrestricted :class:`intbv`
-instance with the value -3 is create and then from that, 5 bits are
-sliced off and bound to ``a``. The value -3 has the binary representation of
-'11101' and when considering that bit pattern as unsigned value, it
-represent the value of 29. So checking the value of :class:`intbv`
-instance ``a`` shows::
 
-  >>> a
-  intbv(29L)
-
+    >>> a = intbv(6, min=0, max=7)
+    >>> len(a)
+    3
+    >>> a = intbv(6, min=-3, max=7)
+    >>> len(a)
+    4
+    >>> a = intbv(6, min=-13, max=7)
+    >>> len(a)
+    5
 
 
 .. _intro-indexing:
@@ -451,9 +465,6 @@ for a value change on any input signal. This is typically used to describe
 combinatorial logic. The :func:`always_comb` decorator automatically infers
 which signals are used as inputs.
 
-.. % 
-.. % 
-
 Finally, the code contains bit indexing operations and an exclusive-or operator
 as required for a Gray encoder. By convention, the lsb of an :class:`intbv`
 object has index ``0``.
@@ -477,9 +488,9 @@ for all possible input values::
 
        return dut, stimulus
 
-We use the conversion function ``bin`` to get a binary string representation of
-the signal values. This function is exported by the ``myhdl`` package and
-supplements the standard Python ``hex`` and ``oct`` conversion functions.
+We use the conversion function :func:`bin` to get a binary string representation of
+the signal values. This function is exported by the :mod:`myhdl` package and
+supplements the standard Python :func:`hex` and :func:`oct` conversion functions.
 
 As a demonstration, we set up a simulation for a small width::
 
@@ -548,130 +559,109 @@ about it as follows: for a slice ``[i:j]``, only bits below index ``i`` are
 included, and the bit with index ``j`` is the last bit included.
 
 When an :class:`intbv` object is sliced, a new :class:`intbv` object is returned. 
-This new :class:`intbv` object is always positive, even when the original object was negative.
+This new :class:`intbv` object is always positive, and the value bounds are
+set up in accordance with the bit width specified by the slice. For example::
 
-.. index::    
-    single: intbv; min
-    single: intbv; max
-    single: intbv; _nrbits
+    >>> a = intbv(6, min=-3, max=7)
+    >>> len(a)
+    4
+    >>> b = a[4:]
+    >>> b     
+    intbv(6L)
+    >>> len(b)
+    4
+    >>> b.min
+    0
+    >>> b.max
+    16
 
-Take the following example of a range restricted :class:`intbv`
-instance::
+The original object is sliced with a slice equal to its bit width.
+The new object has the same value and bit width, but its value
+range consists of all positive values that can be represented by
+the bit width. The new object will be positive, even when the
+original object is negative::
 
-  >>> a = intbv(6,min=-8,max=8)
-  >>> a._nrbits
-  4
-  >>> b = a[4:]
-  >>> b
-  intbv(6L)
-  >>> b.min
-  0
-  >>> b.max
-  16
+    >>> a = intbv(-3)
+    >>> bin(a, width=5)
+    '11101'
+    >>> b = a[5:]
+    >>> b
+    intbv(29L)
+    >>> bin(b)
+    '11101'
 
-The value is set to 6 and the range to -8 ... 7. Note that the max value
-is excluded. Checking the bit width with the *_nrbits* attribute shows
-that it occupies 4 bits. If we slice now all bits, by using the convention 
-a[4:], which means to slice the 4 lsb bits, the returned :class:`intbv` 
-instance will still have 4 bits, the value will not change, but the range 
-will change to min=0 and max=16.
-
-One thing to note here is that unlike bit width specified variables, 
-:class:`intbv` instances can be constructed with asymmetric value range.
-
-Let's do a small variation to the above example::
-
-  >>> a = intbv(6,min=-4,max=8)
-  >>> a._nrbits
-  4
-
-The lower range got reduced to -4, but looking at the required number of
-bits, there are still 4 bits necessary to represent the value range.
-
-Let's change that and increase the number range for the negative
-numbers::
-
-  >>> a = intbv(6,min=-16,max=8)
-  >>> a._nrbits
-  5
-
-Here now 5 bits are necessary to represent the negative value range down
-to -16. The *_nrbits* used for an :class:`intbv` instance with asymmetric 
-value range hence depends on the maximum absolute min or max value range.
-
+The bit pattern of the two objects is identical within the bit width,
+but their values have opposite sign.
 
 .. _intro-signed:
 
-Unsigned to signed conversion
------------------------------
+Unsigned and signed representation
+----------------------------------
 
 .. index:: 
-    single: intbv; signed()
+    single: intbv; intbv.signed
 
+:class:`intbv` is designed to be as high level as possible. The underlying
+value of an :class:`intbv` object is a Python :class:`int`, which is
+represented as a two's complement number with "indefinite" bit
+width. The value bounds are only used for error checking, and to
+calculate the minimum required bit width for representation. As a
+result, arithmetic can be performed like with normal integers.
 
-When using the :class:`intbv` class with restricted bit width, the *min* and
-*max* attributes are used to restrict the value range. From an :class:`intbv` 
-instance with positive and negative value range we saw in the previous section
-that it is possible to slice bits and the returned :class:`intbv` instance 
-will have a positive value range. In hardware description it is sometimes 
-desirable to have a bit vector with positive value range and create from it 
-a bit vector that allows positive and negative value range.
+In contrast, HDLs such as Verilog and VHDL typically require designers
+to deal with representational issues, especially for synthesizable code.
+They provide low-level types like ``signed`` and ``unsigned`` for
+arithmetic. The rules for arithmetic with such types are much more
+complicated than with plain integers.
+
+In some cases it can be useful to interprete :class:`intbv` objects
+in terms of "signed" and "unsigned". Basically, it depends on attribute *min*.
+if *min* < 0, then the object is "signed", otherwise it is "unsigned".
+In particular, the bit width of a "signed" object will account for
+a sign bit, but that of an "unsigned" will not, because that would
+be redundant. From earlier sections, we have learned that the
+return value from a slicing operation is always "unsigned".
+
+In some applications, it is desirable to convert an "unsigned"
+:class:`intbv` to  a "signed", in other words, to interprete the msb
+bit as a sign bit.
+The msb bit is the highest order bit within the object's bit width.
+For this purpose, :class:`intbv` provides the
+:meth:`intbv.signed` method. For example::
+
+    >>> a = intbv(12, min=0, max=16)
+    >>> bin(a)
+    '1100'
+    >>> b = a.signed()
+    >>> b
+    -4
+    >>> bin(b, width=4)
+    '1100'
+
+:meth:`intbv.signed` extends the msb bit into the higher-order bits of the 
+underlying object value, and returns the result as an integer.
+Naturally, for a "signed" the return value will always be identical
+to the original value, as it has the sign bit already.
 
 As an example let's take a 8 bit wide data bus that would be modeled as
 follows::
 
-  data_bus = intbv(0, min=0, max=256)
+  data_bus = intbv(0)[8:]
 
-Now consider that e.g. a complex number is transfered over this data
-bus. The upper 4 bits of the data bus are used to transfer the real value and
-the lower 4 bits for the imaginary value. As real and imaginary value
-have a positive and negative value range, it would be good to have a way
-to slice off bits and have them be considered of positive and negative
-value range. The ``signed`` member function of the :class:`intbv` will 
-allow to do just that.
+Now consider that a complex number is transfered over this data
+bus. The upper 4 bits of the data bus are used for the real value and
+the lower 4 bits for the imaginary value. As real and imaginary values
+have a positive and negative value range, we can slice them off from
+the data bus and convert them as follows::
 
-The basic functionality of the ``signed`` member function is to classify 
-the value of :class:`intbv` as either 'signed' or 'unsigned', based on the 
-*min* and *max* values. If the value is classified as 'signed', the ``signed``
-member function will return the value unchanged as integer value. If it is 
-considered 'unsigned' the bits of the value, as specified by *_nrbits* are 
-considered a two's complement number and returned as integer. That means 
-that if the msb is set, the value is considered negative and if the msb 
-is not set, it is considered a positive value. The msb is here specified
-by *_nrbits*-1.
-
-The classification is done based on the *min* and *max* attributes. The
-value is classified as 'unsigned' if *min* >= 0 and *max* > *min*. In all
-other cases the value is classified as 'signed'.
-
-Let's look at a basic example::
-
-  >>> a = intbv(12, min=0, max=16)
-  >>> bin(a)
-  '1100'
-  >>> b = a.signed()
-  >>> b
-  -4L
-
-A 4 bits wide :class:`intbv` instance is assigned the value 12. In
-binary representation this is '1100', that means the msb is set. 
-The instance is create with min=0 and max=16, which qualifies it for the
-value to be classified as 'unsigned' by the ``signed`` function. The function
-call will return the binary '1100' as two's complement value, which is -4. 
-Note that the return type is an integer type.
-
-To come back to the initial data bus example, the ``signed`` function
-can be used in connection with a slice to slice the real and the
-imaginary part from the data bus as follows::
-
- real = data_bus[8:4].signed()
- imag = data_bus[4:].signed()
+ real.next = data_bus[8:4].signed()
+ imag.next = data_bus[4:].signed()
 
 
 .. _intro-python:
 
-Some remarks on MyHDL and Python
-================================
+Some concluding remarks on MyHDL and Python
+===========================================
 
 To conclude this introductory chapter, it is useful to stress that MyHDL is not
 a language in itself. The underlying language is Python,  and MyHDL is
@@ -717,11 +707,11 @@ Here is an overview of what we have learned in this chapter:
 
 * Hardware structure and hierarchy is described with classic Python functions.
 
-* ``Signal`` objects are used to communicate between concurrent generators.
+* :class:`Signal` objects are used to communicate between concurrent generators.
 
-* ``intbv`` objects are used to describe bit-oriented operations.
+* :class:`intbv` objects are used to describe bit-oriented operations.
 
-* A ``Simulation`` object is used to simulate MyHDL models.
+* A :class:`Simulation` object is used to simulate MyHDL models.
 
 These concepts are sufficient to start describing and simulating MyHDL models.
 

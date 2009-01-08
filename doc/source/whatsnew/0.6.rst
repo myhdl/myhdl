@@ -65,7 +65,7 @@ the one followed for conversion to Verilog in previous MyHDL releases.
 
 In particular, the MyHDL code analyzer in the convertor is identical
 for both target languages. The goal is that all MyHDL code that can be
-converted to Verilog conversion can be converted to VHDL also, and
+converted to Verilog can be converted to VHDL also, and
 vice versa. This has been achieved except for a few minor issues due
 to limitations of the target languages.
 
@@ -81,7 +81,7 @@ Conversion to VHDL is implemented by the following function in the ``myhdl`` pac
    calls *func* under its control and passes *\*args* and
    *\*\*kwargs* to the call.
 
-   The return value is the same as would be returned by the call
+   The return value is the same as the one returned by the call
    ``func(*args, **kwargs)``. It can be assigned to an instance name.
    The top-level instance name and the basename of the Verilog
    output filename is ``func.func_name`` by default.
@@ -246,7 +246,7 @@ description of memory behavior.
 The convertor output is non-hierarchical. That implies that all
 signals are declared at the top-level in VHDL or Verilog (as VHDL
 signals, or Verilog regs and wires.)  However, some signals that are a
-list member at some level in the MyHDL design hierarchy may be used as
+list member at some level in the design hierarchy may be used as
 a plain signal at a lower level. For such signals, a choice has to be
 made whether to declare a Verilog memory or VHDL array, or a number of
 plain signal names.
@@ -295,7 +295,7 @@ with it:
   source solution that is powerful enough for MyHDL's purposes.
 
 * Even though ``vpi`` is a "standard", there are differences between
-  various simulators. Therefore, some customization is likely required
+  various simulators. Therefore, some customization is typically required
   per Verilog simulator.
 
 * MyHDL co-simulation uses unix-style interprocess communication
@@ -308,18 +308,18 @@ for the VHDL case, and it has some disadvantages for Verilog as well.
 The proposed alternative is to convert the test bench itself, so that
 both test bench and design can be run in the HDL simulator. Of course,
 this is not a fully general solution either, as there are important
-constraints on the kind of code that can be converted. However, with
+restrictions on the kind of code that can be converted. However, with
 the additional features that have been developed, it should be a
-useful solution for the purpose of verifying converted code.
+useful solution for verifying converted code.
 
 
 Print statement
 ---------------
 
 In previous MyHDL versions, :keyword:`print` statement conversion to Verilog was
-supported in a quick (and dirty) way, by merely copying the format
+supported in a quick and dirty way, by merely copying the format
 string without checks. With the advent of VHDL conversion, this has
-now been done more rigorously. This was necessary because VHDL
+now been implemented more rigorously. This was necessary because VHDL
 doesn't work with format strings. Rather, the format string
 specification has to be converted to a sequence of VHDL ``write`` and
 ``writeline`` calls. 
@@ -507,8 +507,8 @@ following function:
    ``work`` is available in the current working directory. Analysis and
    elaboration results can be put there if desired.
 
-   The :func:`analyze()` function uses the *analyze* command.
-   The :func:`verify()` function uses the *analyze* command, then the
+   The :func:`analyze()` function runs the *analyze* command.
+   The :func:`verify()` function runs the *analyze* command, then the
    *elaborate* command if any, and then the *simulate* command.
 
    The GHDL simulator is registered by default, but its
@@ -520,7 +520,7 @@ Example: preregistered HDL simulators
 
 A number of open-source HDL simulators are preregistered in the
 MyHDL distribution. If they are installed in the typical way, they
-are therefore readily available for conversion verification.
+are readily available for conversion verification.
 We will illustrate the registration process by showing the
 registrations of these simulators.
 
@@ -563,13 +563,11 @@ New signed() method for intbv
 -----------------------------
 
 The :class:`intbv` object has a new method :meth:`signed()` that
-implements sign extension. The extended bit is the msb bit. The msb
-bit is the highest-order bit of the smallest bit vector that can
-represent all values of the :class:`intbv` object.
+implements sign extension. The extended bit is the msb bit of
+the bit representation of the object.
 
 Clearly, this method only has an effect for :class:`intbv` objects
 whose valid values are a finite range of positive integers.
-
 
 This method can be converted to VHDL and Verilog.
 

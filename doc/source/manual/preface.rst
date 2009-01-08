@@ -5,7 +5,7 @@ Overview
 The goal of the MyHDL project is to empower hardware designers with
 the elegance and simplicity of the Python language.
 
-MyHDL is a free, open-source (LGPL) package for using Python as a
+MyHDL is a free, open-source package for using Python as a
 hardware description and verification language. Python is a very high
 level language, and hardware designers can use its full power to model
 and simulate their designs.  Moreover, MyHDL can convert a design to
@@ -52,12 +52,12 @@ including synthesis and implementation.  However, the convertible
 subset is much wider than the standard synthesis subset, and includes
 features that can be used for high level modeling and test benches.
 
-The converter to Verilog works on an instantiated design that has been
+The converter works on an instantiated design that has been
 fully elaborated. Consequently, the original design structure can be
-arbitrarily complex. Moreover, the conversion limitations only apply
+arbitrarily complex. Moreover, the conversion limitations apply only
 to code inside generators. Outside generators, Python's full power can
 be used without compromising convertibility.
 
 Finally, the converter automates a number of tasks that are hard in
-Verilog directly. A notable feature is the automated handling of
+Verilog or VHDL directly. A notable feature is the automated handling of
 signed arithmetic issues.
