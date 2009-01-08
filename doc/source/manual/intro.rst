@@ -350,10 +350,11 @@ object, we get::
   >>> print a.max
   None
   >>> print len(a)
-  None
+  0
 
 As the instantiation was unconstrained, the *min* and *max* attributes
-are undefined, as is the bit width.
+are undefined. Likewise, the bit width is undefined, which is indicated
+by a return value ``0``.
 
 A constrained :class:`intbv` object is created as follows:
 
