@@ -28,7 +28,7 @@ What's new
 ----------
 To find out what's new in this release, please read:
 
-    http://www.myhdl.org/doc/dev/0.6/whatsnew/0.6.html
+    http://www.myhdl.org/doc/0.6/whatsnew/0.6.html
 
 Installation
 ------------
