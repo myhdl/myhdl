@@ -380,8 +380,8 @@ The following example shows how to do that::
   >>> a = intbv(24)[5:]
 
 What actually happens here is that first an unconstrained :class:`intbv`
-is created, which is then sliced. Slicing an intbv returns a new
-:class:`intbv` with the constraints set up apppropriately. 
+is created, which is then sliced. Slicing an :class:`intbv` returns a new
+:class:`intbv` with the constraints set up appropriately. 
 Inspecting the object now shows::
 
   >>> a.min
@@ -617,7 +617,7 @@ They provide low-level types like ``signed`` and ``unsigned`` for
 arithmetic. The rules for arithmetic with such types are much more
 complicated than with plain integers.
 
-In some cases it can be useful to interprete :class:`intbv` objects
+In some cases it can be useful to interpret :class:`intbv` objects
 in terms of "signed" and "unsigned". Basically, it depends on attribute *min*.
 if *min* < 0, then the object is "signed", otherwise it is "unsigned".
 In particular, the bit width of a "signed" object will account for
@@ -626,10 +626,9 @@ be redundant. From earlier sections, we have learned that the
 return value from a slicing operation is always "unsigned".
 
 In some applications, it is desirable to convert an "unsigned"
-:class:`intbv` to  a "signed", in other words, to interprete the msb
-bit as a sign bit.
-The msb bit is the highest order bit within the object's bit width.
-For this purpose, :class:`intbv` provides the
+:class:`intbv` to  a "signed", in other words, to interpret the msb bit
+as a sign bit.  The msb bit is the highest order bit within the object's
+bit width.  For this purpose, :class:`intbv` provides the
 :meth:`intbv.signed` method. For example::
 
     >>> a = intbv(12, min=0, max=16)
