@@ -310,7 +310,7 @@ flavor.
 :class:`intbv` works transparently with other integer-like types. Like
 class :class:`int`, it provides access to the underlying two's complement
 representation for bitwise operations. However, unlike :class:`int`, it is
-a mutable type. This means that its a value can be changed after object
+a mutable type. This means that its value can be changed after object
 creation, through methods and operators such as slice assignment.
 
 :class:`intbv` supports the same operators as :class:`int` for arithmetic.
@@ -394,7 +394,7 @@ Inspecting the object now shows::
 
 Note that the *max* attribute is 32, as with 5 bits it is
 possible to represent the range 0 .. 31.
-Instantiating an
+Creating an
 :class:`intbv` this way has the disadvantage that only positive value
 ranges can be specified. Slicing is described in more detail
 in :ref:`intro-slicing`.
@@ -576,10 +576,12 @@ set up in accordance with the bit width specified by the slice. For example::
     >>> b.max
     16
 
-The original object is sliced with a slice equal to its bit width.
-The new object has the same value and bit width, but its value
+In the example, the original object is sliced with a slice equal to its bit width.
+The returned object has the same value and bit width, but its value
 range consists of all positive values that can be represented by
-the bit width. The new object will be positive, even when the
+the bit width.
+
+The object returned by a slice is positive, even when the
 original object is negative::
 
     >>> a = intbv(-3)
@@ -605,7 +607,7 @@ Unsigned and signed representation
 :class:`intbv` is designed to be as high level as possible. The underlying
 value of an :class:`intbv` object is a Python :class:`int`, which is
 represented as a two's complement number with "indefinite" bit
-width. The value bounds are only used for error checking, and to
+width. The range bounds are only used for error checking, and to
 calculate the minimum required bit width for representation. As a
 result, arithmetic can be performed like with normal integers.
 
@@ -720,7 +722,7 @@ However, there is much more to MyHDL. Here is an overview of what can be learned
 from the following chapters:
 
 * MyHDL supports sophisticated and high level modeling techniques. This is
-  described in Chapter :ref:`model`
+  described in Chapter :ref:`model`.
 
 * MyHDL enables the use of modern software verification techniques, such as unit
   testing, on hardware designs. This is the topic of Chapter :ref:`unittest`.

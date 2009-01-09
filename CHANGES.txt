@@ -1,4 +1,4 @@
-Release 0.6 22-Dec-2008
+Release 0.6 9-Jan-2009
 -----------------------
 
 Full details about new features and changes can be found here:

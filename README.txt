@@ -6,7 +6,7 @@ What is MyHDL?
 MyHDL is a free, open-source package for using Python as a hardware
 description and verification language.
 
-To find out whether MyHDL can be useful to you, read:
+To find out whether MyHDL can be useful to you, please read:
 
     http://www.myhdl.org/doku.php/why
 
@@ -26,7 +26,7 @@ The manual is available on-line:
 
 What's new
 ----------
-To find out what's new in this release, read:
+To find out what's new in this release, please read:
 
     http://www.myhdl.org/doc/dev/0.6/whatsnew/0.6.html
 
