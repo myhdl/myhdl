@@ -25,7 +25,6 @@
 import inspect
 import compiler
 from compiler import ast as astNode
-from sets import Set
 from types import GeneratorType, FunctionType, ClassType, MethodType
 from cStringIO import StringIO
 import re
@@ -302,7 +301,7 @@ def hasType(obj, theType):
 
 class ReferenceStack(list):
     def push(self):
-        self.append(Set())
+        self.append(set())
     def add(self, item):
         self[-1].add(item)
     def __contains__(self, item):
@@ -355,8 +354,8 @@ class _AnalyzeVisitor(_ConversionMixin):
     def __init__(self, ast):
         ast.sigdict = {}
         ast.vardict = {}
-        ast.inputs = Set()
-        ast.outputs = Set()
+        ast.inputs = set()
+        ast.outputs = set()
         ast.argnames = []
         ast.kind = None
         ast.hasYield = 0
@@ -365,7 +364,7 @@ class _AnalyzeVisitor(_ConversionMixin):
         self.ast = ast
         self.labelStack = []
         self.refStack = ReferenceStack()
-        self.globalRefs = Set()
+        self.globalRefs = set()
 
 
     def binaryOp(self, node, *args):
@@ -684,7 +683,7 @@ class _AnalyzeVisitor(_ConversionMixin):
         # don't infer a case if there's no elsif test
         if not node.tests[1:]:
             return
-        choices = Set()
+        choices = set()
         choices.add(item1._index)
         for test, suite in node.tests[1:]:
             if not hasattr(test, 'case'):

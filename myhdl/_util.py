@@ -26,7 +26,6 @@ import exceptions
 import sys
 import inspect
 import re
-from sets import Set
 from types import FunctionType, GeneratorType, ListType, TupleType
 import compiler
 # hope this will always work ...
@@ -49,7 +48,7 @@ def _isGenFunc(obj):
 def _flatten(*args):
     arglist = []
     for arg in args:
-        if isinstance(arg, (list, tuple, Set)):
+        if isinstance(arg, (list, tuple, set)):
             for item in arg:
                 arglist.extend(_flatten(item))
         else:

@@ -23,7 +23,6 @@ import sys
 import inspect
 from types import FunctionType
 import compiler
-from sets import Set
 import re
 
 from myhdl import Signal, AlwaysCombError
@@ -67,8 +66,8 @@ INPUT, OUTPUT, INOUT = range(3)
 
 class _SigNameVisitor(object):
     def __init__(self, symdict):
-        self.inputs = Set()
-        self.outputs = Set()
+        self.inputs = set()
+        self.outputs = set()
         self.toplevel = 1
         self.symdict = symdict
 

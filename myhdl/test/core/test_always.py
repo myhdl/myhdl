@@ -27,7 +27,6 @@ from random import randrange
 import unittest
 from unittest import TestCase
 import inspect
-from sets import Set
 
 from myhdl import Signal, Simulation, instances, AlwaysError, \
                   intbv, delay, StopSimulation, now

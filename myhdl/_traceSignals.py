@@ -28,7 +28,6 @@ import time
 import os
 path = os.path
 import shutil
-from sets import Set
 
 from myhdl import _simulator, Signal, __version__
 from myhdl._extractHierarchy import _HierExtr
