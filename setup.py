@@ -2,7 +2,7 @@
 
 import sys
 
-requiredVersion = (2, 4)
+requiredVersion = (2, 6)
 requiredVersionStr = ".".join([str(i) for i in requiredVersion])
 
 versionError = "ERROR: myhdl requires Python %s or higher" % requiredVersionStr
@@ -32,7 +32,7 @@ Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
 
     
 setup(name="myhdl",
-      version="0.6",
+      version="0.7dev",
       description="Python as a Hardware Description Language",
       long_description = "See home page.",
       author="Jan Decaluwe",
