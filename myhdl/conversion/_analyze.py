@@ -739,7 +739,7 @@ class _AnalyzeVisitor(_ConversionMixin):
             elif access == _access.UNKNOWN:
                 pass
             else: 
-                raise AssertionError
+                self.raiseError(node, _error.NotSupported, "Augmented signal assignment")
         if n in self.ast.vardict:
             obj = self.ast.vardict[n]
             if access == _access.INOUT:
