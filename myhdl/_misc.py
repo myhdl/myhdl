@@ -30,7 +30,6 @@ import sys
 import inspect
 
 from types import GeneratorType
-from sets import Set
 from types import GeneratorType, ListType, TupleType
 
 from myhdl._Cosimulation import Cosimulation
@@ -39,7 +38,7 @@ from myhdl._instance import _Instantiator
 def _isGenSeq(obj):
     if isinstance(obj, (Cosimulation, _Instantiator)):
         return True
-    if not isinstance(obj, (ListType, TupleType, Set)):
+    if not isinstance(obj, (ListType, TupleType, set)):
         return False
 ##     if not obj:
 ##         return False

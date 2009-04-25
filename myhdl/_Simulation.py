@@ -24,7 +24,6 @@ import sys
 import os
 from warnings import warn
 from types import GeneratorType
-from sets import Set
 
 from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
@@ -202,7 +201,7 @@ class Simulation(object):
 
 def _checkArgs(arglist):
     waiters = []
-    ids = Set()
+    ids = set()
     cosim = None
     for arg in arglist:
         if isinstance(arg, GeneratorType):

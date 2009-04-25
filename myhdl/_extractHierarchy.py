@@ -31,7 +31,6 @@ from types import GeneratorType
 import compiler
 from compiler import ast
 import linecache
-from sets import Set
 
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
 from myhdl._Signal import Signal, _isListOfSigs

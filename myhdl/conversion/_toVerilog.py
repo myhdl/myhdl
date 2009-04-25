@@ -30,7 +30,6 @@ import inspect
 from datetime import datetime
 import compiler
 from compiler import ast as astNode
-from sets import Set
 from types import GeneratorType, FunctionType, ClassType, TypeType, StringType
 from cStringIO import StringIO
 import __builtin__
@@ -63,7 +62,7 @@ def _flatten(*args):
     for arg in args:
         if id(arg) in _userCodeMap['verilog']:
             arglist.append(_userCodeMap['verilog'][id(arg)])
-        elif isinstance(arg, (list, tuple, Set)):
+        elif isinstance(arg, (list, tuple, set)):
             for item in arg:
                 arglist.extend(_flatten(item))
         else:
