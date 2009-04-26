@@ -31,6 +31,9 @@ import compiler
 # hope this will always work ...
 from compiler.consts import CO_GENERATOR
 
+from tokenize import generate_tokens, untokenize, INDENT
+from cStringIO import StringIO
+
 
 def _printExcInfo():
     kind, value  = sys.exc_info()[:2]
@@ -62,3 +65,16 @@ def _isTupleOfInts(obj):
         if not isinstance(e, (int, long)):
             return False
     return True
+
+def _dedent(s):
+    """Dedent python code string."""
+
+    result = [t[:2] for t in generate_tokens(StringIO(s).readline)]
+    # set initial indent to 0 if any
+    if result[0][0] == INDENT:
+        result[0] = (INDENT, '')
+    return untokenize(result)
+    
+
+
+    

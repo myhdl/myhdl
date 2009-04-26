@@ -50,7 +50,7 @@ def PlainIntbv():
     @instance
     def logic():
 
-	print "Plain Instance Test"
+        print "Plain Instance Test"
 
         yield delay(10)
         # intbv with positive range, pos number, and msb not set, return signed()
