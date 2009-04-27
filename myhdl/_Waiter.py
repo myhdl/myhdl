@@ -22,11 +22,10 @@
 
 from types import GeneratorType
 
-import compiler
 import ast
 import inspect
 import re
-import textwrap
+
 
 from myhdl._util import _dedent
 from myhdl._delay import delay

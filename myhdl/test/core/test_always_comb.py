@@ -132,7 +132,7 @@ class AlwaysCombCompilationTest(TestCase):
         a, b, c, d = [Signal(0) for i in range(4)]
         def h():
             c.next += 1
-            a = 1
+            a += 1
         try:
             g = always_comb(h).gen
         except AlwaysCombError, e:

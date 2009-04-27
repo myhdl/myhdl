@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2008 Jan Decaluwe
+#  Copyright (C) 2003-2009 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -22,12 +22,12 @@
 import sys
 import inspect
 from types import FunctionType
-import compiler
 import re
+import ast
 
 from myhdl import Signal, AlwaysCombError
 from myhdl._Signal import _isListOfSigs
-from myhdl._util import _isGenFunc
+from myhdl._util import _isGenFunc, _dedent
 from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
 from myhdl._instance import _Instantiator
@@ -64,100 +64,212 @@ def always_comb(func):
 
 INPUT, OUTPUT, INOUT = range(3)
 
-class _SigNameVisitor(object):
+# class _SigNameVisitor(object):
+#     def __init__(self, symdict):
+#         self.inputs = set()
+#         self.outputs = set()
+#         self.toplevel = 1
+#         self.symdict = symdict
+#         self.context = INPUT
+
+#     def visitModule(self, node):
+#         inputs = self.inputs
+#         outputs = self.outputs
+#         self.visit(node.node)
+#         for n in inputs:
+#             if n in outputs:
+#                 raise AlwaysCombError(_error.SignalAsInout)
+
+#     def visitFunction(self, node):
+#         if self.toplevel:
+#             self.toplevel = 0 # skip embedded functions
+#             self.visit(node.code)
+#         else:
+#             raise AlwaysCombError(_error.EmbeddedFunction)
+
+#     def visitIf(self, node):
+#         if len(node.tests) == 1 and not node.else_:
+#             test = node.tests[0][0]
+#             if isinstance(test, compiler.ast.Name) and \
+#                test.name == '__debug__':
+#                 return # skip
+#         self.generic_visit(node)
+
+
+#     def visitName(self, node, access=INPUT):
+#         if node.name not in self.symdict:
+#             return
+#         s = self.symdict[node.name]
+#         if isinstance(s, Signal) or _isListOfSigs(s):
+#             if access == INPUT:
+#                 self.inputs.add(node.name)
+#             elif access == OUTPUT:
+#                 self.outputs.add(node.name)
+#             elif access == INOUT:
+#                 raise AlwaysCombError(_error.SignalAsInout)
+#             else:
+#                 raise AlwaysCombError
+            
+#     def visitAssign(self, node, access=OUTPUT):
+#         for n in node.nodes:
+#             self.visit(n, OUTPUT)
+#         self.visit(node.expr, INPUT)
+
+#     def visitAssAttr(self, node, access=OUTPUT):
+#         self.visit(node.expr, OUTPUT)
+
+#     def visitSubscript(self, node, access=INPUT):
+#         self.visit(node.expr, access)
+#         for n in node.subs:
+#             self.visit(n, INPUT)
+
+#     def visitSlice(self, node, access=INPUT):
+#         self.visit(node.expr, access)
+#         if node.lower:
+#             self.visit(node.lower, INPUT)
+#         if node.upper:
+#             self.visit(node.upper, INPUT)
+
+#     def visitAugAssign(self, node, access=INPUT):
+#         self.visit(node.node, INOUT)
+#         self.visit(node.expr, INPUT)
+        
+#     def visitClass(self, node):
+#         pass # skip
+
+#     def visitExec(self, node):
+#         pass # skip
+
+#     def visitPrintnl(self, node):
+#         pass # skip
+    
+#     def visitPrint(self, node):
+#         pass # skip
+
+            
+
+class _SigNameVisitor(ast.NodeVisitor):
     def __init__(self, symdict):
         self.inputs = set()
         self.outputs = set()
         self.toplevel = 1
         self.symdict = symdict
+        self.context = INPUT
 
-    def visitModule(self, node):
+    def visit_Module(self, node):
         inputs = self.inputs
         outputs = self.outputs
-        self.visit(node.node)
+        for n in node.body:
+            self.visit(n)
         for n in inputs:
             if n in outputs:
                 raise AlwaysCombError(_error.SignalAsInout)
 
-    def visitFunction(self, node):
+    def visit_FunctionDef(self, node):
         if self.toplevel:
             self.toplevel = 0 # skip embedded functions
-            self.visit(node.code)
+            for n in node.body:
+                self.visit(n)
         else:
             raise AlwaysCombError(_error.EmbeddedFunction)
 
-    def visitIf(self, node):
-        if len(node.tests) == 1 and not node.else_:
-            test = node.tests[0][0]
-            if isinstance(test, compiler.ast.Name) and \
-               test.name == '__debug__':
+    def visit_If(self, node):
+        if not node.orelse:
+            if isinstance(node.test, ast.Name) and \
+               node.test.id == '__debug__':
                 return # skip
-        for n in node.getChildNodes():
-            self.visit(n)
-            
-    def visitName(self, node, access=INPUT):
-        if node.name not in self.symdict:
+        self.generic_visit(node)
+
+    def visit_Name(self, node):
+        id = node.id
+        if id not in self.symdict:
             return
-        s = self.symdict[node.name]
+        s = self.symdict[id]
         if isinstance(s, Signal) or _isListOfSigs(s):
-            if access == INPUT:
-                self.inputs.add(node.name)
-            elif access == OUTPUT:
-                self.outputs.add(node.name)
-            elif access == INOUT:
+            if self.context == INPUT:
+                self.inputs.add(id)
+            elif self.context == OUTPUT:
+                self.outputs.add(id)
+            elif self.context == INOUT:
                 raise AlwaysCombError(_error.SignalAsInout)
             else:
-                raise AlwaysCombError
+                raise AssertionError("bug in always_comb")
             
-    def visitAssign(self, node, access=OUTPUT):
-        for n in node.nodes:
-            self.visit(n, OUTPUT)
-        self.visit(node.expr, INPUT)
+    def visit_Assign(self, node):
+        self.context = OUTPUT
+        for n in node.targets:
+            self.visit(n)
+        self.context = INPUT
+        self.visit(node.value)
 
-    def visitAssAttr(self, node, access=OUTPUT):
-        self.visit(node.expr, OUTPUT)
+    def visit_Attribute(self, node):
+        self.visit(node.value)
 
-    def visitSubscript(self, node, access=INPUT):
-        self.visit(node.expr, access)
-        for n in node.subs:
-            self.visit(n, INPUT)
+    def visit_Subscript(self, node, access=INPUT):
+        self.visit(node.value)
+        self.context = INPUT
+        self.visit(node.slice)
 
-    def visitSlice(self, node, access=INPUT):
-        self.visit(node.expr, access)
-        if node.lower:
-            self.visit(node.lower, INPUT)
-        if node.upper:
-            self.visit(node.upper, INPUT)
-
-    def visitAugAssign(self, node, access=INPUT):
-        self.visit(node.node, INOUT)
-        self.visit(node.expr, INPUT)
+    def visit_AugAssign(self, node, access=INPUT):
+        self.context = INOUT
+        self.visit(node.target)
+        self.context = INPUT
+        self.visit(node.value)
         
-    def visitClass(self, node):
+    def visit_ClassDef(self, node):
         pass # skip
 
-    def visitExec(self, node):
+    def visit_Exec(self, node):
         pass # skip
 
-    def visitPrintnl(self, node):
+    def visit_Print(self, node):
         pass # skip
-    
-    def visitPrint(self, node):
-        pass # skip
-        
+
+
+            
+
+                
 
 class _AlwaysComb(_Instantiator):
+
+#     def __init__(self, func, symdict):
+#         self.func = func
+#         self.symdict = symdict
+#         s = inspect.getsource(func)
+#         # remove decorators
+#         s = re.sub(r"@.*", "", s)
+#         s = s.lstrip()
+#         tree = compiler.parse(s)
+#         v = _SigNameVisitor(symdict)
+#         compiler.walk(tree, v)
+#         self.inputs = v.inputs
+#         self.outputs = v.outputs
+#         senslist = []
+#         for n in self.inputs:
+#             s = self.symdict[n]
+#             if isinstance(s, Signal):
+#                 senslist.append(s)
+#             else: # list of sigs
+#                 senslist.extend(s)
+#         self.senslist = tuple(senslist)
+#         self.gen = self.genfunc()
+#         if len(self.senslist) == 0:
+#             raise AlwaysCombError(_error.EmptySensitivityList)
+#         if len(self.senslist) == 1:
+#             W = _SignalWaiter
+#         else:
+#             W = _SignalTupleWaiter
+#         self.waiter = W(self.gen)
 
     def __init__(self, func, symdict):
         self.func = func
         self.symdict = symdict
         s = inspect.getsource(func)
-        # remove decorators
-        s = re.sub(r"@.*", "", s)
-        s = s.lstrip()
-        tree = compiler.parse(s)
+        s = _dedent(s)
+        tree = ast.parse(s)
+        # print ast.dump(tree)
         v = _SigNameVisitor(symdict)
-        compiler.walk(tree, v)
+        v.visit(tree)
         self.inputs = v.inputs
         self.outputs = v.outputs
         senslist = []
@@ -177,6 +289,8 @@ class _AlwaysComb(_Instantiator):
             W = _SignalTupleWaiter
         self.waiter = W(self.gen)
 
+
+
     def genfunc(self):
         senslist = self.senslist
         if len(senslist) == 1:
@@ -186,3 +300,6 @@ class _AlwaysComb(_Instantiator):
             func()
             yield senslist
  
+
+
+

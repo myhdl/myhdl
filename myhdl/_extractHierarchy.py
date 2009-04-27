@@ -28,8 +28,6 @@ from inspect import currentframe, getframeinfo, getouterframes
 import re
 import string
 from types import GeneratorType
-import compiler
-from compiler import ast
 import linecache
 
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
