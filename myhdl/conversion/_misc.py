@@ -25,6 +25,7 @@
 import inspect
 import compiler
 from compiler import ast as astNode
+import ast
 
 import myhdl
 from myhdl import *
@@ -118,23 +119,34 @@ class _ConversionMixin(object):
         return None
 
     def getVal(self, node):
-        val = eval(_unparse(node), self.ast.symdict, self.ast.vardict)
+        expr = ast.Expression()
+        expr.body = node
+        expr.lineno = node.lineno
+        expr.col_offset = node.col_offset
+        c = compile(expr, '<string>', 'eval')
+        val = eval(c, self.tree.symdict, self.tree.vardict)
+        # val = eval(_unparse(node), self.tree.symdict, self.tree.vardict)
         return val
     
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
-              (self.ast.sourcefile, self.ast.lineoffset+lineno)
+              (self.tree.sourcefile, self.tree.lineoffset+lineno)
         raise ConversionError(kind, msg, info)
 
     def require(self, node, test, msg=""):
-        assert isinstance(node, astNode.Node)
+        assert isinstance(node, ast.AST)
         if not test:
             self.raiseError(node, _error.Requirement, msg)
 
     def visitChildNodes(self, node, *args):
         for n in node.getChildNodes():
             self.visit(n, *args)
+
+    def visitList(self, nodes):
+        for n in nodes:
+            self.visit(n)
+
             
 
 def _LabelGenerator():
@@ -167,9 +179,9 @@ _genUniqueSuffix = _UniqueSuffixGenerator()
 
 
 # check if expression is constant
-def _isConstant(ast, symdict):
+def _isConstant(tree, symdict):
     v = _namesVisitor()
-    compiler.walk(ast, v)
+    v.visit(tree)
     for name in v.names:
         if name not in symdict:
             return False
@@ -177,10 +189,10 @@ def _isConstant(ast, symdict):
             return False
     return True
 
-class _namesVisitor(object):
+class _namesVisitor(ast.NodeVisitor):
     
     def __init__(self):
         self.names = []
 
-    def visitName(self, node):
-        self.names.append(node.name)
+    def visit_Name(self, node):
+        self.names.append(node.id)

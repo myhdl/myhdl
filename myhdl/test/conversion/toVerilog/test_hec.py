@@ -79,7 +79,7 @@ def HecCalculatorPlain(hec, header):
             hec.next = h ^ COSET
     return logic
 
-def HecCalculatorFunc(hec, header):
+def HecCalculatorFunc(hec, header=1):
     """ Hec calculation module.
 
     Version with function call.
