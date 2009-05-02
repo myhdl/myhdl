@@ -333,6 +333,12 @@ opmap = {
     ast.Not      : '!',
     ast.UAdd     : '+',
     ast.USub     : '-',
+    ast.Eq       : '==',
+    ast.Gt       : '>',
+    ast.GtE      : '>=',
+    ast.Lt       : '<',
+    ast.LtE      : '<=',
+    ast.NotEq    : '!=',
 }
 
 
@@ -528,7 +534,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write("(")
         self.visit(node.values[0])
         for n in node.nodes[1:]:
-            self.write(" %s " % opmap[node.op])
+            self.write(" %s " % opmap[type(node.op)])
             self.visit(n)
         self.write(")")
         
@@ -551,7 +557,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
     def visit_UnaryOp(self, node):
-        self.write("(%s" % opmap[node.op])
+        self.write("(%s" % opmap[type(node.op)])
         self.visit(node.operand)
         self.write(")")
 
@@ -562,12 +568,71 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #         self.isSigAss = True
 #         self.visit(node.expr)
 
+#     def visitGetattr(self, node, *args):
+#         assert isinstance(node.expr, astNode.Name)
+#         n = node.expr.name
+#         if n in self.tree.symdict:
+#             obj = self.tree.symdict[n]
+#         elif n in self.tree.vardict:
+#             obj = self.tree.vardict[n]
+#         else:
+#             raise AssertionError("object not found")
+#         if isinstance(obj, Signal):
+#             if node.attrname == 'next':
+#                 self.isSigAss = True
+#                 self.visit(node.expr)
+#             elif node.attrname in ('posedge', 'negedge'):
+#                 self.write(node.attrname)
+#                 self.write(' ')
+#                 self.visit(node.expr)
+#             elif node.attrname == 'val':
+#                 self.visit(node.expr)
+#         if isinstance(obj, (Signal, intbv)):
+#             if node.attrname in ('min', 'max'):
+#                 self.write("%s" % node.obj)
+#         if isinstance(obj, EnumType):
+#             assert hasattr(obj, node.attrname)
+#             e = getattr(obj, node.attrname)
+#             self.write(e._toVerilog())
+
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
-            assert node.attr == 'next'
-            self.isSigAss = True
-            self.visit(node.value)
+            self.setAttr(node)
+        else:
+            self.getAttr(node)
+
+    def setAttr(self, node):
+        assert node.attr == 'next'
+        self.isSigAss = True
+        self.visit(node.value)
+
+    def getAttr(self, node):
+        assert isinstance(node.value, ast.Name)
+        n = node.value.id
+        if n in self.tree.symdict:
+            obj = self.tree.symdict[n]
+        elif n in self.tree.vardict:
+            obj = self.tree.vardict[n]
+        else:
+            raise AssertionError("object not found")
+        if isinstance(obj, Signal):
+            if node.attr == 'next':
+                self.isSigAss = True
+                self.visit(node.value)
+            elif node.attr in ('posedge', 'negedge'):
+                self.write(node.attr)
+                self.write(' ')
+                self.visit(node.value)
+            elif node.attr == 'val':
+                self.visit(node.value)
+        if isinstance(obj, (Signal, intbv)):
+            if node.attr in ('min', 'max'):
+                self.write("%s" % node.obj)
+        if isinstance(obj, EnumType):
+            assert hasattr(obj, node.attr)
+            e = getattr(obj, node.attr)
+            self.write(e._toVerilog())
 
 
 #     def visitAssert(self, node, *args):
@@ -803,6 +868,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
     def visit_Call(self, node):
+        self.context = None
         fn = node.func
         # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
@@ -839,10 +905,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f == intbv.signed: # note equality comparison
             # comes from a getattr
             opening, closing = '', ''
-            if not fn.expr.signed:
+            if not fn.value.signed:
                 opening, closing = "$signed(", ")"
             self.write(opening)
-            self.visit(fn.expr)
+            self.visit(fn.value)
             self.write(closing)
         elif type(f) in (ClassType, TypeType) and issubclass(f, Exception):
             self.write(f.__name__)
@@ -874,16 +940,27 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             v.visit(node.tree)
 
 
-    def visitCompare(self, node, *args):
-        context = None
+#     def visitCompare(self, node, *args):
+#         context = None
+#         if node.signed:
+#             context = _context.SIGNED
+#         self.write("(")
+#         self.visit(node.expr, context)
+#         op, code = node.ops[0]
+#         self.write(" %s " % op)
+#         self.visit(code, context)
+#         self.write(")")
+
+    def visit_Compare(self, node):
+        self.context = None
         if node.signed:
-            context = _context.SIGNED
+            self.context = _context.SIGNED
         self.write("(")
-        self.visit(node.expr, context)
-        op, code = node.ops[0]
-        self.write(" %s " % op)
-        self.visit(code, context)
+        self.visit(node.left)
+        self.write(" %s " % opmap[type(node.ops[0])])
+        self.visit(node.comparators[0])
         self.write(")")
+        self.context = None
 
 
 
@@ -1072,33 +1149,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
 
-    def visitGetattr(self, node, *args):
-        assert isinstance(node.expr, astNode.Name)
-        n = node.expr.name
-        if n in self.tree.symdict:
-            obj = self.tree.symdict[n]
-        elif n in self.tree.vardict:
-            obj = self.tree.vardict[n]
-        else:
-            raise AssertionError("object not found")
-        if isinstance(obj, Signal):
-            if node.attrname == 'next':
-                self.isSigAss = True
-                self.visit(node.expr)
-            elif node.attrname in ('posedge', 'negedge'):
-                self.write(node.attrname)
-                self.write(' ')
-                self.visit(node.expr)
-            elif node.attrname == 'val':
-                self.visit(node.expr)
-        if isinstance(obj, (Signal, intbv)):
-            if node.attrname in ('min', 'max'):
-                self.write("%s" % node.obj)
-        if isinstance(obj, EnumType):
-            assert hasattr(obj, node.attrname)
-            e = getattr(obj, node.attrname)
-            self.write(e._toVerilog())
-
 
 
 #     def visitIf(self, node, *args):
@@ -1133,7 +1183,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(item._toVerilog(dontcare=True))
             self.write(": begin")
             self.indent()
-            self.visit(suite)
+            self.visit_stmt(suite)
             self.dedent()
             self.writeline()
             self.write("end")
@@ -1141,7 +1191,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             self.write("default: begin")
             self.indent()
-            self.visit(node.else_)
+            self.visit_stmt(node.else_)
             self.dedent()
             self.writeline()
             self.write("end")
@@ -1162,7 +1212,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(test)
             self.write(") begin")
             self.indent()
-            self.visit(suite)
+            self.visit_stmt(suite)
             self.dedent()
             self.writeline()
             self.write("end")
@@ -1170,7 +1220,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             self.write("else begin")
             self.indent()
-            self.visit(node.else_)
+            self.visit_stmt(node.else_)
             self.dedent()
             self.writeline()
             self.write("end")
@@ -1364,7 +1414,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(s, str):
                 self.write('$write("%s");' % s)
             else:
-                a = node.values[argnr]
+                a = node.args[argnr]
                 argnr += 1
                 obj = a.obj
                 fs = "%0d"
@@ -1549,7 +1599,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #             self.visit(elt)
 
 
-    def visitTuple(self, node):
+    def visit_Tuple(self, node):
         assert self.context != None
         sep = ", "
         tpl = node.elts
@@ -1747,7 +1797,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 #         self.visit(node.expr)
 
     def visit_Attribute(self, node):
-        if isintance(node.ctx, ast.Store):
+        if isinstance(node.ctx, ast.Store):
             self.write("assign ")
             self.visit(node.value)
         else:
@@ -1758,8 +1808,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 #         self.writeline(2)
 
     def visit_FunctionDef(self, node):
-        for stmt in node.body:
-            self.visit(node.body)
+        self.visit_stmt(node.body)
         self.writeline(2)
 
 

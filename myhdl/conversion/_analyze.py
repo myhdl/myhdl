@@ -139,7 +139,6 @@ def _analyzeGens(top, absnames):
             s = inspect.getsource(f)
             s = _dedent(s)
             tree = ast.parse(s)
-            #print ast.dump(tree)
             tree.sourcefile = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.func_globals.copy()
@@ -166,7 +165,6 @@ def _analyzeGens(top, absnames):
             s = inspect.getsource(f)
             s = _dedent(s)
             tree = ast.parse(s)
-            # print ast.dump(tree)
             tree.sourcefile = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.f_globals.copy()
@@ -279,7 +277,8 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
             self.raiseError(node, _error.NotSupported, "embedded function definition")
         self.toplevel = False
         node.argnames = [arg.id for arg in node.args.args]
-        self.generic_visit(node)
+        # don't visit decorator lists - they can support more than other calls
+        self.visitList(node.body)
         
     def flattenIf(self, node, tests):
         """ Flatten if-then-else as in compiler package."""
@@ -485,7 +484,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         node.signed = node.operand.signed
         if isinstance(op, ast.Not):
             node.obj = bool()
-        elif isintance(op, ast.UAdd):
+        elif isinstance(op, ast.UAdd):
             node.obj = int(-1)
         elif isinstance(op, ast.USub):
             node.obj = int(-1)
@@ -545,16 +544,16 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if node.attr != 'next':
             self.raiseError(node, _error.NotSupported, "attribute assignment")
         self.tree.kind = _kind.TASK
-        self.access = _access.OUTPUT
+        # self.access = _access.OUTPUT
         self.visit(node.value)
-        self.access = _access.INPUT
+        # self.access = _access.INPUT
 
     def getAttr(self, node):
         self.visit(node.value)
         node.obj = None
         node.signed = False
-        if isinstance(node.value, astNode.Name):
-            n = node.value.name
+        if isinstance(node.value, ast.Name):
+            n = node.value.id
             if (n not in self.tree.vardict) and (n not in self.tree.symdict):
                 raise AssertionError("attribute target: %s" % n)
         obj = node.value.obj
@@ -869,11 +868,12 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Compare(self, node):
         node.obj = bool()
         node.signed = False
-        for n in ast.iter_field_nodes(node):
+        #for n in ast.iter_child_nodes(node):
+        for n in [node.left] + node.comparators:
             self.visit(n)
             if n.signed:
                 node.signed = True
-        op, arg = ops[0], compartors[0]
+        op, arg = node.ops[0], node.comparators[0]
 ##         node.expr.target = self.getObj(arg)
 ##         arg.target = self.getObj(node.expr)
         # detect specialized case for the test
@@ -1029,11 +1029,11 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         for test, suite in node.tests:
             self.visit(test)
             self.refStack.push()
-            self.visit(suite)
+            self.visitList(suite)
             self.refStack.pop()
         if node.else_:
             self.refStack.push()
-            self.visit(node.else_)
+            self.visitList(node.else_)
             self.refStack.pop()
         # check whether the if can be mapped to a (parallel) case
         node.isCase = node.isFullCase = False
@@ -1164,14 +1164,28 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.getName(node)
 
     def setName(self, node):
+        # XXX INOUT access in Store context, unlike with compiler
+        # XXX check whether ast context is correct
         n = node.id
-        if n in ("__verilog__", "__vhdl__"):
-            self.raiseError(node, _error.NotSupported,
-                            "%s in generator function" % n)
-        # XXX ?
-        if n in self.globalRefs:
-            self.raiseError(node, _error.UnboundLocal, n)
-        self.refStack.add(n)
+        if self.access == _access.INOUT: # augmented assign
+            if n in self.tree.sigdict:
+                sig = self.tree.sigdict[n]
+                if isinstance(sig, Signal):
+                    self.raiseError(node, _error.NotSupported, "Augmented signal assignment")
+            if n in self.tree.vardict:
+                obj = self.tree.vardict[n]
+                # upgrade bool to int for augmented assignments
+                if isinstance(obj, bool):
+                    obj = int(0)
+                    self.tree.vardict[n] = obj
+            node.obj = obj
+        else:
+            if n in ("__verilog__", "__vhdl__"):
+                    self.raiseError(node, _error.NotSupported,
+                                    "%s in generator function" % n)
+            if n in self.globalRefs:
+                self.raiseError(node, _error.UnboundLocal, n)
+            self.refStack.add(n)
 
     def getName(self, node):
         n = node.id
@@ -1201,7 +1215,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.raiseError(node, _error.NotSupported, "Augmented signal assignment")
         if n in self.tree.vardict:
             obj = self.tree.vardict[n]
-            if self.access == _access.INOUT:
+            if self.access == _access.INOUT: # probably dead code
                 # upgrade bool to int for augmented assignments
                 if isinstance(obj, bool):
                     obj = int(0)
@@ -1302,7 +1316,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     a.extend(n.right.elts)
                 else:
                     a.append(n.right)
-                s = n.left.value
+                s = n.left.s
                 while s:
                     if not s:
                         break
@@ -1417,7 +1431,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.access = _access.INPUT
         self.visit(node.slice.value)
         if isinstance(node.value.obj, _Ram):
-            if node.flags == 'OP_ASSIGN':
+            if isinstance(node.ctx, ast.Store):
                 self.raiseError(node, _error.ListElementAssign)
             else:
                 node.obj = node.value.obj.elObj
