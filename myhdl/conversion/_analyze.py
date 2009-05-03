@@ -448,7 +448,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 #         self.multiLogicalOp(node, *args)
 
 
-    def visit_Boolop(self, node):
+    def visit_BoolOp(self, node):
         for n in node.values:
             self.visit(n)
         for n in node.values:
@@ -1629,7 +1629,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
      
     def visit_Return(self, node):
         ### value should be None
-        if not node.value is None:
+        if node.value is None:
             pass
         elif isinstance(node.value, ast.Name) and node.value.id == "None":
             pass
@@ -1812,7 +1812,8 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
 
     def visit_Return(self, node):
         self.kind = _kind.DECLARATION
-        self.visit(node.value)
+        if node.value is not None:
+            self.visit(node.value)
         self.kind = _kind.NORMAL
         if node.value is None:
             obj = None

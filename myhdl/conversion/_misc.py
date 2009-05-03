@@ -83,14 +83,20 @@ _context = enum("BOOLEAN", "YIELD", "PRINT" ,"SIGNED", "UNKNOWN")
     
 class _ConversionMixin(object):
     
+#     def getLineNo(self, node):
+#         lineno = node.lineno
+#         if lineno is None:
+#             for n in node.getChildNodes():
+#                 if n.lineno is not None:
+#                     lineno = n.lineno
+#                     break
+#         lineno = lineno or 0
+#         return lineno
+
     def getLineNo(self, node):
-        lineno = node.lineno
-        if lineno is None:
-            for n in node.getChildNodes():
-                if n.lineno is not None:
-                    lineno = n.lineno
-                    break
-        lineno = lineno or 0
+        lineno = 0
+        if isinstance(node, (ast.stmt, ast.expr)):
+            lineno = node.lineno
         return lineno
     
     def getObj(self, node):

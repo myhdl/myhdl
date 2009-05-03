@@ -324,7 +324,7 @@ opmap = {
     ast.Mod      : '%',
     ast.Pow      : '**',
     ast.LShift   : '<<',
-    ast.RShift   : '>>',
+    ast.RShift   : '>>>',
     ast.BitOr    : '|',
     ast.BitAnd   : '&',
     ast.BitXor   : '^',
@@ -339,6 +339,8 @@ opmap = {
     ast.Lt       : '<',
     ast.LtE      : '<=',
     ast.NotEq    : '!=',
+    ast.And      : '&&',
+    ast.Or       : '||',
 }
 
 
@@ -533,7 +535,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_BoolOp(self, node):
         self.write("(")
         self.visit(node.values[0])
-        for n in node.nodes[1:]:
+        for n in node.values[1:]:
             self.write(" %s " % opmap[type(node.op)])
             self.visit(n)
         self.write(")")
@@ -1537,6 +1539,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         addSignBit = isinstance(node.ctx, ast.Load) and (self.context == _context.SIGNED)
         if addSignBit:
             self.write("$signed({1'b0, ")
+        self.context = None
         self.visit(node.value)
         lower, upper = node.slice.lower, node.slice.upper
         # special shortcut case for [:] slice
@@ -1563,6 +1566,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                      (self.context == _context.SIGNED)
         if addSignBit:
             self.write("$signed({1'b0, ")
+        self.context = None
         self.visit(node.value)
         self.write("[")
         # assert len(node.subs) == 1
