@@ -365,8 +365,8 @@ opmap = {
     ast.BitAnd   : 'and',
     ast.BitXor   : 'xor',
     ast.FloorDiv : '/',
-    ast.Invert   : '~',
-    ast.Not      : '/=',
+    ast.Invert   : 'not ',
+    ast.Not      : 'not ',
     ast.UAdd     : '+',
     ast.USub     : '-',
     ast.Eq       : '=',
@@ -429,6 +429,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif isinstance(vhd, vhd_boolean):
             if not isinstance(ori, vhd_boolean):
                 pre, suf = "to_boolean(", ")"
+        elif isinstance(vhd, vhd_std_logic):
+            if not isinstance(ori, vhd_std_logic):
+                pre, suf = "to_std_logic", ""     
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"
@@ -701,44 +704,52 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
 
-    def unaryOp(self, node, op, context):
-        self.checkOpWithNegIntbv(node.expr, op)
-        self.write("(%s" % op)
-        self.visit(node.expr, context)
-        self.write(")")
+#     def unaryOp(self, node, op, context):
+#         self.checkOpWithNegIntbv(node.expr, op)
+#         self.write("(%s" % op)
+#         self.visit(node.expr, context)
+#         self.write(")")
 
-    def visitUnaryAdd(self, node, context=None, *args):
-        self.unaryOp(node, '+', context)
+#     def visitUnaryAdd(self, node, context=None, *args):
+#         self.unaryOp(node, '+', context)
         
-    def visitUnarySub(self, node, context=None, *args):
-        pre, suf = self.inferCast(node.vhd, node.vhdOri)
-        self.write(pre)
-        self.write("(-")
-        self.visit(node.expr)
-        self.write(")")
-        self.write(suf)
+#     def visitUnarySub(self, node, context=None, *args):
+#         pre, suf = self.inferCast(node.vhd, node.vhdOri)
+#         self.write(pre)
+#         self.write("(-")
+#         self.visit(node.expr)
+#         self.write(")")
+#         self.write(suf)
 
-    def visitInvert(self, node, context=None, *args):
+#     def visitInvert(self, node, context=None, *args):
+#         pre, suf = self.inferCast(node.vhd, node.vhdOri)
+#         self.write(pre)
+#         self.write("(not ")
+#         self.visit(node.expr)
+#         self.write(")")
+#         self.write(suf)
+       
+#     def visitNot(self, node, context=None):
+#         self.checkOpWithNegIntbv(node.expr, 'not ')
+#         if isinstance(node.vhd, vhd_std_logic):
+#             self.write("to_std_logic")
+#         self.write("(not ")
+#         self.visit(node.expr, context)
+#         self.write(")")
+
+    def visit_UnaryOp(self, node):
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
-        self.write("(not ")
-        self.visit(node.expr)
+        self.write("(")
+        self.write(opmap[type(node.op)])
+        self.visit(node.operand)
         self.write(")")
         self.write(suf)
-       
-    def visitNot(self, node, context=None):
-        self.checkOpWithNegIntbv(node.expr, 'not ')
-        if isinstance(node.vhd, vhd_std_logic):
-            self.write("to_std_logic")
-        self.write("(not ")
-        self.visit(node.expr, context)
-        self.write(")")
+        
 
 
     
         
-
-
 
 
     def visit_Attribute(self, node):
@@ -1613,7 +1624,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.dedent()
         if node.else_:
             self.writeline()
-            edges = self.getEdge(node.else_)
+            edges = self.getEdge(node)
             if edges is not None:
                 edgeTests = [e._toVHDL() for e in edges]
                 self.write("elsif ")
@@ -2422,7 +2433,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
     def visit_FunctionDef(self, node, *args):
         assert self.tree.senslist
         senslist = self.tree.senslist
-        senslist = self.manageEdges(node.code.nodes[-1], senslist)
+        senslist = self.manageEdges(node.body[-1], senslist)
         singleEdge = (len(senslist) == 1) and isinstance(senslist[0], _WaiterList)
         self.write("%s: process (" % self.tree.name)
         if singleEdge:
