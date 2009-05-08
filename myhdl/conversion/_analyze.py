@@ -877,7 +877,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 ##         node.expr.target = self.getObj(arg)
 ##         arg.target = self.getObj(node.expr)
         # detect specialized case for the test
-        if op == '==' and isinstance(node.left, ast.Name):
+        if isinstance(op, ast.Eq) and isinstance(node.left, ast.Name):
             n = node.left.id
             # check wether it can be a case
             if isinstance(arg.obj, EnumItemType):

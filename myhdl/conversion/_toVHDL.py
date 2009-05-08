@@ -595,7 +595,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #         self.binaryOp(node, "-")
 
     def BinOp(self, node):
-        pre, suf = self.inferBinaryOpCast(node, node.left, node.right, op)
+        pre, suf = self.inferBinaryOpCast(node, node.left, node.right, node.op)
         self.write(pre)
         self.visit(node.left)
         self.write(" %s " % opmap[type(node.op)])
@@ -795,7 +795,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #             e = getattr(obj, node.attrname)
 #             self.write(e._toVHDL())
 
-    def setAttr(self, node):
+    def getAttr(self, node):
         assert isinstance(node.value, ast.Name)
         n = node.value.id
         if n in self.tree.symdict:
@@ -1291,7 +1291,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(pre)
         self.visit(node.left)
         op, right = node.ops[0], node.comparators[0]
-        self.write(" %s " % opmap[type.op])
+        self.write(" %s " % opmap[type(op)])
         self.visit(right)
         self.write(suf)
 
@@ -2158,7 +2158,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                         break
                 else:
                     edges.append(s)
-            ifnode.else_.edge = edges
+            ifnode.edge = edges
             senslist = [s.sig for s in senslist]
         return senslist
 
@@ -2846,12 +2846,12 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Compare(self, node):
         node.vhd = vhd_boolean()
         self.generic_visit(node)
-        left, op, right = node.left. node.ops[0], node.comparators[0]
+        left, op, right = node.left, node.ops[0], node.comparators[0]
         if isinstance(left.vhd, vhd_std_logic) or isinstance(right.vhd, vhd_std_logic):
             left.vhd = right.vhd = vhd_std_logic()
-        elif isinstance(expr.vhd, vhd_unsigned) and maybeNegative(right.vhd):
+        elif isinstance(left.vhd, vhd_unsigned) and maybeNegative(right.vhd):
             left.vhd = vhd_signed(expr.vhd.size + 1)
-        elif maybeNegative(expr.vhd) and isinstance(right.vhd, vhd_unsigned):
+        elif maybeNegative(left.vhd) and isinstance(right.vhd, vhd_unsigned):
             right.vhd = vhd_signed(right.vhd.size + 1)
         node.vhdOri = copy(node.vhd)
 
@@ -3012,7 +3012,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         node.vhd = node.left.vhd = node.right.vhd = obj
         node.vhdOri = copy(node.vhd)
 
-    def inferBinaryOpType(self, node):
+    def inferBinOpType(self, node):
         left, op, right = node.left, node.op, node.right
         if isinstance(left.vhd, (vhd_boolean, vhd_std_logic)):
             left.vhd = vhd_unsigned(1)
