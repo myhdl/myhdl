@@ -881,7 +881,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             n = node.left.id
             # check wether it can be a case
             if isinstance(arg.obj, EnumItemType):
-                node.case = (node.expr, arg.obj)
+                node.case = (node.left, arg.obj)
             # check whether it can be part of an edge check
             elif n in self.tree.sigdict:
                 sig = self.tree.sigdict[n]

@@ -357,7 +357,7 @@ opmap = {
     ast.Sub      : '-',
     ast.Mult     : '*',
     ast.Div      : '/',
-    ast.Mod      : '%',
+    ast.Mod      : 'mod',
     ast.Pow      : '**',
     ast.LShift   : 'shift_left',
     ast.RShift   : 'shift_right',
@@ -374,7 +374,7 @@ opmap = {
     ast.GtE      : '>=',
     ast.Lt       : '<',
     ast.LtE      : '<=',
-    ast.NotEq    : '!=',
+    ast.NotEq    : '/=',
     ast.And      : 'and',
     ast.Or       : 'or',
 }
@@ -389,7 +389,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.ind = ''
         self.isSigAss = False
         self.labelStack = []
+        self.context = None
  
+        
     def write(self, arg):
         self.buf.write("%s" % arg)
 
@@ -517,10 +519,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_BinOp(self, node):
         if isinstance(node.op, (ast.LShift, ast.RShift)):
-            self.ShiftOp(node)
+            self.shiftOp(node)
         elif isinstance(node.op, (ast.BitAnd, ast.BitOr, ast.BitXor)):
             self.BitOp(node)
-        elif isinstance(node.op, ast.Mod) and self.context == _context.PRINT:
+        elif isinstance(node.op, ast.Mod) and (self.context == _context.PRINT):
             self.visit(node.left)
             self.write(", ")
             self.visit(node.right)
@@ -551,7 +553,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 elif isinstance(op, ast.FloorDiv):
                     left.vhd.size = ns
                     node.vhdOri.size = ns
-                elif isinstance(op, ast.Mul):
+                elif isinstance(op, ast.Mult):
                     left.vhd.size += ds
                     node.vhdOri.size = ns
                 else:
@@ -560,7 +562,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(op, (ast.Add, ast.Sub, ast.Mod, ast.FloorDiv)):
                     left.vhd.size = ns
                     node.vhdOri.size = ns
-                elif isinstance(op, ast.Mul): 
+                elif isinstance(op, ast.Mult): 
                     left.vhd.size += ds
                     node.vhdOri.size = 2 * left.vhd.size
                 else:
@@ -569,7 +571,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(op, ast.Add, ast.Sub, ast.Mod, ast.FloorDiv):
                     right.vhd.size = ns
                     node.vhdOri.size = ns
-                elif isinstance(op, ast.Mul):
+                elif isinstance(op, ast.Mult):
                     node.vhdOri.size = 2 * right.vhd.size                  
                 else:
                     raise AssertionError("unexpected op %s" % op)
@@ -633,7 +635,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #         self.shiftOp(node, "shift_right")
 
     def shiftOp(self, node):
-        pre, suf = self.inferShiftOpCast(node, node.left, node.right, op)
+        pre, suf = self.inferShiftOpCast(node, node.left, node.right, node.op)
         self.write(pre)
         self.write("%s(" % opmap[type(node.op)])
         self.visit(node.left)
@@ -669,12 +671,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #         self.multiBitOp(node, 'xor')
 
     def BitOp(self, node):
+        pre, suf = self.inferCast(node.vhd, node.vhdOri)
+        self.write(pre)
         self.write("(")
         self.visit(node.left)
         self.write(" %s " % opmap[type(node.op)])
         self.visit(node.right)
         self.write(")")
-        
+        self.write(suf)
+         
         
 #     def multiBoolOp(self, node, op):
 #         for n in node.nodes:
@@ -1041,27 +1046,27 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
     def visit_AugAssign(self, node):
-        op = opmap[node.op]
+        op = opmap[type(node.op)]
         # XXX apparently no signed context required for augmented assigns
         left, op, right =  node.target, node.op, node.value
         isFunc = False
         pre, suf = "", ""
-        if isinstance(op, (ast.Add, ast.Sub, Ast.Mul, ast.Mod, ast.FloorDiv)):
+        if isinstance(op, (ast.Add, ast.Sub, ast.Mult, ast.Mod, ast.FloorDiv)):
             pre, suf = self.inferBinaryOpCast(node, left, right, op)
         elif isinstance(op, (ast.LShift, ast.RShift)):
             isFunc = True
             pre, suf = self.inferShiftOpCast(node, left, right, op)
-        self.visit(node.left)
+        self.visit(left)
         self.write(" := ")
         self.write(pre)
         if isFunc:
             self.write("%s(" % opmap[type(op)])
-        self.visit(node.left)
+        self.visit(left)
         if isFunc:
             self.write(", ")
         else:
             self.write(" %s " % opmap[type(op)])
-        self.visit(node.right)
+        self.visit(right)
         if isFunc:
             self.write(")")
         self.write(suf)
@@ -1201,7 +1206,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is ord:
             opening, closing = '', ''
             if isinstance(node.args[0], ast.Str):
-                if len(node.args[0].value) > 1:
+                if len(node.args[0].s) > 1:
                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1" )
                 else:
                     node.args[0].s = ord(node.args[0].s)
@@ -1331,8 +1336,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
             self.write('"%s"' % bin(n, node.vhd.size))
         else:
+            if n < 0:
+                self.write("(")
             self.write(n)
-
+            if n < 0:
+                self.write(")")
+            
     def visit_Str(self, node):
         self.write("string'(\"%s\")" % node.s)
 
@@ -2061,7 +2070,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #             self.visit(elt)
 
     def visit_Tuple(self, node):
-        assert context != None
+        assert self.context != None
         sep = ", "
         tpl = node.elts
         self.visit(tpl[0])
@@ -2773,7 +2782,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhdOri = copy(node.target.vhd)
         else:
              node.left, node.right = node.target, node.value
-             self.inferBinaryOpType(node)
+             self.inferBinOpType(node)
         node.vhd = copy(node.target.vhd)
 
         
@@ -2861,7 +2870,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         if isinstance(left.vhd, vhd_std_logic) or isinstance(right.vhd, vhd_std_logic):
             left.vhd = right.vhd = vhd_std_logic()
         elif isinstance(left.vhd, vhd_unsigned) and maybeNegative(right.vhd):
-            left.vhd = vhd_signed(expr.vhd.size + 1)
+            left.vhd = vhd_signed(left.vhd.size + 1)
         elif maybeNegative(left.vhd) and isinstance(right.vhd, vhd_unsigned):
             right.vhd = vhd_signed(right.vhd.size + 1)
         node.vhdOri = copy(node.vhd)
@@ -2879,7 +2888,10 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         node.vhdOri = copy(node.vhd)
 
     def visit_Num(self, node):
-        node.vhd = vhd_nat()
+        if node.n < 0:
+            node.vhd = vhd_int()
+        else:
+            node.vhd = vhd_nat()
         node.vhdOri = copy(node.vhd)
 
 #     def visitFor(self, node):
@@ -3042,21 +3054,21 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = rs
             elif isinstance(op, ast.FloorDiv):
                 s = ls
-            elif isinstance(op, ast.Mul):
+            elif isinstance(op, ast.Mult):
                 s = ls + rs
             else:
                 raise AssertionError("unexpected op %s" % op)
         elif isinstance(l, vhd_vector) and isinstance(r, vhd_int):
             if isinstance(op, (ast.Add, ast.Sub, ast.Mod, ast.FloorDiv)):
                 s = ls
-            elif isinstance(op, ast.Mul):
+            elif isinstance(op, ast.Mult):
                  s = 2 * ls
             else:
                 raise AssertionError("unexpected op %s" % op)
         elif isinstance(l, vhd_int) and isinstance(r, vhd_vector):
             if isinstance(op, (ast.Add, ast.Sub, ast.Mod, ast.FloorDiv)):
                 s = rs
-            elif isinstance(op, ast.Mul):
+            elif isinstance(op, ast.Mult):
                 s = 2 * rs
             else:
                 raise AssertionError("unexpected op %s" % op)
