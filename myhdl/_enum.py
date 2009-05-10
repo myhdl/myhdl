@@ -57,7 +57,7 @@ def enum(*names, **kwargs):
             raise ValueError("enum literals should be unique")
         if encoding == "one_hot":
             code = bin(1<<i, nrbits)
-        elif encoding == "one_code":
+        elif encoding == "one_cold":
             code = bin(~(1<<i), nrbits)
         else: # binary as default
             code = bin(i, nrbits)
