@@ -241,10 +241,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for s in siglist:
         if not isinstance(s, _ShadowSignal):
             continue
-        if s.right is None:
-            print >> f, "assign %s = %s[%s];" % (s._name, s.sig._name, s.left)
-        else:
-            print >> f, "assign %s = %s[%s-1:%s];" % (s._name, s.sig._name, s.left, s.right)
+        print >> f, s.toVerilog()
     print >> f
 
 

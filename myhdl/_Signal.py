@@ -277,7 +277,7 @@ class _Signal(object):
 
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):
-        return _ShadowSignal(self, left, right)
+        return _SliceSignal(self, left, right)
 
     ### operators for which delegation to current value is appropriate ###
         
@@ -532,7 +532,19 @@ class _SignalWrap(object):
         return self.sig._apply(self.next, self.timeStamp)
 
 
+
+# shadow signals
+        
+        
 class _ShadowSignal(_Signal):
+
+    __slots__ = ('gen', )
+
+
+        
+class _SliceSignal(_ShadowSignal):
+
+    __slots__ = ('sig', 'left', 'right')
 
     def __init__(self, sig, left, right=None):
         ### XXX error checks
@@ -562,5 +574,15 @@ class _ShadowSignal(_Signal):
         while 1:
             set_next(self, sig[left:right])
             yield sig
-        
-        
+
+    def toVerilog(self):
+        if self.right is None:
+            return "assign %s = %s[%s];" % (self._name, self.sig._name, self.left)
+        else:
+            return "assign %s = %s[%s-1:%s];" % (self._name, self.sig._name, self.left, self.right)
+
+    def toVHDL(self):
+        if self.right is None:
+            return "%s <= %s(%s);" % (self._name, self.sig._name, self.left)
+        else:
+            return "%s <= %s(%s-1 downto %s);" % (self._name, self.sig._name, self.left, self.right)

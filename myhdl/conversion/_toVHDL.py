@@ -353,10 +353,7 @@ def _convertGens(genlist, siglist, vfile):
     for s in siglist:
         if not isinstance(s, _ShadowSignal):
             continue
-        if s.right is None:
-            print >> vfile, "%s <= %s(%s);" % (s._name, s.sig._name, s.left)
-        else:
-            print >> vfile, "%s <= %s(%s-1 downto %s);" % (s._name, s.sig._name, s.left, s.right)
+        print >> vfile, s.toVHDL()
     print >> vfile
 
     vfile.write(blockBuf.getvalue()); blockBuf.close()
