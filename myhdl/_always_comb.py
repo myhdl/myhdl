@@ -25,8 +25,8 @@ from types import FunctionType
 import re
 import ast
 
-from myhdl import Signal, AlwaysCombError
-from myhdl._Signal import _isListOfSigs
+from myhdl import AlwaysCombError
+from myhdl._Signal import _Signal, _isListOfSigs
 from myhdl._util import _isGenFunc, _dedent
 from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
@@ -185,7 +185,7 @@ class _SigNameVisitor(ast.NodeVisitor):
         if id not in self.symdict:
             return
         s = self.symdict[id]
-        if isinstance(s, Signal) or _isListOfSigs(s):
+        if isinstance(s, _Signal) or _isListOfSigs(s):
             if self.context == INPUT:
                 self.inputs.add(id)
             elif self.context == OUTPUT:
@@ -275,7 +275,7 @@ class _AlwaysComb(_Instantiator):
         senslist = []
         for n in self.inputs:
             s = self.symdict[n]
-            if isinstance(s, Signal):
+            if isinstance(s, _Signal):
                 senslist.append(s)
             else: # list of sigs
                 senslist.extend(s)

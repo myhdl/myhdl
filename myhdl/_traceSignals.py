@@ -29,7 +29,7 @@ import os
 path = os.path
 import shutil
 
-from myhdl import _simulator, Signal, __version__
+from myhdl import _simulator, __version__
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 

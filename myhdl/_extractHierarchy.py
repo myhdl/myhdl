@@ -31,7 +31,7 @@ from types import GeneratorType
 import linecache
 
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
-from myhdl._Signal import Signal, _isListOfSigs
+from myhdl._Signal import _Signal, _isListOfSigs
 from myhdl._util import _isGenFunc
 from myhdl._misc import _isGenSeq
 
@@ -224,7 +224,7 @@ class _HierExtr(object):
                             # only include objects that are used in generators
 ##                             if not n in cellvars:
 ##                                 continue
-                            if isinstance(v, Signal):
+                            if isinstance(v, _Signal):
                                 sigdict[n] = v
                                 if n in cellvars:
                                     v._used = True

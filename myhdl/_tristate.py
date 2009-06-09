@@ -1,6 +1,6 @@
 import warnings
 
-from myhdl._Signal import Signal, DelayedSignal
+from myhdl._Signal import _Signal, _DelayedSignal
 from myhdl._simulator import _siglist
 
 class BusContentionWarning(UserWarning):
@@ -8,17 +8,18 @@ class BusContentionWarning(UserWarning):
 
 warnings.filterwarnings('always', r".*", BusContentionWarning)
 
-class Tristate(Signal):
+def Tristate(val, delay=None):
+    """ Return a new Tristate(default or delay 0) or DelayedTristate """
+    if delay is not None:
+        if delay < 0:
+            raise TypeError("Signal: delay should be >= 0")
+        return _DelayedTristate(val, delay)
+    else:
+        return _Tristate(val)
+ 
     
-    def __new__(cls, val, delay=None):
-        """ Return a new TristateBus (default or delay 0) or DelayedTristateBus """
-        if delay is not None:
-            if delay < 0:
-                raise TypeError("Signal: delay should be >= 0")
-            return object.__new__(DelayedTristate)
-        else:
-            return object.__new__(cls)
-        
+class _Tristate(_Signal):
+            
     def __init__(self, val):
         self._drivers = []
         super(Tristate, self).__init__(val)
@@ -45,31 +46,31 @@ class Tristate(Signal):
         return super(Tristate, self)._update()
 
 
-class _TristateDriver(Signal):
+class _TristateDriver(_Signal):
     
     def __init__(self, bus):
-        Signal.__init__(self, bus._val)
+        _Signal.__init__(self, bus._val)
         self._val = None
         self._bus = bus
 
     def _set_next(self, val):
-         if isinstance(val, Signal):
+         if isinstance(val, _Signal):
             val = val._val
          if val is None:
              self._next = None
          else:             
              self._setNextVal(val)
          _siglist.append(self._bus)   
-    next = property(Signal._get_next, _set_next, None, "'next' access methods")
+    next = property(_Signal._get_next, _set_next, None, "'next' access methods")
 
     
-class DelayedTristate(DelayedSignal, Tristate):
+class _DelayedTristate(_DelayedSignal, _Tristate):
 
     def __init__(self, val, delay=1):
         self._drivers = []
-        super(DelayedTristate, self).__init__(val, delay)
+        super(_DelayedTristate, self).__init__(val, delay)
         self._val = None
         
     def _update(self):
         self._resolve()
-        return super(DelayedTristate, self)._update()
+        return super(_DelayedTristate, self)._update()

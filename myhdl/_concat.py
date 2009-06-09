@@ -22,7 +22,7 @@
 """
 
 from myhdl._intbv import intbv
-from myhdl._Signal import Signal
+from myhdl._Signal import _Signal
 
 def concat(base, *args):
 
@@ -35,7 +35,7 @@ def concat(base, *args):
         else:
             basewidth = 0
         val = base
-    elif isinstance(base, Signal):
+    elif isinstance(base, _Signal):
         basewidth = base._nrbits
         val = base._val
     elif isinstance(base, str):
@@ -50,7 +50,7 @@ def concat(base, *args):
         if isinstance(arg, intbv):
             w = arg._nrbits
             v = arg._val
-        elif isinstance(arg, Signal):
+        elif isinstance(arg, _Signal):
             w = arg._nrbits
             v = arg._val
         elif isinstance(arg, bool):

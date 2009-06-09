@@ -43,7 +43,7 @@ from myhdl._delay import delay
 from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl._extractHierarchy import _isMem, _UserCode
-from myhdl._Signal import _WaiterList
+from myhdl._Signal import _Signal, _WaiterList
 from myhdl._util import _isTupleOfInts, _dedent
 
 myhdlObjects = myhdl.__dict__.values()
@@ -149,7 +149,7 @@ def _analyzeGens(top, absnames):
                     obj = _cell_deref(c)
                     if isinstance(g, _AlwaysComb):
                         # print type(obj)
-                        assert isinstance(obj, (int, long, Signal)) or \
+                        assert isinstance(obj, (int, long, _Signal)) or \
                                _isMem(obj) or _isTupleOfInts(obj)
                     tree.symdict[n] = obj
             tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
@@ -319,7 +319,7 @@ def getNrBits(obj):
 def hasType(obj, theType):
     if isinstance(obj, theType):
         return True
-    if isinstance(obj, Signal):
+    if isinstance(obj, _Signal):
         if isinstance(obj._val, theType):
             return True
     return False
@@ -557,14 +557,14 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if (n not in self.tree.vardict) and (n not in self.tree.symdict):
                 raise AssertionError("attribute target: %s" % n)
         obj = node.value.obj
-        if isinstance(obj, Signal):
+        if isinstance(obj, _Signal):
             if node.attr == 'posedge':
                 node.obj = obj.posedge
             elif node.attr == 'negedge':
                 node.obj = obj.negedge
             elif node.attr in ('val', 'next'):
                 node.obj = obj.val
-        if isinstance(obj, (intbv, Signal)):
+        if isinstance(obj, (intbv, _Signal)):
             if node.attr == 'min':
                 node.obj = obj.min
             elif node.attr == 'max':
@@ -807,7 +807,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if f.func_code.co_freevars:
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
-                    if not  isinstance(obj, (int, long, Signal)):
+                    if not  isinstance(obj, (int, long, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
                     tree.symdict[n] = obj
             v = _FirstPassVisitor(tree)
@@ -1170,7 +1170,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if self.access == _access.INOUT: # augmented assign
             if n in self.tree.sigdict:
                 sig = self.tree.sigdict[n]
-                if isinstance(sig, Signal):
+                if isinstance(sig, _Signal):
                     self.raiseError(node, _error.NotSupported, "Augmented signal assignment")
             if n in self.tree.vardict:
                 obj = self.tree.vardict[n]
@@ -1196,7 +1196,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.globalRefs.add(n)
         if n in self.tree.sigdict:
             node.obj = sig = self.tree.sigdict[n]
-            if not isinstance(sig, Signal):
+            if not isinstance(sig, _Signal):
                 # print "not a signal: %s" % n
                 pass 
             else:
@@ -1533,10 +1533,10 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         senslist = []
         if isinstance(n, ast.Tuple):
             for n in n.elts:
-                if not isinstance(n.obj, (Signal, _WaiterList)):
+                if not isinstance(n.obj, (_Signal, _WaiterList)):
                     self.raiseError(node, _error.UnsupportedYield)
                 senslist.append(n.obj)
-        elif isinstance(n.obj, (Signal, _WaiterList, delay)):
+        elif isinstance(n.obj, (_Signal, _WaiterList, delay)):
             senslist = [n.obj]
         elif _isMem(n.obj):
             senslist = n.obj
@@ -1559,7 +1559,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
     def __init__(self, tree):
         _AnalyzeVisitor.__init__(self, tree)
         for n, v in self.tree.symdict.items():
-            if isinstance(v, Signal):
+            if isinstance(v, _Signal):
                 self.tree.sigdict[n] = v
         
 #     def visitFunction(self, node, *args):
@@ -1764,7 +1764,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             self.tree.symdict[n] = self.getObj(kw.value)
             self.tree.argnames.append(n)
         for n, v in self.tree.symdict.items():
-            if isinstance(v, (Signal, intbv)):
+            if isinstance(v, (_Signal, intbv)):
                 self.tree.sigdict[n] = v
         for stmt in node.body:
             self.visit(stmt)
@@ -1862,13 +1862,13 @@ class _AnalyzeTopFuncVisitor(ast.NodeVisitor):
 #         argnames = node.argnames
 #         i=-1
 #         for i, arg in enumerate(self.args):
-#             if isinstance(arg, Signal):
+#             if isinstance(arg, _Signal):
 #                 n = argnames[i]
 #                 self.argdict[n] = arg
 #         for n in argnames[i+1:]:
 #             if n in self.kwargs:
 #                 arg = self.kwargs[n]
-#                 if isinstance(arg, Signal):
+#                 if isinstance(arg, _Signal):
 #                     self.argdict[n] = arg
 #         self.argnames = [n for n in argnames if n in self.argdict]
 
@@ -1878,13 +1878,13 @@ class _AnalyzeTopFuncVisitor(ast.NodeVisitor):
         argnames = [arg.id for arg in node.args.args]
         i=-1
         for i, arg in enumerate(self.args):
-            if isinstance(arg, Signal):
+            if isinstance(arg, _Signal):
                 n = argnames[i]
                 self.argdict[n] = arg
         for n in argnames[i+1:]:
             if n in self.kwargs:
                 arg = self.kwargs[n]
-                if isinstance(arg, Signal):
+                if isinstance(arg, _Signal):
                     self.argdict[n] = arg
         self.argnames = [n for n in argnames if n in self.argdict]
 

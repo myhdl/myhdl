@@ -50,7 +50,7 @@ from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
                                        _Ram, _Rom)
-from myhdl._Signal import  _ShadowSignal
+from myhdl._Signal import  _Signal,_ShadowSignal
             
 _converting = 0
 _profileFunc = None
@@ -405,7 +405,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth))
         elif hasattr(obj, '_nrbits'):
             s = ""
-            if isinstance(obj, (intbv, Signal)):
+            if isinstance(obj, (intbv, _Signal)):
                 if obj._min is not None and obj._min < 0:
                     s = "signed "
             self.write("%s%s[%s-1:0] %s" % (dir, s, obj._nrbits, name))
@@ -516,7 +516,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         if isinstance(node, astNode.Name):
             o = node.obj
-            if isinstance(o, (Signal, intbv)) and o.min is not None and o.min < 0:
+            if isinstance(o, (_Signal, intbv)) and o.min is not None and o.min < 0:
                 self.raiseError(node, _error.NotSupported,
                                 "negative intbv with operator %s" % op)
 
@@ -628,7 +628,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             obj = self.tree.vardict[n]
         else:
             raise AssertionError("object not found")
-        if isinstance(obj, Signal):
+        if isinstance(obj, _Signal):
             if node.attr == 'next':
                 self.isSigAss = True
                 self.visit(node.value)
@@ -638,7 +638,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.visit(node.value)
             elif node.attr == 'val':
                 self.visit(node.value)
-        if isinstance(obj, (Signal, intbv)):
+        if isinstance(obj, (_Signal, intbv)):
             if node.attr in ('min', 'max'):
                 self.write("%s" % node.obj)
         if isinstance(obj, EnumType):
@@ -1332,7 +1332,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             elif isinstance(obj, (int, long)):
                 self.writeIntSize(obj)
                 s = str(obj)
-            elif isinstance(obj, Signal):
+            elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
                 s = str(obj)
             elif _isMem(obj):

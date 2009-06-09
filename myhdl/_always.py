@@ -25,7 +25,7 @@ from types import FunctionType
 from myhdl import AlwaysError
 from myhdl._util import _isGenFunc
 from myhdl._delay import delay
-from myhdl._Signal import Signal, _WaiterList, posedge, negedge
+from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
                           _DelayWaiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._instance import _Instantiator
@@ -40,7 +40,7 @@ _error.DecNrOfArgs = "decorator should have arguments"
 
 def always(*args):
     for arg in args:
-        if isinstance(arg, Signal):
+        if isinstance(arg, _Signal):
             arg._read = True
             arg._used = True
         elif isinstance(arg, _WaiterList):
@@ -68,7 +68,7 @@ class _Always(_Instantiator):
         
         # infer appropriate waiter class
         # first infer base type of arguments
-        for t in (Signal, _WaiterList, delay):
+        for t in (_Signal, _WaiterList, delay):
             if isinstance(args[0], t):
                 bt = t
         for arg in args[1:]:
@@ -82,12 +82,12 @@ class _Always(_Instantiator):
         if bt is delay:
             W = _DelayWaiter
         elif len(self.senslist) == 1:
-            if bt is Signal:
+            if bt is _Signal:
                 W = _SignalWaiter
             elif bt is _WaiterList:
                 W = _EdgeWaiter
         else:
-            if bt is Signal:
+            if bt is _Signal:
                 W = _SignalTupleWaiter
             elif bt is _WaiterList:
                 W = _EdgeTupleWaiter

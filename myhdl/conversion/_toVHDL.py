@@ -50,7 +50,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,_context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
-from myhdl._Signal import _WaiterList, _ShadowSignal
+from myhdl._Signal import _Signal,_WaiterList, _ShadowSignal
 from myhdl.conversion._toVHDLPackage import _package
 
 _version = myhdl.__version__.replace('.','')
@@ -660,7 +660,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #             return
 #         if isinstance(node, astNode.Name):
 #             o = node.obj
-#             if isinstance(o, (Signal, intbv)) and o.min is not None and o.min < 0:
+#             if isinstance(o, (_Signal, intbv)) and o.min is not None and o.min < 0:
 #                 self.raiseError(node, _error.NotSupported,
 #                                 "negative intbv with operator %s" % op)
 
@@ -830,7 +830,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             obj = self.tree.vardict[n]
         else:
             raise AssertionError("object not found")
-        if isinstance(obj, Signal):
+        if isinstance(obj, _Signal):
             if node.attr == 'next':
                 self.isSigAss = True
                 self.visit(node.value)
@@ -847,7 +847,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.write(pre)
                 self.visit(node.value)
                 self.write(suf)
-        if isinstance(obj, (Signal, intbv)):
+        if isinstance(obj, (_Signal, intbv)):
             if node.attr in ('min', 'max'):
                 self.write("%s" % node.obj)
         if isinstance(obj, EnumType):
@@ -1802,7 +1802,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     s = "'%s'" % int(obj)
                 else:
                     s = '"%s"' % bin(obj, node.vhd.size)
-            elif isinstance(obj, Signal):
+            elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
                 pre, suf = self.inferCast(node.vhd, ori)
@@ -2161,8 +2161,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         first = senslist[0]
         if isinstance(first, _WaiterList):
             bt = _WaiterList
-        elif isinstance(first, Signal):
-            bt = Signal
+        elif isinstance(first, _Signal):
+            bt = _Signal
         elif isinstance(first, delay):
             bt  = delay
         assert bt
@@ -2700,18 +2700,18 @@ def maxType(o1, o2):
     
 def inferVhdlObj(obj):
     vhd = None
-    if (isinstance(obj, Signal) and obj._type is intbv) or \
+    if (isinstance(obj, _Signal) and obj._type is intbv) or \
        isinstance(obj, intbv):
         if obj.min < 0:
             vhd = vhd_signed(len(obj))
         else:
             vhd = vhd_unsigned(len(obj))
-    elif (isinstance(obj, Signal) and obj._type is bool) or \
+    elif (isinstance(obj, _Signal) and obj._type is bool) or \
          isinstance(obj, bool):
         vhd = vhd_std_logic()
-    elif (isinstance(obj, Signal) and isinstance(obj._val, EnumItemType)) or\
+    elif (isinstance(obj, _Signal) and isinstance(obj._val, EnumItemType)) or\
          isinstance(obj, EnumItemType):
-        if isinstance(obj, Signal):
+        if isinstance(obj, _Signal):
             tipe = obj._val._type
         else:
             tipe = obj._type

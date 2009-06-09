@@ -42,7 +42,7 @@ def _isListOfSigs(obj):
     """ Check if obj is a non-empty list of signals. """
     if isinstance(obj, list) and len(obj) > 0:
         for e in obj:
-            if not isinstance(e, Signal):
+            if not isinstance(e, _Signal):
                 return False
         return True
     else:
@@ -81,9 +81,19 @@ def negedge(sig):
     """ Return a negedge trigger object """
     return sig.negedge
 
-class Signal(object):
+# signal factory function
+def Signal(val=None, delay=None):
+    """ Return a new _Signal (default or delay 0) or DelayedSignal """
+    if delay is not None:
+        if delay < 0:
+            raise TypeError("Signal: delay should be >= 0")
+        return _DelayedSignal(val, delay)
+    else:
+        return _Signal(val)
+    
+class _Signal(object):
 
-    """ Signal class.
+    """ _Signal class.
 
     Properties:
     val -- current value (read-only)
@@ -97,14 +107,6 @@ class Signal(object):
                  '_printVcd', '_driven' ,'_read', '_name', '_used', '_inList'
                 )
 
-    def __new__(cls, val=None, delay=None):
-        """ Return a new Signal (default or delay 0) or DelayedSignal """
-        if delay is not None:
-            if delay < 0:
-                raise TypeError("Signal: delay should be >= 0")
-            return object.__new__(DelayedSignal)
-        else:
-            return object.__new__(cls)
 
     def __init__(self, val=None):
         """ Construct a signal.
@@ -189,7 +191,7 @@ class Signal(object):
         _siglist.append(self)
         return self._next
     def _set_next(self, val):
-        if isinstance(val, Signal):
+        if isinstance(val, _Signal):
             val = val._val
         self._setNextVal(val)
         _siglist.append(self)
@@ -302,7 +304,7 @@ class Signal(object):
     # integer-like methods
 
     def __add__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val + other._val
         else:
             return self._val + other
@@ -310,7 +312,7 @@ class Signal(object):
         return other + self._val
     
     def __sub__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val - other._val
         else:
             return self._val - other
@@ -318,7 +320,7 @@ class Signal(object):
         return other - self._val
 
     def __mul__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val * other._val
         else:
             return self._val * other
@@ -326,7 +328,7 @@ class Signal(object):
         return other * self._val
 
     def __div__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val / other._val
         else:
             return self._val / other
@@ -334,7 +336,7 @@ class Signal(object):
         return other / self._val
     
     def __truediv__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return operator.truediv(self._val, other._val)
         else:
             return operator.truediv(self._val, other)
@@ -342,7 +344,7 @@ class Signal(object):
         return operator.truediv(other, self._val)
     
     def __floordiv__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val // other._val
         else:
             return self._val // other
@@ -350,7 +352,7 @@ class Signal(object):
         return other //  self._val
     
     def __mod__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val % other._val
         else:
             return self._val % other
@@ -360,7 +362,7 @@ class Signal(object):
     # XXX divmod
     
     def __pow__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val ** other._val
         else:
             return self._val ** other
@@ -368,7 +370,7 @@ class Signal(object):
         return other ** self._val
 
     def __lshift__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val << other._val
         else:
             return self._val << other
@@ -376,7 +378,7 @@ class Signal(object):
         return other << self._val
             
     def __rshift__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val >> other._val
         else:
             return self._val >> other
@@ -384,7 +386,7 @@ class Signal(object):
         return other >> self._val
            
     def __and__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val & other._val
         else:
             return self._val & other
@@ -392,7 +394,7 @@ class Signal(object):
         return other & self._val
 
     def __or__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val | other._val
         else:
             return self._val | other
@@ -400,7 +402,7 @@ class Signal(object):
         return other | self._val
     
     def __xor__(self, other):
-        if isinstance(other, Signal):
+        if isinstance(other, _Signal):
             return self._val ^ other._val
         else:
             return self._val ^ other
@@ -470,7 +472,7 @@ class Signal(object):
         raise TypeError, "Signal object doesn't support item/slice assignment"
 
 
-class DelayedSignal(Signal):
+class _DelayedSignal(_Signal):
     
     __slots__ = ('_nextZ', '_delay', '_timeStamp',
                 )
@@ -482,7 +484,7 @@ class DelayedSignal(Signal):
         val -- initial value
         delay -- non-zero delay value
         """
-        Signal.__init__(self, val)
+        _Signal.__init__(self, val)
         self._nextZ = val
         self._delay = delay
         self._timeStamp = 0
@@ -530,17 +532,14 @@ class _SignalWrap(object):
         return self.sig._apply(self.next, self.timeStamp)
 
 
-class _ShadowSignal(Signal):
-
-    def __new__(cls, sig, left, right=None):
-        return object.__new__(cls)
+class _ShadowSignal(_Signal):
 
     def __init__(self, sig, left, right=None):
         ### XXX error checks
         if right is None:
-            Signal.__init__(self, sig[left])
+            _Signal.__init__(self, sig[left])
         else:
-            Signal.__init__(self, sig[left:right])
+            _Signal.__init__(self, sig[left:right])
         self.sig = sig
         self.left = left
         self.right = right
@@ -552,14 +551,14 @@ class _ShadowSignal(Signal):
 
     def genfuncIndex(self):
         sig, index = self.sig, self.left
-        set_next = Signal._set_next
+        set_next = _Signal._set_next
         while 1:
             set_next(self, sig[index])
             yield sig
 
     def genfuncSlice(self):
         sig, left, right = self.sig, self.left, self.right
-        set_next = Signal._set_next
+        set_next = _Signal._set_next
         while 1:
             set_next(self, sig[left:right])
             yield sig

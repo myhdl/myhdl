@@ -30,7 +30,7 @@ import re
 from myhdl._util import _dedent
 from myhdl._delay import delay
 from myhdl._join import join
-from myhdl._Signal import Signal, _WaiterList, posedge, negedge
+from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl import _simulator
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._enum import enum
@@ -91,7 +91,7 @@ class _Waiter(object):
                 clause.append(clone)
                 if nr > 1:
                     actives[id(clause)] = clause
-            elif isinstance(clause, Signal):
+            elif isinstance(clause, _Signal):
                 wl = clause._eventWaiters
                 wl.append(clone)
                 if nr > 1:
@@ -352,7 +352,7 @@ class _YieldVisitor(ast.NodeVisitor):
         node.kind = _kind.UNDEFINED
         if n in self.root.symdict:
             obj = self.root.symdict[n]
-            if isinstance(obj, Signal):
+            if isinstance(obj, _Signal):
                 node.kind = _kind.SIGNAL
             elif obj is delay:
                 node.kind = _kind.DELAY
