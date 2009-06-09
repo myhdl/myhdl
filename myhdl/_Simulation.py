@@ -31,6 +31,7 @@ from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _flatten, _printExcInfo
 from myhdl._instance import _Instantiator
+from myhdl._Signal import _ShadowSignal
 
 
 
@@ -60,7 +61,7 @@ class Simulation(object):
         """
         _simulator._time = 0
         arglist = _flatten(*args)
-        self._waiters, self._cosim = _checkArgs(arglist)
+        self._waiters, self._cosim = _makeWaiters(arglist)
         if not self._cosim and _simulator._cosim:
             warn("Cosimulation not registered as Simulation argument")
         self._finished = False
@@ -199,7 +200,7 @@ class Simulation(object):
                 raise
                 
 
-def _checkArgs(arglist):
+def _makeWaiters(arglist):
     waiters = []
     ids = set()
     cosim = None
@@ -222,5 +223,11 @@ def _checkArgs(arglist):
         if id(arg) in ids:
             raise SimulationError(_error.DuplicatedArg)
         ids.add(id(arg))
+    # add waiters for shadow signals
+    # waiter wrapping done here to avoid circular imports
+    for sig in _signals:
+        if not isinstance(sig, _ShadowSignal):
+            continue
+        waiters.append(_SignalWaiter(sig.gen))
     return waiters, cosim
         

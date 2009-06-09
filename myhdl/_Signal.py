@@ -273,6 +273,10 @@ class Signal(object):
     def _printVcdVec(self):
         print >> sim._tf, "b%s %s" % (bin(self._val, self._nrbits), self._code)
 
+    ### use call interface for shadow signals ###
+    def __call__(self, left, right=None):
+        return _ShadowSignal(self, left, right)
+
     ### operators for which delegation to current value is appropriate ###
         
     def __hash__(self):
@@ -525,3 +529,39 @@ class _SignalWrap(object):
     def apply(self):
         return self.sig._apply(self.next, self.timeStamp)
 
+
+class _ShadowSignal(Signal):
+
+    def __new__(cls, sig, left, right=None):
+        return object.__new__(cls)
+
+    def __init__(self, sig, left, right=None):
+        ### XXX error checks
+        if right is None:
+            Signal.__init__(self, sig[left])
+        else:
+            Signal.__init__(self, sig[left:right])
+        self.sig = sig
+        self.left = left
+        self.right = right
+        if right is None:
+            self.gen = self.genfuncIndex()
+        else:
+            self.gen = self.genfuncSlice()
+        self._driven = True
+
+    def genfuncIndex(self):
+        sig, index = self.sig, self.left
+        set_next = Signal._set_next
+        while 1:
+            set_next(self, sig[index])
+            yield sig
+
+    def genfuncSlice(self):
+        sig, left, right = self.sig, self.left, self.right
+        set_next = Signal._set_next
+        while 1:
+            set_next(self, sig[left:right])
+            yield sig
+        
+        

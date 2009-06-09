@@ -50,6 +50,7 @@ from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
                                        _Ram, _Rom)
+from myhdl._Signal import  _ShadowSignal
             
 _converting = 0
 _profileFunc = None
@@ -236,7 +237,16 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for s in constwires:
         print >> f, "assign %s = %s;" % (s._name, int(s._val))
     print >> f
-            
+    # shadow signal assignments
+    for s in siglist:
+        if not isinstance(s, _ShadowSignal):
+            continue
+        if s.right is None:
+            print >> f, "assign %s = %s[%s];" % (s._name, s.sig._name, s.left)
+        else:
+            print >> f, "assign %s = %s[%s-1:%s];" % (s._name, s.sig._name, s.left, s.right)
+    print >> f
+
 
 def _writeModuleFooter(f):
     print >> f, "endmodule"

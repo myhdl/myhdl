@@ -50,7 +50,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,_context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
-from myhdl._Signal import _WaiterList
+from myhdl._Signal import _WaiterList, _ShadowSignal
 from myhdl.conversion._toVHDLPackage import _package
 
 _version = myhdl.__version__.replace('.','')
@@ -145,7 +145,7 @@ class _ToVHDLConvertor(object):
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
-        _convertGens(genlist, vfile)
+        _convertGens(genlist, siglist, vfile)
         _writeModuleFooter(vfile)
 
         vfile.close()
@@ -312,7 +312,7 @@ def _getTypeString(s):
         return 'unsigned'
 
 
-def _convertGens(genlist, vfile):
+def _convertGens(genlist, siglist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for tree in genlist:
@@ -349,6 +349,16 @@ def _convertGens(genlist, vfile):
             assert 0
         print >> vfile, "%s <= %s%s%s;" % (s._name, pre, int(s._val), suf)
     print >> vfile
+    # shadow signal assignments
+    for s in siglist:
+        if not isinstance(s, _ShadowSignal):
+            continue
+        if s.right is None:
+            print >> vfile, "%s <= %s(%s);" % (s._name, s.sig._name, s.left)
+        else:
+            print >> vfile, "%s <= %s(%s-1 downto %s);" % (s._name, s.sig._name, s.left, s.right)
+    print >> vfile
+
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
 
