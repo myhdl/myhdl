@@ -50,7 +50,8 @@ from myhdl.conversion._misc import (_error, _access, _kind,_context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
-from myhdl._Signal import _Signal,_WaiterList, _ShadowSignal
+from myhdl._Signal import _Signal,_WaiterList
+from myhdl._ShadowSignal import _ShadowSignal
 from myhdl.conversion._toVHDLPackage import _package
 
 _version = myhdl.__version__.replace('.','')

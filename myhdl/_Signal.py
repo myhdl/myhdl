@@ -35,6 +35,7 @@ from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
 
+
 _schedule = _futureEvents.append
 
    
@@ -533,56 +534,6 @@ class _SignalWrap(object):
 
 
 
-# shadow signals
-        
-        
-class _ShadowSignal(_Signal):
+# import _SliceSignal here to avoid circular import of _Signal
 
-    __slots__ = ('gen', )
-
-
-        
-class _SliceSignal(_ShadowSignal):
-
-    __slots__ = ('sig', 'left', 'right')
-
-    def __init__(self, sig, left, right=None):
-        ### XXX error checks
-        if right is None:
-            _Signal.__init__(self, sig[left])
-        else:
-            _Signal.__init__(self, sig[left:right])
-        self.sig = sig
-        self.left = left
-        self.right = right
-        if right is None:
-            self.gen = self.genfuncIndex()
-        else:
-            self.gen = self.genfuncSlice()
-        self._driven = True
-
-    def genfuncIndex(self):
-        sig, index = self.sig, self.left
-        set_next = _Signal._set_next
-        while 1:
-            set_next(self, sig[index])
-            yield sig
-
-    def genfuncSlice(self):
-        sig, left, right = self.sig, self.left, self.right
-        set_next = _Signal._set_next
-        while 1:
-            set_next(self, sig[left:right])
-            yield sig
-
-    def toVerilog(self):
-        if self.right is None:
-            return "assign %s = %s[%s];" % (self._name, self.sig._name, self.left)
-        else:
-            return "assign %s = %s[%s-1:%s];" % (self._name, self.sig._name, self.left, self.right)
-
-    def toVHDL(self):
-        if self.right is None:
-            return "%s <= %s(%s);" % (self._name, self.sig._name, self.left)
-        else:
-            return "%s <= %s(%s-1 downto %s);" % (self._name, self.sig._name, self.left, self.right)
+from myhdl._ShadowSignal import _SliceSignal

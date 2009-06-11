@@ -31,7 +31,7 @@ from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _flatten, _printExcInfo
 from myhdl._instance import _Instantiator
-from myhdl._Signal import _ShadowSignal
+from myhdl._ShadowSignal import _ShadowSignal
 
 
 
