@@ -23,13 +23,19 @@
 """
 
 from myhdl._Signal import _Signal
+from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
+from myhdl._intbv import intbv
 
 # shadow signals
         
         
 class _ShadowSignal(_Signal):
 
-    __slots__ = ('gen', )
+    __slots__ = ('gen', 'waiter')
+
+    def __init__(self, val):
+        _Signal.__init__(self, val)
+        self.driven = True
 
 
         
@@ -40,9 +46,9 @@ class _SliceSignal(_ShadowSignal):
     def __init__(self, sig, left, right=None):
         ### XXX error checks
         if right is None:
-            _Signal.__init__(self, sig[left])
+            _ShadowSignal.__init__(self, sig[left])
         else:
-            _Signal.__init__(self, sig[left:right])
+            _ShadowSignal.__init__(self, sig[left:right])
         self.sig = sig
         self.left = left
         self.right = right
@@ -50,7 +56,7 @@ class _SliceSignal(_ShadowSignal):
             self.gen = self.genfuncIndex()
         else:
             self.gen = self.genfuncSlice()
-        self._driven = True
+        self.waiter = _SignalWaiter(self.gen)
 
     def genfuncIndex(self):
         sig, index = self.sig, self.left
@@ -77,3 +83,42 @@ class _SliceSignal(_ShadowSignal):
             return "%s <= %s(%s);" % (self._name, self.sig._name, self.left)
         else:
             return "%s <= %s(%s-1 downto %s);" % (self._name, self.sig._name, self.left, self.right)
+
+
+
+class ConcatSignal(_ShadowSignal):
+
+    __slots__ = ('_args',)
+
+    def __init__(self, *args):
+        assert len(args) >= 2
+        self._args = args
+        ### XXX error checks
+        nrbits = 0
+        for a in args:
+            nrbits += len(a)
+        ini = intbv(0)[nrbits:]
+        hi = nrbits
+        for a in args:
+            lo = hi - len(a)
+            ini[hi:lo] = a
+            hi = lo
+        _ShadowSignal.__init__(self, ini)
+        self.gen = self.genfunc()
+        self.waiter = _SignalTupleWaiter(self.gen)
+
+    def genfunc(self):
+        set_next = _Signal._set_next
+        args = self._args
+        nrbits = self._nrbits
+        newval = intbv(0)[nrbits:]
+        while 1:
+            hi = nrbits
+            for a in args:
+                lo = hi - len(a)
+                newval[hi:lo] = a
+                hi = lo
+            set_next(self, newval)
+            yield args
+                
+

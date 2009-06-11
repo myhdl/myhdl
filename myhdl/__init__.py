@@ -24,6 +24,7 @@ Simulation -- simulation class
 StopStimulation -- exception that stops a simulation
 now -- function that returns the current time
 Signal -- class to model hardware signals
+ConcatSignal -- class that models a concatenation shadow signal
 delay -- callable to model delay in a yield statement
 posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
@@ -36,7 +37,6 @@ bin -- returns a binary string representation.
 concat -- function to concat ints, bitstrings, bools, intbvs, Signals
        -- returns an intbv
 instances -- function that returns all instances defined in a function
-processes -- function that returns all processes defined in a function
 always_comb -- function that returns an input-sensitive generator
 enum -- function that returns an enumeration type
 traceSignals -- function that enables signal tracing in a VCD file
@@ -110,6 +110,7 @@ from _concat import concat
 from _intbv import intbv
 from _join import join
 from _Signal import posedge, negedge, Signal
+from _ShadowSignal import ConcatSignal
 from _simulator import now
 from _delay import delay
 from _Cosimulation import Cosimulation
@@ -135,6 +136,7 @@ __all__ = ["bin",
            "posedge",
            "negedge",
            "Signal",
+           "ConcatSignal",
            "now",
            "delay",
            "downrange",

@@ -224,10 +224,9 @@ def _makeWaiters(arglist):
             raise SimulationError(_error.DuplicatedArg)
         ids.add(id(arg))
     # add waiters for shadow signals
-    # waiter wrapping done here to avoid circular imports
     for sig in _signals:
         if not isinstance(sig, _ShadowSignal):
             continue
-        waiters.append(_SignalWaiter(sig.gen))
+        waiters.append(sig.waiter)
     return waiters, cosim
         
