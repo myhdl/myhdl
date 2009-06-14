@@ -441,7 +441,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 pre, suf = "to_boolean(", ")"
         elif isinstance(vhd, vhd_std_logic):
             if not isinstance(ori, vhd_std_logic):
-                pre, suf = "to_std_logic", ""     
+                pre, suf = "to_std_logic(", ")"     
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"

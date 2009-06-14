@@ -1,6 +1,6 @@
 from myhdl import *
 
-def bench_ShadowSignal():
+def bench_SliceSignal():
     
     s = Signal(intbv(0)[8:])
     a, b, c = s(7), s(5), s(0)
@@ -23,6 +23,42 @@ def bench_ShadowSignal():
     return check
 
 
-def test_ShadowSignal():
-    assert conversion.verify(bench_ShadowSignal) == 0
+def test_SliceSignal():
+    assert conversion.verify(bench_SliceSignal) == 0
+
+
+def bench_ConcatSignal():
+    
+    a = Signal(intbv(0)[5:])
+    b = Signal(bool(0))
+    c = Signal(intbv(0)[3:])
+    d = Signal(intbv(0)[4:])
+    
+    s = ConcatSignal(a, b, c, d)
+
+    I = 2**len(a)
+    J = 2**len(b)
+    K = 2**len(c)
+    M = 2**len(d)
+    @instance
+    def check():
+        for i in range(I):
+            for j in range(J):
+                for k in range(K):
+                    for m in range(M):
+                        a.next = i
+                        b.next = j
+                        c.next = k
+                        d.next = m
+                        yield delay(10)
+                        print s
+
+    return check
+
+
+def test_ConcatSignal():
+    assert conversion.verify(bench_ConcatSignal) == 0
+
+
+
 

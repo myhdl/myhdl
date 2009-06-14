@@ -139,6 +139,7 @@ def _analyzeGens(top, absnames):
             s = inspect.getsource(f)
             s = _dedent(s)
             tree = ast.parse(s)
+            print ast.dump(tree)
             tree.sourcefile = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.func_globals.copy()

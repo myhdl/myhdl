@@ -122,3 +122,27 @@ class ConcatSignal(_ShadowSignal):
             yield args
                 
 
+    def toVHDL(self):
+        lines = []
+        hi = self._nrbits
+        for a in self._args:
+            lo = hi - len(a)
+            if len(a) == 1:
+                lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+            else:
+                lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
+            hi = lo
+        return "\n".join(lines)
+
+    def toVerilog(self):
+        lines = []
+        hi = self._nrbits
+        for a in self._args:
+            lo = hi - len(a)
+            if len(a) == 1:
+                lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+            else:
+                lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
+            hi = lo
+        return "\n".join(lines)
+

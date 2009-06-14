@@ -32,6 +32,8 @@ package pck_myhdl_%(version)s is
 
     function to_std_logic (arg: boolean) return std_logic;
 
+    function to_std_logic (arg: integer) return std_logic;
+
     function to_unsigned (arg: boolean; size: natural) return unsigned;
 
     function to_signed (arg: boolean; size: natural) return signed;
@@ -67,6 +69,16 @@ package body pck_myhdl_%(version)s is
             return '0';
         end if;
     end function to_std_logic;
+
+    function to_std_logic (arg: integer) return std_logic is
+    begin
+        if arg /= 0 then
+            return '1';
+        else
+            return '0';
+        end if;
+    end function to_std_logic;
+
 
     function to_unsigned (arg: boolean; size: natural) return unsigned is
         variable res: unsigned(size-1 downto 0) := (others => '0');

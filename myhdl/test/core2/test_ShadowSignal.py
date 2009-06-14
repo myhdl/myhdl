@@ -28,7 +28,7 @@ def test_SliceSignal():
 
 def bench_ConcatSignal():
     
-    a = Signal(intbv(0)[8:])
+    a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
     c = Signal(intbv(0)[3:])
     d = Signal(intbv(0)[4:])
@@ -39,8 +39,8 @@ def bench_ConcatSignal():
     def check():
         for i in range(2**len(a)):
             for j in (0, 1):
-                for k in range(len(c)):
-                    for m in range(len(d)):
+                for k in range(2**len(c)):
+                    for m in range(2**len(d)):
                         a.next = i
                         b.next = j
                         c.next = k
