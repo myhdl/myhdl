@@ -59,4 +59,33 @@ def test_ConcatSignal():
 
 
 
+def bench_TristateSignal():
+    s = TristateSignal(intbv(0)[8:])
+    a = s.driver()
+    b = s.driver()
+    c = s.driver()
 
+    @instance
+    def check():
+        assert s == None
+        a.next = 1
+        yield delay(10)
+        assert s == a
+        a.next = None
+        b.next = 122
+        yield delay(10)
+        assert s == b
+        b.next = None
+        c.next = 233
+        yield delay(10)
+        assert s == c
+        c.next = None
+        yield delay(10)
+        assert s == None
+    
+    return check
+
+
+def test_TristateSignal():
+    Simulation(bench_TristateSignal()).run()
+    

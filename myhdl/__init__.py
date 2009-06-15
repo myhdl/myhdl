@@ -25,6 +25,7 @@ StopStimulation -- exception that stops a simulation
 now -- function that returns the current time
 Signal -- class to model hardware signals
 ConcatSignal -- class that models a concatenation shadow signal
+TristateSignal -- class that models a concatenation shadow signal
 delay -- callable to model delay in a yield statement
 posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
@@ -111,6 +112,7 @@ from _intbv import intbv
 from _join import join
 from _Signal import posedge, negedge, Signal
 from _ShadowSignal import ConcatSignal
+from _ShadowSignal import TristateSignal
 from _simulator import now
 from _delay import delay
 from _Cosimulation import Cosimulation
@@ -137,6 +139,7 @@ __all__ = ["bin",
            "negedge",
            "Signal",
            "ConcatSignal",
+           "TristateSignal",
            "now",
            "delay",
            "downrange",
