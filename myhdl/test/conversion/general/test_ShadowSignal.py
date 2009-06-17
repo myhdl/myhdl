@@ -62,3 +62,36 @@ def test_ConcatSignal():
 
 
 
+def bench_TristateSignal():
+    s = TristateSignal(intbv(0)[8:])
+    a = s.driver()
+    b = s.driver()
+    c = s.driver()
+
+    @instance
+    def check():
+        a.next = None
+        b.next = None
+        c.next = None
+        yield delay(10)
+        print s
+        a.next = 1
+        yield delay(10)
+        print s
+        a.next = None
+        b.next = 122
+        yield delay(10)
+        print s
+        b.next = None
+        c.next = 233
+        yield delay(10)
+        print s
+        c.next = None
+        yield delay(10)
+        print s
+    
+    return check
+
+
+def test_TristateSignal():
+    assert conversion.verify(bench_TristateSignal) == 0

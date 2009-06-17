@@ -23,6 +23,7 @@
 """
 
 import warnings
+from copy import deepcopy as copy
 
 from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
@@ -39,6 +40,9 @@ class _ShadowSignal(_Signal):
     def __init__(self, val):
         _Signal.__init__(self, val)
         self.driven = True
+
+    # remove next attribute assignment
+    next = property(_Signal._get_next, None, None, "'next' access methods")
 
 
         
@@ -63,7 +67,7 @@ class _SliceSignal(_ShadowSignal):
 
     def genfuncIndex(self):
         sig, index = self.sig, self.left
-        set_next = _Signal._set_next
+        set_next = _ShadowSignal._set_next
         while 1:
             set_next(self, sig[index])
             yield sig
@@ -111,7 +115,7 @@ class ConcatSignal(_ShadowSignal):
         self.waiter = _SignalTupleWaiter(gen)
 
     def genfunc(self):
-        set_next = _Signal._set_next
+        set_next = _ShadowSignal._set_next
         args = self._args
         nrbits = self._nrbits
         newval = intbv(0)[nrbits:]
@@ -174,12 +178,15 @@ def TristateSignal(val):
 
 class _TristateSignal(_ShadowSignal):
 
-    __slots__ = ('_drivers', '_ini' )
+    __slots__ = ('_drivers', '_orival' )
             
     def __init__(self, val):
         self._drivers = []
-        _ShadowSignal.__init__(self, val=None)     
-        self._ini = val
+        # construct normally to set type / size info right
+        _ShadowSignal.__init__(self, val)     
+        self._orival = val # keep for drivers
+        # reset signal values to None
+        self._next = self._val = self._init = None
         self.waiter = _SignalTupleWaiter(self._resolve())
 
     def driver(self):
@@ -188,27 +195,42 @@ class _TristateSignal(_ShadowSignal):
         return d
 
     def _resolve(self):
+        # set_next = _ShadowSignal._set_next
         senslist = self._drivers
         while 1:
             yield senslist
             res = None
             for d in senslist:
-                print d
-                print res
                 if res is None:
                     res = d._val
                 elif d._val is not None:
                     warnings.warn("Bus contention", category=BusContentionWarning)
                     res = None
                     break
-            self.next = res
+            self._next = res
+            _siglist.append(self)
+
+
+    def toVerilog(self):
+        lines = []
+        for d in self._drivers:
+            lines.append("assign %s = %s;" % (self._name, d._name))
+        return "\n".join(lines)
+
+    def toVHDL(self):
+        lines = []
+        for d in self._drivers:
+            lines.append("%s <= %s;" % (self._name, d._name))
+        return "\n".join(lines)
+
 
 
 class _TristateDriver(_Signal):
     
     def __init__(self, sig):
-        _Signal.__init__(self, sig._ini)
-        self._val = None
+        _Signal.__init__(self, sig._orival)
+        # reset signal values to None
+        self._next = self._val = self._init = None
         self._sig = sig
 
     def _set_next(self, val):
@@ -216,9 +238,11 @@ class _TristateDriver(_Signal):
             val = val._val
          if val is None:
              self._next = None
-         else:             
+         else:     
+             # restore orignal value to cater for intbv handler
+             self._next = copy(self._sig._orival)
              self._setNextVal(val)
          _siglist.append(self)   
          
-    # redefine property because standard interitance doesn't work for setter/getter functions
+    # redefine property because standard inheritance doesn't work for setter/getter functions
     next = property(_Signal._get_next, _set_next, None, "'next' access methods")

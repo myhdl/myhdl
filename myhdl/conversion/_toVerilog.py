@@ -1316,6 +1316,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             s = "1'b0"
         elif n == 'True':
             s = "1'b1"
+        elif n == 'None':
+            s = "'bz"
         elif n in self.tree.vardict:
             addSignBit = isMixedExpr
             s = n

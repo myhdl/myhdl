@@ -153,8 +153,13 @@ class  _VerificationClass(object):
         s = "".join(g)
         f = open(MyHDLLog, 'w')
         g = open(HDLLog, 'w')
+        d = open('diff.log', 'w')
         f.writelines(flines)
         g.writelines(glines)
+        d.write(s)
+        f.close()
+        g.close()
+        d.close()
 
 
         if not s:
