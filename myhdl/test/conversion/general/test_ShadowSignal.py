@@ -74,7 +74,7 @@ def bench_TristateSignal():
         b.next = None
         c.next = None
         yield delay(10)
-        print s
+        #print s
         a.next = 1
         yield delay(10)
         print s
@@ -88,7 +88,7 @@ def bench_TristateSignal():
         print s
         c.next = None
         yield delay(10)
-        print s
+        #print s
     
     return check
 

@@ -51,7 +51,6 @@ from myhdl.conversion._misc import (_error, _access, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
                                        _Ram, _Rom)
 from myhdl._Signal import _Signal
-from myhdl._ShadowSignal import _ShadowSignal
             
 _converting = 0
 _profileFunc = None
@@ -240,9 +239,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
     print >> f
     # shadow signal assignments
     for s in siglist:
-        if not isinstance(s, _ShadowSignal):
-            continue
-        print >> f, s.toVerilog()
+        if hasattr(s, 'toVerilog'):
+            print >> f, s.toVerilog()
     print >> f
 
 

@@ -35,7 +35,7 @@ from myhdl._simulator import _siglist
         
 class _ShadowSignal(_Signal):
 
-    __slots__ = ('waiter')
+    __slots__ = ('_waiter', )
 
     def __init__(self, val):
         _Signal.__init__(self, val)
@@ -48,7 +48,7 @@ class _ShadowSignal(_Signal):
         
 class _SliceSignal(_ShadowSignal):
 
-    __slots__ = ('sig', 'left', 'right')
+    __slots__ = ('_sig', '_left', '_right')
 
     def __init__(self, sig, left, right=None):
         ### XXX error checks
@@ -56,40 +56,40 @@ class _SliceSignal(_ShadowSignal):
             _ShadowSignal.__init__(self, sig[left])
         else:
             _ShadowSignal.__init__(self, sig[left:right])
-        self.sig = sig
-        self.left = left
-        self.right = right
+        self._sig = sig
+        self._left = left
+        self._right = right
         if right is None:
             gen = self.genfuncIndex()
         else:
             gen = self.genfuncSlice()
-        self.waiter = _SignalWaiter(gen)
+        self._waiter = _SignalWaiter(gen)
 
     def genfuncIndex(self):
-        sig, index = self.sig, self.left
+        sig, index = self._sig, self._left
         set_next = _ShadowSignal._set_next
         while 1:
             set_next(self, sig[index])
             yield sig
 
     def genfuncSlice(self):
-        sig, left, right = self.sig, self.left, self.right
+        sig, left, right = self._sig, self._left, self._right
         set_next = _Signal._set_next
         while 1:
             set_next(self, sig[left:right])
             yield sig
 
     def toVerilog(self):
-        if self.right is None:
-            return "assign %s = %s[%s];" % (self._name, self.sig._name, self.left)
+        if self._right is None:
+            return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
         else:
-            return "assign %s = %s[%s-1:%s];" % (self._name, self.sig._name, self.left, self.right)
+            return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
 
     def toVHDL(self):
-        if self.right is None:
-            return "%s <= %s(%s);" % (self._name, self.sig._name, self.left)
+        if self._right is None:
+            return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
         else:
-            return "%s <= %s(%s-1 downto %s);" % (self._name, self.sig._name, self.left, self.right)
+            return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
 
 
 
@@ -112,7 +112,7 @@ class ConcatSignal(_ShadowSignal):
             hi = lo
         _ShadowSignal.__init__(self, ini)
         gen = self.genfunc()
-        self.waiter = _SignalTupleWaiter(gen)
+        self._waiter = _SignalTupleWaiter(gen)
 
     def genfunc(self):
         set_next = _ShadowSignal._set_next
@@ -187,7 +187,7 @@ class _TristateSignal(_ShadowSignal):
         self._orival = val # keep for drivers
         # reset signal values to None
         self._next = self._val = self._init = None
-        self.waiter = _SignalTupleWaiter(self._resolve())
+        self._waiter = _SignalTupleWaiter(self._resolve())
 
     def driver(self):
         d = _TristateDriver(self)
@@ -226,6 +226,8 @@ class _TristateSignal(_ShadowSignal):
 
 
 class _TristateDriver(_Signal):
+
+    __slots__ = ('_sig',)
     
     def __init__(self, sig):
         _Signal.__init__(self, sig._orival)

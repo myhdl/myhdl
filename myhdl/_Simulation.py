@@ -225,8 +225,7 @@ def _makeWaiters(arglist):
         ids.add(id(arg))
     # add waiters for shadow signals
     for sig in _signals:
-        if not isinstance(sig, _ShadowSignal):
-            continue
-        waiters.append(sig.waiter)
+        if hasattr(sig, '_waiter'):
+            waiters.append(sig._waiter)
     return waiters, cosim
         

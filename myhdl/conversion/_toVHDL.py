@@ -51,7 +51,6 @@ from myhdl.conversion._misc import (_error, _access, _kind,_context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
 from myhdl._Signal import _Signal,_WaiterList
-from myhdl._ShadowSignal import _ShadowSignal
 from myhdl.conversion._toVHDLPackage import _package
 
 _version = myhdl.__version__.replace('.','')
@@ -352,9 +351,8 @@ def _convertGens(genlist, siglist, vfile):
     print >> vfile
     # shadow signal assignments
     for s in siglist:
-        if not isinstance(s, _ShadowSignal):
-            continue
-        print >> vfile, s.toVHDL()
+        if hasattr(s, 'toVHDL'):
+            print >> vfile, s.toVHDL()
     print >> vfile
 
     vfile.write(blockBuf.getvalue()); blockBuf.close()
