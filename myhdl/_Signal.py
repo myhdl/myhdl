@@ -35,7 +35,6 @@ from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
 
-
 _schedule = _futureEvents.append
 
    
@@ -105,7 +104,8 @@ class _Signal(object):
     __slots__ = ('_next', '_val', '_min', '_max', '_type', '_init',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                  '_code', '_tracing', '_nrbits', '_checkVal', '_setNextVal',
-                 '_printVcd', '_driven' ,'_read', '_name', '_used', '_inList'
+                 '_printVcd', '_driven' ,'_read', '_name', '_used', '_inList',
+                 '_waiter', 'toVHDL', 'toVerilog'
                 )
 
 
@@ -473,6 +473,28 @@ class _Signal(object):
         raise TypeError, "Signal object doesn't support item/slice assignment"
 
 
+    # continues assignment support
+    def assign(self, sig):
+
+        self.driven = "wire"
+
+        def genFunc():
+            while 1:
+                self.next = sig._val
+                yield sig
+
+        self._waiter = _SignalWaiter(genFunc())
+
+        def toVHDL():
+            return "%s <= %s;" % (self._name, sig._name)
+
+        def toVerilog():
+            return "assign %s = %s;" % (self._name, sig._name)
+
+        self.toVHDL = toVHDL
+        self.toVerilog = toVerilog
+
+
 class _DelayedSignal(_Signal):
     
     __slots__ = ('_nextZ', '_delay', '_timeStamp',
@@ -537,3 +559,4 @@ class _SignalWrap(object):
 # import _SliceSignal here to avoid circular import of _Signal
 
 from myhdl._ShadowSignal import _SliceSignal
+from myhdl._Waiter import _SignalWaiter
