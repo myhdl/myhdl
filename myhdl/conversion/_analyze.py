@@ -44,6 +44,7 @@ from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl._extractHierarchy import _isMem, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
+from myhdl._ShadowSignal import _SliceSignal
 from myhdl._util import _isTupleOfInts, _dedent
 
 myhdlObjects = myhdl.__dict__.values()
@@ -95,9 +96,14 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
+            if isinstance(s, _SliceSignal):
+                continue
             s._name = _makeName(n, prefixes)
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
+            # slice signals
+            for sl in s._slicesigs:
+                sl._setName(hdl)
             siglist.append(s)
         # list of signals
         for n, m in memdict.items():
@@ -1618,6 +1624,8 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
         for n in self.tree.inputs:
             s = self.tree.sigdict[n]
             s._read = True
+            if isinstance(s, _SliceSignal):
+                s._sig.read = True
             
 #     def visitReturn(self, node, *args):
 #         ### value should be None

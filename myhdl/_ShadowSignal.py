@@ -39,7 +39,7 @@ class _ShadowSignal(_Signal):
 
     def __init__(self, val):
         _Signal.__init__(self, val)
-        self.driven = True
+        self._driven = True
 
     # remove next attribute assignment
     next = property(_Signal._get_next, None, None, "'next' access methods")
@@ -60,36 +60,48 @@ class _SliceSignal(_ShadowSignal):
         self._left = left
         self._right = right
         if right is None:
-            gen = self.genfuncIndex()
+            gen = self._genfuncIndex()
         else:
-            gen = self.genfuncSlice()
+            gen = self._genfuncSlice()
         self._waiter = _SignalWaiter(gen)
 
-    def genfuncIndex(self):
+    def _genfuncIndex(self):
         sig, index = self._sig, self._left
         set_next = _ShadowSignal._set_next
         while 1:
             set_next(self, sig[index])
             yield sig
 
-    def genfuncSlice(self):
+    def _genfuncSlice(self):
         sig, left, right = self._sig, self._left, self._right
         set_next = _Signal._set_next
         while 1:
             set_next(self, sig[left:right])
             yield sig
 
-    def toVerilog(self):
-        if self._right is None:
-            return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
+    def _setName(self, hdl):
+        if self._right is None:       
+            if hdl == 'Verilog':
+                self._name = "%s[%s]" % (self._sig._name, self._left)
+            else:
+                self._name = "%s(%s)" % (self._sig._name, self._left)
         else:
-            return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
+            if hdl == 'Verilog':
+                self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
+            else:
+                self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
 
-    def toVHDL(self):
-        if self._right is None:
-            return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
-        else:
-            return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
+#     def toVerilog(self):
+#         if self._right is None:
+#             return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
+#         else:
+#             return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
+
+#     def toVHDL(self):
+#         if self._right is None:
+#             return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
+#         else:
+#             return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
 
 
 

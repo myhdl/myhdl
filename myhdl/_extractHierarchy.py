@@ -158,7 +158,7 @@ class _HierExtr(object):
         sys.setprofile(None)
         if not hierarchy:
             raise ExtractHierarchyError(_error.NoInstances)
-            
+
         self.top = _top
 
         # streamline hierarchy

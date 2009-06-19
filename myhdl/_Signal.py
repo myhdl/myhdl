@@ -105,7 +105,7 @@ class _Signal(object):
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                  '_code', '_tracing', '_nrbits', '_checkVal', '_setNextVal',
                  '_printVcd', '_driven' ,'_read', '_name', '_used', '_inList',
-                 '_waiter', 'toVHDL', 'toVerilog'
+                 '_waiter', 'toVHDL', 'toVerilog', '_slicesigs'
                 )
 
 
@@ -152,6 +152,7 @@ class _Signal(object):
         self._posedgeWaiters = _PosedgeWaiterList(self)
         self._negedgeWaiters = _NegedgeWaiterList(self)
         self._code = ""
+        self._slicesigs = []
         self._tracing = 0
         _signals.append(self)
 
@@ -161,6 +162,8 @@ class _Signal(object):
         del self._negedgeWaiters[:]
         self._next = self._val = self._init
         self._name = self._read = self._driven = None
+        for s in self._slicesigs:
+            s._clear()
         
     def _update(self):
         val, next = self._val, self._next
@@ -278,7 +281,10 @@ class _Signal(object):
 
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):
-        return _SliceSignal(self, left, right)
+        s = _SliceSignal(self, left, right)
+        self._slicesigs.append(s)
+        return s
+
 
     ### operators for which delegation to current value is appropriate ###
         
