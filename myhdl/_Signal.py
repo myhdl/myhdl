@@ -234,8 +234,11 @@ class _Signal(object):
     def _set_read(self, val):
         if not val in (True, ):
             raise ValueError('Expected value True, got "%s"' % val)
-        self._read = val
+        self._markRead()
     read = property(_get_read, _set_read, None, "'read' access methods")
+
+    def _markRead(self):
+        self._read = True
 
     # set next methods
     def _setNextBool(self, val):

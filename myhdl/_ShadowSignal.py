@@ -91,6 +91,11 @@ class _SliceSignal(_ShadowSignal):
             else:
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
 
+    def _markRead(self):
+        self._read = True
+        self._sig._read = True
+        
+
 #     def toVerilog(self):
 #         if self._right is None:
 #             return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
@@ -139,7 +144,11 @@ class ConcatSignal(_ShadowSignal):
                 hi = lo
             set_next(self, newval)
             yield args
-                
+
+    def _markRead(self):
+        self._read = True
+        for s in self._args:
+            s._markRead() 
 
     def toVHDL(self):
         lines = []

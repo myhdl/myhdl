@@ -1623,9 +1623,7 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             s._driven = "reg"
         for n in self.tree.inputs:
             s = self.tree.sigdict[n]
-            s._read = True
-            if isinstance(s, _SliceSignal):
-                s._sig.read = True
+            s._markRead()
             
 #     def visitReturn(self, node, *args):
 #         ### value should be None

@@ -95,3 +95,43 @@ def bench_TristateSignal():
 
 def test_TristateSignal():
     assert conversion.verify(bench_TristateSignal) == 0
+
+
+
+def permute(x, a, mapping):
+
+    p = [a(m) for m in mapping]
+    
+    q = ConcatSignal(*p)
+    
+    @always_comb
+    def assign():
+        x.next = q
+
+    return assign
+
+
+
+def bench_permute():
+
+    x = Signal(intbv(0)[3:])
+    a = Signal(intbv(0)[3:])
+    mapping = (1, 2, 0)
+
+    dut = permute(x, a, mapping)
+
+    @instance
+    def stimulus():
+        for i in range(2**len(a)):
+            a.next = i
+            yield delay(10)
+            print x, a
+            assert x[2] == a[1]
+            assert x[1] == a[2]
+            assert x[0] == a[0]
+        raise StopSimulation()
+
+    return dut, stimulus
+
+def test_permute():
+    assert conversion.verify(bench_permute) == 0
