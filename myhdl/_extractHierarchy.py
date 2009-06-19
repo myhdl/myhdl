@@ -227,7 +227,7 @@ class _HierExtr(object):
                             if isinstance(v, _Signal):
                                 sigdict[n] = v
                                 if n in cellvars:
-                                    v._used = True
+                                    v._markUsed()
                             if _isListOfSigs(v):
                                 m = _makeMemInfo(v)
                                 memdict[n] = m

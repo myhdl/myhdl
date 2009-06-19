@@ -240,6 +240,10 @@ class _Signal(object):
     def _markRead(self):
         self._read = True
 
+    # 'used' attribute
+    def _markUsed(self):
+        self._used = True
+
     # set next methods
     def _setNextBool(self, val):
         if not val in (0, 1):

@@ -94,6 +94,10 @@ class _SliceSignal(_ShadowSignal):
     def _markRead(self):
         self._read = True
         self._sig._read = True
+
+    def _markUsed(self):
+        self._used = True
+        self._sig._read = True
         
 
 #     def toVerilog(self):
@@ -149,6 +153,11 @@ class ConcatSignal(_ShadowSignal):
         self._read = True
         for s in self._args:
             s._markRead() 
+
+    def _markUsed(self):
+        self._used = True
+        for s in self._args:
+            s._markUsed() 
 
     def toVHDL(self):
         lines = []
