@@ -116,7 +116,7 @@ def bench_permute(conv=False):
 
     x = Signal(intbv(0)[3:])
     a = Signal(intbv(0)[3:])
-    mapping = (1, 2, 0)
+    mapping = (0, 2, 1)
 
     if conv:
         dut = conv(permute, x, a, mapping)
@@ -129,9 +129,9 @@ def bench_permute(conv=False):
             a.next = i
             yield delay(10)
             print x, a
-            assert x[2] == a[1]
+            assert x[2] == a[0]
             assert x[1] == a[2]
-            assert x[0] == a[0]
+            assert x[0] == a[1]
         raise StopSimulation()
 
     return dut, stimulus
