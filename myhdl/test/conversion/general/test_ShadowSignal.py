@@ -112,13 +112,16 @@ def permute(x, a, mapping):
 
 
 
-def bench_permute():
+def bench_permute(conv=False):
 
     x = Signal(intbv(0)[3:])
     a = Signal(intbv(0)[3:])
     mapping = (1, 2, 0)
 
-    dut = permute(x, a, mapping)
+    if conv:
+        dut = conv(permute, x, a, mapping)
+    else:
+        dut = permute(x, a, mapping)
 
     @instance
     def stimulus():
@@ -135,3 +138,6 @@ def bench_permute():
 
 def test_permute():
     assert conversion.verify(bench_permute) == 0
+
+bench_permute(toVHDL)
+bench_permute(toVerilog)

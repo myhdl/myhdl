@@ -33,19 +33,22 @@ def adapter(o_err, i_err, o_spec, i_spec):
     return assign
 
 
-
-def bench_adapter():
+def bench_adapter(conv=False):
     o_spec = ('c', 'a', 'other', 'nomatch')
     i_spec = { 'a' : 1, 'b' : 2, 'c' : 0, 'd' : 3, 'e' : 4, 'f' : 5, }
 
     o_err = Signal(intbv(0)[4:])
     i_err = Signal(intbv(0)[6:])
     
-    dut = adapter(o_err, i_err, o_spec, i_spec)
+    if conv:
+        dut = conv(adapter, o_err, i_err, o_spec, i_spec)
+    else:
+        dut = adapter(o_err, i_err, o_spec, i_spec)
 
+    N = 2**len(i_err)
     @instance
     def stimulus():
-        for i in range(2**len(i_err)):
+        for i in range(N):
             i_err.next = i
             yield delay(10)
             assert o_err[0] == 0
@@ -58,3 +61,7 @@ def bench_adapter():
 
 def test_adapter():
     assert conversion.verify(bench_adapter) == 0
+
+
+bench_adapter(toVerilog)
+bench_adapter(toVHDL)
