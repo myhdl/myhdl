@@ -34,6 +34,7 @@ from myhdl import _simulator
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._enum import enum
 
+
 schedule = _futureEvents.append
 
 
@@ -100,6 +101,8 @@ class _Waiter(object):
                 schedule((t + clause._time, clone))
             elif isinstance(clause, GeneratorType):
                 waiters.append(_Waiter(clause, clone))
+            elif isinstance(clause, _Instantiator):
+                waiters.append(_Waiter(clause.gen, clone))
             elif isinstance(clause, join):
                 waiters.append(_Waiter(clause._generator(), clone))
             elif clause is None:
@@ -279,7 +282,7 @@ class _YieldVisitor(object):
                
                 
         
+# avoid problems with recursive imports        
+from myhdl._instance import _Instantiator
 
-        
-
-    
+   
