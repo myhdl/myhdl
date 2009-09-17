@@ -393,6 +393,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         tree.kind = None
         tree.hasYield = 0
         tree.hasRom = False
+        tree.hasLos = False
         tree.hasPrint = False
         self.tree = tree
         self.labelStack = []
@@ -1197,6 +1198,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def getName(self, node):
         n = node.id
         node.obj = None
+            
         if n not in self.refStack:
             if n in self.tree.vardict:
                 self.raiseError(node, _error.UnboundLocal, n)
@@ -1233,6 +1235,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if _isTupleOfInts(node.obj):
                 node.obj = _Rom(node.obj)
                 self.tree.hasRom = True
+            elif _isMem(node.obj):
+                self.tree.hasLos = True
             elif isinstance(node.obj, int):
                 node.value = node.obj
         elif n in __builtin__.__dict__:
@@ -1682,8 +1686,9 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
               else:
                   self.tree.kind = _kind.ALWAYS_COMB
                   return
-          # rom access is expanded into a case statement
-          if self.tree.hasRom:
+          # rom access is expanded into a case statement in addition
+          # to any always_comb that contains a list of signals
+          if self.tree.hasRom or self.tree.hasLos:
               self.tree.kind = _kind.ALWAYS_COMB
           self.refStack.pop()
 
