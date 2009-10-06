@@ -51,7 +51,8 @@ class intbv(object):
         if isinstance(val, (int, long)):
             self._val = val
         elif isinstance(val, StringType):
-            self._val = long(val, 2)
+            mval = val.replace('_', '')
+            self._val = long(mval, 2)
             _nrbits = len(val)
         elif isinstance(val, intbv):
             self._val = val._val
