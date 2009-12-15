@@ -41,7 +41,7 @@ _profileFunc = None
 class _error:
     pass
 _error.NoInstances = "No instances found"
-_error.InconsistentHierarchy = "Inconsistent hierarchy - are all instances returned?"
+_error.InconsistentHierarchy = "Inconsistent hierarchy inside %s - are all instances returned ?"
 
 
 class _Instance(object):
@@ -170,11 +170,11 @@ class _HierExtr(object):
         names[id(obj)] = name
         absnames[id(obj)] = name
         if not top_inst.level == 1:
-                raise ExtractHierarchyError(_error.InconsistentHierarchy)
+            raise ExtractHierarchyError(_error.InconsistentHierarchy % name)
         for inst in hierarchy:
             obj, subs = inst.obj, inst.subs
             if id(obj) not in names:
-                raise ExtractHierarchyError(_error.InconsistentHierarchy)
+                raise ExtractHierarchyError(_error.InconsistentHierarchy % inst.name)
             inst.name = names[id(obj)]
             tn = absnames[id(obj)]
             for sn, so in subs:

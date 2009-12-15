@@ -122,7 +122,7 @@ class TestTraceSigs(TestCase):
         try:
             dut = traceSignals(dummy)
         except ExtractHierarchyError, e:
-            self.assertEqual(e.kind, _error.InconsistentHierarchy)
+            self.assertEqual(e.kind, _error.InconsistentHierarchy % "dummy")
         else:
             self.fail()
 

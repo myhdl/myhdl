@@ -136,7 +136,7 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             g = always_comb(h).gen
         except AlwaysCombError, e:
-            self.assertEqual(e.kind, _error.SignalAsInout)
+            self.assertEqual(e.kind, _error.SignalAsInout % "c")
         else:
             self.fail()
 
@@ -148,7 +148,7 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             g = always_comb(h).gen
         except AlwaysCombError, e:
-            self.assertEqual(e.kind, _error.SignalAsInout)
+            self.assertEqual(e.kind, _error.SignalAsInout % "c")
         else:
             self.fail()
 

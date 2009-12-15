@@ -154,7 +154,11 @@ class intbv(object):
                 self._val &= ~(1L << i)
             self._checkBounds()
         elif isinstance(key, slice):
+            if val == None:
+                raise ValueError, "cannot attribute None to a slice"
             i, j = key.start, key.stop
+            if (self._val == None) and (i != None) and (j != None):
+                raise ValueError, "cannot slice value None"
             if j is None: # default
                 if i is None and self._val is None:
                     self._val = val

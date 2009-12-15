@@ -37,7 +37,7 @@ class _error:
 _error.ArgType = "always_comb argument should be a classic function"
 _error.NrOfArgs = "always_comb argument should be a function without arguments"
 _error.Scope = "always_comb argument should be a local function"
-_error.SignalAsInout = "signal used as inout in always_comb function argument"
+_error.SignalAsInout = "signal (%s) used as inout in always_comb function argument"
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
 _error.EmptySensitivityList= "sensitivity list is empty"
     
@@ -56,8 +56,11 @@ def always_comb(func):
     # handle free variables
     if func.func_code.co_freevars:
         for n, c in zip(func.func_code.co_freevars, func.func_closure):
-            obj = _cell_deref(c)
-            symdict[n] = obj
+            try:
+                obj = _cell_deref(c)
+                symdict[n] = obj
+            except NameError:
+                raise NameError(n)
     c = _AlwaysComb(func, symdict)
     return c
    
@@ -163,7 +166,7 @@ class _SigNameVisitor(ast.NodeVisitor):
             self.visit(n)
         for n in inputs:
             if n in outputs:
-                raise AlwaysCombError(_error.SignalAsInout)
+                raise AlwaysCombError(_error.SignalAsInout % n)
 
     def visit_FunctionDef(self, node):
         if self.toplevel:
@@ -191,7 +194,7 @@ class _SigNameVisitor(ast.NodeVisitor):
             elif self.context == OUTPUT:
                 self.outputs.add(id)
             elif self.context == INOUT:
-                raise AlwaysCombError(_error.SignalAsInout)
+                raise AlwaysCombError(_error.SignalAsInout % id)
             else:
                 raise AssertionError("bug in always_comb")
             
