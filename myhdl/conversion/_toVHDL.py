@@ -465,7 +465,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
         else:
             vhd = inferVhdlObj(obj)
-            tipe = vhd.toStr(constr)
+            if isinstance(vhd, vhd_enum):
+                tipe = obj._val._type._name
+            else:
+                tipe = vhd.toStr(constr)
         if kind: kind += " "
         if dir: dir += " "
         self.write("%s%s: %s%s%s" % (kind, name, dir, tipe, endchar))
