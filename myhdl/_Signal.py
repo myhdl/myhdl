@@ -567,7 +567,8 @@ class _SignalWrap(object):
     def apply(self):
         return self.sig._apply(self.next, self.timeStamp)
 
-
+# for export
+SignalType = _Signal
 
 # import _SliceSignal here to avoid circular import of _Signal
 

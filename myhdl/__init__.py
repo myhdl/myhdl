@@ -23,9 +23,10 @@ This module provides the following myhdl objects:
 Simulation -- simulation class
 StopStimulation -- exception that stops a simulation
 now -- function that returns the current time
-Signal -- class to model hardware signals
-ConcatSignal -- class that models a concatenation shadow signal
-TristateSignal -- class that models a concatenation shadow signal
+Signal -- factory function to model hardware signals
+SignalType -- Signal base class
+ConcatSignal --  factory function that models a concatenation shadow signal
+TristateSignal -- factory function that models a tristate shadow signal
 delay -- callable to model delay in a yield statement
 posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
@@ -110,7 +111,7 @@ from _bin import bin
 from _concat import concat
 from _intbv import intbv
 from _join import join
-from _Signal import posedge, negedge, Signal
+from _Signal import posedge, negedge, Signal, SignalType
 from _ShadowSignal import ConcatSignal
 from _ShadowSignal import TristateSignal
 from _simulator import now
@@ -138,6 +139,7 @@ __all__ = ["bin",
            "posedge",
            "negedge",
            "Signal",
+           "SignalType",
            "ConcatSignal",
            "TristateSignal",
            "now",
