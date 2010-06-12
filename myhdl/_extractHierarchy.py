@@ -42,6 +42,7 @@ class _error:
     pass
 _error.NoInstances = "No instances found"
 _error.InconsistentHierarchy = "Inconsistent hierarchy inside %s - are all instances returned ?"
+_error.InconsistentToplevel = "Inconsistent top level %s for %s - should be 1"
 
 
 class _Instance(object):
@@ -170,7 +171,7 @@ class _HierExtr(object):
         names[id(obj)] = name
         absnames[id(obj)] = name
         if not top_inst.level == 1:
-            raise ExtractHierarchyError(_error.InconsistentHierarchy % name)
+            raise ExtractHierarchyError(_error.InconsistentToplevel % (top_inst.level, name))
         for inst in hierarchy:
             obj, subs = inst.obj, inst.subs
             if id(obj) not in names:
@@ -242,6 +243,7 @@ class _HierExtr(object):
                                 
                     inst = _Instance(self.level, arg, subs, sigdict, memdict)
                     self.hierarchy.append(inst)
+                    
                 self.level -= 1
                 
             func_name = frame.f_code.co_name

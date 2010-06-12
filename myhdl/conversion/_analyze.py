@@ -54,6 +54,8 @@ _enumTypeSet = set()
 
 
 def _makeName(n, prefixes):
+    # trim empty prefixes
+    prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
 #        name = '_' + '_'.join(prefixes[1:]) + '_' + n
         name = '_'.join(prefixes[1:]) + '_' + n
@@ -87,12 +89,13 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
-        if delta == -1:
-            prefixes.append(name)
-        else:
-            prefixes = prefixes[:curlevel-1]
-            prefixes.append(name)
-        assert prefixes[-1] == name
+        if delta > -1: # same or higher level
+            prefixes = prefixes[:curlevel-1]   
+        # skip processing and prefixing in context without signals    
+        if not (sigdict or memdict):
+            prefixes.append("")
+            continue
+        prefixes.append(name)
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
@@ -927,7 +930,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         node.obj = node.s
 
             
- #    def visitContinue(self, node, *args):
+#    def visitContinue(self, node, *args):
 #         self.labelStack[-1].isActive = True
 
     def visit_Continue(self, node):
@@ -1691,6 +1694,7 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
           if self.tree.hasRom or self.tree.hasLos:
               self.tree.kind = _kind.ALWAYS_COMB
           self.refStack.pop()
+
 
 
 
