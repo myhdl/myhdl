@@ -5,7 +5,8 @@ WARNS=-Wall
 INCS=-I$(HOME)/Tools/gplcver-2.12a.src/pli_incs
 
 # maybe want -O<something> and/or -g
-CFLAGS= -fPIC -Wall -g $(INCS)
+# -fno-stack-protector apparently needed with newer gcc's
+CFLAGS= -fPIC -fno-stack-protector -Wall -g $(INCS)
 LFLAGS= -G -shared -export-dynamic
 
 # change to your compiler
