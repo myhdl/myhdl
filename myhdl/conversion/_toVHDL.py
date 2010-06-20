@@ -2179,7 +2179,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             for test, suite in ifnode.tests:
                 e = self.getEdge(test)
                 if e is None:
-                    self.raiseError(ifnode, "no edge test")
+                    self.raiseError(ifnode, "no proper edge value test")
                 asyncEdges.append(e)
             if not ifnode.else_:
                 self.raiseError(ifnode, "no else test")

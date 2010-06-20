@@ -45,7 +45,7 @@ def inc(count, enable, clock, reset, n):
     
     @always(clock.posedge, reset.negedge)
     def incProcess():
-        if reset == ACTIVE_LOW:
+        if reset == 0:
             count.next = 0
         else:
             if enable:
