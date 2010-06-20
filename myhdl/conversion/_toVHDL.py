@@ -1576,7 +1576,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.indent()
         for test, suite in node.tests:
             self.writeline()
-            item = test.ops[0][1].obj
+            item = test.comparators[0].obj
             self.write("when ")
             self.write(item._toVHDL())
             self.write(" =>")

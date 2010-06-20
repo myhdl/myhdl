@@ -290,14 +290,15 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         # don't visit decorator lists - they can support more than other calls
         self.visitList(node.body)
         
-    def flattenIf(self, node, tests):
+    def flattenIf(self, top, node, tests):
         """ Flatten if-then-else as in compiler package."""
         tests.append((node.test, node.body))
-        if isinstance(node.orelse, ast.If):
-            self.flattenIf(node.orelse, tests)
+        if node.orelse and isinstance(node.orelse[0], ast.If):
+            self.flattenIf(top, node.orelse[0], tests)
         else:
-            node.tests = tests
-            node.else_ = node.orelse
+            top.tests = tests
+            top.else_ = node.orelse
+            top.orelse = []
 
     def visit_If(self, node):
         node.ignore = False
@@ -308,7 +309,7 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
                     node.ignore = True
                     return # skip
         tests = []
-        self.flattenIf(node, tests)
+        self.flattenIf(node, node, tests)
         self.generic_visit(node)
 
     def visit_Print(self, node):
@@ -1063,7 +1064,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if not hasattr(test, 'case'):
                 return
             var, item = test.case
-            if var.name != var1.name or type(item) is not type(item1):
+            if var.obj != var1.obj or type(item) is not type(item1):
                 return
             if item._index in choices:
                 return
