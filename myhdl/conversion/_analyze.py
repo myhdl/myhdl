@@ -1693,7 +1693,8 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
                   return
           # rom access is expanded into a case statement in addition
           # to any always_comb that contains a list of signals
-          if self.tree.hasRom or self.tree.hasLos:
+          # if self.tree.hasRom or self.tree.hasLos:
+          if self.tree.hasRom:
               self.tree.kind = _kind.ALWAYS_COMB
           self.refStack.pop()
 
