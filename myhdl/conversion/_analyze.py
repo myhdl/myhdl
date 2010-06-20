@@ -918,6 +918,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Num(self, node):
         node.signed = False
         n = node.n
+        # assign to value attribute for backwards compatibility
+        node.value = n
         if n in (0, 1):
             node.obj = bool(n)
         elif isinstance(n, int):
