@@ -75,12 +75,13 @@ def _flatten(*args):
 
 class _ToVerilogConvertor(object):
 
-    __slots__ = ("name", "timescale", "standard")
+    __slots__ = ("name", "timescale", "standard", "prefer_blocking_assignments")
 
     def __init__(self):
         self.name = None
         self.timescale = "1ns/10ps"
         self.standard = '2001'
+        self.prefer_blocking_assignments = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -144,7 +145,8 @@ class _ToVerilogConvertor(object):
         # clean up attributes
         self.name = None
         self.standard = '2001'
-
+        self.prefer_blocking_assignments = False
+        
         return h.top
     
 
@@ -362,6 +364,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.returnLabel = tree.name
         self.ind = ''
         self.isSigAss = False
+        self.okSigAss = True
         self.labelStack = []
         self.context = _context.UNKNOWN
 
@@ -618,7 +621,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def setAttr(self, node):
         assert node.attr == 'next'
-        self.isSigAss = True
+        self.isSigAss = self.okSigAss
         self.visit(node.value)
 
     def getAttr(self, node):
@@ -632,7 +635,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             raise AssertionError("object not found")
         if isinstance(obj, _Signal):
             if node.attr == 'next':
-                self.isSigAss = True
+                self.isSigAss = self.okSigAss
                 self.visit(node.value)
             elif node.attr in ('posedge', 'negedge'):
                 self.write(node.attr)
@@ -1780,6 +1783,8 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
+        if toVerilog.prefer_blocking_assignments:
+            self.okSigAss = False
         self.funcBuf = funcBuf
 
 #     def visitFunction(self, node, *args):
