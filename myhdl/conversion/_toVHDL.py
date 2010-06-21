@@ -2180,10 +2180,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             for test, suite in ifnode.tests:
                 e = self.getEdge(test)
                 if e is None:
-                    self.raiseError(ifnode, "no proper edge value test")
+                    self.raiseError(ifnode, "No proper edge value test")
                 asyncEdges.append(e)
             if not ifnode.else_:
-                self.raiseError(ifnode, "no else test")
+                self.raiseError(ifnode, "No separate else clause found")
             edges = []
             for s in senslist:
                 for e in asyncEdges:
