@@ -290,15 +290,15 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         # don't visit decorator lists - they can support more than other calls
         self.visitList(node.body)
         
-    def flattenIf(self, top, node, tests):
+    def flattenIf(self, node, tests, else_):
         """ Flatten if-then-else as in compiler package."""
-        tests.append((node.test, node.body))
-        if node.orelse and isinstance(node.orelse[0], ast.If):
-            self.flattenIf(top, node.orelse[0], tests)
-        else:
-            top.tests = tests
-            top.else_ = node.orelse
-            top.orelse = []
+        if node:
+            if len(node) == 1 and isinstance(node[0], ast.If):
+                elifnode = node[0]
+                tests.append((elifnode.test, elifnode.body))
+                self.flattenIf(elifnode.orelse, tests, else_)
+            else:
+                else_[:] = node
 
     def visit_If(self, node):
         node.ignore = False
@@ -308,9 +308,15 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
                 if test.id == '__debug__':
                     node.ignore = True
                     return # skip
-        tests = []
-        self.flattenIf(node, node, tests)
         self.generic_visit(node)
+                
+        # add fields that match old compiler package
+        tests = [(node.test, node.body)]
+        else_ = []
+        self.flattenIf(node.orelse, tests, else_)
+        node.tests = tests
+        node.else_ = else_
+
 
     def visit_Print(self, node):
         if node.dest is not None:

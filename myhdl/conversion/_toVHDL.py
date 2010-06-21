@@ -1807,6 +1807,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
+                # print 'name', n
                 pre, suf = self.inferCast(node.vhd, ori)
                 s = "%s%s%s" % (pre, s, suf)
             elif _isMem(obj):
