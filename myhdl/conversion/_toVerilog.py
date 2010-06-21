@@ -75,11 +75,12 @@ def _flatten(*args):
 
 class _ToVerilogConvertor(object):
 
-    __slots__ = ("name", "timescale")
+    __slots__ = ("name", "timescale", "standard")
 
     def __init__(self):
         self.name = None
         self.timescale = "1ns/10ps"
+        self.standard = '2001'
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -142,6 +143,7 @@ class _ToVerilogConvertor(object):
             
         # clean up attributes
         self.name = None
+        self.standard = '2001'
 
         return h.top
     
@@ -435,10 +437,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.indent()
 
     def writeSensitivityList(self, senslist):
+        sep = ', '
+        if toVerilog.standard == '1995':
+            sep = ' or '
         self.write("@(")
         for e in senslist[:-1]:
             self.write(e._toVerilog())
-            self.write(', ')
+            self.write(sep)
         self.write(senslist[-1]._toVerilog())
         self.write(")")
 
