@@ -1649,7 +1649,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_stmt(self, body):
         for stmt in body:
-            if isinstance(stmt, ast.Expr):
+            if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Str):
                 continue # skip docstrings
             self.writeline()
             self.visit(stmt)

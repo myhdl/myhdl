@@ -175,6 +175,7 @@ def _analyzeGens(top, absnames):
             s = inspect.getsource(f)
             s = _dedent(s)
             tree = ast.parse(s)
+            # print ast.dump(tree)
             tree.sourcefile = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.f_globals.copy()
@@ -1693,7 +1694,7 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
               self.visit(n)
           self.tree.kind = _kind.SIMPLE_ALWAYS_COMB
           for n in node.body:
-              if isinstance(n, ast.Expr):
+              if isinstance(n, ast.Expr) and isinstance(n.value, ast.Str):
                   continue # skip doc strings
               if isinstance(n, ast.Assign) and \
                  isinstance(n.targets[0], ast.Attribute) and \
