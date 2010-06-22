@@ -71,7 +71,17 @@ def _flatten(*args):
         else:
             arglist.append(arg)
     return arglist
-        
+
+def _makeDoc(doc, indent=''):
+    if doc is None:
+        return ''
+    pre = indent + '// '
+    doc = pre + doc
+    pre = '\n' + pre
+    doc = doc.replace('\n', pre)
+    doc = doc + '\n'
+    return doc
+
 
 class _ToVerilogConvertor(object):
 
@@ -127,9 +137,10 @@ class _ToVerilogConvertor(object):
         genlist = _analyzeGens(arglist, h.absnames)
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
+        doc = _makeDoc(inspect.getdoc(func))
 
         _writeFileHeader(vfile, vpath, self.timescale)
-        _writeModuleHeader(vfile, intf)
+        _writeModuleHeader(vfile, intf, doc)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _convertGens(genlist, vfile)
         _writeModuleFooter(vfile)
@@ -182,7 +193,7 @@ def _writeFileHeader(f, fn, ts):
     print >> f
 
 
-def _writeModuleHeader(f, intf):
+def _writeModuleHeader(f, intf, doc):
     print >> f, "module %s (" % intf.name
     b = StringIO()
     for portname in intf.argnames:
@@ -190,6 +201,7 @@ def _writeModuleHeader(f, intf):
     print >> f, b.getvalue()[:-2]
     b.close()
     print >> f, ");"
+    print >> f, doc
     print >> f
     for portname in intf.argnames:
         s = intf.argdict[portname]
@@ -401,6 +413,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def writeline(self, nr=1):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
+            
+    def writeDoc(self, node):
+        doc = ast.get_docstring(node)
+        doc = _makeDoc(doc)
+        self.write(doc)
             
     def indent(self):
         self.ind += ' ' * 4
@@ -1827,6 +1844,7 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
 
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         self.writeAlwaysHeader()
         self.writeDeclarations()
         self.visit_stmt(node.body)
@@ -1860,6 +1878,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 #         self.writeline(2)
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         self.visit_stmt(node.body)
         self.writeline(2)
 
@@ -1884,6 +1903,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
 #         self.writeline(2)
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         self.writeAlwaysHeader()
         self.writeDeclarations()
         self.visit_stmt(node.body)
