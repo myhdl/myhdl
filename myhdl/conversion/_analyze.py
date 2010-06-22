@@ -899,12 +899,12 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 ##         arg.target = self.getObj(node.expr)
         # detect specialized case for the test
         if isinstance(op, ast.Eq) and isinstance(node.left, ast.Name):
-            n = node.left.id
             # check wether it can be a case
-            if isinstance(arg.obj, EnumItemType):
+            if isinstance(arg.obj, (EnumItemType, int, long)):
                 node.case = (node.left, arg.obj)
             # check whether it can be part of an edge check
-            elif n in self.tree.sigdict:
+            n = node.left.id
+            if n in self.tree.sigdict:
                 sig = self.tree.sigdict[n]
                 v = self.getValue(arg)
                 if v is not None:
@@ -1068,19 +1068,20 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if not node.tests[1:]:
             return
         choices = set()
-        choices.add(item1._index)
+        choices.add(item1)
+
         for test, suite in node.tests[1:]:
             if not hasattr(test, 'case'):
                 return
             var, item = test.case
             if var.obj != var1.obj or type(item) is not type(item1):
                 return
-            if item._index in choices:
+            if item in choices:
                 return
-            choices.add(item._index)
+            choices.add(item)
         node.isCase = True
         node.caseVar = var1
-        if (len(choices) == item1._nritems) or (node.else_ is not None):
+        if (len(choices) == len(var1.obj)) or (node.else_ is not None):
             node.isFullCase = True
 
 

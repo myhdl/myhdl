@@ -1038,7 +1038,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if self.context == _context.PRINT:
             self.write('"%s"' % node.n)
         else:
-            self.write(node.n)
+            self.write(self.IntRepr(node.n))
 
     def visit_Str(self, node):
         if self.context == _context.PRINT:
@@ -1244,7 +1244,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         for test, suite in node.tests:
             self.writeline()
             item = test.comparators[0].obj
-            self.write(item._toVerilog(dontcare=True))
+            if isinstance(item, EnumItemType):
+                self.write(item._toVerilog(dontcare=True))
+            else:
+                self.write(self.IntRepr(item))
             self.write(": begin")
             self.indent()
             self.visit_stmt(suite)

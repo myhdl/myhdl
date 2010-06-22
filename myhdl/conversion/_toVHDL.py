@@ -405,6 +405,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def writeline(self, nr=1):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
+            
+    def IntRepr(self, obj):     
+        if obj >= 0:
+            s = "%s" % int(obj)
+        else:
+            s = "(- %s)" % abs(int(obj))
+        return s
+
 
     def inferCast(self, vhd, ori):
         pre, suf = "", ""
@@ -1578,7 +1586,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             item = test.comparators[0].obj
             self.write("when ")
-            self.write(item._toVHDL())
+            if isinstance(item, EnumItemType):
+                self.write(item._toVHDL())
+            else:
+                self.write(self.IntRepr(item))
             self.write(" =>")
             self.indent()
             self.visit_stmt(suite)
@@ -1796,10 +1807,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = "'%s'" % int(obj)
             elif isinstance(obj, (int, long)):
                 if isinstance(node.vhd, vhd_int):
-                    if obj >= 0:
-                        s = "%s" % int(obj)
-                    else:
-                        s = "(- %s)" % abs(int(obj))
+                    s = self.IntRepr(obj)
                 elif isinstance(node.vhd, vhd_std_logic):
                     s = "'%s'" % int(obj)
                 else:
@@ -2171,7 +2179,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         assert bt
         for e in senslist:
             if not isinstance(e, bt):
-                self.raiseError(node, "base type error in sensitivity list")
+                self.raiseError(ifnode, "base type error in sensitivity list")
         if len(senslist) >= 2 and bt == _WaiterList:
             # ifnode = node.code.nodes[0]
             # print ifnode
