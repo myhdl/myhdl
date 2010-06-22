@@ -75,13 +75,14 @@ def _flatten(*args):
 
 class _ToVerilogConvertor(object):
 
-    __slots__ = ("name", "timescale", "standard", "prefer_blocking_assignments")
+    __slots__ = ("name", "timescale", "standard", "prefer_blocking_assignments", "radix")
 
     def __init__(self):
         self.name = None
         self.timescale = "1ns/10ps"
         self.standard = '2001'
         self.prefer_blocking_assignments = False
+        self.radix = ''
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -146,6 +147,7 @@ class _ToVerilogConvertor(object):
         self.name = None
         self.standard = '2001'
         self.prefer_blocking_assignments = False
+        self.radix = ''
         
         return h.top
     
@@ -387,12 +389,21 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def dedent(self):
         self.ind = self.ind[:-4]
 
-    def writeIntSize(self, n):
+    def IntRepr(self, n):
         # write size for large integers (beyond 32 bits signed)
         # with some safety margin
+        # XXX signed indication 's' ???
+        size = ''
+        radix = ''
+        num = str(n)
+        if toVerilog.radix == "hex":
+            radix = "'h"
+            num = hex(n)[2:]
         if n >= 2**30:
             size = int(math.ceil(math.log(n+1,2))) + 1  # sign bit!
-            self.write("%s'sd" % size)
+            if not radix:
+                radix = "'d"
+        return "%s%s%s" % (size, radix, num)
 
     def writeDeclaration(self, obj, name, dir):
         if dir: dir = dir + ' '
@@ -746,8 +757,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.isSigAss = False
                 else:
                     self.write(' = ')
-                self.writeIntSize(n)
-                self.write("%s;" % n)
+                s = self.IntRepr(n)
+                self.write("%s;" %s)
             self.dedent()
             self.writeline()
             self.write("endcase")
@@ -1337,8 +1348,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(obj, bool):
                 s = "%s" % int(obj)
             elif isinstance(obj, (int, long)):
-                self.writeIntSize(obj)
-                s = str(obj)
+                s = self.IntRepr(obj)
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
                 s = str(obj)
