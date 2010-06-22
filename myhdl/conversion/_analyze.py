@@ -1693,6 +1693,8 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
               self.visit(n)
           self.tree.kind = _kind.SIMPLE_ALWAYS_COMB
           for n in node.body:
+              if isinstance(n, ast.Expr):
+                  continue # skip doc strings
               if isinstance(n, ast.Assign) and \
                  isinstance(n.targets[0], ast.Attribute) and \
                  self.getKind(n.targets[0].value) != _kind.REG:

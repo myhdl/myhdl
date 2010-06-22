@@ -1649,6 +1649,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_stmt(self, body):
         for stmt in body:
+            if isinstance(stmt, ast.Expr):
+                continue # skip docstrings
             self.writeline()
             self.visit(stmt)
             # ugly hack to detect an orphan "task" call
