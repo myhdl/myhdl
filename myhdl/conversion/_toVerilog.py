@@ -728,8 +728,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 isinstance(node.value.slice, ast.Index) and\
                 isinstance(node.value.value.obj, _Rom):
             rom = node.value.value.obj.rom
-            self.write("// synthesis parallel_case full_case")
-            self.writeline()
+#            self.write("// synthesis parallel_case full_case")
+#            self.writeline()
             self.write("case (")
             self.visit(node.value.slice)
             self.write(")")
@@ -1186,10 +1186,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def mapToCase(self, node, *args):
         var = node.caseVar
-        self.write("// synthesis parallel_case")
-        if node.isFullCase:
-            self.write(" full_case")
-        self.writeline()
+#        self.write("// synthesis parallel_case")
+#        if node.isFullCase:
+#            self.write(" full_case")
+#        self.writeline()
         self.write("casez (")
         self.visit(var)
         self.write(")")
