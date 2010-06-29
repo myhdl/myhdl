@@ -1788,6 +1788,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
 #         self.writeline(2)
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         w = node.body[-1]
         y = w.body[0]
         if isinstance(y, ast.Expr):
@@ -1822,6 +1823,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
 #         self.writeline(2)
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         self.write("initial begin: %s" % self.tree.name) 
         self.indent()
         self.writeDeclarations()
