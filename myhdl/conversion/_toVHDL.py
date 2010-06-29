@@ -75,6 +75,17 @@ def _flatten(*args):
             arglist.append(arg)
     return arglist
         
+def _makeDoc(doc, indent=''):
+    if doc is None:
+        return ''
+    doc = inspect.cleandoc(doc)
+    pre = '\n' + indent + '-- '
+    doc = '-- ' + doc
+    doc = doc.replace('\n', pre)
+    return doc
+
+
+
 
 class _ToVHDLConvertor(object):
 
@@ -130,7 +141,8 @@ class _ToVHDLConvertor(object):
         _annotateTypes(genlist)
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
-
+        doc = _makeDoc(inspect.getdoc(func))
+        
         needPck = len(_enumTypeSet) > 0
         
         if pfile:
@@ -141,7 +153,7 @@ class _ToVHDLConvertor(object):
         _writeFileHeader(vfile, vpath)
         if needPck:
             _writeCustomPackage(vfile, intf)
-        _writeModuleHeader(vfile, intf, needPck)
+        _writeModuleHeader(vfile, intf, needPck, doc)
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
@@ -187,7 +199,7 @@ def _writeCustomPackage(f, intf):
     print >> f
 
 
-def _writeModuleHeader(f, intf, needPck):
+def _writeModuleHeader(f, intf, needPck, doc):
     print >> f, "library IEEE;"
     print >> f, "use IEEE.std_logic_1164.all;"
     print >> f, "use IEEE.numeric_std.all;"
@@ -230,6 +242,7 @@ def _writeModuleHeader(f, intf, needPck):
                 f.write("\n        %s: in %s%s" % (portname, p, r))
         f.write("\n    );\n")
     print >> f, "end entity %s;" % intf.name
+    print >> f, doc
     print >> f
     print >> f, "architecture MyHDL of %s is" % intf.name
     print >> f
@@ -405,6 +418,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def writeline(self, nr=1):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
+            
+    def writeDoc(self, node):
+        assert hasattr(node, 'doc')
+        doc = _makeDoc(node.doc, self.ind)
+        self.write(doc)
+        self.writeline() 
             
     def IntRepr(self, obj):     
         if obj >= 0:
@@ -1382,16 +1401,21 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #         if isinstance(expr, astNode.CallFunc) and hasattr(expr, 'tree'):
 #             self.write(';')
 
+
     def visit_Expr(self, node):
         expr = node.value
-        # skip extra semicolons and wrongly-placed docstrings
-        if isinstance(expr, (ast.Num, ast.Str)):
+        # docstrings on unofficial places
+        if isinstance(expr, ast.Str):
+            doc = _makeDoc(expr.s, self.ind)
+            self.write(doc)
+            return
+        # skip extra semicolons
+        if isinstance(expr, ast.Num):
             return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
             self.write(';')
-
 
 
 #     def visitFor(self, node, *args):
@@ -2255,6 +2279,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
 
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         w = node.body[-1]
         y = w.body[0]
         if isinstance(y, ast.Expr):
@@ -2323,6 +2348,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
 
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         self.write("%s: process is" % self.tree.name)
         self.indent()
         self.writeDeclarations()
@@ -2368,6 +2394,7 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
 #         self.writeline(2)
 
     def visit_FunctionDef(self, node):
+        self.writeDoc(node)
         senslist = self.tree.senslist
         self.write("%s: process (" % self.tree.name)
         for e in senslist[:-1]:
@@ -2413,6 +2440,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 #         self.writeline(2)
 
     def visit_FunctionDef(self, node, *args):
+        self.writeDoc(node)
         self.visit_stmt(node.body)
         self.writeline(2)
 
@@ -2461,6 +2489,7 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
 
 
     def visit_FunctionDef(self, node, *args):
+        self.writeDoc(node)
         assert self.tree.senslist
         senslist = self.tree.senslist
         senslist = self.manageEdges(node.body[-1], senslist)

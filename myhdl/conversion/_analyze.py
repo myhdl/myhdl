@@ -289,6 +289,12 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         self.toplevel = False
         node.argnames = [arg.id for arg in node.args.args]
         # don't visit decorator lists - they can support more than other calls
+        # put official docstrings aside for separate processing
+        node.doc = None
+        if node.body and isinstance(node.body[0], ast.Expr) and \
+            isinstance(node.body[0].value, ast.Str):
+            node.doc = node.body[0].value.s
+            node.body = node.body[1:]
         self.visitList(node.body)
         
     def flattenIf(self, node, tests, else_, co):

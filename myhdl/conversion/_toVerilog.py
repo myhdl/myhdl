@@ -72,14 +72,14 @@ def _flatten(*args):
             arglist.append(arg)
     return arglist
 
+
 def _makeDoc(doc, indent=''):
     if doc is None:
         return ''
-    pre = indent + '// '
-    doc = pre + doc
-    pre = '\n' + pre
+    doc = inspect.cleandoc(doc)
+    pre = '\n' + indent + '// '
+    doc = '// ' + doc
     doc = doc.replace('\n', pre)
-    doc = doc + '\n'
     return doc
 
 
@@ -415,9 +415,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.buf.write("\n%s" % self.ind)
             
     def writeDoc(self, node):
-        doc = ast.get_docstring(node)
-        doc = _makeDoc(doc)
+        assert hasattr(node, 'doc')
+        doc = _makeDoc(node.doc, self.ind)
         self.write(doc)
+        self.writeline()
             
     def indent(self):
         self.ind += ' ' * 4
@@ -1067,8 +1068,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Expr(self, node):
         expr = node.value
-        # skip extra semicolons and wrongly-placed docstrings
-        if isinstance(expr, (ast.Num, ast.Str)):
+        # docstrings on unofficial places
+        if isinstance(expr, ast.Str):
+            doc = _makeDoc(expr.s, self.ind)
+            self.write(doc)
+            return
+        # skip extra semicolons
+        if isinstance(expr, ast.Num):
             return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
@@ -1652,8 +1658,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_stmt(self, body):
         for stmt in body:
-            if isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Str):
-                continue # skip docstrings
             self.writeline()
             self.visit(stmt)
             # ugly hack to detect an orphan "task" call
