@@ -192,13 +192,17 @@ class _HierExtr(object):
         
         if event == "call":
             
-            func_name = frame.f_code.co_name
-            if func_name in self.skipNames:
-                self.skip = 1
+            funcname = frame.f_code.co_name
+            # skip certain functions
+            if funcname in self.skipNames:
+                self.skip +=1
             if not self.skip:
                 self.level += 1
                 
         elif event == "return":
+            
+            funcname = frame.f_code.co_name
+            func = frame.f_globals.get(funcname)
             
             if not self.skip:
                 isGenSeq = _isGenSeq(arg)
@@ -210,7 +214,6 @@ class _HierExtr(object):
                             namespace = frame.f_globals.copy()
                             namespace.update(frame.f_locals)
                             sourcefile = inspect.getsourcefile(frame)
-                            funcname = frame.f_code.co_name
                             sourceline = inspect.getsourcelines(frame)[1]
                             _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline)
                 # building hierarchy only makes sense if there are generators
@@ -246,9 +249,8 @@ class _HierExtr(object):
                     
                 self.level -= 1
                 
-            func_name = frame.f_code.co_name
-            if func_name in self.skipNames:
-                self.skip = 0
+            if funcname in self.skipNames:
+                self.skip -= 1
                 
 
 def _inferArgs(arg):
