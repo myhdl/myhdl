@@ -1416,6 +1416,20 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
             self.write(';')
+            
+
+    def visit_IfExp(self, node):
+        pre, suf = self.inferCast(node.vhd, node.body.vhdOri)
+        self.write(pre)
+        self.visit(node.body)
+        self.write(suf)
+        self.write(' when ')
+        self.visit(node.test)
+        self.write(' else ')
+        pre, suf = self.inferCast(node.vhd, node.orelse.vhdOri)
+        self.write(pre)
+        self.visit(node.orelse)
+        self.write(suf)
 
 
 #     def visitFor(self, node, *args):
@@ -3166,6 +3180,10 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.generic_visit(node)
         for test, suite in node.tests:
             test.vhd = vhd_boolean()
+            
+    def visit_IfExp(self, node):
+        self.generic_visit(node)
+        node.test.vhd = vhd_boolean()
 
 #     def visitListComp(self, node):
 #         pass # do nothing

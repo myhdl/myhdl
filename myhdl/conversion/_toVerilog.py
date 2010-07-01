@@ -1080,6 +1080,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
             self.write(';')
+            
+            
+    def visit_IfExp(self, node):
+        self.visit(node.test)
+        self.write(' ? ')
+        self.visit(node.body)
+        self.write(' : ')
+        self.visit(node.orelse)
 
 
 

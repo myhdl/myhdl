@@ -1,4 +1,6 @@
 syntax: glob
+.project
+.pydevproject
 CHANGELOG.txt
 MANIFEST
 *~
@@ -15,6 +17,8 @@ MANIFEST
 *.orig
 *.vcd
 *.0
+*.bak
 doc/build
 build/
 dist/
+old_conversion/
