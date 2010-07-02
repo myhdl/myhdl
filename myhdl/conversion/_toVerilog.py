@@ -41,7 +41,7 @@ import myhdl
 from myhdl import *
 from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
-                                     _UserVerilog, _userCodeMap)
+                                     _UserVerilogCode, _userCodeMap)
 
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
@@ -57,7 +57,7 @@ _profileFunc = None
 
 def _checkArgs(arglist):
     for arg in arglist:
-        if not isinstance(arg, (GeneratorType, _Instantiator, _UserVerilog)):
+        if not isinstance(arg, (GeneratorType, _Instantiator, _UserVerilogCode)):
             raise ToVerilogError(_error.ArgType, arg)
         
 def _flatten(*args):
@@ -341,7 +341,7 @@ def _convertGens(genlist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for tree in genlist:
-        if isinstance(tree, _UserVerilog):
+        if isinstance(tree, _UserVerilogCode):
             blockBuf.write(str(tree))
             continue
         if tree.kind == _kind.ALWAYS:

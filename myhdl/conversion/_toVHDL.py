@@ -41,7 +41,7 @@ import myhdl
 from myhdl import *
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
-                                     _UserVhdl, _userCodeMap)
+                                     _UserVhdlCode, _userCodeMap)
 
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always import _Always
@@ -60,7 +60,7 @@ _enumTypeList = []
 
 def _checkArgs(arglist):
     for arg in arglist:
-        if not isinstance(arg, (GeneratorType, _Instantiator, _UserVhdl)):
+        if not isinstance(arg, (GeneratorType, _Instantiator, _UserVhdlCode)):
             raise ToVHDLError(_error.ArgType, arg)
         
 def _flatten(*args):
@@ -330,7 +330,7 @@ def _convertGens(genlist, siglist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for tree in genlist:
-        if isinstance(tree, _UserVhdl):
+        if isinstance(tree, _UserVhdlCode):
             blockBuf.write(str(tree))
             continue
         if tree.kind == _kind.ALWAYS:
@@ -3323,7 +3323,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
 
 def _annotateTypes(genlist):
     for tree in genlist:
-        if isinstance(tree, _UserVhdl):
+        if isinstance(tree, _UserVhdlCode):
             continue
         v = _AnnotateTypesVisitor(tree)
         v.visit(tree)

@@ -105,27 +105,49 @@ class _UserCode(object):
         code = "\n%s\n" % code
         return code
 
-class _UserVerilog(_UserCode):
+class _UserVerilogCode(_UserCode):
     def raiseError(self, msg, info):
         raise ToVerilogError("Error in user defined Verilog code", msg, info)
     
-class _UserVhdl(_UserCode):
+class _UserVhdlCode(_UserCode):
     def raiseError(self, msg, info):
         raise ToVHDLError("Error in user defined VHDL code", msg, info)
+    
+    
+_UserVerilogInstance = _UserVerilogCode
+_UserVhdlInstance = _UserVhdlCode
 
-def _addUserCode(hdl, spec, arg, funcname, frame):
-    classMap = {'verilog' : _UserVerilog,
-                'vhdl' :_UserVhdl
+def _addUserCode(specs, arg, funcname, frame):
+    classMap = {
+                '__verilog__' : _UserVerilogCode,
+                '__vhdl__' :_UserVhdlCode,
+                'verilog_code' : _UserVerilogCode,
+                'vhdl_code' :_UserVhdlCode,
+                'verilog_code' : _UserVerilogInstance,
+                'vhdl_code' :_UserVhdlInstance,
+               
                }
-    code = frame.f_locals[spec]
     namespace = frame.f_globals.copy()
     namespace.update(frame.f_locals)
     sourcefile = inspect.getsourcefile(frame)
     sourceline = inspect.getsourcelines(frame)[1]
-    assert id(arg) not in _userCodeMap[hdl]
-    _userCodeMap[hdl][id(arg)] = classMap[hdl](code, namespace, sourcefile, funcname, sourceline)
-        
-
+    for hdl in _userCodeMap:
+        oldspec = "__%s__" % hdl
+        codespec = "%s_code" % hdl
+        instancespec = "%s_instance" % hdl
+        spec = None
+        # XXX add warning logic
+        if instancespec in specs:
+            spec = instancespec
+        elif codespec in specs:
+            spec = codespec
+        elif oldspec in specs:
+            spec = oldspec
+        if spec:
+            assert id(arg) not in _userCodeMap[hdl]
+            code = specs[spec]
+            _userCodeMap[hdl][id(arg)] = classMap[spec](code, namespace, sourcefile, funcname, sourceline)
+         
 
 class _CallFuncVisitor(object):
 
@@ -212,10 +234,19 @@ class _HierExtr(object):
             if not self.skip:
                 isGenSeq = _isGenSeq(arg)
                 if isGenSeq:
+                    specs = {}
                     for hdl in _userCodeMap:
                         spec = "__%s__" % hdl
-                        if spec in frame.f_locals:
-                            _addUserCode(hdl, spec, arg, funcname, frame)
+                        if spec in frame.f_locals and frame.f_locals[spec]:
+                            specs[spec] = frame.f_locals[spec]
+                        spec = "%s_code"
+                        if func and hasattr(func, spec) and func.spec:
+                            specs[spec] = func.spec
+                        spec = "%s_instance"
+                        if func and hasattr(func, spec) and func.spec:
+                            specs[spec] = func.spec
+                    if specs: 
+                        _addUserCode(specs, arg, funcname, frame)
                 # building hierarchy only makes sense if there are generators
                 if isGenSeq and arg:
                     sigdict = {}
