@@ -102,6 +102,7 @@ def enum(*names, **kwargs):
             self.__dict__['_nritems'] = len(names)
             self.__dict__['_codedict'] = codedict
             self.__dict__['_encoding'] = encoding
+            self.__dict__['_name'] = None
             for index, name in enumerate(names):
                 val = codedict[name]
                 self.__dict__[name] = EnumItem(index, name, val, self)

@@ -85,11 +85,12 @@ _userCodeMap = {'verilog' : {},
                }
 
 class _UserCode(object):
-    __slots__ = ['code', 'namespace', 'sourcefile', 'funcname', 'sourceline']
-    def __init__(self, code, namespace, sourcefile, funcname, sourceline):
+    __slots__ = ['code', 'namespace', 'funcname', 'func', 'sourcefile', 'sourceline']
+    def __init__(self, code, namespace, funcname, func, sourcefile, sourceline):
         self.code = code
         self.namespace = namespace
         self.sourcefile = sourcefile
+        self.func = func
         self.funcname = funcname
         self.sourceline = sourceline
 
@@ -113,18 +114,45 @@ class _UserVhdlCode(_UserCode):
     def raiseError(self, msg, info):
         raise ToVHDLError("Error in user defined VHDL code", msg, info)
     
-    
-_UserVerilogInstance = _UserVerilogCode
-_UserVhdlInstance = _UserVhdlCode
+class _UserVerilogInstance(_UserVerilogCode):
+    def __str__(self):
+        args = inspect.getargspec(self.func)[0]
+        s = "%s %s(" % (self.funcname, self.code)
+        sep = ''
+        for arg in args:
+            if arg in self.namespace and isinstance(self.namespace[arg], _Signal):
+                signame = self.namespace[arg]._name
+                s += sep
+                sep = ','
+                s += "\n    .%s(%s)" % (arg, signame)
+        s += "\n)\n"
+        return s
 
-def _addUserCode(specs, arg, funcname, frame):
+class _UserVhdlInstance(_UserVhdlCode):
+    def __str__(self):
+        args = inspect.getargspec(self.func)[0]
+        s = "%s: entity work.%s(MyHDL)\n" % (self.code, self.funcname)
+        s += "    port map ("
+        sep = ''
+        for arg in args:
+            if arg in self.namespace and isinstance(self.namespace[arg], _Signal):
+                signame = self.namespace[arg]._name
+                s += sep
+                sep = ','
+                s += "\n        %s=>%s" % (arg, signame)
+        s += "\n    );\n"
+        return s
+   
+    
+
+def _addUserCode(specs, arg, funcname, func, frame):
     classMap = {
                 '__verilog__' : _UserVerilogCode,
                 '__vhdl__' :_UserVhdlCode,
                 'verilog_code' : _UserVerilogCode,
                 'vhdl_code' :_UserVhdlCode,
-                'verilog_code' : _UserVerilogInstance,
-                'vhdl_code' :_UserVhdlInstance,
+                'verilog_instance' : _UserVerilogInstance,
+                'vhdl_instance' :_UserVhdlInstance,
                
                }
     namespace = frame.f_globals.copy()
@@ -146,7 +174,7 @@ def _addUserCode(specs, arg, funcname, frame):
         if spec:
             assert id(arg) not in _userCodeMap[hdl]
             code = specs[spec]
-            _userCodeMap[hdl][id(arg)] = classMap[spec](code, namespace, sourcefile, funcname, sourceline)
+            _userCodeMap[hdl][id(arg)] = classMap[spec](code, namespace, funcname, func, sourcefile, sourceline)
          
 
 class _CallFuncVisitor(object):
@@ -246,7 +274,7 @@ class _HierExtr(object):
                         if func and hasattr(func, spec) and getattr(func, spec):
                             specs[spec] = getattr(func, spec)
                     if specs: 
-                        _addUserCode(specs, arg, funcname, frame)
+                        _addUserCode(specs, arg, funcname, func, frame)
                 # building hierarchy only makes sense if there are generators
                 if isGenSeq and arg:
                     sigdict = {}
