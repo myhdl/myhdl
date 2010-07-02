@@ -239,12 +239,12 @@ class _HierExtr(object):
                         spec = "__%s__" % hdl
                         if spec in frame.f_locals and frame.f_locals[spec]:
                             specs[spec] = frame.f_locals[spec]
-                        spec = "%s_code"
-                        if func and hasattr(func, spec) and func.spec:
-                            specs[spec] = func.spec
-                        spec = "%s_instance"
-                        if func and hasattr(func, spec) and func.spec:
-                            specs[spec] = func.spec
+                        spec = "%s_code" % hdl
+                        if func and hasattr(func, spec) and getattr(func, spec):
+                            specs[spec] = getattr(func, spec)
+                        spec = "%s_instance" % hdl
+                        if func and hasattr(func, spec) and getattr(func, spec):
+                            specs[spec] = getattr(func, spec)
                     if specs: 
                         _addUserCode(specs, arg, funcname, frame)
                 # building hierarchy only makes sense if there are generators
