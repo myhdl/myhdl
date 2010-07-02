@@ -113,10 +113,15 @@ class _UserVhdl(_UserCode):
     def raiseError(self, msg, info):
         raise ToVHDLError("Error in user defined VHDL code", msg, info)
 
-def _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline):
+def _addUserCode(hdl, spec, arg, funcname, frame):
     classMap = {'verilog' : _UserVerilog,
                 'vhdl' :_UserVhdl
                }
+    code = frame.f_locals[spec]
+    namespace = frame.f_globals.copy()
+    namespace.update(frame.f_locals)
+    sourcefile = inspect.getsourcefile(frame)
+    sourceline = inspect.getsourcelines(frame)[1]
     assert id(arg) not in _userCodeMap[hdl]
     _userCodeMap[hdl][id(arg)] = classMap[hdl](code, namespace, sourcefile, funcname, sourceline)
         
@@ -208,14 +213,9 @@ class _HierExtr(object):
                 isGenSeq = _isGenSeq(arg)
                 if isGenSeq:
                     for hdl in _userCodeMap:
-                        key = "__%s__" % hdl
-                        if key in frame.f_locals:
-                            code = frame.f_locals[key]
-                            namespace = frame.f_globals.copy()
-                            namespace.update(frame.f_locals)
-                            sourcefile = inspect.getsourcefile(frame)
-                            sourceline = inspect.getsourcelines(frame)[1]
-                            _addUserCode(hdl, arg, code, namespace, sourcefile, funcname, sourceline)
+                        spec = "__%s__" % hdl
+                        if spec in frame.f_locals:
+                            _addUserCode(hdl, spec, arg, funcname, frame)
                 # building hierarchy only makes sense if there are generators
                 if isGenSeq and arg:
                     sigdict = {}
