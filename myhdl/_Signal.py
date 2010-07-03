@@ -451,6 +451,9 @@ class _Signal(object):
     
     def __hex__(self):
         return hex(self._val)
+    
+    def __index__(self):
+        return int(self._val)
 
 
     # comparison
