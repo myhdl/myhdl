@@ -97,7 +97,7 @@ class _SliceSignal(_ShadowSignal):
 
     def _markUsed(self):
         self._used = True
-        self._sig._read = True
+        self._sig._used = True
         
 
 #     def toVerilog(self):

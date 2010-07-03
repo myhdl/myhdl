@@ -243,7 +243,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         p = _getSignString(s)
         if s._driven:
             if not s._read:
-                warnings.warn("%s: %s" % (_error.UnusedSignal, s._name),
+                warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVerilogWarning
                               )
             k = 'wire'
@@ -277,7 +277,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
     print >> f
     # shadow signal assignments
     for s in siglist:
-        if hasattr(s, 'toVerilog'):
+        if hasattr(s, 'toVerilog') and s._read:
             print >> f, s.toVerilog()
     print >> f
 

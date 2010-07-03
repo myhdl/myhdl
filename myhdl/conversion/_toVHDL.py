@@ -268,7 +268,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         p = _getTypeString(s)
         if s._driven:
             if not s._read:
-                warnings.warn("%s: %s" % (_error.UnusedSignal, s._name),
+                warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVHDLWarning
                               )
             # the following line implements initial value assignments
@@ -365,7 +365,7 @@ def _convertGens(genlist, siglist, vfile):
     print >> vfile
     # shadow signal assignments
     for s in siglist:
-        if hasattr(s, 'toVHDL'):
+        if hasattr(s, 'toVHDL') and s._read:
             print >> vfile, s.toVHDL()
     print >> vfile
 
