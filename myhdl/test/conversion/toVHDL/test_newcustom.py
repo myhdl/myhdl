@@ -72,12 +72,12 @@ def inc(count, enable, clock, reset, n):
 
     inc.vhdl_code = \
 """
-process (%(clock)s, %(reset)s) begin
+process ($clock, $reset) begin
     if (reset = '0') then
-        %(count)s <= (others => '0');
-    elsif rising_edge(%(clock)s) then
+        $count <= (others => '0');
+    elsif rising_edge($clock) then
         if (enable = '1') then
-            %(count)s <= (%(count)s + 1) mod %(n)s;
+            $count <= ($count + 1) mod $n;
         end if;
     end if;
 end process;
@@ -102,13 +102,13 @@ def incErr(count, enable, clock, reset, n):
 
     incErr.vhdl_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
+always @(posedge $clock, negedge $reset) begin
     if (reset == 0) begin
-        %(count)s <= 0;
+        $count <= 0;
     end
     else begin
         if (enable) begin
-            %(count)s <= (%(countq)s + 1) %% %(n)s;
+            $count <= ($countq + 1) %% $n;
         end
     end
 end
@@ -130,7 +130,7 @@ def inc_comb(nextCount, count, n):
 
     inc_comb.vhdl_code =\
 """
-%(nextCount)s <= (%(count)s + 1) mod %(n)s;
+$nextCount <= ($count + 1) mod $n;
 """
 
     return logic
@@ -149,12 +149,12 @@ def inc_seq(count, nextCount, enable, clock, reset):
 
     inc_seq.vhdl_code = \
 """
-process (%(clock)s, %(reset)s) begin
+process ($clock, $reset) begin
     if (reset = '0') then
-        %(count)s <= (others => '0');
-    elsif rising_edge(%(clock)s) then
+        $count <= (others => '0');
+    elsif rising_edge($clock) then
         if (enable = '1') then
-            %(count)s <= %(nextCount)s;
+            $count <= $nextCount;
         end if;
     end if;
 end process;

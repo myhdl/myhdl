@@ -41,7 +41,7 @@ def incGen(count, enable, clock, reset, n):
     """ Generator with __verilog__ is not permitted """
     @instance
     def logic():
-        __verilog__ = "Template string"
+        incGen.verilog_code = "Template string"
         while 1:
                 yield clock.posedge, reset.negedge
                 if reset == ACTIVE_LOW:
@@ -75,13 +75,13 @@ def inc(count, enable, clock, reset, n):
 
     inc.verilog_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
+always @(posedge $clock, negedge $reset) begin
     if (reset == 0) begin
-        %(count)s <= 0;
+        $count <= 0;
     end
     else begin
         if (enable) begin
-            %(count)s <= (%(count)s + 1) %% %(n)s;
+            $count <= ($count + 1) % $n;
         end
     end
 end
@@ -106,13 +106,13 @@ def incErr(count, enable, clock, reset, n):
 
     incErr.verilog_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
+always @(posedge $clock, negedge $reset) begin
     if (reset == 0) begin
-        %(count)s <= 0;
+        $count <= 0;
     end
     else begin
         if (enable) begin
-            %(count)s <= (%(countq)s + 1) %% %(n)s;
+            $count <= ($countq + 1) % $n;
         end
     end
 end
@@ -134,7 +134,7 @@ def inc_comb(nextCount, count, n):
 
     inc_comb.verilog_code =\
 """
-assign %(nextCount)s = (%(count)s + 1) %% %(n)s;
+assign $nextCount = ($count + 1) % $n;
 """
 
     return logic
@@ -153,13 +153,13 @@ def inc_seq(count, nextCount, enable, clock, reset):
 
     inc_seq.verilog_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
+always @(posedge $clock, negedge $reset) begin
     if (reset == 0) begin
-        %(count)s <= 0;
+        $count <= 0;
     end
     else begin
         if (enable) begin
-            %(count)s <= %(nextCount)s;
+            $count <= $nextCount;
         end
     end
 end

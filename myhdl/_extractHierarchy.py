@@ -96,7 +96,7 @@ class _UserCode(object):
 
     def __str__(self):
         try:
-            code = self.code % self.namespace
+            code =  self._interpolate()
         except:
             type, value, tb = sys.exc_info()
             info = "in file %s, function %s starting on line %s:\n    " % \
@@ -105,6 +105,13 @@ class _UserCode(object):
             self.raiseError(msg, info)
         code = "\n%s\n" % code
         return code
+    
+    def _interpolate(self):
+        return string.Template(self.code).substitute(self.namespace)
+    
+class _UserCodeDepr(_UserCode):
+    def _interpolate(self):
+        return self.code % self.namespace
 
 class _UserVerilogCode(_UserCode):
     def raiseError(self, msg, info):
@@ -113,6 +120,13 @@ class _UserVerilogCode(_UserCode):
 class _UserVhdlCode(_UserCode):
     def raiseError(self, msg, info):
         raise ToVHDLError("Error in user defined VHDL code", msg, info)
+    
+class _UserVerilogCodeDepr(_UserVerilogCode, _UserCodeDepr):
+    pass
+
+class _UserVhdlCodeDepr(_UserVhdlCode, _UserCodeDepr):
+    pass
+     
     
 class _UserVerilogInstance(_UserVerilogCode):
     def __str__(self):
@@ -147,8 +161,8 @@ class _UserVhdlInstance(_UserVhdlCode):
 
 def _addUserCode(specs, arg, funcname, func, frame):
     classMap = {
-                '__verilog__' : _UserVerilogCode,
-                '__vhdl__' :_UserVhdlCode,
+                '__verilog__' : _UserVerilogCodeDepr,
+                '__vhdl__' :_UserVhdlCodeDepr,
                 'verilog_code' : _UserVerilogCode,
                 'vhdl_code' :_UserVhdlCode,
                 'verilog_instance' : _UserVerilogInstance,
