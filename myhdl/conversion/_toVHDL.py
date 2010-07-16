@@ -211,7 +211,9 @@ def _writeCustomPackage(f, intf):
     print >> f
     print >> f, "package pck_%s is" % intf.name
     print >> f
-    for t in _enumTypeSet:
+    _sortedEnumTypeList = list(_enumTypeSet)
+    _sortedEnumTypeList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    for t in _sortedEnumTypeList:
         print >> f, "    %s" % t._toVHDL()
     print >> f
     print >> f, "end package pck_%s;" % intf.name
