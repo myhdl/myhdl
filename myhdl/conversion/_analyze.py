@@ -599,7 +599,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             elif node.attr == 'signed':
                 node.obj = intbv.signed
         if isinstance(obj, EnumType):
-            assert hasattr(obj, node.attr)
+            assert hasattr(obj, node.attr), node.attr
             node.obj = getattr(obj, node.attr)
             if obj not in _enumTypeSet:
                 _enumTypeSet.add(obj)

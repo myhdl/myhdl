@@ -868,7 +868,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #             self.write(e._toVHDL())
 
     def getAttr(self, node):
-        assert isinstance(node.value, ast.Name)
+        assert isinstance(node.value, ast.Name), node.value
         n = node.value.id
         if n in self.tree.symdict:
             obj = self.tree.symdict[n]
@@ -2465,7 +2465,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
             self.visit(node.value)
             self.isSigAss = True
         else:
-            self.generic_visit(node)
+            self.getAttr(node)
 
 
 #     def visitFunction(self, node, *args):

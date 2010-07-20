@@ -677,7 +677,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
 
     def getAttr(self, node):
-        assert isinstance(node.value, ast.Name)
+        assert isinstance(node.value, ast.Name), node.value
         n = node.value.id
         if n in self.tree.symdict:
             obj = self.tree.symdict[n]
@@ -1894,7 +1894,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
             self.write("assign ")
             self.visit(node.value)
         else:
-            self.generic_visit(node)
+            self.getAttr(node)
 
 #     def visitFunction(self, node, *args):
 #         self.visit(node.code)
