@@ -1258,7 +1258,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #        if node.isFullCase:
 #            self.write(" full_case")
 #        self.writeline()
-        self.write("casez (")
+        caseType = "case"
+        if isinstance(node.caseItem, EnumItemType):
+            if node.caseItem._type._encoding in ('one_hot', 'one_cold'):
+                caseType = "casez"
+        self.write("%s (" % caseType)
         self.visit(var)
         self.write(")")
         self.indent()

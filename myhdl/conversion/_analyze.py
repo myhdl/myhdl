@@ -1091,6 +1091,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             choices.add(item)
         node.isCase = True
         node.caseVar = var1
+        node.caseItem = item1
         if (len(choices) == len(var1.obj)) or (node.else_ is not None):
             node.isFullCase = True
 
