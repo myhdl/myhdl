@@ -452,7 +452,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             s = "(- %s)" % abs(int(obj))
         return s
-
+    
+    def BitRepr(self, item, var):
+        return '"%s"' % bin(item, len(var))
+        
 
     def inferCast(self, vhd, ori):
         pre, suf = "", ""
@@ -1637,18 +1640,19 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def mapToCase(self, node):
         var = node.caseVar
+        obj = self.getObj(var)
         self.write("case ")
         self.visit(var)
         self.write(" is")
         self.indent()
         for test, suite in node.tests:
             self.writeline()
-            item = test.comparators[0].obj
+            item = test.case[1]
             self.write("when ")
             if isinstance(item, EnumItemType):
                 self.write(item._toVHDL())
             else:
-                self.write(self.IntRepr(item))
+                self.write(self.BitRepr(item, obj))
             self.write(" =>")
             self.indent()
             self.visit_stmt(suite)

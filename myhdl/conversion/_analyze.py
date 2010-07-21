@@ -906,8 +906,11 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         # detect specialized case for the test
         if isinstance(op, ast.Eq) and isinstance(node.left, ast.Name):
             # check wether it can be a case
-            if isinstance(arg.obj, (EnumItemType, int, long)):
-                node.case = (node.left, arg.obj)
+            val = arg.obj
+            if isinstance(val, bool):
+                val = int(val) # cast bool to int first
+            if isinstance(val, (EnumItemType, int, long)):
+                node.case = (node.left, val)         
             # check whether it can be part of an edge check
             n = node.left.id
             if n in self.tree.sigdict:
@@ -1080,6 +1083,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if not hasattr(test, 'case'):
                 return
             var, item = test.case
+            print type(item), type(item1)
             if var.obj != var1.obj or type(item) is not type(item1):
                 return
             if item in choices:

@@ -1261,7 +1261,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.indent()
         for test, suite in node.tests:
             self.writeline()
-            item = test.comparators[0].obj
+            item = test.case[1]
             if isinstance(item, EnumItemType):
                 self.write(item._toVerilog(dontcare=True))
             else:
