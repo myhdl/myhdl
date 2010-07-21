@@ -93,14 +93,14 @@ class _ToVHDLConvertor(object):
     __slots__ = ("name",
                  "component_declarations",
                  "header",
-                 "suppress_myhdl_header"
+                 "no_myhdl_header"
                  )
 
     def __init__(self):
         self.name = None
         self.component_declarations = None
         self.header = ''
-        self.suppress_myhdl_header = False
+        self.no_myhdl_header = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -181,7 +181,7 @@ class _ToVHDLConvertor(object):
         self.name = None
         self.component_declarations = None
         self.header = ''
-        self.suppress_myhdl_header = False
+        self.no_myhdl_header = False
 
         return h.top
     
@@ -199,7 +199,7 @@ def _writeFileHeader(f, fn):
                 version=myhdl.__version__,
                 date=datetime.today().ctime()
                 )
-    if not toVHDL.suppress_myhdl_header:
+    if not toVHDL.no_myhdl_header:
         print >> f, string.Template(myhdl_header).substitute(vars)
     if toVHDL.header:
         print >> f, string.Template(toVHDL.header).substitute(vars)

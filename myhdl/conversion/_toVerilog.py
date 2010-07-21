@@ -92,7 +92,8 @@ class _ToVerilogConvertor(object):
                  "prefer_blocking_assignments", 
                  "radix",
                  "header",
-                 "suppress_myhdl_header"
+                 "no_myhdl_header",
+                 "no_testbench"
                  )
 
     def __init__(self):
@@ -102,7 +103,8 @@ class _ToVerilogConvertor(object):
         self.prefer_blocking_assignments = False
         self.radix = ''
         self.header = ''
-        self.suppress_myhdl_header = False
+        self.no_myhdl_header = False
+        self.no_testbench = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -151,7 +153,7 @@ class _ToVerilogConvertor(object):
         vfile.close()
 
         # don't write testbench if module has no ports
-        if len(intf.argnames) > 0:
+        if len(intf.argnames) > 0 and not toVerilog.no_testbench:
             tbpath = "tb_" + vpath
             tbfile = open(tbpath, 'w')
             _writeTestBench(tbfile, intf)
@@ -170,7 +172,8 @@ class _ToVerilogConvertor(object):
         self.prefer_blocking_assignments = False
         self.radix = ''
         self.header = ""
-        self.suppress_myhdl_header = False
+        self.no_myhdl_header = False
+        self.no_testbench = False
         
         return h.top
     
@@ -188,7 +191,7 @@ def _writeFileHeader(f, fn, ts):
                 version=myhdl.__version__,
                 date=datetime.today().ctime()
                 )
-    if not toVerilog.suppress_myhdl_header:
+    if not toVerilog.no_myhdl_header:
         print >> f, string.Template(myhdl_header).substitute(vars)
     if toVerilog.header:
         print >> f, string.Template(toVerilog.header).substitute(vars)
