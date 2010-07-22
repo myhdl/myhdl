@@ -42,7 +42,7 @@ from myhdl._always import _Always
 from myhdl._delay import delay
 from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix)
-from myhdl._extractHierarchy import _isMem, _UserCode
+from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _SliceSignal
 from myhdl._util import _isTupleOfInts, _dedent
@@ -120,7 +120,6 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
     for m in memlist:
         if not m._used:
             continue
-        m._driven = 'reg'
         for i, s in enumerate(m.mem):
             s._name = "%s%s%s%s" % (m.name, open, i, close)
             s._used = False
@@ -1262,6 +1261,15 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 node.obj = _Rom(node.obj)
                 self.tree.hasRom = True
             elif _isMem(node.obj):
+                m = _getMemInfo(node.obj)
+                if self.access == _access.INPUT:
+                    m._read = True
+                elif self.access == _access.OUTPUT:
+                    m._driven = 'reg'
+                elif self.access == _access.UNKNOWN:
+                    pass
+                else:
+                    assert False, "unexpected mem access %s %s" % (n, self.access)
                 self.tree.hasLos = True
             elif isinstance(node.obj, int):
                 node.value = node.obj

@@ -307,6 +307,14 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for m in memlist:
         if not m._used:
             continue
+        # infer attributes for the case of named signals in a list
+        for i, s in enumerate(m.mem):
+            if not m._driven and s._driven:
+                m._driven = s._driven
+            if not m._read and s._read:
+                m._read = s._read
+        if not m._driven and not m._read:
+            continue
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name

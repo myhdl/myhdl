@@ -272,11 +272,19 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for m in memlist:
         if not m._used:
             continue
+        # infer attributes for the case of named signals in a list
+        for i, s in enumerate(m.mem):
+            if not m._driven and s._driven:
+                m._driven = s._driven
+            if not m._read and s._read:
+                m._read = s._read
+        if not m._driven and not m._read:
+            continue
         r = _getRangeString(m.elObj)
         p = _getSignString(m.elObj)
-        k = 'reg'
-        if m.mem[0]._driven == 'wire':
-            k = 'wire'
+        k = 'wire'
+        if m._driven:
+            k = m._driven 
         print >> f, "%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth)
     print >> f
     for s in constwires:
