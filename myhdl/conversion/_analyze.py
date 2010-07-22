@@ -44,7 +44,7 @@ from myhdl.conversion._misc import (_error, _access, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
-from myhdl._ShadowSignal import _SliceSignal
+from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
 from myhdl._util import _isTupleOfInts, _dedent
 
 myhdlObjects = myhdl.__dict__.values()
@@ -1230,6 +1230,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.globalRefs.add(n)
         if n in self.tree.sigdict:
             node.obj = sig = self.tree.sigdict[n]
+            # mark shadow signal as driven only when they are seen somewhere
+            if isinstance(sig, _ShadowSignal):
+                sig._driven = 'wire'
             if not isinstance(sig, _Signal):
                 # print "not a signal: %s" % n
                 pass 

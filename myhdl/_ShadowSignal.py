@@ -39,7 +39,7 @@ class _ShadowSignal(_Signal):
 
     def __init__(self, val):
         _Signal.__init__(self, val)
-        self._driven = True
+        # self._driven = True # set this in conversion analyzer
 
     # remove next attribute assignment
     next = property(_Signal._get_next, None, None, "'next' access methods")
