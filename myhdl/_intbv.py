@@ -116,21 +116,17 @@ class intbv(object):
     # indexing and slicing methods
 
     def __getitem__(self, key):
-        if isinstance(key, int):
-            i = key
-            if self._val is None:
-                return intbv(None, _nrbits=1)
-            res = bool((self._val >> i) & 0x1)
-            return res
-        elif isinstance(key, slice):
+        if isinstance(key, slice):
             i, j = key.start, key.stop
             if j is None: # default
                 j = 0
+            j = int(j)
             if j < 0:
                 raise ValueError, "intbv[i:j] requires j >= 0\n" \
                       "            j == %s" % j
             if i is None: # default
                 return intbv(self._val >> j)
+            i = int(i)
             if i <= j:
                 raise ValueError, "intbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j)
@@ -139,21 +135,16 @@ class intbv(object):
             res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
             return res
         else:
-            raise TypeError("intbv item/slice indices should be integers")
+            i = int(key)
+            if self._val is None:
+                return intbv(None, _nrbits=1)
+            res = bool((self._val >> i) & 0x1)
+            return res
+
 
        
     def __setitem__(self, key, val):
-        if isinstance(key, int):
-            i = key
-            if val not in (0, 1):
-                raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
-                      "            i == %s " % i
-            if val:
-                self._val |= (1L << i)
-            else:
-                self._val &= ~(1L << i)
-            self._checkBounds()
-        elif isinstance(key, slice):
+        if isinstance(key, slice):
             if val == None:
                 raise ValueError, "cannot attribute None to a slice"
             i, j = key.start, key.stop
@@ -163,6 +154,7 @@ class intbv(object):
                 if i is None and self._val is None:
                     self._val = val
                 j = 0
+            j = int(j)
             if j < 0:
                 raise ValueError, "intbv[i:j] = v requires j >= 0\n" \
                       "            j == %s" % j
@@ -171,6 +163,7 @@ class intbv(object):
                 self._val = val * (1L << j) + q
                 self._checkBounds()
                 return
+            i = int(i)
             if i <= j:
                 raise ValueError, "intbv[i:j] = v requires i > j\n" \
                       "            i, j, v == %s, %s, %s" % (i, j, val)
@@ -184,7 +177,16 @@ class intbv(object):
             self._val |= val * (1L << j)
             self._checkBounds()
         else:
-            raise TypeError("intbv item/slice indices should be integers")
+            i = int(key)
+            if val not in (0, 1):
+                raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
+                      "            i == %s " % i
+            if val:
+                self._val |= (1L << i)
+            else:
+                self._val &= ~(1L << i)
+            self._checkBounds()
+
 
         
     # integer-like methods
@@ -424,7 +426,9 @@ class intbv(object):
     
     def __hex__(self):
         return hex(self._val)
-      
+
+    def __index__(self):
+        return int(self._val)
         
     def __cmp__(self, other):
         if isinstance(other, intbv):
