@@ -1057,8 +1057,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(self.IntRepr(node.n))
 
     def visit_Str(self, node):
+        s = node.s
         if self.context == _context.PRINT:
-            self.write('"%s"' % node.s)
+            self.write('"%s"' % s)
+        elif len(s) == s.count('0') + s.count('1'):
+            self.write("%s'b%s" % (len(s), s))
         else:
             self.write(node.s)
 
