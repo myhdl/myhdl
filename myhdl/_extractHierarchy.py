@@ -140,7 +140,7 @@ class _UserVerilogInstance(_UserVerilogCode):
                 s += sep
                 sep = ','
                 s += "\n    .%s(%s)" % (arg, signame)
-        s += "\n)\n\n"
+        s += "\n);\n\n"
         return s
 
 class _UserVhdlInstance(_UserVhdlCode):
