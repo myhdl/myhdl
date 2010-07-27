@@ -407,6 +407,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         tree.vardict = {}
         tree.inputs = set()
         tree.outputs = set()
+        # hack for assigned mems
+        tree.outmems = set()
         tree.argnames = []
         tree.kind = None
         tree.hasYield = 0
@@ -1269,6 +1271,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     m._read = True
                 elif self.access == _access.OUTPUT:
                     m._driven = 'reg'
+                    self.tree.outmems.add(n)
                 elif self.access == _access.UNKNOWN:
                     pass
                 else:
@@ -1741,10 +1744,10 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
             for n in self.tree.outputs:
                 s = self.tree.sigdict[n]
                 s._driven = "wire"
+            for n in self.tree.outmems:
+                m = _getMemInfo(self.tree.symdict[n])
+                m._driven = "wire"
 
-
-
-                
 
 class _AnalyzeAlwaysDecoVisitor(_AnalyzeBlockVisitor):
     
