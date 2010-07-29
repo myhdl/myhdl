@@ -441,14 +441,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def dedent(self):
         self.ind = self.ind[:-4]
 
-    def IntRepr(self, n):
+    def IntRepr(self, n, radix=''):
         # write size for large integers (beyond 32 bits signed)
         # with some safety margin
         # XXX signed indication 's' ???
         size = ''
-        radix = ''
         num = str(n)
-        if toVerilog.radix == "hex":
+        if radix == "hex":
             radix = "'h"
             num = hex(n)[2:]
         if n >= 2**30:
@@ -1283,7 +1282,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(item, EnumItemType):
                 self.write(item._toVerilog(dontcare=True))
             else:
-                self.write(self.IntRepr(item))
+                self.write(self.IntRepr(item, radix='hex'))
             self.write(": begin")
             self.indent()
             self.visit_stmt(suite)
