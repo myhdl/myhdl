@@ -1,4 +1,7 @@
-all: cver 
+all: vlog  
+
+vlog:
+	py.test vlog.py test_*.py
 
 icarus:
 	py.test icarus.py test_*.py

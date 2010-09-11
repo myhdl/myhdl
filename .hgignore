@@ -3,6 +3,8 @@ syntax: glob
 .pydevproject
 CHANGELOG.txt
 MANIFEST
+modelsim.ini
+transcript
 *~
 *.pyc
 *.swp
@@ -18,9 +20,12 @@ MANIFEST
 *.vcd
 *.0
 *.bak
+*.wlf
 doc/build
 build/
 dist/
 old_conversion/
 work/
 work_vlog/
+work_vcom/
+
