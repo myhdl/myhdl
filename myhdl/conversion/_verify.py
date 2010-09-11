@@ -15,9 +15,12 @@ _hdlMap = {}
 _analyzeCommands = {}
 _elaborateCommands = {}
 _simulateCommands = {}
-_offsets = {}
+_skiplinesMap = {}
+_skipcharsMap = {}
+_ignoreMap = {}
 
-def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, offset=0):
+def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, 
+                      skiplines=None, skipchars=None, ignore=None):
     if not isinstance(name, str) or (name.strip() == ""):
         raise ValueError("Invalid simulator name")
     if hdl not in ("VHDL", "Verilog"):
@@ -35,7 +38,9 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
     _analyzeCommands[name] = analyze
     _elaborateCommands[name] = elaborate
     _simulateCommands[name] = simulate
-    _offsets[name] = offset
+    _skiplinesMap[name] = skiplines
+    _skipcharsMap[name] = skipchars
+    _ignoreMap[name] = ignore
 
 registerSimulator(
     name="GHDL",
@@ -44,6 +49,28 @@ registerSimulator(
     elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
     simulate="ghdl -r %(unitname)s_ghdl"
     )
+
+
+registerSimulator(
+    name="vlog",
+    hdl="Verilog",
+    analyze="vlog -work work_vlog %(topname)s.v",
+    simulate='vsim work_vlog.%(topname)s -quiet -c -do "run -all; quit -f"',
+    skiplines=6,
+    skipchars=2,
+    ignore=("# **", )
+    )
+
+registerSimulator(
+    name="vcom",
+    hdl="VHDL",
+    analyze="vcom -work work_vcom pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+    simulate='vsim work_vcom.%(topname)s -assertfile "tmp" -quiet -c -do "run -all; quit -f"',
+    skiplines=6,
+    skipchars=2,
+    ignore=("# **", "#    Time:")
+    )
+
 
 registerSimulator(
     name="icarus",
@@ -57,7 +84,7 @@ registerSimulator(
     hdl="Verilog",
     analyze="cver -c -q %(topname)s.v",
     simulate="cver -q %(topname)s.v",
-    offset=3
+    skiplines=3
     )
 
 
@@ -88,7 +115,9 @@ class  _VerificationClass(object):
         if elaborate is not None:
             elaborate = elaborate % vals
         simulate = _simulateCommands[hdlsim] % vals
-        offset = _offsets[hdlsim]
+        skiplines = _skiplinesMap[hdlsim]
+        skipchars = _skipcharsMap[hdlsim]
+        ignore = _ignoreMap[hdlsim]
 
         if hdl == "VHDL":
             inst = toVHDL(func, *args, **kwargs)
@@ -98,6 +127,16 @@ class  _VerificationClass(object):
         if hdl == "VHDL":
             if not os.path.exists("work"):
                 os.mkdir("work")
+        if hdlsim in ('vlog', 'vcom'):
+            if not os.path.exists("work_vsim"):
+                try:
+                    subprocess.call("vlib work_vlog", shell=True)
+                    subprocess.call("vlib work_vcom", shell=True)
+                    subprocess.call("vmap work_vlog work_vlog", shell=True)
+                    subprocess.call("vmap work_vcom work_vcom", shell=True)
+                except:
+                    pass
+
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
             print >> sys.stderr, "Analysis failed"
@@ -136,7 +175,15 @@ class  _VerificationClass(object):
         g.flush()
         g.seek(0)
 
-        glines = g.readlines()[offset:]
+        glines = g.readlines()[skiplines:]
+        if ignore:
+            for p in ignore:
+                glines = [line for line in glines if not line.startswith(p)]
+        # limit diff window to the size of the MyHDL output
+        # this is a hack to remove an eventual simulator postamble
+        if len(glines) > len(flines):
+            glines = glines[:len(flines)]
+        glines = [line[skipchars:] for line in glines]
         flinesNorm = [line.lower() for line in flines]
         glinesNorm = [line.lower() for line in glines]
         g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile=hdlsim, tofile=hdl)
@@ -149,7 +196,6 @@ class  _VerificationClass(object):
         except:
             pass
 
-
         s = "".join(g)
         f = open(MyHDLLog, 'w')
         g = open(HDLLog, 'w')
@@ -160,7 +206,6 @@ class  _VerificationClass(object):
         f.close()
         g.close()
         d.close()
-
 
         if not s:
             print >> sys.stderr, "Conversion verification succeeded"

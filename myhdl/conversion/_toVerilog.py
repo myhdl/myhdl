@@ -972,7 +972,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if len(node.args[0].s) > 1:
                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1")
                 else:
-                    node.args[0].s = ord(node.args[0].s)
+                    node.args[0].s = str(ord(node.args[0].s))
         elif f in (int, long):
             opening, closing = '', ''
             # convert number argument to integer
@@ -1062,7 +1062,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif len(s) == s.count('0') + s.count('1'):
             self.write("%s'b%s" % (len(s), s))
         else:
-            self.write(node.s)
+            self.write(s)
 
 #     def visitContinue(self, node, *args):
 #         self.write("disable %s;" % self.labelStack[-1])

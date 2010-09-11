@@ -22,3 +22,5 @@ doc/build
 build/
 dist/
 old_conversion/
+work/
+work_vlog/

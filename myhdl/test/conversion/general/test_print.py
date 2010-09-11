@@ -42,7 +42,7 @@ def PrintBench():
         print "i1 %s i2 %s b %s si1 %s si2 %s" % (i1, i2, b, si1, si2)
         print "i1 %d i2 %d b %d si1 %d si2 %d" % (i1, i2, b, si1, si2)
         print b
-        print "%% %s" % i1
+        #print "%% %s" % i1
         
         yield delay(10)       
         print state
