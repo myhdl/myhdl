@@ -65,7 +65,7 @@ registerSimulator(
     name="vcom",
     hdl="VHDL",
     analyze="vcom -work work_vcom pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-    simulate='vsim work_vcom.%(topname)s -assertfile "tmp" -quiet -c -do "run -all; quit -f"',
+    simulate='vsim work_vcom.%(topname)s -quiet -c -do "run -all; quit -f"',
     skiplines=6,
     skipchars=2,
     ignore=("# **", "#    Time:")

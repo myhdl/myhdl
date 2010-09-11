@@ -1,4 +1,12 @@
-all: GHDL cver icarus
+all: vlog vcom 
+
+
+vlog:
+	py.test vlog.py test_*.py
+
+vcom:
+	py.test vcom.py test_*.py
+
 
 GHDL:
 	py.test GHDL.py test_*.py
