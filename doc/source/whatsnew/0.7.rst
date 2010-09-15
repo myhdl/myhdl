@@ -1,0 +1,27 @@
+.. _new06:
+
+***********************
+What's new in MyHDL 0.7
+***********************
+
+Conversion to VHDL/Verilog rewritten with the ``ast`` module
+============================================================
+
+The most important code change, and the one requiring most
+of the work, is a change that hopefully no-one will notice :-).
+The conversion code is now based on the standard ``ast``
+package instead of the old ``compiler`` package.
+This was a considerable effort, spent on duplicating existing
+behavior rather than on implementing new interesting features.
+This sound unfortunate, but it had to be done with priority.
+The ``compiler`` package is deprecated in the latest versions
+of Python, and replaced by the new ``ast`` package. In Python 3,
+the ``compiler`` packages is not longer available.
+
+Now that his has been done, the conversion code is ready
+for the future.
+
+
+
+
+

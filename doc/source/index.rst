@@ -10,8 +10,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   whatsnew/0.6.rst
-   manual/index.rst
+   manual/index
+   whatsnew/0.7
+   whatsnew/0.6
 
 Indices and tables
 ==================
