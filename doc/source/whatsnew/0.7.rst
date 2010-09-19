@@ -1,4 +1,4 @@
-.. _new06:
+.. _new07:
 
 ***********************
 What's new in MyHDL 0.7
@@ -7,19 +7,33 @@ What's new in MyHDL 0.7
 Conversion to VHDL/Verilog rewritten with the ``ast`` module
 ============================================================
 
-The most important code change, and the one requiring most
-of the work, is a change that hopefully no-one will notice :-).
-The conversion code is now based on the standard ``ast``
-package instead of the old ``compiler`` package.
-This was a considerable effort, spent on duplicating existing
-behavior rather than on implementing new interesting features.
-This sound unfortunate, but it had to be done with priority.
-The ``compiler`` package is deprecated in the latest versions
-of Python, and replaced by the new ``ast`` package. In Python 3,
-the ``compiler`` packages is not longer available.
+The most important code change is a change that hopefully no-one will
+notice :-).  The conversion code is now based on the ``ast`` package
+instead of the ``compiler`` package.  Since Python 2.6, the
+``compiler`` package is deprecated and replaced by the new ``ast``
+package in the standard library. In Python 3, the ``compiler``
+package is no longer available.
 
-Now that his has been done, the conversion code is ready
-for the future.
+This was a considerable effort, spent on re-implementing existing
+behavior instead of on new interesting features.  This sound
+unfortunate, but it had to be done with priority.  Now the conversion
+code is ready for the future.
+
+
+Shadow signals
+==============
+
+Background
+----------
+
+Compared to HDLs such as VHDL and Verilog, MyHDL signals are less
+flexible for structural modeling. For example, slicing a signal
+returns a slice of the current value. For behavioral code, this is
+just fine. However, it implies that you cannot use such as slice in
+structural descriptions. In other words, a signal slice cannot be used
+as a signal.
+
+
 
 
 
