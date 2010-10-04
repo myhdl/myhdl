@@ -33,55 +33,58 @@ from myhdl import ConversionError
 from myhdl._util import _flatten
 from myhdl._unparse import _unparse
 
-class _error:
-    pass
-_error.FirstArgType = "first argument should be a classic function"
-_error.ArgType = "leaf cell type error"
-_error.NotSupported = "Not supported"
-_error.TopLevelName = "Result of toVerilog call should be assigned to a top level name"
-_error.SigMultipleDriven = "Signal has multiple drivers"
-_error.UndefinedBitWidth = "Signal has undefined bit width"
-_error.UndrivenSignal = "Signal is not driven"
-_error.UnreadSignal = "Signal is driven but not read"
-_error.UnusedPort = "Port is not used"
-_error.OutputPortRead = "Output port is read internally"
-_error.Requirement = "Requirement violation"
-_error.UnboundLocal = "Local variable may be referenced before assignment"
-_error.TypeMismatch = "Type mismatch with earlier assignment"
-_error.NrBitsMismatch = "Nr of bits mismatch with earlier assignment"
-_error.IntbvBitWidth = "intbv should have bit width"
-_error.IntbvSign = "intbv's that can have negative values are not yet supported"
-_error.TypeInfer = "Can't infer variable type"
-_error.ReturnTypeMismatch = "Return type mismatch"
-_error.ReturnNrBitsMismatch = "Returned nr of bits mismatch"
-_error.ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
-_error.ReturnTypeInfer = "Can't infer return type"
-_error.ShadowingSignal = "Port is shadowed by internal signal"
-_error.ShadowingVar = "Variable has same name as a hierarchical Signal"
-_error.FreeVarTypeError = "Free variable should be a Signal or an int"
-_error.ExtraArguments = "Extra positional or named arguments are not supported"
-_error.UnsupportedYield = "Unsupported yield statement"
-_error.UnsupportedListComp = \
+class _error(object):
+    FirstArgType = "first argument should be a classic function"
+    ArgType = "leaf cell type error"
+    NotSupported = "Not supported"
+    TopLevelName = "Result of toVerilog call should be assigned to a top level name"
+    SigMultipleDriven = "Signal has multiple drivers"
+    UndefinedBitWidth = "Signal has undefined bit width"
+    UndrivenSignal = "Signal is not driven"
+    UnreadSignal = "Signal is driven but not read"
+    UnusedPort = "Port is not used"
+    OutputPortRead = "Output port is read internally"
+    Requirement = "Requirement violation"
+    UnboundLocal = "Local variable may be referenced before assignment"
+    TypeMismatch = "Type mismatch with earlier assignment"
+    NrBitsMismatch = "Nr of bits mismatch with earlier assignment"
+    IntbvBitWidth = "intbv should have bit width"
+    IntbvSign = "intbv's that can have negative values are not yet supported"
+    TypeInfer = "Can't infer variable type"
+    ReturnTypeMismatch = "Return type mismatch"
+    ReturnNrBitsMismatch = "Returned nr of bits mismatch"
+    ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
+    ReturnTypeInfer = "Can't infer return type"
+    ShadowingSignal = "Port is shadowed by internal signal"
+    ShadowingVar = "Variable has same name as a hierarchical Signal"
+    FreeVarTypeError = "Free variable should be a Signal or an int"
+    ExtraArguments = "Extra positional or named arguments are not supported"
+    UnsupportedYield = "Unsupported yield statement"
+    UnsupportedListComp = \
     "Unsupported list comprehension form: should be [intbv()[n:] for i in range(m)]"
-_error.ListElementAssign = \
+    ListElementAssign = \
      "Can't assign to list element; use slice assignment to change its value"
-_error.NotASignal = "Non-local object should be a Signal"
-_error.UnsupportedType = "Object type is not supported in this context"
-_error.InconsistentType = "Signal elements should have the same base type"
-_error.InconsistentBitWidth = "Signal elements should have the same bit width"
-_error.UnsupportedFormatString = "Unsupported format string"
-_error.FormatString = "Format string error"
-_error.UnsupportedAttribute = "Unsupported attribute"
-_error.PortInList = "Port in list is not supported"
-_error.SignalInMultipleLists = "Signal in multiple list is not supported"
+    NotASignal = "Non-local object should be a Signal"
+    UnsupportedType = "Object type is not supported in this context"
+    InconsistentType = "Signal elements should have the same base type"
+    InconsistentBitWidth = "Signal elements should have the same bit width"
+    UnsupportedFormatString = "Unsupported format string"
+    FormatString = "Format string error"
+    UnsupportedAttribute = "Unsupported attribute"
+    PortInList = "Port in list is not supported"
+    SignalInMultipleLists = "Signal in multiple list is not supported"
 
 
-# _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
 class _access(object):
     INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
     
-_kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB", "SIMPLE_ALWAYS_COMB", "ALWAYS_DECO", "TASK", "REG")
-_context = enum("BOOLEAN", "YIELD", "PRINT" ,"SIGNED", "UNKNOWN")
+class _kind(object):
+    NORMAL, DECLARATION, ALWAYS, INITIAL, \
+    ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_DECO, TASK, REG \
+    = range(9)
+
+class _context(object):
+    BOOLEAN, YIELD, PRINT, SIGNED, UNKNOWN = range(5)
 
     
 class _ConversionMixin(object):
