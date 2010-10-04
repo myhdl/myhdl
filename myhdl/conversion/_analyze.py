@@ -398,6 +398,17 @@ class ConvSpec(object):
             self.conv = int
 
 defaultConvSpec = ConvSpec(**re_ConvSpec.match(r"%s").groupdict())
+
+def _getNritems(obj):
+    """Return the number of items in an objects' type"""
+    if isinstance(obj, _Signal):
+        obj = obj._init
+    if isinstance(obj, intbv):
+        return obj._max - obj._min
+    elif isinstance(obj, EnumItemType):
+        return len(obj._type)
+    else:
+        raise TypeError("Unexpected type")
         
 
 class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
@@ -1092,7 +1103,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         node.isCase = True
         node.caseVar = var1
         node.caseItem = item1
-        if (len(choices) == len(var1.obj)) or (node.else_ is not None):
+        if (len(choices) == _getNritems(var1.obj)) or (node.else_ is not None):
             node.isFullCase = True
 
 

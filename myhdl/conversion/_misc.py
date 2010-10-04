@@ -76,7 +76,10 @@ _error.PortInList = "Port in list is not supported"
 _error.SignalInMultipleLists = "Signal in multiple list is not supported"
 
 
-_access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
+# _access = enum("INPUT", "OUTPUT", "INOUT", "UNKNOWN")
+class _access(object):
+    INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
+    
 _kind = enum("NORMAL", "DECLARATION", "ALWAYS", "INITIAL", "ALWAYS_COMB", "SIMPLE_ALWAYS_COMB", "ALWAYS_DECO", "TASK", "REG")
 _context = enum("BOOLEAN", "YIELD", "PRINT" ,"SIGNED", "UNKNOWN")
 

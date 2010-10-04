@@ -109,7 +109,7 @@ def enum(*names, **kwargs):
         def __setattr__(self, attr, val):
             raise AttributeError("Cannot assign to enum attributes")
         def __len__(self):
-            return len(self.names)
+            return len(self._names)
         def __repr__(self):
             return "<Enum: %s>" % ", ".join(names)
         __str__ = __repr__
