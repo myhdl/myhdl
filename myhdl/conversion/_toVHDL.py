@@ -1614,7 +1614,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_If(self, node):
         if node.ignore:
             return
-        if node.isCase:
+        # only map to VHDL case if it's a full case
+        if node.isFullCase:
             self.mapToCase(node)
         else:
             self.mapToIf(node)
@@ -1653,15 +1654,22 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(var)
         self.write(" is")
         self.indent()
-        for test, suite in node.tests:
+        for i, (test, suite) in enumerate(node.tests):
             self.writeline()
             item = test.case[1]
-            self.write("when ")
             if isinstance(item, EnumItemType):
-                self.write(item._toVHDL())
+                itemRepr = item._toVHDL()
             else:
-                self.write(self.BitRepr(item, obj))
-            self.write(" =>")
+                itemRepr = self.BitRepr(item, obj)
+            comment = ""
+            # potentially use default clause for last test
+            if (i == len(node.tests)-1) and not node.else_:
+                self.write("when others")
+                comment = " -- %s" % itemRepr
+            else:       
+                self.write("when ")
+                self.write(itemRepr)
+            self.write(" =>%s" % comment)
             self.indent()
             self.visit_stmt(suite)
             self.dedent()

@@ -1103,7 +1103,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         node.isCase = True
         node.caseVar = var1
         node.caseItem = item1
-        if (len(choices) == _getNritems(var1.obj)) or (node.else_ is not None):
+        if (len(choices) == _getNritems(var1.obj)) or node.else_:
             node.isFullCase = True
 
 
