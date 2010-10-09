@@ -3298,6 +3298,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.generic_visit(node)
         node.vhd = vhd_std_logic() # XXX default
+        node.slice.value.vhd = vhd_int()
         obj = node.value.obj
         if isinstance(obj, list):
             assert len(obj)

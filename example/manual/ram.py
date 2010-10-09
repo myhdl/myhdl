@@ -8,11 +8,11 @@ def ram(dout, din, addr, we, clk, depth=128):
     @always(clk.posedge)
     def write():
         if we:
-            mem[int(addr)].next = din
+            mem[addr].next = din
                 
     @always_comb
     def read():
-        dout.next = mem[int(addr)]
+        dout.next = mem[addr]
 
     return write, read
 
