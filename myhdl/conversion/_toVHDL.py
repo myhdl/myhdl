@@ -3268,9 +3268,11 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         t = type(node.value.vhd)
         # node.expr.vhd = vhd_unsigned(node.expr.vhd.size)
         if node.slice.lower:
+            node.slice.lower.vhd = vhd_int()
             lower = self.getVal(node.slice.lower)
         upper = 0
         if node.slice.upper:
+            node.slice.upper.vhd = vhd_int()
             upper = self.getVal(node.slice.upper)
         if isinstance(node.ctx, ast.Store):
             node.vhd = t(lower-upper)
