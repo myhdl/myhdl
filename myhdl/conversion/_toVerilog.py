@@ -100,7 +100,7 @@ class _ToVerilogConvertor(object):
         self.name = None
         self.timescale = "1ns/10ps"
         self.standard = '2001'
-        self.prefer_blocking_assignments = False
+        self.prefer_blocking_assignments = True
         self.radix = ''
         self.header = ''
         self.no_myhdl_header = False
@@ -169,7 +169,7 @@ class _ToVerilogConvertor(object):
         # clean up attributes
         self.name = None
         self.standard = '2001'
-        self.prefer_blocking_assignments = False
+        self.prefer_blocking_assignments = True
         self.radix = ''
         self.header = ""
         self.no_myhdl_header = False
