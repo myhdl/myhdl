@@ -67,89 +67,7 @@ def always_comb(func):
 
 INPUT, OUTPUT, INOUT = range(3)
 
-# class _SigNameVisitor(object):
-#     def __init__(self, symdict):
-#         self.inputs = set()
-#         self.outputs = set()
-#         self.toplevel = 1
-#         self.symdict = symdict
-#         self.context = INPUT
 
-#     def visitModule(self, node):
-#         inputs = self.inputs
-#         outputs = self.outputs
-#         self.visit(node.node)
-#         for n in inputs:
-#             if n in outputs:
-#                 raise AlwaysCombError(_error.SignalAsInout)
-
-#     def visitFunction(self, node):
-#         if self.toplevel:
-#             self.toplevel = 0 # skip embedded functions
-#             self.visit(node.code)
-#         else:
-#             raise AlwaysCombError(_error.EmbeddedFunction)
-
-#     def visitIf(self, node):
-#         if len(node.tests) == 1 and not node.else_:
-#             test = node.tests[0][0]
-#             if isinstance(test, compiler.ast.Name) and \
-#                test.name == '__debug__':
-#                 return # skip
-#         self.generic_visit(node)
-
-
-#     def visitName(self, node, access=INPUT):
-#         if node.name not in self.symdict:
-#             return
-#         s = self.symdict[node.name]
-#         if isinstance(s, Signal) or _isListOfSigs(s):
-#             if access == INPUT:
-#                 self.inputs.add(node.name)
-#             elif access == OUTPUT:
-#                 self.outputs.add(node.name)
-#             elif access == INOUT:
-#                 raise AlwaysCombError(_error.SignalAsInout)
-#             else:
-#                 raise AlwaysCombError
-            
-#     def visitAssign(self, node, access=OUTPUT):
-#         for n in node.nodes:
-#             self.visit(n, OUTPUT)
-#         self.visit(node.expr, INPUT)
-
-#     def visitAssAttr(self, node, access=OUTPUT):
-#         self.visit(node.expr, OUTPUT)
-
-#     def visitSubscript(self, node, access=INPUT):
-#         self.visit(node.expr, access)
-#         for n in node.subs:
-#             self.visit(n, INPUT)
-
-#     def visitSlice(self, node, access=INPUT):
-#         self.visit(node.expr, access)
-#         if node.lower:
-#             self.visit(node.lower, INPUT)
-#         if node.upper:
-#             self.visit(node.upper, INPUT)
-
-#     def visitAugAssign(self, node, access=INPUT):
-#         self.visit(node.node, INOUT)
-#         self.visit(node.expr, INPUT)
-        
-#     def visitClass(self, node):
-#         pass # skip
-
-#     def visitExec(self, node):
-#         pass # skip
-
-#     def visitPrintnl(self, node):
-#         pass # skip
-    
-#     def visitPrint(self, node):
-#         pass # skip
-
-            
 
 class _SigNameVisitor(ast.NodeVisitor):
     def __init__(self, symdict):
@@ -228,10 +146,7 @@ class _SigNameVisitor(ast.NodeVisitor):
     def visit_Print(self, node):
         pass # skip
 
-
-            
-
-                
+         
 
 class _AlwaysComb(_Instantiator):
 

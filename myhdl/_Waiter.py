@@ -196,30 +196,6 @@ class _SignalTupleWaiter(_Waiter):
 
 _kind = enum("SIGNAL_TUPLE", "EDGE_TUPLE", "SIGNAL", "EDGE", "DELAY", "UNDEFINED")
 
-# def _inferWaiter(gen):
-#    f = gen.gi_frame
-#    s = inspect.getsource(f)
-#    # remove decorators
-#    s = re.sub(r"@.*", "", s)
-#    s = s.lstrip()
-#    ast = compiler.parse(s)
-#    ast.symdict = f.f_globals.copy()
-#    ast.symdict.update(f.f_locals)
-#    v = _YieldVisitor(ast)
-#    compiler.walk(ast, v)
-#    if v.kind == _kind.EDGE_TUPLE:
-#        return _EdgeTupleWaiter(gen)
-#    if v.kind == _kind.SIGNAL_TUPLE:
-#        return _SignalTupleWaiter(gen)
-#    if v.kind == _kind.DELAY:
-#       return _DelayWaiter(gen)
-#    if v.kind == _kind.EDGE:
-#        return _EdgeWaiter(gen)
-#    if v.kind == _kind.SIGNAL:
-#        return _SignalWaiter(gen)
-#    # default
-#    return _Waiter(gen)
-
 
 def _inferWaiter(gen):
     f = gen.gi_frame
@@ -245,70 +221,6 @@ def _inferWaiter(gen):
     return _Waiter(gen)
    
 
-
-# class _YieldVisitor(object):
-
-#     def __init__(self, ast):
-#         self.ast = ast
-#         self.kind = None
-
-#     def visitChildNodes(self, node, *args):
-#         for n in node.getChildNodes():
-#             self.visit(n, *args)
-
-#     def visitYield(self, node, *args):
-#         self.visit(node.value)
-#         if not hasattr(node.value, 'kind'):
-#             self.kind = _kind.UNDEFINED
-#         elif not self.kind:
-#             self.kind = node.value.kind
-#         elif self.kind != node.value.kind:
-#             self.kind = _kind.UNDEFINED
-
-#     def visitTuple(self, node, *args):
-#         kind = None
-#         for elt in node.nodes:
-#             self.visit(elt)
-#             if not hasattr(elt, 'kind'):
-#                 kind = _kind.UNDEFINED
-#             elif not kind:
-#                 kind = elt.kind
-#             elif kind != elt.kind:
-#                 kind = _kind.UNDEFINED
-#         if kind == _kind.SIGNAL:
-#             node.kind = _kind.SIGNAL_TUPLE
-#         elif kind == _kind.EDGE:
-#             node.kind = _kind.EDGE_TUPLE
-#         else:
-#             node.kind = _kind.UNDEFINED
-
-#     def visitCallFunc(self, node, *args):
-#         fn = node.node
-#         if not isinstance(fn, astNode.Name):
-#             node.kind = _kind.UNDEFINED
-#             return
-#         self.visit(fn)
-#         node.kind = fn.kind
-                
-#     def visitName(self, node, *args):
-#         n = node.name
-#         node.kind = _kind.UNDEFINED
-#         if n in self.ast.symdict:
-#             obj = self.ast.symdict[n]
-#             if isinstance(obj, Signal):
-#                 node.kind = _kind.SIGNAL
-#             elif obj is delay:
-#                 node.kind = _kind.DELAY
-#             elif obj is posedge or obj is negedge:
-#                 node.kind = _kind.EDGE
-
-#     def visitGetattr(self, node, *args):
-#         node.kind = _kind.UNDEFINED
-#         if node.attrname in ('posedge', 'negedge'):
-#             node.kind = _kind.EDGE
-               
-                
-        
 
 class _YieldVisitor(ast.NodeVisitor):
 

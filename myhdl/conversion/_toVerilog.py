@@ -514,44 +514,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
 
-#     def binaryOp(self, node, op=None):
-#         context = None
-#         if node.signed:
-#             context = _context.SIGNED
-#         self.write("(")
-#         self.visit(node.left, context)
-#         self.write(" %s " % op)
-#         self.visit(node.right, context)
-#         self.write(")")
-#     def visitAdd(self, node, *args):
-#         self.binaryOp(node, '+')
-#     def visitFloorDiv(self, node, *args):
-#         self.binaryOp(node, '/')
-#     def visitLeftShift(self, node, *args):
-#         self.binaryOp(node, '<<')
-#     def visitMod(self, node, context=None, *args):
-#         if context == _context.PRINT:
-#             self.visit(node.left, _context.PRINT)
-#             self.write(", ")
-#             self.visit(node.right, _context.PRINT)
-#         else:
-#             self.binaryOp(node, '%')        
-#     def visitMul(self, node, *args):
-#         self.binaryOp(node, '*')
-#     def visitPower(self, node, *args):
-#          self.binaryOp(node, '**')
-#     def visitSub(self, node, *args):
-#         self.binaryOp(node, "-")
-#     def visitRightShift(self, node, *args):
-#         # Additional cast to signed of the full expression
-#         # this is apparently required by cver - not sure if it
-#         # is actually required by standard Verilog.
-#         # It shouldn't hurt however.
-#         if node.signed:
-#             self.write("$signed")
-#         self.binaryOp(node, '>>>')
-
-
     def visit_BinOp(self, node):
         if isinstance(node.op, ast.Mod) and self.context == _context.PRINT:
             self.visit(node.left)
@@ -581,32 +543,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def checkOpWithNegIntbv(self, node, op):
         if op in ("+", "-", "*", "~", "&&", "||", "!"):
             return
-        if isinstance(node, astNode.Name):
+        if isinstance(node, ast.Name):
             o = node.obj
             if isinstance(o, (_Signal, intbv)) and o.min is not None and o.min < 0:
                 self.raiseError(node, _error.NotSupported,
                                 "negative intbv with operator %s" % op)
 
 
-#     def multiOp(self, node, op):
-#         for n in node.nodes:
-#             self.checkOpWithNegIntbv(n, op)
-#         self.write("(")
-#         self.visit(node.nodes[0])
-#         for n in node.nodes[1:]:
-#             self.write(" %s " % op)
-#             self.visit(n)
-#         self.write(")")
-#     def visitAnd(self, node, *args):
-#         self.multiOp(node, '&&')
-#     def visitBitand(self, node, *args):
-#         self.multiOp(node, '&')
-#     def visitBitor(self, node, *args):
-#         self.multiOp(node, '|')
-#     def visitBitxor(self, node, *args):
-#         self.multiOp(node, '^')
-#     def visitOr(self, node, *args):
-#         self.multiOp(node, '||')
 
 
     def visit_BoolOp(self, node):
@@ -618,61 +561,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         
 
-
-
-#     def unaryOp(self, node, op, context):
-#         self.checkOpWithNegIntbv(node.expr, op)
-#         self.write("(%s" % op)
-#         self.visit(node.expr, context)
-#         self.write(")")
-#     def visitInvert(self, node, context=None, *args):
-#         self.unaryOp(node, '~', context)
-#     def visitNot(self, node, context=None, *args):
-#         self.unaryOp(node, '!', context)
-#     def visitUnaryAdd(self, node, context=None, *args):
-#         self.unaryOp(node, '+', context)
-#     def visitUnarySub(self, node, context=None, *args):
-#         self.unaryOp(node, '-', context)
-
-
     def visit_UnaryOp(self, node):
         self.write("(%s" % opmap[type(node.op)])
         self.visit(node.operand)
         self.write(")")
 
-
-
-#     def visitAssAttr(self, node, *args):
-#         assert node.attrname == 'next'
-#         self.isSigAss = True
-#         self.visit(node.expr)
-
-#     def visitGetattr(self, node, *args):
-#         assert isinstance(node.expr, astNode.Name)
-#         n = node.expr.name
-#         if n in self.tree.symdict:
-#             obj = self.tree.symdict[n]
-#         elif n in self.tree.vardict:
-#             obj = self.tree.vardict[n]
-#         else:
-#             raise AssertionError("object not found")
-#         if isinstance(obj, Signal):
-#             if node.attrname == 'next':
-#                 self.isSigAss = True
-#                 self.visit(node.expr)
-#             elif node.attrname in ('posedge', 'negedge'):
-#                 self.write(node.attrname)
-#                 self.write(' ')
-#                 self.visit(node.expr)
-#             elif node.attrname == 'val':
-#                 self.visit(node.expr)
-#         if isinstance(obj, (Signal, intbv)):
-#             if node.attrname in ('min', 'max'):
-#                 self.write("%s" % node.obj)
-#         if isinstance(obj, EnumType):
-#             assert hasattr(obj, node.attrname)
-#             e = getattr(obj, node.attrname)
-#             self.write(e._toVerilog())
 
 
     def visit_Attribute(self, node):
@@ -714,18 +607,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(e._toVerilog())
 
 
-#     def visitAssert(self, node, *args):
-#         self.write("if (")
-#         self.visit(node.test)
-#         self.write(" !== 1) begin")
-#         self.indent()
-#         self.writeline()
-#         self.write('$display("*** AssertionError ***");')
-#         # self.writeline()
-#         # self.write('$finish;')
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
 
     def visit_Assert(self, node):
         self.write("if (")
@@ -739,48 +620,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.dedent()
         self.writeline()
         self.write("end")
-
-
-
-#     def visitAssign(self, node, *args):
-#         assert len(node.nodes) == 1
-#         # shortcut for expansion of ROM in case statement
-#         if isinstance(node.expr, astNode.Subscript) and \
-#                isinstance(node.expr.expr.obj, _Rom):
-#             rom = node.expr.expr.obj.rom
-#             self.write("// synthesis parallel_case full_case")
-#             self.writeline()
-#             self.write("case (")
-#             self.visit(node.expr.subs[0])
-#             self.write(")")
-#             self.indent()
-#             for i, n in enumerate(rom):
-#                 self.writeline()
-#                 if i == len(rom)-1:
-#                     self.write("default: ")
-#                 else:
-#                     self.write("%s: " % i)
-#                 self.visit(node.nodes[0])
-#                 if self.isSigAss:
-#                     self.write(' <= ')
-#                     self.isSigAss = False
-#                 else:
-#                     self.write(' = ')
-#                 self.writeIntSize(n)
-#                 self.write("%s;" % n)
-#             self.dedent()
-#             self.writeline()
-#             self.write("endcase")
-#             return
-#         # default behavior
-#         self.visit(node.nodes[0])
-#         if self.isSigAss:
-#             self.write(' <= ')
-#             self.isSigAss = False
-#         else:
-#             self.write(' = ')
-#         self.visit(node.expr)
-#         self.write(';')
 
 
 
@@ -825,31 +664,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(';')
 
 
-#     def visitAugAssign(self, node, *args):
-#         opmap = {"+=" : "+",
-#                  "-=" : "-",
-#                  "*=" : "*",
-#                  "//=" : "/",
-#                  "%=" : "%",
-#                  "**=" : "**",
-#                  "|=" : "|",
-#                  ">>=" : ">>>",
-#                  "<<=" : "<<",
-#                  "&=" : "&",
-#                  "^=" : "^"
-#                  }
-#         if node.op not in opmap:
-#             self.raiseError(node, _error.NotSupported,
-#                             "augmented assignment %s" % node.op)
-#         op = opmap[node.op]
-#         # XXX apparently no signed context required for augmented assigns
-#         self.visit(node.node)
-#         self.write(" = ")
-#         self.visit(node.node)
-#         self.write(" %s " % op)
-#         self.visit(node.expr)
-#         self.write(";")
-
 
     def visit_AugAssign(self, node, *args):
         # XXX apparently no signed context required for augmented assigns
@@ -862,88 +676,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
 
-#     def visitBreak(self, node, *args):
-#         self.write("disable %s;" % self.labelStack[-2])
-
     def visit_Break(self, node,):
         self.write("disable %s;" % self.labelStack[-2])
-
-
-
-
-
-#     def visitCallFunc(self, node, *args):
-#         fn = node.node
-#         # assert isinstance(fn, astNode.Name)
-#         f = self.getObj(fn)
-#         opening, closing = '(', ')'
-#         if f is bool:
-#             self.write("(")
-#             self.visit(node.args[0])
-#             self.write(" != 0)")
-#             # self.write(" ? 1'b1 : 1'b0)")
-#             return
-#         elif f is len:
-#             val = self.getVal(node)
-#             self.require(node, val is not None, "cannot calculate len")
-#             self.write(`val`)
-#             return
-#         elif f is now:
-#             self.write("$time")
-#             return
-#         elif f is ord:
-#             opening, closing = '', ''
-#             if isinstance(node.args[0], astNode.Const):
-#                 if  type(node.args[0].value) != StringType:
-#                     self.raiseError(node, _error.UnsupportedType, "%s" % (type(node.args[0].value)))
-#                 elif len(node.args[0].value) > 1:
-#                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1")
-#                 else:
-#                     node.args[0].value = ord(node.args[0].value)
-#         elif f in (int, long):
-#             opening, closing = '', ''
-#             # convert number argument to integer
-#             if isinstance(node.args[0], astNode.Const):
-#                 node.args[0].value = int(node.args[0].value)
-#         elif f is intbv:
-#             self.visit(node.args[0])
-#             return
-#         elif f == intbv.signed: # note equality comparison
-#             # comes from a getattr
-#             opening, closing = '', ''
-#             if not fn.expr.signed:
-#                 opening, closing = "$signed(", ")"
-#             self.write(opening)
-#             self.visit(fn.expr)
-#             self.write(closing)
-#         elif type(f) in (ClassType, TypeType) and issubclass(f, Exception):
-#             self.write(f.__name__)
-#         elif f in (posedge, negedge):
-#             opening, closing = ' ', ''
-#             self.write(f.__name__)
-#         elif f is concat:
-#             opening, closing = '{', '}'
-#         elif f is delay:
-#             self.visit(node.args[0])
-#             return
-#         elif hasattr(node, 'tree'):
-#             self.write(node.tree.name)
-#         else:
-#             self.write(f.__name__)
-#         if node.args:
-#             self.write(opening)
-#             self.visit(node.args[0])
-#             for arg in node.args[1:]:
-#                 self.write(", ")
-#                 self.visit(arg)
-#             self.write(closing)
-#         if hasattr(node, 'tree'):
-#             if node.tree.kind == _kind.TASK:
-#                 Visitor = _ConvertTaskVisitor
-#             else:
-#                 Visitor = _ConvertFunctionVisitor
-#             v = Visitor(node.tree, self.funcBuf)
-#             compiler.walk(node.tree, v)
 
 
     def visit_Call(self, node):
@@ -1019,17 +753,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             v.visit(node.tree)
 
 
-#     def visitCompare(self, node, *args):
-#         context = None
-#         if node.signed:
-#             context = _context.SIGNED
-#         self.write("(")
-#         self.visit(node.expr, context)
-#         op, code = node.ops[0]
-#         self.write(" %s " % op)
-#         self.visit(code, context)
-#         self.write(")")
-
     def visit_Compare(self, node):
         self.context = None
         if node.signed:
@@ -1042,12 +765,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.context = None
 
 
-
-#     def visitConst(self, node, context=None, *args):
-#         if context == _context.PRINT:
-#             self.write('"%s"' % node.value)
-#         else:
-#             self.write(node.value)
 
     def visit_Num(self, node):
         if self.context == _context.PRINT:
@@ -1064,24 +781,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.write(s)
 
-#     def visitContinue(self, node, *args):
-#         self.write("disable %s;" % self.labelStack[-1])
 
 
     def visit_Continue(self, node):
         self.write("disable %s;" % self.labelStack[-1])
 
-
-
-#     def visitDiscard(self, node, *args):
-#         expr = node.expr
-#         # skip extra semicolons and wrongly-placed docstrings
-#         if isinstance(expr, astNode.Const):
-#             return
-#         self.visit(expr)
-#         # ugly hack to detect an orphan "task" call
-#         if isinstance(expr, astNode.CallFunc) and hasattr(expr, 'tree'):
-#             self.write(';')
 
     def visit_Expr(self, node):
         expr = node.value
@@ -1105,70 +809,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.body)
         self.write(' : ')
         self.visit(node.orelse)
-
-
-
-#     def visitFor(self, node, *args):
-#         self.labelStack.append(node.breakLabel)
-#         self.labelStack.append(node.loopLabel)
-#         var = node.assign.name
-#         cf = node.list
-#         f = self.getObj(cf.node)
-#         args = cf.args
-#         assert len(args) <= 3
-#         if f is range:
-#             cmp = '<'
-#             op = '+'
-#             oneoff = ''
-#             if len(args) == 1:
-#                 start, stop, step = None, args[0], None
-#             elif len(args) == 2:
-#                 start, stop, step = args[0], args[1], None
-#             else:
-#                 start, stop, step = args
-#         else: # downrange
-#             cmp = '>='
-#             op = '-'
-#             oneoff ='-1'
-#             if len(args) == 1:
-#                 start, stop, step = args[0], None, None
-#             elif len(args) == 2:
-#                 start, stop, step = args[0], args[1], None
-#             else:
-#                 start, stop, step = args
-#         if node.breakLabel.isActive:
-#             self.write("begin: %s" % node.breakLabel)
-#             self.writeline()
-#         self.write("for (%s=" % var)
-#         if start is None:
-#             self.write("0")
-#         else:
-#             self.visit(start)
-#         self.write("%s; %s%s" % (oneoff, var, cmp))
-#         if stop is None:
-#             self.write("0")
-#         else:
-#             self.visit(stop)
-#         self.write("; %s=%s%s" % (var, var, op))
-#         if step is None:
-#             self.write("1")
-#         else:
-#             v = self.getVal(step)
-#             self.require(node, v >= 0, "step should be >= 0")
-#             self.visit(step)
-#         self.write(") begin")
-#         if node.loopLabel.isActive:
-#             self.write(": %s" % node.loopLabel)
-#         self.indent()
-#         self.visit(node.body)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         if node.breakLabel.isActive:
-#             self.writeline()
-#             self.write("end")
-#         self.labelStack.pop()
-#         self.labelStack.pop()
 
 
     def visit_For(self, node):
@@ -1234,25 +874,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.labelStack.pop()
 
 
-
-#     def visitFunction(self, node, *args):
-#         raise AssertionError("To be implemented in subclass")
-
     def visit_FunctionDef(self, node):
         raise AssertionError("To be implemented in subclass")
 
-
-
-
-
-
-#     def visitIf(self, node, *args):
-#         if node.ignore:
-#             return
-#         if node.isCase:
-#             self.mapToCase(node, *args)
-#         else:
-#             self.mapToIf(node, *args)
 
     def visit_If(self, node):
         if node.ignore:
@@ -1328,68 +952,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("end")
 
 
-
-
-
     def visitKeyword(self, node, *args):
         self.visit(node.expr)
-
-
 
     def visit_Module(self, node, *args):
         for stmt in node.body:
             self.visit(stmt)
        
-
-#     def visitAssName(self, node, *args):
-#         self.write(node.name)
-
-
-
-
-#     def visitName(self, node, context=None, *args):
-#         addSignBit = False
-#         isMixedExpr = (not node.signed) and (context == _context.SIGNED)
-#         n = node.name
-#         if n == 'False':
-#             s = "1'b0"
-#         elif n == 'True':
-#             s = "1'b1"
-#         elif n in self.tree.vardict:
-#             addSignBit = isMixedExpr
-#             s = n
-#         elif n in self.tree.argnames:
-#             assert n in self.tree.symdict
-#             addSignBit = isMixedExpr
-#             s = n
-#         elif n in self.tree.symdict:
-#             obj = self.tree.symdict[n]
-#             if isinstance(obj, bool):
-#                 s = "%s" % int(obj)
-#             elif isinstance(obj, (int, long)):
-#                 self.writeIntSize(obj)
-#                 s = str(obj)
-#             elif isinstance(obj, Signal):
-#                 addSignBit = isMixedExpr
-#                 s = str(obj)
-#             elif _isMem(obj):
-#                 m = _getMemInfo(obj)
-#                 assert m.name
-#                 s = m.name
-#             elif isinstance(obj, EnumItemType):
-#                 s = obj._toVerilog()
-#             elif type(obj) in (ClassType, TypeType) and issubclass(obj, Exception):
-#                 s = n
-#             else:
-#                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
-#         else:
-#             raise AssertionError("name ref: %s" % n)
-#         if addSignBit:
-#             self.write("$signed({1'b0, ")
-#         self.write(s)
-#         if addSignBit:
-#             self.write("})")       
-
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1445,72 +1014,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("})")       
 
 
-
-#     def visitPass(self, node, *args):
-#         self.write("// pass")
-
     def visit_Pass(self, node):
         self.write("// pass")
 
-
-
-##     def handlePrint(self, node):
-##         self.write('$display(')
-##         s = node.nodes[0]
-##         self.visit(s, _context.PRINT)
-##         for s in node.nodes[1:]:
-##             self.write(', , ')
-##             self.visit(s, _context.PRINT)
-##         self.write(');')
     
-##     def visitPrint(self, node, *args):
-##         self.handlePrint(node)
-
-#     def visitPrintnl(self, node, *args):
-#         argnr = 0
-#         for s in node.format:
-#             if isinstance(s, str):
-#                 self.write('$write("%s");' % s)
-#             else:
-#                 a = node.args[argnr]
-#                 argnr += 1
-#                 obj = a.obj
-#                 fs = "%0d"
-#                 if isinstance(obj, str):
-#                     self.write('$write(')
-#                     self.visit(a, _context.PRINT)
-#                     self.write(');')
-#                 elif (s.conv is str) and isinstance(obj, bool):
-#                     self.write('if (')
-#                     self.visit(a, _context.PRINT)
-#                     self.write(')')
-#                     self.writeline()
-#                     self.write('    $write("True");')
-#                     self.writeline()
-#                     self.write('else')
-#                     self.writeline()
-#                     self.write('    $write("False");')
-#                 elif isinstance(obj, EnumItemType):
-#                     tipe = obj._type
-#                     self.write('case (')
-#                     self.visit(a, _context.PRINT)
-#                     self.write(')')
-#                     self.indent()
-#                     for n in tipe._names:
-#                         self.writeline()
-#                         item = getattr(tipe, n)
-#                         self.write("'b%s: " % item._val)
-#                         self.write('$write("%s");' % n)
-#                     self.dedent()
-#                     self.writeline()
-#                     self.write("endcase")
-#                 else:
-#                     self.write('$write("%s", ' % fs)
-#                     self.visit(a, _context.PRINT)
-#                     self.write(');')
-#             self.writeline()
-#         self.write('$write("\\n");')
-
     def visit_Print(self, node):
         argnr = 0
         for s in node.format:
@@ -1558,70 +1065,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
         self.write('$write("\\n");')
         
-    
-#     def visitRaise(self, node, *args):
-# ##         self.write('$display("')
-# ##         self.visit(node.expr1)
-# ##         self.write('");')
-# ##         self.writeline()
-#         self.write("$finish;")
 
 
     def visit_Raise(self, node):
         self.write("$finish;")
 
-        
-#     def visitReturn(self, node, *args):
-#         self.write("disable %s;" % self.returnLabel)
-
+    
     def visit_Return(self, node):
         self.write("disable %s;" % self.returnLabel)
 
-
-
-#     def visitSlice(self, node, context=None, *args):
-#         if isinstance(node.expr, astNode.CallFunc) and \
-#            node.expr.node.obj is intbv and \
-#            _isConstant(node.expr.args[0], self.tree.symdict):
-#             c = self.getVal(node)
-#             self.write("%s'h" % c._nrbits)
-#             self.write("%x" % c._val)
-#             return
-#         addSignBit = (node.flags == 'OP_APPLY') and (context == _context.SIGNED)
-#         if addSignBit:
-#             self.write("$signed({1'b0, ")
-#         self.visit(node.expr)
-#         # special shortcut case for [:] slice
-#         if node.lower is None and node.upper is None:
-#             return
-#         self.write("[")
-#         if node.lower is None:
-#             self.write("%s" % node.obj._nrbits)
-#         else:
-#             self.visit(node.lower)
-#         self.write("-1:")
-#         if node.upper is None:
-#             self.write("0")
-#         else:
-#             self.visit(node.upper)
-#         self.write("]")
-#         if addSignBit:
-#             self.write("})")
-
-
-#     def visitSubscript(self, node, context=None, *args):
-#         addSignBit = (node.flags == 'OP_APPLY') and \
-#                      (not node.signed) and \
-#                      (context == _context.SIGNED)
-#         if addSignBit:
-#             self.write("$signed({1'b0, ")
-#         self.visit(node.expr)
-#         self.write("[")
-#         assert len(node.subs) == 1
-#         self.visit(node.subs[0])
-#         self.write("]")
-#         if addSignBit:
-#             self.write("})")
 
     def visit_Subscript(self, node):
         if isinstance(node.slice, ast.Slice):
@@ -1677,14 +1129,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("})")
 
 
-#     def visitStmt(self, node, *args):
-#         for stmt in node.nodes:
-#             self.writeline()
-#             self.visit(stmt)
-#             # ugly hack to detect an orphan "task" call
-#             if isinstance(stmt, astNode.CallFunc) and hasattr(stmt, 'tree'):
-#                 self.write(';')
-
     def visit_stmt(self, body):
         for stmt in body:
             self.writeline()
@@ -1692,16 +1136,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             # ugly hack to detect an orphan "task" call
             if isinstance(stmt, ast.Call) and hasattr(stmt, 'tree'):
                 self.write(';')
-
-
-#     def visitTuple(self, node, context=None, *args):
-#         assert context != None
-#         sep = ", "
-#         tpl = node.nodes
-#         self.visit(tpl[0])
-#         for elt in tpl[1:]:
-#             self.write(sep)
-#             self.visit(elt)
 
 
     def visit_Tuple(self, node):
@@ -1713,28 +1147,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(sep)
             self.visit(elt)
 
-
-#     def visitWhile(self, node, *args):
-#         self.labelStack.append(node.breakLabel)
-#         self.labelStack.append(node.loopLabel)
-#         if node.breakLabel.isActive:
-#             self.write("begin: %s" % node.breakLabel)
-#             self.writeline()
-#         self.write("while (")
-#         self.visit(node.test)
-#         self.write(") begin")
-#         if node.loopLabel.isActive:
-#             self.write(": %s" % node.loopLabel)
-#         self.indent()
-#         self.visit(node.body)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         if node.breakLabel.isActive:
-#             self.writeline()
-#             self.write("end")
-#         self.labelStack.pop()
-#         self.labelStack.pop()
 
 
     def visit_While(self, node):
@@ -1761,19 +1173,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
 
 
-        
-#     def visitYield(self, node, *args):
-#         yieldObj = self.getObj(node.value)
-#         assert node.senslist
-#         senslist = node.senslist
-#         if isinstance(yieldObj, delay):
-#             self.write("# ")
-#             self.visit(node.value, _context.YIELD)
-#             self.write(";")
-#         else:
-#             self.writeSensitivityList(senslist)
-#             self.write(";")
-
     def visit_Yield(self, node):
         yieldObj = self.getObj(node.value)
         assert node.senslist
@@ -1798,23 +1197,6 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
-
-#     def visitFunction(self, node, *args):
-#         w = node.code.nodes[-1]
-#         y = w.body.nodes[0]
-#         if isinstance(y, astNode.Discard):
-#             y = y.expr
-#         assert isinstance(y, astNode.Yield)
-#         self.writeAlwaysHeader()
-#         self.writeDeclarations()
-#         assert isinstance(w.body, astNode.Stmt)
-#         for stmt in w.body.nodes[1:]:
-#             self.writeline()
-#             self.visit(stmt)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         self.writeline(2)
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1841,16 +1223,6 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
 
-#     def visitFunction(self, node, *args):
-#         self.write("initial begin: %s" % self.tree.name) 
-#         self.indent()
-#         self.writeDeclarations()
-#         self.visit(node.code)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         self.writeline(2)
-
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
         self.write("initial begin: %s" % self.tree.name) 
@@ -1873,15 +1245,6 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
             self.okSigAss = False
         self.funcBuf = funcBuf
 
-#     def visitFunction(self, node, *args):
-#         self.writeAlwaysHeader()
-#         self.writeDeclarations()
-#         self.visit(node.code)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         self.writeline(2)
-
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1902,9 +1265,6 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
 
-#     def visitAssAttr(self, node, *args):
-#         self.write("assign ")
-#         self.visit(node.expr)
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1913,9 +1273,6 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
         else:
             self.getAttr(node)
 
-#     def visitFunction(self, node, *args):
-#         self.visit(node.code)
-#         self.writeline(2)
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1933,14 +1290,6 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
 
-#     def visitFunction(self, node, *args):
-#         self.writeAlwaysHeader()
-#         self.writeDeclarations()
-#         self.visit(node.code)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         self.writeline(2)
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1972,24 +1321,6 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
             self.writeline()
             self.writeDeclaration(obj, name, "input")
             
-#     def visitFunction(self, node, *args):
-#         self.write("function ")
-#         self.writeOutputDeclaration()
-#         self.indent()
-#         self.writeInputDeclarations()
-#         self.writeDeclarations()
-#         self.dedent()
-#         self.writeline()
-#         self.write("begin: %s" % self.returnLabel)
-#         self.indent()
-#         self.visit(node.code)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         self.writeline()
-#         self.write("endfunction")
-#         self.writeline(2)
-
 
     def visit_FunctionDef(self, node):
         self.write("function ")
@@ -2008,15 +1339,6 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.writeline()
         self.write("endfunction")
         self.writeline(2)
-
-
-
-#     def visitReturn(self, node, *args):
-#         self.write("%s = " % self.tree.name)
-#         self.visit(node.value)
-#         self.write(";")
-#         self.writeline()
-#         self.write("disable %s;" % self.returnLabel)
 
 
     def visit_Return(self, node):
@@ -2045,23 +1367,6 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             self.writeline()
             self.writeDeclaration(obj, name, dir)
             
-#     def visitFunction(self, node, *args):
-#         self.write("task %s;" % self.tree.name)
-#         self.indent()
-#         self.writeInterfaceDeclarations()
-#         self.writeDeclarations()
-#         self.dedent()
-#         self.writeline()
-#         self.write("begin: %s" % self.returnLabel)
-#         self.indent()
-#         self.visit(node.code)
-#         self.dedent()
-#         self.writeline()
-#         self.write("end")
-#         self.writeline()
-#         self.write("endtask")
-#         self.writeline(2)
-
 
     def visit_FunctionDef(self, node):
         self.write("task %s;" % self.tree.name)
