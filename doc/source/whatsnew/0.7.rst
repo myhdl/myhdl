@@ -33,12 +33,127 @@ just fine. However, it implies that you cannot use such as slice in
 structural descriptions. In other words, a signal slice cannot be used
 as a signal.
 
+To solve these issues, a new concept was introduced: shadow signals.
+The whole reasoning behind this is explained in more detail in
+`mep-105`_.
+
+.. _mep-105: http://www.myhdl.org/doku.php/meps:mep-105
 
 
+Introducing shadow signals
+--------------------------
 
-User interface
---------------
+A shadow signal is related to another signal or signals as a shadow
+to its parent object. It follows any change to its parent signal
+or signals directly. However, it is not the same as the original:
+in particular, the user cannot assign to a shadow signal. Also,
+there may be a delta cycle delay between a change in the original
+and the corresponding change in the shadow signal. Finally, to
+be useful, the shadow signal performs some kind of transformation
+of the values of its parent signal or signals.
 
+A shadow signal is convenient because it is directly constructed
+from its parent signals. The constructor infers everything that's needed:
+the type info, the initial value, and the tranformation of the
+parent signal values. For simulation, the transformation is defined by
+a generator which is automatically created and added to the list of
+generators to be simulated. For conversion, the constructor defines
+a piece of dedicated Verilog and VHDL code which is automatically
+added to the convertor output.
+
+Concrete shadow signal subclasses
+---------------------------------
+
+_SliceSignal
+^^^^^^^^^^^^
+
+The original inspiration for shadow signals was to have solution for
+structural slicing. This is the purpose of the :class:`_SliceSignal`
+subclass.
+
+.. class:: _SliceSignal(sig, left[, right=None])
+
+This class implements read-only structural slicing and indexing. It creates a new
+signal that shadows the slice or index of the parent signal ``sig``. If the
+*right* parameter is ommitted, you get indexing instead of slicing.
+Parameters *left*  and *right* have the usual meaning for slice
+indices: in particular, *left* is non-inclusive but *right*
+is inclusive. *sig* should be appropriate for slicing and indexing, which
+means it should be based on :class:`intbv` in practice.
+
+The class constructors is not intended to be used explicitly. Instead,
+regular signals now have a call interface that returns a :class:`_SliceSignal`:
+
+.. method:: __call__(left[, right=None])
+
+Therefore, instead of::
+
+    sl = _SliceSignal(sig, left, right)
+
+you can do::
+
+    sl = sig(left, right)
+
+Obviously, the call interface was intended to be similar to a slicing interface. Of course,
+it is not exacly the same which may seem inconvenient. On the other hand, there are Python
+functions with a similar slicing functionality and a similar interface, such as the
+``range`` function.
+Moreover, the call interface conveys the notion that something is being constructed, which
+is what really happens.
+
+ConcatSignal
+^^^^^^^^^^^^
+
+:class:`_SliceSignal` creates a shadow signal on a part of another signal. The
+opposite is also useful: a signal that shadows a composition of other
+signals. This is the purpose of the :class:`ConcatSignal` subclass.
+
+.. class:: ConcatSignal(*args)
+
+This class creates a new signal that shadows the concatenation
+of its parent signal values. You can pass an arbitrary number
+of signals to the constructor. The signal arguments should be bit-oriented
+with a defined number of bits.
+
+TristateSignal
+^^^^^^^^^^^^^^
+
+
+As often is the case, the idea of shadow signals had some useful side effects.
+In particular, I realized that the :class:`TristateSignal` proposed in
+`mep-103`_.
+could be interpreted as a shadow signal of its drivers. With the machinery of
+the shadow signal in place, it became easier to support this for simulation
+and conversion.
+
+.. _mep-103: http://www.myhdl.org/doku.php/meps:mep-103
+
+
+.. class:: TristateSignal(val)
+
+    This class is used to construct a new tristate signal. The
+    underlying type is specified by the *val*
+    parameter. 
+    It is a Signal subclass and has the usual attributes, with
+    one exception: it doesn't support the ``next``
+    attribute. Consequently, direct signal assignment to a tristate
+    signal is not supported.
+    The initial value is the tristate value ``None``.
+    The current value of a tristate is determined by resolving the
+    values from its drivers. When exactly one driver value is
+    different from ``None``, that is the resolved value; otherwise
+    it is ``None``. When more than one driver value is different
+    from ``None``, a contention warning is issued.
+
+This class has the following method:
+
+.. method:: driver()
+
+    Returns a new driver to the tristate signal. It is initialized
+    to ``None``.
+    A driver object is an instance of a special :class:`SignalType`
+    subclass. In particular, its ``next`` attribute can be used to
+    assign a new value to it.
 
 
 Example
@@ -47,8 +162,8 @@ Example
 
 
 
-Using :class:`Signal` and :class:`intbv` objects as indices directly
-====================================================================
+Using :class:`Signal` and :class:`intbv` objects as indices
+===========================================================
 
 Previously, it was necessary convert :class:`Signal` and :class:`intbv` objects
 explicity to :class:`int` when using them as indices for
@@ -99,8 +214,8 @@ The same interpolation variables are available in custom headers.
 
 
 
-Conversion propagates docstring-based comments
-==============================================
+Conversion propagates docstring comments
+========================================
 
 The convertor now propagates user comments under the form
 of Python docstrings.
@@ -183,6 +298,19 @@ Now, integer tests are considered also.
 Small changes
 =============
 
+:class:`SignalType` as the base class of Signals
+------------------------------------------------
+
+:func:`Signal` has become a function instead of
+a class. It returns different Signal subtypes
+depending on parameters. This implies that you
+cannot use :func:`Signal` for type checking.
+
+The base type of all Signals is now :class:`SignalType`.
+This type can be used to check whether an object
+is a Signal instance.
+
+
 Default value of :class:`intbv` objects
 ---------------------------------------
 
@@ -207,6 +335,15 @@ The convertor no longer outputs the synthesis pragmas
 more harm than good as they can cause simulation-synthesis
 mismatches. Synthesis tools should be able to infer the
 appropriate optimizations from the source code directly.
+
+Python version
+--------------
+MyHDL 0.7 requires Python 2.6, mainly because of its
+dependency on the new ``ast`` package.
+
+Acknowledgments
+---------------
+
 
 
 
