@@ -33,7 +33,7 @@ from __builtin__ import max as maxfunc
 class intbv(object):
     __slots__ = ('_val', '_min', '_max', '_nrbits')
     
-    def __init__(self, val=None, min=None, max=None, _nrbits=0):
+    def __init__(self, val=0, min=None, max=None, _nrbits=0):
         if _nrbits:
             self._min = 0
             self._max = 2**_nrbits
@@ -59,8 +59,6 @@ class intbv(object):
             self._min = val._min
             self._max = val._max
             _nrbits = val._nrbits
-        elif val is None:
-            self._val = None # for Cosimulation and X, Z support perhaps
         else:
             raise TypeError("intbv constructor arg should be int or string")
         self._nrbits = _nrbits
@@ -75,7 +73,6 @@ class intbv(object):
     min = property(_get_min, None)
 
     def _checkBounds(self):
-        if self._val is None: return
         if self._max is not None:
             if self._val >= self._max:
                 raise ValueError("intbv value %s >= maximum %s" %
@@ -130,14 +127,10 @@ class intbv(object):
             if i <= j:
                 raise ValueError, "intbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j)
-            if self._val is None:
-                return intbv(None, _nrbits=i-j)
             res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
             return res
         else:
             i = int(key)
-            if self._val is None:
-                return intbv(None, _nrbits=1)
             res = bool((self._val >> i) & 0x1)
             return res
 
@@ -145,14 +138,8 @@ class intbv(object):
        
     def __setitem__(self, key, val):
         if isinstance(key, slice):
-            if val == None:
-                raise ValueError, "cannot attribute None to a slice"
             i, j = key.start, key.stop
-            if (self._val == None) and (i != None) and (j != None):
-                raise ValueError, "cannot slice value None"
             if j is None: # default
-                if i is None and self._val is None:
-                    self._val = val
                 j = 0
             j = int(j)
             if j < 0:
@@ -171,20 +158,20 @@ class intbv(object):
             if val >= lim or val < -lim:
                 raise ValueError, "intbv[i:j] = v abs(v) too large\n" \
                       "            i, j, v == %s, %s, %s" % (i, j, val)
-            mask = (1L << (i-j))-1
-            mask *= (1L << j)
+            mask = (lim-1) << j
             self._val &= ~mask
-            self._val |= val * (1L << j)
+            self._val |= (val << j)
             self._checkBounds()
         else:
             i = int(key)
-            if val not in (0, 1):
+            if val == 1:
+                self._val |= (1L << i)
+            elif val == 0:
+                self._val &= ~(1L << i)
+            else:
                 raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
                       "            i == %s " % i
-            if val:
-                self._val |= (1L << i)
-            else:
-                self._val &= ~(1L << i)
+               
             self._checkBounds()
 
 
