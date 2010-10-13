@@ -31,10 +31,10 @@ flexible for structural modeling. For example, slicing a signal
 returns a slice of the current value. For behavioral code, this is
 just fine. However, it implies that you cannot use such as slice in
 structural descriptions. In other words, a signal slice cannot be used
-as a signal.
+as a signal.  To solve these issues, a new concept was introduced:
+shadow signals.
 
-To solve these issues, a new concept was introduced: shadow signals.
-The whole reasoning behind this is explained in more detail in
+The whole reasoning behind shadow signals is explained in more detail in
 `mep-105`_.
 
 .. _mep-105: http://www.myhdl.org/doku.php/meps:mep-105
@@ -61,15 +61,23 @@ generators to be simulated. For conversion, the constructor defines
 a piece of dedicated Verilog and VHDL code which is automatically
 added to the convertor output.
 
+Currently, three kinds of shadow signals have been implemented.  The
+original inspiration for shadow signals was to have solution for
+structural slicing. This is the purpose of the :class:`_SliceSignal`
+subclass. The opposite is also useful: a signal that shadows a
+composition of other signals. This is the purpose of the
+:class:`ConcatSignal` subclass.
+
+As often is the case, the idea of shadow signals had some useful side
+effects.  In particular, I realized that the :class:`TristateSignal`
+proposed in `mep-103`_.  could be interpreted as a shadow signal of
+its drivers. With the machinery of the shadow signal in place, it
+became easier to support this for simulation and conversion.
+
+.. _mep-103: http://www.myhdl.org/doku.php/meps:mep-103
+
 Concrete shadow signal subclasses
 ---------------------------------
-
-_SliceSignal
-^^^^^^^^^^^^
-
-The original inspiration for shadow signals was to have solution for
-structural slicing. This is the purpose of the :class:`_SliceSignal`
-subclass.
 
 .. class:: _SliceSignal(sig, left[, right=None])
 
@@ -101,32 +109,12 @@ functions with a similar slicing functionality and a similar interface, such as 
 Moreover, the call interface conveys the notion that something is being constructed, which
 is what really happens.
 
-ConcatSignal
-^^^^^^^^^^^^
-
-:class:`_SliceSignal` creates a shadow signal on a part of another signal. The
-opposite is also useful: a signal that shadows a composition of other
-signals. This is the purpose of the :class:`ConcatSignal` subclass.
-
 .. class:: ConcatSignal(*args)
 
 This class creates a new signal that shadows the concatenation
 of its parent signal values. You can pass an arbitrary number
 of signals to the constructor. The signal arguments should be bit-oriented
 with a defined number of bits.
-
-TristateSignal
-^^^^^^^^^^^^^^
-
-
-As often is the case, the idea of shadow signals had some useful side effects.
-In particular, I realized that the :class:`TristateSignal` proposed in
-`mep-103`_.
-could be interpreted as a shadow signal of its drivers. With the machinery of
-the shadow signal in place, it became easier to support this for simulation
-and conversion.
-
-.. _mep-103: http://www.myhdl.org/doku.php/meps:mep-103
 
 
 .. class:: TristateSignal(val)
@@ -159,7 +147,51 @@ This class has the following method:
 Example
 -------
 
+A typical application of shadow signals is conversion of
+list of signals to bit vectors and vice versa.
 
+For example, suppose we have as system with N requesters that
+need arbitration. Each requester has a ``request`` output
+and a ``grant`` input. To connect them in the system, we can
+use list of signals, for example::
+
+    request_list = [Signal(bool()) for i in range(M)]
+
+An arbiter module is available that is
+instantiated as follows::
+
+    arb = arbiter(grant_vector, request_vector, clock, reset)
+
+The ``request_vector`` input is a bit vector that can have
+any of its bits asserted. The ``grant_vector`` is an output
+bit vector with just a single bit asserted, or none.
+Such a module is typically based on bit vectors because
+they are easy to process in RTL code.
+
+Therefore, we need a way to "connect" the list to the 
+vector and vice versa. Of course, we can do this with explicit
+code, but shadow signals can do this automatically. For
+example, we can construct a ``request_vector`` as a
+:class:`ConcatSignal` object::
+
+    request_vector = ConcatSignal(*reversed(request_list)
+
+Note that we reverse the list first. This is done because the index range
+of lists is the inverse of the range of :class:`intbv` bit vectors.
+By reversing, the indices correspond to the same bit.
+
+The inverse problem exist for the ``grant_vector``. It would be defined as follows::
+
+    grant_vector = Signal(intbv(0)[M:])
+
+To convert it to a list we can use the :class:`Signal` call interface to
+construct :class:`_SliceSignal` objects::
+
+    grant_list = [grant_vector(i) for i in range(M)]
+
+Note the round brackets used for this type of slicing. It may not be
+necessary to construct this list explicitly. You can simply use
+``grant_vector(i)`` in an instantation.
 
 
 Using :class:`Signal` and :class:`intbv` objects as indices
@@ -337,13 +369,30 @@ mismatches. Synthesis tools should be able to infer the
 appropriate optimizations from the source code directly.
 
 Python version
---------------
+==============
 MyHDL 0.7 requires Python 2.6, mainly because of its
 dependency on the new ``ast`` package.
 
 Acknowledgments
----------------
+===============
 
+Several people have contributed to MyHDL 0.7 by giving feedback,
+making suggestions, fixing bugs and implementing features.
+In particular, I would like to thank
+Benoit Allard,
+Günter Dannoritzer, 
+Tom Dillon,
+Knut Eldhuset,
+Angel Ezquerra,
+Christopher Felton,
+and Jian LUO.
+
+Thanks to Francesco Balau for packaging MyHDL for Ubuntu.
+
+I would also like to thank `Easics`_ for 
+the opportunity to use MyHDL in industrial projects.
+
+.. _`Easics`: http:www.easics.com
 
 
 
