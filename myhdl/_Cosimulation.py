@@ -137,7 +137,7 @@ class Cosimulation(object):
                     if next >= (1 << (s._nrbits-1)):
                         next |= (-1 << s._nrbits)
             except ValueError:
-                next = intbv(None)
+                next = intbv(0)
             s.next = next
                  
         self._getMode = 0

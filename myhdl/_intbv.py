@@ -137,6 +137,8 @@ class intbv(object):
 
        
     def __setitem__(self, key, val):
+        # convert val to int to avoid confusion with intbv or Signals
+        val = int(val)
         if isinstance(key, slice):
             i, j = key.start, key.stop
             if j is None: # default
