@@ -70,7 +70,7 @@ composition of other signals. This is the purpose of the
 
 As often is the case, the idea of shadow signals had some useful side
 effects.  In particular, I realized that the :class:`TristateSignal`
-proposed in `mep-103`_.  could be interpreted as a shadow signal of
+proposed in `mep-103`_  could be interpreted as a shadow signal of
 its drivers. With the machinery of the shadow signal in place, it
 became easier to support this for simulation and conversion.
 

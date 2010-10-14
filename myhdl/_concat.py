@@ -46,7 +46,7 @@ def concat(base, *args):
                         % type(base))
 
     width = 0
-    for arg in args:
+    for i, arg in enumerate(args):
         if isinstance(arg, intbv):
             w = arg._nrbits
             v = arg._val
@@ -63,7 +63,7 @@ def concat(base, *args):
             raise TypeError("concat: inappropriate argument type: %s" \
                             % type(arg))
         if not w:
-            raise TypeError, "concat: arg  %d to concat should have length" % arg
+            raise TypeError, "concat: arg on pos %d should have length" % (i+1)
         width += w
         val = val*(2**w) + v
         

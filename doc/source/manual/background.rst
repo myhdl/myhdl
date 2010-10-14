@@ -36,7 +36,7 @@ A small tutorial on generators
 
 .. index:: single: generators; tutorial on
 
-Generators are a relatively recent Python feature. They were introduced in
+Generators were introduced in
 Python 2.2. Because generators are the key concept in MyHDL, a small tutorial is
 included here.
 
