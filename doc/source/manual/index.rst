@@ -2,6 +2,7 @@
   The MyHDL manual  
 ********************
 
+:Author: Jan Decaluwe
 
 Contents:
 

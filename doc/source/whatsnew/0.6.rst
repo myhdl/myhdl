@@ -4,6 +4,7 @@
 What's new in MyHDL 0.6
 ***********************
 
+:Author: Jan Decaluwe
 
 Conversion to VHDL
 ==================
