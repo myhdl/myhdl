@@ -70,7 +70,10 @@ def _makeName(n, prefixes):
 def _makeAST(f):
     s = inspect.getsource(f)
     s = _dedent(s)
-    return ast.parse(s)
+    tree = ast.parse(s)
+    tree.sourcefile = inspect.getsourcefile(f)
+    tree.lineoffset = inspect.getsourcelines(f)[1]-1
+    return tree
                      
 def _analyzeSigs(hierarchy, hdl='Verilog'):
     curlevel = 0
@@ -1230,14 +1233,15 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
        
 def _analyzeTopFunc(func, *args, **kwargs):
     tree = _makeAST(func)
-    v = _AnalyzeTopFuncVisitor(*args, **kwargs)
+    v = _AnalyzeTopFuncVisitor(tree, *args, **kwargs)
     v.visit(tree)
     return v
       
     
-class _AnalyzeTopFuncVisitor(ast.NodeVisitor):
+class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, tree, *args, **kwargs):
+        self.tree = tree
         self.args = args
         self.kwargs = kwargs
         self.name = None
@@ -1249,14 +1253,20 @@ class _AnalyzeTopFuncVisitor(ast.NodeVisitor):
         argnames = [arg.id for arg in node.args.args]
         i=-1
         for i, arg in enumerate(self.args):
+            n = argnames[i]
             if isinstance(arg, _Signal):
-                n = argnames[i]
-                self.argdict[n] = arg
+                self.argdict[n] = arg  
+            if _isMem(arg):
+                self.raiseError(node, _error.ListAsPort, n)
         for n in argnames[i+1:]:
             if n in self.kwargs:
                 arg = self.kwargs[n]
                 if isinstance(arg, _Signal):
                     self.argdict[n] = arg
+                if _isMem(arg):
+                    self.raiseError(node, _error.ListAsPort, n)
+
         self.argnames = [n for n in argnames if n in self.argdict]
 
 
+        

@@ -72,6 +72,7 @@ class _error(object):
     FormatString = "Format string error"
     UnsupportedAttribute = "Unsupported attribute"
     PortInList = "Port in list is not supported"
+    ListAsPort = "List of signals as a port is not supported"
     SignalInMultipleLists = "Signal in multiple list is not supported"
 
 

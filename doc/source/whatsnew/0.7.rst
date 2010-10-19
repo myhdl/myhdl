@@ -171,7 +171,7 @@ Such a module is typically based on bit vectors because
 they are easy to process in RTL code. In MyHDL, a bit vector
 is modeled using the :class:`intbv` type.
 
-Therefore, we need a way to "connect" the list of Signals to the 
+Therefore, we need a way to "connect" the list of signals to the 
 bit vector and vice versa. Of course, we can do this with explicit
 code, but shadow signals can do this automatically. For
 example, we can construct a ``request_vector`` as a

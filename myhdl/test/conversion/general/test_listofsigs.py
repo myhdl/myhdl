@@ -278,7 +278,9 @@ def test_mixed():
     conversion.verify(mixed)
         
 
-# error tests
+### error tests
+
+# port in list
 
 def portInList(z, a, b):
 
@@ -302,6 +304,7 @@ def test_portInList():
         assert False
        
     
+# signal in multiple lists
 
 def sigInMultipleLists():
 
@@ -324,9 +327,28 @@ def test_sigInMultipleLists():
         assert e.kind == _error.SignalInMultipleLists
     else:
         assert False
-       
 
-        
-        
+# list of signals as port
+       
+def my_register(clk, inp, outp):
+    @always(clk.posedge)
+    def my_register_impl():
+        for index in range(len(inp)):
+            outp[index].next = inp[index]
+    return my_register_impl
+
+def test_listAsPort():
+    count = 3
+    clk = Signal(False)
+    inp = [Signal(intbv(0)[8:0]) for index in range(count)]
+    outp = [Signal(intbv(0)[8:0]) for index in range(count)]
+    try:
+        inst = conversion.analyze(my_register, clk, inp, outp)
+    except ConversionError, e:
+        assert e.kind == _error.ListAsPort
+    else:
+        assert False
+
+
 
     
