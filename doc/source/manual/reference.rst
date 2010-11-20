@@ -50,8 +50,6 @@ Simulation support functions
 ----------------------------
 
 
-
-
 .. function:: now()
 
    Returns the current simulation time.
@@ -99,11 +97,21 @@ Modeling
 
 .. _ref-sig:
 
-The :class:`Signal` class
--------------------------
+Signals
+-------
+
+The :class:`SignalType` type
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. class:: SignalType
+
+    This type is the abstract base type of all signals. It is not used to construct
+    signals, but it can be used to check whether an object is a signal.
 
 
 
+Regular signals
+^^^^^^^^^^^^^^^
 
 .. class:: Signal([val=None] [, delay=0])
 
@@ -112,67 +120,141 @@ The :class:`Signal` class
 
 A :class:`Signal` object has the following attributes:
 
+    .. attribute:: posedge
 
-.. attribute:: Signal.posedge
-
-   Attribute that represents the positive edge of a signal, to be used in
-   sensitivity lists.
-
-
-.. attribute:: Signal.negedge
-
-   Attribute that represents the negative edge of a signal, to be used in
-   sensitivity lists.
+       Attribute that represents the positive edge of a signal, to be used in
+       sensitivity lists.
 
 
-.. attribute:: Signal.next
+    .. attribute:: negedge
 
-   Read-write attribute that represents the next value of the signal.
-
-
-.. attribute:: Signal.val
-
-   Read-only attribute that represents the current value of the signal.
-
-   This attribute is always available to access the current value; however in many
-   practical case it will not be needed. Whenever there is no ambiguity, the Signal
-   object's current value is used implicitly. In particular, all Python's standard
-   numeric, bit-wise, logical and comparison operators are implemented on a Signal
-   object by delegating to its current value. The exception is augmented
-   assignment. These operators are not implemented as they would break the rule
-   that the current value should be a read-only attribute. In addition, when a
-   Signal object is assigned to the ``next`` attribute of another Signal object,
-   its current value is assigned instead.
+       Attribute that represents the negative edge of a signal, to be used in
+       sensitivity lists.
 
 
-.. attribute:: Signal.min
+    .. attribute:: next
 
-   Read-only attribute that is the minimum value (inclusive) of a numeric signal,
-   or *None* for no minimum.
-
-
-.. attribute:: Signal.max
-
-   Read-only attribute that is the maximum value (exclusive) of a numeric signal,
-   or *None* for no  maximum.
+       Read-write attribute that represents the next value of the signal.
 
 
-.. attribute:: Signal.driven
+    .. attribute:: val
 
-   Writable attribute that can be used to indicate that the signal is supposed to
-   be driven from the MyHDL code, and how it should be declared in Verilog after
-   conversion. The allowed values are ``'reg'`` and ``'wire'``.
+       Read-only attribute that represents the current value of the signal.
 
-   This attribute is useful when the Verilog converter cannot infer automatically
-   whether and how a signal is driven. This occurs when the signal is driven from
-   user-defined Verilog code.
+       This attribute is always available to access the current value; however in many
+       practical case it will not be needed. Whenever there is no ambiguity, the Signal
+       object's current value is used implicitly. In particular, all Python's standard
+       numeric, bit-wise, logical and comparison operators are implemented on a Signal
+       object by delegating to its current value. The exception is augmented
+       assignment. These operators are not implemented as they would break the rule
+       that the current value should be a read-only attribute. In addition, when a
+       Signal object is assigned to the ``next`` attribute of another Signal object,
+       its current value is assigned instead.
+
+
+    .. attribute:: min
+
+       Read-only attribute that is the minimum value (inclusive) of a numeric signal,
+       or *None* for no minimum.
+
+
+    .. attribute:: max
+
+       Read-only attribute that is the maximum value (exclusive) of a numeric signal,
+       or *None* for no  maximum.
+
+
+    .. attribute:: driven
+    
+       Writable attribute that can be used to indicate that the signal is supposed to
+       be driven from the MyHDL code, and how it should be declared in Verilog after
+       conversion. The allowed values are ``'reg'``, ``'wire'`` and ``False``.
+
+       This attribute is useful when the Verilog converter cannot infer automatically
+       whether and how a signal is driven. This occurs when the signal is driven from
+       user-defined Verilog code.
+  
+    .. attribute:: read
+    
+       Writable boolean attribute that can be used to indicate that the signal is supposed to
+       be driven from the MyHDL code, and how it should be declared in Verilog after
+       conversion.
+
+       This attribute is useful when the Verilog converter cannot infer automatically
+       whether and how a signal is driven. This occurs when the signal is driven from
+       user-defined Verilog code.
+
+       This attribute is useful when the Verilog converter cannot infer automatically
+       whether a signal is read. This can occur when the signal is read from
+       user-defined Verilog code.
+
+
+    A :class:`Signal` object also has a call interface:
+
+    .. method:: Signal.__call__(left[, right=None])
+
+	This method returns a :class:`_SliceSignal` shadow signal. 
+
+Shadow signals
+^^^^^^^^^^^^^^
+
+.. class:: _SliceSignal(sig, left[, right=None])
+
+    This class implements read-only structural slicing and indexing. It creates a new
+    signal that shadows the slice or index of the parent signal *sig*. If the
+    *right* parameter is ommitted, you get indexing instead of slicing.
+    Parameters *left*  and *right* have the usual meaning for slice
+    indices: in particular, *left* is non-inclusive but *right*
+    is inclusive. *sig* should be appropriate for slicing and indexing, which
+    means it should be based on :class:`intbv` in practice.
+
+    The class constructor is not intended to be used explicitly. Instead,
+    use the call interface of a regular signal.The following calls are equivalent::
+
+        sl = _SliceSignal(sig, left, right)
+
+        sl = sig(left, right)
+
+
+.. class:: ConcatSignal(*args)
+
+    This class creates a new signal that shadows the concatenation
+    of its parent signal values. You can pass an arbitrary number
+    of signals to the constructor. The signal arguments should be bit-oriented
+    with a defined number of bits.
+
+
+.. class:: TristateSignal(val)
+
+    This class is used to construct a new tristate signal. The
+    underlying type is specified by the *val*
+    parameter. 
+    It is a Signal subclass and has the usual attributes, with
+    one exception: it doesn't support the ``next``
+    attribute. Consequently, direct signal assignment to a tristate
+    signal is not supported.
+    The initial value is the tristate value ``None``.
+    The current value of a tristate is determined by resolving the
+    values from its drivers. When exactly one driver value is
+    different from ``None``, that is the resolved value; otherwise
+    it is ``None``. When more than one driver value is different
+    from ``None``, a contention warning is issued.
+
+    This class has the following method:
+
+    .. method:: Tristatedriver()
+
+	Returns a new driver to the tristate signal. It is initialized to
+	``None``.  A driver object is an instance of a special
+	:class:`SignalType` subclass. In particular, its ``next``
+	attribute can be used to assign a new value to it.
+
 
 
 .. _ref-gen:
 
 MyHDL generators and trigger objects
 ------------------------------------
-
 
 
 .. index:: single: sensitivity list
@@ -322,7 +404,7 @@ The :class:`intbv` class
 ------------------------
 
 
-.. class:: intbv([val=None] [, min=None]  [, max=None])
+.. class:: intbv([val=0] [, min=None]  [, max=None])
 
    This class represents :class:`int`\ -like objects with some additional features
    that make it suitable for hardware design. The *val* argument can be an
@@ -607,32 +689,32 @@ Conversion
 User-defined Verilog and VHDL code
 ----------------------------------
 
-A user can insert user-defined code in the Verilog or VHDL output by using the
-``__verilog__`` or ``__vhdl__`` hook respectively.
+User-defined code can be inserted in the Verilog or VHDL output through
+the use of function attributes. Suppose a function :func:`<func>` defines
+a hardware module. User-defined code can be specified for the function
+with the following function attributes:
 
+.. attribute:: <func>.vhdl_code
 
-.. data:: __verilog__
+    A template string for user-defined code in the VHDL output.
 
-   When defined within a function under elaboration, this
-   variable specifies user-defined code that should be used instead of Verilog converted
-   code for that function.  The user-defined code should be a Python format string
-   that uses keys to refer to the variables that should be interpolated in the
-   string. Any variable in the function context can be referred to.
+.. attribute:: <func>.verilog_code
 
+    A template string for user-defined code in the Verilog output.
 
-.. data:: __vhdl__
+When such a function attribute is defined, the normal conversion
+process is bypassed and the user-defined code is inserted instead.
+The template strings should be suitable for the standard
+:class:`string.Template` constructor. They can contain interpolation
+variables (indicated by a ``$`` prefix) for all signals in the
+context. Note that the function attribute can be defined anywhere where
+:func:`<func>` is visible, either outside or inside the function
+itself.
 
-   When defined within a function under elaboration, this
-   variable specifies user-defined code that should be used instead of VHDL converted
-   code for that function.  The user-defined code should be a Python format string
-   that uses keys to refer to the variables that should be interpolated in the
-   string. Any variable in the function context can be referred to.
-
-
-These hooks cannot be used inside generator functions or decorated local
-functions, as these are not elaborated. In other words, they should be used 
-in functions that define structure.
-
+These function attributes cannot be used with generator functions or
+decorated local functions, as these are not elaborated before
+simulation or conversion.  In other words, they can only be used with
+functions that define structure.
 
 
 Conversion output verification

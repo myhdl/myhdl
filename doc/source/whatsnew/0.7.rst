@@ -84,7 +84,7 @@ Concrete shadow signal subclasses
 .. class:: _SliceSignal(sig, left[, right=None])
 
 This class implements read-only structural slicing and indexing. It creates a new
-signal that shadows the slice or index of the parent signal ``sig``. If the
+signal that shadows the slice or index of the parent signal *sig*. If the
 *right* parameter is ommitted, you get indexing instead of slicing.
 Parameters *left*  and *right* have the usual meaning for slice
 indices: in particular, *left* is non-inclusive but *right*
@@ -94,7 +94,7 @@ means it should be based on :class:`intbv` in practice.
 The class constructors is not intended to be used explicitly. Instead,
 regular signals now have a call interface that returns a :class:`_SliceSignal`:
 
-.. method:: __call__(left[, right=None])
+.. method:: Signal.__call__(left[, right=None])
 
 Therefore, instead of::
 
@@ -316,9 +316,8 @@ context. Note that the function attribute can be defined anywhere where
 :func:`<func>` is visible, either outside or inside the function
 itself.
 
-The old method for user-defined code is still available but will be
-deprecated in the future.
-
+The old method for user-defined code is still available but 
+is deprecated and will be unsupported in the future.
 
 
 More powerful mapping to case statements
