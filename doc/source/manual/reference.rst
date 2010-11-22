@@ -118,7 +118,7 @@ Regular signals
    This class is used to construct a new signal and to initialize its value to
    *val*. Optionally, a delay can be specified.
 
-A :class:`Signal` object has the following attributes:
+   A :class:`Signal` object has the following attributes:
 
     .. attribute:: posedge
 
@@ -189,7 +189,7 @@ A :class:`Signal` object has the following attributes:
        user-defined Verilog code.
 
 
-    A :class:`Signal` object also has a call interface:
+   A :class:`Signal` object also has a call interface:
 
     .. method:: Signal.__call__(left[, right=None])
 
@@ -242,7 +242,7 @@ Shadow signals
 
     This class has the following method:
 
-    .. method:: Tristatedriver()
+    .. method:: driver()
 
 	Returns a new driver to the tristate signal. It is initialized to
 	``None``.  A driver object is an instance of a special
@@ -406,37 +406,38 @@ The :class:`intbv` class
 
 .. class:: intbv([val=0] [, min=None]  [, max=None])
 
-   This class represents :class:`int`\ -like objects with some additional features
-   that make it suitable for hardware design. The *val* argument can be an
-   :class:`int`, a :class:`long`, an :class:`intbv` or a bit string (a string with
-   only '0's or '1's). For a bit string argument, the value is calculated as in
-   ``int(bitstring, 2)``.  The optional *min* and *max* arguments can be used to
-   specify the minimum and maximum value of the :class:`intbv` object. As in
-   standard Python practice for ranges, the minimum value is inclusive and the
-   maximum value is exclusive.
+    This class represents :class:`int`\ -like objects with some
+    additional features that make it suitable for hardware
+    design. The *val* argument can be an :class:`int`, a
+    :class:`long`, an :class:`intbv` or a bit string (a string with
+    only '0's or '1's). For a bit string argument, the value is
+    calculated as in ``int(bitstring, 2)``.  The optional *min* and
+    *max* arguments can be used to specify the minimum and maximum
+    value of the :class:`intbv` object. As in standard Python
+    practice for ranges, the minimum value is inclusive and the
+    maximum value is exclusive.
 
-The minimum and maximum values of an :class:`intbv` object are available as
-attributes:
+    The minimum and maximum values of an :class:`intbv` object are
+    available as attributes:
+
+    .. attribute:: min
+
+       Read-only attribute that is the minimum value (inclusive) of an :class:`intbv`,
+       or *None* for no minimum.
 
 
-.. attribute:: intbv.min
+    .. attribute:: max
 
-   Read-only attribute that is the minimum value (inclusive) of an :class:`intbv`,
-   or *None* for no minimum.
+       Read-only attribute that is the maximum value (exclusive) of an :class:`intbv`,
+       or *None* for no  maximum.
 
+    .. method:: signed()
 
-.. attribute:: intbv.max
+       Interpretes the msb bit as as sign bit and extends it into the higher-order
+       bits of the underlying object value. The msb bit is the highest-order bit
+       within the object's bit width.
 
-   Read-only attribute that is the maximum value (exclusive) of an :class:`intbv`,
-   or *None* for no  maximum.
-
-.. method:: intbv.signed()
-
-   Interpretes the msb bit as as sign bit and extends it into the higher-order
-   bits of the underlying object value. The msb bit is the highest-order bit
-   within the object's bit width.
-
-   :rtype: integer
+    :rtype: integer
 
 Unlike :class:`int` objects, :class:`intbv` objects are mutable; this is also
 the reason for their existence. Mutability is needed to support assignment to
@@ -509,9 +510,6 @@ is only possible for :class:`intbv` objects with a defined bit width.
 Miscellaneous modeling support functions
 ----------------------------------------
 
-
-
-
 .. function:: bin(num [, width])
 
    Returns a bit string representation. If the optional *width* is provided, and if
@@ -578,9 +576,6 @@ Miscellaneous modeling support functions
 Co-simulation
 =============
 
-
-
-
 .. _ref-cosim-myhdl:
 
 MyHDL
@@ -633,55 +628,53 @@ Conversion
 
 .. function:: toVerilog(func [, *args] [, **kwargs])
 
-   Converts a MyHDL design instance to equivalent Verilog code, and also generates
-   a test bench to verify it. *func* is a function that returns an instance.
-   :func:`toVerilog` calls *func* under its control and passes *\*args* and
-   *\*\*kwargs* to the call.
+     Converts a MyHDL design instance to equivalent Verilog code, and also generates
+     a test bench to verify it. *func* is a function that returns an instance.
+     :func:`toVerilog` calls *func* under its control and passes *\*args* and
+     *\*\*kwargs* to the call.
 
-   The return value is the same as would be returned by the call ``func(*args,
-   **kwargs)``. It should be assigned to an instance name.
+     The return value is the same as would be returned by the call ``func(*args,
+     **kwargs)``. It should be assigned to an instance name.
 
-   The top-level instance name and the basename of the Verilog output filename is
-   ``func.func_name`` by default.
+     The top-level instance name and the basename of the Verilog output filename is
+     ``func.func_name`` by default.
 
-   For more information about the restrictions on convertible MyHDL code, see
-   section :ref:`conv-subset` in Chapter :ref:`conv`.
+     For more information about the restrictions on convertible MyHDL code, see
+     section :ref:`conv-subset` in Chapter :ref:`conv`.
 
-:func:`toVerilog` has the following attribute:
+    :func:`toVerilog` has the following attribute:
 
+    .. attribute:: name
 
-.. attribute:: toVerilog.name
-
-   This attribute is used to overwrite the default top-level instance name and the
-   basename of the Verilog output filename.
+     This attribute is used to overwrite the default top-level instance name and the
+     basename of the Verilog output filename.
 
 
 
 .. function:: toVHDL(func[, *args][, **kwargs])
 
-   Converts a MyHDL design instance to equivalent VHDL
-   code. *func* is a function that returns an instance. :func:`toVHDL`
-   calls *func* under its control and passes *\*args* and
-   *\*\*kwargs* to the call.
+    Converts a MyHDL design instance to equivalent VHDL
+    code. *func* is a function that returns an instance. :func:`toVHDL`
+    calls *func* under its control and passes *\*args* and
+    *\*\*kwargs* to the call.
 
-   The return value is the same as would be returned by the call
-   ``func(*args, **kwargs)``. It can be assigned to an instance name.
-   The top-level instance name and the basename of the Verilog
-   output filename is ``func.func_name`` by default.
+    The return value is the same as would be returned by the call
+    ``func(*args, **kwargs)``. It can be assigned to an instance name.
+    The top-level instance name and the basename of the Verilog
+    output filename is ``func.func_name`` by default.
 	
-:func:`toVHDL` has the following attributes:
+    :func:`toVHDL` has the following attributes:
 
-.. attribute:: toVHDL.name
+    .. attribute:: name
 
-  This attribute is used to overwrite the default top-level
-  instance name and the basename of the VHDL output.
+       This attribute is used to overwrite the default top-level
+       instance name and the basename of the VHDL output.
 
-.. attribute:: toVHDL.component_declarations
+    .. attribute:: component_declarations
 
-  This attribute can be used to add component declarations to the
-  VHDL output. When a string is assigned to it, it will be copied
-  to the appropriate place in the output file.
-
+       This attribute can be used to add component declarations to the
+       VHDL output. When a string is assigned to it, it will be copied
+       to the appropriate place in the output file.
 
 
 .. _ref-conv-user:
@@ -722,6 +715,11 @@ Conversion output verification
 
 .. module:: myhdl.conversion
 
+MyHDL provides an interface to verify converted designs. 
+This is used extensively in the package itself to verify the conversion
+functionality. This capability is exported by the package so that users
+can use it also.
+
 Verification interface
 ----------------------
 
@@ -730,103 +728,68 @@ the :mod:`myhdl.conversion` package.
 
 .. function:: verify(func[, *args][, **kwargs])
 
-  Used like :func:`toVHDL()`. It converts MyHDL code,
-  simulates both the MyHDL code and the HDL code and reports any
-  differences. The default HDL simulator is GHDL.
+    Used like :func:`toVHDL()` and  :func:`toVerilog()`. It converts MyHDL code,
+    simulates both the MyHDL code and the HDL code and reports any
+    differences. The default HDL simulator is GHDL.
+
+    This function has the following attribute:
+
+    .. attribute:: simulator
+
+       Used to set the name of the HDL simulator. ``"GHDL"``
+       is the default.
 
 .. function:: analyze(func[, *args][, **kwargs])
 
-  Used like :func:`toVHDL()`. It converts MyHDL code, and analyzes the
-  resulting HDL. 
-  Used to verify whether the HDL output is syntactically correct.
+    Used like :func:`toVHDL()` and :func:`toVerilog()`. It converts MyHDL code, and analyzes the
+    resulting HDL. 
+    Used to verify whether the HDL output is syntactically correct.
 
-The two previous functions have the following attribute:
+    This function has the following attribute:
 
-.. attribute:: analyze.simulator
+    .. attribute:: simulator
 
-  Used to set the name of the HDL analyzer. GHDL
-  is the default.
+       Used to set the name of the HDL simulator used to analyze the code. ``"GHDL"``
+       is the default.
 
-.. attribute:: verify.simulator
-
-  Used to set the name of the HDL simulator. GHDL
-  is the default.
 
 HDL simulator registration
 --------------------------
 
-To be able to use a HDL simulator to verify conversions, it needs to
-be registered first. This is needed once per simulator (or rather, per
-set of analysis and simulation commands). Registering is done with the
-following function:
+To use a HDL simulator to verify conversions, it needs to
+be registered first. This is needed once per simulator.
 
-.. function:: registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, offset=0)
-
-   Registers a particular HDL simulator to be used by  :func:`verify()`
-   and :func:`analyze()`. *name* is the name of the simulator.
-   *hdl* specifies the HDL: ``"VHDL"`` or ``"Verilog"``.
-   *analyze* is a command string to analyze the HDL source code.
-   *elaborate* is a command string to elaborate the HDL
-   code. This command is optional.
-   *simulate* is a command string to simulate the HDL code.
-   *offset* is an integer specifying the number of initial lines to be ignored
-   from the HDL simulator output. 
-
-   The command strings should be string templates that refer to the
-   ``topname`` variable that specifies the design name. The templates
-   can also use the ``unitname`` variable which is the lower case
-   version of ``topname``.
-   The command strings can assume that a subdirectory called
-   ``work`` is available in the current working directory. Analysis and
-   elaboration results can be put there if desired.
-
-   The :func:`analyze()` function uses the *analyze* command.
-   The :func:`verify()` function uses the *analyze* command, then the
-   *elaborate* command if any, and then the *simulate* command.
-
-
-Preregistered HDL simulators
-----------------------------
-
-A number of open-source HDL simulators are preregistered in the
+A number of HDL simulators are preregistered in the
 MyHDL distribution, as follows:
 
-GHDL
-^^^^
++-----------------+---------------------------------+
+| Identifier      | Simulator                       |
++=================+=================================+
+| ``"GHDL"``      | The GHDL VHDL simulator         |
++-----------------+---------------------------------+
+| ``"vsim"``      | The ModelSim VHDL simulator     |
++-----------------+---------------------------------+
+| ``"icarus"``    | The Icarus Verilog simulator    |
++-----------------+---------------------------------+
+| ``"cver"``      | The cver Verilog simulator      |
++-----------------+---------------------------------+
+| ``"vlog"``      | The Modelsim VHDL simulator     |
++-----------------+---------------------------------+
 
-::
+Of course, a simulator has to be installed before it can be used.
 
-    registerSimulator(
-        name="GHDL",
-        hdl="VHDL",
-        analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-        elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
-        simulate="ghdl -r %(unitname)s_ghdl"
-        )
+If another simulator is required, it has to be registered by the user.
+This is done with the function :func:`registerSimulation` that lives
+in the module :mod:`myhdl.conversion._verify`. The same module also has the
+registrations for the prefined simulators.
 
+The verification functions work by comparing the HDL simulator
+output with the MyHDL simulator output. Therefore, they have
+to deal with the specific details of each HDL simulator output,
+which may be somewhat tricky. This is reflected in the interface
+of the :func:`registerSimulation` function. As registration
+is rarely needed, this interface is not further described here.
 
-Icarus 
-^^^^^^
-
-::
-
-    registerSimulator(
-        name="icarus",
-        hdl="Verilog",
-        analyze="iverilog -o %(topname)s.o %(topname)s.v",
-        simulate="vvp %(topname)s.o"
-        )
-
-
-cver
-^^^^
-
-::
-
-    registerSimulator(
-        name="cver",
-        hdl="Verilog",
-        analyze="cver -c -q %(topname)s.v",
-        simulate="cver -q %(topname)s.v",
-        offset=3
-        )
+Please refer to the source code in :mod:`myhdl.conversion._verify`
+to learn how registration works. If you need help, please
+contact the MyHDL community.
