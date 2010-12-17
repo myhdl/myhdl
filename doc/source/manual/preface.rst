@@ -48,9 +48,9 @@ designs, by co-simulation with traditional HDL simulators.
 
 Subject to some limitations, MyHDL designs can be converted to Verilog
 or VHDL.  This provides a path into a traditional design flow,
-including synthesis and implementation.  However, the convertible
-subset is much wider than the standard synthesis subset, and includes
-features that can be used for high level modeling and test benches.
+including synthesis and implementation.  The convertible
+subset is restricted, but much wider than the standard synthesis subset.
+It includes features that can be used for high level modeling and test benches.
 
 The converter works on an instantiated design that has been
 fully elaborated. Consequently, the original design structure can be

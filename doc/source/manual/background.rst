@@ -13,7 +13,7 @@ Prerequisites
 =============
 
 You need a basic understanding of Python to use MyHDL. If you don't know Python,
-don't worry: it it is one of the easiest programming languages to learn  [#]_.
+don't worry: it is is one of the easiest programming languages to learn  [#]_.
 Learning Python is one of the best time investments that engineering
 professionals can make  [#]_.
 
@@ -119,9 +119,9 @@ About decorators
 
 .. index:: single: decorators; about
 
-Python 2.4 introduced a new feature called decorators. MyHDL takes advantage
-of this new feature by defining a number of decorators that facilitate hardware
-descriptions. However, many users may not yet be familiar with decorators.
+Python 2.4 introduced a feature called decorators. MyHDL takes advantage
+of this feature by defining a number of decorators that facilitate hardware
+descriptions. However, some users may not yet be familiar with decorators.
 Therefore, an introduction is included here.
 
 A decorator consists of special syntax in front of a function declaration. It
