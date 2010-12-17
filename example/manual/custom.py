@@ -9,17 +9,18 @@ def inc_comb(nextCount, count, n):
 
     nextCount.driven = "wire"
 
-    __verilog__ =\
-"""
-assign %(nextCount)s = (%(count)s + 1) %% %(n)s;
-"""
-
-    __vhdl__ =\
-"""
-%(nextCount)s <= (%(count)s + 1) mod %(n)s;
-"""
-
     return logic
+
+inc_comb.verilog_code =\
+"""
+assign $nextCount = ($count + 1) % $n;
+"""
+
+inc_comb.vhdl_code =\
+"""
+$nextCount <= ($count + 1) mod $n;
+"""
+
 
 
 

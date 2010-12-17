@@ -839,10 +839,11 @@ User-defined code
 =================
 
 MyHDL provides a way to include user-defined code during the
-conversion process, using the ``__verilog__`` and ``__vhdl__``
-hooks. 
+conversion process, using the special function attributes
+:attr:`vhdl_code` and :attr:`verilog_code`.
 
 For example::
+
 
     def inc_comb(nextCount, count, n):
 
@@ -853,17 +854,18 @@ For example::
 
 	nextCount.driven = "wire"
 
-	__verilog__ =\
-    """
-    assign %(nextCount)s = (%(count)s + 1) %% %(n)s;
-    """
-
-	__vhdl__ =\
-    """
-    %(nextCount)s <= (%(count)s + 1) mod %(n)s;
-    """
-
 	return logic
+
+    inc_comb.verilog_code =\
+    """
+    assign $nextCount = ($count + 1) % $n;
+    """
+
+    inc_comb.vhdl_code =\
+    """
+    $nextCount <= ($count + 1) mod $n;
+    """
+
 
 The converted code looks as follows in Verilog::
 
@@ -905,12 +907,12 @@ and as follows in VHDL::
 
 
 In this example, conversion of the :func:`inc_comb` function is
-bypassed and the user-defined code is inserted instead. Note that the
-user-defined code refers to signals and parameters in the MyHDL
-context by using format specifiers. During conversion, the appropriate
-hierarchical names and parameter values will be filled in. Note
-that the format specifier indicator % needs to be escaped (by doubling
-it) if it is required in the user-defined code.
+bypassed and the user-defined code is inserted instead. The
+user-defined code is a Python template string that
+can refer to signals and parameters in the MyHDL
+context through ``$``-based substitutions.
+During conversion, the appropriate
+hierarchical names and parameter values will be substitued.
 
 The MyHDL code contains the following assignment::
 

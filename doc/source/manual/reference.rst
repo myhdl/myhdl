@@ -167,26 +167,21 @@ Regular signals
     .. attribute:: driven
     
        Writable attribute that can be used to indicate that the signal is supposed to
-       be driven from the MyHDL code, and how it should be declared in Verilog after
-       conversion. The allowed values are ``'reg'``, ``'wire'`` and ``False``.
+       be driven from the MyHDL code, and possibly how it should be declared in Verilog after
+       conversion. The allowed values are ``'reg'``, ``'wire'``, ``True`` and ``False``.
 
-       This attribute is useful when the Verilog converter cannot infer automatically
+       This attribute is useful when the  converter cannot infer automatically
        whether and how a signal is driven. This occurs when the signal is driven from
-       user-defined Verilog code.
+       user-defined code. ``'reg'`` and ``'wire'`` are "true" values that
+       permit finer control for the Verilog case.
   
     .. attribute:: read
     
-       Writable boolean attribute that can be used to indicate that the signal is supposed to
-       be driven from the MyHDL code, and how it should be declared in Verilog after
-       conversion.
+       Writable boolean attribute that can be used to indicate that the signal is read.
 
-       This attribute is useful when the Verilog converter cannot infer automatically
-       whether and how a signal is driven. This occurs when the signal is driven from
-       user-defined Verilog code.
-
-       This attribute is useful when the Verilog converter cannot infer automatically
-       whether a signal is read. This can occur when the signal is read from
-       user-defined Verilog code.
+       This attribute is useful when the converter cannot infer automatically
+       whether a signal is read. This occurs when the signal is read from
+       user-defined code.
 
 
    A :class:`Signal` object also has a call interface:
