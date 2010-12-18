@@ -152,14 +152,15 @@ Example
 A typical application of shadow signals is conversion of
 list of signals to bit vectors and vice versa.
 
-For example, suppose we have as system with N requesters that
+For example, suppose we have a system with N requesters that
 need arbitration. Each requester has a ``request`` output
 and a ``grant`` input. To connect them in the system, we can
-use list of signals, for example::
+use list of signals. For example, a list of request signals
+can be constructed as follows::
 
     request_list = [Signal(bool()) for i in range(M)]
 
-An arbiter module is available that is
+Suppose that an arbiter module is available that is
 instantiated as follows::
 
     arb = arbiter(grant_vector, request_vector, clock, reset)
@@ -171,7 +172,7 @@ Such a module is typically based on bit vectors because
 they are easy to process in RTL code. In MyHDL, a bit vector
 is modeled using the :class:`intbv` type.
 
-Therefore, we need a way to "connect" the list of signals to the 
+We need a way to "connect" the list of signals to the 
 bit vector and vice versa. Of course, we can do this with explicit
 code, but shadow signals can do this automatically. For
 example, we can construct a ``request_vector`` as a
@@ -196,6 +197,10 @@ bit vector, we can use the :class:`Signal` call interface to construct
 Note the round brackets used for this type of slicing. Also, it may not be
 necessary to construct this list explicitly. You can simply use
 ``grant_vector(i)`` in an instantation.
+
+To decide when to use normal or shadow signals, consider the data
+flow. Use normal signals to connect to *outputs*. Use shadow signals to
+transform these signals so that they can be used as *inputs*.
 
 
 Using :class:`Signal` and :class:`intbv` objects as indices
