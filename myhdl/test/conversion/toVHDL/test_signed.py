@@ -84,8 +84,8 @@ def binaryBench(Ll, Ml, Lr, Mr):
         
 
     aBit = Signal(bool(0))
-    left = Signal(intbv(min=Ll, max=Ml))
-    right = Signal(intbv(min=Lr, max=Mr))
+    left = Signal(intbv(Ll, min=Ll, max=Ml))
+    right = Signal(intbv(Lr, min=Lr, max=Mr))
     M = 2**14
     
     Bitand = Signal(intbv(0, min=-2**17, max=2**17))
@@ -349,8 +349,8 @@ def augmBench( Ll, Ml, Lr, Mr):
     seqL = tuple(seqL)
     seqR = tuple(seqR)
     
-    left = Signal(intbv(min=Ll, max=Ml))
-    right = Signal(intbv(min=Lr, max=Mr))
+    left = Signal(intbv(Ll, min=Ll, max=Ml))
+    right = Signal(intbv(Lr, min=Lr, max=Mr))
 
         
 ##         Bitand = Signal(intbv(0)[max(m, n):])
