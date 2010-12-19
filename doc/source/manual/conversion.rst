@@ -375,6 +375,26 @@ converter.
    interpretation.
 
 
+Docstrings
+----------
+
+The convertor propagates comments under the form of Python
+docstrings.
+
+Docstrings are typically used in Python to document certain objects in
+a standard way. Such "official" docstrings are put into the converted
+output on an appropriate locations.  The convertor supports official
+docstrings for the top level module and for generators.
+
+Within generators, "nonofficial" docstrings are propagated also. These
+are strings (triple quoted by convention) that can occur anywhere
+between statements.
+
+Regular Python comments are ignored by the Python parser, and they are
+not present in the parse tree. Therefore, these are not
+propagated. With docstrings, you have an elegant way to specify which
+comments should be propagated and which not.
+
 
 
 .. _conv-listofsigs:
