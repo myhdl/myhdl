@@ -964,8 +964,8 @@ store the signal object itself, but its current value. Similarly, we use the
 
 In many cases, MyHDL code uses a signal's current value automatically when there
 is no ambiguity: for example, when a signal is used in an expression. However,
-in other cases such as in this example you have to refer to the value
-explicitly: for example, when the Signal is used as an index, or when it is not
+in other cases, such as in this example, you have to refer to the value
+explicitly: for example, when the Signal is used as a dictionary key, or when it is not
 used in an expression.  One option is to use the ``val`` attribute, as in this
 example.  Another possibility is to use the ``int()`` or ``bool()`` functions to
 typecast the Signal to an integer or a boolean value. These functions are also
@@ -1159,7 +1159,7 @@ items, and a *sync* signal to synchronize the operation between the methods.
 Whenever :meth:`put` puts an item in the queue, the signal is triggered.  When
 the :meth:`get` method sees that the list is empty, it waits on the trigger
 first. :meth:`get` is a generator method because  it may consume time. As the
-``yield`` statement is used in MyHDL\ for timing control, the method cannot
+``yield`` statement is used in MyHDL for timing control, the method cannot
 "yield" the item. Instead, it makes it available in the *item* instance
 variable.
 
