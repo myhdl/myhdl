@@ -22,7 +22,7 @@ if sys.version_info < requiredVersion:
 from distutils.core import setup
 
 classifiers = """\
-Development Status :: 3 - Alpha
+Development Status :: 4 - Beta 
 Intended Audience :: Developers
 License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
 Operating System :: OS Independent
@@ -32,12 +32,12 @@ Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
 
     
 setup(name="myhdl",
-      version="0.7dev",
+      version="0.7",
       description="Python as a Hardware Description Language",
       long_description = "See home page.",
       author="Jan Decaluwe",
       author_email="jan@jandecaluwe.com",
-      url="http://jandecaluwe.com/Tools/MyHDL/Overview.html",
+      url="http://www.myhdl.org",
       download_url="http://sourceforge.net/project/showfiles.php?group_id=91207",
       packages=['myhdl', 'myhdl.conversion'],
       license="LGPL",

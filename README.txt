@@ -1,5 +1,5 @@
-MyHDL 0.7dev
-============
+MyHDL 0.7
+=========
 
 What is MyHDL?
 --------------
@@ -22,13 +22,13 @@ Documentation
 -------------
 The manual is available on-line:
 
-   http://www.myhdl.org/doc/0.6/manual
+   http://www.myhdl.org/doc/0.7/manual
 
 What's new
 ----------
 To find out what's new in this release, please read:
 
-    http://www.myhdl.org/doc/0.6/whatsnew/0.6.html
+    http://www.myhdl.org/doc/0.7/whatsnew/0.7.html
 
 Installation
 ------------
@@ -48,7 +48,8 @@ In this case, be sure to add the appropriate install dir to the
 $PYTHONPATH. 
 
 If necessary, consult the distutils documentation in the standard
-Python library if necessary for more details; or contact me.
+Python library if necessary for more details;
+or contact me.
 
 You can test the proper installation as follows:
    

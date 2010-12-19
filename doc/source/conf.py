@@ -40,9 +40,9 @@ copyright = '2008-2010, Jan Decaluwe'
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '0.7dev'
+version = '0.7'
 # The full version, including alpha/beta/rc tags.
-release = '0.7dev'
+release = '0.7'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -122,7 +122,8 @@ latex_font_size = '11pt'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
 latex_documents = [('manual/index', 'MyHDL.tex', 'MyHDL manual', 'Jan Decaluwe', 'manual'),
-                   ('whatsnew/0.6', 'whatsnew0.6.tex', 'What\'s new in MyHDL 0.6', 'Jan Decaluwe', 'manual')
+                   ('whatsnew/0.6', 'whatsnew0.6.tex', 'What\'s new in MyHDL 0.6', 'Jan Decaluwe', 'howto'),
+                   ('whatsnew/0.7', 'whatsnew0.7.tex', 'What\'s new in MyHDL 0.7', 'Jan Decaluwe', 'howto'),
                   ]
 
 # Additional stuff for the LaTeX preamble.
