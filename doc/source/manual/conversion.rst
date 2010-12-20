@@ -383,7 +383,7 @@ docstrings.
 
 Docstrings are typically used in Python to document certain objects in
 a standard way. Such "official" docstrings are put into the converted
-output on an appropriate locations.  The convertor supports official
+output at appropriate locations.  The convertor supports official
 docstrings for the top level module and for generators.
 
 Within generators, "nonofficial" docstrings are propagated also. These
@@ -552,10 +552,10 @@ their value instead of the regular return value. Effectively, it will
 stop converting at that point.
 
 The value of :attr:`verilog_code` or :attr:`vhdl_code` should be a Python
-template string. A template string supports ``$``-based subsitutions.
+template string. A template string supports ``$``-based substitutions.
 The ``$name`` notation can be used to refer to the
 variable names in the context of the string. The convertor will
-substitue the appropriate values in the string and then insert it 
+substitute the appropriate values in the string and then insert it 
 instead of the regular converted output.
 
 There is one more issue with user-defined code.

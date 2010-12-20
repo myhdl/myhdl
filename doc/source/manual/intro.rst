@@ -164,7 +164,7 @@ We have seen that MyHDL uses functions to model hardware modules. We have also
 seen that ports are modeled by using signals as parameters. To make designs
 reusable we will also want to use other objects as parameters. For example, we
 can change the clock generator function to make it more general and reusable, by
-making the clock period parameterizable, as follows::
+making the clock period parametrizable, as follows::
 
    from myhdl import Signal, delay, instance, always, now, Simulation
 
@@ -650,7 +650,7 @@ follows::
 
   data_bus = intbv(0)[8:]
 
-Now consider that a complex number is transfered over this data
+Now consider that a complex number is transferred over this data
 bus. The upper 4 bits of the data bus are used for the real value and
 the lower 4 bits for the imaginary value. As real and imaginary values
 have a positive and negative value range, we can slice them off from

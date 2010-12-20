@@ -912,7 +912,7 @@ user-defined code is a Python template string that
 can refer to signals and parameters in the MyHDL
 context through ``$``-based substitutions.
 During conversion, the appropriate
-hierarchical names and parameter values will be substitued.
+hierarchical names and parameter values will be substituted.
 
 The MyHDL code contains the following assignment::
 

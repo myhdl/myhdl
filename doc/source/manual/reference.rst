@@ -197,7 +197,7 @@ Shadow signals
 
     This class implements read-only structural slicing and indexing. It creates a new
     signal that shadows the slice or index of the parent signal *sig*. If the
-    *right* parameter is ommitted, you get indexing instead of slicing.
+    *right* parameter is omitted, you get indexing instead of slicing.
     Parameters *left*  and *right* have the usual meaning for slice
     indices: in particular, *left* is non-inclusive but *right*
     is inclusive. *sig* should be appropriate for slicing and indexing, which
@@ -776,7 +776,7 @@ Of course, a simulator has to be installed before it can be used.
 If another simulator is required, it has to be registered by the user.
 This is done with the function :func:`registerSimulation` that lives
 in the module :mod:`myhdl.conversion._verify`. The same module also has the
-registrations for the prefined simulators.
+registrations for the predefined simulators.
 
 The verification functions work by comparing the HDL simulator
 output with the MyHDL simulator output. Therefore, they have

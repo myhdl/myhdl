@@ -164,7 +164,7 @@ bit vector, we can use the :class:`Signal` call interface to construct
 
 Note the round brackets used for this type of slicing. Also, it may not be
 necessary to construct this list explicitly. You can simply use
-``grant_vector(i)`` in an instantation.
+``grant_vector(i)`` in an instantiation.
 
 To decide when to use normal or shadow signals, consider the data
 flow. Use normal signals to connect to *outputs*. Use shadow signals to

@@ -56,7 +56,7 @@ of the values of its parent signal or signals.
 
 A shadow signal is convenient because it is directly constructed
 from its parent signals. The constructor infers everything that's needed:
-the type info, the initial value, and the tranformation of the
+the type info, the initial value, and the transformation of the
 parent signal values. For simulation, the transformation is defined by
 a generator which is automatically created and added to the list of
 generators to be simulated. For conversion, the constructor defines
@@ -85,7 +85,7 @@ Concrete shadow signal subclasses
 
 This class implements read-only structural slicing and indexing. It creates a new
 signal that shadows the slice or index of the parent signal *sig*. If the
-*right* parameter is ommitted, you get indexing instead of slicing.
+*right* parameter is omitted, you get indexing instead of slicing.
 Parameters *left*  and *right* have the usual meaning for slice
 indices: in particular, *left* is non-inclusive but *right*
 is inclusive. *sig* should be appropriate for slicing and indexing, which
@@ -105,7 +105,7 @@ you can do::
     sl = sig(left, right)
 
 Obviously, the call interface was intended to be similar to a slicing interface. Of course,
-it is not exacly the same which may seem inconvenient. On the other hand, there are Python
+it is not exactly the same which may seem inconvenient. On the other hand, there are Python
 functions with a similar slicing functionality and a similar interface, such as the
 ``range`` function.
 Moreover, the call interface conveys the notion that something is being constructed, which
@@ -196,7 +196,7 @@ bit vector, we can use the :class:`Signal` call interface to construct
 
 Note the round brackets used for this type of slicing. Also, it may not be
 necessary to construct this list explicitly. You can simply use
-``grant_vector(i)`` in an instantation.
+``grant_vector(i)`` in an instantiation.
 
 To decide when to use normal or shadow signals, consider the data
 flow. Use normal signals to connect to *outputs*. Use shadow signals to
@@ -207,7 +207,7 @@ Using :class:`Signal` and :class:`intbv` objects as indices
 ===========================================================
 
 Previously, it was necessary convert :class:`Signal` and :class:`intbv` objects
-explicity to :class:`int` when using them as indices for
+explicitly to :class:`int` when using them as indices for
 indexing and slicing. This conversion is no longer required;
 the objects can be used directly.
 The corresponding classes now have an :func:`__index__` method
@@ -263,7 +263,7 @@ docstrings.
 
 Docstrings are typically used in Python to document certain objects in
 a standard way. Such "official" docstrings are put into the converted
-output on an appropriate locations.  The convertor supports official
+output at appropriate locations.  The convertor supports official
 docstrings for the top level module and for generators.
 
 Within generators, "nonofficial" docstrings are propagated also. These
@@ -287,7 +287,7 @@ First, the use of "magic" variables (whose names start and end with
 double underscores) was a bad choice.  According to Python
 conventions, such variables should be reserved for the Python language
 itself.  Moreover, when new hooks would become desirable, we would
-have to specify addtional magic variables.
+have to specify additional magic variables.
 
 A second problem that standard Python strings were used to define
 the user-defined output. These strings can contain the signal
