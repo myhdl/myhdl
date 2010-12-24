@@ -1,4 +1,4 @@
-Release 0.7 21-Dec-2010
+Release 0.7 24-Dec-2010
 -----------------------
 
 Full details about new features and changes can be found here:
