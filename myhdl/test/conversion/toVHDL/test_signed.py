@@ -5,6 +5,7 @@ from random import randrange
 random.seed(2)
 
 from myhdl import *
+from myhdl.conversion import verify
 
 
 NRTESTS = 10
@@ -184,7 +185,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
     
 
 def checkBinaryOps( Ll, Ml, Lr, Mr):
-    assert conversion.verify(binaryBench, Ll, Ml, Lr, Mr ) == 0
+    assert verify(binaryBench, Ll, Ml, Lr, Mr ) == 0
 
 def testBinaryOps():
     for Ll, Ml, Lr, Mr in (
@@ -262,7 +263,7 @@ def unaryBench( m):
 
 
 def checkUnaryOps(m):
-    assert conversion.verify(unaryBench, m) == 0
+    assert verify(unaryBench, m) == 0
     
 
 def testUnaryOps():
@@ -408,7 +409,7 @@ def augmBench( Ll, Ml, Lr, Mr):
     
             
 def checkAugmOps( Ll, Ml, Lr, Mr):
-    assert conversion.verify(augmBench, Ll, Ml, Lr, Mr ) == 0
+    assert verify(augmBench, Ll, Ml, Lr, Mr) == 0
 
 def testAugmOps():
     for Ll, Ml, Lr, Mr in (
@@ -499,7 +500,7 @@ def expressionsBench():
 
 
 def testExpressions():
-    assert conversion.verify(expressionsBench) == 0
+    assert verify(expressionsBench) == 0
 
 
 

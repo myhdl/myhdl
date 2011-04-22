@@ -35,8 +35,8 @@ def verilogCompileCver(name):
     
 
 
-#setupCosimulation = setupCosimulationIcarus
-setupCosimulation = setupCosimulationCver
+setupCosimulation = setupCosimulationIcarus
+#setupCosimulation = setupCosimulationCver
 
-#verilogCompile = verilogCompileIcarus
-verilogCompile = verilogCompileCver
+verilogCompile = verilogCompileIcarus
+#verilogCompile = verilogCompileCver
