@@ -52,6 +52,7 @@ from myhdl.conversion._misc import (_error, _access, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
                                        _Ram, _Rom)
 from myhdl._Signal import _Signal
+from myhdl._ShadowSignal import _SliceSignal
             
 _converting = 0
 _profileFunc = None

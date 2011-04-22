@@ -52,6 +52,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,_context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
 from myhdl._Signal import _Signal,_WaiterList
+from myhdl._ShadowSignal import _SliceSignal
 from myhdl.conversion._toVHDLPackage import _package
 
 _version = myhdl.__version__.replace('.','')
@@ -162,7 +163,7 @@ class _ToVHDLConvertor(object):
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
-        _convertGens(genlist, siglist, vfile)
+        _convertGens(genlist, siglist, memlist, vfile)
         _writeModuleFooter(vfile)
 
         vfile.close()
@@ -355,7 +356,7 @@ def _getTypeString(s):
         return 'unsigned'
 
 
-def _convertGens(genlist, siglist, vfile):
+def _convertGens(genlist, siglist, memlist, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for tree in genlist:
@@ -396,7 +397,15 @@ def _convertGens(genlist, siglist, vfile):
     for s in siglist:
         if hasattr(s, 'toVHDL') and s._read:
             print >> vfile, s.toVHDL()
+    # hack for slice signals in a list
+    for m in memlist:
+        if m._read:
+            for s in m.mem:
+                if hasattr(s, 'toVHDL'):
+                    print >> vfile, s.toVHDL()
     print >> vfile
+                   
+                
 
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 

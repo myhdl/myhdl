@@ -100,17 +100,17 @@ class _SliceSignal(_ShadowSignal):
         self._sig._used = True
         
 
-#     def toVerilog(self):
-#         if self._right is None:
-#             return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
-#         else:
-#             return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
-
-#     def toVHDL(self):
-#         if self._right is None:
-#             return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
-#         else:
-#             return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
+    def toVerilog(self):
+        if self._right is None:
+            return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
+        else:
+            return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
+    
+    def toVHDL(self):
+        if self._right is None:
+            return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
+        else:
+            return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
 
 
 
