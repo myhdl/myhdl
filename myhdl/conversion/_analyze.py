@@ -151,7 +151,7 @@ def _analyzeGens(top, absnames):
             s = _dedent(s)
             tree = ast.parse(s)
             # print ast.dump(tree)
-            tree.sourcefile = inspect.getsourcefile(f)
+            tree.sourcefile  = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.func_globals.copy()
             tree.callstack = []
@@ -160,9 +160,9 @@ def _analyzeGens(top, absnames):
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
                     if isinstance(g, _AlwaysComb):
-                        # print type(obj)
-                        assert isinstance(obj, (int, long, _Signal)) or \
-                               _isMem(obj) or _isTupleOfInts(obj)
+                        if not (isinstance(obj, (int, long, _Signal)) or _isMem(obj) or _isTupleOfInts(obj)):
+                            info =  "File %s, line %s: " % (tree.sourcefile, tree.lineoffset)
+                            raise ConversionError(_error.UnsupportedType, n, info)
                     tree.symdict[n] = obj
             tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
             v = _FirstPassVisitor(tree)
