@@ -833,6 +833,8 @@ The VHDL output code is as follows::
     end architecture MyHDL;
 
 
+.. index:: single: user-defined code; example
+
 .. _conv-usage-custom:
 
 User-defined code

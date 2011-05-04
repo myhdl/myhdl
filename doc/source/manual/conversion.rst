@@ -538,6 +538,8 @@ The convertor supports this by ignoring all code that is embedded in a
 account.
 
 
+.. index:: single: user-defined code; description
+
 .. _conv-custom:
 
 User-defined code
