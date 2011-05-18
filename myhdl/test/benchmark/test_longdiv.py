@@ -58,7 +58,7 @@ def test_longdiv():
         reset.next = 0
         start.next = 0
         yield clock.negedge
-        for i in range(2**17):
+        for i in range(2**18):
             yield clock.negedge
             enable.next = 1
             yield clock.negedge

@@ -1,106 +1,47 @@
 
-Test: lfsr24
+Test: timer
 =====
 python
 ------
+real 849.12
+user 845.32
+sys 1.96
 
 pypy
 ----
-real 155.23
-user 154.79
-sys 0.07
+real 79.85
+user 79.49
+sys 0.18
 
 icarus
 ------
-real 82.12
-user 81.90
-sys 0.01
+real 108.19
+user 107.79
+sys 0.18
 
 ghdl
 ----
-real 63.23
-user 63.10
+real 145.98
+user 145.68
 sys 0.00
 
 vlog
 ----
-real 262.49
-user 105.33
-sys 156.24
+real 258.29
+user 102.55
+sys 154.94
 
 vcom
 ----
-real 236.16
-user 106.71
-sys 128.64
+real 216.14
+user 103.58
+sys 111.86
 
-Test: longdiv
+Test: lfsr24
 =====
 python
 ------
-
-pypy
-----
-real 96.19
-user 95.78
-sys 0.16
-
-icarus
-------
-real 48.61
-user 48.48
-sys 0.02
-
-ghdl
-----
-real 43.79
-user 43.68
-sys 0.01
-
-vlog
-----
-real 54.01
-user 21.91
-sys 31.74
-
-vcom
-----
-real 54.12
-user 26.39
-sys 27.33
-
-Test: randgen
-=====
-python
-------
-
-pypy
-----
-real 261.68
-user 260.78
-sys 0.23
-
-icarus
-------
-real 170.46
-user 169.92
-sys 0.14
-
-ghdl
-----
-real 10.40
-user 8.14
-sys 2.22
-
-vlog
-----
-real 82.51
-user 37.88
-sys 42.87
-
-vcom
-----
-real 56.55
-user 27.88
-sys 26.97
-
+Command exited with non-zero status 1
+real 1564.51
+user 1557.88
+sys 3.20
