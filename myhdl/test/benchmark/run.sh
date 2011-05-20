@@ -13,6 +13,7 @@ timer
 lfsr24
 randgen
 longdiv
+findmax
 "
 
 for test in $tests

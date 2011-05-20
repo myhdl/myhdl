@@ -21,7 +21,7 @@ def test_timer(timer):
         yield delay(10)
         reset.next = 0
         yield delay(10)
-        for i in range(2**26):
+        for i in range(2**25):
             clock.next = not clock
             yield delay(10)
 

@@ -3,45 +3,189 @@ Test: timer
 =====
 python
 ------
-real 849.12
-user 845.32
-sys 1.96
+real 863.50
+user 860.57
+sys 0.96
 
 pypy
 ----
-real 79.85
-user 79.49
-sys 0.18
+real 81.53
+user 81.24
+sys 0.10
 
 icarus
 ------
-real 108.19
-user 107.79
-sys 0.18
+real 106.24
+user 105.49
+sys 0.52
 
 ghdl
 ----
-real 145.98
-user 145.68
+real 145.54
+user 145.24
 sys 0.00
 
 vlog
 ----
-real 258.29
-user 102.55
-sys 154.94
+real 258.52
+user 102.61
+sys 155.12
 
 vcom
 ----
-real 216.14
-user 103.58
-sys 111.86
+real 215.30
+user 103.31
+sys 111.30
 
 Test: lfsr24
 =====
 python
 ------
-Command exited with non-zero status 1
-real 1564.51
-user 1557.88
-sys 3.20
+real 1636.59
+user 1629.60
+sys 3.36
+
+pypy
+----
+real 152.02
+user 151.21
+sys 0.45
+
+icarus
+------
+real 82.07
+user 81.89
+sys 0.00
+
+ghdl
+----
+real 63.72
+user 63.29
+sys 0.29
+
+vlog
+----
+real 263.45
+user 0.35
+sys 0.03
+
+vcom
+----
+real 234.95
+user 106.84
+sys 127.35
+
+Test: randgen
+=====
+python
+------
+real 748.99
+user 747.10
+sys 0.21
+
+pypy
+----
+real 82.09
+user 81.79
+sys 0.10
+
+icarus
+------
+real 229.96
+user 229.44
+sys 0.03
+
+ghdl
+----
+real 33.81
+user 31.44
+sys 2.29
+
+vlog
+----
+real 77.19
+user 33.04
+sys 42.45
+
+vcom
+----
+real 65.72
+user 33.63
+sys 30.16
+
+Test: longdiv
+=====
+python
+------
+real 815.55
+user 812.31
+sys 1.42
+
+pypy
+----
+real 102.16
+user 101.70
+sys 0.22
+
+icarus
+------
+real 43.18
+user 42.74
+sys 0.34
+
+ghdl
+----
+real 223.20
+user 222.72
+sys 0.00
+
+vlog
+----
+real 96.04
+user 38.17
+sys 57.41
+
+vcom
+----
+real 100.71
+user 48.76
+sys 51.50
+
+Test: findmax
+=====
+python
+------
+real 880.58
+user 878.60
+sys 0.02
+
+pypy
+----
+real 140.90
+user 140.51
+sys 0.06
+
+icarus
+------
+real 56.05
+user 55.92
+sys 0.01
+
+ghdl
+----
+real 2254.53
+user 2249.62
+sys 0.01
+
+vlog
+----
+real 20.74
+user 11.32
+sys 9.10
+
+vcom
+----
+real 37.78
+user 23.78
+sys 13.53
+
