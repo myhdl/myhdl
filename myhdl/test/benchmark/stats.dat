@@ -3,189 +3,189 @@ Test: timer
 =====
 python
 ------
-real 863.50
-user 860.57
-sys 0.96
+real 850.03
+user 847.73
+sys 0.44
 
 pypy
 ----
-real 81.53
-user 81.24
-sys 0.10
+real 81.93
+user 81.68
+sys 0.06
 
 icarus
 ------
-real 106.24
-user 105.49
-sys 0.52
+real 107.81
+user 107.38
+sys 0.20
 
 ghdl
 ----
-real 145.54
-user 145.24
+real 146.18
+user 145.87
 sys 0.00
 
 vlog
 ----
-real 258.52
-user 102.61
-sys 155.12
+real 259.61
+user 103.62
+sys 155.21
 
 vcom
 ----
-real 215.30
-user 103.31
-sys 111.30
+real 219.39
+user 106.82
+sys 111.87
 
 Test: lfsr24
 =====
 python
 ------
-real 1636.59
-user 1629.60
-sys 3.36
+real 1610.88
+user 1605.93
+sys 1.34
 
 pypy
 ----
-real 152.02
-user 151.21
-sys 0.45
+real 141.34
+user 140.92
+sys 0.07
 
 icarus
 ------
-real 82.07
-user 81.89
-sys 0.00
+real 79.15
+user 78.64
+sys 0.33
 
 ghdl
 ----
-real 63.72
-user 63.29
-sys 0.29
+real 78.38
+user 78.19
+sys 0.02
 
 vlog
 ----
-real 263.45
-user 0.35
-sys 0.03
+real 266.97
+user 107.33
+sys 158.81
 
 vcom
 ----
-real 234.95
-user 106.84
-sys 127.35
+real 250.99
+user 115.83
+sys 134.40
 
 Test: randgen
 =====
 python
 ------
-real 748.99
-user 747.10
-sys 0.21
+real 740.46
+user 737.30
+sys 1.49
 
 pypy
 ----
-real 82.09
-user 81.79
-sys 0.10
+real 82.64
+user 82.10
+sys 0.34
 
 icarus
 ------
-real 229.96
-user 229.44
-sys 0.03
+real 231.04
+user 229.93
+sys 0.61
 
 ghdl
 ----
 real 33.81
-user 31.44
-sys 2.29
+user 31.50
+sys 2.23
 
 vlog
 ----
-real 77.19
-user 33.04
-sys 42.45
+real 76.74
+user 33.41
+sys 41.89
 
 vcom
 ----
-real 65.72
-user 33.63
-sys 30.16
+real 64.99
+user 33.37
+sys 30.28
 
 Test: longdiv
 =====
 python
 ------
-real 815.55
-user 812.31
-sys 1.42
+real 821.12
+user 817.74
+sys 1.56
 
 pypy
 ----
-real 102.16
-user 101.70
-sys 0.22
+real 102.85
+user 102.23
+sys 0.38
 
 icarus
 ------
-real 43.18
-user 42.74
-sys 0.34
+real 43.33
+user 43.23
+sys 0.00
 
 ghdl
 ----
-real 223.20
-user 222.72
+real 223.28
+user 222.80
 sys 0.00
 
 vlog
 ----
-real 96.04
-user 38.17
-sys 57.41
+real 96.92
+user 38.65
+sys 57.80
 
 vcom
 ----
-real 100.71
-user 48.76
-sys 51.50
+real 97.23
+user 46.81
+sys 49.97
 
 Test: findmax
 =====
 python
 ------
-real 880.58
-user 878.60
-sys 0.02
+real 894.31
+user 890.50
+sys 1.80
 
 pypy
 ----
-real 140.90
-user 140.51
-sys 0.06
+real 142.24
+user 141.46
+sys 0.43
 
 icarus
 ------
-real 56.05
-user 55.92
-sys 0.01
+real 56.02
+user 55.90
+sys 0.00
 
 ghdl
 ----
-real 2254.53
-user 2249.62
-sys 0.01
+real 2259.00
+user 2253.99
+sys 0.08
 
 vlog
 ----
 real 20.74
-user 11.32
-sys 9.10
+user 11.86
+sys 8.58
 
 vcom
 ----
-real 37.78
-user 23.78
-sys 13.53
+real 37.74
+user 23.51
+sys 13.79
 

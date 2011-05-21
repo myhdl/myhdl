@@ -263,7 +263,7 @@ class _Signal(object):
         if self._next is self._val:
             self._next = copy(self._val)
         self._next._val = val
-        self._next._checkBounds()
+        self._next._handleBounds()
 
     def _setNextType(self, val):
         if not isinstance(val, self._type):
