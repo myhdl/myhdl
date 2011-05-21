@@ -4,12 +4,12 @@ echo > teststats.dat
 
 python convert.py
 
-ghdl -a pck_myhdl_07.vhd
+ghdl -a pck_myhdl_08dev.vhd
 vlib work
-vcom pck_myhdl_07.vhd
+vcom pck_myhdl_08dev.vhd
 
 tests="
-findmax
+lfsr24
 "
 
 for test in $tests

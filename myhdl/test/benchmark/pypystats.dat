@@ -1,0 +1,41 @@
+
+Test: timer
+=====
+pypy
+----
+real 82.23
+user 81.90
+sys 0.14
+
+Test: lfsr24
+=====
+pypy
+----
+real 128.67
+user 128.26
+sys 0.11
+
+Test: randgen
+=====
+pypy
+----
+real 81.08
+user 80.73
+sys 0.16
+
+Test: longdiv
+=====
+pypy
+----
+real 102.89
+user 102.59
+sys 0.05
+
+Test: findmax
+=====
+pypy
+----
+real 140.60
+user 140.14
+sys 0.11
+

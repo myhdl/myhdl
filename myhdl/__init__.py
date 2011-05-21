@@ -32,6 +32,7 @@ posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
 join -- callable to join clauses in a yield statement
 intbv -- mutable integer class with bit vector facilities
+modbv -- modular bit vector class
 downrange -- function that returns a downward range
 bin -- returns a binary string representation.
        The optional width specifies the desired string
@@ -46,7 +47,7 @@ toVerilog -- function that converts a design to Verilog
 
 """
 
-__version__ = "0.8-dev"
+__version__ = "0.8dev"
 
 import sys
 import warnings
@@ -110,6 +111,7 @@ warnings.showwarning = showwarning
 from _bin import bin
 from _concat import concat
 from _intbv import intbv
+from _modbv import modbv
 from _join import join
 from _Signal import posedge, negedge, Signal, SignalType
 from _ShadowSignal import ConcatSignal
@@ -135,6 +137,7 @@ from _tristate import Tristate
 __all__ = ["bin",
            "concat",
            "intbv",
+           "modbv",
            "join",
            "posedge",
            "negedge",

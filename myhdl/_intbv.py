@@ -31,7 +31,7 @@ from myhdl._bin import bin
 from __builtin__ import max as maxfunc
 
 class intbv(object):
-    __slots__ = ('_val', '_min', '_max', '_nrbits')
+    __slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
     
     def __init__(self, val=0, min=None, max=None, _nrbits=0):
         if _nrbits:

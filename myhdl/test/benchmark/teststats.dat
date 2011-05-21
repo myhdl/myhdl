@@ -1,0 +1,36 @@
+
+Test: lfsr24
+=====
+python
+------
+
+pypy
+----
+real 135.26
+user 134.76
+sys 0.18
+
+icarus
+------
+real 80.79
+user 80.36
+sys 0.26
+
+ghdl
+----
+real 71.13
+user 70.97
+sys 0.01
+
+vlog
+----
+real 266.11
+user 107.63
+sys 157.69
+
+vcom
+----
+real 240.08
+user 109.03
+sys 130.30
+

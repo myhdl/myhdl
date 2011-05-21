@@ -9,7 +9,7 @@ def lfsr24(lfsr, enable, clock, reset):
         else:
             if enable:
                 # lfsr.next[24:1] = lfsr[23:0]
-                lfsr.next = lfsr[23:0] << 1
+                lfsr.next = lfsr << 1
                 lfsr.next[0] = lfsr[23] ^ lfsr[22] ^ lfsr[21] ^ lfsr[16]
 
     return logic
