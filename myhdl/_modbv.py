@@ -25,7 +25,7 @@ class modbv(intbv):
     __slots__ = []
 
     def _handleBounds(self):
-        lo, hi = self._min, self._max
-        if lo is None or hi is None:
-           return
-        self._val = (self._val - lo) % (hi - lo) + lo
+        lo, hi, val = self._min, self._max, self._val
+        if lo is not None:
+            if val < lo or val >= hi:
+                self._val = (val - lo) % (hi - lo) + lo
