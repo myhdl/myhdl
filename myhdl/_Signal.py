@@ -28,7 +28,7 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 """
 
 from inspect import currentframe, getouterframes
-from copy import deepcopy as copy
+from copy import copy, deepcopy
 
 from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
@@ -103,8 +103,9 @@ class _Signal(object):
 
     __slots__ = ('_next', '_val', '_min', '_max', '_type', '_init',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
-                 '_code', '_tracing', '_nrbits', '_checkVal', '_setNextVal',
-                 '_printVcd', '_driven' ,'_read', '_name', '_used', '_inList',
+                 '_code', '_tracing', '_nrbits', '_checkVal', 
+                 '_setNextVal', '_copyVal2Next', '_printVcd', 
+                 '_driven' ,'_read', '_name', '_used', '_inList',
                  '_waiter', 'toVHDL', 'toVerilog', '_slicesigs'
                 )
 
@@ -125,27 +126,31 @@ class _Signal(object):
         if isinstance(val, bool):
             self._type = bool
             self._setNextVal = self._setNextBool
+            self._copyVal2Next = self._assignVal
             self._printVcd = self._printVcdBit
             self._nrbits = 1
         elif isinstance(val, (int, long)):
             self._type = (int, long)
             self._setNextVal = self._setNextInt
+            self._copyVal2Next = self._assignVal
         elif isinstance(val, intbv):
             self._type = intbv
             self._min = val._min
             self._max = val._max
             self._nrbits = val._nrbits
             self._setNextVal = self._setNextIntbv
+            self._copyVal2Next = self._copyVal
             if self._nrbits:
                 self._printVcd = self._printVcdVec
             else:
                 self._printVcd = self._printVcdHex
-        elif val is None:
-            self._type = None
-            self._setNextVal = self._setNext
+#        elif val is None:
+#            self._type = None
+#            self._setNextVal = self._setNext
         else:
             self._type = type(val)
             self._setNextVal = self._setNextType
+            self._copyVal2Next = self._deepcopyVal
             if hasattr(val, '_nrbits'):
                 self._nrbits = val._nrbits
         self._eventWaiters = _WaiterList()
@@ -191,7 +196,7 @@ class _Signal(object):
     # support for the 'next' attribute
     def _get_next(self):
         if self._next is self._val:
-            self._next = copy(self._val)
+            self._copyVal2Next()
         _siglist.append(self)
         return self._next
     def _set_next(self, val):
@@ -268,10 +273,20 @@ class _Signal(object):
     def _setNextType(self, val):
         if not isinstance(val, self._type):
             raise TypeError("Expected %s, got %s" % (self._type, type(val)))
-        self._next = val
+        self._next = deepcopy(val)
         
-    def _setNext(self, val):
-        self._next = val
+#    def _setNext(self, val):
+#        self._next = val
+
+    # copy val to next methods
+    def _assignVal(self):
+        self._next = self._val
+        
+    def _copyVal(self):
+        self._next = copy(self._val)
+    def _deepcopyVal(self):
+        
+        self._next = deepcopy(self._val)
 
     # vcd print methods
     def _printVcdStr(self):
