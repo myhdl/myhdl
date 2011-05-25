@@ -34,6 +34,7 @@ from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
+from myhdl._enum import EnumItemType
 
 _schedule = _futureEvents.append
 
@@ -145,7 +146,10 @@ class _Signal(object):
                 self._printVcd = self._printVcdHex
         else:
             self._type = type(val)
-            self._setNextVal = self._setNextType
+            if isinstance(val, EnumItemType):
+                self._setNextVal = self._setNextNonmutable
+            else:
+                self._setNextVal = self._setNextMutable
             if hasattr(val, '_nrbits'):
                 self._nrbits = val._nrbits
         self._eventWaiters = _WaiterList()
@@ -181,7 +185,7 @@ class _Signal(object):
                 self._val = None
             elif isinstance(val, intbv):
                 self._val._val = next._val
-            elif isinstance(val, (int, long)):
+            elif isinstance(val, (int, long, EnumItemType)):
                 self._val = next
             else:
                 self._val = deepcopy(next)
@@ -273,10 +277,15 @@ class _Signal(object):
         self._next._val = val
         self._next._handleBounds()
 
-    def _setNextType(self, val):
+    def _setNextNonmutable(self, val):
         if not isinstance(val, self._type):
             raise TypeError("Expected %s, got %s" % (self._type, type(val)))
-        self._next = deepcopy(val)      
+        self._next = val    
+        
+    def _setNextMutable(self, val):
+        if not isinstance(val, self._type):
+            raise TypeError("Expected %s, got %s" % (self._type, type(val)))
+        self._next = deepcopy(val)         
 
     # vcd print methods
     def _printVcdStr(self):
