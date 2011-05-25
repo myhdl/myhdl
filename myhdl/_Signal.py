@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2008 Jan Decaluwe
+#  Copyright (C) 2003-2011 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -128,31 +128,24 @@ class _Signal(object):
         if isinstance(val, bool):
             self._type = bool
             self._setNextVal = self._setNextBool
-            #self._copyVal2Next = self._assignVal
             self._printVcd = self._printVcdBit
             self._nrbits = 1
         elif isinstance(val, (int, long)):
             self._type = (int, long)
             self._setNextVal = self._setNextInt
-            #self._copyVal2Next = self._assignVal
         elif isinstance(val, intbv):
             self._type = intbv
             self._min = val._min
             self._max = val._max
             self._nrbits = val._nrbits
             self._setNextVal = self._setNextIntbv
-            #self._copyVal2Next = self._copyIntbv
             if self._nrbits:
                 self._printVcd = self._printVcdVec
             else:
                 self._printVcd = self._printVcdHex
-#        elif val is None:
-#            self._type = None
-#            self._setNextVal = self._setNext
         else:
             self._type = type(val)
             self._setNextVal = self._setNextType
-            #self._copyVal2Next = self._deepcopyVal
             if hasattr(val, '_nrbits'):
                 self._nrbits = val._nrbits
         self._eventWaiters = _WaiterList()
@@ -167,7 +160,8 @@ class _Signal(object):
         del self._eventWaiters[:]
         del self._posedgeWaiters[:]
         del self._negedgeWaiters[:]
-        self._next = self._val = self._init
+        self._val = deepcopy(self._init)
+        self._next = deepcopy(self._init)
         self._name = self._read = self._driven = None
         for s in self._slicesigs:
             s._clear()
@@ -183,7 +177,9 @@ class _Signal(object):
             elif not next and val:
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
-            if isinstance(val, intbv):
+            if next is None:
+                self._val = None
+            elif isinstance(val, intbv):
                 self._val._val = next._val
             elif isinstance(val, (int, long)):
                 self._val = next
@@ -280,20 +276,7 @@ class _Signal(object):
     def _setNextType(self, val):
         if not isinstance(val, self._type):
             raise TypeError("Expected %s, got %s" % (self._type, type(val)))
-        self._next = deepcopy(val)
-        
-#    def _setNext(self, val):
-#        self._next = val
-
-    # copy val to next methods
-#    def _assignVal(self):
-#        self._next = self._val
-#        
-#    def _copyIntbv(self):
-#        self._next = type(self._val)(self._val)
-#        
-#    def _deepcopyVal(self):
-#        self._next = deepcopy(self._val)
+        self._next = deepcopy(val)      
 
     # vcd print methods
     def _printVcdStr(self):

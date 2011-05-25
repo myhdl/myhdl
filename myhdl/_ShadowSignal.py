@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2008 Jan Decaluwe
+#  Copyright (C) 2003-2011 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -23,7 +23,7 @@
 """
 
 import warnings
-from copy import deepcopy as copy
+from copy import deepcopy
 
 from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
@@ -214,7 +214,7 @@ class _TristateSignal(_ShadowSignal):
         self._drivers = []
         # construct normally to set type / size info right
         _ShadowSignal.__init__(self, val)     
-        self._orival = val # keep for drivers
+        self._orival = deepcopy(val) # keep for drivers
         # reset signal values to None
         self._next = self._val = self._init = None
         self._waiter = _SignalTupleWaiter(self._resolve())
@@ -266,15 +266,15 @@ class _TristateDriver(_Signal):
         self._sig = sig
 
     def _set_next(self, val):
-         if isinstance(val, _Signal):
+        if isinstance(val, _Signal):
             val = val._val
-         if val is None:
-             self._next = None
-         else:     
-             # restore orignal value to cater for intbv handler
-             self._next = copy(self._sig._orival)
-             self._setNextVal(val)
-         _siglist.append(self)   
+        if val is None:
+            self._next = None
+        else:     
+            # restore original value to cater for intbv handler
+            self._next = self._sig._orival
+            self._setNextVal(val)
+        _siglist.append(self)   
          
     # redefine property because standard inheritance doesn't work for setter/getter functions
     next = property(_Signal._get_next, _set_next, None, "'next' access methods")
