@@ -39,5 +39,24 @@ def test_modbvRange():
     else:
         assert False
         
+def modbvSigRange(z, a, b):
+    @always(a, b)
+    def logic():
+        z.next = a + b
+    return logic
+
+def test_modbvSigRange():
+    z = Signal(modbv(0, min=0, max=42))
+    a = Signal(intbv(0)[4:])
+    b = Signal(intbv(0)[4:])
+    try:
+        verify(modbvSigRange, z, a, b)
+    except ConversionError, e:
+        assert e.kind == _error.ModbvRange
+    else:
+        assert False
+        
+
+
 
 
