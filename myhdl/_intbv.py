@@ -81,6 +81,14 @@ class intbv(object):
             if self._val < self._min:
                 raise ValueError("intbv value %s < minimum %s" %
                                  (self._val, self._min))
+                
+    def _hasFullRange(self):
+        min, max = self._min, self._max
+        if max <= 0:
+            return False
+        if min not in (0, -max):
+            return False
+        return max & max-1 == 0
 
 
     # hash

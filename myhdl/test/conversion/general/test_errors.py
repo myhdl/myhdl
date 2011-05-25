@@ -10,7 +10,7 @@ def sigAugmAssignUnsupported(z, a):
         z.next += a
     return logic
 
-def testSigAugmAssignUnsupported():
+def test_SigAugmAssignUnsupported():
     z = Signal(intbv(0)[8:])
     a = Signal(intbv(0)[8:])
     try:
@@ -19,5 +19,25 @@ def testSigAugmAssignUnsupported():
         assert e.kind == _error.NotSupported
     else:
         assert False
+        
+def modbvRange(z, a, b):
+    @always(a, b)
+    def logic():
+        s = modbv(0, min=0, max=35)
+        s[:] = a + b
+        z.next = s
+    return logic
+
+def test_modbvRange():
+    z = Signal(intbv(0)[8:])
+    a = Signal(intbv(0)[4:])
+    b = Signal(intbv(0)[4:])
+    try:
+        verify(modbvRange, z, a, b)
+    except ConversionError, e:
+        assert e.kind == _error.ModbvRange
+    else:
+        assert False
+        
 
 

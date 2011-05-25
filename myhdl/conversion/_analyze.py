@@ -531,6 +531,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.raiseError(node, _error.IntbvBitWidth, n)
                     if obj._min < 0:
                         _signed = True
+            if isinstance(obj, modbv):
+                if not obj._hasFullRange():
+                    self.raiseError(node, _error.ModbvRange, n)
             if n in self.tree.vardict:
                 curObj = self.tree.vardict[n]
                 if isinstance(obj, type(curObj)):
