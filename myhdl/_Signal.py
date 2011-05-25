@@ -116,7 +116,9 @@ class _Signal(object):
         val -- initial value
         
         """
-        self._next = self._val = self._init = copy(val)
+        self._init = deepcopy(val)
+        self._val = deepcopy(val)
+        self._next = deepcopy(val)
         self._min = self._max = None
         self._name = self._read = self._driven = None
         self._used = False
@@ -126,20 +128,20 @@ class _Signal(object):
         if isinstance(val, bool):
             self._type = bool
             self._setNextVal = self._setNextBool
-            self._copyVal2Next = self._assignVal
+            #self._copyVal2Next = self._assignVal
             self._printVcd = self._printVcdBit
             self._nrbits = 1
         elif isinstance(val, (int, long)):
             self._type = (int, long)
             self._setNextVal = self._setNextInt
-            self._copyVal2Next = self._assignVal
+            #self._copyVal2Next = self._assignVal
         elif isinstance(val, intbv):
             self._type = intbv
             self._min = val._min
             self._max = val._max
             self._nrbits = val._nrbits
             self._setNextVal = self._setNextIntbv
-            self._copyVal2Next = self._copyVal
+            #self._copyVal2Next = self._copyIntbv
             if self._nrbits:
                 self._printVcd = self._printVcdVec
             else:
@@ -150,7 +152,7 @@ class _Signal(object):
         else:
             self._type = type(val)
             self._setNextVal = self._setNextType
-            self._copyVal2Next = self._deepcopyVal
+            #self._copyVal2Next = self._deepcopyVal
             if hasattr(val, '_nrbits'):
                 self._nrbits = val._nrbits
         self._eventWaiters = _WaiterList()
@@ -181,7 +183,12 @@ class _Signal(object):
             elif not next and val:
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
-            self._val = next
+            if isinstance(val, intbv):
+                self._val._val = next._val
+            elif isinstance(val, (int, long)):
+                self._val = next
+            else:
+                self._val = deepcopy(next)
             if self._tracing:
                 self._printVcd()
             return waiters
@@ -195,8 +202,8 @@ class _Signal(object):
 
     # support for the 'next' attribute
     def _get_next(self):
-        if self._next is self._val:
-            self._copyVal2Next()
+#        if self._next is self._val:
+#            self._next = deepcopy(self._val)
         _siglist.append(self)
         return self._next
     def _set_next(self, val):
@@ -265,8 +272,8 @@ class _Signal(object):
             val = val._val
         elif not isinstance(val, (int, long)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
-        if self._next is self._val:
-            self._next = copy(self._val)
+#        if self._next is self._val:
+#            self._next = type(self._val)(self._val)
         self._next._val = val
         self._next._handleBounds()
 
@@ -279,14 +286,14 @@ class _Signal(object):
 #        self._next = val
 
     # copy val to next methods
-    def _assignVal(self):
-        self._next = self._val
-        
-    def _copyVal(self):
-        self._next = copy(self._val)
-    def _deepcopyVal(self):
-        
-        self._next = deepcopy(self._val)
+#    def _assignVal(self):
+#        self._next = self._val
+#        
+#    def _copyIntbv(self):
+#        self._next = type(self._val)(self._val)
+#        
+#    def _deepcopyVal(self):
+#        self._next = deepcopy(self._val)
 
     # vcd print methods
     def _printVcdStr(self):
