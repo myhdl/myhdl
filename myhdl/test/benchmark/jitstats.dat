@@ -3,139 +3,139 @@ Test: longdiv_9
 =====
 python
 ------
-real 1.58
-user 1.55
+real 1.67
+user 1.65
 sys 0.02
 
 pypy
 ----
-real 2.30
-user 2.26
+real 2.20
+user 2.16
 sys 0.04
 
 Test: longdiv_10
 =====
 python
 ------
-real 3.10
-user 3.09
-sys 0.00
+real 3.09
+user 3.06
+sys 0.02
 
 pypy
 ----
-real 2.46
-user 2.43
-sys 0.02
+real 2.42
+user 2.38
+sys 0.04
 
 Test: longdiv_11
 =====
 python
 ------
-real 5.93
-user 5.91
-sys 0.02
+real 6.00
+user 5.99
+sys 0.01
 
 pypy
 ----
-real 2.85
-user 2.81
+real 2.97
+user 2.93
 sys 0.04
 
 Test: longdiv_12
 =====
 python
 ------
-real 11.66
-user 11.64
-sys 0.01
+real 11.76
+user 11.73
+sys 0.02
 
 pypy
 ----
 real 3.72
 user 3.68
-sys 0.03
+sys 0.04
 
 Test: longdiv_13
 =====
 python
 ------
-real 23.50
-user 23.48
+real 23.26
+user 23.24
 sys 0.02
 
 pypy
 ----
-real 5.13
-user 5.10
+real 5.08
+user 5.04
 sys 0.04
 
 Test: longdiv_14
 =====
 python
 ------
-real 46.86
-user 46.82
+real 46.57
+user 46.54
 sys 0.02
 
 pypy
 ----
-real 7.79
-user 7.76
-sys 0.03
+real 7.88
+user 7.83
+sys 0.05
 
 Test: longdiv_15
 =====
 python
 ------
-real 92.25
-user 92.21
+real 92.93
+user 92.89
 sys 0.02
 
 pypy
 ----
-real 13.16
-user 13.10
-sys 0.05
+real 13.13
+user 13.09
+sys 0.04
 
 Test: longdiv_16
 =====
 python
 ------
-real 186.50
-user 186.43
+real 185.44
+user 185.38
 sys 0.02
 
 pypy
 ----
-real 23.69
-user 23.62
-sys 0.06
+real 24.04
+user 24.00
+sys 0.03
 
 Test: longdiv_17
 =====
 python
 ------
-real 373.17
-user 372.91
-sys 0.16
+real 372.24
+user 371.67
+sys 0.48
 
 pypy
 ----
-real 45.03
-user 44.96
-sys 0.05
+real 44.44
+user 44.37
+sys 0.06
 
 Test: longdiv_18
 =====
 python
 ------
-real 749.29
-user 748.31
-sys 0.78
+real 740.70
+user 740.53
+sys 0.01
 
 pypy
 ----
-real 86.17
-user 86.09
-sys 0.04
+real 86.28
+user 86.20
+sys 0.05
 
