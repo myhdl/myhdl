@@ -4,7 +4,7 @@ from glibc_random import glibc_random
 
 from long_divider import long_divider
 
-def test_longdiv():
+def test_longdiv(nrvectors=2**18):
     quotient = Signal(intbv(0)[22:])
     ready = Signal(bool())
     dividend = Signal(intbv(0)[38:])
@@ -50,7 +50,7 @@ def test_longdiv():
         start.next = 0
         yield clock.negedge
         random_word[:] = 94
-        for i in range(2**18):
+        for i in range(nrvectors):
             yield clock.negedge
             random_word[:] = glibc_random(random_word)
             p[:] = random_word[16:]
