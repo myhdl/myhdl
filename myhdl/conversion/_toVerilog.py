@@ -654,6 +654,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             self.write("endcase")
             return
+        elif isinstance(node.value, ast.ListComp):
+            # skip list comprehension assigns for now
+            return
         # default behavior
         self.visit(node.targets[0])
         if self.isSigAss:
@@ -959,7 +962,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Module(self, node, *args):
         for stmt in node.body:
             self.visit(stmt)
-       
+            
+    def visit_ListComp(self, node):
+        pass # do nothing
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):

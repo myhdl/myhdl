@@ -775,6 +775,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             self.write("end case;")
             return
+        elif isinstance(node.value, ast.ListComp):
+            # skip list comprehension assigns for now
+            return
         # default behavior
         convOpen, convClose = "", ""
         if isinstance(lhs.vhd, vhd_type):
@@ -1128,14 +1131,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.dedent()
         self.writeline()
         self.write("end if;")
+        
+        
+    def visit_ListComp(self, node):
+        pass # do nothing
 
 
     def visit_Module(self, node):
         for stmt in node.body:
             self.visit(stmt)       
-
-                       
-                       
 
 
     def visit_Name(self, node):
