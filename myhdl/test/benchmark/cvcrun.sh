@@ -20,7 +20,8 @@ echo ===== >> cvcstats.dat
 
 echo cvc compiled >> cvcstats.dat
 echo ------------ >> cvcstats.dat
-/usr/bin/time -o cvcstats.dat -a -p cvc +exe test_$test.v > ${test}_cvcexe.out
+cvc -O +2state test_$test.v
+/usr/bin/time -o cvcstats.dat -a -p ./cvcsim > ${test}_cvcexe.out
 echo >> cvcstats.dat
 
 echo cvc interpreted >> cvcstats.dat
