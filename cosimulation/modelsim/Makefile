@@ -2,17 +2,17 @@
 WARNS=-Wall
 
 # change this path to point to the pli include files directory for cver
-INCS=-I "' Path to Modelsim exe "'
+INCS=-I /opt/Altera/11.0/modelsim_ase/include
 
 # maybe want -O<something> and/or -g
 
-# 32bit for Altera PE
-#CFLAGS= -fPIC -Wall -g -m32 $(INCS)
-#LFLAGS= -G -shared -export-dynamic -melf_i386
+# 32bit for Altera ASE/PE on Ubuntu Natty Narwhal
+CFLAGS= -fPIC -Wall -g -m32 $(INCS) -fno-stack-protector
+LFLAGS= -G -shared -export-dynamic -melf_i386
 
 # 64bit for SE
-CFLAGS= -fPIC -Wall -c -g $(INCS)
-LFLAGS= -shared -E #-melf_i386
+#CFLAGS= -fPIC -Wall -c -g $(INCS)
+#LFLAGS= -shared -E
 
 # change to your compiler 
 CC=gcc 
