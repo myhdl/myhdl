@@ -2,7 +2,7 @@
 
 echo > stats.dat
 
-python convert.py
+pypy convert.py
 
 ghdl -a pck_myhdl_08dev.vhd
 vlib work
