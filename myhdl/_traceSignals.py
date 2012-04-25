@@ -45,10 +45,13 @@ _error.MultipleTraces = "Cannot trace multiple instances simultaneously"
 
 class _TraceSignalsClass(object):
 
-    __slot__ = ("name", )
+    __slot__ = ("name",
+                "timescale",
+                )
 
     def __init__(self):
         self.name = None
+        self.timescale = "1ns"
 
     def __call__(self, dut, *args, **kwargs):
         global _tracing
@@ -82,7 +85,7 @@ class _TraceSignalsClass(object):
             vcdfile = open(vcdpath, 'w')
             _simulator._tracing = 1
             _simulator._tf = vcdfile
-            _writeVcdHeader(vcdfile)
+            _writeVcdHeader(vcdfile, self.timescale)
             _writeVcdSigs(vcdfile, h.hierarchy)
         finally:
             _tracing = 0
@@ -111,7 +114,7 @@ def _namecode(n):
         code = _codechars[r] + code
     return code
 
-def _writeVcdHeader(f):
+def _writeVcdHeader(f, timescale):
     print >> f, "$date"
     print >> f, "    %s" % time.asctime()
     print >> f, "$end"
@@ -119,7 +122,7 @@ def _writeVcdHeader(f):
     print >> f, "    MyHDL %s" % __version__
     print >> f, "$end"
     print >> f, "$timescale"
-    print >> f, "    1ns"
+    print >> f, "    %s" % timescale
     print >> f, "$end"
     print >> f
 
