@@ -14,6 +14,8 @@ Introduction
 
 RTL (Register Transfer Level) is a modeling abstraction level that
 is typically used to write synthesizable models.
+:dfn:`Synthesis` refers to the process by which an HDL description
+is automatically compiled into an implementation for an ASIC or FPGA.
 This chapter describes how MyHDL supports it.
 
 
