@@ -47,9 +47,9 @@ The first line of the script imports a number of objects from the ``myhdl``
 package. In Python we can only use identifiers that are literally defined in the
 source file   [#]_.
 
-Then, we define a function called :func:`HelloWorld`. In MyHDL, classic
-functions are used to model hardware modules. In particular, the parameter list
-is used to define the interface. In this first example, the interface is empty.
+Then, we define a function called :func:`HelloWorld`. In MyHDL, hardware
+modules can be modeled using classic functions.  In particular, the parameter list
+is then used to define the interface. In this first example, the interface is empty.
 
 .. index:: single: decorator; always
 

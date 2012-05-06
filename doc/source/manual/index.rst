@@ -12,7 +12,9 @@ Contents:
    preface
    background
    intro
-   modeling
+   structure
+   rtl 
+   highlevel 
    unittest
    cosimulation
    conversion
