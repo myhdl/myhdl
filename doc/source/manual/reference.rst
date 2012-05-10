@@ -80,13 +80,18 @@ Waveform tracing
    will be moved to a backup file by attaching a timestamp to it, before creating
    the new file.
 
-The ``traceSignals`` callable has the following attribute:
+   The ``traceSignals`` callable has the following attribute:
 
 
-.. attribute:: traceSignals.name
+   .. attribute:: name
 
-   This attribute is used to overwrite the default top-level instance name and the
-   basename of the VCD output filename.
+      This attribute is used to overwrite the default top-level instance name and the
+      basename of the VCD output filename.
+
+   .. attribute:: timescale
+   
+      This attribute is used to set the timescale corresponding to unit steps,
+      according to the VCD format. The default is "1ns".
 
 
 .. _ref-model:
@@ -641,9 +646,13 @@ Conversion
 
     .. attribute:: name
 
-     This attribute is used to overwrite the default top-level instance name and the
-     basename of the Verilog output filename.
+       This attribute is used to overwrite the default top-level instance name and the
+       basename of the Verilog output filename.
 
+    .. attribute:: timescale
+
+       This attribute is used to set the timescale in Verilog format. Default is
+       "1ns/10ps".
 
 
 .. function:: toVHDL(func[, *args][, **kwargs])

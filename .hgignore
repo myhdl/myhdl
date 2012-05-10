@@ -21,6 +21,8 @@ transcript
 *.0
 *.bak
 *.wlf
+*.rej
+*.out
 doc/build
 build/
 dist/
