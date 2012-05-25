@@ -770,7 +770,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if not hasattr(test, 'case'):
                 return
             var, item = test.case
-            if var.obj != var1.obj or type(item) is not type(item1):
+            if var.id != var1.id or type(item) is not type(item1):
                 return
             if item in choices:
                 return
