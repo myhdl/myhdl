@@ -381,8 +381,10 @@ def _convertGens(genlist, siglist, memlist, vfile):
     print >> vfile
     for s in constwires:
         if s._type is bool:
+            c = int(s._val)
             pre, suf = "'", "'"
         elif s._type is intbv:
+            c = int(s._val)
             w = len(s)
             assert w != 0
             if s._min < 0:
@@ -390,8 +392,8 @@ def _convertGens(genlist, siglist, memlist, vfile):
             else:
                 pre, suf = "to_unsigned(", ", %s)" % w
         else:
-            assert 0
-        print >> vfile, "%s <= %s%s%s;" % (s._name, pre, int(s._val), suf)
+            raise ToVHDLError("Unexpected type for constant signal", s._name)
+        print >> vfile, "%s <= %s%s%s;" % (s._name, pre, c, suf)
     print >> vfile
     # shadow signal assignments
     for s in siglist:

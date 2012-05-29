@@ -289,7 +289,11 @@ def _writeSigDecls(f, intf, siglist, memlist):
         print >> f, "%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth)
     print >> f
     for s in constwires:
-        print >> f, "assign %s = %s;" % (s._name, int(s._val))
+        if s._type in (bool, intbv):
+            c = int(s.val)
+        else:
+            raise ToVerilogError("Unexpected type for constant signal", s._name)
+        print >> f, "assign %s = %s;" % (s._name, c)
     print >> f
     # shadow signal assignments
     for s in siglist:
