@@ -160,8 +160,11 @@ def _analyzeGens(top, absnames):
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
                     if isinstance(g, _AlwaysComb):
-                        if not (isinstance(obj, (int, long, _Signal)) or _isMem(obj) or _isTupleOfInts(obj)):
+                        if not ( isinstance(obj, (int, long, EnumType,_Signal)) or \
+                                 _isMem(obj) or _isTupleOfInts(obj)
+                               ):
                             info =  "File %s, line %s: " % (tree.sourcefile, tree.lineoffset)
+                            print type(obj)
                             raise ConversionError(_error.UnsupportedType, n, info)
                     tree.symdict[n] = obj
             tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
