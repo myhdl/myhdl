@@ -194,8 +194,15 @@ class _SignalTupleWaiter(_Waiter):
             actives[id(wl)] = wl
             
 
-_kind = enum("SIGNAL_TUPLE", "EDGE_TUPLE", "SIGNAL", "EDGE", "DELAY", "UNDEFINED")
-
+#_kind = enum("SIGNAL_TUPLE", "EDGE_TUPLE", "SIGNAL", "EDGE", "DELAY", "UNDEFINED")
+class _kind(object):
+    SIGNAL_TUPLE = 1
+    EDGE_TUPLE = 2
+    SIGNAL = 3
+    EDGE = 4
+    DELAY= 5
+    UNDEFINED = 6
+    
 
 def _inferWaiter(gen):
     f = gen.gi_frame

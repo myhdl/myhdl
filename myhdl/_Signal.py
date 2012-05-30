@@ -34,7 +34,7 @@ from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
-from myhdl._enum import EnumItemType
+# from myhdl._enum import EnumItemType
 
 _schedule = _futureEvents.append
 
@@ -587,7 +587,8 @@ class _SignalWrap(object):
 # for export
 SignalType = _Signal
 
-# import _SliceSignal here to avoid circular import of _Signal
+# avoid circular imports
 
 from myhdl._ShadowSignal import _SliceSignal
 from myhdl._Waiter import _SignalWaiter
+from myhdl._enum import EnumItemType
