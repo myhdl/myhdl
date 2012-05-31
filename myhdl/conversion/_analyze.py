@@ -1265,14 +1265,19 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
     def visit_FunctionDef(self, node):
         self.name = node.name
         argnames = [arg.id for arg in node.args.args]
-        i=-1
-        for i, arg in enumerate(self.args):
+
+        for i, arg in enumerate(self.args):            
             n = argnames[i]
             if isinstance(arg, _Signal):
-                self.argdict[n] = arg  
+                if arg._name in argnames:
+                    assert arg._name in argnames
+                    self.argdict[arg._name] = arg
+                elif arg._inList:
+                    self.raiseError(node, _error.PortInList, arg._name)
             if _isMem(arg):
                 self.raiseError(node, _error.ListAsPort, n)
-        for n in argnames[i+1:]:
+        
+        for n in argnames:
             if n in self.kwargs:
                 arg = self.kwargs[n]
                 if isinstance(arg, _Signal):
