@@ -22,6 +22,7 @@
 """
 
 
+
 import sys
 from inspect import currentframe, getouterframes
 import time
@@ -143,7 +144,7 @@ def _writeVcdSigs(f, hierarchy):
                 print >> f, "$upscope $end"
         print >> f, "$scope module %s $end" % name
         for n, s in sigdict.items():
-            if s._val == None:
+            if s._val is None:
                 raise ValueError("%s of module %s has no initial value" % (n, name))
             if not s._tracing:
                 s._tracing = 1
