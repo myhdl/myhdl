@@ -40,7 +40,9 @@ bin -- returns a binary string representation.
 concat -- function to concat ints, bitstrings, bools, intbvs, Signals
        -- returns an intbv
 instances -- function that returns all instances defined in a function
-always_comb -- function that returns an input-sensitive generator
+always_comb -- decorator that returns an input-sensitive generator
+always
+always_ff
 enum -- function that returns an enumeration type
 traceSignals -- function that enables signal tracing in a VCD file
 toVerilog -- function that converts a design to Verilog
@@ -122,6 +124,7 @@ from _Cosimulation import Cosimulation
 from _Simulation import Simulation
 from _misc import instances, downrange
 from _always_comb import always_comb
+from _always_ff import always_ff
 from _always import always
 from _instance import instance
 from _enum import enum, EnumType, EnumItemType
@@ -154,6 +157,7 @@ __all__ = ["bin",
            "instances",
            "instance",
            "always_comb",
+           "always_ff",
            "always",
            "enum",
            "EnumType",

@@ -3,39 +3,39 @@ Test: timer
 =====
 pypy
 ----
-real 62.14
-user 61.82
-sys 0.18
+real 59.58
+user 59.29
+sys 0.15
 
 Test: lfsr24
 =====
 pypy
 ----
-real 66.29
-user 66.00
-sys 0.14
+real 82.12
+user 81.70
+sys 0.23
 
 Test: randgen
 =====
 pypy
 ----
-real 62.16
-user 61.82
+real 56.20
+user 55.88
 sys 0.18
 
 Test: longdiv
 =====
 pypy
 ----
-real 68.98
-user 68.77
-sys 0.04
+real 81.36
+user 80.92
+sys 0.24
 
 Test: findmax
 =====
 pypy
 ----
-real 86.17
-user 85.76
-sys 0.20
+real 88.81
+user 88.38
+sys 0.22
 
