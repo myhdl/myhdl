@@ -655,7 +655,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         elif type(f) is MethodType:
             self.raiseError(node,_error.NotSupported, "method call: '%s'" % f.__name__)
         else:
-            raise AssertionError("Unexpected callable")
+            debug_info = [e for e in ast.iter_fields(node.func)]
+            raise AssertionError("Unexpected callable %s" % str(debug_info))
         if argsAreInputs:
             for arg in node.args:
                 self.visit(arg)
