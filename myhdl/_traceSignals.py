@@ -48,11 +48,13 @@ class _TraceSignalsClass(object):
 
     __slot__ = ("name",
                 "timescale",
+                "tracelists"
                 )
 
     def __init__(self):
         self.name = None
         self.timescale = "1ns"
+        self.tracelists = True
 
     def __call__(self, dut, *args, **kwargs):
         global _tracing
@@ -87,7 +89,7 @@ class _TraceSignalsClass(object):
             _simulator._tracing = 1
             _simulator._tf = vcdfile
             _writeVcdHeader(vcdfile, self.timescale)
-            _writeVcdSigs(vcdfile, h.hierarchy)
+            _writeVcdSigs(vcdfile, h.hierarchy, self.tracelists)
         finally:
             _tracing = 0
 
@@ -127,7 +129,7 @@ def _writeVcdHeader(f, timescale):
     print >> f, "$end"
     print >> f
 
-def _writeVcdSigs(f, hierarchy):
+def _writeVcdSigs(f, hierarchy, tracelists):
     curlevel = 0
     namegen = _genNameCode()
     siglist = []
@@ -158,6 +160,28 @@ def _writeVcdSigs(f, hierarchy):
                     print >> f, "$var reg %s %s %s $end" % (w, s._code, n)
             else:
                 print >> f, "$var real 1 %s %s $end" % (s._code, n)
+        # Memory dump by Frederik Teichert, http://teichert-ing.de, date: 2011.03.28
+        # The Value Change Dump standard doesn't support multidimensional arrays so 
+        # all memories are flattened and renamed.
+        if tracelists:
+            for n in memdict.keys():
+                memindex = 0
+                for s in memdict[n].mem:
+                    if s._val == None:
+                        raise ValueError("%s of module %s has no initial value" % (n, name))
+                    if not s._tracing:
+                        s._tracing = 1
+                        s._code = namegen.next()
+                        siglist.append(s)
+                    w = s._nrbits
+                    if w:
+                        if w == 1:
+                            print >> f, "$var reg 1 %s %s(%i) $end" % (s._code, n, memindex)
+                        else:
+                            print >> f, "$var reg %s %s %s(%i) $end" % (w, s._code, n, memindex)
+                    else:
+                        print >> f, "$var real 1 %s %s(%i) $end" % (s._code, n, memindex)
+                    memindex += 1
     for i in range(curlevel):
         print >> f, "$upscope $end"
     print >> f
