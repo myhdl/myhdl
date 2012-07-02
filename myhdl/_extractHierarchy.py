@@ -216,8 +216,11 @@ class _HierExtr(object):
         _memInfoMap.clear()
         for hdl in _userCodeMap:
             _userCodeMap[hdl].clear()
-        self.skipNames = ('always_comb', 'always', '_always_decorator', 'instance', \
-                          'instances', 'processes', 'posedge', 'negedge')
+        self.skipNames = ('always_comb', 'instance', \
+                          'always_seq', '_always_seq_decorator', \
+                          'always', '_always_decorator', \
+                          'instances', \
+                          'processes', 'posedge', 'negedge')
         self.skip = 0
         self.hierarchy = hierarchy = []
         self.absnames = absnames = {}

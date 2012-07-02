@@ -38,6 +38,7 @@ from myhdl import ConversionError
 from myhdl._unparse import _unparse
 from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
+from myhdl._always_seq import _AlwaysSeq
 from myhdl._always import _Always
 from myhdl._delay import delay
 from myhdl.conversion._misc import (_error, _access, _kind, _context,
@@ -145,7 +146,7 @@ def _analyzeGens(top, absnames):
     for g in top:
         if isinstance(g, _UserCode):
             tree = g
-        elif isinstance(g, (_AlwaysComb, _Always)):
+        elif isinstance(g, (_AlwaysComb, _AlwaysSeq, _Always)):
             f = g.func
             s = inspect.getsource(f)
             s = _dedent(s)
@@ -172,6 +173,8 @@ def _analyzeGens(top, absnames):
             v.visit(tree)
             if isinstance(g, _AlwaysComb):
                 v = _AnalyzeAlwaysCombVisitor(tree, g.senslist)
+            elif isinstance(g, _AlwaysSeq):
+                v = _AnalyzeAlwaysSeqVisitor(tree, g.senslist, g.reset, g.regs)
             else:
                 v = _AnalyzeAlwaysDecoVisitor(tree, g.senslist)
             v.visit(tree)
@@ -1154,7 +1157,24 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
             for n in self.tree.outmems:
                 m = _getMemInfo(self.tree.symdict[n])
                 m._driven = "wire"
+                
+                
+class _AnalyzeAlwaysSeqVisitor(_AnalyzeBlockVisitor):
+    
+    def __init__(self, tree, senslist, reset, regs):
+        _AnalyzeBlockVisitor.__init__(self, tree)
+        self.tree.senslist = senslist
+        self.tree.reset = reset
+        self.tree.regs = regs
 
+         
+    def visit_FunctionDef(self, node):
+        self.refStack.push()
+        for n in node.body:
+            self.visit(n)
+        self.tree.kind = _kind.ALWAYS_SEQ
+        self.refStack.pop()
+     
 
 class _AnalyzeAlwaysDecoVisitor(_AnalyzeBlockVisitor):
     
@@ -1170,7 +1190,6 @@ class _AnalyzeAlwaysDecoVisitor(_AnalyzeBlockVisitor):
         self.tree.kind = _kind.ALWAYS_DECO
         self.refStack.pop()
 
-            
             
 
 class _AnalyzeFuncVisitor(_AnalyzeVisitor):

@@ -371,6 +371,8 @@ def _convertGens(genlist, siglist, memlist, vfile):
             Visitor = _ConvertSimpleAlwaysCombVisitor
         elif tree.kind == _kind.ALWAYS_DECO:
             Visitor = _ConvertAlwaysDecoVisitor
+        elif tree.kind == _kind.ALWAYS_SEQ:
+            Visitor = _ConvertAlwaysSeqVisitor
         else: # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(tree, blockBuf, funcBuf)
@@ -1498,7 +1500,6 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
 
-
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
         senslist = self.tree.senslist
@@ -1528,7 +1529,6 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
 
-
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
             self.visit(node.value)
@@ -1536,22 +1536,17 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
         else:
             self.getAttr(node)
 
-
     def visit_FunctionDef(self, node, *args):
         self.writeDoc(node)
         self.visit_stmt(node.body)
         self.writeline(2)
 
 
-
-        
 class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
-
-
 
     def visit_FunctionDef(self, node, *args):
         self.writeDoc(node)
@@ -1587,8 +1582,83 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         self.writeline()
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
+        
+        
+def _convertInitVal(s):
+    init = s._init
+    if s._type is bool:
+        v = "'1'" if init else "'0'"
+    elif s._type is intbv:
+        if init == 0:
+            v = "(others => '0')"
+        else:
+            v = ''"%s"'' % bin(init, len(s))
+    else:
+        assert isinstance(init, EnumItemType)
+        v = init._toVHDL()
+    return v
+            
 
-       
+class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
+    
+    def __init__(self, tree, blockBuf, funcBuf):
+        _ConvertVisitor.__init__(self, tree, blockBuf)
+        self.funcBuf = funcBuf
+
+    def visit_FunctionDef(self, node, *args):
+        self.writeDoc(node)
+        assert self.tree.senslist
+        senslist = self.tree.senslist
+        edge = senslist[0]
+        reset = self.tree.reset
+        async = reset is not None and reset.async
+        regs = self.tree.regs
+        self.write("%s: process (" % self.tree.name)
+        self.write(edge.sig)
+        if async:
+            self.write(', ')
+            self.write(reset)
+        self.write(") is")
+        self.indent()
+        self.writeDeclarations()
+        self.dedent()
+        self.writeline()
+        self.write("begin")
+        self.indent()
+        if not async:
+            self.writeline()
+            self.write("if %s then" % edge._toVHDL())
+            self.indent()
+        if reset is not None:
+            self.writeline()
+            self.write("if (%s = '%s') then" % (reset, int(reset.active)))
+            self.indent()
+            for s in regs:
+                self.writeline()
+                self.write("%s <= %s;" % (s, _convertInitVal(s)))
+            self.dedent()
+            self.writeline()
+            if async:
+                self.write("elsif %s then" % edge._toVHDL())
+            else:
+                self.write("else")
+            self.indent()
+        self.visit_stmt(node.body)
+        self.dedent()
+        if reset is not None:
+            self.writeline()
+            self.write("end if;")
+            self.dedent()
+        if not async:
+            self.writeline()
+            self.write("end if;")
+            self.dedent()
+        self.writeline()
+        self.write("end process %s;" % self.tree.name)
+        self.writeline(2)
+
+    
+    
     
 class _ConvertFunctionVisitor(_ConvertVisitor):
     

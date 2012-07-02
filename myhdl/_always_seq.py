@@ -17,7 +17,7 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" Module with the always_ff decorator. """
+""" Module with the always_seq decorator. """
 
 
 import sys
@@ -34,7 +34,7 @@ from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._instance import _Instantiator
 
 # evacuate this later
-AlwaysFFError = AlwaysError
+AlwaysSeqError = AlwaysError
 
 class _error:
     pass
@@ -43,39 +43,53 @@ _error.ResetType = "reset argument should be a signal"
 _error.ArgType = "decorated object should be a classic (non-generator) function"
 _error.NrOfArgs = "decorated function should not have arguments"
 _error.SigAugAssign = "signal assignment does not support augmented assignment"
-_error.EmbeddedFunction = "embedded functions in always_ff function not supported"
+_error.EmbeddedFunction = "embedded functions in always_seq function not supported"
 
-def always_ff(edge, reset=False, level=0, async=True):
+class ResetSignal(_Signal):
+    def __init__(self, val, active=0, async=True):
+        """ Construct a ResetSignal.
+        
+        This is to be used in conjunction with the always_seq decorator,
+        as the reset argument.
+        """
+        _Signal.__init__(self, bool(val))
+        self.active = bool(active)
+        self.async = async
+  
+
+
+def always_seq(edge, reset):
     if not isinstance(edge, _WaiterList):
-        raise AlwaysFFError(_error.EdgeType)
+        raise AlwaysSeqError(_error.EdgeType)
     edge.sig._read = True
     edge.sig._used = True
     if reset is not None:
-        if not isinstance(reset, _Signal):
-            raise AlwaysFFError(_error.ResetType)
+        if not isinstance(reset, ResetSignal):
+            raise AlwaysSeqError(_error.ResetType)
     reset._read = True
     reset._used = True
 
-    def _always_ff_decorator(func):
+    def _always_seq_decorator(func):
         if not isinstance(func, FunctionType):
-            raise AlwaysFFError(_error.ArgType)
+            raise AlwaysSeqError(_error.ArgType)
         if _isGenFunc(func):
-            raise AlwaysFFError(_error.ArgType)
+            raise AlwaysSeqError(_error.ArgType)
         if func.func_code.co_argcount > 0:
-            raise AlwaysFFError(_error.NrOfArgs)
-        return _AlwaysFF(func, edge, reset, level, async)
-    return _always_ff_decorator
+            raise AlwaysSeqError(_error.NrOfArgs)
+        return _AlwaysSeq(func, edge, reset)
+    return _always_seq_decorator
         
 
-class _AlwaysFF(_Instantiator):
+class _AlwaysSeq(_Instantiator):
 
-    def __init__(self, func, edge, reset, level, async):
+    def __init__(self, func, edge, reset):
         self.func = func
         self.reset = reset
-        self.level = level
+        active = self.reset.active
+        async = self.reset.async
         senslist = [edge]
         if async:
-            if level:
+            if active:
                 senslist.append(reset.posedge)
             else:
                 senslist.append(reset.negedge)
@@ -114,18 +128,21 @@ class _AlwaysFF(_Instantiator):
         # print ast.dump(tree)
         v = _SigNameVisitor(symdict)
         v.visit(tree)
-        self.outputs = v.outputs
-
-    def reset_sigs(self):
-        for n in self.outputs:
+        regs = self.regs = []
+        for n in v.outputs:
             s = self.symdict[n]
             if isinstance(s, _Signal):
-                s.next = s._init
+                regs.append(s)
             else:
-                print type(s)
                 assert _isListOfSigs(s)
                 for e in s:
-                    e.next = e._init
+                    regs.append(e)
+                    
+
+
+    def reset_sigs(self):
+        for s in self.regs:
+            s.next = s._init
 
     def genfunc(self):
         senslist = self.senslist
@@ -135,7 +152,7 @@ class _AlwaysFF(_Instantiator):
         func = self.func
         while 1:
             yield senslist
-            if self.reset == self.level:
+            if self.reset == self.reset.active:
                 reset_sigs()
             else:
                 func()
@@ -175,7 +192,7 @@ class _SigNameVisitor(ast.NodeVisitor):
             for n in node.body:
                 self.visit(n)
         else:
-            raise AlwaysFFError(_error.EmbeddedFunction)
+            raise AlwaysSeqError(_error.EmbeddedFunction)
 
     def visit_If(self, node):
         if not node.orelse:
@@ -195,9 +212,9 @@ class _SigNameVisitor(ast.NodeVisitor):
             elif self.context == OUTPUT:
                 self.outputs.add(id)
             elif self.context == INOUT:
-                raise AlwaysFFError(_error.SigAugAssign % id)
+                raise AlwaysSeqError(_error.SigAugAssign % id)
             else:
-                raise AssertionError("bug in always_ff")
+                raise AssertionError("bug in always_seq")
             
     def visit_Assign(self, node):
         self.context = OUTPUT

@@ -81,9 +81,10 @@ class _access(object):
     INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
     
 class _kind(object):
-    NORMAL, DECLARATION, ALWAYS, INITIAL, \
-    ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_DECO, TASK, REG \
-    = range(9)
+    NORMAL, DECLARATION, ALWAYS, INITIAL, ALWAYS_DECO, \
+    ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_SEQ, \
+    TASK, REG \
+    = range(10)
 
 class _context(object):
     BOOLEAN, YIELD, PRINT, SIGNED, UNKNOWN = range(5)
