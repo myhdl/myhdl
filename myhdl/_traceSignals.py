@@ -30,7 +30,7 @@ import os
 path = os.path
 import shutil
 
-from myhdl import _simulator, __version__
+from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 
@@ -153,7 +153,8 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                 s._code = namegen.next()
                 siglist.append(s)
             w = s._nrbits
-            if w:
+            # use real for enum strings
+            if w and not isinstance(s._val, EnumItemType):
                 if w == 1:
                     print >> f, "$var reg 1 %s %s $end" % (s._code, n)
                 else:
