@@ -44,8 +44,6 @@ from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
 
-from myhdl._always_comb import _AlwaysComb
-from myhdl._always import _Always
 from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error, _access, _kind, _context, 
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
@@ -372,6 +370,8 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertSimpleAlwaysCombVisitor
         elif tree.kind == _kind.ALWAYS_DECO:
             Visitor = _ConvertAlwaysDecoVisitor
+        elif tree.kind == _kind.ALWAYS_SEQ:
+            Visitor = _ConvertAlwaysSeqVisitor    
         else: # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(tree, blockBuf, funcBuf)
@@ -1289,11 +1289,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
         self.visit_stmt(node.body)
         self.writeline(2)
 
-
-
-
-
-        
+     
 class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
@@ -1305,6 +1301,50 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         self.writeDoc(node)
         self.writeAlwaysHeader()
         self.writeDeclarations()
+        self.visit_stmt(node.body)
+        self.dedent()
+        self.writeline()
+        self.write("end")
+        self.writeline(2)
+
+
+def _convertInitVal(s):
+    init = s._init
+    if s._type is bool:
+        v = '1' if init else '0'
+    elif s._type is intbv:
+        v = "%s" % init
+    else:
+        assert isinstance(init, EnumItemType)
+        v = init._toVerilog()
+    return v
+ 
+
+class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
+    
+    def __init__(self, tree, blockBuf, funcBuf):
+        _ConvertVisitor.__init__(self, tree, blockBuf)
+        self.funcBuf = funcBuf
+
+    def visit_FunctionDef(self, node):
+        self.writeDoc(node)
+        self.writeAlwaysHeader()
+        self.writeDeclarations()
+        reset = self.tree.reset
+        regs = self.tree.regs
+        if reset is not None:
+            self.writeline()
+            self.write("if (%s == %s) begin" % (reset, int(reset.active)))
+            self.indent()
+            for s in regs:
+                self.writeline()
+                self.write("%s <= %s;" % (s, _convertInitVal(s)))
+            self.dedent()
+            self.writeline()
+            self.write("end")
+            self.writeline()
+            self.write("else")
+            self.indent()
         self.visit_stmt(node.body)
         self.dedent()
         self.writeline()

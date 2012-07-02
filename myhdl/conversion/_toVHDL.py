@@ -44,8 +44,6 @@ from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVhdlCode, _userCodeMap)
 
-from myhdl._always_comb import _AlwaysComb
-from myhdl._always import _Always
 from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error, _access, _kind,_context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
@@ -377,7 +375,6 @@ def _convertGens(genlist, siglist, memlist, vfile):
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(tree, blockBuf, funcBuf)
         v.visit(tree)
-    # print >> vfile
     vfile.write(funcBuf.getvalue()); funcBuf.close()
     print >> vfile, "begin"
     print >> vfile
@@ -408,9 +405,6 @@ def _convertGens(genlist, siglist, memlist, vfile):
                 if hasattr(s, 'toVHDL'):
                     print >> vfile, s.toVHDL()
     print >> vfile
-                   
-                
-
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
 
