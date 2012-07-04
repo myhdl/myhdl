@@ -1894,8 +1894,8 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.value.vhd = vhd_int()           
             node.vhdOri = copy(node.target.vhd)
         else:
-             node.left, node.right = node.target, node.value
-             self.inferBinOpType(node)
+            node.left, node.right = node.target, node.value
+            self.inferBinOpType(node)
         node.vhd = copy(node.target.vhd)
 
         
@@ -2113,7 +2113,10 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.operand)
         node.vhd = copy(node.operand.vhd)
         if isinstance(node.op, ast.Not):
-            node.vhd = node.operand.vhd = vhd_boolean()
+            if isinstance(node.operand.vhd, vhd_std_logic):
+                node.vhd = vhd_std_logic()
+            else:
+                node.vhd = node.operand.vhd = vhd_boolean()
         elif isinstance(node.op, ast.USub):
             if isinstance(node.vhd, vhd_unsigned):
                 node.vhd = vhd_signed(node.vhd.size+1)
