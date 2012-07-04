@@ -92,7 +92,8 @@ class _ToVHDLConvertor(object):
     __slots__ = ("name",
                  "component_declarations",
                  "header",
-                 "no_myhdl_header"
+                 "no_myhdl_header",
+                 "library"
                  )
 
     def __init__(self):
@@ -100,6 +101,7 @@ class _ToVHDLConvertor(object):
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
+        self.library = "work"
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -148,6 +150,7 @@ class _ToVHDLConvertor(object):
         doc = _makeDoc(inspect.getdoc(func))
         
         needPck = len(_enumTypeSet) > 0
+        lib = self.library
         
         if pfile:
             _writeFileHeader(pfile, ppath)
@@ -157,7 +160,7 @@ class _ToVHDLConvertor(object):
         _writeFileHeader(vfile, vpath)
         if needPck:
             _writeCustomPackage(vfile, intf)
-        _writeModuleHeader(vfile, intf, needPck, doc)
+        _writeModuleHeader(vfile, intf, needPck, lib, doc)
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
@@ -219,16 +222,18 @@ def _writeCustomPackage(f, intf):
     print >> f
 
 
-def _writeModuleHeader(f, intf, needPck, doc):
+def _writeModuleHeader(f, intf, needPck, lib, doc):
     print >> f, "library IEEE;"
     print >> f, "use IEEE.std_logic_1164.all;"
     print >> f, "use IEEE.numeric_std.all;"
     print >> f, "use std.textio.all;"
     print >> f
-    print >> f, "use work.pck_myhdl_%s.all;" % _version
+    if lib != "work":
+        print >> f, "library %s;" % lib
+    print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _version)
     print >> f
     if needPck:
-        print >> f, "use work.pck_%s.all;" % intf.name
+        print >> f, "use %s.pck_%s.all;" % (lib, intf.name)
         print >> f
     print >> f, "entity %s is" % intf.name
     if intf.argnames:
