@@ -508,10 +508,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 pre, suf = "to_signed(", ", %s)" % vhd.size
         elif isinstance(vhd, vhd_boolean):
             if not isinstance(ori, vhd_boolean):
-                pre, suf = "to_boolean(", ")"
+                pre, suf = "bool(", ")"
         elif isinstance(vhd, vhd_std_logic):
             if not isinstance(ori, vhd_std_logic):
-                pre, suf = "to_std_logic(", ")"     
+                pre, suf = "stdl(", ")"     
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"
@@ -663,7 +663,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         
     def visit_BoolOp(self, node):
         if isinstance(node.vhd, vhd_std_logic):
-            self.write("to_std_logic")
+            self.write("stdl")
         self.write("(")
         self.visit(node.values[0])
         for n in node.values[1:]:
@@ -926,7 +926,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         ns = node.vhd.size
         pre, suf = "(", ")"
         if isinstance(n, vhd_std_logic):
-            pre = "to_std_logic("
+            pre = "stdl("
         elif isinstance(n, vhd_unsigned):
             pre, suf = "to_unsigned(", ", %s)" % ns
         elif isinstance(n, vhd_signed):
@@ -2113,10 +2113,12 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.operand)
         node.vhd = copy(node.operand.vhd)
         if isinstance(node.op, ast.Not):
-            if isinstance(node.operand.vhd, vhd_std_logic):
-                node.vhd = vhd_std_logic()
-            else:
-                node.vhd = node.operand.vhd = vhd_boolean()
+            # postpone this optimization until initial values are written
+#            if isinstance(node.operand.vhd, vhd_std_logic):
+#                node.vhd = vhd_std_logic()
+#            else:
+#                node.vhd = node.operand.vhd = vhd_boolean()
+            node.vhd = node.operand.vhd = vhd_boolean()
         elif isinstance(node.op, ast.USub):
             if isinstance(node.vhd, vhd_unsigned):
                 node.vhd = vhd_signed(node.vhd.size+1)

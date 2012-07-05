@@ -30,9 +30,9 @@ package pck_myhdl_%(version)s is
 
     attribute enum_encoding: string;
 
-    function to_std_logic (arg: boolean) return std_logic;
+    function stdl (arg: boolean) return std_logic;
 
-    function to_std_logic (arg: integer) return std_logic;
+    function stdl (arg: integer) return std_logic;
 
     function to_unsigned (arg: boolean; size: natural) return unsigned;
 
@@ -46,13 +46,13 @@ package pck_myhdl_%(version)s is
 
     function to_signed (arg: std_logic; size: natural) return signed;
 
-    function to_boolean (arg: std_logic) return boolean;
+    function bool (arg: std_logic) return boolean;
 
-    function to_boolean (arg: unsigned) return boolean;
+    function bool (arg: unsigned) return boolean;
 
-    function to_boolean (arg: signed) return boolean;
+    function bool (arg: signed) return boolean;
 
-    function to_boolean (arg: integer) return boolean;
+    function bool (arg: integer) return boolean;
 
     function "-" (arg: unsigned) return signed;
 
@@ -61,23 +61,23 @@ end pck_myhdl_%(version)s;
 
 package body pck_myhdl_%(version)s is
 
-    function to_std_logic (arg: boolean) return std_logic is
+    function stdl (arg: boolean) return std_logic is
     begin
         if arg then
             return '1';
         else
             return '0';
         end if;
-    end function to_std_logic;
+    end function stdl;
 
-    function to_std_logic (arg: integer) return std_logic is
+    function stdl (arg: integer) return std_logic is
     begin
         if arg /= 0 then
             return '1';
         else
             return '0';
         end if;
-    end function to_std_logic;
+    end function stdl;
 
 
     function to_unsigned (arg: boolean; size: natural) return unsigned is
@@ -130,25 +130,25 @@ package body pck_myhdl_%(version)s is
         return res; 
     end function to_signed;
 
-    function to_boolean (arg: std_logic) return boolean is
+    function bool (arg: std_logic) return boolean is
     begin
         return arg = '1';
-    end function to_boolean;
+    end function bool;
 
-    function to_boolean (arg: unsigned) return boolean is
+    function bool (arg: unsigned) return boolean is
     begin
         return arg /= 0;
-    end function to_boolean;
+    end function bool;
 
-    function to_boolean (arg: signed) return boolean is
+    function bool (arg: signed) return boolean is
     begin
         return arg /= 0;
-    end function to_boolean;
+    end function bool;
 
-    function to_boolean (arg: integer) return boolean is
+    function bool (arg: integer) return boolean is
     begin
         return arg /= 0;
-    end function to_boolean;
+    end function bool;
 
     function "-" (arg: unsigned) return signed is
     begin
