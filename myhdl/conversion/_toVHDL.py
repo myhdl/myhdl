@@ -131,9 +131,11 @@ class _ToVHDLConvertor(object):
         vpath = name + ".vhd"
         vfile = open(vpath, 'w')
         ppath = "pck_myhdl_%s.vhd" % _version
-        pfile = None
-        if not os.path.isfile(ppath):
-            pfile = open(ppath, 'w')
+#        # write MyHDL package always during development, as it may change
+#        pfile = None
+#        if not os.path.isfile(ppath):
+#            pfile = open(ppath, 'w')
+        pfile = open(ppath, 'w')
 
         ### initialize properly ###
         _genUniqueSuffix.reset()
