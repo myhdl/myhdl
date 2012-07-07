@@ -46,7 +46,7 @@ _error.SigAugAssign = "signal assignment does not support augmented assignment"
 _error.EmbeddedFunction = "embedded functions in always_seq function not supported"
 
 class ResetSignal(_Signal):
-    def __init__(self, val, active=0, async=True):
+    def __init__(self, val, active, async):
         """ Construct a ResetSignal.
         
         This is to be used in conjunction with the always_seq decorator,
