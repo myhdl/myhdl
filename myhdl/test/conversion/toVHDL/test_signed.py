@@ -2,7 +2,6 @@ import os
 path = os.path
 import random
 from random import randrange
-random.seed(2)
 
 from myhdl import *
 from myhdl.conversion import verify
@@ -41,13 +40,14 @@ def binaryOps(
     ##         Bitxor.next = left ^ right
     ##         if right != 0:
     ##             FloorDiv.next = left // right
-            if left < 256 and right < 40  and right >= 0:
+            # Keep left shifts smaller than 2** 31 for VHDL's to_integer
+            if left < 256 and right < 22 and right >= 0:
                 LeftShift.next = left << right
     ##         if right != 0:
     ##             Modulo.next = left % right
             Mul.next = left * right
     ##         # Icarus doesn't support ** yet
-    ##         #if left < 256 and right < 40:
+    ##         #if left < 256 and right < 22:
     ##         #    Pow.next = left ** right
     ##         Pow.next = 0
     ##         if right >= -0:
@@ -307,7 +307,7 @@ def augmOps(
     ##             var[:] = left
     ##             var //= right
     ##             FloorDiv.next = var
-            if left < 256 and right < 30 and right >= 0:
+            if left < 256 and right < 22 and right >= 0:
                 var2[:] = left
                 var2 <<= right
                 LeftShift.next = var2
