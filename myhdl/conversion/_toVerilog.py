@@ -450,16 +450,20 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # write size for large integers (beyond 32 bits signed)
         # with some safety margin
         # XXX signed indication 's' ???
+        p = abs(n)
         size = ''
-        num = str(n)
+        num = str(p)
         if radix == "hex":
             radix = "'h"
-            num = hex(n)[2:]
-        if n >= 2**30:
-            size = int(math.ceil(math.log(n+1,2))) + 1  # sign bit!
+            num = hex(p)[2:]
+        if p >= 2**30:
+            size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
             if not radix:
                 radix = "'d"
-        return "%s%s%s" % (size, radix, num)
+        r = "%s%s%s" % (size, radix, num)
+        if n < 0: # add brackets and sign on negative numbers
+            r = "(-%s)" % r
+        return r
 
     def writeDeclaration(self, obj, name, dir):
         if dir: dir = dir + ' '
