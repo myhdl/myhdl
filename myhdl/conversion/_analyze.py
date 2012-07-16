@@ -1263,15 +1263,19 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             self.tree.hasReturn = True
 
 
+ismethod = inspect.ismethod
+# inspect doc is wrong: ismethod checks both bound and unbound methods
+def isboundmethod(m):
+    return ismethod(m) and m.__self__ is not None
 
-       
 def _analyzeTopFunc(func, *args, **kwargs):
+    if isboundmethod(func):
+        raise AssertionError("Bound methods not supported")
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(tree, *args, **kwargs)
     v.visit(tree)
     return v
-      
-    
+
 class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
 
     def __init__(self, tree, *args, **kwargs):
@@ -1280,32 +1284,22 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
         self.kwargs = kwargs
         self.name = None
         self.argdict = {}
-    
 
     def visit_FunctionDef(self, node):
         self.name = node.name
         argnames = [arg.id for arg in node.args.args]
-
-        for i, arg in enumerate(self.args):            
+        i=-1
+        for i, arg in enumerate(self.args):
             n = argnames[i]
             if isinstance(arg, _Signal):
-                if arg._name in argnames:
-                    assert arg._name in argnames
-                    self.argdict[arg._name] = arg
-                elif arg._inList:
-                    self.raiseError(node, _error.PortInList, arg._name)
+                self.argdict[n] = arg  
             if _isMem(arg):
                 self.raiseError(node, _error.ListAsPort, n)
-        
-        for n in argnames:
+        for n in argnames[i+1:]:
             if n in self.kwargs:
                 arg = self.kwargs[n]
                 if isinstance(arg, _Signal):
                     self.argdict[n] = arg
                 if _isMem(arg):
                     self.raiseError(node, _error.ListAsPort, n)
-
         self.argnames = [n for n in argnames if n in self.argdict]
-
-
-        
