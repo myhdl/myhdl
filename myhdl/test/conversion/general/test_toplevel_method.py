@@ -1,5 +1,7 @@
 import sys
 from myhdl import *
+from myhdl import ConversionError
+from myhdl.conversion._misc import _error
 from myhdl.conversion import analyze
 
 class HdlObj(object):
@@ -116,7 +118,12 @@ def test_hdlobjnotself():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjNotSelf()
-    analyze(hdlobj_inst.method_func, clk, x, srst, y)
+    try:
+        analyze(hdlobj_inst.method_func, clk, x, srst, y)
+    except ConversionError, e:
+        assert e.kind == _error.NotSupported
+    else:
+        assert False
 
 
 

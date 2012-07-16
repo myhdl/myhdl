@@ -1269,16 +1269,15 @@ def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
 def _analyzeTopFunc(func, *args, **kwargs):
-    if isboundmethod(func):
-        raise AssertionError("Bound methods not supported")
     tree = _makeAST(func)
-    v = _AnalyzeTopFuncVisitor(tree, *args, **kwargs)
+    v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)
     return v
 
 class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
 
-    def __init__(self, tree, *args, **kwargs):
+    def __init__(self, func, tree, *args, **kwargs):
+        self.func = func
         self.tree = tree
         self.args = args
         self.kwargs = kwargs
@@ -1286,8 +1285,15 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
         self.argdict = {}
 
     def visit_FunctionDef(self, node):
+        
         self.name = node.name
         argnames = [arg.id for arg in node.args.args]
+        if isboundmethod(self.func):
+            if not argnames[0] == 'self':
+                self.raiseError(node, _error.NotSupported,
+                                "first method argument name other than 'self'")
+            # skip self
+            argnames = argnames[1:]  
         i=-1
         for i, arg in enumerate(self.args):
             n = argnames[i]
