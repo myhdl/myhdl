@@ -54,6 +54,7 @@ from myhdl._ShadowSignal import _SliceSignal
 from myhdl.conversion._toVHDLPackage import _package
 
 _version = myhdl.__version__.replace('.','')
+_shortversion = _version.replace('dev','')
 _converting = 0
 _profileFunc = None
 _enumTypeList = []
@@ -130,7 +131,7 @@ class _ToVHDLConvertor(object):
 
         vpath = name + ".vhd"
         vfile = open(vpath, 'w')
-        ppath = "pck_myhdl_%s.vhd" % _version
+        ppath = "pck_myhdl_%s.vhd" % _shortversion
 #        # write MyHDL package always during development, as it may change
 #        pfile = None
 #        if not os.path.isfile(ppath):
@@ -232,7 +233,7 @@ def _writeModuleHeader(f, intf, needPck, lib, doc):
     print >> f
     if lib != "work":
         print >> f, "library %s;" % lib
-    print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _version)
+    print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _shortversion)
     print >> f
     if needPck:
         print >> f, "use %s.pck_%s.all;" % (lib, intf.name)

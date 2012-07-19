@@ -20,6 +20,7 @@
 import myhdl
 
 _version = myhdl.__version__.replace('.','')
+_shortversion = _version.replace('dev','')
 
 _package = """\
 library ieee;
@@ -157,4 +158,4 @@ package body pck_myhdl_%(version)s is
 
 end pck_myhdl_%(version)s;
 
-""" % {'version' : _version}
+""" % {'version' : _shortversion}
