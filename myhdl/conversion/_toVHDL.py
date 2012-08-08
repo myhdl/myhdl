@@ -94,7 +94,9 @@ class _ToVHDLConvertor(object):
                  "component_declarations",
                  "header",
                  "no_myhdl_header",
-                 "library"
+                 "no_myhdl_package",
+                 "library",
+                 "architecture"
                  )
 
     def __init__(self):
@@ -102,7 +104,9 @@ class _ToVHDLConvertor(object):
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
+        self.no_myhdl_package = False
         self.library = "work"
+        self.architecture = "MyHDL"
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -132,11 +136,13 @@ class _ToVHDLConvertor(object):
         vpath = name + ".vhd"
         vfile = open(vpath, 'w')
         ppath = "pck_myhdl_%s.vhd" % _shortversion
+        pfile = None
 #        # write MyHDL package always during development, as it may change
 #        pfile = None
 #        if not os.path.isfile(ppath):
 #            pfile = open(ppath, 'w')
-        pfile = open(ppath, 'w')
+        if not self.no_myhdl_package:
+            pfile = open(ppath, 'w')
 
         ### initialize properly ###
         _genUniqueSuffix.reset()
@@ -154,6 +160,7 @@ class _ToVHDLConvertor(object):
         
         needPck = len(_enumTypeSet) > 0
         lib = self.library
+        arch = self.architecture
         
         if pfile:
             _writeFileHeader(pfile, ppath)
@@ -163,12 +170,12 @@ class _ToVHDLConvertor(object):
         _writeFileHeader(vfile, vpath)
         if needPck:
             _writeCustomPackage(vfile, intf)
-        _writeModuleHeader(vfile, intf, needPck, lib, doc)
+        _writeModuleHeader(vfile, intf, needPck, lib, arch, doc)
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
         _convertGens(genlist, siglist, memlist, vfile)
-        _writeModuleFooter(vfile)
+        _writeModuleFooter(vfile, arch)
 
         vfile.close()
         # tbfile.close()
@@ -187,6 +194,8 @@ class _ToVHDLConvertor(object):
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
+        self.no_myhdl_package = False
+        self.architecture = "MyHDL"
 
         return h.top
     
@@ -225,7 +234,7 @@ def _writeCustomPackage(f, intf):
     print >> f
 
 
-def _writeModuleHeader(f, intf, needPck, lib, doc):
+def _writeModuleHeader(f, intf, needPck, lib, arch, doc):
     print >> f, "library IEEE;"
     print >> f, "use IEEE.std_logic_1164.all;"
     print >> f, "use IEEE.numeric_std.all;"
@@ -272,9 +281,8 @@ def _writeModuleHeader(f, intf, needPck, lib, doc):
     print >> f, "end entity %s;" % intf.name
     print >> f, doc
     print >> f
-    print >> f, "architecture MyHDL of %s is" % intf.name
+    print >> f, "architecture %s of %s is" % (arch, intf.name)
     print >> f
-
 
 
 def _writeFuncDecls(f):
@@ -333,8 +341,8 @@ def _writeCompDecls(f,  compDecls):
     if compDecls is not None:
         print >> f, compDecls
 
-def _writeModuleFooter(f):
-    print >> f, "end architecture MyHDL;"
+def _writeModuleFooter(f, arch):
+    print >> f, "end architecture %s;" % arch
 
     
 
