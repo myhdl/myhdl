@@ -10,6 +10,9 @@ from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
 
 _version = myhdl.__version__.replace('.','')
+# strip 'dev' for version
+_version = _version.replace('dev','')
+
 _simulators = []
 _hdlMap = {}
 _analyzeCommands = {}

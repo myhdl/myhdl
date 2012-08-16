@@ -66,8 +66,8 @@ def always_seq(edge, reset):
     if reset is not None:
         if not isinstance(reset, ResetSignal):
             raise AlwaysSeqError(_error.ResetType)
-    reset._read = True
-    reset._used = True
+        reset._read = True
+        reset._used = True
 
     def _always_seq_decorator(func):
         if not isinstance(func, FunctionType):
@@ -84,17 +84,16 @@ class _AlwaysSeq(_Instantiator):
 
     def __init__(self, func, edge, reset):
         self.func = func
+        self.senslist = senslist = [edge]
         self.reset = reset
-        active = self.reset.active
-        async = self.reset.async
-        senslist = [edge]
-        if async:
-            if active:
-                senslist.append(reset.posedge)
-            else:
-                senslist.append(reset.negedge)
-        self.senslist = senslist
         if reset is not None:
+            active = self.reset.active
+            async = self.reset.async
+            if async:
+                if active:
+                    senslist.append(reset.posedge)
+                else:
+                    senslist.append(reset.negedge)
             self.gen = self.genfunc()
         else:
             self.gen = self.genfunc_no_reset()

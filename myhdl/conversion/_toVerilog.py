@@ -452,14 +452,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # XXX signed indication 's' ???
         p = abs(n)
         size = ''
-        num = str(p)
-        if radix == "hex":
+        num = str(p).rstrip('L')
+        if radix == "hex" or p >= 2**30:
             radix = "'h"
-            num = hex(p)[2:]
+            num = hex(p)[2:].rstrip('L')
         if p >= 2**30:
             size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
-            if not radix:
-                radix = "'d"
+#            if not radix:
+#                radix = "'d"
         r = "%s%s%s" % (size, radix, num)
         if n < 0: # add brackets and sign on negative numbers
             r = "(-%s)" % r
