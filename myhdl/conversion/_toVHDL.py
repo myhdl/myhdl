@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2009 Jan Decaluwe
+#  Copyright (C) 2003-2012 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -84,8 +84,6 @@ def _makeDoc(doc, indent=''):
     doc = '-- ' + doc
     doc = doc.replace('\n', pre)
     return doc
-
-
 
 
 class _ToVHDLConvertor(object):
@@ -220,7 +218,6 @@ def _writeFileHeader(f, fn):
     print >> f
 
 
-
 def _writeCustomPackage(f, intf):
     print >> f
     print >> f, "package pck_%s is" % intf.name
@@ -342,11 +339,7 @@ def _writeCompDecls(f,  compDecls):
         print >> f, compDecls
 
 def _writeModuleFooter(f, arch):
-    print >> f, "end architecture %s;" % arch
-
-    
-
-    
+    print >> f, "end architecture %s;" % arch   
 def _getRangeString(s):
     if isinstance(s._val, EnumItemType):
         return ''
@@ -358,7 +351,6 @@ def _getRangeString(s):
     else:
         raise AssertionError
 
-
 def _getTypeString(s):
     if isinstance(s._val, EnumItemType):
         return s._val._type._name
@@ -368,7 +360,6 @@ def _getTypeString(s):
         return "signed "
     else:
         return 'unsigned'
-
 
 def _convertGens(genlist, siglist, memlist, vfile):
     blockBuf = StringIO()
@@ -462,8 +453,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.isSigAss = False
         self.labelStack = []
         self.context = None
- 
-        
+         
     def write(self, arg):
         self.buf.write("%s" % arg)
 
@@ -487,7 +477,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def BitRepr(self, item, var):
         return '"%s"' % bin(item, len(var))
         
-
     def inferCast(self, vhd, ori):
         pre, suf = "", ""
         if isinstance(vhd, vhd_int):
@@ -528,7 +517,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 pre, suf = "%s'image(" % ori._type._name, ")"
                 
         return pre, suf
-
                     
     def writeIntSize(self, n):
         # write size for large integers (beyond 32 bits signed)
@@ -555,7 +543,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if dir: dir += " "
         self.write("%s%s: %s%s%s" % (kind, name, dir, tipe, endchar))
          
-
     def writeDeclarations(self):
         if self.tree.hasPrint:
             self.writeline()
@@ -572,7 +559,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def dedent(self):
         self.ind = self.ind[:-4]
 
-
     def visit_BinOp(self, node):
         if isinstance(node.op, (ast.LShift, ast.RShift)):
             self.shiftOp(node)
@@ -584,9 +570,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(node.right)
         else:
             self.BinOp(node)
-        
-            
-        
+                
     def inferBinaryOpCast(self, node, left, right, op):
         ns, os = node.vhd.size, node.vhdOri.size
         ds = ns - os
@@ -627,8 +611,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if pre == "":
             pre, suf = "(", ")"
         return pre, suf
-        
- 
+         
     def BinOp(self, node):
         pre, suf = self.inferBinaryOpCast(node, node.left, node.right, node.op)
         self.write(pre)
@@ -637,7 +620,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.right)
         self.write(suf)
   
-
     def inferShiftOpCast(self, node, left, right, op):
         ns, os = node.vhd.size, node.vhdOri.size
         ds = ns - os
@@ -648,7 +630,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         return pre, suf
                
-
     def shiftOp(self, node):
         pre, suf = self.inferShiftOpCast(node, node.left, node.right, node.op)
         self.write(pre)
@@ -659,8 +640,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         self.write(suf)
         
-
-
     def BitOp(self, node):
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
@@ -670,8 +649,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.right)
         self.write(")")
         self.write(suf)
-         
-        
+                 
     def visit_BoolOp(self, node):
         if isinstance(node.vhd, vhd_std_logic):
             self.write("stdl")
@@ -681,7 +659,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(" %s " % opmap[type(node.op)])
             self.visit(n)
         self.write(")")
-
         
     def visit_UnaryOp(self, node):
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
@@ -692,20 +669,17 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         self.write(suf)
         
-
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setAttr(node)
         else:
             self.getAttr(node)
 
-
     def setAttr(self, node):
         assert node.attr == 'next'
         self.isSigAss = True
         self.visit(node.value)
         node.obj = self.getObj(node.value)
-
 
     def getAttr(self, node):
         assert isinstance(node.value, ast.Name), node.value
@@ -741,7 +715,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             e = getattr(obj, node.attr)
             self.write(e._toVHDL())
 
-
     def visit_Assert(self, node):
         # XXX
         self.write("assert ")
@@ -752,7 +725,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.writeline()
         self.write("severity error;")
         self.dedent()
-
 
     def visit_Assign(self, node):
         lhs = node.targets[0]
@@ -808,9 +780,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(convClose)
         self.write(';')
 
-
     def visit_AugAssign(self, node):
-        op = opmap[type(node.op)]
         # XXX apparently no signed context required for augmented assigns
         left, op, right =  node.target, node.op, node.value
         isFunc = False
@@ -835,12 +805,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(")")
         self.write(suf)
         self.write(";")
-
-     
-
+    
     def visit_Break(self, node):
         self.write("exit;")
-
 
     def visit_Call(self, node):
         fn = node.func
@@ -930,8 +897,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             v = Visitor(node.tree, self.funcBuf)
             v.visit(node.tree)
 
-
-
     def visit_Compare(self, node):
         n = node.vhd
         ns = node.vhd.size
@@ -948,7 +913,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(" %s " % opmap[type(op)])
         self.visit(right)
         self.write(suf)
-
 
     def visit_Num(self, node):
         n = node.n
@@ -968,10 +932,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Str(self, node):
         self.write("string'(\"%s\")" % node.s)
 
-
     def visit_Continue(self, node, *args):
        self.write("next;")
-
 
     def visit_Expr(self, node):
         expr = node.value
@@ -988,7 +950,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
             self.write(';')
             
-
     def visit_IfExp(self, node):
         pre, suf = self.inferCast(node.vhd, node.body.vhdOri)
         self.write(pre)
@@ -1063,10 +1024,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.labelStack.pop()
         self.labelStack.pop()
         
-
     def visit_FunctionDef(self, node):
         raise AssertionError("To be implemented in subclass")
-
 
     def visit_If(self, node):
         if node.ignore:
@@ -1076,7 +1035,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.mapToCase(node)
         else:
             self.mapToIf(node)
-
 
     def mapToCase(self, node):
         var = node.caseVar
@@ -1114,7 +1072,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.writeline()
         self.write("end case;")
 
-
     def mapToIf(self, node):
         first = True
         for test, suite in node.tests:
@@ -1145,16 +1102,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.dedent()
         self.writeline()
         self.write("end if;")
-        
-        
+                
     def visit_ListComp(self, node):
         pass # do nothing
-
 
     def visit_Module(self, node):
         for stmt in node.body:
             self.visit(stmt)       
-
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1226,12 +1180,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             raise AssertionError("name ref: %s" % n)
         self.write(s)
 
-
-
     def visit_Pass(self, node):
         self.write("null;")
     
-
     def visit_Print(self, node):
         argnr = 0
         for s in node.format:
@@ -1262,13 +1213,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
         self.write("writeline(output, L);")
 
-
     def visit_Raise(self, node):
         self.write('assert False report "End of Simulation" severity Failure;')
         
-#     def visitReturn(self, node, *args):
-#         self.write("disable %s;" % self.returnLabel)
-
     def visit_Return(self, node):
         pass
 
@@ -1277,7 +1224,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.accessSlice(node)
         else:
             self.accessIndex(node)
-
 
     def accessSlice(self, node):
         if isinstance(node.value, ast.Call) and \
@@ -1308,7 +1254,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(pre)
         self.visit(node.value)
         lower, upper = node.slice.lower, node.slice.upper
-         # special shortcut case for [:] slice
+        # special shortcut case for [:] slice
         if lower is None and upper is None:
             self.write(suf)
             return
@@ -1335,7 +1281,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         self.write(suf)
 
-
     def visit_stmt(self, body):
         for stmt in body:
             self.writeline()
@@ -1343,7 +1288,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             # ugly hack to detect an orphan "task" call
             if isinstance(stmt, ast.Call) and hasattr(stmt, 'tree'):
                 self.write(';')
-
 
     def visit_Tuple(self, node):
         assert self.context != None
@@ -1353,7 +1297,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         for elt in tpl[1:]:
             self.write(sep)
             self.visit(elt)
-
 
     def visit_While(self, node):
         self.labelStack.append(node.breakLabel)
@@ -1370,7 +1313,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.labelStack.pop()
         self.labelStack.pop()
 
-
     def visit_Yield(self, node):
         self.write("wait ")
         yieldObj = self.getObj(node.value)
@@ -1384,8 +1326,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.context = _context.UNKNOWN
         self.write(";")
-
-
 
     def manageEdges(self, ifnode, senslist):
         """ Helper method to convert MyHDL style template into VHDL style"""
@@ -1423,14 +1363,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             senslist = [s.sig for s in senslist]
         return senslist
 
-
             
 class _ConvertAlwaysVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
-
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1474,15 +1412,12 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
 
-        
-    
+            
 class _ConvertInitialVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
-
-
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1500,8 +1435,6 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         self.writeline()
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
-
-
 
 
 class _ConvertAlwaysCombVisitor(_ConvertVisitor):
@@ -1530,7 +1463,6 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.writeline()
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
-
 
         
 class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
@@ -1608,7 +1540,7 @@ def _convertInitVal(s):
         v = init._toVHDL()
     return v
             
-
+            
 class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
@@ -1667,9 +1599,7 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
 
-    
-    
-    
+      
 class _ConvertFunctionVisitor(_ConvertVisitor):
     
     def __init__(self, tree, funcBuf):
@@ -1689,7 +1619,6 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
             self.writeline()
             self.writeDeclaration(obj, name, dir="in", constr=False, endchar="")
             
-
     def visit_FunctionDef(self, node):
         self.write("function %s(" % self.tree.name)
         self.indent()
@@ -1709,15 +1638,11 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.write("end function %s;" % self.tree.name)
         self.writeline(2)
 
-
-
     def visit_Return(self, node):
         self.write("return ")
         self.visit(node.value)
         self.write(";")
 
-
-    
     
 class _ConvertTaskVisitor(_ConvertVisitor):
     
@@ -1738,8 +1663,6 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             self.writeline()
             self.writeDeclaration(obj, name, dir=dir, constr=False, endchar="")
             
-
-
     def visit_FunctionDef(self, node):
         self.write("procedure %s" % self.tree.name)
         if self.tree.argnames:
@@ -1763,6 +1686,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 
 
 # type inference
+
 
 class vhd_type(object):
     def __init__(self, size=0):
@@ -1870,8 +1794,7 @@ def maybeNegative(vhd):
     if isinstance(vhd, vhd_int) and not isinstance(vhd, vhd_nat):
         return True
     return False
-
-        
+       
 class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def __init__(self, tree):
@@ -1882,18 +1805,14 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         for stmt in node.body:
             self.visit(stmt)
 
-
-
     def visit_Attribute(self, node):
         self.generic_visit(node)
         node.vhd = copy(node.value.vhd)
         node.vhdOri = copy(node.vhd)
 
-
     def visit_Assert(self, node):
         self.visit(node.test)
         node.test.vhd = vhd_boolean()
-
 
     def visit_AugAssign(self, node):
         self.visit(node.target)
@@ -1909,7 +1828,6 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             self.inferBinOpType(node)
         node.vhd = copy(node.target.vhd)
 
-        
     def visit_Call(self, node):
         fn = node.func
         # assert isinstance(fn, astNode.Name)
@@ -1941,8 +1859,6 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = node.tree.vhd = inferVhdlObj(node.tree.returnObj)
         node.vhdOri = copy(node.vhd)
 
-
-
     def visit_Compare(self, node):
         node.vhd = vhd_boolean()
         self.generic_visit(node)
@@ -1955,7 +1871,6 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             right.vhd = vhd_signed(right.vhd.size + 1)
         node.vhdOri = copy(node.vhd)
 
-
     def visit_Str(self, node):
         node.vhd = vhd_string()
         node.vhdOri = copy(node.vhd)
@@ -1967,20 +1882,17 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_nat()
         node.vhdOri = copy(node.vhd)
 
-
     def visit_For(self, node):
         var = node.target.id
         # make it possible to detect loop variable
         self.tree.vardict[var] = _loopInt(-1)
         self.generic_visit(node)
   
-
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
             node.obj = self.tree.vardict[node.id]
         node.vhd = inferVhdlObj(node.obj)
         node.vhdOri = copy(node.vhd)
-
 
     def visit_BinOp(self, node):
         self.generic_visit(node)
@@ -1997,7 +1909,6 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         node.vhd = copy(node.left.vhd)
         node.right.vhd = vhd_nat()
         node.vhdOri = copy(node.vhd)
-
 
     def inferBitOpType(self, node):
         obj = maxType(node.left.vhd, node.right.vhd)
@@ -2051,14 +1962,12 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_int()
         node.vhdOri = copy(node.vhd)
 
-
     def visit_BoolOp(self, node):
         self.generic_visit(node)
         for n in node.values:
             n.vhd = vhd_boolean()
         node.vhd = vhd_boolean()
         node.vhdOri = copy(node.vhd)
-
 
     def visit_If(self, node):
         if node.ignore:
@@ -2071,17 +1980,14 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.generic_visit(node)
         node.test.vhd = vhd_boolean()
 
-
     def visit_ListComp(self, node):
         pass # do nothing
-
 
     def visit_Subscript(self, node):
         if isinstance(node.slice, ast.Slice):
             self.accessSlice(node)
         else:
             self.accessIndex(node)
-
 
     def accessSlice(self, node):
         self.generic_visit(node)
@@ -2101,7 +2007,6 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_unsigned(lower-upper)
         node.vhdOri = copy(node.vhd)
 
-
     def accessIndex(self, node):
         self.generic_visit(node)
         node.vhd = vhd_std_logic() # XXX default
@@ -2117,8 +2022,6 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         elif isinstance(obj, intbv):
             node.vhd = vhd_std_logic()
         node.vhdOri = copy(node.vhd)
-
-
 
     def visit_UnaryOp(self, node):
         self.visit(node.operand)
@@ -2137,13 +2040,10 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
                 node.vhd = vhd_int()
         node.vhdOri = copy(node.vhd)
        
-
     def visit_While(self, node):
         self.generic_visit(node)
         node.test.vhd = vhd_boolean()
 
-
-    
 
 def _annotateTypes(genlist):
     for tree in genlist:

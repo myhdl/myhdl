@@ -25,23 +25,19 @@
 import inspect
 # import compiler
 # from compiler import ast as astNode
-from types import GeneratorType, FunctionType, ClassType, MethodType
-from cStringIO import StringIO
+from types import FunctionType, MethodType
 import re
-import warnings
 import ast
 import __builtin__
 
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
-from myhdl._unparse import _unparse
 from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always_seq import _AlwaysSeq
 from myhdl._always import _Always
-from myhdl._delay import delay
-from myhdl.conversion._misc import (_error, _access, _kind, _context,
+from myhdl.conversion._misc import (_error, _access, _kind,
                                     _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
@@ -376,14 +372,6 @@ class _Rom(object):
     def __init__(self, rom):
         self.rom = rom
 
-
-def _maybeNegative(obj):
-    if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
-        return True
-    if isinstance(obj, (int, long)) and obj < 0:
-        return True
-    return False
-
 re_str = re.compile(r"[^%]+")
 re_ConvSpec = re.compile(r"%(?P<justified>[-]?)(?P<width>[0-9]*)(?P<conv>[sd])")
 
@@ -435,13 +423,10 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.access = _access.INPUT
         self.kind = _kind.NORMAL
 
-
     def visit_BinOp(self, node):
         self.visit(node.left)
         self.visit(node.right)
         node.obj = int(-1)
-        node.signed = node.left.signed or node.right.signed
-       
 
     def visit_BoolOp(self, node):
         for n in node.values:
@@ -450,23 +435,17 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if not hasType(n.obj, bool):
                 self.raiseError(node, _error.NotSupported, "non-boolean argument in logical operator")
         node.obj = bool()
-        node.signed = False
-
- 
+    
     def visit_UnaryOp(self, node):
         self.visit(node.operand)
         op = node.op
         node.obj = node.operand.obj
-        node.signed = node.operand.signed
         if isinstance(op, ast.Not):
             node.obj = bool()
         elif isinstance(op, ast.UAdd):
             node.obj = int(-1)
         elif isinstance(op, ast.USub):
             node.obj = int(-1)
-            if isinstance(node.operand, ast.Num):
-                node.signed = True
-    
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -481,7 +460,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     if not obj._init._hasFullRange():
                         self.raiseError(node, _error.ModbvRange, n)
          
- 
     def setAttr(self, node):
         if node.attr != 'next':
             self.raiseError(node, _error.NotSupported, "attribute assignment")
@@ -493,7 +471,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def getAttr(self, node):
         self.visit(node.value)
         node.obj = None
-        node.signed = False
         if isinstance(node.value, ast.Name):
             n = node.value.id
             if (n not in self.tree.vardict) and (n not in self.tree.symdict):
@@ -522,9 +499,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 obj._setName(n+suf)
         if node.obj is None: # attribute lookup failed
             self.raiseError(node, _error.UnsupportedAttribute, node.attr)
-            
-
-
+        
     def visit_Assign(self, node):
         target, value = node.targets[0], node.value
         self.access = _access.OUTPUT
@@ -544,8 +519,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(obj, intbv):
                 if len(obj) == 0:
                     self.raiseError(node, _error.IntbvBitWidth, n)
-                    if obj._min < 0:
-                        _signed = True
             if isinstance(obj, modbv):
                 if not obj._hasFullRange():
                     self.raiseError(node, _error.ModbvRange, n)
@@ -554,7 +527,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(obj, type(curObj)):
                     pass
                 elif isinstance(curObj, type(obj)):
-                     self.tree.vardict[n] = obj
+                    self.tree.vardict[n] = obj
                 else:
                     self.raiseError(node, _error.TypeMismatch, n)
                 if getNrBits(obj) != getNrBits(curObj):
@@ -564,23 +537,15 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.visit(value)
 
-
-
-    
-
     def visit_AugAssign(self, node):
         self.access = _access.INOUT
         self.visit(node.target)
         self.access = _access.INPUT
         self.visit(node.value)
 
-
-
     def visit_Break(self, node):
         self.labelStack[-2].isActive = True
         
-
-
     def visit_Call(self, node):
         self.visit(node.func)
         self.access = _access.UNKNOWN
@@ -592,7 +557,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         argsAreInputs = True
         f = self.getObj(node.func)
         node.obj = None
-        node.signed = False
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
         elif f is concat:
@@ -610,7 +574,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         ### suprize: identity comparison on unbound methods doesn't work in python 2.5??
         elif f == intbv.signed:
             node.obj = int(-1)
-            node.signed = True
         elif f in myhdlObjects:
             pass
         elif f in builtinObjects:
@@ -665,17 +628,10 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             for arg in node.args:
                 self.visit(arg)
 
-
-            
-
     def visit_Compare(self, node):
         node.obj = bool()
-        node.signed = False
-        #for n in ast.iter_child_nodes(node):
         for n in [node.left] + node.comparators:
             self.visit(n)
-            if n.signed:
-                node.signed = True
         op, arg = node.ops[0], node.comparators[0]
 ##         node.expr.target = self.getObj(arg)
 ##         arg.target = self.getObj(node.expr)
@@ -698,10 +654,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif v == 1:
                         node.edge = sig.posedge
 
-
-
     def visit_Num(self, node):
-        node.signed = False
         n = node.n
         # assign to value attribute for backwards compatibility
         node.value = n
@@ -713,14 +666,10 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = None
 
     def visit_Str(self, node):
-        node.signed = False
         node.obj = node.s
-
-            
+           
     def visit_Continue(self, node):
         self.labelStack[-1].isActive = True
-
-            
 
     def visit_For(self, node):
         node.breakLabel = _Label("BREAK")
@@ -745,10 +694,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.labelStack.pop()
         self.labelStack.pop()
         
-
     def visit_FunctionDef(self, node):
         raise AssertionError("subclass must implement this")
-
 
     def visit_If(self, node):
         if node.ignore:
@@ -789,8 +736,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if (len(choices) == _getNritems(var1.obj)) or node.else_:
             node.isFullCase = True
 
-
-
     def visit_ListComp(self, node):
         mem = node.obj = _Ram()
         self.kind = _kind.DECLARATION
@@ -807,8 +752,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if f is not range or len(cf.args) != 1:
             self.raiseError(node, _error.UnsupportedListComp)
         mem.depth = cf.args[0].obj
-
-
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -843,7 +786,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def getName(self, node):
         n = node.id
         node.obj = None
-            
         if n not in self.refStack:
             if n in self.tree.vardict:
                 self.raiseError(node, _error.UnboundLocal, n)
@@ -901,18 +843,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = __builtin__.__dict__[n]
         else:
             pass
-        node.signed = _maybeNegative(node.obj)
-##         node.target = node.obj
-
-
-
-
-
         
     def visit_Return(self, node):
         self.raiseError(node, _error.NotSupported, "return statement")
-        
-
 
     def visit_Print(self, node):
         self.tree.hasPrint = True
@@ -969,8 +902,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.raiseError(node, _error.FormatString, "too many arguments")
         self.generic_visit(node)
         
-
-
     def visit_Subscript(self, node):
         if isinstance(node.slice, ast.Slice):
             self.accessSlice(node)
@@ -978,7 +909,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.accessIndex(node)
 
     def accessSlice(self, node):
-        node.signed = False
         self.visit(node.value)
         node.obj = self.getObj(node.value)
         self.access = _access.INPUT
@@ -1014,14 +944,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = bool()
         else:
             node.obj = bool() # XXX default
-        node.signed = _maybeNegative(node.obj)
-
 
     def visit_Tuple(self, node):
-        node.signed = False
         self.generic_visit(node)
-
-
 
     def visit_While(self, node):
         node.breakLabel = _Label("BREAK")
@@ -1046,7 +971,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.labelStack.pop()
         self.labelStack.pop()
 
-
     def visit_Yield(self, node, *args):
         self.tree.hasYield += 1
         n = node.value
@@ -1066,8 +990,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         node.senslist = senslist
 
         
-        
-
 class _AnalyzeBlockVisitor(_AnalyzeVisitor):
     
     def __init__(self, tree):

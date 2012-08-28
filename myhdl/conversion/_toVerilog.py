@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2008 Jan Decaluwe
+#  Copyright (C) 2003-2012 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -23,19 +23,14 @@
 
 
 import sys
-import os
 import math
-import traceback
 import inspect
 from datetime import datetime
-import compiler
-# from compiler import ast as astNode
 import ast
 import string
 
-from types import GeneratorType, FunctionType, ClassType, TypeType, StringType
+from types import GeneratorType, ClassType, TypeType
 from cStringIO import StringIO
-import __builtin__
 import warnings
 
 import myhdl
@@ -45,12 +40,11 @@ from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
 
 from myhdl._instance import _Instantiator
-from myhdl.conversion._misc import (_error, _access, _kind, _context, 
+from myhdl.conversion._misc import (_error, _kind, _context, 
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc, 
                                        _Ram, _Rom)
 from myhdl._Signal import _Signal
-from myhdl._ShadowSignal import _SliceSignal
             
 _converting = 0
 _profileFunc = None
@@ -139,6 +133,7 @@ class _ToVerilogConvertor(object):
         # print h.top
         _checkArgs(arglist)
         genlist = _analyzeGens(arglist, h.absnames)
+        _annotateTypes(genlist)
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         doc = _makeDoc(inspect.getdoc(func))
@@ -496,7 +491,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.write(";")
         
-
     def writeDeclarations(self):
         for name, obj in self.tree.vardict.items():
             self.writeline()
@@ -521,8 +515,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(senslist[-1]._toVerilog())
         self.write(")")
 
-
-
     def visit_BinOp(self, node):
         if isinstance(node.op, ast.Mod) and self.context == _context.PRINT:
             self.visit(node.left)
@@ -546,9 +538,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(")")
             self.context = None
 
-
-
-
     def checkOpWithNegIntbv(self, node, op):
         if op in ("+", "-", "*", "~", "&&", "||", "!"):
             return
@@ -558,9 +547,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.raiseError(node, _error.NotSupported,
                                 "negative intbv with operator %s" % op)
 
-
-
-
     def visit_BoolOp(self, node):
         self.write("(")
         self.visit(node.values[0])
@@ -569,13 +555,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(n)
         self.write(")")
         
-
     def visit_UnaryOp(self, node):
         self.write("(%s" % opmap[type(node.op)])
         self.visit(node.operand)
         self.write(")")
-
-
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -615,8 +598,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             e = getattr(obj, node.attr)
             self.write(e._toVerilog())
 
-
-
     def visit_Assert(self, node):
         self.write("if (")
         self.visit(node.test)
@@ -629,8 +610,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.dedent()
         self.writeline()
         self.write("end")
-
-
 
     def visit_Assign(self, node):
         # shortcut for expansion of ROM in case statement
@@ -675,8 +654,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write(';')
 
-
-
     def visit_AugAssign(self, node, *args):
         # XXX apparently no signed context required for augmented assigns
         self.visit(node.target)
@@ -686,11 +663,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write(";")
 
-
-
     def visit_Break(self, node,):
         self.write("disable %s;" % self.labelStack[-2])
-
 
     def visit_Call(self, node):
         self.context = None
@@ -764,7 +738,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             v = Visitor(node.tree, self.funcBuf)
             v.visit(node.tree)
 
-
     def visit_Compare(self, node):
         self.context = None
         if node.signed:
@@ -775,8 +748,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.comparators[0])
         self.write(")")
         self.context = None
-
-
 
     def visit_Num(self, node):
         if self.context == _context.PRINT:
@@ -793,11 +764,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.write(s)
 
-
-
     def visit_Continue(self, node):
         self.write("disable %s;" % self.labelStack[-1])
-
 
     def visit_Expr(self, node):
         expr = node.value
@@ -813,15 +781,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
             self.write(';')
-            
-            
+                       
     def visit_IfExp(self, node):
         self.visit(node.test)
         self.write(' ? ')
         self.visit(node.body)
         self.write(' : ')
         self.visit(node.orelse)
-
 
     def visit_For(self, node):
         self.labelStack.append(node.breakLabel)
@@ -885,10 +851,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.labelStack.pop()
         self.labelStack.pop()
 
-
     def visit_FunctionDef(self, node):
         raise AssertionError("To be implemented in subclass")
-
 
     def visit_If(self, node):
         if node.ignore:
@@ -963,7 +927,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             self.write("end")
 
-
     def visitKeyword(self, node, *args):
         self.visit(node.expr)
 
@@ -1027,11 +990,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if addSignBit:
             self.write("})")       
 
-
     def visit_Pass(self, node):
         self.write("// pass")
 
-    
     def visit_Print(self, node):
         argnr = 0
         for s in node.format:
@@ -1078,16 +1039,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.context = _context.UNKNOWN
             self.writeline()
         self.write('$write("\\n");')
-        
-
 
     def visit_Raise(self, node):
         self.write("$finish;")
-
     
     def visit_Return(self, node):
         self.write("disable %s;" % self.returnLabel)
-
 
     def visit_Subscript(self, node):
         if isinstance(node.slice, ast.Slice):
@@ -1126,7 +1083,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if addSignBit:
             self.write("})")
 
-
     def accessIndex(self, node):
         addSignBit = isinstance(node.ctx, ast.Load) and \
                      (not node.signed) and \
@@ -1142,7 +1098,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if addSignBit:
             self.write("})")
 
-
     def visit_stmt(self, body):
         for stmt in body:
             self.writeline()
@@ -1150,7 +1105,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             # ugly hack to detect an orphan "task" call
             if isinstance(stmt, ast.Call) and hasattr(stmt, 'tree'):
                 self.write(';')
-
 
     def visit_Tuple(self, node):
         assert self.context != None
@@ -1160,8 +1114,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         for elt in tpl[1:]:
             self.write(sep)
             self.visit(elt)
-
-
 
     def visit_While(self, node):
         self.labelStack.append(node.breakLabel)
@@ -1185,8 +1137,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.labelStack.pop()
         self.labelStack.pop()
 
-
-
     def visit_Yield(self, node):
         yieldObj = self.getObj(node.value)
         assert node.senslist
@@ -1200,10 +1150,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.writeSensitivityList(senslist)
             self.write(";")
-
-
-
-
 
         
 class _ConvertAlwaysVisitor(_ConvertVisitor):
@@ -1250,7 +1196,6 @@ class _ConvertInitialVisitor(_ConvertVisitor):
 
 
 
-
 class _ConvertAlwaysCombVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
@@ -1258,7 +1203,6 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         if toVerilog.prefer_blocking_assignments:
             self.okSigAss = False
         self.funcBuf = funcBuf
-
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1271,22 +1215,18 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.writeline(2)
 
 
-
         
 class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
     
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
-
-
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
             self.write("assign ")
             self.visit(node.value)
         else:
             self.getAttr(node)
-
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1299,7 +1239,6 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
-
 
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
@@ -1359,8 +1298,6 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
         self.write("end")
         self.writeline(2)
 
-
-       
     
 class _ConvertFunctionVisitor(_ConvertVisitor):
     
@@ -1379,7 +1316,6 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
             self.writeline()
             self.writeDeclaration(obj, name, "input")
             
-
     def visit_FunctionDef(self, node):
         self.write("function ")
         self.writeOutputDeclaration()
@@ -1398,7 +1334,6 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.write("endfunction")
         self.writeline(2)
 
-
     def visit_Return(self, node):
         self.write("%s = " % self.tree.name)
         self.visit(node.value)
@@ -1407,7 +1342,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.write("disable %s;" % self.returnLabel)
 
 
-    
+
     
 class _ConvertTaskVisitor(_ConvertVisitor):
     
@@ -1425,7 +1360,6 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             self.writeline()
             self.writeDeclaration(obj, name, dir)
             
-
     def visit_FunctionDef(self, node):
         self.write("task %s;" % self.tree.name)
         self.indent()
@@ -1442,3 +1376,125 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.writeline()
         self.write("endtask")
         self.writeline(2)
+
+
+def _maybeNegative(obj):
+    if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
+        return True
+    if isinstance(obj, (int, long)) and obj < 0:
+        return True
+    return False
+
+class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
+
+    def __init__(self, tree):
+        self.tree = tree
+        
+    def visit_FunctionDef(self, node):
+        # don't visit arguments and decorators
+        for stmt in node.body:
+            self.visit(stmt)   
+        
+    def visit_BinOp(self, node):
+        self.visit(node.left)
+        self.visit(node.right)
+        node.signed = node.left.signed or node.right.signed
+      
+    def visit_BoolOp(self, node):
+        for n in node.values:
+            self.visit(n)
+        node.signed = False
+
+    def visit_UnaryOp(self, node):
+        self.visit(node.operand)
+        node.signed = node.operand.signed
+        if isinstance(node.op, ast.USub):
+            node.obj = int(-1)
+            if isinstance(node.operand, ast.Num):
+                node.signed = True
+    
+    def visit_Attribute(self, node):
+        if isinstance(node.ctx, ast.Store):
+            self.setAttr(node)
+        else:
+            self.getAttr(node)
+         
+    def setAttr(self, node):
+        self.visit(node.value)
+
+    def getAttr(self, node):
+        node.signed = False
+        self.visit(node.value)
+                  
+    def visit_Call(self, node):
+        self.generic_visit(node)
+        f = self.getObj(node.func)
+        node.signed = False
+        ### suprize: identity comparison on unbound methods doesn't work in python 2.5??
+        if f == intbv.signed:
+            node.signed = True
+        elif hasattr(node, 'tree'):
+            v = _AnnotateTypesVisitor(node.tree)
+            v.visit(node.tree)
+            node.signed = _maybeNegative(node.tree.returnObj)  
+
+    def visit_Compare(self, node):
+        node.signed = False
+        #for n in ast.iter_child_nodes(node):
+        for n in [node.left] + node.comparators:
+            self.visit(n)
+            if n.signed:
+                node.signed = True
+                
+    def visit_If(self, node):
+        if node.ignore:
+            return
+        self.generic_visit(node)
+
+
+    def visit_Num(self, node):
+        node.signed = False
+
+    def visit_Str(self, node):
+        node.signed = False
+
+    def visit_Name(self, node):
+        if isinstance(node.ctx, ast.Store):
+            self.setName(node)
+        else:
+            self.getName(node)
+
+    def setName(self, node):
+        pass
+
+    def getName(self, node):
+        node.signed = _maybeNegative(node.obj)
+
+    def visit_Subscript(self, node):
+        if isinstance(node.slice, ast.Slice):
+            self.accessSlice(node)
+        else:
+            self.accessIndex(node)
+
+    def accessSlice(self, node):
+        node.signed = False
+        self.generic_visit(node)
+
+    def accessIndex(self, node):
+        node.signed = _maybeNegative(node.obj)
+        self.generic_visit(node)
+
+    def visit_Tuple(self, node):
+        node.signed = False
+        self.generic_visit(node)
+
+        
+def _annotateTypes(genlist):
+    for tree in genlist:
+        if isinstance(tree, _UserVerilogCode):
+            continue
+        v = _AnnotateTypesVisitor(tree)
+        v.visit(tree)
+        
+
+
