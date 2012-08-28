@@ -450,6 +450,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if not hasType(n.obj, bool):
                 self.raiseError(node, _error.NotSupported, "non-boolean argument in logical operator")
         node.obj = bool()
+        node.signed = False
 
  
     def visit_UnaryOp(self, node):
