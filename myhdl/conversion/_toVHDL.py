@@ -23,7 +23,6 @@
 
 
 import sys
-import os
 import math
 
 import inspect
@@ -31,9 +30,8 @@ from datetime import datetime
 #import compiler
 #from compiler import ast as astNode
 import ast
-from types import GeneratorType, FunctionType, ClassType, StringType
+from types import GeneratorType, ClassType
 from cStringIO import StringIO
-import __builtin__
 import warnings
 from copy import copy
 import string
@@ -45,12 +43,11 @@ from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVhdlCode, _userCodeMap)
 
 from myhdl._instance import _Instantiator
-from myhdl.conversion._misc import (_error, _access, _kind,_context,
+from myhdl.conversion._misc import (_error,_kind,_context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
 from myhdl._Signal import _Signal,_WaiterList
-from myhdl._ShadowSignal import _SliceSignal
 from myhdl.conversion._toVHDLPackage import _package
 
 _version = myhdl.__version__.replace('.','')
@@ -340,6 +337,7 @@ def _writeCompDecls(f,  compDecls):
 
 def _writeModuleFooter(f, arch):
     print >> f, "end architecture %s;" % arch   
+    
 def _getRangeString(s):
     if isinstance(s._val, EnumItemType):
         return ''
@@ -842,7 +840,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
                 node.args[0].n = int(node.args[0].n)
-        elif f is intbv:
+        elif f in (intbv, modbv):
             pre, post = "", ""
             arg = node.args[0]
             if isinstance(node.vhd, vhd_unsigned):
@@ -985,7 +983,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else: # downrange
             cmp = '>='
             op = 'downto'
-            oneoff ='-1'
             if len(args) == 1:
                 start, stop, step = args[0], None, None
             elif len(args) == 2:
@@ -1227,7 +1224,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def accessSlice(self, node):
         if isinstance(node.value, ast.Call) and \
-           node.value.func.obj is intbv and \
+           node.value.func.obj in (intbv, modbv) and \
            _isConstant(node.value.args[0], self.tree.symdict):
             c = self.getVal(node)._val
             pre, post = "", ""
@@ -1844,7 +1841,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f in (int, long, ord):
             node.vhd = vhd_int()
             node.args[0].vhd = vhd_int()
-        elif f is intbv:
+        elif f in (intbv, modbv):
             node.vhd = vhd_int()
         elif f is len:
             node.vhd = vhd_int()

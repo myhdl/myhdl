@@ -698,7 +698,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
                 node.args[0].n = int(node.args[0].n)
-        elif f is intbv:
+        elif f in (intbv, modbv):
             self.visit(node.args[0])
             return
         elif f == intbv.signed: # note equality comparison
@@ -1054,7 +1054,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def accessSlice(self, node):
         if isinstance(node.value, ast.Call) and \
-           node.value.func.obj is intbv and \
+           node.value.func.obj in (intbv, modbv) and \
            _isConstant(node.value.args[0], self.tree.symdict):
             c = self.getVal(node)
             self.write("%s'h" % c._nrbits)
