@@ -408,6 +408,13 @@ generators from local generator functions.
    and the corresponding sensitivity list automatically. The decorated function
    should be a classic function.
 
+.. function:: always_seq(edge, reset)
+
+   The :func:`always_seq` decorator is used to describe sequential (clocked) logic.
+
+   The *edge* parameter should be a clock edge (``clock.posedge`` or ``clock.negedge``).
+   The *reset* parameter should a :class:`ResetSignal` object.
+
 
 .. _ref-intbv:
 
