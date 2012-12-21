@@ -3,7 +3,7 @@ from myhdl import *
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-def Inc(count, enable, clock, reset, n):
+def Inc(count, enable, clock, reset):
     
     """ Incrementer with enable.
     
@@ -18,16 +18,19 @@ def Inc(count, enable, clock, reset, n):
     @always_seq(clock.posedge, reset=reset)
     def incLogic():
         if enable:
-            count.next = (count + 1) % n
+            count.next = count + 1
 
     return incLogic
 
 
 def testbench():
-    count, enable, clock = [Signal(intbv(0)) for i in range(3)]
+    m = 3
+    count = Signal(modbv(0)[m:])
+    enable = Signal(bool(0))
+    clock  = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=True)
 
-    inc_1 = Inc(count, enable, clock, reset, n=4)
+    inc_1 = Inc(count, enable, clock, reset)
 
     HALF_PERIOD = delay(10)
 
@@ -40,7 +43,7 @@ def testbench():
         reset.next = ACTIVE_LOW
         yield clock.negedge
         reset.next = INACTIVE_HIGH
-        for i in range(12):
+        for i in range(20):
             enable.next = min(1, randrange(3))
             yield clock.negedge
         raise StopSimulation
@@ -64,16 +67,15 @@ def main():
 
 # conversion
 m = 8
-n = 2 ** m
 
-count = Signal(intbv(0)[m:])
+count = Signal(modbv(0)[m:])
 enable = Signal(bool(0))
 clock  = Signal(bool(0))
 reset = ResetSignal(0, active=0, async=True)
 
-inc_inst = Inc(count, enable, clock, reset, n=n)
-inc_inst = toVerilog(Inc, count, enable, clock, reset, n=n)
-inc_inst = toVHDL(Inc, count, enable, clock, reset, n=n)
+inc_inst = Inc(count, enable, clock, reset)
+inc_inst = toVerilog(Inc, count, enable, clock, reset)
+inc_inst = toVHDL(Inc, count, enable, clock, reset)
 
 
 if __name__ == '__main__':
