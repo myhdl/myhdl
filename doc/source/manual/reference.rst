@@ -416,17 +416,23 @@ generators from local generator functions.
    The *reset* parameter should a :class:`ResetSignal` object.
 
 
+MyHDL data types
+----------------
+
+MyHDL defines a number of data types that are useful for hardware description.
+
 .. _ref-intbv:
 
 The :class:`intbv` class
-------------------------
-
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: intbv([val=0] [, min=None]  [, max=None])
 
     This class represents :class:`int`\ -like objects with some
     additional features that make it suitable for hardware
-    design. The *val* argument can be an :class:`int`, a
+    design. 
+
+    The *val* argument can be an :class:`int`, a
     :class:`long`, an :class:`intbv` or a bit string (a string with
     only '0's or '1's). For a bit string argument, the value is
     calculated as in ``int(bitstring, 2)``.  The optional *min* and
@@ -522,47 +528,29 @@ In addition, an :class:`intbv` object supports the iterator protocol. This makes
 it possible to iterate over all its bits, from the high index to index 0. This
 is only possible for :class:`intbv` objects with a defined bit width.
 
+.. _ref-modvb:
 
-.. _ref-model-misc:
+The :class:`modbv` class
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-Miscellaneous modeling support functions
-----------------------------------------
+.. class:: modbv([val=0] [, min=None]  [, max=None])
 
-.. function:: bin(num [, width])
+   The :class:`modbv` class implements modular bit vector types.
 
-   Returns a bit string representation. If the optional *width* is provided, and if
-   it is larger than the width of the default representation, the bit string is
-   padded with the sign bit.
+   It is implemented as a subclass of :class:`intbv`
+   and supports the same parameters and operators.
+   The difference is in the handling of the *min* and *max* boundaries.
+   Instead of throwing an exception when those constraints are exceeded,
+   the value of :class:`modbv` objects wraps around according to the
+   following formula::
+  
+       val = (val - min) % (max - min) + min
+       
+   This formula is a generalization of modulo wrap-around behavior that
+   is often useful when describing hardware system behavior. 
 
-   This function complements the standard Python conversion functions ``hex`` and
-   ``oct``. A binary string representation is often useful in hardware design.
-
-   :rtype: string
-
-
-.. function:: concat(base [, arg ...])
-
-   Returns an :class:`intbv` object formed by concatenating the arguments.
-
-   The following argument types are supported: :class:`intbv` objects with a
-   defined bit width, :class:`bool` objects, signals of the previous objects, and
-   bit strings. All these objects have a defined bit width. The first argument
-   *base* is special as it doesn't need to have a defined bit width. In addition to
-   the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
-   :class:`long` objects are supported, as well as signals of such objects.
-
-   :rtype: :class:`intbv`
-
-.. function:: downrange(high [, low=0])
-
-   Generates a downward range list of integers.
-
-   This function is modeled after the standard ``range`` function, but works in the
-   downward direction. The returned interval is half-open, with the *high* index
-   not included. *low* is optional and defaults to zero.  This function is
-   especially useful in conjunction with the :class:`intbv` class, that also works
-   with downward indexing.
-
+The :func:`enum` factory function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. function:: enum(arg [, arg ...] [, encoding='binary'])
 
@@ -581,6 +569,61 @@ Miscellaneous modeling support functions
    Verilog output. The available encodings are ``'binary'``, ``'one_hot'``, and
    ``'one_cold'``.
 
+
+.. _ref-model-misc:
+
+Modeling support functions
+--------------------------
+
+MyHDL defines a number of additional support functions that are
+useful for hardware description.
+
+:func:`bin`
+^^^^^^^^^^^
+
+.. function:: bin(num [, width])
+
+   Returns a bit string representation. If the optional *width* is provided, and if
+   it is larger than the width of the default representation, the bit string is
+   padded with the sign bit.
+
+   This function complements the standard Python conversion functions ``hex`` and
+   ``oct``. A binary string representation is often useful in hardware design.
+
+   :rtype: string
+
+:func:`concat`
+^^^^^^^^^^^^^^
+
+.. function:: concat(base [, arg ...])
+
+   Returns an :class:`intbv` object formed by concatenating the arguments.
+
+   The following argument types are supported: :class:`intbv` objects with a
+   defined bit width, :class:`bool` objects, signals of the previous objects, and
+   bit strings. All these objects have a defined bit width. The first argument
+   *base* is special as it doesn't need to have a defined bit width. In addition to
+   the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
+   :class:`long` objects are supported, as well as signals of such objects.
+
+   :rtype: :class:`intbv`
+
+
+:func:`downrange`
+^^^^^^^^^^^^^^^^^
+
+.. function:: downrange(high [, low=0])
+
+   Generates a downward range list of integers.
+
+   This function is modeled after the standard ``range`` function, but works in the
+   downward direction. The returned interval is half-open, with the *high* index
+   not included. *low* is optional and defaults to zero.  This function is
+   especially useful in conjunction with the :class:`intbv` class, that also works
+   with downward indexing.
+
+:func:`instances`
+^^^^^^^^^^^^^^^^^
 
 .. function:: instances()
 
