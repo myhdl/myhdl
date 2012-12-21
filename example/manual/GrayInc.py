@@ -29,7 +29,9 @@ def GrayIncReg(graycnt, enable, clock, reset, width):
 def main():
     width = 8
     graycnt = Signal(intbv(0)[width:])
-    enable, clock, reset = [Signal(bool()) for i in range(3)]
+    enable, clock = [Signal(bool()) for i in range(2)]
+    reset = ResetSignal(0, active=0, async=True)
+
     toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
     toVHDL(GrayIncReg, graycnt, enable, clock, reset, width)
 

@@ -15,19 +15,17 @@ def Inc(count, enable, clock, reset, n):
     
     """
     
-    @always(clock.posedge, reset.negedge)
+    @always_seq(clock.posedge, reset=reset)
     def incLogic():
-        if reset == ACTIVE_LOW:
-            count.next = 0
-        else:
-            if enable:
-                count.next = (count + 1) % n
+        if enable:
+            count.next = (count + 1) % n
 
     return incLogic
 
 
 def testbench():
-    count, enable, clock, reset = [Signal(intbv(0)) for i in range(4)]
+    count, enable, clock = [Signal(intbv(0)) for i in range(3)]
+    reset = ResetSignal(0, active=0, async=True)
 
     inc_1 = Inc(count, enable, clock, reset, n=4)
 
@@ -70,7 +68,8 @@ n = 2 ** m
 
 count = Signal(intbv(0)[m:])
 enable = Signal(bool(0))
-clock, reset = [Signal(bool()) for i in range(2)]
+clock  = Signal(bool(0))
+reset = ResetSignal(0, active=0, async=True)
 
 inc_inst = Inc(count, enable, clock, reset, n=n)
 inc_inst = toVerilog(Inc, count, enable, clock, reset, n=n)
