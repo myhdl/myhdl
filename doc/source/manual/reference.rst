@@ -24,8 +24,6 @@ The :class:`Simulation` class
 -----------------------------
 
 
-
-
 .. class:: Simulation(arg [, arg ...])
 
    Class to construct a new simulation. Each argument should be a MyHDL instance.
@@ -188,13 +186,26 @@ Regular signals
        whether a signal is read. This occurs when the signal is read from
        user-defined code.
 
-
    A :class:`Signal` object also has a call interface:
 
     .. method:: Signal.__call__(left[, right=None])
 
 	This method returns a :class:`_SliceSignal` shadow signal. 
 
+
+.. class:: ResetSignal(val, active, async)
+
+    This Signal subclass defines reset signals. *val*, *active*, and *async*
+    are mandatory arguments.
+    *val* is a boolean value that specifies the intial value,
+    *active* is a boolean value that specifies the active level.
+    *async* is a boolean value that specifies the reset style:
+    asynchronous (``True``) or asynchronous (``False``).
+
+    This class should be used in conjunction with the :func:`always_seq`
+    decorator.
+
+ 
 Shadow signals
 ^^^^^^^^^^^^^^
 
