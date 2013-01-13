@@ -928,7 +928,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.write(")")
             
     def visit_Str(self, node):
-        self.write("string'(\"%s\")" % node.s)
+        typemark = 'string'
+        if isinstance(node.vhd, vhd_unsigned):
+            typemark = 'unsigned'
+        self.write("%s'(\"%s\")" % (typemark, node.s))
 
     def visit_Continue(self, node, *args):
        self.write("next;")
@@ -1834,6 +1837,8 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         if f is concat:
             s = 0
             for a in node.args:
+                if isinstance(a, ast.Str):
+                    a.vhd = vhd_unsigned(a.vhd.size)
                 s += a.vhd.size
             node.vhd = vhd_unsigned(s)
         elif f is bool:
