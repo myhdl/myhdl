@@ -1891,7 +1891,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.generic_visit(node)
   
     def visit_Name(self, node):
-        if isinstance(node.ctx, ast.Store):
+        if node.id in self.tree.vardict:
             node.obj = self.tree.vardict[node.id]
         node.vhd = inferVhdlObj(node.obj)
         node.vhdOri = copy(node.vhd)
