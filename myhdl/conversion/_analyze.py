@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2009 Jan Decaluwe
+#  Copyright (C) 2003-2013 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -772,7 +772,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 obj = self.tree.vardict[n]
                 # upgrade bool to int for augmented assignments
                 if isinstance(obj, bool):
-                    obj = int(0)
+                    obj = int(-1)
                     self.tree.vardict[n] = obj
             node.obj = obj
         else:
@@ -817,7 +817,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if self.access == _access.INOUT: # probably dead code
                 # upgrade bool to int for augmented assignments
                 if isinstance(obj, bool):
-                    obj = int(0)
+                    obj = int(-1)
                     self.tree.vardict[n] = obj
             node.obj = obj
         elif n in self.tree.symdict:
