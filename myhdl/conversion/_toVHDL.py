@@ -576,6 +576,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(left.vhd, vhd_vector) and isinstance(right.vhd, vhd_vector):
                 if isinstance(op, (ast.Add, ast.Sub)):
                     left.vhd.size = ns
+                    # in general, resize right also
+                    # for a simple name, resizing is not necessary
+                    if not isinstance(right, ast.Name):
+                        right.vhd.size = ns
                     node.vhdOri.size = ns
                 elif isinstance(op, ast.Mod):
                     right.vhd.size = ns
