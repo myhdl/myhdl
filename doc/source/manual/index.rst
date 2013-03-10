@@ -12,6 +12,7 @@ Contents:
    preface
    background
    intro
+   hwtypes
    structure
    rtl 
    highlevel 
