@@ -269,9 +269,6 @@ adapt the :func:`always_seq` and :func:`always` decorators to support such
 variables.
 
 
-
-
-
 See also
 --------
 
@@ -279,25 +276,33 @@ For a more in-depth discussion, see `mep-109`_.
 
 .. _mep-109: http://www.myhdl.org/doku.php/meps:mep-109
 
-Small changes
-=============
+Other improvements
+==================
 
 Conversion of top-level class methods
 -------------------------------------
 
-todo
+TODO
 
-``timescale`` directive for func:`traceSignals`
------------------------------------------------
-
-todo
 
 Tracing lists of signals
 ------------------------
+Tracing lists of signals is now supported.
+Contributed by Frederik Teichtert, http://teichert-ing.de
 
-todo
+``library`` attribute for func:`toVHDL`
+---------------------------------------
+:func:`toVHDL` now has a ``library`` function that
+can be used to set the library name in the
+VHDL output. The assigned value should be a string.
+The default library is "work".
 
-
+``timescale`` attribute for func:`traceSignals`
+-----------------------------------------------
+:func:`traceSignals` now has a ``timescale`` attribute
+that can be used to set the timescale
+in the VCD output. The assigned value should be a string. 
+The default timescale is "1ns".
 
 
 Acknowledgments

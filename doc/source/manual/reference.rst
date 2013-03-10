@@ -89,7 +89,8 @@ Waveform tracing
    .. attribute:: timescale
    
       This attribute is used to set the timescale corresponding to unit steps,
-      according to the VCD format. The default is "1ns".
+      according to the VCD format. The assigned value should be a string.
+      The default timescale is "1ns".
 
 
 .. _ref-model:
@@ -712,8 +713,8 @@ Conversion
 
     .. attribute:: timescale
 
-       This attribute is used to set the timescale in Verilog format. Default is
-       "1ns/10ps".
+       This attribute is used to set the timescale in Verilog format. The assigned value
+       should be a string. The default timescale is "1ns/10ps".
 
 
 .. function:: toVHDL(func[, *args][, **kwargs])
@@ -740,6 +741,12 @@ Conversion
        This attribute can be used to add component declarations to the
        VHDL output. When a string is assigned to it, it will be copied
        to the appropriate place in the output file.
+
+    .. attribute:: library 
+
+       This attribute can be used to set the library in the VHDL output
+       file. The assigned value should be a string. The default 
+       library is ``work``.
 
 
 .. _ref-conv-user:
