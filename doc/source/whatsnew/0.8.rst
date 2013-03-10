@@ -40,8 +40,6 @@ These operations can only supported directly with a new type.
 For these reasons, it was felt that this would be a useful
 addition to MyHDL.
 
-
-
 Solution
 --------
 
@@ -98,10 +96,17 @@ a power of 2, and the min bound is 0 or the negative of the max bound.
 For these objects, conversion worked out-of-the-box because this
 corresponds to the target types in Verilog and VHDL.
 
-Currently, conversion is restricted to full-range :class:`modbv` objects.
-It may be possible the modulo behavior of more general cases, but this
-requires more sophistication in the convertor. This may be considered
-in the future.
+Currently, conversion is restricted to full-range :class:`modbv`
+objects.  It may be possible to support conversion of the modulo
+behavior of more general cases, but this requires more sophistication
+in the convertor. This may be considered in the future.
+
+See also
+--------
+For a more in-depth discussion, see `mep-106`_.
+
+.. _mep-106: http://www.myhdl.org/doku.php/meps:mep-106
+
 
 ``always_seq`` decorator
 ========================
@@ -109,15 +114,175 @@ in the future.
 Rationale
 ---------
 
+In classical synthesizable RTL coding, the reset behavior is described
+explicitly. A typical template is as follows::
 
-todo
+    @always(clock.posedge, reset.negedge)
+    def seq():
+        if reset == 0:
+	    <reset code>
+        else:
+            <functional code>
+
+The reset behavior is described using a the top-level if-else
+structure with a number of assignments under the if. A significant
+piece of code at a prominent location is therefore dedicated to
+non-functional behavior.
+
+Reset behavior coding is error-prone. For a proper gate-level
+implementation, most if not all registers should typically be
+reset. However, it is easy to forget some reset assignments. Such bugs
+are not necessarily easily detected during RTL or gate-level
+simulations.
+
+In the template, the edge that asserts reset is in the sensitivity
+list. It is easy to forget this, and in that case the reset will not
+behave asynchronously as intended but synchronously. Note also that it
+is somewhat strange to specify an edge sensitivity when describing
+asynchronous behavior.
+
+Solution
+--------
+The proposed solution is to infer the reset structure automatically.
+The main idea is to use the initial values of signals as the
+specification of reset values. This is possible in MyHDL, because
+all objects are constructed with an initial value. The assumption
+is that the initial value also specifies the desired reset value.
+
+The solution is implemented with two new MyHDL constructs. The first
+one is a new decorator called :func:`always_seq`. Using this
+decorator, code with identical behavior as in the previous section can
+be described as follows::
+
+    @always_seq(clock.posedge, reset=reset)
+        <functional code>
+
+The :func:`always_seq` decorator takes two arguments: a clock edge
+and a reset signal. It inspects the code to find the registers, and
+uses the initial values to construct the reset behavior.
+
+The second construct is a specialized signal subclass called
+:class:`ResetSignal`. It is used as follows::
+
+    reset = ResetSignal(1, active=0, async=True)
+
+The ResetSignal constructor has three arguments: the initial value as
+usual, an *active* argument with the active level, and an *async* argument
+that specifies whether the reset style is asynchronous or synchronous.
+
+The proposed solution has some very desirable features.
+
+Explicit reset behavior coding is no longer necessary. Code reviewers
+are thus no longer distracted by non-functional code. It is
+sufficient to check the initial values to verify whether the reset
+value is correctly specified. Moreover, one indentation level is saved
+for functional coding.
+
+Even more importantly, the reset structure is correct by
+construction. All registers are automatically included in the reset
+behavior, and the sensitivity list is automatically correct according
+to the reset style.
+
+Traditionally, the reset behavior is spread out over all sequential
+processes. Therefore, it has to be debugged by investigating all those
+processes. Even worse, if a change in style or active level is
+required, all processes are affected. In contrast, with the proposed
+technique all reset features are specified at single location in the
+:class:`ResetSignal` constructor. Changes are trivial. For example, to
+change to an active high synchronous reset one merely has to change
+the constructor as follows::
+
+    reset = ResetSignal(1, active=1, async=False)
+
+Occasionally, it is useful to have registers without reset at
+all. The proposed technique is also useful in that case. In
+particular, the :func:`always_seq` decorator accepts ``None`` as the reset
+argument::
+
+     @always_seq(clock.posedge, reset=None)
+
+A reviewer will have no doubt what the intention is. In contrast, in
+the case of a traditional always block, the reviewer may think that
+the designer has delayed the detailed reset coding for later and then
+forgotten about it.
+
+Interface
+---------
+
+.. function:: always_seq(edge, reset)
+
+   The :func:`always_seq` decorator is used to describe sequential (clocked) logic.
+
+   The *edge* parameter should be a clock edge (``clock.posedge`` or ``clock.negedge``).
+   The *reset* parameter should a :class:`ResetSignal` object.
+
+.. class:: ResetSignal(val, active, async)
+
+    This :class:`Signal` subclass defines reset signals. *val*, *active*, and *async*
+    are mandatory arguments.
+    *val* is a boolean value that specifies the intial value,
+    *active* is a boolean value that specifies the active level.
+    *async* is a boolean value that specifies the reset style:
+    asynchronous (``True``) or asynchronous (``False``).
 
 
+
+Conversion
+----------
+
+As modeling the reset behavior is a typical task in synthesizable RTL
+coding, the proposed technique is fully convertible to Verilog and
+VHDL.
+
+Limitations
+-----------
+
+All registers in a process are reset
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+All registers in a process are automatically included in the reset
+behavior. If it is the intention that some registers should not be
+reset, those registers and the corresponding code should be factored
+out in a separate process.
+
+Actually, this is not really a limitation but a feature. If some
+registers in a process are reset and others not, a synthesis tool may
+generate undesirable feedback loops that are active during the reset
+condition. This is not good practice and probably not the intention.
+
+Register inferencing from variables is not supported
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+An important limitation is that the proposed technique is limited to
+registers inferred from signals. Registers inferred from variables are
+not supported, because such state variables cannot be described in
+classic functions (in particular the functions required by MyHDL
+decorators such as :func:`always_seq` and :func:`always`).
+
+In fact, the reason is a Python2 limitation. Currently, to infer
+registers from variables, one has to use the :func:`instance` decorator and
+declare the state variables outside an infinite ``while True`` loop.
+
+In Python3, this limitation can be lifted with the introduction of the
+``nonlocal`` declaration. This will make it possible for functions to
+modify variables in the enclosing scope. It should be possible to
+adapt the :func:`always_seq` and :func:`always` decorators to support such
+variables.
+
+
+
+
+
+See also
+--------
+
+For a more in-depth discussion, see `mep-109`_.
+
+.. _mep-109: http://www.myhdl.org/doku.php/meps:mep-109
 
 Small changes
 =============
 
-Conversion to top-level class methods
+Conversion of top-level class methods
 -------------------------------------
 
 todo
