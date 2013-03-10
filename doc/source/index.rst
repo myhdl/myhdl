@@ -11,6 +11,7 @@ Contents:
    :maxdepth: 2
 
    manual/index
+   whatsnew/0.8
    whatsnew/0.7
    whatsnew/0.6
 

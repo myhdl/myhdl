@@ -1,0 +1,158 @@
+.. _new08:
+
+***********************
+What's new in MyHDL 0.8
+***********************
+
+:Author: Jan Decaluwe
+
+Modular bit vector types
+========================
+
+Rationale
+---------
+In hardware modeling, there is often a need for the elegant
+modeling of wrap-around behavior. The :class:`intbv` type
+doesn't provide this automatically, because it asserts
+that any assigned value is within the bound constraints.
+Therefore, one has currently has to use other language
+features for wrap-around modeling.
+
+Often, this is straigthforward. For example, the wrap-around
+condition for a counter is often decoded explicitly anyway, as it
+is needed anyway for other purposes. Also, the modulo
+operator provides an elegant one-liner in many cases.
+
+However, in some important cases the current solution is
+not satisfactory. For example, we would like to describe
+a free running counter using a variable and augmented
+assignment as follows::
+
+    count += 1
+
+This is not possible with the :class:`intbv` type, as we
+cannot add the modulo behavior to this description. A similar
+problem exist of for a left shift as follows::
+
+    shifter <<= 4
+
+These operations can only supported directly with a new type.
+For these reasons, it was felt that this would be a useful
+addition to MyHDL.
+
+
+
+Solution
+--------
+
+The proposed solution is to borrow the idea behind Ada modular types.
+These are natural integer types with wrap-around behaviour.
+
+The wrap-around behavior of modular types is based on the sound
+mathematical concept of modulo arithmetic. Therefore, the modulus is
+not limited to powers of 2.
+
+Ada's modular type is called :class:`mod`. In MyHDL, we want also
+want to give it "bit-vector" support, like :class:`intbv`. Therefore,
+proposed MyHDL type is called :class:`modbv`. 
+
+Implementation
+--------------
+
+:class:`modbv` is implemented as a subclass of  :class:`intbv`.
+The two clases have an identical interface and work together
+in a straightforward way for arihtmetic operations.
+
+The only difference is how the bounds are handled: out-of-bound values
+result in an error with :class:`intbv`, and in wrap-around with
+:class:`modbv`. The Wrap-around behavior would be defined as follows, with val
+denoting the current value and min/max the bounds::
+
+    val = (val - min) % (max - min) + min
+ 
+
+Interface
+---------
+
+.. class:: modbv([val=0] [, min=None]  [, max=None])
+
+   The :class:`modbv` class implements modular bit vector types.
+
+   It is implemented as a subclass of :class:`intbv`
+   and supports the same parameters and operators.
+   The difference is in the handling of the *min* and *max* boundaries.
+   Instead of throwing an exception when those constraints are exceeded,
+   the value of :class:`modbv` objects wraps around according to the
+   following formula::
+  
+       val = (val - min) % (max - min) + min
+       
+   This formula is a generalization of modulo wrap-around behavior that
+   is often useful when describing hardware system behavior. 
+
+Conversion
+----------
+
+:dfn:`Full-range` :class:`modbv` objects are those where the max bound is
+a power of 2, and the min bound is 0 or the negative of the max bound.
+For these objects, conversion worked out-of-the-box because this
+corresponds to the target types in Verilog and VHDL.
+
+Currently, conversion is restricted to full-range :class:`modbv` objects.
+It may be possible the modulo behavior of more general cases, but this
+requires more sophistication in the convertor. This may be considered
+in the future.
+
+``always_seq`` decorator
+========================
+
+Rationale
+---------
+
+
+todo
+
+
+
+Small changes
+=============
+
+Conversion to top-level class methods
+-------------------------------------
+
+todo
+
+``timescale`` directive for func:`traceSignals`
+-----------------------------------------------
+
+todo
+
+Tracing lists of signals
+------------------------
+
+todo
+
+
+
+
+Acknowledgments
+===============
+
+Several people have contributed to MyHDL 0.8 by giving feedback,
+making suggestions, fixing bugs and implementing features.
+In particular, I would like to thank
+Christopher Felton,
+Frederik Teichert.
+
+I would also like to thank `Easics`_ for 
+the opportunity to use MyHDL in industrial projects.
+
+.. _`Easics`: http://www.easics.com
+
+
+
+
+
+
+
+

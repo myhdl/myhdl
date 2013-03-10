@@ -190,6 +190,7 @@ latex_elements = {
 latex_documents = [(u'manual/index', u'MyHDL.tex', u'MyHDL manual', u'Jan Decaluwe', u'manual'),
                    (u'whatsnew/0.6', u'whatsnew0.6.tex', u'What\'s new in MyHDL 0.6', u'Jan Decaluwe', u'howto'),
                    (u'whatsnew/0.7', u'whatsnew0.7.tex', u'What\'s new in MyHDL 0.7', u'Jan Decaluwe', u'howto'),
+                   (u'whatsnew/0.8', u'whatsnew0.8.tex', u'What\'s new in MyHDL 0.8', u'Jan Decaluwe', u'howto'),
                   ]
 
 # The name of an image file (relative to this directory) to place at the top of

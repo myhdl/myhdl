@@ -3,9 +3,9 @@
 
 .. _intro:
 
-*********************
-Introduction to MyHDL
-*********************
+************************************************
+Introduction to Modeling & Simulation with MyHDL
+************************************************
 
 
 .. _intro-basic:
@@ -721,7 +721,7 @@ However, there is much more to MyHDL. Here is an overview of what can be learned
 from the following chapters:
 
 * MyHDL supports sophisticated and high level modeling techniques. This is
-  described in Chapter :ref:`model`.
+  described in Chapter :ref:`model-hl`.
 
 * MyHDL enables the use of modern software verification techniques, such as unit
   testing, on hardware designs. This is the topic of Chapter :ref:`unittest`.
