@@ -39,7 +39,7 @@ AlwaysSeqError = AlwaysError
 class _error:
     pass
 _error.EdgeType = "first argument should be an edge"
-_error.ResetType = "reset argument should be a signal"
+_error.ResetType = "reset argument should be a ResetSignal"
 _error.ArgType = "decorated object should be a classic (non-generator) function"
 _error.NrOfArgs = "decorated function should not have arguments"
 _error.SigAugAssign = "signal assignment does not support augmented assignment"
