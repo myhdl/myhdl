@@ -18,10 +18,10 @@ that any assigned value is within the bound constraints.
 Therefore, one has currently has to use other language
 features for wrap-around modeling.
 
-Often, this is straigthforward. For example, the wrap-around
-condition for a counter is often decoded explicitly anyway, as it
-is needed anyway for other purposes. Also, the modulo
-operator provides an elegant one-liner in many cases.
+Often, this is straightforward. For example, the wrap-around
+condition for a counter is often decoded explicitly, as it
+is needed for other purposes. Also, the modulo
+operator provides an elegant one-liner in most scenarios.
 
 However, in some important cases the current solution is
 not satisfactory. For example, we would like to describe
@@ -58,8 +58,8 @@ Implementation
 --------------
 
 :class:`modbv` is implemented as a subclass of  :class:`intbv`.
-The two clases have an identical interface and work together
-in a straightforward way for arihtmetic operations.
+The two classes have an identical interface and work together
+in a straightforward way for arithmetic operations.
 
 The only difference is how the bounds are handled: out-of-bound values
 result in an error with :class:`intbv`, and in wrap-around with
@@ -99,7 +99,7 @@ corresponds to the target types in Verilog and VHDL.
 Currently, conversion is restricted to full-range :class:`modbv`
 objects.  It may be possible to support conversion of the modulo
 behavior of more general cases, but this requires more sophistication
-in the convertor. This may be considered in the future.
+in the converter. This may be considered in the future.
 
 See also
 --------
@@ -282,13 +282,57 @@ Other improvements
 Conversion of top-level class methods
 -------------------------------------
 
-TODO
+Often it is desirable to embed an HDL module description in
+a class.  Previous versions would only convert a class method
+if it was not the top-level.  This release adds the conversion
+of top-level class methods.
+
+Example
+^^^^^^^^
+
+.. code-block:: python
+
+   class DFilter(object):
+       def __init__(self,delay_length=3,fs=1):
+           <init code>   
+       def nulls(self):
+           <support method code>
+       def m_top(self,clock,reset,x,y):
+           <myhdl module code>
+
+   clock = Signal(bool(0))
+   reset = ResetSignal(0,active=0,async=True)
+   x = Signal(intbv(0, min=-8, max=8))
+   y = Signal(intbv(0, min=-64, max=64))   
+   
+   filt = DFilter()
+   toVerilog(filt.m_top,clock,reset,x,y)
+   toVHDL(filt.m_top,clock,reset,x,y)
+
+See also
+^^^^^^^^
+For a more in-depth discussion, see `mep-108`_.
+
+.. _mep-108: http://www.myhdl.org/doku.php/meps:mep-108
+
 
 
 Tracing lists of signals
 ------------------------
 Tracing lists of signals is now supported.
-Contributed by Frederik Teichtert, http://teichert-ing.de
+Contributed by Frederik Teichtert, http://teichert-ing.de .
+The following shows how the list of signals are displayed
+in a waveform viewer
+
+.. code-block:: python
+
+   delay = [Signal(intbv(0,min=-8,max=8)) for ii in range(3)]
+
+
+.. image:: los.png
+   :align: center
+
+
 
 ``library`` attribute for func:`toVHDL`
 ---------------------------------------
