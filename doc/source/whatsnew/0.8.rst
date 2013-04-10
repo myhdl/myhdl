@@ -326,7 +326,7 @@ in a waveform viewer
 
 .. code-block:: python
 
-   delay = [Signal(intbv(0,min=-8,max=8)) for ii in range(3)]
+   delay_taps = [Signal(intbv(0,min=-8,max=8)) for ii in range(3)]
 
 
 .. image:: los.png
