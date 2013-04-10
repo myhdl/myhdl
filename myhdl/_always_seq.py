@@ -25,7 +25,7 @@ import inspect
 from types import FunctionType
 import ast
 
-from myhdl import AlwaysError
+from myhdl import AlwaysError, intbv
 from myhdl._util import _isGenFunc, _dedent
 from myhdl._cell_deref import _cell_deref
 from myhdl._delay import delay
@@ -127,32 +127,42 @@ class _AlwaysSeq(_Instantiator):
         # print ast.dump(tree)
         v = _SigNameVisitor(symdict)
         v.visit(tree)
-        regs = self.regs = []
+        sigregs = self.sigregs = []
+        varregs = self.varregs = []
         for n in v.outputs:
-            s = self.symdict[n]
-            if isinstance(s, _Signal):
-                regs.append(s)
+            reg = self.symdict[n]
+            if isinstance(reg, _Signal):
+                sigregs.append(reg)
+            elif isinstance(reg, intbv):
+                varregs.append((n, reg, int(reg)))
             else:
-                assert _isListOfSigs(s)
-                for e in s:
-                    regs.append(e)
+                assert _isListOfSigs(reg)
+                for e in reg:
+                    sigregs.append(e)
                     
 
-
     def reset_sigs(self):
-        for s in self.regs:
+        for s in self.sigregs:
             s.next = s._init
+
+    def reset_vars(self):
+        for v in self.varregs:
+            # only intbv's for now
+            n, reg, init = v
+            reg._val = init
 
     def genfunc(self):
         senslist = self.senslist
         if len(senslist) == 1:
             senslist = senslist[0]
         reset_sigs = self.reset_sigs
+        reset_vars = self.reset_vars
         func = self.func
         while 1:
             yield senslist
             if self.reset == self.reset.active:
                 reset_sigs()
+                reset_vars()
             else:
                 func()
 
@@ -205,7 +215,7 @@ class _SigNameVisitor(ast.NodeVisitor):
         if id not in self.symdict:
             return
         s = self.symdict[id]
-        if isinstance(s, _Signal) or _isListOfSigs(s):
+        if isinstance(s, (_Signal, intbv)) or _isListOfSigs(s):
             if self.context == INPUT:
                 self.inputs.add(id)
             elif self.context == OUTPUT:

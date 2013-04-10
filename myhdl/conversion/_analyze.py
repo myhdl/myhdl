@@ -153,6 +153,7 @@ def _analyzeGens(top, absnames):
             tree.symdict = f.func_globals.copy()
             tree.callstack = []
             # handle free variables
+            tree.nonlocaldict = {}
             if f.func_code.co_freevars:
                 for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
@@ -164,13 +165,16 @@ def _analyzeGens(top, absnames):
                             print type(obj)
                             raise ConversionError(_error.UnsupportedType, n, info)
                     tree.symdict[n] = obj
+                    # currently, only intbv as automatic nonlocals (until Python 3.0)
+                    if isinstance(obj, intbv):
+                        tree.nonlocaldict[n] = obj
             tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
             v = _FirstPassVisitor(tree)
             v.visit(tree)
             if isinstance(g, _AlwaysComb):
                 v = _AnalyzeAlwaysCombVisitor(tree, g.senslist)
             elif isinstance(g, _AlwaysSeq):
-                v = _AnalyzeAlwaysSeqVisitor(tree, g.senslist, g.reset, g.regs)
+                v = _AnalyzeAlwaysSeqVisitor(tree, g.senslist, g.reset, g.sigregs, g.varregs)
             else:
                 v = _AnalyzeAlwaysDecoVisitor(tree, g.senslist)
             v.visit(tree)
@@ -184,6 +188,7 @@ def _analyzeGens(top, absnames):
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.f_globals.copy()
             tree.symdict.update(f.f_locals)
+            tree.nonlocaldict = {}
             tree.callstack = []
             tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
             v = _FirstPassVisitor(tree)
@@ -590,6 +595,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             tree.sourcefile = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.func_globals.copy()
+            tree.nonlocaldict = {}
             if fname in self.tree.callstack:
                 self.raiseError(node, _error.NotSupported, "Recursive call")
             tree.callstack = self.tree.callstack[:]
@@ -774,7 +780,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(obj, bool):
                     obj = int(-1)
                     self.tree.vardict[n] = obj
-            node.obj = obj
+                node.obj = obj
         else:
             if n in ("__verilog__", "__vhdl__"):
                     self.raiseError(node, _error.NotSupported,
@@ -787,7 +793,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         n = node.id
         node.obj = None
         if n not in self.refStack:
-            if n in self.tree.vardict:
+            if (n in self.tree.vardict) and (n not in self.tree.nonlocaldict):
                 self.raiseError(node, _error.UnboundLocal, n)
             self.globalRefs.add(n)
         if n in self.tree.sigdict:
@@ -839,6 +845,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.tree.hasLos = True
             elif isinstance(node.obj, int):
                 node.value = node.obj
+            if n in self.tree.nonlocaldict:
+                # hack: put nonlocal intbv's in the vardict
+                self.tree.vardict[n] = node.obj
         elif n in __builtin__.__dict__:
             node.obj = __builtin__.__dict__[n]
         else:
@@ -1084,11 +1093,12 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
                 
 class _AnalyzeAlwaysSeqVisitor(_AnalyzeBlockVisitor):
     
-    def __init__(self, tree, senslist, reset, regs):
+    def __init__(self, tree, senslist, reset, sigregs, varregs):
         _AnalyzeBlockVisitor.__init__(self, tree)
         self.tree.senslist = senslist
         self.tree.reset = reset
-        self.tree.regs = regs
+        self.tree.sigregs = sigregs
+        self.tree.varregs = varregs
 
          
     def visit_FunctionDef(self, node):

@@ -1251,11 +1251,15 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         self.writeline(2)
 
 
-def _convertInitVal(s):
-    init = s._init
-    if s._type is bool:
+def _convertInitVal(reg, init):
+    if isinstance(reg, _Signal):
+        tipe = reg._type
+    else:
+        assert isinstance(reg, intbv)
+        tipe = intbv
+    if tipe is bool:
         v = '1' if init else '0'
-    elif s._type is intbv:
+    elif tipe is intbv:
         v = "%s" % init
     else:
         assert isinstance(init, EnumItemType)
@@ -1274,14 +1278,19 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
         self.writeAlwaysHeader()
         self.writeDeclarations()
         reset = self.tree.reset
-        regs = self.tree.regs
+        sigregs = self.tree.sigregs
+        varregs = self.tree.varregs
         if reset is not None:
             self.writeline()
             self.write("if (%s == %s) begin" % (reset, int(reset.active)))
             self.indent()
-            for s in regs:
+            for s in sigregs:
                 self.writeline()
-                self.write("%s <= %s;" % (s, _convertInitVal(s)))
+                self.write("%s <= %s;" % (s, _convertInitVal(s, s._init)))
+            for v in varregs:
+                n, reg, init = v
+                self.writeline()
+                self.write("%s = %s;" % (n, _convertInitVal(reg, init)))
             self.dedent()
             self.writeline()
             self.write("end")
