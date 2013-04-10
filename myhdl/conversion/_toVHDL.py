@@ -91,7 +91,8 @@ class _ToVHDLConvertor(object):
                  "no_myhdl_header",
                  "no_myhdl_package",
                  "library",
-                 "architecture"
+                 "architecture",
+                 "numeric_ports",
                  )
 
     def __init__(self):
@@ -102,6 +103,7 @@ class _ToVHDLConvertor(object):
         self.no_myhdl_package = False
         self.library = "work"
         self.architecture = "MyHDL"
+        self.numeric_ports = True
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -156,6 +158,7 @@ class _ToVHDLConvertor(object):
         needPck = len(_enumTypeSet) > 0
         lib = self.library
         arch = self.architecture
+        numeric = self.numeric_ports
         
         if pfile:
             _writeFileHeader(pfile, ppath)
@@ -165,7 +168,7 @@ class _ToVHDLConvertor(object):
         _writeFileHeader(vfile, vpath)
         if needPck:
             _writeCustomPackage(vfile, intf)
-        _writeModuleHeader(vfile, intf, needPck, lib, arch, doc)
+        _writeModuleHeader(vfile, intf, needPck, lib, arch, doc, numeric)
         _writeFuncDecls(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
@@ -191,6 +194,7 @@ class _ToVHDLConvertor(object):
         self.no_myhdl_header = False
         self.no_myhdl_package = False
         self.architecture = "MyHDL"
+        self.numeric_ports = True
 
         return h.top
     
@@ -228,7 +232,7 @@ def _writeCustomPackage(f, intf):
     print >> f
 
 
-def _writeModuleHeader(f, intf, needPck, lib, arch, doc):
+def _writeModuleHeader(f, intf, needPck, lib, arch, doc, numeric):
     print >> f, "library IEEE;"
     print >> f, "use IEEE.std_logic_1164.all;"
     print >> f, "use IEEE.numeric_std.all;"
@@ -255,6 +259,9 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, doc):
                 raise ToVHDLError(_error.PortInList, portname)
             # make sure signal name is equal to its port name
             s._name = portname
+            # make it non-numeric optionally
+            if s._type is intbv:
+                s._numeric = numeric
             r = _getRangeString(s)
             p = _getTypeString(s)
             if s._driven:
@@ -354,6 +361,8 @@ def _getTypeString(s):
         return s._val._type._name
     elif s._type is bool:
         return "std_logic"
+    if not s._numeric:
+        return "std_logic_vector"
     if s._min is not None and s._min < 0:
         return "signed "
     else:
@@ -448,7 +457,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.buf = buf
         self.returnLabel = tree.name
         self.ind = ''
-        self.isSigAss = False
+        self.SigAss = False
+        self.isLhs = False
         self.labelStack = []
         self.context = None
          
@@ -679,7 +689,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def setAttr(self, node):
         assert node.attr == 'next'
-        self.isSigAss = True
+        self.SigAss = True
+        if isinstance(node.value, ast.Name):
+            sig = self.tree.symdict[node.value.id]
+            self.SigAss = sig._name
         self.visit(node.value)
         node.obj = self.getObj(node.value)
 
@@ -694,7 +707,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             raise AssertionError("object not found")
         if isinstance(obj, _Signal):
             if node.attr == 'next':
-                self.isSigAss = True
+                sig = self.tree.symdict[node.value.id]
+                self.SigAss = obj._name
                 self.visit(node.value)
             elif node.attr == 'posedge':
                 self.write("rising_edge(")
@@ -748,9 +762,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 else:
                     self.write("when %s => " % i)
                 self.visit(lhs)
-                if self.isSigAss:
+                if self.SigAss:
                     self.write(' <= ')
-                    self.isSigAss = False
+                    self.SigAss = False
                 else:
                     self.write(' := ')
                 if isinstance(lhs.vhd, vhd_std_logic):
@@ -770,10 +784,16 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         convOpen, convClose = "", ""
         if isinstance(lhs.vhd, vhd_type):
             rhs.vhd = lhs.vhd
+        self.isLhs = True
         self.visit(lhs)
-        if self.isSigAss:
+        self.isLhs = False
+        if self.SigAss:
+            if isinstance(lhs.value, ast.Name):
+                sig = self.tree.symdict[lhs.value.id]
+                if not sig._numeric:
+                    convOpen, convClose = "std_logic_vector(", ")"
             self.write(' <= ')
-            self.isSigAss = False
+            self.SigAss = False
         else:
             self.write(' := ')
         self.write(convOpen)
@@ -1168,6 +1188,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
                 # print 'name', n
+                # support for non-numeric signals
+                if self.SigAss is not obj._name and not obj._numeric:
+                    if obj._min < 0:
+                        s = "signed(%s)" %s
+                    else:
+                        s = "unsigned(%s)" %s
                 pre, suf = self.inferCast(node.vhd, ori)
                 s = "%s%s%s" % (pre, s, suf)
             elif _isMem(obj):
@@ -1477,8 +1503,11 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
+            self.SigAss = True
+            if isinstance(node.value, ast.Name):
+                sig = self.tree.symdict[node.value.id]
+                self.SigAss = sig._name
             self.visit(node.value)
-            self.isSigAss = True
         else:
             self.getAttr(node)
 

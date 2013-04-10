@@ -107,7 +107,8 @@ class _Signal(object):
                  '_code', '_tracing', '_nrbits', '_checkVal', 
                  '_setNextVal', '_copyVal2Next', '_printVcd', 
                  '_driven' ,'_read', '_name', '_used', '_inList',
-                 '_waiter', 'toVHDL', 'toVerilog', '_slicesigs'
+                 '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
+                 '_numeric'
                 )
 
 
@@ -125,6 +126,7 @@ class _Signal(object):
         self._used = False
         self._inList = False
         self._nrbits = 0
+        self._numeric = True
         self._printVcd = self._printVcdStr
         if isinstance(val, bool):
             self._type = bool
@@ -167,6 +169,7 @@ class _Signal(object):
         self._val = deepcopy(self._init)
         self._next = deepcopy(self._init)
         self._name = self._read = self._driven = None
+        self._numeric = True
         for s in self._slicesigs:
             s._clear()
         
