@@ -54,7 +54,7 @@ _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
 _converting = 0
 _profileFunc = None
-_enumTypeList = []
+_enumPortTypeSet = set()
 
 def _checkArgs(arglist):
     for arg in arglist:
@@ -151,11 +151,27 @@ class _ToVHDLConvertor(object):
         _checkArgs(arglist)
         genlist = _analyzeGens(arglist, h.absnames)
         _annotateTypes(genlist)
+
+        ### infer interface
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
+        # sanity checks on interface
+        for portname in intf.argnames:
+            s = intf.argdict[portname]
+            if s._name is None:
+                raise ToVHDLError(_error.ShadowingSignal, portname)
+            if s._inList:
+                raise ToVHDLError(_error.PortInList, portname)
+            # add enum types to port-related set
+            if isinstance(s._val, EnumItemType):
+                obj = s._val._type
+                assert obj in _enumTypeSet
+                _enumTypeSet.remove(obj)
+                _enumPortTypeSet.add(obj)
+
         doc = _makeDoc(inspect.getdoc(func))
         
-        needPck = len(_enumTypeSet) > 0
+        needPck = len(_enumPortTypeSet) > 0
         lib = self.library
         arch = self.architecture
         numeric = self.numeric_ports
@@ -170,6 +186,7 @@ class _ToVHDLConvertor(object):
             _writeCustomPackage(vfile, intf)
         _writeModuleHeader(vfile, intf, needPck, lib, arch, doc, numeric)
         _writeFuncDecls(vfile)
+        _writeTypeDefs(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
         _convertGens(genlist, siglist, memlist, vfile)
@@ -223,9 +240,9 @@ def _writeCustomPackage(f, intf):
     print >> f
     print >> f, "package pck_%s is" % intf.name
     print >> f
-    _sortedEnumTypeList = list(_enumTypeSet)
-    _sortedEnumTypeList.sort(cmp=lambda a, b: cmp(a._name, b._name))
-    for t in _sortedEnumTypeList:
+    sortedList = list(_enumPortTypeSet)
+    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    for t in sortedList:
         print >> f, "    %s" % t._toVHDL()
     print >> f
     print >> f, "end package pck_%s;" % intf.name
@@ -253,10 +270,6 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, doc, numeric):
             s = intf.argdict[portname]
             f.write("%s" % c)
             c = ';'
-            if s._name is None:
-                raise ToVHDLError(_error.ShadowingSignal, portname)
-            if s._inList:
-                raise ToVHDLError(_error.PortInList, portname)
             # make sure signal name is equal to its port name
             s._name = portname
             # make it non-numeric optionally
@@ -291,8 +304,16 @@ def _writeFuncDecls(f):
     # print >> f, package
 
 
-constwires = []
+def _writeTypeDefs(f):
+    f.write("\n")
+    sortedList = list(_enumTypeSet)
+    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    for t in sortedList:
+        f.write("    %s\n" % t._toVHDL())
+    f.write("\n")
 
+
+constwires = []
 
 def _writeSigDecls(f, intf, siglist, memlist):
     del constwires[:]
