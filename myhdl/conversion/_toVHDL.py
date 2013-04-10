@@ -602,7 +602,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 else:
                     raise AssertionError("unexpected op %s" % op)
             elif isinstance(left.vhd, vhd_int) and isinstance(right.vhd, vhd_vector):
-                if isinstance(op, ast.Add, ast.Sub, ast.Mod, ast.FloorDiv):
+                if isinstance(op, (ast.Add, ast.Sub, ast.Mod, ast.FloorDiv)):
                     right.vhd.size = ns
                     node.vhdOri.size = ns
                 elif isinstance(op, ast.Mult):
