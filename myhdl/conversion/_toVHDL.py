@@ -46,7 +46,7 @@ from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error,_kind,_context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
-                                       _Ram, _Rom, _enumTypeSet)
+                                       _Ram, _Rom, _enumTypeSet, _constDict)
 from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
 
@@ -144,6 +144,7 @@ class _ToVHDLConvertor(object):
         ### initialize properly ###
         _genUniqueSuffix.reset()
         _enumTypeSet.clear()
+        _constDict.clear()
 
         siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL')
         arglist = _flatten(h.top)
@@ -186,6 +187,7 @@ class _ToVHDLConvertor(object):
             _writeCustomPackage(vfile, intf)
         _writeModuleHeader(vfile, intf, needPck, lib, arch, doc, numeric)
         _writeFuncDecls(vfile)
+        _writeConstants(vfile)
         _writeTypeDefs(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
@@ -303,15 +305,33 @@ def _writeFuncDecls(f):
     return
     # print >> f, package
 
+def _writeConstants(f):
+    f.write("\n")
+    # guess nice representation
+    for c in _constDict:
+        v = _constDict[c]
+        s = str(int(v))
+        sign = ''
+        if v < 0:
+            sign = '-'
+        for i in range(4, 31):
+            if abs(v) == 2**i:
+                s = "%s2**%s" % (sign, i)
+                break
+            if abs(v) == 2**i-1:
+                s = "%s2**%s-1" % (sign, i)
+                break
+        v = _constDict[c]
+        f.write("constant %s: integer := %s;\n" % (c, s))
+    f.write("\n")
 
 def _writeTypeDefs(f):
     f.write("\n")
     sortedList = list(_enumTypeSet)
     sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
     for t in sortedList:
-        f.write("    %s\n" % t._toVHDL())
+        f.write("%s\n" % t._toVHDL())
     f.write("\n")
-
 
 constwires = []
 
@@ -1199,12 +1219,23 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(obj, bool):
                 s = "'%s'" % int(obj)
             elif isinstance(obj, (int, long)):
-                if isinstance(node.vhd, vhd_int):
-                    s = self.IntRepr(obj)
-                elif isinstance(node.vhd, vhd_std_logic):
-                    s = "'%s'" % int(obj)
+                # print the symbol for integer in the global constant dict
+                if n in _constDict and obj == _constDict[n]:
+                    if isinstance(node.vhd, vhd_int):
+                        s = n
+                    elif isinstance(node.vhd, vhd_std_logic):
+                        s = "stdl(%s)" % n
+                    elif isinstance(node.vhd, vhd_unsigned):
+                        s = "to_unsigned(%s, %s)" % (n, node.vhd.size) 
+                    elif isinstance(node.vhd, vhd_signed):
+                        s = "to_signed(%s, %s)" % (n, node.vhd.size) 
                 else:
-                    s = '"%s"' % bin(obj, node.vhd.size)
+                    if isinstance(node.vhd, vhd_int):
+                        s = self.IntRepr(obj)
+                    elif isinstance(node.vhd, vhd_std_logic):
+                        s = "'%s'" % int(obj)
+                    else:
+                        s = '"%s"' % bin(obj, node.vhd.size)
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)

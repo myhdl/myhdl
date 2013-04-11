@@ -52,19 +52,19 @@ class HdlObjObj(object):
 
 class HdlObjAttrSimple(object):
     def __init__(self):
-        self.Constant = 3
+        self.AConstant = 3
 
     def method_func(self, clk, srst, x, y):
         
         # limitation for class method conversion, the object attributes
         # can only be used/accessed during elaboration.
-        Constant = int(self.Constant)
+        AConstant = int(self.AConstant)
         @always(clk.posedge)
         def hdl():
             if srst:
                 y.next = 0
             else:
-                y.next = x + (x+1) + Constant - 3 
+                y.next = x + (x+1) + AConstant - 3 
 
         return hdl
 
