@@ -91,6 +91,7 @@ class _ToVHDLConvertor(object):
                  "no_myhdl_header",
                  "no_myhdl_package",
                  "library",
+                 "use_clauses",
                  "architecture",
                  "numeric_ports",
                  )
@@ -104,6 +105,7 @@ class _ToVHDLConvertor(object):
         self.library = "work"
         self.architecture = "MyHDL"
         self.numeric_ports = True
+        self.use_clauses = None
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -129,6 +131,7 @@ class _ToVHDLConvertor(object):
             _converting = 0
 
         compDecls = self.component_declarations
+        useClauses = self.use_clauses
 
         vpath = name + ".vhd"
         vfile = open(vpath, 'w')
@@ -185,7 +188,7 @@ class _ToVHDLConvertor(object):
         _writeFileHeader(vfile, vpath)
         if needPck:
             _writeCustomPackage(vfile, intf)
-        _writeModuleHeader(vfile, intf, needPck, lib, arch, doc, numeric)
+        _writeModuleHeader(vfile, intf, needPck, lib, arch, useClauses, doc, numeric)
         _writeFuncDecls(vfile)
         _writeConstants(vfile)
         _writeTypeDefs(vfile)
@@ -231,10 +234,10 @@ def _writeFileHeader(f, fn):
                 version=myhdl.__version__,
                 date=datetime.today().ctime()
                 )
-    if not toVHDL.no_myhdl_header:
-        print >> f, string.Template(myhdl_header).substitute(vars)
     if toVHDL.header:
         print >> f, string.Template(toVHDL.header).substitute(vars)
+    if not toVHDL.no_myhdl_header:
+        print >> f, string.Template(myhdl_header).substitute(vars)
     print >> f
 
 
@@ -251,7 +254,7 @@ def _writeCustomPackage(f, intf):
     print >> f
 
 
-def _writeModuleHeader(f, intf, needPck, lib, arch, doc, numeric):
+def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric):
     print >> f, "library IEEE;"
     print >> f, "use IEEE.std_logic_1164.all;"
     print >> f, "use IEEE.numeric_std.all;"
@@ -259,7 +262,11 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, doc, numeric):
     print >> f
     if lib != "work":
         print >> f, "library %s;" % lib
-    print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _shortversion)
+    if useClauses is not None:
+        f.write(useClauses)
+        f.write("\n")
+    else:
+        print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _shortversion)
     print >> f
     if needPck:
         print >> f, "use %s.pck_%s.all;" % (lib, intf.name)
