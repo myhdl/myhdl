@@ -29,6 +29,7 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 
 from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
+import operator
 
 from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
