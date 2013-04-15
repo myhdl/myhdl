@@ -151,6 +151,8 @@ class _ToVHDLConvertor(object):
         
         needPck = len(_enumTypeSet) > 0
         
+        self._convert_filter(h, intf, siglist, memlist, genlist)
+        
         if pfile:
             _writeFileHeader(pfile, ppath)
             print >> pfile, _package
@@ -170,7 +172,11 @@ class _ToVHDLConvertor(object):
         # tbfile.close()
 
         ### clean-up properly ###
+        self._cleanup(siglist)
+
+        return h.top
         
+    def _cleanup(self, siglist):
         # clean up signal names
         for sig in siglist:
             sig._clear()
@@ -183,8 +189,12 @@ class _ToVHDLConvertor(object):
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
-
-        return h.top
+        
+        
+    def _convert_filter(self, h, intf, siglist, memlist, genlist):
+        # intended to be a entry point for other uses: 
+        #  code checking, optimizations, etc
+        pass
     
 
 toVHDL = _ToVHDLConvertor()
