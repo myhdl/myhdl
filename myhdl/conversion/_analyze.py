@@ -745,7 +745,13 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_ListComp(self, node):
         mem = node.obj = _Ram()
         self.kind = _kind.DECLARATION
-        self.visit(node.elt)
+        try:
+            self.visit(node.elt)
+        except ConversionError, e:
+            if e.kind == _error.UnboundLocal:
+                pass
+            else:
+                raise
         self.kind = _kind.NORMAL
         mem.elObj = self.getObj(node.elt)
         if not isinstance(mem.elObj, intbv) or not len(mem.elObj) > 0:
@@ -854,7 +860,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         elif n in __builtin__.__dict__:
             node.obj = __builtin__.__dict__[n]
         else:
-            pass
+            self.raiseError(node, _error.UnboundLocal, n)
         
     def visit_Return(self, node):
         self.raiseError(node, _error.NotSupported, "return statement")

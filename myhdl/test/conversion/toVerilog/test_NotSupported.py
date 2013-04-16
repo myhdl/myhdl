@@ -324,7 +324,7 @@ class TestNotSupported(unittest.TestCase):
     def testNonBoolArgOr(self):
         a = Signal(bool())
         b = intbv(0)[2:]
-        a = Signal(bool())
+        c = Signal(bool())
         z = Signal(bool())
         def g(z, a, b):
             @instance
