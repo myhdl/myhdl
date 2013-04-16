@@ -180,6 +180,8 @@ class _ToVHDLConvertor(object):
         arch = self.architecture
         numeric = self.numeric_ports
         
+        self._convert_filter(h, intf, siglist, memlist, genlist)
+        
         if pfile:
             _writeFileHeader(pfile, ppath)
             print >> pfile, _package
@@ -201,7 +203,11 @@ class _ToVHDLConvertor(object):
         # tbfile.close()
 
         ### clean-up properly ###
+        self._cleanup(siglist)
+
+        return h.top
         
+    def _cleanup(self, siglist):
         # clean up signal names
         for sig in siglist:
             sig._clear()
@@ -217,8 +223,12 @@ class _ToVHDLConvertor(object):
         self.no_myhdl_package = False
         self.architecture = "MyHDL"
         self.numeric_ports = True
-
-        return h.top
+        
+        
+    def _convert_filter(self, h, intf, siglist, memlist, genlist):
+        # intended to be a entry point for other uses: 
+        #  code checking, optimizations, etc
+        pass
     
 
 toVHDL = _ToVHDLConvertor()

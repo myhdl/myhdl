@@ -137,6 +137,8 @@ class _ToVerilogConvertor(object):
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         doc = _makeDoc(inspect.getdoc(func))
+        
+        self._convert_filter(h, intf, siglist, memlist, genlist)
 
         _writeFileHeader(vfile, vpath, self.timescale)
         _writeModuleHeader(vfile, intf, doc)
@@ -153,6 +155,12 @@ class _ToVerilogConvertor(object):
             _writeTestBench(tbfile, intf)
             tbfile.close()
 
+        ### clean-up properly ###
+        self._cleanup(siglist)
+        
+        return h.top
+        
+    def _cleanup(self, siglist):
         # clean up signal names
         for sig in siglist:
             sig._clear()
@@ -169,7 +177,11 @@ class _ToVerilogConvertor(object):
         self.no_myhdl_header = False
         self.no_testbench = False
         
-        return h.top
+        
+    def _convert_filter(self, h, intf, siglist, memlist, genlist):
+        # intended to be a entry point for other uses: 
+        #  code checking, optimizations, etc
+        pass
     
 
 toVerilog = _ToVerilogConvertor()
