@@ -849,7 +849,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(lhs.value, ast.Name):
                 sig = self.tree.symdict[lhs.value.id]
                 if not sig._numeric:
-                    convOpen, convClose = "std_logic_vector(", ")"
+	            if not isinstance(rhs, ast.Num):
+                        convOpen, convClose = "std_logic_vector(", ")"
             self.write(' <= ')
             self.SigAss = False
         else:
