@@ -6,16 +6,10 @@
 Hardware-oriented types
 ***********************
 
-.. _hwtypes-bit:
-
-Bit oriented operations
-=======================
-
 .. _hwtypes-intbv:
 
 The :class:`intbv` class
-------------------------
-
+========================
 
 .. index:: single: intbv; basic usage
 
@@ -110,12 +104,10 @@ Inspecting the object now shows::
   5
 
 
-Note that the *max* attribute is 32, as with 5 bits it is
-possible to represent the range 0 .. 31.
-Creating an
-:class:`intbv` this way has the disadvantage that only positive value
-ranges can be specified. Slicing is described in more detail
-in :ref:`hwtypes-slicing`.
+Note that the *max* attribute is 32, as with 5 bits it is possible to represent
+the range 0 .. 31.  Creating an :class:`intbv` this way has the disadvantage
+that only positive value ranges can be specified. Slicing is described in more
+detail in :ref:`hwtypes-slicing`.
 
 To summarize, there are two ways to constrain an :class:`intbv` object: by
 defining its bit width, or by defining its value range. The bit
@@ -145,7 +137,7 @@ the range. For example::
 .. _hwtypes-indexing:
 
 Bit indexing
-------------
+============
 
 .. index:: single: bit indexing
 
@@ -233,7 +225,7 @@ The simulation produces the following output::
 .. _hwtypes-slicing:
 
 Bit slicing
------------
+===========
 
 .. index:: 
    single: bit slicing
@@ -314,10 +306,58 @@ original object is negative::
 The bit pattern of the two objects is identical within the bit width,
 but their values have opposite sign.
 
+.. _hwtypes-modbv:
+
+The :class:`modbv` class
+========================
+
+In hardware modeling, there is often a need for the elegant modeling of
+wrap-around behavior. :class:`intbv` instances do not support this
+automatically, as they assert that any assigned value is within the bound
+constraints. However, wrap-around modeling can be straightforward.  For
+example, the wrap-around condition for a counter is often decoded explicitly,
+as it is needed for other purposes. Also, the modulo operator provides an
+elegant one-liner in many scenarios::
+
+    count.next = (count + 1) % 2**8
+
+However, some interesting cases are not supported by the :class:`intbv` type.
+For example, we would like to describe a free running counter using a variable
+and augmented assignment as follows::
+
+    count_var += 1
+
+This is not possible with the :class:`intbv` type, as we cannot add the modulo
+behavior to this description. A similar problem exist for an augmented left
+shift as follows::
+
+    shifter <<= 4
+
+To support these operations directly, MyHDL provides the :class:`modbv`
+type. :class:`modbv` is implemented as a subclass of  :class:`intbv`.
+The two classes have an identical interface and work together
+in a straightforward way for arithmetic operations.
+The only difference is how the bounds are handled: out-of-bound values
+result in an error with :class:`intbv`, and in wrap-around with
+:class:`modbv`. For example, the modulo counter as above can be
+modeled as follows::
+
+    count = Signal(modbv(0, min=0, max=2**8))
+    ...
+    count.next = count + 1
+
+The wrap-around behavior is defined in general as follows::
+
+    val = (val - min) % (max - min) + min
+
+In a typical case when ``min==0``, this reduces to::
+
+    val = val % max
+
 .. _hwtypes-signed:
 
 Unsigned and signed representation
-----------------------------------
+==================================
 
 .. index:: 
     single: intbv; intbv.signed

@@ -12,8 +12,8 @@ Modular bit vector types
 Rationale
 ---------
 In hardware modeling, there is often a need for the elegant
-modeling of wrap-around behavior. The :class:`intbv` type
-doesn't provide this automatically, because it asserts
+modeling of wrap-around behavior. :class:`intbv` instances 
+don't provide this automatically, because they assert
 that any assigned value is within the bound constraints.
 Therefore, one has currently has to use other language
 features for wrap-around modeling.
