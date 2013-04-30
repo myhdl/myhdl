@@ -105,7 +105,7 @@ class ToVHDLWarning(ConversionWarning):
     pass
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
 
-def showwarning(message, category, filename, lineno):
+def showwarning(message, category, filename, lineno, *args):
     print >> sys.stderr, "** %s: %s" % (category.__name__, message)
 
 warnings.showwarning = showwarning
