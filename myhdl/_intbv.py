@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2011 Jan Decaluwe
+#  Copyright (C) 2003-2013 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -97,16 +97,14 @@ class intbv(object):
         
     # copy methods
     def __copy__(self):
-        c = type(self)()
-        c._val = self._val
+        c = type(self)(self._val)
 	c._min = self._min
 	c._max = self._max
 	c._nrbits = self._nrbits
 	return c
 
     def __deepcopy__(self, visit):
-        c = type(self)()
-        c._val = self._val
+        c = type(self)(self._val)
 	c._min = self._min
 	c._max = self._max
 	c._nrbits = self._nrbits
@@ -267,9 +265,9 @@ class intbv(object):
 
     def __lshift__(self, other):
         if isinstance(other, intbv):
-            return type(self)(long(self._val) << other._val)
+            return intbv(long(self._val) << other._val)
         else:
-            return type(self)(long(self._val) << other)
+            return intbv(long(self._val) << other)
     def __rlshift__(self, other):
         return other << self._val
             
