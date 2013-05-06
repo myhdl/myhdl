@@ -139,12 +139,12 @@ class intbv(object):
                 raise ValueError, "intbv[i:j] requires j >= 0\n" \
                       "            j == %s" % j
             if i is None: # default
-                return type(self)(self._val >> j)
+                return intbv(self._val >> j)
             i = int(i)
             if i <= j:
                 raise ValueError, "intbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j)
-            res = type(self)((self._val & (1L << i)-1) >> j, _nrbits=i-j)
+            res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
             return res
         else:
             i = int(key)
