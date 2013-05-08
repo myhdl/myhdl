@@ -136,17 +136,33 @@ templates are similar. ::
 
    def top(<parameters>, clock, ..., reset, ...):
        ...
-       @always(clock.posedge, reset.negedge)
+       @always_seq(clock.posedge, reset=reset)
        def seqLogic():
-           if reset == <active level>:
-               <reset code>
-           else:
-               <functional code>
+           <functional code>
        ...
        return seqLogic, ...
 
 
 .. _model-seq-ex:
+
+The above sequential template is the most commonly used when
+writing MyHDL.  The following is also used but the reset condition
+and values are explicitly stated.
+
+    def top(<parameters>, clock, ..., reset, ...):
+        ...
+        @always(clock.posedge, reset.negedge)
+        def seqLogic():
+           if not reset:
+               <reset code>
+           else:
+               <functional code>
+
+.. _mode-seq_t2
+
+In some cases the second form is required but generall the first
+template is concise with out loss of generality and the *functional
+code* is more prominent.
 
 Example
 -------
@@ -156,8 +172,8 @@ asynchronous reset. ::
 
    from random import randrange
    from myhdl import *
-
-   ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+  
+   ACTIVE_LOW,INACTIVE_HIGH = 0,1
 
    def Inc(count, enable, clock, reset, n):
 
@@ -171,13 +187,10 @@ asynchronous reset. ::
 
        """
 
-       @always(clock.posedge, reset.negedge)
+       @always_seq(clock.posedge, reset=reset)
        def incLogic():
-           if reset == ACTIVE_LOW:
-               count.next = 0
-           else:
-               if enable:
-                   count.next = (count + 1) % n
+           if enable:
+               count.next = (count + 1) % n
 
        return incLogic
 
@@ -187,7 +200,8 @@ the ``StopSimulation`` exception to stop the simulation run. The test bench for
 a small incrementer and a small number of patterns is a follows::
 
    def testbench():
-       count, enable, clock, reset = [Signal(intbv(0)) for i in range(4)]
+       count, enable, clock = [Signal(intbv(0)) for i in range(4)]
+       reset = ResetSignal(0, active=ACTIVE_LOW, async=True)
 
        inc_1 = Inc(count, enable, clock, reset, n=4)
 
@@ -301,7 +315,7 @@ coded as follows::
    FRAME_SIZE = 8
    t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
 
-   def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
+   def FramerCtrl(SOF, state, syncFlag, clk, reset):
 
        """ Framing control FSM.
 
@@ -315,37 +329,31 @@ coded as follows::
 
        index = Signal(0) # position in frame
 
-       @always(clk.posedge, reset_n.negedge)
+       @always_seq(clk.posedge, reset=reset)
        def FSM():
-           if reset_n == ACTIVE_LOW:
-               SOF.next = 0
-               index.next = 0
-               state.next = t_State.SEARCH
+           index.next = (index + 1) % FRAME_SIZE
+           SOF.next = 0
+
+           if state == t_State.SEARCH:
+               index.next = 1
+               if syncFlag:
+                   state.next = t_State.CONFIRM
+
+           elif state == t_State.CONFIRM:
+               if index == 0:
+                   if syncFlag:
+                       state.next = t_State.SYNC
+                   else:
+                       state.next = t_State.SEARCH
+
+           elif state == t_State.SYNC:
+               if index == 0:
+                   if not syncFlag:
+                       state.next = t_State.SEARCH
+               SOF.next = (index == FRAME_SIZE-1)
 
            else:
-               index.next = (index + 1) % FRAME_SIZE
-               SOF.next = 0
-
-               if state == t_State.SEARCH:
-                   index.next = 1
-                   if syncFlag:
-                       state.next = t_State.CONFIRM
-
-               elif state == t_State.CONFIRM:
-                   if index == 0:
-                       if syncFlag:
-                           state.next = t_State.SYNC
-                       else:
-                           state.next = t_State.SEARCH
-
-               elif state == t_State.SYNC:
-                   if index == 0:
-                       if not syncFlag:
-                           state.next = t_State.SEARCH
-                   SOF.next = (index == FRAME_SIZE-1)
-
-               else:
-                   raise ValueError("Undefined state")
+               raise ValueError("Undefined state")
 
        return FSM
 
@@ -384,10 +392,10 @@ enabled, is shown below::
        SOF = Signal(bool(0))
        syncFlag = Signal(bool(0))
        clk = Signal(bool(0))
-       reset_n = Signal(bool(1))
+       reset = ResetSignal(0, active=ACTIVE_LOW, async=True)
        state = Signal(t_State.SEARCH)
 
-       framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset_n)
+       framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset)
 
        @always(delay(10))
        def clkgen():
