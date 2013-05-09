@@ -160,8 +160,8 @@ and values are explicitly stated.
 
 .. _mode-seq_t2
 
-In some cases the second form is required but generall the first
-template is concise with out loss of generality and the *functional
+In some cases the second form is required but generally the first
+template is concise without loss of generality and the *functional
 code* is more prominent.
 
 Example
