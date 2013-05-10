@@ -158,7 +158,7 @@ and values are explicitly stated.
            else:
                <functional code>
 
-.. _mode-seq_t2
+.. _mode-seq-ex2:
 
 In some cases the second form is required but generally the first
 template is concise without loss of generality and the *functional
