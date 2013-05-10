@@ -147,7 +147,7 @@ templates are similar. ::
 
 The above sequential template is the most commonly used when
 writing MyHDL.  The following is also used but the reset condition
-and values are explicitly stated.
+and values are explicitly stated. ::
 
     def top(<parameters>, clock, ..., reset, ...):
         ...
