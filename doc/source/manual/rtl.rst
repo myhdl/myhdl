@@ -173,7 +173,7 @@ asynchronous reset. ::
    from random import randrange
    from myhdl import *
   
-   ACTIVE_LOW,INACTIVE_HIGH = 0,1
+   ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
    def Inc(count, enable, clock, reset, n):
 
