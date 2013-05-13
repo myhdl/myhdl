@@ -1,0 +1,71 @@
+
+Test: timer
+=====
+cvc compiled
+------------
+real 2.53
+user 2.51
+sys 0.01
+
+cvc interpreted
+---------------
+real 53.49
+user 53.20
+sys 0.11
+
+Test: lfsr24
+=====
+cvc compiled
+------------
+real 2.15
+user 2.15
+sys 0.00
+
+cvc interpreted
+---------------
+real 45.29
+user 45.13
+sys 0.07
+
+Test: randgen
+=====
+cvc compiled
+------------
+real 2.29
+user 2.20
+sys 0.03
+
+cvc interpreted
+---------------
+real 34.77
+user 34.42
+sys 0.15
+
+Test: longdiv
+=====
+cvc compiled
+------------
+real 0.98
+user 0.97
+sys 0.00
+
+cvc interpreted
+---------------
+real 20.56
+user 20.49
+sys 0.03
+
+Test: findmax
+=====
+cvc compiled
+------------
+real 2.17
+user 2.16
+sys 0.00
+
+cvc interpreted
+---------------
+real 32.35
+user 32.21
+sys 0.08
+

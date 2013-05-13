@@ -29,6 +29,7 @@ def test_dff():
     return dff_inst, clkgen, stimulus
 
 def simulate(timesteps):
+    traceSignals.timescale = "1ps"
     tb = traceSignals(test_dff)
     sim = Simulation(tb)
     sim.run(timesteps)

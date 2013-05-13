@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2008 Jan Decaluwe
+#  Copyright (C) 2003-2013 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -31,7 +31,7 @@ from myhdl._bin import bin
 from __builtin__ import max as maxfunc
 
 class intbv(object):
-    __slots__ = ('_val', '_min', '_max', '_nrbits')
+    #__slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
     
     def __init__(self, val=0, min=None, max=None, _nrbits=0):
         if _nrbits:
@@ -62,7 +62,7 @@ class intbv(object):
         else:
             raise TypeError("intbv constructor arg should be int or string")
         self._nrbits = _nrbits
-        self._checkBounds()
+        self._handleBounds()
         
     # support for the 'min' and 'max' attribute
     def _get_max(self):
@@ -72,7 +72,7 @@ class intbv(object):
         return self._min
     min = property(_get_min, None)
 
-    def _checkBounds(self):
+    def _handleBounds(self):
         if self._max is not None:
             if self._val >= self._max:
                 raise ValueError("intbv value %s >= maximum %s" %
@@ -81,6 +81,14 @@ class intbv(object):
             if self._val < self._min:
                 raise ValueError("intbv value %s < minimum %s" %
                                  (self._val, self._min))
+                
+    def _hasFullRange(self):
+        min, max = self._min, self._max
+        if max <= 0:
+            return False
+        if min not in (0, -max):
+            return False
+        return max & max-1 == 0
 
 
     # hash
@@ -89,9 +97,18 @@ class intbv(object):
         
     # copy methods
     def __copy__(self):
-        return intbv(self)
+        c = type(self)(self._val)
+	c._min = self._min
+	c._max = self._max
+	c._nrbits = self._nrbits
+	return c
+
     def __deepcopy__(self, visit):
-        return intbv(self)
+        c = type(self)(self._val)
+	c._min = self._min
+	c._max = self._max
+	c._nrbits = self._nrbits
+	return c
 
     # iterator method
     def __iter__(self):
@@ -150,7 +167,7 @@ class intbv(object):
             if i is None: # default
                 q = self._val % (1L << j)
                 self._val = val * (1L << j) + q
-                self._checkBounds()
+                self._handleBounds()
                 return
             i = int(i)
             if i <= j:
@@ -163,7 +180,7 @@ class intbv(object):
             mask = (lim-1) << j
             self._val &= ~mask
             self._val |= (val << j)
-            self._checkBounds()
+            self._handleBounds()
         else:
             i = int(key)
             if val == 1:
@@ -174,7 +191,7 @@ class intbv(object):
                 raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
                       "            i == %s " % i
                
-            self._checkBounds()
+            self._handleBounds()
 
 
         
@@ -256,42 +273,42 @@ class intbv(object):
             
     def __rshift__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val >> other._val)
+            return type(self)(self._val >> other._val)
         else:
-            return intbv(self._val >> other)
+            return type(self)(self._val >> other)
     def __rrshift__(self, other):
         return other >> self._val
            
     def __and__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val & other._val)
+            return type(self)(self._val & other._val)
         else:
-            return intbv(self._val & other)
+            return type(self)(self._val & other)
     def __rand__(self, other):
-        return intbv(other & self._val)
+        return type(self)(other & self._val)
 
     def __or__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val | other._val)
+            return type(self)(self._val | other._val)
         else:
-            return intbv(self._val | other)
+            return type(self)(self._val | other)
     def __ror__(self, other):
-        return intbv(other | self._val)
+        return type(self)(other | self._val)
     
     def __xor__(self, other):
         if isinstance(other, intbv):
-            return intbv(self._val ^ other._val)
+            return type(self)(self._val ^ other._val)
         else:
-            return intbv(self._val ^ other)
+            return type(self)(self._val ^ other)
     def __rxor__(self, other):
-        return intbv(other ^ self._val)
+        return type(self)(other ^ self._val)
 
     def __iadd__(self, other):
         if isinstance(other, intbv):
             self._val += other._val
         else:
             self._val += other
-        self._checkBounds()
+        self._handleBounds()
         return self
         
     def __isub__(self, other):
@@ -299,7 +316,7 @@ class intbv(object):
             self._val -= other._val
         else:
             self._val -= other
-        self._checkBounds()
+        self._handleBounds()
         return self
         
     def __imul__(self, other):
@@ -307,7 +324,7 @@ class intbv(object):
             self._val *= other._val
         else:
             self._val *= other
-        self._checkBounds()
+        self._handleBounds()
         return self
     
     def __ifloordiv__(self, other):
@@ -315,7 +332,7 @@ class intbv(object):
             self._val //= other._val
         else:
             self._val //= other
-        self._checkBounds()
+        self._handleBounds()
         return self
 
     def __idiv__(self, other):
@@ -328,7 +345,7 @@ class intbv(object):
             self._val %= other._val
         else:
             self._val %= other
-        self._checkBounds()
+        self._handleBounds()
         return self
         
     def __ipow__(self, other, modulo=None):
@@ -340,7 +357,7 @@ class intbv(object):
             self._val **= other
         if not isinstance(self._val, (int, long)):
             raise ValueError("intbv value should be integer")
-        self._checkBounds()
+        self._handleBounds()
         return self
         
     def __iand__(self, other):
@@ -348,7 +365,7 @@ class intbv(object):
             self._val &= other._val
         else:
             self._val &= other
-        self._checkBounds()
+        self._handleBounds()
         return self
 
     def __ior__(self, other):
@@ -356,7 +373,7 @@ class intbv(object):
             self._val |= other._val
         else:
             self._val |= other
-        self._checkBounds()
+        self._handleBounds()
         return self
 
     def __ixor__(self, other):
@@ -364,7 +381,7 @@ class intbv(object):
             self._val ^= other._val
         else:
             self._val ^= other
-        self._checkBounds()
+        self._handleBounds()
         return self
 
     def __ilshift__(self, other):
@@ -373,7 +390,7 @@ class intbv(object):
             self._val <<= other._val
         else:
             self._val <<= other
-        self._checkBounds()
+        self._handleBounds()
         return self
 
     def __irshift__(self, other):
@@ -381,7 +398,7 @@ class intbv(object):
             self._val >>= other._val
         else:
             self._val >>= other
-        self._checkBounds()
+        self._handleBounds()
         return self
 
     def __neg__(self):
@@ -395,9 +412,9 @@ class intbv(object):
 
     def __invert__(self):
         if self._nrbits and self._min >= 0:
-            return intbv(~self._val & (1L << self._nrbits)-1)
+            return type(self)(~self._val & (1L << self._nrbits)-1)
         else:
-            return intbv(~self._val)
+            return type(self)(~self._val)
     
     def __int__(self):
         return int(self._val)

@@ -1,3 +1,10 @@
+Release 0.8 TBD
+---------------
+
+Full details about new features and changes can be found here:
+
+    http://www.myhdl.org/doc/0.8/whatsnew/0.8.html
+
 Release 0.7 24-Dec-2010
 -----------------------
 

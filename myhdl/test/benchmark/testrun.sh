@@ -4,9 +4,9 @@ echo > teststats.dat
 
 python convert.py
 
-ghdl -a pck_myhdl_07.vhd
+ghdl -a pck_myhdl_08dev.vhd
 vlib work
-vcom pck_myhdl_07.vhd
+vcom pck_myhdl_08dev.vhd
 
 tests="
 findmax
@@ -37,7 +37,7 @@ echo ghdl >> teststats.dat
 echo ---- >> teststats.dat
 ghdl -a test_$test.vhd 
 ghdl -e test_$test
-/usr/bin/time -o teststats.dat -a -p ghdl -r test_$test > ${test}_ghdl.out
+#/usr/bin/time -o teststats.dat -a -p ghdl -r test_$test > ${test}_ghdl.out
 echo >> teststats.dat
 
 echo vlog >> teststats.dat

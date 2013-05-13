@@ -23,41 +23,38 @@ A small sequential design
 
 Consider the following MyHDL code for an incrementer module::
 
-  ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+    ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-  def Inc(count, enable, clock, reset, n):
+    def Inc(count, enable, clock, reset):
+        
+        """ Incrementer with enable.
+        
+        count -- output
+        enable -- control input, increment when 1
+        clock -- clock input
+        reset -- asynchronous reset input
+        n -- counter max value
+        
+        """
+        
+        @always_seq(clock.posedge, reset=reset)
+        def incLogic():
+            if enable:
+                count.next = count + 1
 
-      """ Incrementer with enable.
-
-      count -- output
-      enable -- control input, increment when 1
-      clock -- clock input
-      reset -- asynchronous reset input
-      n -- counter max value
-
-      """
-
-      @always(clock.posedge, reset.negedge)
-      def incLogic():
-	  if reset == ACTIVE_LOW:
-	      count.next = 0
-	  else:
-	      if enable:
-		  count.next = (count + 1) % n
-
-      return incLogic
+        return incLogic
 
 
 Normally, to simulate the design, we would elaborate it as follows::
 
-   m = 8
-   n = 2 ** m
+    m = 8
 
-   count = Signal(intbv(0)[m:])
-   enable = Signal(bool(0))
-   clock, reset = [Signal(bool()) for i in range(2)]
+    count = Signal(modbv(0)[m:])
+    enable = Signal(bool(0))
+    clock  = Signal(bool(0))
+    reset = ResetSignal(0, active=0, async=True)
 
-   inc_inst = Inc(count, enable, clock, reset, n=n)
+    inc_inst = Inc(count, enable, clock, reset)
 
 ``inc_inst`` is an elaborated design instance that can be simulated. To convert
 it to Verilog, we change the last line as follows::
@@ -68,12 +65,11 @@ Again, this creates an instance that can be simulated, but as a side effect, it
 also generates an equivalent Verilog module in file :file:`Inc.v`. The Verilog
 code looks as follows::
 
-
     module Inc (
-	count,
-	enable,
-	clock,
-	reset
+        count,
+        enable,
+        clock,
+        reset
     );
 
     output [7:0] count;
@@ -83,64 +79,66 @@ code looks as follows::
     input reset;
 
     always @(posedge clock, negedge reset) begin: INC_INCLOGIC
-	if ((reset == 0)) begin
-	    count <= 0;
-	end
-	else begin
-	    if (enable) begin
-		count <= ((count + 1) % 256);
-	    end
-	end
+        if (reset == 0) begin
+            count <= 0;
+        end
+        else begin
+            if (enable) begin
+                count <= (count + 1);
+            end
+        end
     end
 
     endmodule
+
 
 The convertor infers a proper Verilog module interface and maps
 the MyHDL generator to a Verilog always block.
 
 Similarly, we can convert to VHDL as follows::
 
-   inc_inst = toVHDL(Inc, count, enable, clock, reset, n=n)
+    inc_inst = toVHDL(Inc, count, enable, clock, reset, n=n)
 
 This creates an equivalent VHDL module in file :file:`Inc.vhd`::
 
+    library IEEE;
+    use IEEE.std_logic_1164.all;
+    use IEEE.numeric_std.all;
+    use std.textio.all;
 
-  library IEEE;
-  use IEEE.std_logic_1164.all;
-  use IEEE.numeric_std.all;
+    use work.pck_myhdl_08.all;
 
-  use work.pck_myhdl_06.all;
+    entity Inc is
+        port (
+            count: inout unsigned(7 downto 0);
+            enable: in std_logic;
+            clock: in std_logic;
+            reset: in std_logic
+        );
+    end entity Inc;
 
-  entity Inc is
-      port (
-	  count: inout unsigned(7 downto 0);
-	  enable: in std_logic;
-	  clock: in std_logic;
-	  reset: in std_logic
-      );
-  end entity Inc;
+    architecture MyHDL of Inc is
 
-  architecture MyHDL of Inc is
+    begin
 
-  begin
+    INC_INCLOGIC: process (clock, reset) is
+    begin
+        if (reset = '0') then
+            count <= (others => '0');
+        elsif rising_edge(clock) then
+            if bool(enable) then
+                count <= (count + 1);
+            end if;
+        end if;
+    end process INC_INCLOGIC;
 
-  INC_INCLOGIC: process (clock, reset) is
-  begin
-      if (reset = '0') then
-	  count <= "00000000";
-      elsif rising_edge(clock) then
-	  if to_boolean(enable) then
-	      count <= ((count + 1) mod 256);
-	  end if;
-      end if;
-  end process INC_INCLOGIC;
+    end architecture MyHDL;
 
-  end architecture MyHDL;
 
 The MyHDL generator is mapped to a VHDL process in this case.
 
 Note that the VHDL file refers to a VHDL package called
-``pck_myhdl_06``.  This package contains a number of convenience
+``pck_myhdl_08``.  This package contains a number of convenience
 functions that make the conversion easier.
 
 Note also the use of an ``inout`` in the interface.  This is not
@@ -159,93 +157,90 @@ A small combinatorial design
 The second example is a small combinatorial design, more specifically the binary
 to Gray code converter from previous chapters::
 
-   def bin2gray(B, G, width):
+    def bin2gray(B, G, width):
 
-       """ Gray encoder.
+        """ Gray encoder.
 
-       B -- input intbv signal, binary encoded
-       G -- output intbv signal, gray encoded
-       width -- bit width
+        B -- input intbv signal, binary encoded
+        G -- output intbv signal, gray encoded
+        width -- bit width
 
-       """
+        """
 
-       @always_comb
-       def logic():
-           Bext = intbv(0)[width+1:]
-           Bext[:] = B
-           for i in range(width):
-               G.next[i] = Bext[i+1] ^ Bext[i]
+        @always_comb
+        def logic():
+            Bext = intbv(0)[width+1:]
+            Bext[:] = B
+            for i in range(width):
+                G.next[i] = Bext[i+1] ^ Bext[i]
 
-       return logic
+        return logic
 
 As before, you can create an instance and convert to Verilog and VHDL as follows::
 
-   width = 8
+    width = 8
 
-   B = Signal(intbv(0)[width:])
-   G = Signal(intbv(0)[width:])
+    B = Signal(intbv(0)[width:])
+    G = Signal(intbv(0)[width:])
 
-   bin2gray_inst = toVerilog(bin2gray, B, G, width)
-   bin2gray_inst = toVHDL(bin2gray, B, G, width)
+    bin2gray_inst = toVerilog(bin2gray, B, G, width)
+    bin2gray_inst = toVHDL(bin2gray, B, G, width)
 
 The generated Verilog code looks as follows::
 
-  module bin2gray (
-      B,
-      G
-  );
+    module bin2gray (
+        B,
+        G
+    );
 
-  input [7:0] B;
-  output [7:0] G;
-  reg [7:0] G;
+    input [7:0] B;
+    output [7:0] G;
+    reg [7:0] G;
 
 
-  always @(B) begin: BIN2GRAY_LOGIC
-      integer i;
-      reg [9-1:0] Bext;
-      Bext = 9'h0;
-      Bext = B;
-      for (i=0; i<8; i=i+1) begin
-	  G[i] <= (Bext[(i + 1)] ^ Bext[i]);
-      end
-  end
+    always @(B) begin: BIN2GRAY_LOGIC
+        integer i;
+        reg [9-1:0] Bext;
+        Bext = 9'h0;
+        Bext = B;
+        for (i=0; i<8; i=i+1) begin
+  	  G[i] <= (Bext[(i + 1)] ^ Bext[i]);
+        end
+    end
 
-  endmodule
+    endmodule
 
 
 The generated VHDL code looks as follows::
 
+    library IEEE;
+    use IEEE.std_logic_1164.all;
+    use IEEE.numeric_std.all;
 
-  library IEEE;
-  use IEEE.std_logic_1164.all;
-  use IEEE.numeric_std.all;
-  use std.textio.all;
+    use work.pck_myhdl_08.all;
 
-  use work.pck_myhdl_06.all;
+    entity bin2gray is
+        port (
+  	  B: in unsigned(7 downto 0);
+  	  G: out unsigned(7 downto 0)
+        );
+    end entity bin2gray;
 
-  entity bin2gray is
-      port (
-	  B: in unsigned(7 downto 0);
-	  G: out unsigned(7 downto 0)
-      );
-  end entity bin2gray;
+    architecture MyHDL of bin2gray is
 
-  architecture MyHDL of bin2gray is
+    begin
 
-  begin
+    BIN2GRAY_LOGIC: process (B) is
+        variable Bext: unsigned(8 downto 0);
+    begin
+        Bext := to_unsigned(0, 9);
+        Bext := resize(B, 9);
+        for i in 0 to 8-1 loop
+  	  G(i) <= (Bext((i + 1)) xor Bext(i));
+        end loop;
+    end process BIN2GRAY_LOGIC;
 
-  BIN2GRAY_LOGIC: process (B) is
-      variable Bext: unsigned(8 downto 0);
-  begin
-      Bext := to_unsigned(0, 9);
-      Bext := resize(B, 9);
-      for i in 0 to 8-1 loop
-	  G(i) <= (Bext((i + 1)) xor Bext(i));
-      end loop;
-  end process BIN2GRAY_LOGIC;
-
-  end architecture MyHDL;
-
+    end architecture MyHDL;
 
 
 .. _conv-usage-hier:
@@ -257,7 +252,6 @@ The converter can handle designs with an arbitrarily deep hierarchy.
 
 For example, suppose we want to design an incrementer with Gray code output.
 Using the designs from previous sections, we can proceed as follows::
-
 
    def GrayInc(graycnt, enable, clock, reset, width):
 
@@ -278,7 +272,6 @@ be acceptable, but we will ignore that here.) ::
    def GrayIncReg(graycnt, enable, clock, reset, width):
 
        graycnt_comb = Signal(intbv(0)[width:])
-
        gray_inc_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
 
        @always(clock.posedge)
@@ -289,20 +282,23 @@ be acceptable, but we will ignore that here.) ::
 
 We can convert this hierarchical design as before::
 
-   width = 8
-   graycnt = Signal(intbv()[width:])
-   enable, clock, reset = [Signal(bool()) for i in range(3)]
-   toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
-   toVHDL(GrayIncReg, graycnt, enable, clock, reset, width)
+    width = 8
+    graycnt = Signal(modbv(0)[width:])
+    enable = Signal(bool())
+    clock = Signal(bool())
+    reset = ResetSignal(0, active=0, async=True)
+
+    toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+    toVHDL(GrayIncReg, graycnt, enable, clock, reset, width)
 
 
 The Verilog output code looks as follows::
 
     module GrayIncReg (
-	graycnt,
-	enable,
-	clock,
-	reset
+        graycnt,
+        enable,
+        clock,
+        reset
     );
 
     output [7:0] graycnt;
@@ -314,52 +310,49 @@ The Verilog output code looks as follows::
     reg [7:0] graycnt_comb;
     reg [7:0] gray_inc_1_bincnt;
 
-
-
     always @(posedge clock, negedge reset) begin: GRAYINCREG_GRAY_INC_1_INC_1_INCLOGIC
-	if ((reset == 0)) begin
-	    gray_inc_1_bincnt <= 0;
-	end
-	else begin
-	    if (enable) begin
-		gray_inc_1_bincnt <= ((gray_inc_1_bincnt + 1) % 256);
-	    end
-	end
+        if (reset == 0) begin
+            gray_inc_1_bincnt <= 0;
+        end
+        else begin
+            if (enable) begin
+                gray_inc_1_bincnt <= (gray_inc_1_bincnt + 1);
+            end
+        end
     end
 
     always @(gray_inc_1_bincnt) begin: GRAYINCREG_GRAY_INC_1_BIN2GRAY_1_LOGIC
-	integer i;
-	reg [9-1:0] Bext;
-	Bext = 9'h0;
-	Bext = gray_inc_1_bincnt;
-	for (i=0; i<8; i=i+1) begin
-	    graycnt_comb[i] <= (Bext[(i + 1)] ^ Bext[i]);
-	end
+        integer i;
+        reg [9-1:0] Bext;
+        Bext = 9'h0;
+        Bext = gray_inc_1_bincnt;
+        for (i=0; i<8; i=i+1) begin
+            graycnt_comb[i] = (Bext[(i + 1)] ^ Bext[i]);
+        end
     end
 
     always @(posedge clock) begin: GRAYINCREG_REG_1
-	graycnt <= graycnt_comb;
+        graycnt <= graycnt_comb;
     end
 
     endmodule
-
 
 The VHDL output code looks as follows::
 
     library IEEE;
     use IEEE.std_logic_1164.all;
     use IEEE.numeric_std.all;
-
-    use work.pck_myhdl_06.all;
+    use work.pck_myhdl_08.all;
 
     entity GrayIncReg is
-	port (
-	    graycnt: out unsigned(7 downto 0);
-	    enable: in std_logic;
-	    clock: in std_logic;
-	    reset: in std_logic
-	);
+        port (
+            graycnt: out unsigned(7 downto 0);
+            enable: in std_logic;
+            clock: in std_logic;
+            reset: in std_logic
+        );
     end entity GrayIncReg;
+
 
     architecture MyHDL of GrayIncReg is
 
@@ -368,36 +361,40 @@ The VHDL output code looks as follows::
 
     begin
 
-
     GRAYINCREG_GRAY_INC_1_INC_1_INCLOGIC: process (clock, reset) is
     begin
-	if (reset = '0') then
-	    gray_inc_1_bincnt <= "00000000";
-	elsif rising_edge(clock) then
-	    if to_boolean(enable) then
-		gray_inc_1_bincnt <= ((gray_inc_1_bincnt + 1) mod 256);
-	    end if;
-	end if;
+        if (reset = '0') then
+            gray_inc_1_bincnt <= (others => '0');
+        elsif rising_edge(clock) then
+            if bool(enable) then
+                gray_inc_1_bincnt <= (gray_inc_1_bincnt + 1);
+            end if;
+        end if;
     end process GRAYINCREG_GRAY_INC_1_INC_1_INCLOGIC;
 
+
     GRAYINCREG_GRAY_INC_1_BIN2GRAY_1_LOGIC: process (gray_inc_1_bincnt) is
-	variable Bext: unsigned(8 downto 0);
+        variable Bext: unsigned(8 downto 0);
     begin
-	Bext := to_unsigned(0, 9);
-	Bext := resize(gray_inc_1_bincnt, 9);
-	for i in 0 to 8-1 loop
-	    graycnt_comb(i) <= (Bext((i + 1)) xor Bext(i));
-	end loop;
+        Bext := to_unsigned(0, 9);
+        Bext := resize(gray_inc_1_bincnt, 9);
+        for i in 0 to 8-1 loop
+            graycnt_comb(i) <= (Bext((i + 1)) xor Bext(i));
+        end loop;
     end process GRAYINCREG_GRAY_INC_1_BIN2GRAY_1_LOGIC;
+
 
     GRAYINCREG_REG_1: process (clock) is
     begin
-	if rising_edge(clock) then
-	    graycnt <= graycnt_comb;
-	end if;
+        if rising_edge(clock) then
+            graycnt <= graycnt_comb;
+        end if;
     end process GRAYINCREG_REG_1;
 
     end architecture MyHDL;
+
+
+
 
 
 Note that the output is a flat "net list of blocks", and that hierarchical

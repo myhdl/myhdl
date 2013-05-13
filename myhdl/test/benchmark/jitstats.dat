@@ -1,0 +1,141 @@
+
+Test: longdiv_9
+=====
+python
+------
+real 1.66
+user 1.63
+sys 0.02
+
+pypy
+----
+real 1.90
+user 1.85
+sys 0.05
+
+Test: longdiv_10
+=====
+python
+------
+real 3.11
+user 3.06
+sys 0.03
+
+pypy
+----
+real 2.18
+user 2.14
+sys 0.04
+
+Test: longdiv_11
+=====
+python
+------
+real 6.05
+user 6.00
+sys 0.02
+
+pypy
+----
+real 2.49
+user 2.46
+sys 0.03
+
+Test: longdiv_12
+=====
+python
+------
+real 11.89
+user 11.81
+sys 0.05
+
+pypy
+----
+real 3.07
+user 3.02
+sys 0.05
+
+Test: longdiv_13
+=====
+python
+------
+real 23.46
+user 23.32
+sys 0.08
+
+pypy
+----
+real 4.21
+user 4.17
+sys 0.03
+
+Test: longdiv_14
+=====
+python
+------
+real 46.75
+user 46.55
+sys 0.09
+
+pypy
+----
+real 6.33
+user 6.26
+sys 0.05
+
+Test: longdiv_15
+=====
+python
+------
+real 93.94
+user 93.54
+sys 0.18
+
+pypy
+----
+real 10.73
+user 10.63
+sys 0.08
+
+Test: longdiv_16
+=====
+python
+------
+real 186.58
+user 185.77
+sys 0.38
+
+pypy
+----
+real 19.09
+user 19.00
+sys 0.04
+
+Test: longdiv_17
+=====
+python
+------
+real 373.05
+user 371.43
+sys 0.76
+
+pypy
+----
+real 35.80
+user 35.61
+sys 0.10
+
+Test: longdiv_18
+=====
+python
+------
+real 750.67
+user 747.51
+sys 1.43
+
+pypy
+----
+real 69.35
+user 69.15
+sys 0.03
+

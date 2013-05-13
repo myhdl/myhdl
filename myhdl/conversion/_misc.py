@@ -48,8 +48,9 @@ class _error(object):
     UnboundLocal = "Local variable may be referenced before assignment"
     TypeMismatch = "Type mismatch with earlier assignment"
     NrBitsMismatch = "Nr of bits mismatch with earlier assignment"
-    IntbvBitWidth = "intbv should have bit width"
-    IntbvSign = "intbv's that can have negative values are not yet supported"
+    IntbvBitWidth = "intbv object should have a bit width"
+    #IntbvSign = "intbv's that can have negative values are not yet supported"
+    ModbvRange = "modbv object should have full bit vector range"
     TypeInfer = "Can't infer variable type"
     ReturnTypeMismatch = "Return type mismatch"
     ReturnNrBitsMismatch = "Returned nr of bits mismatch"
@@ -80,9 +81,10 @@ class _access(object):
     INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
     
 class _kind(object):
-    NORMAL, DECLARATION, ALWAYS, INITIAL, \
-    ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_DECO, TASK, REG \
-    = range(9)
+    NORMAL, DECLARATION, ALWAYS, INITIAL, ALWAYS_DECO, \
+    ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_SEQ, \
+    TASK, REG \
+    = range(10)
 
 class _context(object):
     BOOLEAN, YIELD, PRINT, SIGNED, UNKNOWN = range(5)

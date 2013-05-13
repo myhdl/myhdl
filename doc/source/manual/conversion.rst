@@ -35,9 +35,9 @@ or VHDL, using the function :func:`toVerilog` or :func:`toVHDL`  from the MyHDL
 library. 
 
 When the design is intended for implementation
-a third-party :dfn:`synthesis tool` is used to convert the Verilog or VHDL
-design to a gate implementation for an ASIC or FPGA. With this step, there is
-a path from a hardware description in  Python to an FPGA or ASIC implementation.
+a third-party :dfn:`synthesis tool` is used to compile the Verilog or VHDL
+model into an implementation for an ASIC or FPGA. With this step, there is
+an automated path from a hardware description in Python to an FPGA or ASIC implementation.
 
 The conversion does not start from source files, but from an instantiated design
 that has been *elaborated* by the Python interpreter. The converter uses the

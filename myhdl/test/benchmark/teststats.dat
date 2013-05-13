@@ -1,0 +1,33 @@
+
+Test: findmax
+=====
+python
+------
+
+pypy
+----
+real 120.68
+user 120.38
+sys 0.02
+
+icarus
+------
+real 55.15
+user 55.00
+sys 0.03
+
+ghdl
+----
+
+vlog
+----
+real 18.21
+user 9.88
+sys 8.02
+
+vcom
+----
+real 36.96
+user 23.06
+sys 13.44
+

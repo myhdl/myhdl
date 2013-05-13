@@ -12,7 +12,10 @@ Contents:
    preface
    background
    intro
-   modeling
+   hwtypes
+   structure
+   rtl 
+   highlevel 
    unittest
    cosimulation
    conversion

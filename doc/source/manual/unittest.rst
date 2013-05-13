@@ -66,7 +66,7 @@ Unit test development
 
 In this section, we will informally explore the application of unit test
 techniques to hardware design. We will do so by a (small) example: testing a
-binary to Gray encoder as introduced in section :ref:`intro-indexing`.
+binary to Gray encoder as introduced in section :ref:`hwtypes-indexing`.
 
 
 .. _unittest-req:
@@ -260,7 +260,7 @@ one. After the test feedback, a full traceback is shown that can help to debug
 the test output.
 
 Finally, if we use the correct implementation as in section
-:ref:`intro-indexing`, the output is::
+:ref:`hwtypes-indexing`, the output is::
 
    % python test_gray.py -v
    Check that only one bit changes in successive codewords ... ok

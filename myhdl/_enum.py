@@ -25,6 +25,7 @@
 from types import StringType
 
 from myhdl._bin import bin
+from myhdl._Signal import _Signal
 
 class EnumType(object):
     def __init__(self):
@@ -67,6 +68,7 @@ def enum(*names, **kwargs):
         i += 1
        
     class EnumItem(EnumItemType):
+
         def __init__(self, index, name, val, type):
             self._index = index
             self._name = name
@@ -74,12 +76,17 @@ def enum(*names, **kwargs):
             self._nrbits = type._nrbits
             self._nritems = type._nritems
             self._type = type
+
         def __repr__(self):
             return self._name
+
         __str__ = __repr__
+
         def __hex__(self):
             return hex(int(self._val, 2))
+
         __str__ = __repr__
+
         def _toVerilog(self, dontcare=False):
             val = self._val
             if dontcare:
@@ -88,12 +95,35 @@ def enum(*names, **kwargs):
                 elif encoding == "one_cold":
                     val = val.replace('1', '?')
             return "%d'b%s" % (self._nrbits, val)
+
         def _toVHDL(self):
             return self._name
+
         def __copy__(self):
             return self
+
         def __deepcopy__(self, memo=None):
             return self
+
+        def _notImplementedCompare(self, other):
+            raise NotImplementedError
+        
+        __le__ = __ge__ = __lt__ = __gt__ = _notImplementedCompare
+
+        def __eq__(self, other):
+            if isinstance(other, _Signal):
+                other = other._val
+            if not isinstance(other, EnumItemType) or type(self) is not type(other):
+                raise TypeError("Type mismatch in enum item comparison")
+            return self is other
+
+        def __ne__(self, other):
+            if isinstance(other, _Signal):
+                other = other._val
+            if not isinstance(other, EnumItemType) or type(self) is not type(other):
+                raise TypeError("Type mismatch in enum item comparison")
+            return self is not other
+
 
     class Enum(EnumType):
         def __init__(self, names, codedict, nrbits, encoding):
@@ -106,17 +136,24 @@ def enum(*names, **kwargs):
             for index, name in enumerate(names):
                 val = codedict[name]
                 self.__dict__[name] = EnumItem(index, name, val, self)
+
         def __setattr__(self, attr, val):
             raise AttributeError("Cannot assign to enum attributes")
+
         def __len__(self):
             return len(self._names)
+
         def __repr__(self):
             return "<Enum: %s>" % ", ".join(names)
+
         __str__ = __repr__
+
         def _setName(self, name):
             typename = "t_enum_%s" % name
             self.__dict__['_name'] = typename
+
         _toVHDL = __str__
+
         def _toVHDL(self):
             typename =  self.__dict__['_name']
             str = "type %s is (\n    " % typename
@@ -126,10 +163,8 @@ def enum(*names, **kwargs):
                 codes = " ".join([self._codedict[name] for name in self._names])
                 str += '\nattribute enum_encoding of %s: type is "%s";' % (typename, codes)
             return str
-            
-        
-    return Enum(names, codedict, nrbits, encoding)
 
+    return Enum(names, codedict, nrbits, encoding)
 
 
 

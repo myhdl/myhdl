@@ -55,6 +55,7 @@ def test_findmax():
     @instance
     def stimulus():
 	stopped.next = 0
+        yield delay(10)
         exp = intbv(0)[W:]
         val = intbv(0)[W:]
         random_word = intbv(0)[32:]

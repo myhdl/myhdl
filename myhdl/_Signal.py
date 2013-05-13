@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2008 Jan Decaluwe
+#  Copyright (C) 2003-2011 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -28,12 +28,14 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 """
 
 from inspect import currentframe, getouterframes
-from copy import deepcopy as copy
+from copy import copy, deepcopy
+import operator
 
 from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
+# from myhdl._enum import EnumItemType
 
 _schedule = _futureEvents.append
 
@@ -103,9 +105,11 @@ class _Signal(object):
 
     __slots__ = ('_next', '_val', '_min', '_max', '_type', '_init',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
-                 '_code', '_tracing', '_nrbits', '_checkVal', '_setNextVal',
-                 '_printVcd', '_driven' ,'_read', '_name', '_used', '_inList',
-                 '_waiter', 'toVHDL', 'toVerilog', '_slicesigs'
+                 '_code', '_tracing', '_nrbits', '_checkVal', 
+                 '_setNextVal', '_copyVal2Next', '_printVcd', 
+                 '_driven' ,'_read', '_name', '_used', '_inList',
+                 '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
+                 '_numeric'
                 )
 
 
@@ -115,12 +119,15 @@ class _Signal(object):
         val -- initial value
         
         """
-        self._next = self._val = self._init = copy(val)
+        self._init = deepcopy(val)
+        self._val = deepcopy(val)
+        self._next = deepcopy(val)
         self._min = self._max = None
         self._name = self._read = self._driven = None
         self._used = False
         self._inList = False
         self._nrbits = 0
+        self._numeric = True
         self._printVcd = self._printVcdStr
         if isinstance(val, bool):
             self._type = bool
@@ -140,12 +147,12 @@ class _Signal(object):
                 self._printVcd = self._printVcdVec
             else:
                 self._printVcd = self._printVcdHex
-        elif val is None:
-            self._type = None
-            self._setNextVal = self._setNext
         else:
             self._type = type(val)
-            self._setNextVal = self._setNextType
+            if isinstance(val, EnumItemType):
+                self._setNextVal = self._setNextNonmutable
+            else:
+                self._setNextVal = self._setNextMutable
             if hasattr(val, '_nrbits'):
                 self._nrbits = val._nrbits
         self._eventWaiters = _WaiterList()
@@ -160,8 +167,10 @@ class _Signal(object):
         del self._eventWaiters[:]
         del self._posedgeWaiters[:]
         del self._negedgeWaiters[:]
-        self._next = self._val = self._init
+        self._val = deepcopy(self._init)
+        self._next = deepcopy(self._init)
         self._name = self._read = self._driven = None
+        self._numeric = True
         for s in self._slicesigs:
             s._clear()
         
@@ -176,7 +185,14 @@ class _Signal(object):
             elif not next and val:
                 waiters.extend(self._negedgeWaiters[:])
                 del self._negedgeWaiters[:]
-            self._val = next
+            if next is None:
+                self._val = None
+            elif isinstance(val, intbv):
+                self._val._val = next._val
+            elif isinstance(val, (int, long, EnumItemType)):
+                self._val = next
+            else:
+                self._val = deepcopy(next)
             if self._tracing:
                 self._printVcd()
             return waiters
@@ -190,8 +206,8 @@ class _Signal(object):
 
     # support for the 'next' attribute
     def _get_next(self):
-        if self._next is self._val:
-            self._next = copy(self._val)
+#        if self._next is self._val:
+#            self._next = deepcopy(self._val)
         _siglist.append(self)
         return self._next
     def _set_next(self, val):
@@ -260,18 +276,20 @@ class _Signal(object):
             val = val._val
         elif not isinstance(val, (int, long)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
-        if self._next is self._val:
-            self._next = copy(self._val)
+#        if self._next is self._val:
+#            self._next = type(self._val)(self._val)
         self._next._val = val
-        self._next._checkBounds()
+        self._next._handleBounds()
 
-    def _setNextType(self, val):
+    def _setNextNonmutable(self, val):
         if not isinstance(val, self._type):
             raise TypeError("Expected %s, got %s" % (self._type, type(val)))
-        self._next = val
+        self._next = val    
         
-    def _setNext(self, val):
-        self._next = val
+    def _setNextMutable(self, val):
+        if not isinstance(val, self._type):
+            raise TypeError("Expected %s, got %s" % (self._type, type(val)))
+        self._next = deepcopy(val)         
 
     # vcd print methods
     def _printVcdStr(self):
@@ -573,7 +591,8 @@ class _SignalWrap(object):
 # for export
 SignalType = _Signal
 
-# import _SliceSignal here to avoid circular import of _Signal
+# avoid circular imports
 
 from myhdl._ShadowSignal import _SliceSignal
 from myhdl._Waiter import _SignalWaiter
+from myhdl._enum import EnumItemType

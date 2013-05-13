@@ -24,8 +24,6 @@ The :class:`Simulation` class
 -----------------------------
 
 
-
-
 .. class:: Simulation(arg [, arg ...])
 
    Class to construct a new simulation. Each argument should be a MyHDL instance.
@@ -80,13 +78,19 @@ Waveform tracing
    will be moved to a backup file by attaching a timestamp to it, before creating
    the new file.
 
-The ``traceSignals`` callable has the following attribute:
+   The ``traceSignals`` callable has the following attribute:
 
 
-.. attribute:: traceSignals.name
+   .. attribute:: name
 
-   This attribute is used to overwrite the default top-level instance name and the
-   basename of the VCD output filename.
+      This attribute is used to overwrite the default top-level instance name and the
+      basename of the VCD output filename.
+
+   .. attribute:: timescale
+   
+      This attribute is used to set the timescale corresponding to unit steps,
+      according to the VCD format. The assigned value should be a string.
+      The default timescale is "1ns".
 
 
 .. _ref-model:
@@ -183,13 +187,26 @@ Regular signals
        whether a signal is read. This occurs when the signal is read from
        user-defined code.
 
-
    A :class:`Signal` object also has a call interface:
 
     .. method:: Signal.__call__(left[, right=None])
 
 	This method returns a :class:`_SliceSignal` shadow signal. 
 
+
+.. class:: ResetSignal(val, active, async)
+
+    This Signal subclass defines reset signals. *val*, *active*, and *async*
+    are mandatory arguments.
+    *val* is a boolean value that specifies the intial value,
+    *active* is a boolean value that specifies the active level.
+    *async* is a boolean value that specifies the reset style:
+    asynchronous (``True``) or asynchronous (``False``).
+
+    This class should be used in conjunction with the :func:`always_seq`
+    decorator.
+
+ 
 Shadow signals
 ^^^^^^^^^^^^^^
 
@@ -392,18 +409,31 @@ generators from local generator functions.
    and the corresponding sensitivity list automatically. The decorated function
    should be a classic function.
 
+.. function:: always_seq(edge, reset)
+
+   The :func:`always_seq` decorator is used to describe sequential (clocked) logic.
+
+   The *edge* parameter should be a clock edge (``clock.posedge`` or ``clock.negedge``).
+   The *reset* parameter should a :class:`ResetSignal` object.
+
+
+MyHDL data types
+----------------
+
+MyHDL defines a number of data types that are useful for hardware description.
 
 .. _ref-intbv:
 
 The :class:`intbv` class
-------------------------
-
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. class:: intbv([val=0] [, min=None]  [, max=None])
 
     This class represents :class:`int`\ -like objects with some
     additional features that make it suitable for hardware
-    design. The *val* argument can be an :class:`int`, a
+    design. 
+
+    The *val* argument can be an :class:`int`, a
     :class:`long`, an :class:`intbv` or a bit string (a string with
     only '0's or '1's). For a bit string argument, the value is
     calculated as in ``int(bitstring, 2)``.  The optional *min* and
@@ -499,47 +529,29 @@ In addition, an :class:`intbv` object supports the iterator protocol. This makes
 it possible to iterate over all its bits, from the high index to index 0. This
 is only possible for :class:`intbv` objects with a defined bit width.
 
+.. _ref-modvb:
 
-.. _ref-model-misc:
+The :class:`modbv` class
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-Miscellaneous modeling support functions
-----------------------------------------
+.. class:: modbv([val=0] [, min=None]  [, max=None])
 
-.. function:: bin(num [, width])
+   The :class:`modbv` class implements modular bit vector types.
 
-   Returns a bit string representation. If the optional *width* is provided, and if
-   it is larger than the width of the default representation, the bit string is
-   padded with the sign bit.
+   It is implemented as a subclass of :class:`intbv`
+   and supports the same parameters and operators.
+   The difference is in the handling of the *min* and *max* boundaries.
+   Instead of throwing an exception when those constraints are exceeded,
+   the value of :class:`modbv` objects wraps around according to the
+   following formula::
+  
+       val = (val - min) % (max - min) + min
+       
+   This formula is a generalization of modulo wrap-around behavior that
+   is often useful when describing hardware system behavior. 
 
-   This function complements the standard Python conversion functions ``hex`` and
-   ``oct``. A binary string representation is often useful in hardware design.
-
-   :rtype: string
-
-
-.. function:: concat(base [, arg ...])
-
-   Returns an :class:`intbv` object formed by concatenating the arguments.
-
-   The following argument types are supported: :class:`intbv` objects with a
-   defined bit width, :class:`bool` objects, signals of the previous objects, and
-   bit strings. All these objects have a defined bit width. The first argument
-   *base* is special as it doesn't need to have a defined bit width. In addition to
-   the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
-   :class:`long` objects are supported, as well as signals of such objects.
-
-   :rtype: :class:`intbv`
-
-.. function:: downrange(high [, low=0])
-
-   Generates a downward range list of integers.
-
-   This function is modeled after the standard ``range`` function, but works in the
-   downward direction. The returned interval is half-open, with the *high* index
-   not included. *low* is optional and defaults to zero.  This function is
-   especially useful in conjunction with the :class:`intbv` class, that also works
-   with downward indexing.
-
+The :func:`enum` factory function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. function:: enum(arg [, arg ...] [, encoding='binary'])
 
@@ -558,6 +570,61 @@ Miscellaneous modeling support functions
    Verilog output. The available encodings are ``'binary'``, ``'one_hot'``, and
    ``'one_cold'``.
 
+
+.. _ref-model-misc:
+
+Modeling support functions
+--------------------------
+
+MyHDL defines a number of additional support functions that are
+useful for hardware description.
+
+:func:`bin`
+^^^^^^^^^^^
+
+.. function:: bin(num [, width])
+
+   Returns a bit string representation. If the optional *width* is provided, and if
+   it is larger than the width of the default representation, the bit string is
+   padded with the sign bit.
+
+   This function complements the standard Python conversion functions ``hex`` and
+   ``oct``. A binary string representation is often useful in hardware design.
+
+   :rtype: string
+
+:func:`concat`
+^^^^^^^^^^^^^^
+
+.. function:: concat(base [, arg ...])
+
+   Returns an :class:`intbv` object formed by concatenating the arguments.
+
+   The following argument types are supported: :class:`intbv` objects with a
+   defined bit width, :class:`bool` objects, signals of the previous objects, and
+   bit strings. All these objects have a defined bit width. The first argument
+   *base* is special as it doesn't need to have a defined bit width. In addition to
+   the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
+   :class:`long` objects are supported, as well as signals of such objects.
+
+   :rtype: :class:`intbv`
+
+
+:func:`downrange`
+^^^^^^^^^^^^^^^^^
+
+.. function:: downrange(high [, low=0])
+
+   Generates a downward range list of integers.
+
+   This function is modeled after the standard ``range`` function, but works in the
+   downward direction. The returned interval is half-open, with the *high* index
+   not included. *low* is optional and defaults to zero.  This function is
+   especially useful in conjunction with the :class:`intbv` class, that also works
+   with downward indexing.
+
+:func:`instances`
+^^^^^^^^^^^^^^^^^
 
 .. function:: instances()
 
@@ -641,9 +708,13 @@ Conversion
 
     .. attribute:: name
 
-     This attribute is used to overwrite the default top-level instance name and the
-     basename of the Verilog output filename.
+       This attribute is used to overwrite the default top-level instance name and the
+       basename of the Verilog output filename.
 
+    .. attribute:: timescale
+
+       This attribute is used to set the timescale in Verilog format. The assigned value
+       should be a string. The default timescale is "1ns/10ps".
 
 
 .. function:: toVHDL(func[, *args][, **kwargs])
@@ -670,6 +741,12 @@ Conversion
        This attribute can be used to add component declarations to the
        VHDL output. When a string is assigned to it, it will be copied
        to the appropriate place in the output file.
+
+    .. attribute:: library 
+
+       This attribute can be used to set the library in the VHDL output
+       file. The assigned value should be a string. The default 
+       library is ``work``.
 
 
 .. _ref-conv-user:

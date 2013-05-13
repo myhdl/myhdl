@@ -4,7 +4,7 @@ from lfsr24 import lfsr24
 
 def test_lfsr24():
 
-    lfsr = Signal(intbv(0)[24:])
+    lfsr = Signal(modbv(0)[24:])
     enable = Signal(bool())
     clock = Signal(bool())
     reset = Signal(bool())

@@ -218,8 +218,11 @@ class _HierExtr(object):
         _memInfoMap.clear()
         for hdl in _userCodeMap:
             _userCodeMap[hdl].clear()
-        self.skipNames = ('always_comb', 'always', '_always_decorator', 'instance', \
-                          'instances', 'processes', 'posedge', 'negedge')
+        self.skipNames = ('always_comb', 'instance', \
+                          'always_seq', '_always_seq_decorator', \
+                          'always', '_always_decorator', \
+                          'instances', \
+                          'processes', 'posedge', 'negedge')
         self.skip = 0
         self.hierarchy = hierarchy = []
         self.absnames = absnames = {}
@@ -261,7 +264,6 @@ class _HierExtr(object):
 
                 
     def extractor(self, frame, event, arg):
-        
         if event == "call":
             
             funcname = frame.f_code.co_name
@@ -270,11 +272,17 @@ class _HierExtr(object):
                 self.skip +=1
             if not self.skip:
                 self.level += 1
-                
+                                
         elif event == "return":
             
             funcname = frame.f_code.co_name
-            func = frame.f_globals.get(funcname)
+            func = frame.f_globals.get(funcname)            
+            if func is None:
+                # Didn't find a func in the global space, try the local "self"
+                # argument and see if it has a method called *funcname*
+                obj = frame.f_locals.get('self')
+                if hasattr(obj, funcname):
+                    func = getattr(obj, funcname)                
             
             if not self.skip:
                 isGenSeq = _isGenSeq(arg)

@@ -1,4 +1,4 @@
-MyHDL 0.7
+MyHDL 0.8
 =========
 
 What is MyHDL?
@@ -16,7 +16,11 @@ MyHDL is available under the LGPL license.  See LICENSE.txt.
 
 Website
 -------
-The project website is located at http://www.myhdl.org.
+The project website is located at http://www.myhdl.org
+
+Development
+-----------
+The main development repo is at https://jandecaluwe@bitbucket.org/myhdl
 
 Documentation
 -------------
