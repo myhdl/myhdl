@@ -862,6 +862,12 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 else:
                     assert False, "unexpected mem access %s %s" % (n, self.access)
                 self.tree.hasLos = True
+                ws = getattr(m.elObj._val, 'lenStr', False)
+                ext = getattr(m.elObj._val, 'external', False)
+	        if ws and ws in self.tree.symdict:
+                    _constDict[ws] = self.tree.symdict[ws]
+                    if ext:
+                        _extConstDict[ws] = self.tree.symdict[ws]
             elif isinstance(node.obj, int):
                 node.value = node.obj
                 # put VHDL compliant integer constants in global dict

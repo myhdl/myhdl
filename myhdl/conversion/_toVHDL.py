@@ -1011,9 +1011,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         #elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
         #    self.write('"%s"' % bin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_unsigned):
-            self.write("to_unsigned(%s, %s)" % (n, node.vhd.size)) 
+            if abs(n) < 2**31:
+                self.write("to_unsigned(%s, %s)" % (n, node.vhd.size)) 
+            else:
+                self.write('unsigned\'("%s")' % bin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_signed):
-            self.write("to_signed(%s, %s)" % (n, node.vhd.size)) 
+            if abs(n) < 2**31:
+                self.write("to_signed(%s, %s)" % (n, node.vhd.size)) 
+            else:
+                self.write('signed\'("%s")' % bin(n, node.vhd.size))
         else:
             if n < 0:
                 self.write("(")
@@ -1250,6 +1256,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             elif isinstance(obj, (int, long)):
                 # print the symbol for integer in the global constant dict
                 if n in _constDict and obj == _constDict[n]:
+                    assert abs(obj) < 2**31
                     if isinstance(node.vhd, vhd_int):
                         s = n
                     elif isinstance(node.vhd, vhd_std_logic):
@@ -1263,8 +1270,16 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                         s = self.IntRepr(obj)
                     elif isinstance(node.vhd, vhd_std_logic):
                         s = "'%s'" % int(obj)
-                    else:
-                        s = '"%s"' % bin(obj, node.vhd.size)
+                    elif isinstance(node.vhd, vhd_unsigned):
+                        if abs(obj) < 2** 31:
+                            s = "to_unsigned(%s, %s)" % (n, node.vhd.size) 
+                        else:
+                            s = 'unsigned\'("%s")' % bin(obj, node.vhd.size)
+                    elif isinstance(node.vhd, vhd_signed):
+                        if abs(obj) < 2** 31:
+                            s = "to_signed(%s, %s)" % (n, node.vhd.size) 
+                        else:
+                            s = 'signed\'("%s")' % bin(obj, node.vhd.size)
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
@@ -1641,18 +1656,24 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         
         
 def _convertInitVal(reg, init):
+    pre, suf = '', ''
     if isinstance(reg, _Signal):
         tipe = reg._type
+        if not reg._numeric:
+            pre, suf = 'std_logic_vector(', ')'
     else:
         assert isinstance(reg, intbv)
         tipe = intbv
     if tipe is bool:
         v = "'1'" if init else "'0'"
     elif tipe is intbv:
-        if init == 0:
-            v = "(others => '0')"
+        vhd_tipe = 'unsigned'
+        if reg._min is not None and reg._min < 0:
+            vhd_tipe = 'signed'
+        if abs(init) < 2**31:
+            v = '%sto_%s(%s, %s)%s' % (pre, vhd_tipe, init, len(reg), suf)
         else:
-            v = '"%s"' % bin(init, len(reg))
+            v = '%s%s\'"%s"%s' % (pre, vhd_tipe, bin(init, len(reg)), suf)
     else:
         assert isinstance(init, EnumItemType)
         v = init._toVHDL()
