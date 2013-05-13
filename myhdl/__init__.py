@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2008 Jan Decaluwe
+#  Copyright (C) 2003-2013 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -50,7 +50,7 @@ toVerilog -- function that converts a design to Verilog
 
 """
 
-__version__ = "0.8dev"
+__version__ = "0.8"
 
 import sys
 import warnings
