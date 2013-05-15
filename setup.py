@@ -38,11 +38,10 @@ setup(name="myhdl",
       author="Jan Decaluwe",
       author_email="jan@jandecaluwe.com",
       url="http://www.myhdl.org",
-      download_url="http://sourceforge.net/project/showfiles.php?group_id=91207",
+      download_url="https://bitbucket.org/jandecaluwe/myhdl/get/0.8.zip",
       packages=['myhdl', 'myhdl.conversion'],
       license="LGPL",
       platforms=["Any"],
       keywords="HDL ASIC FPGA hardware design",
       classifiers=filter(None, classifiers.split("\n")),
       )
-      

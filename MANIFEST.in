@@ -11,6 +11,16 @@ prune .hg
 prune dist
 prune doc
 prune olddoc
+prune myhdl/old_conversion
+prune myhdl/*/work
+prune myhdl/*/*/work
+prune myhdl/*/*/*/work
+prune myhdl/*/work_vlog
+prune myhdl/*/*/work_vlog
+prune myhdl/*/*/*/work_vlog
+prune myhdl/*/work_vcom
+prune myhdl/*/*/work_vcom
+prune myhdl/*/*/*/work_vcom
 #graft doc/html/manual
 #graft doc/html/icons
 #graft doc/html/whatsnew*

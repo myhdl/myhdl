@@ -26,13 +26,13 @@ Documentation
 -------------
 The manual is available on-line:
 
-   http://www.myhdl.org/doc/0.7/manual
+   http://www.myhdl.org/doc/0.8/manual
 
 What's new
 ----------
 To find out what's new in this release, please read:
 
-    http://www.myhdl.org/doc/0.7/whatsnew/0.7.html
+    http://www.myhdl.org/doc/0.8/whatsnew/0.8.html
 
 Installation
 ------------

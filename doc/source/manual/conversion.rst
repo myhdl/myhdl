@@ -171,14 +171,14 @@ design.
 Coding style
 ------------
 
-A natural restriction on convertible code is that it should be written in MyHDL
-style: cooperating generators, communicating through signals, and with
-sensitivity specify resume conditions. 
+A natural restriction on convertible code is that it should be written
+in MyHDL style: cooperating generators, communicating through signals,
+and with sensitivity specify resume conditions.
 
 For pure modeling, it doesn't matter how generators are created.
-However, in convertible code they should be created using one
-of the MyHDL decorators: :func:`instance`, :func:`always` or
-:func:`always_comb`.
+However, in convertible code they should be created using one of the
+MyHDL decorators: :func:`instance`, :func:`always`,
+:func:`always_seq`, or :func:`always_comb`.
 
 
 .. _conv-subset-types:

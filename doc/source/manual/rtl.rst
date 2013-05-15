@@ -130,9 +130,8 @@ Template
 --------
 
 Sequential RTL models are sensitive to a clock edge. In addition, they may be
-sensitive to a reset signal. We will describe one of the most common patterns: a
-template with a rising clock edge and an asynchronous reset signal. Other
-templates are similar. ::
+sensitive to a reset signal.  The func:`always_seq` decorator supports this
+model directly::
 
    def top(<parameters>, clock, ..., reset, ...):
        ...
@@ -142,27 +141,20 @@ templates are similar. ::
        ...
        return seqLogic, ...
 
+The :func:`always_seq` decorator is automatically infers the reset
+functionality.  It detects which signals need to be reset, and uses their
+initial values as the reset values. The reset signal itself needs to be
+specified with as a :class:`ResetSignal`, for example::
+
+    reset = ResetSignal(0, active=0, async=True)
+
+The first parameter specifies the initial value. The *active* parameter
+specifies the value on which the reset is active and the *async*
+parameter specifies whether it is an asychronous (`True`) or a
+synchronous (`False`) reset. If no reset is needed, you can assign
+`None` to the *reset* parameter in the func:`always_seq` parameter.
 
 .. _model-seq-ex:
-
-The above sequential template is the most commonly used when
-writing MyHDL.  The following is also used but the reset condition
-and values are explicitly stated. ::
-
-    def top(<parameters>, clock, ..., reset, ...):
-        ...
-        @always(clock.posedge, reset.negedge)
-        def seqLogic():
-           if not reset:
-               <reset code>
-           else:
-               <functional code>
-
-.. _mode-seq-ex2:
-
-In some cases the second form is required but generally the first
-template is concise without loss of generality and the *functional
-code* is more prominent.
 
 Example
 -------
@@ -256,6 +248,26 @@ The simulation produces the following output::
       1      2
    StopSimulation
 
+.. _mode-seq-templ-alt:
+
+Alternative template
+--------------------
+
+The template with the func:`always_seq` decorator is convenient
+as it infers the reset functionality automatically. Alternatively,
+you can use a more explicit template as follows::
+
+    def top(<parameters>, clock, ..., reset, ...):
+        ...
+        @always(clock.posedge, reset.negedge)
+        def seqLogic():
+           if not reset:
+               <reset code>
+           else:
+               <functional code>
+
+With this template, the reset values have to be specified
+explicitly.
 
 .. _model-fsm:
 
