@@ -169,12 +169,11 @@ class _AlwaysSeq(_Instantiator):
     def genfunc_no_reset(self):
         senslist = self.senslist
         assert len(senslist) == 1
+        senslist = senslist[0]
         func = self.func
         while 1:
             yield senslist
             func()
-
-
 
 
 # similar to always_comb, calls for refactoring
