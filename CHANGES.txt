@@ -1,5 +1,5 @@
-Release 0.8 TBD
----------------
+Release 0.8 20-May-2013 
+-----------------------
 
 Full details about new features and changes can be found here:
 
