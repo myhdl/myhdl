@@ -2,6 +2,6 @@ VHDL-specific conversion tests
 ------------------------------
 
 Requirements:
-  * GHDL
+  * GHDL or vcom (default)
   * py.test
 

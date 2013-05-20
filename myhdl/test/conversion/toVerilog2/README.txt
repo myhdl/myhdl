@@ -2,7 +2,7 @@ Verilog-specific conversion tests
 ---------------------------------
 
 Requirements:
-  * cver or icarus
+  * cver, icarus or vlog (default)
   * py.test
 
 See the Makefile - it contains targets per simulator. 
