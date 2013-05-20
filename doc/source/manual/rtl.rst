@@ -130,7 +130,7 @@ Template
 --------
 
 Sequential RTL models are sensitive to a clock edge. In addition, they may be
-sensitive to a reset signal.  The func:`always_seq` decorator supports this
+sensitive to a reset signal.  The :func:`always_seq` decorator supports this
 model directly::
 
    def top(<parameters>, clock, ..., reset, ...):
@@ -141,18 +141,18 @@ model directly::
        ...
        return seqLogic, ...
 
-The :func:`always_seq` decorator is automatically infers the reset
+The :func:`always_seq` decorator automatically infers the reset
 functionality.  It detects which signals need to be reset, and uses their
 initial values as the reset values. The reset signal itself needs to be
-specified with as a :class:`ResetSignal`, for example::
+specified as a :class:`ResetSignal` object. For example::
 
     reset = ResetSignal(0, active=0, async=True)
 
 The first parameter specifies the initial value. The *active* parameter
-specifies the value on which the reset is active and the *async*
-parameter specifies whether it is an asychronous (`True`) or a
-synchronous (`False`) reset. If no reset is needed, you can assign
-`None` to the *reset* parameter in the func:`always_seq` parameter.
+specifies the value on which the reset is active, and the *async*
+parameter specifies whether it is an asychronous (``True``) or a
+synchronous (``False``) reset. If no reset is needed, you can assign
+``None`` to the *reset* parameter in the :func:`always_seq` parameter.
 
 .. _model-seq-ex:
 
@@ -188,7 +188,7 @@ asynchronous reset. ::
 
 For the test bench, we will use an independent clock generator, stimulus
 generator, and monitor. After applying enough stimulus patterns, we can raise
-the ``StopSimulation`` exception to stop the simulation run. The test bench for
+the :func:`StopSimulation()` exception to stop the simulation run. The test bench for
 a small incrementer and a small number of patterns is a follows::
 
    def testbench():
@@ -253,7 +253,7 @@ The simulation produces the following output::
 Alternative template
 --------------------
 
-The template with the func:`always_seq` decorator is convenient
+The template with the :func:`always_seq` decorator is convenient
 as it infers the reset functionality automatically. Alternatively,
 you can use a more explicit template as follows::
 

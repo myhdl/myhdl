@@ -159,13 +159,13 @@ Regular signals
     .. attribute:: min
 
        Read-only attribute that is the minimum value (inclusive) of a numeric signal,
-       or *None* for no minimum.
+       or ``None`` for no minimum.
 
 
     .. attribute:: max
 
        Read-only attribute that is the maximum value (exclusive) of a numeric signal,
-       or *None* for no  maximum.
+       or ``None`` for no  maximum.
 
 
     .. attribute:: driven
