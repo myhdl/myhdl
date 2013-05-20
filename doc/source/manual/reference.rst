@@ -1,4 +1,3 @@
-
 .. module:: myhdl
 
 .. _ref:

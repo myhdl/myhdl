@@ -1,4 +1,3 @@
-
 .. currentmodule:: myhdl
 
 .. _conv:

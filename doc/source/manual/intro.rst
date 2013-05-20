@@ -1,6 +1,5 @@
 .. currentmodule:: myhdl
 
-
 .. _intro:
 
 *********************

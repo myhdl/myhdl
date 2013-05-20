@@ -1,3 +1,5 @@
+.. currentmodule:: myhdl
+
 .. _new06:
 
 ***********************
@@ -76,6 +78,7 @@ User interface
 Conversion to VHDL is implemented by the following function in the ``myhdl`` package:
 
 .. function:: toVHDL(func[, *args][, **kwargs])
+   :noindex:
 
    Converts a MyHDL design instance to equivalent VHDL
    code. *func* is a function that returns an instance. :func:`toVHDL`

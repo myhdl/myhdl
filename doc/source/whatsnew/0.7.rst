@@ -1,3 +1,5 @@
+.. currentmodule:: myhdl
+
 .. _new07:
 
 ***********************
@@ -82,6 +84,7 @@ Concrete shadow signal subclasses
 ---------------------------------
 
 .. class:: _SliceSignal(sig, left[, right=None])
+   :noindex:
 
 This class implements read-only structural slicing and indexing. It creates a new
 signal that shadows the slice or index of the parent signal *sig*. If the
@@ -95,6 +98,7 @@ The class constructors is not intended to be used explicitly. Instead,
 regular signals now have a call interface that returns a :class:`_SliceSignal`:
 
 .. method:: Signal.__call__(left[, right=None])
+   :noindex:
 
 Therefore, instead of::
 
@@ -112,6 +116,7 @@ Moreover, the call interface conveys the notion that something is being construc
 is what really happens.
 
 .. class:: ConcatSignal(*args)
+   :noindex:
 
 This class creates a new signal that shadows the concatenation
 of its parent signal values. You can pass an arbitrary number
@@ -120,6 +125,7 @@ with a defined number of bits.
 
 
 .. class:: TristateSignal(val)
+   :noindex:
 
     This class is used to construct a new tristate signal. The
     underlying type is specified by the *val*
@@ -138,6 +144,7 @@ with a defined number of bits.
 This class has the following method:
 
 .. method:: driver()
+   :noindex:
 
     Returns a new driver to the tristate signal. It is initialized
     to ``None``.

@@ -1,3 +1,5 @@
+.. currentmodule:: myhdl
+
 .. _new08:
 
 ***********************
@@ -73,6 +75,7 @@ Interface
 ---------
 
 .. class:: modbv([val=0] [, min=None]  [, max=None])
+   :noindex:
 
    The :class:`modbv` class implements modular bit vector types.
 
@@ -210,6 +213,7 @@ Interface
 ---------
 
 .. function:: always_seq(edge, reset)
+   :noindex:
 
    The :func:`always_seq` decorator is used to describe sequential (clocked) logic.
 
@@ -217,6 +221,7 @@ Interface
    The *reset* parameter should a :class:`ResetSignal` object.
 
 .. class:: ResetSignal(val, active, async)
+   :noindex:
 
     This :class:`Signal` subclass defines reset signals. *val*, *active*, and *async*
     are mandatory arguments.
@@ -224,7 +229,6 @@ Interface
     *active* is a boolean value that specifies the active level.
     *async* is a boolean value that specifies the reset style:
     asynchronous (``True``) or asynchronous (``False``).
-
 
 
 Conversion
@@ -333,21 +337,19 @@ in a waveform viewer
    :align: center
 
 
-
-``library`` attribute for func:`toVHDL`
----------------------------------------
+``library`` attribute for :func:`toVHDL`
+----------------------------------------
 :func:`toVHDL` now has a ``library`` function that
 can be used to set the library name in the
 VHDL output. The assigned value should be a string.
 The default library is "work".
 
-``timescale`` attribute for func:`traceSignals`
------------------------------------------------
+``timescale`` attribute for :func:`traceSignals`
+------------------------------------------------
 :func:`traceSignals` now has a ``timescale`` attribute
 that can be used to set the timescale
 in the VCD output. The assigned value should be a string. 
 The default timescale is "1ns".
-
 
 Acknowledgments
 ===============
@@ -355,15 +357,12 @@ Acknowledgments
 Several people have contributed to MyHDL 0.8 by giving feedback,
 making suggestions, fixing bugs and implementing features.
 In particular, I would like to thank
-Christopher Felton,
-Frederik Teichert.
+Christopher Felton and Frederik Teichert.
 
 I would also like to thank `Easics`_ for 
 the opportunity to use MyHDL in industrial projects.
 
 .. _`Easics`: http://www.easics.com
-
-
 
 
 
