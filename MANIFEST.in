@@ -21,9 +21,7 @@ prune myhdl/*/*/*/work_vlog
 prune myhdl/*/work_vcom
 prune myhdl/*/*/work_vcom
 prune myhdl/*/*/*/work_vcom
-#graft doc/html/manual
-#graft doc/html/icons
-#graft doc/html/whatsnew*
+graft doc/build/html
 #include doc/paper-a4/MyHDL.pdf
 #include doc/paper-letter/MyHDL.pdf
 prune myhdl/experiments
