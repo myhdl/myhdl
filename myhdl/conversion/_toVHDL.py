@@ -60,7 +60,7 @@ def _checkArgs(arglist):
     for arg in arglist:
         if not isinstance(arg, (GeneratorType, _Instantiator, _UserVhdlCode)):
             raise ToVHDLError(_error.ArgType, arg)
-        
+
 def _flatten(*args):
     arglist = []
     for arg in args:
@@ -72,7 +72,7 @@ def _flatten(*args):
         else:
             arglist.append(arg)
     return arglist
-        
+
 def _makeDoc(doc, indent=''):
     if doc is None:
         return ''
@@ -150,11 +150,11 @@ class _ToVHDLConvertor(object):
         _constDict.clear()
         _extConstDict.clear()
 
-        siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL')
         arglist = _flatten(h.top)
-        # print h.top
         _checkArgs(arglist)
         genlist = _analyzeGens(arglist, h.absnames)
+        siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL')
+        # print h.top
         _annotateTypes(genlist)
 
         ### infer interface
@@ -175,14 +175,14 @@ class _ToVHDLConvertor(object):
                 _enumPortTypeSet.add(obj)
 
         doc = _makeDoc(inspect.getdoc(func))
-        
+
         needPck = len(_enumPortTypeSet) > 0
         lib = self.library
         arch = self.architecture
         numeric = self.numeric_ports
-        
+
         self._convert_filter(h, intf, siglist, memlist, genlist)
-        
+
         if pfile:
             _writeFileHeader(pfile, ppath)
             print >> pfile, _package
@@ -207,7 +207,7 @@ class _ToVHDLConvertor(object):
         self._cleanup(siglist)
 
         return h.top
-        
+
     def _cleanup(self, siglist):
         # clean up signal names
         for sig in siglist:
@@ -215,7 +215,7 @@ class _ToVHDLConvertor(object):
 #             sig._name = None
 #             sig._driven = False
 #             sig._read = False
-            
+
         # clean up attributes
         self.name = None
         self.component_declarations = None
@@ -224,13 +224,13 @@ class _ToVHDLConvertor(object):
         self.no_myhdl_package = False
         self.architecture = "MyHDL"
         self.numeric_ports = True
-        
-        
+
+
     def _convert_filter(self, h, intf, siglist, memlist, genlist):
-        # intended to be a entry point for other uses: 
+        # intended to be a entry point for other uses:
         #  code checking, optimizations, etc
         pass
-    
+
 
 toVHDL = _ToVHDLConvertor()
 
@@ -241,7 +241,7 @@ myhdl_header = """\
 """
 
 def _writeFileHeader(f, fn):
-    vars = dict(filename=fn, 
+    vars = dict(filename=fn,
                 version=myhdl.__version__,
                 date=datetime.today().ctime()
                 )
@@ -404,8 +404,8 @@ def _writeCompDecls(f,  compDecls):
         print >> f, compDecls
 
 def _writeModuleFooter(f, arch):
-    print >> f, "end architecture %s;" % arch   
-    
+    print >> f, "end architecture %s;" % arch
+
 def _getRangeString(s):
     if isinstance(s._val, EnumItemType):
         return ''
@@ -416,7 +416,7 @@ def _getRangeString(s):
         if ls:
 	    msb = ls + '-1'
 	else:
-            msb = s._nrbits-1 
+            msb = s._nrbits-1
         return "(%s downto 0)" %  msb
     else:
         raise AssertionError
@@ -513,10 +513,10 @@ opmap = {
     ast.And      : 'and',
     ast.Or       : 'or',
 }
-    
+
 
 class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
-    
+
     def __init__(self, tree, buf):
         self.tree = tree
         self.buf = buf
@@ -526,30 +526,30 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.isLhs = False
         self.labelStack = []
         self.context = None
-         
+
     def write(self, arg):
         self.buf.write("%s" % arg)
 
     def writeline(self, nr=1):
         for i in range(nr):
             self.buf.write("\n%s" % self.ind)
-            
+
     def writeDoc(self, node):
         assert hasattr(node, 'doc')
         doc = _makeDoc(node.doc, self.ind)
         self.write(doc)
-        self.writeline() 
-            
-    def IntRepr(self, obj):     
+        self.writeline()
+
+    def IntRepr(self, obj):
         if obj >= 0:
             s = "%s" % int(obj)
         else:
             s = "(- %s)" % abs(int(obj))
         return s
-    
+
     def BitRepr(self, item, var):
         return '"%s"' % bin(item, len(var))
-        
+
     def inferCast(self, vhd, ori):
         pre, suf = "", ""
         if isinstance(vhd, vhd_int):
@@ -584,13 +584,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 pre, suf = "bool(", ")"
         elif isinstance(vhd, vhd_std_logic):
             if not isinstance(ori, vhd_std_logic):
-                pre, suf = "stdl(", ")"     
+                pre, suf = "stdl(", ")"
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"
-                
+
         return pre, suf
-                    
+
     def writeIntSize(self, n):
         # write size for large integers (beyond 32 bits signed)
         # with some safety margin
@@ -615,7 +615,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if kind: kind += " "
         if dir: dir += " "
         self.write("%s%s: %s%s%s" % (kind, name, dir, tipe, endchar))
-         
+
     def writeDeclarations(self):
         if self.tree.hasPrint:
             self.writeline()
@@ -625,7 +625,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 continue # hack for loop vars
             self.writeline()
             self.writeDeclaration(obj, name, kind="variable")
-                
+
     def indent(self):
         self.ind += ' ' * 4
 
@@ -643,7 +643,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(node.right)
         else:
             self.BinOp(node)
-                
+
     def inferBinaryOpCast(self, node, left, right, op):
         ns, os = node.vhd.size, node.vhdOri.size
         ds = ns - os
@@ -671,7 +671,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(op, (ast.Add, ast.Sub, ast.Mod, ast.FloorDiv)):
                     left.vhd.size = ns
                     node.vhdOri.size = ns
-                elif isinstance(op, ast.Mult): 
+                elif isinstance(op, ast.Mult):
                     left.vhd.size += ds
                     node.vhdOri.size = 2 * left.vhd.size
                 else:
@@ -681,14 +681,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     right.vhd.size = ns
                     node.vhdOri.size = ns
                 elif isinstance(op, ast.Mult):
-                    node.vhdOri.size = 2 * right.vhd.size                  
+                    node.vhdOri.size = 2 * right.vhd.size
                 else:
                     raise AssertionError("unexpected op %s" % op)
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         if pre == "":
             pre, suf = "(", ")"
         return pre, suf
-         
+
     def BinOp(self, node):
         pre, suf = self.inferBinaryOpCast(node, node.left, node.right, node.op)
         self.write(pre)
@@ -696,7 +696,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(" %s " % opmap[type(node.op)])
         self.visit(node.right)
         self.write(suf)
-  
+
     def inferShiftOpCast(self, node, left, right, op):
         ns, os = node.vhd.size, node.vhdOri.size
         ds = ns - os
@@ -706,7 +706,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 node.vhdOri.size = ns
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         return pre, suf
-               
+
     def shiftOp(self, node):
         pre, suf = self.inferShiftOpCast(node, node.left, node.right, node.op)
         self.write(pre)
@@ -716,7 +716,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.right)
         self.write(")")
         self.write(suf)
-        
+
     def BitOp(self, node):
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
@@ -726,7 +726,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.right)
         self.write(")")
         self.write(suf)
-                 
+
     def visit_BoolOp(self, node):
         if isinstance(node.vhd, vhd_std_logic):
             self.write("stdl")
@@ -736,7 +736,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(" %s " % opmap[type(node.op)])
             self.visit(n)
         self.write(")")
-        
+
     def visit_UnaryOp(self, node):
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
@@ -745,7 +745,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.operand)
         self.write(")")
         self.write(suf)
-        
+
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setAttr(node)
@@ -893,7 +893,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(")")
         self.write(suf)
         self.write(";")
-    
+
     def visit_Break(self, node):
         self.write("exit;")
 
@@ -1012,12 +1012,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         #    self.write('"%s"' % bin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_unsigned):
             if abs(n) < 2**31:
-                self.write("to_unsigned(%s, %s)" % (n, node.vhd.size)) 
+                self.write("to_unsigned(%s, %s)" % (n, node.vhd.size))
             else:
                 self.write('unsigned\'("%s")' % bin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_signed):
             if abs(n) < 2**31:
-                self.write("to_signed(%s, %s)" % (n, node.vhd.size)) 
+                self.write("to_signed(%s, %s)" % (n, node.vhd.size))
             else:
                 self.write('signed\'("%s")' % bin(n, node.vhd.size))
         else:
@@ -1026,7 +1026,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(n)
             if n < 0:
                 self.write(")")
-            
+
     def visit_Str(self, node):
         typemark = 'string'
         if isinstance(node.vhd, vhd_unsigned):
@@ -1050,7 +1050,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
             self.write(';')
-            
+
     def visit_IfExp(self, node):
         pre, suf = self.inferCast(node.vhd, node.body.vhdOri)
         self.write(pre)
@@ -1123,7 +1123,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 ##             self.write("end")
         self.labelStack.pop()
         self.labelStack.pop()
-        
+
     def visit_FunctionDef(self, node):
         raise AssertionError("To be implemented in subclass")
 
@@ -1155,7 +1155,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if (i == len(node.tests)-1) and not node.else_:
                 self.write("when others")
                 comment = " -- %s" % itemRepr
-            else:       
+            else:
                 self.write("when ")
                 self.write(itemRepr)
             self.write(" =>%s" % comment)
@@ -1202,13 +1202,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.dedent()
         self.writeline()
         self.write("end if;")
-                
+
     def visit_ListComp(self, node):
         pass # do nothing
 
     def visit_Module(self, node):
         for stmt in node.body:
-            self.visit(stmt)       
+            self.visit(stmt)
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1239,7 +1239,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             ori = inferVhdlObj(obj)
             pre, suf = self.inferCast(node.vhd, ori)
             s = "%s%s%s" % (pre, s, suf)
-                       
+
         elif n in self.tree.argnames:
             assert n in self.tree.symdict
             obj = self.tree.symdict[n]
@@ -1262,9 +1262,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif isinstance(node.vhd, vhd_std_logic):
                         s = "stdl(%s)" % n
                     elif isinstance(node.vhd, vhd_unsigned):
-                        s = "to_unsigned(%s, %s)" % (n, node.vhd.size) 
+                        s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
                     elif isinstance(node.vhd, vhd_signed):
-                        s = "to_signed(%s, %s)" % (n, node.vhd.size) 
+                        s = "to_signed(%s, %s)" % (n, node.vhd.size)
                 else:
                     if isinstance(node.vhd, vhd_int):
                         s = self.IntRepr(obj)
@@ -1272,12 +1272,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                         s = "'%s'" % int(obj)
                     elif isinstance(node.vhd, vhd_unsigned):
                         if abs(obj) < 2** 31:
-                            s = "to_unsigned(%s, %s)" % (n, node.vhd.size) 
+                            s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
                         else:
                             s = 'unsigned\'("%s")' % bin(obj, node.vhd.size)
                     elif isinstance(node.vhd, vhd_signed):
                         if abs(obj) < 2** 31:
-                            s = "to_signed(%s, %s)" % (n, node.vhd.size) 
+                            s = "to_signed(%s, %s)" % (n, node.vhd.size)
                         else:
                             s = 'signed\'("%s")' % bin(obj, node.vhd.size)
             elif isinstance(obj, _Signal):
@@ -1308,7 +1308,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Pass(self, node):
         self.write("null;")
-    
+
     def visit_Print(self, node):
         argnr = 0
         for s in node.format:
@@ -1341,7 +1341,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Raise(self, node):
         self.write('assert False report "End of Simulation" severity Failure;')
-        
+
     def visit_Return(self, node):
         pass
 
@@ -1489,9 +1489,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             senslist = [s.sig for s in senslist]
         return senslist
 
-            
+
 class _ConvertAlwaysVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
@@ -1538,9 +1538,9 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
 
-            
+
 class _ConvertInitialVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
@@ -1564,7 +1564,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
 
 
 class _ConvertAlwaysCombVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
@@ -1590,9 +1590,9 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
 
-        
+
 class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
@@ -1614,7 +1614,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 
 
 class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
@@ -1653,8 +1653,8 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         self.writeline()
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
-        
-        
+
+
 def _convertInitVal(reg, init):
     pre, suf = '', ''
     if isinstance(reg, _Signal):
@@ -1678,10 +1678,10 @@ def _convertInitVal(reg, init):
         assert isinstance(init, EnumItemType)
         v = init._toVHDL()
     return v
-            
-            
+
+
 class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
@@ -1743,9 +1743,9 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
         self.write("end process %s;" % self.tree.name)
         self.writeline(2)
 
-      
+
 class _ConvertFunctionVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, funcBuf):
         _ConvertVisitor.__init__(self, tree, funcBuf)
         self.returnObj = tree.returnObj
@@ -1762,7 +1762,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
             obj = self.tree.symdict[name]
             self.writeline()
             self.writeDeclaration(obj, name, dir="in", constr=False, endchar="")
-            
+
     def visit_FunctionDef(self, node):
         self.write("function %s(" % self.tree.name)
         self.indent()
@@ -1787,9 +1787,9 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.visit(node.value)
         self.write(";")
 
-    
+
 class _ConvertTaskVisitor(_ConvertVisitor):
-    
+
     def __init__(self, tree, funcBuf):
         _ConvertVisitor.__init__(self, tree, funcBuf)
         self.returnLabel = _Label("RETURN")
@@ -1806,7 +1806,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             dir = (inout and "inout") or (output and "out") or "in"
             self.writeline()
             self.writeDeclaration(obj, name, dir=dir, constr=False, endchar="")
-            
+
     def visit_FunctionDef(self, node):
         self.write("procedure %s" % self.tree.name)
         if self.tree.argnames:
@@ -1844,14 +1844,14 @@ class vhd_string(vhd_type):
 class vhd_enum(vhd_type):
     def __init__(self, tipe):
         self._type = tipe
-        
+
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
         vhd_type.__init__(self)
         self.size = 1
     def toStr(self, constr=True):
         return 'std_logic'
-        
+
 class vhd_boolean(vhd_type):
     def __init__(self, size=0):
         vhd_type.__init__(self)
@@ -1863,7 +1863,7 @@ class vhd_vector(vhd_type):
     def __init__(self, size=0, lenStr=False):
         vhd_type.__init__(self, size)
         self.lenStr = lenStr
-    
+
 class vhd_unsigned(vhd_vector):
     def toStr(self, constr=True):
         if constr:
@@ -1874,7 +1874,7 @@ class vhd_unsigned(vhd_vector):
                 return "unsigned(%s downto 0)" % (self.size-1)
         else:
             return "unsigned"
-    
+
 class vhd_signed(vhd_vector):
     def toStr(self, constr=True):
         if constr:
@@ -1885,7 +1885,7 @@ class vhd_signed(vhd_vector):
                 return "signed(%s downto 0)" % (self.size-1)
         else:
             return "signed"
-    
+
 class vhd_int(vhd_type):
     def toStr(self, constr=True):
         return "integer"
@@ -1893,7 +1893,7 @@ class vhd_int(vhd_type):
 class vhd_nat(vhd_int):
     def toStr(self, constr=True):
         return "natural"
-    
+
 
 class _loopInt(int):
     pass
@@ -1915,7 +1915,7 @@ def maxType(o1, o2):
         return vhd_int()
     else:
         return None
-    
+
 def inferVhdlObj(obj):
     vhd = None
     if (isinstance(obj, _Signal) and obj._type is intbv) or \
@@ -1934,7 +1934,7 @@ def inferVhdlObj(obj):
             tipe = obj._val._type
         else:
             tipe = obj._type
-        vhd = vhd_enum(tipe)   
+        vhd = vhd_enum(tipe)
     elif isinstance(obj, (int, long)):
         if obj >= 0:
             vhd = vhd_nat()
@@ -1949,7 +1949,7 @@ def maybeNegative(vhd):
     if isinstance(vhd, vhd_int) and not isinstance(vhd, vhd_nat):
         return True
     return False
-       
+
 class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def __init__(self, tree):
@@ -1976,7 +1976,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.value.vhd = copy(node.target.vhd)
             node.vhdOri = copy(node.target.vhd)
         elif isinstance(node.op, (ast.RShift, ast.LShift)):
-            node.value.vhd = vhd_int()           
+            node.value.vhd = vhd_int()
             node.vhdOri = copy(node.target.vhd)
         else:
             node.left, node.right = node.target, node.value
@@ -2044,7 +2044,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         # make it possible to detect loop variable
         self.tree.vardict[var] = _loopInt(-1)
         self.generic_visit(node)
-  
+
     def visit_Name(self, node):
         if node.id in self.tree.vardict:
             node.obj = self.tree.vardict[node.id]
@@ -2083,7 +2083,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         if isinstance(left.vhd, vhd_unsigned) and maybeNegative(right.vhd):
             left.vhd = vhd_signed(left.vhd.size + 1)
         l, r = left.vhd, right.vhd
-        ls, rs = l.size, r.size       
+        ls, rs = l.size, r.size
         if isinstance(r, vhd_vector) and isinstance(l, vhd_vector):
             if isinstance(op, (ast.Add, ast.Sub)):
                 s = max(ls, rs)
@@ -2132,7 +2132,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.generic_visit(node)
         for test, suite in node.tests:
             test.vhd = vhd_boolean()
-            
+
     def visit_IfExp(self, node):
         self.generic_visit(node)
         node.test.vhd = vhd_boolean()
@@ -2196,7 +2196,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             elif isinstance(node.vhd, vhd_nat):
                 node.vhd = vhd_int()
         node.vhdOri = copy(node.vhd)
-       
+
     def visit_While(self, node):
         self.generic_visit(node)
         node.test.vhd = vhd_boolean()
@@ -2211,7 +2211,7 @@ def _annotateTypes(genlist):
 
 
 
-    
 
-    
- 
+
+
+
