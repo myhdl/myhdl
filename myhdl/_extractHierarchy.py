@@ -32,7 +32,7 @@ import linecache
 
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
 from myhdl._Signal import _Signal, _isListOfSigs
-from myhdl._util import _isGenFunc
+from myhdl._util import _isGenFunc, _flatten
 from myhdl._misc import _isGenSeq
 from myhdl._resolverefs import _resolveRefs
 
@@ -316,7 +316,14 @@ class _HierExtr(object):
                     symdict.update(frame.f_locals)
                     cellvars = []
                     cellvars.extend(frame.f_code.co_cellvars)
-                    if self.level > 1:
+
+                    local_gens = []
+                    #All nested functions will be in co_consts
+                    consts = func.func_code.co_consts
+                    for item in _flatten(arg):
+                        if item.func.func_code in consts:
+                            local_gens.append(item)
+                    if local_gens:
                         objlist = _resolveRefs(symdict, arg)
                         cellvars.extend(objlist)
                     #for dict in (frame.f_globals, frame.f_locals):
@@ -346,9 +353,6 @@ class _HierExtr(object):
                                 subs.append((n, sub))
 
 
-
-
-
                     inst = _Instance(self.level, arg, subs, sigdict, memdict, func, argdict)
                     self.hierarchy.append(inst)
 
@@ -363,13 +367,3 @@ def _inferArgs(arg):
     if isinstance(arg, (tuple, list)):
         c += list(arg)
     return c
-
-
-
-
-
-
-
-
-
-

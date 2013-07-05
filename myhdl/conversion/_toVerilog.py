@@ -134,7 +134,8 @@ class _ToVerilogConvertor(object):
         genlist = _analyzeGens(arglist, h.absnames)
         siglist, memlist = _analyzeSigs(h.hierarchy)
         _annotateTypes(genlist)
-        intf = _analyzeTopFunc(func, *args, **kwargs)
+        top_inst = h.hierarchy[0]
+        intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
         doc = _makeDoc(inspect.getdoc(func))
 
         self._convert_filter(h, intf, siglist, memlist, genlist)

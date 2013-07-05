@@ -1246,10 +1246,25 @@ ismethod = inspect.ismethod
 def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
-def _analyzeTopFunc(func, *args, **kwargs):
+def rec_getattr(obj, attrlist):
+    #recursive getattr
+    return reduce(getattr, attrlist, obj)
+
+def _analyzeTopFunc(top_inst, func, *args, **kwargs):
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)
+    #create ports for any signal in the top instance if it was buried in an
+    #object passed as in argument
+    for k, sig in top_inst.sigdict.items():
+        if '.' in k:
+            l = k.split('.')
+            objname, attrs = l[0], l[1:]
+            if objname in v.fullargdict:
+                obj = rec_getattr(v.fullargdict[objname], attrs)
+                if obj is sig:
+                    v.argdict[sig._name] = sig
+                    v.argnames.append(sig._name)
     return v
 
 class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
@@ -1260,30 +1275,34 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
         self.args = args
         self.kwargs = kwargs
         self.name = None
+        self.fullargdict = {}
         self.argdict = {}
+        self.argnames = []
 
     def visit_FunctionDef(self, node):
 
         self.name = node.name
-        argnames = [arg.id for arg in node.args.args]
+        self.argnames = [arg.id for arg in node.args.args]
         if isboundmethod(self.func):
-            if not argnames[0] == 'self':
+            if not self.argnames[0] == 'self':
                 self.raiseError(node, _error.NotSupported,
                                 "first method argument name other than 'self'")
             # skip self
-            argnames = argnames[1:]
+            self.argnames = self.argnames[1:]
         i=-1
         for i, arg in enumerate(self.args):
-            n = argnames[i]
+            n = self.argnames[i]
+            self.fullargdict[n] = arg
             if isinstance(arg, _Signal):
                 self.argdict[n] = arg
             if _isMem(arg):
                 self.raiseError(node, _error.ListAsPort, n)
-        for n in argnames[i+1:]:
+        for n in self.argnames[i+1:]:
             if n in self.kwargs:
                 arg = self.kwargs[n]
+                self.fullargdict[n] = arg
                 if isinstance(arg, _Signal):
                     self.argdict[n] = arg
                 if _isMem(arg):
                     self.raiseError(node, _error.ListAsPort, n)
-        self.argnames = [n for n in argnames if n in self.argdict]
+        self.argnames = [n for n in self.argnames if n in self.argdict]
