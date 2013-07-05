@@ -53,5 +53,4 @@ class _AttrRefTransformer(ast.NodeTransformer):
         nodes = _flatten(node.body, node.args)
         for n in nodes:
             self.visit(n)
-        self.visit(node.args)
         return node
