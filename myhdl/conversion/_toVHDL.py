@@ -158,7 +158,8 @@ class _ToVHDLConvertor(object):
         _annotateTypes(genlist)
 
         ### infer interface
-        intf = _analyzeTopFunc(func, *args, **kwargs)
+        top_inst = h.hierarchy[0]
+        intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
         intf.name = name
         # sanity checks on interface
         for portname in intf.argnames:
