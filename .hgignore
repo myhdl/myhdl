@@ -30,4 +30,4 @@ old_conversion/
 work/
 work_vlog/
 work_vcom/
-
+*egg-info/
