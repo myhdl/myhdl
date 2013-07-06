@@ -1,5 +1,5 @@
 import ast
-from myhdl._convutils import _makeAST
+from myhdl._convutils import _makeAST, _genfunc
 from myhdl._util import _flatten
 
 
@@ -8,19 +8,12 @@ class Data():
 
 
 def _resolveRefs(symdict, arg):
-    #temporary hack to prevent circular dependencies
-    from myhdl._always_comb import _AlwaysComb
-    from myhdl._always_seq import _AlwaysSeq
-    from myhdl._always import _Always
     gens = _flatten(arg)
     data = Data()
     data.symdict = symdict
     v = _AttrRefTransformer(data)
     for gen in gens:
-        if isinstance(gen, (_AlwaysComb, _AlwaysSeq, _Always)):
-            func = gen.func
-        else:
-            func = gen.gen.gi_frame
+        func = _genfunc(gen)
         tree = _makeAST(func)
         v.visit(tree)
     return data.objlist
