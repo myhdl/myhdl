@@ -29,17 +29,21 @@ def m_two_level(clock,reset,ia,ib):
 
     return g_one, rtl
 
-def _testbench_one():
+def testbench_one():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
     ib = MyIntf()
 
     tb_dut = m_one_level(clock,reset,ia,ib)
-    
-    @always(delay(10))
+
+    @instance
     def tb_clk():
-        clock.next = not clock
+        clock.next = False
+        yield delay(10)
+        while True:
+            clock.next = not clock
+            yield delay(10)
 
     @instance
     def tb_stim():
@@ -51,10 +55,12 @@ def _testbench_one():
             yield clock.posedge
         assert ia.x == 3
         assert ia.y == 4
+        print("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y))
+        raise StopSimulation
 
     return tb_dut, tb_clk, tb_stim
 
-def _testbench_two():
+def testbench_two():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
@@ -62,9 +68,13 @@ def _testbench_two():
 
     tb_dut = m_two_level(clock,reset,ia,ib)
     
-    @always(delay(10))
+    @instance
     def tb_clk():
-        clock.next = not clock
+        clock.next = False
+        yield delay(10)
+        while True:
+            clock.next = not clock
+            yield delay(10)
 
     @instance
     def tb_stim():
@@ -76,6 +86,8 @@ def _testbench_two():
             yield clock.posedge
         assert ia.x == 5
         assert ia.y == 6
+        print("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y))
+        raise StopSimulation
 
     return tb_dut, tb_clk, tb_stim        
 
@@ -87,7 +99,14 @@ def test_one_level_analyze():
     analyze(m_one_level,clock,reset,ia,ib)
 
 def test_one_level_verify():
-    assert verify(_testbench_one) == 0
+    assert verify(testbench_one) == 0
 
+def test_two_level_analyze():
+    clock = Signal(bool(0))
+    reset = ResetSignal(0,active=0,async=True)
+    ia = MyIntf()
+    ib = MyIntf()
+    analyze(m_two_level,clock,reset,ia,ib)
+    
 def test_two_level_verify():
-    assert verify(_testbench_two) == 0
+    assert verify(testbench_two) == 0
