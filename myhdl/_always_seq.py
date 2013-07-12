@@ -32,6 +32,7 @@ from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
 from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._instance import _Instantiator
+from myhdl._resolverefs import _AttrRefTransformer
 
 # evacuate this later
 AlwaysSeqError = AlwaysError
@@ -48,14 +49,14 @@ _error.EmbeddedFunction = "embedded functions in always_seq function not support
 class ResetSignal(_Signal):
     def __init__(self, val, active, async):
         """ Construct a ResetSignal.
-        
+
         This is to be used in conjunction with the always_seq decorator,
         as the reset argument.
         """
         _Signal.__init__(self, bool(val))
         self.active = bool(active)
         self.async = async
-  
+
 
 
 def always_seq(edge, reset):
@@ -78,7 +79,7 @@ def always_seq(edge, reset):
             raise AlwaysSeqError(_error.NrOfArgs)
         return _AlwaysSeq(func, edge, reset)
     return _always_seq_decorator
-        
+
 
 class _AlwaysSeq(_Instantiator):
 
@@ -125,7 +126,9 @@ class _AlwaysSeq(_Instantiator):
         s = _dedent(s)
         tree = ast.parse(s)
         # print ast.dump(tree)
-        v = _SigNameVisitor(symdict)
+        v = _AttrRefTransformer(self)
+        v.visit(tree)
+        v = _SigNameVisitor(self.symdict)
         v.visit(tree)
         sigregs = self.sigregs = []
         varregs = self.varregs = []
@@ -139,7 +142,7 @@ class _AlwaysSeq(_Instantiator):
                 assert _isListOfSigs(reg)
                 for e in reg:
                     sigregs.append(e)
-                    
+
 
     def reset_sigs(self):
         for s in self.sigregs:
@@ -223,7 +226,7 @@ class _SigNameVisitor(ast.NodeVisitor):
                 raise AlwaysSeqError(_error.SigAugAssign % id)
             else:
                 raise AssertionError("bug in always_seq")
-            
+
     def visit_Assign(self, node):
         self.context = OUTPUT
         for n in node.targets:
@@ -244,7 +247,7 @@ class _SigNameVisitor(ast.NodeVisitor):
         self.visit(node.target)
         self.context = INPUT
         self.visit(node.value)
-        
+
     def visit_ClassDef(self, node):
         pass # skip
 
@@ -254,8 +257,8 @@ class _SigNameVisitor(ast.NodeVisitor):
     def visit_Print(self, node):
         pass # skip
 
-         
 
 
 
- 
+
+
