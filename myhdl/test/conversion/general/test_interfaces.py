@@ -31,7 +31,7 @@ def m_two_level(clock,reset,ia,ib):
 
     return g_one, rtl
 
-def testbench_one():
+def c_testbench_one():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
@@ -62,7 +62,7 @@ def testbench_one():
 
     return tb_dut, tb_clk, tb_stim
 
-def testbench_two():
+def c_testbench_two():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
@@ -103,7 +103,7 @@ def test_one_level_analyze():
     analyze(m_one_level,clock,reset,ia,ib)
 
 def test_one_level_verify():
-    assert verify(testbench_one) == 0
+    assert verify(c_testbench_one) == 0
 
 def test_two_level_analyze():
     clock = Signal(bool(0))
@@ -113,9 +113,9 @@ def test_two_level_analyze():
     analyze(m_two_level,clock,reset,ia,ib)
 
 def test_two_level_verify():
-    assert verify(testbench_two) == 0
+    assert verify(c_testbench_two) == 0
 
 
 if __name__ == '__main__':
-    Simulation(testbench_one()).run()
-    Simulation(testbench_two()).run()
+    Simulation(c_testbench_one()).run()
+    Simulation(c_testbench_two()).run()
