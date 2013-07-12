@@ -1,4 +1,6 @@
 
+from pprint import pprint
+
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -20,7 +22,7 @@ def m_one_level(clock,reset,ia,ib):
 
 def m_two_level(clock,reset,ia,ib):
 
-    ic,ie = (MyIntf(),MyIntf,)
+    ic,ie = (MyIntf(),MyIntf(),)
     g_one = m_one_level(clock,reset,ic,ie)
     @always_seq(clock.posedge,reset=reset)
     def rtl():
@@ -84,8 +86,10 @@ def testbench_two():
         yield delay(17)
         for ii in range(7):
             yield clock.posedge
+        #pprint(vars(ia))
+        #pprint(vars(ib))
         assert ia.x == 5
-        assert ia.y == 6
+        assert ia.y == 7
         print("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y))
         raise StopSimulation
 
@@ -110,3 +114,8 @@ def test_two_level_analyze():
     
 def test_two_level_verify():
     assert verify(testbench_two) == 0
+
+
+if __name__ == '__main__':
+    Simulation(testbench_one()).run()
+    Simulation(testbench_two()).run()
