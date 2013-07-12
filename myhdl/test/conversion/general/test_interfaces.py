@@ -69,7 +69,7 @@ def testbench_two():
     ib = MyIntf()
 
     tb_dut = m_two_level(clock,reset,ia,ib)
-    
+
     @instance
     def tb_clk():
         clock.next = False
@@ -93,7 +93,7 @@ def testbench_two():
         print("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y))
         raise StopSimulation
 
-    return tb_dut, tb_clk, tb_stim        
+    return tb_dut, tb_clk, tb_stim
 
 def test_one_level_analyze():
     clock = Signal(bool(0))
@@ -111,7 +111,7 @@ def test_two_level_analyze():
     ia = MyIntf()
     ib = MyIntf()
     analyze(m_two_level,clock,reset,ia,ib)
-    
+
 def test_two_level_verify():
     assert verify(testbench_two) == 0
 

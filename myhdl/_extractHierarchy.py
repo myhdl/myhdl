@@ -318,16 +318,17 @@ class _HierExtr(object):
                     cellvars = []
                     cellvars.extend(frame.f_code.co_cellvars)
 
-                    local_gens = []
                     #All nested functions will be in co_consts
-                    consts = func.func_code.co_consts
-                    for item in _flatten(arg):
-                        genfunc = _genfunc(item)
-                        if genfunc.func_code in consts:
-                            local_gens.append(item)
-                    if local_gens:
-                        objlist = _resolveRefs(symdict, local_gens)
-                        cellvars.extend(objlist)
+                    if func:
+                        local_gens = []
+                        consts = func.func_code.co_consts
+                        for item in _flatten(arg):
+                            genfunc = _genfunc(item)
+                            if genfunc.func_code in consts:
+                                local_gens.append(item)
+                        if local_gens:
+                            objlist = _resolveRefs(symdict, local_gens)
+                            cellvars.extend(objlist)
                     #for dict in (frame.f_globals, frame.f_locals):
                     for n, v in symdict.items():
                         # extract signals and memories
