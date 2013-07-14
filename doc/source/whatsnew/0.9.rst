@@ -1,0 +1,54 @@
+.. currentmodule:: myhdl
+
+.. _new09:
+
+***********************
+What's new in MyHDL 0.9
+***********************
+
+:Author: 
+
+Interfaces
+===========
+
+Rationale
+---------
+Complex designs often have many signals (ports) that 
+are passed to different levels of hierarchy.  Typically
+many of the signals can logically be grouped together.
+Grouping the signals into an *interface* simplifies the 
+code, improves efficiency, and reduces errors.
+
+Previous versions supported /interfaces/ for modeling 
+and for conversion if the **attributes** were locally 
+referenced in a MyHDL module.  The proposed solution 
+will convert an example like the following:
+
+    def complex_mult(clock,reset,a,b,c):
+
+        @always_seq(clock.posedge,reset=reset)
+        def rtl_mult():
+            c.real.next = (a.real*b.real) - (a.imag*b.imag)
+	    c.imag.next = (a.real*b.imag) + (a.imag*b.real)
+
+	return rtl_mult
+	            
+
+Solution
+--------
+The proposed solution is to create uniques names for 
+attributes which are type Signal and used by a module.
+The converter will create a unique name by using the 
+name of the parent and the name of the attribute along 
+with the name of the MyHDL module instance (if applicable).
+
+Conversion
+----------
+
+
+See also
+--------
+For additional information see the original proposal `mep-107`_.
+
+.. _mep-107: http://http://myhdl.org/doku.php/meps:mep-107
+
