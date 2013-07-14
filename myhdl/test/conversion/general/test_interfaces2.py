@@ -6,9 +6,9 @@ from myhdl.conversion import analyze,verify
 
 class Intf(object):
     def __init__(self):
-        self.x = Signal(intbv(1,min=-111,max=111))
-        self.y = Signal(intbv(2,min=-211,max=211))
-        self.z = Signal(intbv(3,min=-311,max=311))
+        self.x = Signal(intbv(1,min=-1111,max=1111))
+        self.y = Signal(intbv(2,min=-2211,max=2211))
+        self.z = Signal(intbv(3,min=-3311,max=3311))
 
 def m_modify(clock,reset,a):
 
@@ -79,11 +79,12 @@ def c_testbench():
         yield delay(23)
         reset.next = True
         yield delay(33)
-        for ii in range(7):
+        for ii in range(17):
             print("a: x=%d y=%d z=%d"%(a.x,a.y,a.z))
             print("b: x=%d y=%d z=%d"%(b.x,b.y,b.z))
-            print("c: x=%d y=%d z=%d"%(c.x,c.y,c.z))
+            print("c: x=%d y=%d z=%d"%(c.x,c.y,c.z))            
             yield clock.posedge
+            
         raise StopSimulation
 
     return tb_dut,tb_clk,tb_stim
