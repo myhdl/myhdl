@@ -140,7 +140,7 @@ class  _VerificationClass(object):
                 except:
                     pass
 
-        print(analyze)
+        #print(analyze)
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
             print >> sys.stderr, "Analysis failed"
@@ -166,14 +166,14 @@ class  _VerificationClass(object):
 
 
         if elaborate is not None:
-            print(elaborate)
+            #print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
             if ret != 0:
                 print >> sys.stderr, "Elaboration failed"
                 return ret
             
         g = tempfile.TemporaryFile()
-        print(simulate)
+        #print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
     #    if ret != 0:
     #        print "Simulation run failed"
