@@ -1,5 +1,5 @@
 
-from pprint import pprint
+import sys
 
 from myhdl import *
 from myhdl import ConversionError
@@ -86,8 +86,6 @@ def c_testbench_two():
         yield delay(17)
         for ii in range(7):
             yield clock.posedge
-        #pprint(vars(ia))
-        #pprint(vars(ib))
         assert ia.x == 5
         assert ia.y == 7
         print("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y))
@@ -117,5 +115,9 @@ def test_two_level_verify():
 
 
 if __name__ == '__main__':
+    print(sys.argv[1])
+    verify.simulator = analyze.simulator = sys.argv[1]
     Simulation(c_testbench_one()).run()
     Simulation(c_testbench_two()).run()
+    print(verify(c_testbench_one))
+    print(verify(c_testbench_two))

@@ -49,8 +49,8 @@ registerSimulator(
     name="GHDL",
     hdl="VHDL",
     analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-    elaborate="ghdl -e --workdir=work -o %(unitname)s_ghdl %(topname)s",
-    simulate="ghdl -r %(unitname)s_ghdl"
+    elaborate="ghdl -e --workdir=work -o %(unitname)s %(topname)s",
+    simulate="ghdl -r --workdir=work %(unitname)s"
     )
 
 
@@ -140,6 +140,7 @@ class  _VerificationClass(object):
                 except:
                     pass
 
+        print(analyze)
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
             print >> sys.stderr, "Analysis failed"
@@ -165,12 +166,14 @@ class  _VerificationClass(object):
 
 
         if elaborate is not None:
+            print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
             if ret != 0:
                 print >> sys.stderr, "Elaboration failed"
                 return ret
             
         g = tempfile.TemporaryFile()
+        print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
     #    if ret != 0:
     #        print "Simulation run failed"

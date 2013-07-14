@@ -50,7 +50,7 @@ toVerilog -- function that converts a design to Verilog
 
 """
 
-__version__ = "0.8"
+__version__ = "0.9dev"
 
 import sys
 import warnings
