@@ -3,7 +3,6 @@ from myhdl._convutils import _makeAST, _genfunc
 from myhdl._util import _flatten
 from myhdl._enum import EnumType
 from myhdl._Signal import SignalType
-from collections import defaultdict
 
 
 class Data():
@@ -46,25 +45,27 @@ class _AttrRefTransformer(ast.NodeTransformer):
             return node
 
         obj = self.data.symdict[node.value.id]
-        #Don't handle signals and enums
-        if isinstance(obj, self.myhdl_types):
+        #Don't handle enums, handle signals as long as it a new attribute
+        if isinstance(obj, EnumType):
             return node
+        elif isinstance(obj, SignalType):
+            if hasattr(SignalType, node.attr):
+                return node
+
+        attrobj = getattr(obj, node.attr)
+
+        if self.storesigs and isinstance(attrobj, SignalType):
+            self.data.objsiglist[id(obj)].append(attrobj)
+
+        new_name = node.value.id+'.'+node.attr
+        if new_name not in self.data.symdict:
+            self.data.symdict[new_name] = attrobj
+            self.data.objlist.append(new_name)
         else:
-            obj = self.data.symdict[node.value.id]
-            attrobj = getattr(obj, node.attr)
-
-            if self.storesigs and isinstance(attrobj, SignalType):
-                self.data.objsiglist[obj].append(attrobj)
-
-            new_name = node.value.id+'.'+node.attr
-            if new_name not in self.data.symdict:
-                self.data.symdict[new_name] = attrobj
-                self.data.objlist.append(new_name)
-            else:
-                pass
-                #assert self.data.symdict[new_name] == attrobj
-            new_node = ast.Name(id=new_name, ctx=node.value.ctx)
-            return ast.copy_location(new_node, node)
+            pass
+            #assert self.data.symdict[new_name] == attrobj
+        new_node = ast.Name(id=new_name, ctx=node.value.ctx)
+        return ast.copy_location(new_node, node)
 
     def visit_FunctionDef(self, node):
         nodes = _flatten(node.body, node.args)

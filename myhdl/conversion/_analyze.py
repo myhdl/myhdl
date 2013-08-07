@@ -1262,8 +1262,8 @@ def _analyzeTopFunc(top_inst, func, *args, **kwargs):
     #object passed as in argument
     #TODO: This will not work for nested objects in the top level
     for obj in objs:
-        if obj in _objsiglist:
-            for sig in _objsiglist[obj]:
+        if id(obj) in _objsiglist:
+            for sig in _objsiglist[id(obj)]:
                 v.argdict[sig._name] = sig
                 v.argnames.append(sig._name)
 
