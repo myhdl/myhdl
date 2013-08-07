@@ -1,6 +1,8 @@
 import ast
 from myhdl._convutils import _makeAST, _genfunc
 from myhdl._util import _flatten
+from myhdl._enum import EnumType
+from myhdl._Signal import SignalType
 
 
 class Data():
@@ -23,11 +25,18 @@ class _AttrRefTransformer(ast.NodeTransformer):
     def __init__(self, data):
         self.data = data
         self.data.objlist = []
+        self.myhdl_types = (EnumType, SignalType)
 
     def visit_Attribute(self, node):
-        reserved = ('next', 'posedge', 'negedge', 'max', 'min', 'val', 'signed')
         self.generic_visit(node)
-        if node.attr in reserved:
+
+        #Don't handle subscripts for now.
+        if not isinstance(node.value, ast.Name):
+            return node
+
+        obj = self.data.symdict[node.value.id]
+        #Don't handle signals and enums
+        if isinstance(obj, self.myhdl_types):
             return node
         else:
             obj = self.data.symdict[node.value.id]
