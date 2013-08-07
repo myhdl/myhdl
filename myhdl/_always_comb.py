@@ -31,6 +31,7 @@ from myhdl._util import _isGenFunc, _dedent
 from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
 from myhdl._instance import _Instantiator
+from myhdl._resolverefs import _AttrRefTransformer
 
 class _error:
     pass
@@ -40,7 +41,7 @@ _error.Scope = "always_comb argument should be a local function"
 _error.SignalAsInout = "signal (%s) used as inout in always_comb function argument"
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
 _error.EmptySensitivityList= "sensitivity list is empty"
-    
+
 def always_comb(func):
     if not isinstance( func, FunctionType):
         raise AlwaysCombError(_error.ArgType)
@@ -63,7 +64,7 @@ def always_comb(func):
                 raise NameError(n)
     c = _AlwaysComb(func, symdict)
     return c
-   
+
 
 INPUT, OUTPUT, INOUT = range(3)
 
@@ -115,7 +116,7 @@ class _SigNameVisitor(ast.NodeVisitor):
                 raise AlwaysCombError(_error.SignalAsInout % id)
             else:
                 raise AssertionError("bug in always_comb")
-            
+
     def visit_Assign(self, node):
         self.context = OUTPUT
         for n in node.targets:
@@ -136,7 +137,7 @@ class _SigNameVisitor(ast.NodeVisitor):
         self.visit(node.target)
         self.context = INPUT
         self.visit(node.value)
-        
+
     def visit_ClassDef(self, node):
         pass # skip
 
@@ -146,7 +147,7 @@ class _SigNameVisitor(ast.NodeVisitor):
     def visit_Print(self, node):
         pass # skip
 
-         
+
 
 class _AlwaysComb(_Instantiator):
 
@@ -186,7 +187,9 @@ class _AlwaysComb(_Instantiator):
         s = _dedent(s)
         tree = ast.parse(s)
         # print ast.dump(tree)
-        v = _SigNameVisitor(symdict)
+        v = _AttrRefTransformer(self)
+        v.visit(tree)
+        v = _SigNameVisitor(self.symdict)
         v.visit(tree)
         self.inputs = v.inputs
         self.outputs = v.outputs
@@ -217,7 +220,7 @@ class _AlwaysComb(_Instantiator):
         while 1:
             func()
             yield senslist
- 
+
 
 
 

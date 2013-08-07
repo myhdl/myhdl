@@ -32,12 +32,14 @@ import linecache
 
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
 from myhdl._Signal import _Signal, _isListOfSigs
-from myhdl._util import _isGenFunc
+from myhdl._util import _isGenFunc, _flatten
 from myhdl._misc import _isGenSeq
+from myhdl._resolverefs import _resolveRefs
+from myhdl._convutils import _genfunc
 
 
 _profileFunc = None
-    
+
 class _error:
     pass
 _error.NoInstances = "No instances found"
@@ -46,8 +48,8 @@ _error.InconsistentToplevel = "Inconsistent top level %s for %s - should be 1"
 
 
 class _Instance(object):
-    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name', 'func', 'argdict']
-    def __init__(self, level, obj, subs, sigdict, memdict, func, argdict):
+    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name', 'func', 'argdict', 'objdict']
+    def __init__(self, level, obj, subs, sigdict, memdict, func, argdict, objdict=None):
         self.level = level
         self.obj = obj
         self.subs = subs
@@ -55,7 +57,9 @@ class _Instance(object):
         self.memdict = memdict
         self.func = func
         self.argdict = argdict
-        
+        if objdict:
+            self.objdict = objdict
+
 
 _memInfoMap = {}
 
@@ -79,7 +83,7 @@ def _makeMemInfo(mem):
     if key not in _memInfoMap:
         _memInfoMap[key] = _MemInfo(mem)
     return _memInfoMap[key]
-    
+
 def _isMem(mem):
     return id(mem) in _memInfoMap
 
@@ -108,10 +112,10 @@ class _UserCode(object):
             self.raiseError(msg, info)
         code = "\n%s\n" % code
         return code
-    
+
     def _interpolate(self):
         return string.Template(self.code).substitute(self.namespace)
-    
+
 class _UserCodeDepr(_UserCode):
     def _interpolate(self):
         return self.code % self.namespace
@@ -119,18 +123,18 @@ class _UserCodeDepr(_UserCode):
 class _UserVerilogCode(_UserCode):
     def raiseError(self, msg, info):
         raise ToVerilogError("Error in user defined Verilog code", msg, info)
-    
+
 class _UserVhdlCode(_UserCode):
     def raiseError(self, msg, info):
         raise ToVHDLError("Error in user defined VHDL code", msg, info)
-    
+
 class _UserVerilogCodeDepr(_UserVerilogCode, _UserCodeDepr):
     pass
 
 class _UserVhdlCodeDepr(_UserVhdlCode, _UserCodeDepr):
     pass
-     
-    
+
+
 class _UserVerilogInstance(_UserVerilogCode):
     def __str__(self):
         args = inspect.getargspec(self.func)[0]
@@ -159,8 +163,8 @@ class _UserVhdlInstance(_UserVhdlCode):
                 s += "\n        %s=>%s" % (arg, signame)
         s += "\n    );\n\n"
         return s
-   
-    
+
+
 
 def _addUserCode(specs, arg, funcname, func, frame):
     classMap = {
@@ -170,7 +174,7 @@ def _addUserCode(specs, arg, funcname, func, frame):
                 'vhdl_code' :_UserVhdlCode,
                 'verilog_instance' : _UserVerilogInstance,
                 'vhdl_instance' :_UserVhdlInstance,
-               
+
                }
     namespace = frame.f_globals.copy()
     namespace.update(frame.f_locals)
@@ -192,13 +196,13 @@ def _addUserCode(specs, arg, funcname, func, frame):
             assert id(arg) not in _userCodeMap[hdl]
             code = specs[spec]
             _userCodeMap[hdl][id(arg)] = classMap[spec](code, namespace, funcname, func, sourcefile, sourceline)
-         
+
 
 class _CallFuncVisitor(object):
 
     def __init__(self):
         self.linemap = {}
-    
+
     def visitAssign(self, node):
         if isinstance(node.expr, ast.CallFunc):
             self.lineno = None
@@ -207,13 +211,13 @@ class _CallFuncVisitor(object):
 
     def visitName(self, node):
         self.lineno = node.lineno
-        
- 
+
+
 
 class _HierExtr(object):
-    
+
     def __init__(self, name, dut, *args, **kwargs):
-        
+
         global _profileFunc
         _memInfoMap.clear()
         for hdl in _userCodeMap:
@@ -262,28 +266,28 @@ class _HierExtr(object):
                         names[id(soi)] = sni
                         absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
 
-                
+
     def extractor(self, frame, event, arg):
         if event == "call":
-            
+
             funcname = frame.f_code.co_name
             # skip certain functions
             if funcname in self.skipNames:
                 self.skip +=1
             if not self.skip:
                 self.level += 1
-                                
+
         elif event == "return":
-            
+
             funcname = frame.f_code.co_name
-            func = frame.f_globals.get(funcname)            
+            func = frame.f_globals.get(funcname)
             if func is None:
                 # Didn't find a func in the global space, try the local "self"
                 # argument and see if it has a method called *funcname*
                 obj = frame.f_locals.get('self')
                 if hasattr(obj, funcname):
-                    func = getattr(obj, funcname)                
-            
+                    func = getattr(obj, funcname)
+
             if not self.skip:
                 isGenSeq = _isGenSeq(arg)
                 if isGenSeq:
@@ -298,65 +302,71 @@ class _HierExtr(object):
                         spec = "%s_instance" % hdl
                         if func and hasattr(func, spec) and getattr(func, spec):
                             specs[spec] = getattr(func, spec)
-                    if specs: 
+                    if specs:
                         _addUserCode(specs, arg, funcname, func, frame)
                 # building hierarchy only makes sense if there are generators
                 if isGenSeq and arg:
                     sigdict = {}
                     memdict = {}
-                    argdict = {} 
+                    argdict = {}
                     if func:
-                        arglist = inspect.getargspec(func).args 
+                        arglist = inspect.getargspec(func).args
                     else:
                         arglist = []
-                    cellvars = frame.f_code.co_cellvars
-                    for dict in (frame.f_globals, frame.f_locals):
-                        for n, v in dict.items():
-                            # extract signals and memories
-                            # also keep track of whether they are used in generators
-                            # only include objects that are used in generators
+                    symdict = frame.f_globals.copy()
+                    symdict.update(frame.f_locals)
+                    cellvars = []
+                    cellvars.extend(frame.f_code.co_cellvars)
+
+                    #All nested functions will be in co_consts
+                    if func:
+                        local_gens = []
+                        consts = func.func_code.co_consts
+                        for item in _flatten(arg):
+                            genfunc = _genfunc(item)
+                            if genfunc.func_code in consts:
+                                local_gens.append(item)
+                        if local_gens:
+                            objlist = _resolveRefs(symdict, local_gens)
+                            cellvars.extend(objlist)
+                    #for dict in (frame.f_globals, frame.f_locals):
+                    for n, v in symdict.items():
+                        # extract signals and memories
+                        # also keep track of whether they are used in generators
+                        # only include objects that are used in generators
 ##                             if not n in cellvars:
 ##                                 continue
-                            if isinstance(v, _Signal):
-                                sigdict[n] = v
-                                if n in cellvars:
-                                    v._markUsed()
-                            if _isListOfSigs(v):
-                                m = _makeMemInfo(v)
-                                memdict[n] = m
-                                if n in cellvars:
-                                    m._used = True
-                            # save any other variable in argdict
-                            if (n in arglist) and (n not in sigdict) and (n not in memdict):
-                                argdict[n] = v
-                                
+                        if isinstance(v, _Signal):
+                            sigdict[n] = v
+                            if n in cellvars:
+                                v._markUsed()
+                        if _isListOfSigs(v):
+                            m = _makeMemInfo(v)
+                            memdict[n] = m
+                            if n in cellvars:
+                                m._used = True
+                        # save any other variable in argdict
+                        if (n in arglist) and (n not in sigdict) and (n not in memdict):
+                            argdict[n] = v
+
                     subs = []
                     for n, sub in frame.f_locals.items():
                         for elt in _inferArgs(arg):
                             if elt is sub:
                                 subs.append((n, sub))
-                                
+
+
                     inst = _Instance(self.level, arg, subs, sigdict, memdict, func, argdict)
                     self.hierarchy.append(inst)
-                    
+
                 self.level -= 1
-                
+
             if funcname in self.skipNames:
                 self.skip -= 1
-                
+
 
 def _inferArgs(arg):
     c = [arg]
     if isinstance(arg, (tuple, list)):
         c += list(arg)
     return c
-   
-
-
-    
-    
-
-            
-        
-    
-    
