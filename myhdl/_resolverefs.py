@@ -3,6 +3,7 @@ from myhdl._convutils import _makeAST, _genfunc
 from myhdl._util import _flatten
 from myhdl._enum import EnumType
 from myhdl._Signal import SignalType
+from collections import defaultdict
 
 
 class Data():
@@ -20,12 +21,22 @@ def _resolveRefs(symdict, arg):
         v.visit(tree)
     return data.objlist
 
+#TODO: Refactor this into two separate nodetransformers, since _resolveRefs
+#needs only the names, not the objects
+
 
 class _AttrRefTransformer(ast.NodeTransformer):
     def __init__(self, data):
         self.data = data
         self.data.objlist = []
         self.myhdl_types = (EnumType, SignalType)
+
+        #optionally store a list of signals of every object resolved, for
+        #inferring the interface at the top level
+        if hasattr(data, 'objsiglist'):
+            self.storesigs = True
+        else:
+            self.storesigs = False
 
     def visit_Attribute(self, node):
         self.generic_visit(node)
@@ -41,6 +52,10 @@ class _AttrRefTransformer(ast.NodeTransformer):
         else:
             obj = self.data.symdict[node.value.id]
             attrobj = getattr(obj, node.attr)
+
+            if self.storesigs and isinstance(attrobj, SignalType):
+                self.data.objsiglist[obj].append(attrobj)
+
             new_name = node.value.id+'.'+node.attr
             if new_name not in self.data.symdict:
                 self.data.symdict[new_name] = attrobj

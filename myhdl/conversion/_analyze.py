@@ -27,6 +27,7 @@ import inspect
 from types import FunctionType, MethodType
 import re
 import ast
+from collections import defaultdict
 import __builtin__
 
 import myhdl
@@ -50,6 +51,7 @@ builtinObjects = __builtin__.__dict__.values()
 _enumTypeSet = set()
 _constDict = {}
 _extConstDict = {}
+_objsiglist = defaultdict(list)
 
 
 def _makeName(n, prefixes):
@@ -79,6 +81,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
     siglist = []
     memlist = []
     prefixes = []
+
     open, close = '[', ']'
     if hdl == 'VHDL':
         open, close = '(', ')'
@@ -158,6 +161,7 @@ def _analyzeGens(top, absnames):
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.func_globals.copy()
             tree.callstack = []
+            tree.objsiglist = _objsiglist
             # handle free variables
             tree.nonlocaldict = {}
             if f.func_code.co_freevars:
@@ -1246,25 +1250,23 @@ ismethod = inspect.ismethod
 def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
-def rec_getattr(obj, attrlist):
-    #recursive getattr
-    return reduce(getattr, attrlist, obj)
 
 def _analyzeTopFunc(top_inst, func, *args, **kwargs):
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)
+
+    objs = (obj for obj in v.fullargdict.values() if not isinstance(obj, _Signal))
+
     #create ports for any signal in the top instance if it was buried in an
     #object passed as in argument
-    for k, sig in top_inst.sigdict.items():
-        if '.' in k:
-            l = k.split('.')
-            objname, attrs = l[0], l[1:]
-            if objname in v.fullargdict:
-                obj = rec_getattr(v.fullargdict[objname], attrs)
-                if obj is sig:
-                    v.argdict[sig._name] = sig
-                    v.argnames.append(sig._name)
+    #TODO: This will not work for nested objects in the top level
+    for obj in objs:
+        if obj in _objsiglist:
+            for sig in _objsiglist[obj]:
+                v.argdict[sig._name] = sig
+                v.argnames.append(sig._name)
+
     return v
 
 class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
