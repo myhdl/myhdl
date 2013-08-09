@@ -40,6 +40,10 @@ class _AttrRefTransformer(ast.NodeTransformer):
     def visit_Attribute(self, node):
         self.generic_visit(node)
 
+        reserved = ('next',  'posedge',  'negedge',  'max',  'min',  'val',  'signed')
+        if node.attr in reserved:
+            return node
+
         #Don't handle subscripts for now.
         if not isinstance(node.value, ast.Name):
             return node
