@@ -40,7 +40,7 @@ bin -- returns a binary string representation.
 concat -- function to concat ints, bitstrings, bools, intbvs, Signals
        -- returns an intbv
 instances -- function that returns all instances defined in a function
-always -- 
+always --
 always_comb -- decorator that returns an input-sensitive generator
 always_seq --
 ResetSignal --
@@ -168,7 +168,7 @@ __all__ = ["bin",
            "toVerilog",
            "toVHDL",
            "conversion",
-           "Tristate"           
+           "Tristate"
            ]
 
 
