@@ -51,7 +51,6 @@ builtinObjects = __builtin__.__dict__.values()
 _enumTypeSet = set()
 _constDict = {}
 _extConstDict = {}
-_objsiglist = defaultdict(list)
 
 
 def _makeName(n, prefixes):
@@ -161,7 +160,6 @@ def _analyzeGens(top, absnames):
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.func_globals.copy()
             tree.callstack = []
-            tree.objsiglist = _objsiglist
             # handle free variables
             tree.nonlocaldict = {}
             if f.func_code.co_freevars:
@@ -1256,16 +1254,23 @@ def _analyzeTopFunc(top_inst, func, *args, **kwargs):
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)
 
-    objs = (obj for obj in v.fullargdict.values() if not isinstance(obj, _Signal))
+    objs = []
+    for name, obj in v.fullargdict.items():
+        if not isinstance(obj, _Signal):
+            objs.append((name, obj))
 
     #create ports for any signal in the top instance if it was buried in an
     #object passed as in argument
     #TODO: This will not work for nested objects in the top level
-    for obj in objs:
-        if id(obj) in _objsiglist:
-            for sig in _objsiglist[id(obj)]:
-                v.argdict[sig._name] = sig
-                v.argnames.append(sig._name)
+    for name, obj in objs:
+        if not hasattr(obj, '__dict__'):
+            continue
+        for attr, attrobj in vars(obj).items():
+            if isinstance(attrobj, _Signal):
+                signame = name + '_' + attr
+                attrobj._name = signame
+                v.argdict[signame] = attrobj
+                v.argnames.append(signame)
 
     return v
 

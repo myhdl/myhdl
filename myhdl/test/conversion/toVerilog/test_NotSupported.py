@@ -7,7 +7,7 @@ from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
 class TestNotSupported(unittest.TestCase):
-    
+
     def check(self, *args):
         try:
             i = toVerilog(*args)
@@ -21,18 +21,6 @@ class TestNotSupported(unittest.TestCase):
     def nocheck(self, *args):
         i = toVerilog(*args)
 
-    def testAssAttr(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            @instance
-            def logic():
-                while 1:
-                    yield a
-                    z.net = 1
-            return logic
-        self.check(g, z, a)
-
     def testAssList(self):
         a = Signal(bool())
         z = Signal(bool())
@@ -45,7 +33,7 @@ class TestNotSupported(unittest.TestCase):
                     [p, q] = 1, 2
             return logic
         self.check(g, z, a)
-            
+
     def testAssTuple(self):
         a = Signal(bool())
         z = Signal(bool())
@@ -71,8 +59,8 @@ class TestNotSupported(unittest.TestCase):
                     `a`
             return logic
         self.check(g, z, a)
-            
-       
+
+
     def testClass(self):
         a = Signal(bool())
         z = Signal(bool())
@@ -87,7 +75,7 @@ class TestNotSupported(unittest.TestCase):
             return logic
         self.check(g, z, a)
 
-        
+
     def testDict(self):
         a = Signal(bool())
         z = Signal(bool())
@@ -125,7 +113,7 @@ class TestNotSupported(unittest.TestCase):
                     exec "1 + 2" in globals , locals
             return logic
         self.check(g, z, a)
-        
+
     def testFrom(self):
         a = Signal(bool())
         z = Signal(bool())
@@ -236,7 +224,7 @@ class TestNotSupported(unittest.TestCase):
 ##                 z.next = 1
 ##                 return
 ##         self.check(g, z, a)
-        
+
     def testTryExcept(self):
         a = Signal(bool())
         z = Signal(bool())
@@ -292,7 +280,7 @@ class TestNotSupported(unittest.TestCase):
 ##                 else:
 ##                     z.next = a and b
 ##         self.check(g, z, a, b)
-    
+
 ##     def testShortcutOr(self):
 ##         a, b, c  = [Signal(bool()) for i in range(3)]
 ##         z = Signal(bool())
@@ -320,7 +308,7 @@ class TestNotSupported(unittest.TestCase):
                         z.next = a and b
             return logic
         self.check(g, z, a, b)
-    
+
     def testNonBoolArgOr(self):
         a = Signal(bool())
         b = intbv(0)[2:]
@@ -366,7 +354,7 @@ class TestNotSupported(unittest.TestCase):
         def f(a, b, c):
             return g(a)
         x = self.check(f, a, b, c)
-        
+
     def testExtraNamedArgsInCall(self):
         a, b, c = [Signal(bool()) for i in range(3)]
         c = [1]
@@ -382,7 +370,7 @@ class TestNotSupported(unittest.TestCase):
         def f(a, b, c):
             return g(a)
         x = self.check(f, a, b, c)
-   
+
 
 
 class TestMisc(unittest.TestCase):
@@ -402,11 +390,11 @@ class TestMisc(unittest.TestCase):
             return g(a)
         f(a, b, c)
         x = toVerilog(f, a, b, c)
-    
-        
+
+
 
 
 if __name__ == '__main__':
     unittest.main()
-    
+
 
