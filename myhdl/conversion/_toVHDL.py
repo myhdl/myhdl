@@ -2078,10 +2078,14 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             left.vhd = vhd_unsigned(1)
         if isinstance(right.vhd, (vhd_boolean, vhd_std_logic)):
             right.vhd = vhd_unsigned(1)
-        if maybeNegative(left.vhd) and isinstance(right.vhd, vhd_unsigned):
-            right.vhd = vhd_signed(right.vhd.size + 1)
-        if isinstance(left.vhd, vhd_unsigned) and maybeNegative(right.vhd):
-            left.vhd = vhd_signed(left.vhd.size + 1)
+        if isinstance(right.vhd, vhd_unsigned):
+            if maybeNegative(left.vhd) or \
+               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')): 
+                right.vhd = vhd_signed(right.vhd.size + 1)
+        if isinstance(left.vhd, vhd_unsigned): 
+            if maybeNegative(right.vhd) or \
+               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')):
+                left.vhd = vhd_signed(left.vhd.size + 1)
         l, r = left.vhd, right.vhd
         ls, rs = l.size, r.size       
         if isinstance(r, vhd_vector) and isinstance(l, vhd_vector):

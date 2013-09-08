@@ -511,6 +511,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.access = _access.OUTPUT
         self.visit(target)
         self.access = _access.INPUT
+        # set attribute to detect a top-level rhs
+        value.isRhs = True
         if isinstance(target, ast.Name):
             node.kind = _kind.DECLARATION
             self.kind = _kind.DECLARATION
@@ -550,6 +552,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(value)
 
     def visit_AugAssign(self, node):
+        # declare node as an rhs for type inference optimization
+        node.isRhs = True
         self.access = _access.INOUT
         self.visit(node.target)
         self.access = _access.INPUT

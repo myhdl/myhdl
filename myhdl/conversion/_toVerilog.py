@@ -1420,6 +1420,9 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.left)
         self.visit(node.right)
         node.signed = node.left.signed or node.right.signed
+        # special treatement of subtraction unless in a top-level rhs
+        if isinstance(node.op, ast.Sub) and not hasattr(node, 'isRhs'):
+            node.signed = True
       
     def visit_BoolOp(self, node):
         for n in node.values:

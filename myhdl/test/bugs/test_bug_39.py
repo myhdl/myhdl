@@ -29,7 +29,7 @@ def dut():
 
     return logic, check
 
-def test_tb():
+def test_bug_39():
     assert verify(dut) == 0
 
 
