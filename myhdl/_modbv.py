@@ -29,3 +29,30 @@ class modbv(intbv):
         if lo is not None:
             if val < lo or val >= hi:
                 self._val = (val - lo) % (hi - lo) + lo
+
+
+    # indexing and slicing methods
+    # dedicated for modbv to support "declaration by slicing"
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            i, j = key.start, key.stop
+            if j is None: # default
+                j = 0
+            j = int(j)
+            if j < 0:
+                raise ValueError, "modbv[i:j] requires j >= 0\n" \
+                      "            j == %s" % j
+            if i is None: # default
+                return modbv(self._val >> j)
+            i = int(i)
+            if i <= j:
+                raise ValueError, "modbv[i:j] requires i > j\n" \
+                      "            i, j == %s, %s" % (i, j)
+            res = modbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
+            return res
+        else:
+            i = int(key)
+            res = bool((self._val >> i) & 0x1)
+            return res
+
