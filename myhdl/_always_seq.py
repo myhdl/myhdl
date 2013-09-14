@@ -220,7 +220,7 @@ class _SigNameVisitor(ast.NodeVisitor):
             elif self.context == OUTPUT:
                 self.outputs.add(id)
             elif self.context == INOUT:
-                raise AlwaysSeqError(_error.SigAugAssign % id)
+                raise AlwaysSeqError(_error.SigAugAssign, id)
             else:
                 raise AssertionError("bug in always_seq")
             
