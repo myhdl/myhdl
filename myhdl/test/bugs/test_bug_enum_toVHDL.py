@@ -26,6 +26,6 @@ next_state_en = Signal(bool(0))	# Enable transition to next state
 interrupt_pending = Signal(bool(0))
 interrupt_assert  = Signal(bool(0))
 
-def test_enum_toVHDL():
+def test_bug_enum_toVHDL():
     toVHDL(pcie_legacyint_next_state_logic, state, next_state, next_state_en, interrupt_pending, interrupt_assert)
 
