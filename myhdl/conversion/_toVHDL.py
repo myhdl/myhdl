@@ -170,9 +170,11 @@ class _ToVHDLConvertor(object):
             # add enum types to port-related set
             if isinstance(s._val, EnumItemType):
                 obj = s._val._type
-                assert obj in _enumTypeSet
-                _enumTypeSet.remove(obj)
-                _enumPortTypeSet.add(obj)
+                if obj in _enumTypeSet:
+                    _enumTypeSet.remove(obj)
+                    _enumPortTypeSet.add(obj)
+                else:
+                    assert obj in _enumPortTypeSet
 
         doc = _makeDoc(inspect.getdoc(func))
         
