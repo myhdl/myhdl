@@ -147,6 +147,7 @@ class _ToVHDLConvertor(object):
         ### initialize properly ###
         _genUniqueSuffix.reset()
         _enumTypeSet.clear()
+        _enumPortTypeSet.clear()
         _constDict.clear()
         _extConstDict.clear()
 
@@ -257,6 +258,8 @@ def _writeFileHeader(f, fn):
 def _writeCustomPackage(f, intf):
     print >> f
     print >> f, "package pck_%s is" % intf.name
+    print >> f
+    print >> f, "attribute enum_encoding: string;"
     print >> f
     sortedList = list(_enumPortTypeSet)
     sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
