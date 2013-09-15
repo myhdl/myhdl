@@ -126,6 +126,16 @@ class _SigNameVisitor(ast.NodeVisitor):
     def visit_Attribute(self, node):
         self.visit(node.value)
 
+    def visit_Call(self, node):
+        fn = None
+        if isinstance(node.func, ast.Name):
+            fn = node.func.id
+        if fn == "len":
+            pass
+        else:
+            self.generic_visit(node)
+            
+
     def visit_Subscript(self, node, access=INPUT):
         self.visit(node.value)
         self.context = INPUT

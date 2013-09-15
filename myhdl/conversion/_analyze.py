@@ -578,6 +578,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is concat:
             node.obj = self.getVal(node)
         elif f is len:
+            self.access = _access.UNKNOWN
             node.obj = int(0) # XXX
         elif f is bool:
             node.obj = bool()
