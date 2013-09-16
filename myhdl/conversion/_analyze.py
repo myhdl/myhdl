@@ -54,6 +54,10 @@ _extConstDict = {}
 
 
 def _makeName(n, prefixes):
+    #Take care of names with periods
+    #For attribute references, periods are replaced with '_'.
+    if '.' in n:
+        n = n.replace('.', '_')
     # trim empty prefixes
     prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
@@ -103,10 +107,6 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
-            if '.' in n:
-                n = n.replace('.', '_')
-                while n in sigdict:
-                    n = n + '_'
             if isinstance(s, _SliceSignal):
                 continue
             s._name = _makeName(n, prefixes)
