@@ -906,6 +906,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         fn = node.func
         # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
+        pre, suf = '', ''
         opening, closing = '(', ')'
         sep = ", "
         if f is bool:
@@ -969,6 +970,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(" ns")
             return
         elif f is concat:
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
             opening, closing =  "unsigned'(", ")"
             sep = " & "
         elif hasattr(node, 'tree'):
@@ -976,12 +978,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.write(f.__name__)
         if node.args:
+            self.write(pre)
             self.write(opening)
             self.visit(node.args[0])
             for arg in node.args[1:]:
                 self.write(sep)
                 self.visit(arg)
             self.write(closing)
+            self.write(suf)
         if hasattr(node, 'tree'):
             if node.tree.kind == _kind.TASK:
                 Visitor = _ConvertTaskVisitor
@@ -1198,7 +1202,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if edges is not None:
                 edgeTests = [e._toVHDL() for e in edges]
                 self.write("elsif ")
-                self.write("or ".join(edgeTests))
+                self.write(" or ".join(edgeTests))
                 self.write(" then")
             else:
                 self.write("else")
