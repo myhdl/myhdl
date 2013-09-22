@@ -53,11 +53,13 @@ _constDict = {}
 _extConstDict = {}
 
 
-def _makeName(n, prefixes):
+def _makeName(n, prefixes, namedict):
     #Take care of names with periods
     #For attribute references, periods are replaced with '_'.
     if '.' in n:
         n = n.replace('.', '_')
+        while n in namedict:
+            n += '_'
     # trim empty prefixes
     prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
@@ -109,10 +111,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
                 continue
             if isinstance(s, _SliceSignal):
                 continue
-            s._name = _makeName(n, prefixes)
-            if '.' in n:
-                while s._name in sigdict:
-                    s._name += '_'
+            s._name = _makeName(n, prefixes, sigdict)
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
             # slice signals
@@ -123,10 +122,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, m in memdict.items():
             if m.name is not None:
                 continue
-            m.name = _makeName(n, prefixes)
-            if '.' in n:
-                while m.name in memdict:
-                    m.name += '_'
+            m.name = _makeName(n, prefixes, memdict)
             memlist.append(m)
 
     # handle the case where a named signal appears in a list also by giving
