@@ -96,6 +96,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         name = inst.name
         sigdict = inst.sigdict
         memdict = inst.memdict
+        namedict = dict(sigdict.items() + memdict.items())
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
@@ -111,7 +112,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
                 continue
             if isinstance(s, _SliceSignal):
                 continue
-            s._name = _makeName(n, prefixes, sigdict)
+            s._name = _makeName(n, prefixes, namedict)
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
             # slice signals
@@ -122,7 +123,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, m in memdict.items():
             if m.name is not None:
                 continue
-            m.name = _makeName(n, prefixes, memdict)
+            m.name = _makeName(n, prefixes, namedict)
             memlist.append(m)
 
     # handle the case where a named signal appears in a list also by giving
