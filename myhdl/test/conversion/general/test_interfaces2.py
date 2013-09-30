@@ -34,7 +34,7 @@ def m_test_intf(clock,reset,a,b,c):
     intfaa = Intf()
 
     gen_mod = m_modify(clock,reset,intfaa)
-    
+
     @always_seq(clock.posedge,reset=reset)
     def rtl_inc():
         intfa.x.next = intfa.x - 1
@@ -56,6 +56,25 @@ def m_test_intf(clock,reset,a,b,c):
         a.z.next = intfaa.z + 3
 
     return gen_mod,rtl_inc,rtl_combine
+
+
+def name_conflict_after_replace(clock, reset, a, a_x):
+    a_x_0 = [Signal(intbv(0)[len(a_x):]) for i in range(8)]
+
+    @always_seq(clock.posedge, reset=reset)
+    def logic():
+        a.x.next = a_x
+        a_x.next = a_x_0[1]
+
+    return logic
+
+
+def test_name_conflict_after_replace():
+    clock = Signal(False)
+    reset = ResetSignal(0, active=0, async=False)
+    a = Intf()
+    a_x = Signal(intbv(0)[len(a.x):])
+    assert conversion.analyze(name_conflict_after_replace, clock, reset, a, a_x) == 0
 
 
 def c_testbench():
@@ -82,9 +101,9 @@ def c_testbench():
         for ii in range(17):
             print("a: x=%d y=%d z=%d"%(a.x,a.y,a.z))
             print("b: x=%d y=%d z=%d"%(b.x,b.y,b.z))
-            print("c: x=%d y=%d z=%d"%(c.x,c.y,c.z))            
+            print("c: x=%d y=%d z=%d"%(c.x,c.y,c.z))
             yield clock.posedge
-            
+
         raise StopSimulation
 
     return tb_dut,tb_clk,tb_stim
@@ -102,4 +121,3 @@ if __name__ == '__main__':
     verify.simulator = analyze.simulator = sys.argv[1]
     Simulation(c_testbench()).run()
     print(verify(c_testbench))
-

@@ -58,8 +58,11 @@ def _makeName(n, prefixes, namedict):
     #For attribute references, periods are replaced with '_'.
     if '.' in n:
         n = n.replace('.', '_')
-        while n in namedict:
-            n += '_'
+        if n in namedict:
+            i = 0
+            while (n + '_{}'.format(i)) in namedict:
+                i += 1
+            n += '_{}'.format(i)
     # trim empty prefixes
     prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
@@ -1274,8 +1277,10 @@ def _analyzeTopFunc(top_inst, func, *args, **kwargs):
             continue
         for attr, attrobj in vars(obj).items():
             if isinstance(attrobj, _Signal):
-                signame = name + '_' + attr
-                attrobj._name = signame
+                signame = attrobj._name
+                if not signame:
+                    signame = name + '_' + attr
+                    attrobj._name = signame
                 v.argdict[signame] = attrobj
                 v.argnames.append(signame)
 
