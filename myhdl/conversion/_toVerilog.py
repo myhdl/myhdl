@@ -86,7 +86,8 @@ class _ToVerilogConvertor(object):
                  "radix",
                  "header",
                  "no_myhdl_header",
-                 "no_testbench"
+                 "no_testbench",
+                 "portmap"
                  )
 
     def __init__(self):
@@ -157,6 +158,7 @@ class _ToVerilogConvertor(object):
 
         ### clean-up properly ###
         self._cleanup(siglist)
+        self.portmap = intf.argdict
 
         return h.top
 
