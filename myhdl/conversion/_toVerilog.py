@@ -87,7 +87,8 @@ class _ToVerilogConvertor(object):
                  "header",
                  "no_myhdl_header",
                  "no_testbench",
-                 "portmap"
+                 "portmap",
+                 "trace"
                  )
 
     def __init__(self):
@@ -99,6 +100,7 @@ class _ToVerilogConvertor(object):
         self.header = ''
         self.no_myhdl_header = False
         self.no_testbench = False
+        self.trace = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -153,7 +155,7 @@ class _ToVerilogConvertor(object):
         if len(intf.argnames) > 0 and not toVerilog.no_testbench:
             tbpath = "tb_" + vpath
             tbfile = open(tbpath, 'w')
-            _writeTestBench(tbfile, intf)
+            _writeTestBench(tbfile, intf, self.trace)
             tbfile.close()
 
         ### clean-up properly ###
@@ -178,6 +180,7 @@ class _ToVerilogConvertor(object):
         self.header = ""
         self.no_myhdl_header = False
         self.no_testbench = False
+        self.trace = False
 
 
     def _convert_filter(self, h, intf, siglist, memlist, genlist):
@@ -313,7 +316,7 @@ def _writeModuleFooter(f):
     print >> f, "endmodule"
 
 
-def _writeTestBench(f, intf):
+def _writeTestBench(f, intf, trace=False):
     print >> f, "module tb_%s;" % intf.name
     print >> f
     fr = StringIO()
@@ -331,6 +334,9 @@ def _writeTestBench(f, intf):
         print >> pm, "    %s," % portname
     print >> f
     print >> f, "initial begin"
+    if trace:
+        print >> f, '    $dumpfile("%s");' % intf.name
+        print >> f, '    $dumpvars(0, dut);'
     if fr.getvalue():
         print >> f, "    $from_myhdl("
         print >> f, fr.getvalue()[:-2]
