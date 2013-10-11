@@ -139,6 +139,7 @@ class _ToVerilogConvertor(object):
         _annotateTypes(genlist)
         top_inst = h.hierarchy[0]
         intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
+        intf.name = name
         doc = _makeDoc(inspect.getdoc(func))
 
         self._convert_filter(h, intf, siglist, memlist, genlist)
