@@ -53,7 +53,16 @@ _constDict = {}
 _extConstDict = {}
 
 
-def _makeName(n, prefixes):
+def _makeName(n, prefixes, namedict):
+    #Take care of names with periods
+    #For attribute references, periods are replaced with '_'.
+    if '.' in n:
+        n = n.replace('.', '_')
+        if n in namedict:
+            i = 0
+            while (n + '_{}'.format(i)) in namedict:
+                i += 1
+            n += '_{}'.format(i)
     # trim empty prefixes
     prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
@@ -90,6 +99,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         name = inst.name
         sigdict = inst.sigdict
         memdict = inst.memdict
+        namedict = dict(sigdict.items() + memdict.items())
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
@@ -103,13 +113,9 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
-            if '.' in n:
-                n = n.replace('.', '_')
-                while n in sigdict:
-                    n = n + '_'
             if isinstance(s, _SliceSignal):
                 continue
-            s._name = _makeName(n, prefixes)
+            s._name = _makeName(n, prefixes, namedict)
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
             # slice signals
@@ -120,7 +126,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, m in memdict.items():
             if m.name is not None:
                 continue
-            m.name = _makeName(n, prefixes)
+            m.name = _makeName(n, prefixes, namedict)
             memlist.append(m)
 
     # handle the case where a named signal appears in a list also by giving
@@ -1272,8 +1278,10 @@ def _analyzeTopFunc(top_inst, func, *args, **kwargs):
             continue
         for attr, attrobj in vars(obj).items():
             if isinstance(attrobj, _Signal):
-                signame = name + '_' + attr
-                attrobj._name = signame
+                signame = attrobj._name
+                if not signame:
+                    signame = name + '_' + attr
+                    attrobj._name = signame
                 v.argdict[signame] = attrobj
                 v.argnames.append(signame)
 
