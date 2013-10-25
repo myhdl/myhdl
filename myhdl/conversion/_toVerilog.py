@@ -336,7 +336,7 @@ def _writeTestBench(f, intf, trace=False):
     print >> f
     print >> f, "initial begin"
     if trace:
-        print >> f, '    $dumpfile("%s");' % intf.name
+        print >> f, '    $dumpfile("%s.vcd");' % intf.name
         print >> f, '    $dumpvars(0, dut);'
     if fr.getvalue():
         print >> f, "    $from_myhdl("
