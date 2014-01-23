@@ -1272,7 +1272,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = '1' if init else '0'
     elif tipe is intbv:
-        v = "%s" % init
+        v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)
         v = init._toVerilog()
