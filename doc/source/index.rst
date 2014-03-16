@@ -4,6 +4,10 @@
 
 .. include:: <isonum.txt>
 
+
+Welcome to the MyHDL documentation
+==================================
+
 |myhdl-site|_ 
 =============
 
@@ -11,9 +15,6 @@
 
 .. _myhdl-site: http://www.myhdl.org
 
-
-Welcome to the MyHDL documentation
-==================================
 
 .. toctree::
    :maxdepth: 2
