@@ -2,10 +2,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. include:: <isonum.txt>
+
+|myhdl-site|_ 
+=============
+
+.. |myhdl-site| replace:: Back to the main site |raquo|
+
+.. _myhdl-site: http://www.myhdl.org
+
+
 Welcome to the MyHDL documentation
 ==================================
-
-Contents:
 
 .. toctree::
    :maxdepth: 2
