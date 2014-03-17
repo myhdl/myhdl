@@ -4,16 +4,14 @@
 
 .. include:: <isonum.txt>
 
-
-Welcome to the MyHDL documentation
-==================================
-
 |myhdl-site|_ 
-=============
 
 .. |myhdl-site| replace:: Back to the main site |raquo|
 
 .. _myhdl-site: http://www.myhdl.org
+
+Welcome to the MyHDL documentation
+==================================
 
 
 .. toctree::
