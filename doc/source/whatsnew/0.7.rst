@@ -6,8 +6,6 @@
 What's new in MyHDL 0.7
 ***********************
 
-:Author: Jan Decaluwe
-
 Conversion to VHDL/Verilog rewritten with the ``ast`` module
 ============================================================
 

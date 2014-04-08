@@ -2,10 +2,6 @@
   The MyHDL manual  
 ********************
 
-:Author: Jan Decaluwe
-
-Contents:
-
 .. toctree::
    :maxdepth: 2
 

@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'MyHDL'
-copyright = u'2012, Jan Decaluwe'
+copyright = u'2014, Jan Decaluwe'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -183,14 +183,12 @@ latex_elements = {
 
 # Additional stuff for the LaTeX preamble.
 'preamble': '\usepackage{palatino}',
+
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, document class [howto/manual]).
-latex_documents = [(u'manual/index', u'MyHDL.tex', u'MyHDL manual', u'Jan Decaluwe', u'manual'),
-                   (u'whatsnew/0.8', u'whatsnew0.8.tex', u'What\'s new in MyHDL 0.8', u'Jan Decaluwe', u'howto'),
-                   (u'whatsnew/0.7', u'whatsnew0.7.tex', u'What\'s new in MyHDL 0.7', u'Jan Decaluwe', u'howto'),
-                   (u'whatsnew/0.6', u'whatsnew0.6.tex', u'What\'s new in MyHDL 0.6', u'Jan Decaluwe', u'howto'),
+latex_documents = [(u'manual/index', u'MyHDL.tex', u'MyHDL manual', u'Jan Decaluwe', u'manual', True),
                   ]
 
 # The name of an image file (relative to this directory) to place at the top of

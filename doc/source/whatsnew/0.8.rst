@@ -6,8 +6,6 @@
 What's new in MyHDL 0.8
 ***********************
 
-:Author: Jan Decaluwe
-
 Modular bit vector types
 ========================
 
