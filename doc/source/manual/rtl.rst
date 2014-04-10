@@ -191,7 +191,7 @@ the :func:`StopSimulation()` exception to stop the simulation run. The test benc
 a small incrementer and a small number of patterns is a follows::
 
    def testbench():
-       count, enable, clock = [Signal(intbv(0)) for i in range(4)]
+       count, enable, clock = [Signal(intbv(0)) for i in range(3)]
        reset = ResetSignal(0, active=ACTIVE_LOW, async=True)
 
        inc_1 = Inc(count, enable, clock, reset, n=4)
