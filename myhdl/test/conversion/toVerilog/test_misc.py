@@ -19,9 +19,9 @@ def or_gate(a,b,c):
     return logic
         
 def my_bundle(p,q):
-	r = Signal(bool(0))
-	gen_or = or_gate(p,r,q)
-	return instances()
+        r = Signal(bool(0))
+        gen_or = or_gate(p,r,q)
+        return instances()
 
 # additional level of hierarchy
 def ConstWire2(p, q):

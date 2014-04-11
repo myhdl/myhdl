@@ -26,7 +26,7 @@ def adapter(o_err, i_err, o_spec, i_spec):
 
     @always_comb
     def assign():
- 	nomatch.next = 0
+        nomatch.next = 0
         other.next = (other_vec != 0)
         o_err.next = o_err_vec
 

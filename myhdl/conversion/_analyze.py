@@ -550,7 +550,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.raiseError(node, _error.ModbvRange, n)
             ws = getattr(obj, 'lenStr', False)
             ext = getattr(obj, 'external', False)
-	    if ws and ws in self.tree.symdict:
+            if ws and ws in self.tree.symdict:
                 _constDict[ws] = self.tree.symdict[ws]
                 if ext:
                     _extConstDict[ws] = self.tree.symdict[ws]
@@ -845,7 +845,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     node.edge = sig.posedge
                 ws = getattr(sig._val, 'lenStr', False)
                 ext = getattr(sig._val, 'external', False)
-	        if ws and ws in self.tree.symdict:
+                if ws and ws in self.tree.symdict:
                     _constDict[ws] = self.tree.symdict[ws]
                     if ext:
                         _extConstDict[ws] = self.tree.symdict[ws]
@@ -887,7 +887,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.tree.hasLos = True
                 ws = getattr(m.elObj._val, 'lenStr', False)
                 ext = getattr(m.elObj._val, 'external', False)
-	        if ws and ws in self.tree.symdict:
+                if ws and ws in self.tree.symdict:
                     _constDict[ws] = self.tree.symdict[ws]
                     if ext:
                         _extConstDict[ws] = self.tree.symdict[ws]
@@ -902,7 +902,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 # typedef string for nonlocal intbv's
                 ws = getattr(v, 'lenStr', False)
                 ext = getattr(v, 'external', False)
-	        if ws and ws in self.tree.symdict:
+                if ws and ws in self.tree.symdict:
                     _constDict[ws] = self.tree.symdict[ws]
                     if ext:
                         _extConstDict[ws] = self.tree.symdict[ws]

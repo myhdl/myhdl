@@ -36,7 +36,7 @@ def test_longdiv(nrvectors=2**18):
         
     @instance
     def stimulus():
-	stopped.next = 0
+        stopped.next = 0
         yield delay(10)
         random_word = intbv(0)[32:]
         p = intbv(0)[16:]
@@ -71,7 +71,7 @@ def test_longdiv(nrvectors=2**18):
             #print d, p, q, quotient
             assert quotient == q
         stopped.next = 1 
-	yield delay(10)
+        yield delay(10)
         #raise StopSimulation()
             
     return dut, clockgen, stimulus

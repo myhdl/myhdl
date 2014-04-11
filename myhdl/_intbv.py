@@ -98,17 +98,17 @@ class intbv(object):
     # copy methods
     def __copy__(self):
         c = type(self)(self._val)
-	c._min = self._min
-	c._max = self._max
-	c._nrbits = self._nrbits
-	return c
+        c._min = self._min
+        c._max = self._max
+        c._nrbits = self._nrbits
+        return c
 
     def __deepcopy__(self, visit):
         c = type(self)(self._val)
-	c._min = self._min
-	c._max = self._max
-	c._nrbits = self._nrbits
-	return c
+        c._min = self._min
+        c._max = self._max
+        c._nrbits = self._nrbits
+        return c
 
     # iterator method
     def __iter__(self):
