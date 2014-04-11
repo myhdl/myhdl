@@ -61,4 +61,4 @@ def test_timer_array(timer):
 if __name__ == '__main__':
     sim = Simulation(test_timer_array(timer_var))
     sim.run()
-	
+        

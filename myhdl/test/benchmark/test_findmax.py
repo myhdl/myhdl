@@ -54,7 +54,7 @@ def test_findmax():
         
     @instance
     def stimulus():
-	stopped.next = 0
+        stopped.next = 0
         yield delay(10)
         exp = intbv(0)[W:]
         val = intbv(0)[W:]
@@ -64,14 +64,14 @@ def test_findmax():
             exp[:] = 0
             for s in range(L):
                 random_word[:] = glibc_random(random_word)
-	        val[:] = random_word[W:]
+                val[:] = random_word[W:]
                 if exp < val:
                     exp[:] = val 
                 a[s].next = val 
             yield clock.negedge
             assert z == exp
         stopped.next = 1 
-	yield delay(10)
+        yield delay(10)
             
     return dut, clockgen, stimulus
     

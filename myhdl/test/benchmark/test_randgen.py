@@ -26,7 +26,7 @@ def test_randgen():
             clock.next = 1
             yield delay(10)
             clock.next = 0
-	    print random_word
+            print random_word
         
     return dut, stimulus
 

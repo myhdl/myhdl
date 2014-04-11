@@ -419,8 +419,8 @@ def _getRangeString(s):
     elif s._nrbits is not None:
         ls = getattr(s, 'lenStr', False)
         if ls:
-	    msb = ls + '-1'
-	else:
+            msb = ls + '-1'
+        else:
             msb = s._nrbits-1 
         return "(%s downto 0)" %  msb
     else:
@@ -861,7 +861,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(lhs.value, ast.Name):
                 sig = self.tree.symdict[lhs.value.id]
                 if not sig._numeric:
-	            #if not isinstance(rhs, ast.Num):
+                    #if not isinstance(rhs, ast.Num):
                     convOpen, convClose = "std_logic_vector(", ")"
             self.write(' <= ')
             self.SigAss = False
@@ -1879,7 +1879,7 @@ class vhd_unsigned(vhd_vector):
             ls = self.lenStr
             if ls:
                 return "unsigned(%s-1 downto 0)" % ls
-	    else:
+            else:
                 return "unsigned(%s downto 0)" % (self.size-1)
         else:
             return "unsigned"
@@ -1890,7 +1890,7 @@ class vhd_signed(vhd_vector):
             ls = self.lenStr
             if ls:
                 return "signed(%s-1 downto 0)" % ls
-	    else:
+            else:
                 return "signed(%s downto 0)" % (self.size-1)
         else:
             return "signed"
