@@ -31,6 +31,11 @@ Combinatorial logic
 Template
 --------
 
+.. testsetup:: *
+
+   from myhdl import *
+
+
 Combinatorial logic is described with a code pattern as follows::
 
    def top(<parameters>):
@@ -53,7 +58,10 @@ to all inputs, and that executes the function whenever an input changes.
 Example
 -------
 
-The following is an example of a combinatorial multiplexer::
+The following is an example of a combinatorial multiplexer
+
+
+.. testcode:: comb1
 
    from myhdl import Signal, Simulation, delay, always_comb
 
@@ -74,14 +82,19 @@ The following is an example of a combinatorial multiplexer::
            else:
                z.next = b
 
-       return muxLogic
+       return muxLogic   
+
 
 To verify it, we will simulate the logic with some random patterns. The
 ``random`` module in Python's standard library comes in handy for such purposes.
 The function ``randrange(n)`` returns a random natural integer smaller than *n*.
-It is used in the test bench code to produce random input values::
+It is used in the test bench code to produce random input values
 
+.. testcode:: comb1
+   
+   import random
    from random import randrange
+   random.seed(0xDECAFBAD)
 
    z, a, b, sel = [Signal(0) for i in range(4)]
 
@@ -95,14 +108,14 @@ It is used in the test bench code to produce random input values::
            print "%s %s %s %s" % (z, a, b, sel)
 
    test_1 = test()
-
    sim = Simulation(mux_1, test_1)
    sim.run()    
 
 Because of the randomness, the simulation output varies between runs  [#]_. One
-particular run produced the following output::
+particular run produced the following output
 
-   % python mux.py
+.. testoutput:: comb1
+
    z a b sel
    6 6 1 1
    7 7 1 1
@@ -111,7 +124,7 @@ particular run produced the following output::
    7 7 5 1
    4 7 4 0
    4 0 4 0
-   3 3 5 1
+   3 3 5 1   fff
    StopSimulation: No more events
 
 
@@ -159,9 +172,10 @@ Example
 -------
 
 The following code is a description of an incrementer with enable, and an
-asynchronous reset. ::
+asynchronous reset. 
 
-   from random import randrange
+.. testcode:: seq1
+
    from myhdl import *
   
    ACTIVE_LOW, INACTIVE_HIGH = 0, 1
@@ -185,10 +199,18 @@ asynchronous reset. ::
 
        return incLogic
 
+
+
 For the test bench, we will use an independent clock generator, stimulus
 generator, and monitor. After applying enough stimulus patterns, we can raise
 the :func:`StopSimulation()` exception to stop the simulation run. The test bench for
-a small incrementer and a small number of patterns is a follows::
+a small incrementer and a small number of patterns is a follows
+
+.. testcode:: seq1
+
+   import random
+   from random import randrange
+   random.seed(0xDECAFBAD)
 
    def testbench():
        count, enable, clock = [Signal(intbv(0)) for i in range(3)]
@@ -225,28 +247,26 @@ a small incrementer and a small number of patterns is a follows::
 
 
    tb = testbench()
+   Simulation(tb).run()
 
-   def main():
-       Simulation(tb).run()
+.. can't test the following output because the output is random
+.. [dsiabled] 
 
-The simulation produces the following output::
+The simulation produces the following output
 
-   % python inc.py
+.. testoutput:: seq1
+
    enable  count
-      0      0
       1      1
       0      1
       1      2
       1      3
+      0      3
       1      0
-      0      0
       1      1
-      0      1
-      0      1
-      0      1
       1      2
-   StopSimulation
-
+      1      3
+      1      0
 .. _mode-seq-templ-alt:
 
 Alternative template
@@ -280,7 +300,10 @@ deserves special attention.
 
 For code clarity, the state values are typically represented by a set of
 identifiers. A standard Python idiom for this purpose is to assign a range of
-integers to a tuple of identifiers, like so::
+integers to a tuple of identifiers, like so
+
+
+.. doctest::
 
    >>> SEARCH, CONFIRM, SYNC = range(3)
    >>> CONFIRM
@@ -297,7 +320,10 @@ need an *enumeration type*.
 MyHDL supports enumeration types by providing a function :func:`enum`.  The
 arguments to :func:`enum` are the string representations of the identifiers, and
 its return value is an enumeration type. The identifiers are available as
-attributes of the type. For example::
+attributes of the type. For example
+
+
+.. doctest::
 
    >>> from myhdl import enum
    >>> t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
@@ -318,7 +344,9 @@ framing pattern and indicates it to the FSM with a ``syncFlag`` signal. When
 found, the FSM moves from the initial ``SEARCH`` state to the ``CONFIRM`` state.
 When the ``syncFlag`` is confirmed on the expected position, the FSM declares
 ``SYNC``, otherwise it falls back to the ``SEARCH`` state.  This FSM can be
-coded as follows::
+coded as follows
+
+.. testcode:: sm1
 
    from myhdl import *
 
