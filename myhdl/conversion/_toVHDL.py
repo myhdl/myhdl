@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2012 Jan Decaluwe
+#  Copyright (C) 2003-2014 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -1262,12 +1262,18 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             s = n
             if isinstance(obj, bool):
                 s = "'%s'" % int(obj)
+                # print the symbol for a boolean in the global constant dict
+                if n in _constDict and obj == _constDict[n]:
+                    if isinstance(node.vhd, vhd_boolean):
+                        s = "bool(%s)" % n
             elif isinstance(obj, (int, long)):
-                # print the symbol for integer in the global constant dict
+                # print the symbol for an integer in the global constant dict
                 if n in _constDict and obj == _constDict[n]:
                     assert abs(obj) < 2**31
                     if isinstance(node.vhd, vhd_int):
                         s = n
+                    elif isinstance(node.vhd, vhd_boolean):
+                        s = "bool(%s)" % n
                     elif isinstance(node.vhd, vhd_std_logic):
                         s = "stdl(%s)" % n
                     elif isinstance(node.vhd, vhd_unsigned):
