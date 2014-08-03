@@ -436,11 +436,37 @@ class intbv(object):
     def __index__(self):
         return int(self._val)
         
-    def __cmp__(self, other):
+    # comparisons
+    def __eq__(self, other):
         if isinstance(other, intbv):
-            return cmp(self._val, other._val)
+            return self._val == other._val
         else:
-            return cmp(self._val, other)
+            return self._val == other
+    def __ne__(self, other):
+        if isinstance(other, intbv):
+            return self._val != other._val
+        else:
+            return self._val != other
+    def __lt__(self, other):
+        if isinstance(other, intbv):
+            return self._val < other._val
+        else:
+            return self._val < other
+    def __le__(self, other):
+        if isinstance(other, intbv):
+            return self._val <= other._val
+        else:
+            return self._val <= other
+    def __gt__(self, other):
+        if isinstance(other, intbv):
+            return self._val > other._val
+        else:
+            return self._val > other
+    def __ge__(self, other):
+        if isinstance(other, intbv):
+            return self._val >= other._val
+        else:
+            return self._val >= other
 
     # representation 
     def __str__(self):
