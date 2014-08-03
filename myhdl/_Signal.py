@@ -474,9 +474,20 @@ class _Signal(object):
         return int(self._val)
 
 
-    # comparison
-    def __cmp__(self, other):
-        return cmp(self._val, other)
+    # comparisons
+    def __eq__(self, other):
+        return self.val == other 
+    def __ne__(self, other):
+        return self.val != other 
+    def __lt__(self, other):
+        return self.val < other
+    def __le__(self, other):
+        return self.val <= other
+    def __gt__(self, other):
+        return self.val > other
+    def __ge__(self, other):
+        return self.val >= other
+
 
     # method lookup delegation
     def __getattr__(self, attr):
