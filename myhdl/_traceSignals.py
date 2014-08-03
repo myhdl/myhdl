@@ -168,7 +168,7 @@ def _writeVcdSigs(f, hierarchy, tracelists):
             for n in memdict.keys():
                 memindex = 0
                 for s in memdict[n].mem:
-                    if s._val == None:
+                    if s._val is None:
                         raise ValueError("%s of module %s has no initial value" % (n, name))
                     if not s._tracing:
                         s._tracing = 1
