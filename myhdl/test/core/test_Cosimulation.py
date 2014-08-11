@@ -245,7 +245,7 @@ class CosimulationTest(TestCase):
         cosim._getMode = 1
         cosim._get()
         for n in toSignames:
-            self.assertEqual(toSigs[n].next, None)
+            self.assertEqual(toSigs[n].next, 0)
         
 
     def cosimToSignalVals(self):

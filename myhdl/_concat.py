@@ -37,7 +37,10 @@ def concat(base, *args):
         val = base
     elif isinstance(base, _Signal):
         basewidth = base._nrbits
-        val = base._val
+        if isinstance(base._val, intbv):
+            val = base._val._val
+        else:
+            val = base._val
     elif isinstance(base, str):
         basewidth = len(base)
         val = long(base, 2)
@@ -52,7 +55,10 @@ def concat(base, *args):
             v = arg._val
         elif isinstance(arg, _Signal):
             w = arg._nrbits
-            v = arg._val
+            if isinstance(arg._val, intbv):
+                v = arg._val._val
+            else:
+                v = arg._val
         elif isinstance(arg, bool):
             w = 1
             v = arg
@@ -65,8 +71,8 @@ def concat(base, *args):
         if not w:
             raise TypeError, "concat: arg on pos %d should have length" % (i+1)
         width += w
-        val = val*(2**w) + v
-        
+        val = val << w | v & (1L << w)-1
+ 
     if basewidth:
         return intbv(val, _nrbits=basewidth + width)
     else:
