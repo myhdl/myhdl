@@ -36,5 +36,5 @@ def Logic(flags, position):
         print conc 
     return doit
 
-def test_issue_10_1():
+def test_issue_10_2():
     assert verify(Logic, flags, position) == 0
