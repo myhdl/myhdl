@@ -2009,6 +2009,8 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             for a in node.args:
                 if isinstance(a, ast.Str):
                     a.vhd = vhd_unsigned(a.vhd.size)
+                elif isinstance(a.vhd, vhd_signed):
+                    a.vhd = vhd_unsigned(a.vhd.size) 
                 s += a.vhd.size
             node.vhd = vhd_unsigned(s)
         elif f is bool:
