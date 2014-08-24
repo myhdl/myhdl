@@ -1,4 +1,4 @@
-#  This file is part of the myhdl library, a Python package for using
+
 #  Python as a Hardware Description Language.
 #
 #  Copyright (C) 2003-2014 Jan Decaluwe
@@ -906,6 +906,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         fn = node.func
         # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
+        fname = ''
         pre, suf = '', ''
         opening, closing = '(', ')'
         sep = ", "
@@ -974,11 +975,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             opening, closing =  "unsigned'(", ")"
             sep = " & "
         elif hasattr(node, 'tree'):
-            self.write(node.tree.name)
+            pre, suf = self.inferCast(node.vhd, node.tree.vhd)
+            fname = node.tree.name
         else:
             self.write(f.__name__)
         if node.args:
             self.write(pre)
+            # TODO rewrite making use of fname variable
+            self.write(fname)
             self.write(opening)
             self.visit(node.args[0])
             for arg in node.args[1:]:
@@ -1799,6 +1803,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
 
     def visit_Return(self, node):
         self.write("return ")
+        node.value.vhd = self.tree.vhd
         self.visit(node.value)
         self.write(";")
 
