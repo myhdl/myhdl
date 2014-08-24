@@ -15,7 +15,6 @@ def map_case4(z, a):
 
     return logic
 
-
 def map_case2(z, a):
 
     @always_comb
@@ -42,8 +41,20 @@ def map_case3(z, a):
 
     return logic
 
+def map_case4_full(z, a):
 
+    @always_comb
+    def logic():
+        if a == 0:
+            z.next = 0
+        elif a == 1:
+            z.next = 1
+        elif a == 2:
+            z.next = 2
+        elif a == 3:
+            z.next = 3
 
+    return logic
 
 
 def bench_case(map_case, N):
@@ -71,4 +82,7 @@ def test_case2():
 
 def test_case3():
     assert conversion.verify(bench_case, map_case3, 3) == 0
+
+def test_case4_full():
+    assert conversion.verify(bench_case, map_case4_full, 4) == 0
 
