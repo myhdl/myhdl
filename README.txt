@@ -1,5 +1,5 @@
-MyHDL 0.8
-=========
+MyHDL 0.8.1
+===========
 
 What is MyHDL?
 --------------
@@ -8,7 +8,7 @@ description and verification language.
 
 To find out whether MyHDL can be useful to you, please read:
 
-    http://www.myhdl.org/doku.php/why
+    http://www.myhdl.org/start/why.html
 
 License
 -------
@@ -20,19 +20,19 @@ The project website is located at http://www.myhdl.org
 
 Development
 -----------
-The main development repo is at https://jandecaluwe@bitbucket.org/myhdl
+The main development repo is at https://bitbucket.org/jandecaluwe/myhdl
 
 Documentation
 -------------
 The manual is available on-line:
 
-   http://www.myhdl.org/doc/0.8/manual
+   http://docs.myhdl.org/en/latest/manual
 
 What's new
 ----------
 To find out what's new in this release, please read:
 
-    http://www.myhdl.org/doc/0.8/whatsnew/0.8.html
+    http://docs.myhdl.org/en/latest/whatsnew/0.8.html
 
 Installation
 ------------
