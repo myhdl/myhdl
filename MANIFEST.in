@@ -27,4 +27,3 @@ graft doc/build/html
 prune myhdl/experiments
 exclude myhdl/test/conversion/*/*.v
 exclude myhdl/test/conversion/*/*.vhd
-prune example/cookbook/nco
