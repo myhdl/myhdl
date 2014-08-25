@@ -1,23 +1,28 @@
+Release 0.8.1 25-Aug-2014 
+-------------------------
+
+Maintenance release for 0.8.
+
 Release 0.8 20-May-2013 
 -----------------------
 
 Full details about new features and changes can be found here:
 
-    http://www.myhdl.org/doc/0.8/whatsnew/0.8.html
+    http://docs.myhdl.org/en/latest/whatsnew/0.8.html
 
 Release 0.7 24-Dec-2010
 -----------------------
 
 Full details about new features and changes can be found here:
 
-    http://www.myhdl.org/doc/0.7/whatsnew/0.7.html
+    http://docs.myhdl.org/en/latest/whatsnew/0.7.html
 
 Release 0.6 9-Jan-2009
 -----------------------
 
 Full details about new features and changes can be found here:
 
-    http://www.myhdl.org/doc/0.6/whatsnew/0.6.html
+    http://docs.myhdl.org/en/latest/whatsnew/0.6.html
 
 Release 0.5.1 1-May-2006 
 -------------------------
@@ -31,7 +36,7 @@ Release 0.5 29-Dec-2005
 
 Full details about new features and changes can be found here:
 
-    http://www.myhdl.org/doku.php/whatsnew:0.5
+    http://old.myhdl.org/doku.php/whatsnew:0.5
 
 Release 0.4.1 29-Dec-2004
 -------------------------
@@ -54,7 +59,7 @@ Release 0.4 4-Feb-2004
 
 For full details about the changes, consult:
 
-    http://www.myhdl.org/doc/0.4/whatsnew04/whatsnew04.html
+    http://old.myhdl.org/doc/0.4/whatsnew04/whatsnew04.html
 
 Release 0.3 30-Aug-2003
 -----------------------
@@ -70,7 +75,7 @@ Release 0.3 30-Aug-2003
 
 For full details about the changes, consult:
 
-  http://www.jandecaluwe.com/Tools/MyHDL/whatsnew03/whatsnew03.html
+    http://old.myhdl.org/doc/0.3/whatsnew03/whatsnew03.html
 
 
 Release 0.2 19-May-2003
