@@ -1,4 +1,4 @@
-Release 0.8.1 25-Aug-2014 
+Release 0.8.1 26-Aug-2014 
 -------------------------
 
 Maintenance release for 0.8.
