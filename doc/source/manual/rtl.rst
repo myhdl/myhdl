@@ -460,7 +460,7 @@ enabled, is shown below::
        SOF = Signal(bool(0))
        syncFlag = Signal(bool(0))
        clk = Signal(bool(0))
-       reset = ResetSignal(0, active=ACTIVE_LOW, async=True)
+       reset = ResetSignal(1, active=ACTIVE_LOW, async=True)
        state = Signal(t_State.SEARCH)
 
        framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset)
