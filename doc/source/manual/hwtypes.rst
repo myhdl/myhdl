@@ -1,5 +1,9 @@
 .. currentmodule:: myhdl
 
+.. testsetup:: *
+
+   from myhdl import *
+
 .. _hwtypes:
 
 ***********************

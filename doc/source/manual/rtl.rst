@@ -66,7 +66,6 @@ The following is an example of a combinatorial multiplexer
    from myhdl import Signal, Simulation, delay, always_comb
 
    def Mux(z, a, b, sel):
-
        """ Multiplexer.
 
        z -- mux output
@@ -74,7 +73,7 @@ The following is an example of a combinatorial multiplexer
        sel -- control input: select a if asserted, otherwise b
 
        """
-
+       
        @always_comb
        def muxLogic():
            if sel == 1:
@@ -82,7 +81,10 @@ The following is an example of a combinatorial multiplexer
            else:
                z.next = b
 
-       return muxLogic   
+       return muxLogic
+
+   z, a, b, sel = [Signal(0) for i in range(4)]
+   mux_1 = Mux(z, a, b, sel)
 
 
 To verify it, we will simulate the logic with some random patterns. The
@@ -90,14 +92,36 @@ To verify it, we will simulate the logic with some random patterns. The
 The function ``randrange(n)`` returns a random natural integer smaller than *n*.
 It is used in the test bench code to produce random input values
 
-.. testcode:: comb1
-   
+.. testcode:: comb1_complete
+   :hide:
+
    import random
-   from random import randrange
    random.seed(0xDECAFBAD)
 
-   z, a, b, sel = [Signal(0) for i in range(4)]
+.. testcode:: comb1_complete
+   
+   from random import randrange
+   from myhdl import Signal, Simulation, delay, always_comb
 
+   def Mux(z, a, b, sel):
+       """ Multiplexer.
+
+       z -- mux output
+       a, b -- data inputs
+       sel -- control input: select a if asserted, otherwise b
+
+       """
+       
+       @always_comb
+       def muxLogic():
+           if sel == 1:
+               z.next = a
+           else:
+               z.next = b
+
+       return muxLogic
+
+   z, a, b, sel = [Signal(0) for i in range(4)]
    mux_1 = Mux(z, a, b, sel)
 
    def test():
@@ -114,19 +138,17 @@ It is used in the test bench code to produce random input values
 Because of the randomness, the simulation output varies between runs  [#]_. One
 particular run produced the following output
 
-.. testoutput:: comb1
+.. testoutput:: comb1_complete
 
    z a b sel
-   6 6 1 1
-   7 7 1 1
-   7 3 7 0
-   1 2 1 0
-   7 7 5 1
-   4 7 4 0
-   4 0 4 0
-   3 3 5 1   fff
-   StopSimulation: No more events
-
+   6 6 0 1
+   7 7 2 1
+   7 6 7 0
+   0 3 0 0
+   1 1 1 1
+   1 5 1 0
+   2 3 2 0
+   1 1 0 1
 
 .. _model-seq:
 
@@ -207,10 +229,14 @@ the :func:`StopSimulation()` exception to stop the simulation run. The test benc
 a small incrementer and a small number of patterns is a follows
 
 .. testcode:: seq1
+   :hide:
 
    import random
-   from random import randrange
    random.seed(0xDECAFBAD)
+
+.. testcode:: seq1
+
+   from random import randrange
 
    def testbench():
        count, enable, clock = [Signal(intbv(0)) for i in range(3)]
@@ -267,6 +293,9 @@ The simulation produces the following output
       1      2
       1      3
       1      0
+      0      0
+      1      1
+
 .. _mode-seq-templ-alt:
 
 Alternative template
