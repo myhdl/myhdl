@@ -200,7 +200,7 @@ Regular signals
     *val* is a boolean value that specifies the intial value,
     *active* is a boolean value that specifies the active level.
     *async* is a boolean value that specifies the reset style:
-    asynchronous (``True``) or asynchronous (``False``).
+    asynchronous (``True``) or synchronous (``False``).
 
     This class should be used in conjunction with the :func:`always_seq`
     decorator.
