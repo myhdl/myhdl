@@ -339,7 +339,7 @@ The two classes have an identical interface and work together
 in a straightforward way for arithmetic operations.
 The only difference is how the bounds are handled: out-of-bound values
 result in an error with :class:`intbv`, and in wrap-around with
-:class:`modbv`. For example, the modulo counter as above can be
+:class:`modbv`. For example, the modulo counter above can be
 modeled as follows::
 
     count = Signal(modbv(0, min=0, max=2**8))
