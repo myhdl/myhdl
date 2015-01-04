@@ -453,7 +453,9 @@ number of non-keyword and keyword arguments that will be passed to the function
 call.
 
 A small test bench for our framing controller example, with signal tracing
-enabled, is shown below::
+enabled, is shown below:
+
+.. testcode:: sm1
 
    def testbench():
 
@@ -481,13 +483,59 @@ enabled, is shown below::
                    yield clk.posedge
            raise StopSimulation
 
-       return framectrl, clkgen, stimulus
-
+       @always_seq(clk.posedge, reset=reset)
+       def output_printer():
+           print syncFlag, SOF, state
+       
+       return framectrl, clkgen, stimulus, output_printer
 
    tb_fsm = traceSignals(testbench)
    sim = Simulation(tb_fsm)
    sim.run()
 
+.. testoutput:: sm1
+   :hide:
+   
+   False False SEARCH
+   False False SEARCH
+   False False SEARCH
+   1 False SEARCH
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False SEARCH
+   0 False SEARCH
+   0 False SEARCH
+   1 False SEARCH
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   1 False CONFIRM
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   1 True SYNC
+   0 False SYNC
+   0 False SYNC
+
+.. testcleanup:: sm1
+   
+   import os
+   os.remove('testbench.vcd')
+   
 When we run the test bench, it generates a VCD file called
 :file:`testbench.vcd`. When we load this file into :program:`gtkwave`, we can
 view the waveforms:
