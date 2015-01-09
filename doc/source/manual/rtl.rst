@@ -83,62 +83,43 @@ The following is an example of a combinatorial multiplexer
 
        return muxLogic
 
-   z, a, b, sel = [Signal(0) for i in range(4)]
-   mux_1 = Mux(z, a, b, sel)
+   # Once we've created some signals...
+   z, a, b, sel = [Signal(intbv(0)) for i in range(4)]
 
+   # ...it can be instantiated as follows
+   mux_1 = Mux(z, a, b, sel)
 
 To verify it, we will simulate the logic with some random patterns. The
 ``random`` module in Python's standard library comes in handy for such purposes.
 The function ``randrange(n)`` returns a random natural integer smaller than *n*.
 It is used in the test bench code to produce random input values
 
-.. testcode:: comb1_complete
+.. testcode:: comb1
    :hide:
 
    import random
    random.seed(0xDECAFBAD)
 
-.. testcode:: comb1_complete
-   
+.. testcode:: comb1
+
    from random import randrange
-   from myhdl import Signal, Simulation, delay, always_comb
-
-   def Mux(z, a, b, sel):
-       """ Multiplexer.
-
-       z -- mux output
-       a, b -- data inputs
-       sel -- control input: select a if asserted, otherwise b
-
-       """
-       
-       @always_comb
-       def muxLogic():
-           if sel == 1:
-               z.next = a
-           else:
-               z.next = b
-
-       return muxLogic
-
-   z, a, b, sel = [Signal(0) for i in range(4)]
-   mux_1 = Mux(z, a, b, sel)
 
    def test():
+   
        print "z a b sel"
        for i in range(8):
            a.next, b.next, sel.next = randrange(8), randrange(8), randrange(2)
            yield delay(10)
            print "%s %s %s %s" % (z, a, b, sel)
-
+   
+   
    test_1 = test()
-   sim = Simulation(mux_1, test_1)
-   sim.run()    
+   sim = Simulation(mux_1, test_1).run()   
 
 Because of the randomness, the simulation output varies between runs  [#]_. One
 particular run produced the following output
 
-.. testoutput:: comb1_complete
+.. testoutput:: comb1
 
    z a b sel
    6 6 0 1
@@ -274,9 +255,6 @@ a small incrementer and a small number of patterns is a follows
 
    tb = testbench()
    Simulation(tb).run()
-
-.. can't test the following output because the output is random
-.. [dsiabled] 
 
 The simulation produces the following output
 
