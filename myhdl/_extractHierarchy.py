@@ -32,10 +32,9 @@ import linecache
 
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
 from myhdl._Signal import _Signal, _isListOfSigs
-from myhdl._util import _isGenFunc, _flatten
+from myhdl._util import _isGenFunc, _flatten, _genfunc
 from myhdl._misc import _isGenSeq
 from myhdl._resolverefs import _resolveRefs
-from myhdl._convutils import _genfunc
 
 
 _profileFunc = None

@@ -1,5 +1,4 @@
 import ast
-# from myhdl._convutils import _makeAST, _genfunc
 from myhdl._util import _flatten, _makeAST, _genfunc
 from myhdl._enum import EnumType
 from myhdl._Signal import SignalType
