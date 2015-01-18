@@ -60,9 +60,9 @@ def _makeName(n, prefixes, namedict):
         n = n.replace('.', '_')
         if n in namedict:
             i = 0
-            while (n + '_{}'.format(i)) in namedict:
+            while (n + '_{0}'.format(i)) in namedict:
                 i += 1
-            n += '_{}'.format(i)
+            n += '_{0}'.format(i)
     # trim empty prefixes
     prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
