@@ -181,14 +181,6 @@ def _analyzeGens(top, absnames):
             v = _FirstPassVisitor(tree)
             v.visit(tree)
             if isinstance(g, _AlwaysComb):
-                objs = [tree.symdict[objname] for objname in tree.objlist]
-                for obj in objs:
-                    if not ( isinstance(obj, (int, long, EnumType,_Signal)) or \
-                             _isMem(obj) or _isTupleOfInts(obj)
-                           ):
-                        info =  "File %s, line %s: " % (tree.sourcefile, tree.lineoffset)
-                        print type(obj)
-                        raise ConversionError(_error.UnsupportedType, n, info)
                 v = _AnalyzeAlwaysCombVisitor(tree, g.senslist)
             elif isinstance(g, _AlwaysSeq):
                 v = _AnalyzeAlwaysSeqVisitor(tree, g.senslist, g.reset, g.sigregs, g.varregs)
