@@ -23,18 +23,15 @@
 
 
 import ast
-import exceptions
 import sys
 import inspect
-import re
-from types import FunctionType, GeneratorType, ListType, TupleType
 
 from tokenize import generate_tokens, untokenize, INDENT
 from cStringIO import StringIO
 
 
 def _printExcInfo():
-    kind, value  = sys.exc_info()[:2]
+    kind, value = sys.exc_info()[:2]
     msg = str(kind)
     # msg = msg[msg.rindex('.')+1:]
     if str(value):
@@ -42,6 +39,7 @@ def _printExcInfo():
         print >> sys.stderr, msg
 
 _isGenFunc = inspect.isgeneratorfunction
+
 
 def _flatten(*args):
     arglist = []
@@ -53,6 +51,7 @@ def _flatten(*args):
             arglist.append(arg)
     return arglist
 
+
 def _isTupleOfInts(obj):
     if not isinstance(obj, tuple):
         return False
@@ -60,6 +59,7 @@ def _isTupleOfInts(obj):
         if not isinstance(e, (int, long)):
             return False
     return True
+
 
 def _dedent(s):
     """Dedent python code string."""
@@ -70,6 +70,7 @@ def _dedent(s):
         result[0] = (INDENT, '')
     return untokenize(result)
 
+
 def _makeAST(f):
     s = inspect.getsource(f)
     s = _dedent(s)
@@ -77,6 +78,7 @@ def _makeAST(f):
     tree.sourcefile = inspect.getsourcefile(f)
     tree.lineoffset = inspect.getsourcelines(f)[1]-1
     return tree
+
 
 def _genfunc(gen):
     from myhdl._always_comb import _AlwaysComb
