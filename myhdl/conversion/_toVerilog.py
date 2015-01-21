@@ -603,6 +603,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
 
     def getAttr(self, node):
+        if isinstance(node.value, ast.Subscript):
+            self.setAttr(node)
+            return
+
         assert isinstance(node.value, ast.Name), node.value
         n = node.value.id
         if n in self.tree.symdict:
