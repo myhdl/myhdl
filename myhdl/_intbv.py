@@ -19,6 +19,7 @@
 
 """ Module with the intbv class """
 from __future__ import absolute_import
+from __builtin__ import max as maxfunc
 
 
 
@@ -27,9 +28,10 @@ maxint = sys.maxint
 from types import StringType
 import operator
 
+from myhdl._compat import integer_types
 from myhdl._bin import bin
 
-from __builtin__ import max as maxfunc
+
 
 class intbv(object):
     #__slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
@@ -49,7 +51,7 @@ class intbv(object):
                 else:
                     # make sure there is a leading zero bit in positive numbers
                     _nrbits = maxfunc(len(bin(max-1))+1, len(bin(min)))
-        if isinstance(val, (int, long)):
+        if isinstance(val, integer_types):
             self._val = val
         elif isinstance(val, StringType):
             mval = val.replace('_', '')
@@ -356,7 +358,7 @@ class intbv(object):
             self._val **= other._val
         else:
             self._val **= other
-        if not isinstance(self._val, (int, long)):
+        if not isinstance(self._val, integer_types):
             raise ValueError("intbv value should be integer")
         self._handleBounds()
         return self

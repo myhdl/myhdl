@@ -41,6 +41,7 @@ import string
 
 import myhdl
 from myhdl import *
+from myhdl._compat import integer_types
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVhdlCode, _userCodeMap)
@@ -52,6 +53,7 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
                                        _Ram, _Rom, _enumTypeSet, _constDict, _extConstDict)
 from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
+
 
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
@@ -950,7 +952,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1" )
                 else:
                     node.args[0].s = ord(node.args[0].s)
-        elif f in (int, long):
+        elif f in integer_types:
             opening, closing = '', ''
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
@@ -1288,7 +1290,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if n in _constDict and obj == _constDict[n]:
                     if isinstance(node.vhd, vhd_boolean):
                         s = "bool(%s)" % n
-            elif isinstance(obj, (int, long)):
+            elif isinstance(obj, integer_types):
                 # print the symbol for an integer in the global constant dict
                 if n in _constDict and obj == _constDict[n]:
                     assert abs(obj) < 2**31
@@ -1987,7 +1989,7 @@ def inferVhdlObj(obj):
         else:
             tipe = obj._type
         vhd = vhd_enum(tipe)
-    elif isinstance(obj, (int, long)):
+    elif isinstance(obj, integer_types):
         if obj >= 0:
             vhd = vhd_nat()
         else:

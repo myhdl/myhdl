@@ -33,10 +33,12 @@ from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
 import operator
 
+from myhdl._compat import integer_types
 from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
+
 # from myhdl._enum import EnumItemType
 
 _schedule = _futureEvents.append
@@ -136,8 +138,8 @@ class _Signal(object):
             self._setNextVal = self._setNextBool
             self._printVcd = self._printVcdBit
             self._nrbits = 1
-        elif isinstance(val, (int, long)):
-            self._type = (int, long)
+        elif isinstance(val, integer_types):
+            self._type = integer_types
             self._setNextVal = self._setNextInt
         elif isinstance(val, intbv):
             self._type = intbv
@@ -280,7 +282,7 @@ class _Signal(object):
     def _setNextIntbv(self, val):
         if isinstance(val, intbv):
             val = val._val
-        elif not isinstance(val, (int, long)):
+        elif not isinstance(val, integer_types):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next._val = val
         self._next._handleBounds()
