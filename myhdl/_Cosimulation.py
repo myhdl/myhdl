@@ -77,7 +77,7 @@ class Cosimulation(object):
             arglist[0] = os.path.basename(p)
             try:
                 os.execvp(p, arglist)
-            except OSError, e:
+            except OSError as e:
                 raise CosimulationError(_error.OSError, str(e))
         else:
             os.close(wt)

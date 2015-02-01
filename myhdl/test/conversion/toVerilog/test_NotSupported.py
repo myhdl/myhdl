@@ -11,7 +11,7 @@ class TestNotSupported(unittest.TestCase):
     def check(self, *args):
         try:
             i = toVerilog(*args)
-        except ConversionError, e:
+        except ConversionError as e:
             self.assertEqual(e.kind, _error.NotSupported)
         except:
             self.fail()

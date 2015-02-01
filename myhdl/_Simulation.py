@@ -188,7 +188,7 @@ class Simulation(object):
                 self._finished = True
                 return 0
 
-            except Exception, e:
+            except Exception as e:
                 if tracing:
                     tracefile.flush()
                 # if the exception came from a yield, make sure we can resume

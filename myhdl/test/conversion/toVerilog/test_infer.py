@@ -138,7 +138,7 @@ class TestErrors(unittest.TestCase):
     def check(self, *args):
         try:
             i = toVerilog(*args)
-        except ConversionError, e:
+        except ConversionError as e:
             self.assertEqual(e.kind, _error.NotSupported)
         except:
             self.fail()
@@ -151,7 +151,7 @@ class TestErrors(unittest.TestCase):
         out = Signal(intbv(0)[16:])
         try:
             infertest_inst = toVerilog(Infertest, a, out)
-        except ConversionError, e:
+        except ConversionError as e:
             self.assertEqual(e.kind, err)
         except:
             self.fail()

@@ -259,7 +259,7 @@ def testInc3():
 def testIncGen():
     try:
         assert conversion.verify(customBench, incGen) == 0
-    except ConversionError, e:
+    except ConversionError as e:
         pass
     else:
         assert False
@@ -267,7 +267,7 @@ def testIncGen():
 def testIncErr():
     try:
         assert conversion.verify(customBench, incErr) == 0
-    except ConversionError, e:
+    except ConversionError as e:
         pass
     else:
         assert False

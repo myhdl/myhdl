@@ -103,7 +103,7 @@ class TestTraceSigs(TestCase):
     def testMultipleTraces(self):
         try:
             dut = top3()
-        except TraceSignalsError, e:
+        except TraceSignalsError as e:
             self.assertEqual(e.kind, _error.MultipleTraces)
         else:
             self.fail()
@@ -111,7 +111,7 @@ class TestTraceSigs(TestCase):
     def testArgType1(self):
         try:
             dut = traceSignals([1, 2])
-        except TraceSignalsError, e:
+        except TraceSignalsError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -121,7 +121,7 @@ class TestTraceSigs(TestCase):
         from myhdl._extractHierarchy import _error
         try:
             dut = traceSignals(dummy)
-        except ExtractHierarchyError, e:
+        except ExtractHierarchyError as e:
             self.assertEqual(e.kind, _error.InconsistentToplevel % (2, "dummy"))
         else:
             self.fail()

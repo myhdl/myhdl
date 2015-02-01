@@ -52,7 +52,7 @@ class AlwaysCompilationTest(TestCase):
         h = 5
         try:
             always(delay(3))(h)
-        except AlwaysError, e:
+        except AlwaysError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -62,7 +62,7 @@ class AlwaysCompilationTest(TestCase):
             @always(delay(3))
             def h():
                 yield None
-        except AlwaysError, e:
+        except AlwaysError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -72,7 +72,7 @@ class AlwaysCompilationTest(TestCase):
             @always(delay(3))
             def h(n):
                 return n
-        except AlwaysError, e:
+        except AlwaysError as e:
             self.assertEqual(e.kind, _error.NrOfArgs)
         else:
             self.fail()
@@ -82,7 +82,7 @@ class AlwaysCompilationTest(TestCase):
             @always
             def h(n):
                 return n
-        except AlwaysError, e:
+        except AlwaysError as e:
             self.assertEqual(e.kind, _error.DecArgType)
         else:
             self.fail()
@@ -92,7 +92,7 @@ class AlwaysCompilationTest(TestCase):
             @always(g)
             def h(n):
                 return n
-        except AlwaysError, e:
+        except AlwaysError as e:
             self.assertEqual(e.kind, _error.DecArgType)
         else:
             self.fail()

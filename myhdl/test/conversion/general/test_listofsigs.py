@@ -298,7 +298,7 @@ def test_portInList():
 
     try:
         inst = conversion.analyze(portInList, z, a, b)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.PortInList
     else:
         assert False
@@ -323,7 +323,7 @@ def test_sigInMultipleLists():
 
     try:
         inst = conversion.analyze(sigInMultipleLists)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.SignalInMultipleLists
     else:
         assert False
@@ -344,7 +344,7 @@ def test_listAsPort():
     outp = [Signal(intbv(0)[8:0]) for index in range(count)]
     try:
         inst = conversion.analyze(my_register, clk, inp, outp)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.ListAsPort
     else:
         assert False

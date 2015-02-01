@@ -769,7 +769,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.kind = _kind.DECLARATION
         try:
             self.visit(node.elt)
-        except ConversionError, e:
+        except ConversionError as e:
             if e.kind == _error.UnboundLocal:
                 pass
             else:

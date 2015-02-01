@@ -271,7 +271,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
             inc_inst = toVerilog(incGen, count_v, enable, clock, reset, n=n)
-        except ConversionError, e:
+        except ConversionError as e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -284,7 +284,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
             inc_inst = toVerilog(incErr, count_v, enable, clock, reset, n=n)
-        except ConversionError, e:
+        except ConversionError as e:
             pass
         else:
             self.fail()
