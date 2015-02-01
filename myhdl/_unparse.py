@@ -24,7 +24,7 @@ from __future__ import absolute_import
 
 
 import compiler
-from cStringIO import StringIO
+from myhdl._compat import StringIO
 
 def _unparse(ast):
     v = _UnparseVisitor()

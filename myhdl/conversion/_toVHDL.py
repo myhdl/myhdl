@@ -34,14 +34,13 @@ from datetime import datetime
 #from compiler import ast as astNode
 import ast
 from types import GeneratorType, ClassType
-from cStringIO import StringIO
 import warnings
 from copy import copy
 import string
 
 import myhdl
 from myhdl import *
-from myhdl._compat import integer_types
+from myhdl._compat import integer_types, StringIO
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVhdlCode, _userCodeMap)

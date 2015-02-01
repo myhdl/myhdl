@@ -29,9 +29,8 @@ import sys
 import inspect
 
 from tokenize import generate_tokens, untokenize, INDENT
-from cStringIO import StringIO
 
-from myhdl._compat import integer_types
+from myhdl._compat import integer_types, StringIO
 
 def _printExcInfo():
     kind, value = sys.exc_info()[:2]

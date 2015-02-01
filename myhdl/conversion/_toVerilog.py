@@ -34,7 +34,7 @@ import ast
 import string
 
 from types import GeneratorType, ClassType, TypeType
-from cStringIO import StringIO
+from myhdl._compat import StringIO
 import warnings
 
 import myhdl
