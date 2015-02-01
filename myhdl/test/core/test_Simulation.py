@@ -42,7 +42,7 @@ class SimArgs(TestCase):
     def test1(self):
         try:
             Simulation(None)
-        except SimulationError, e:
+        except SimulationError as e:
             self.assertEqual(e.kind, _error.ArgType)
         except:
             self.fail()
@@ -53,7 +53,7 @@ class SimArgs(TestCase):
         i = g()
         try:
             Simulation(i, i)
-        except SimulationError, e:
+        except SimulationError as e:
             self.assertEqual(e.kind, _error.DuplicatedArg)
         except:
             self.fail()

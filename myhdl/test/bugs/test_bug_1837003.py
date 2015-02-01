@@ -25,7 +25,7 @@ yin = Signal(bool(0))
 def test_bug_1837003():
     try:
         toVerilog(SubFunction,xout,yout,x,y)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.ShadowingVar
     else:
         assert False

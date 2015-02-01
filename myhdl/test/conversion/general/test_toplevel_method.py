@@ -120,7 +120,7 @@ def test_hdlobjnotself():
     hdlobj_inst = HdlObjNotSelf()
     try:
         analyze(hdlobj_inst.method_func, clk, x, srst, y)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.NotSupported
     else:
         assert False

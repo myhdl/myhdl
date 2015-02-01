@@ -50,7 +50,7 @@ class AlwaysCombCompilationTest(TestCase):
         h = 5
         try:
             always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -60,7 +60,7 @@ class AlwaysCombCompilationTest(TestCase):
             yield None
         try:
             always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -70,7 +70,7 @@ class AlwaysCombCompilationTest(TestCase):
             return n
         try:
             always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.NrOfArgs)
         else:
             self.fail()
@@ -135,7 +135,7 @@ class AlwaysCombCompilationTest(TestCase):
             a += 1
         try:
             g = always_comb(h).gen
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.SignalAsInout % "c")
         else:
             self.fail()
@@ -147,7 +147,7 @@ class AlwaysCombCompilationTest(TestCase):
             x.next = c
         try:
             g = always_comb(h).gen
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.SignalAsInout % "c")
         else:
             self.fail()
@@ -203,7 +203,7 @@ class AlwaysCombCompilationTest(TestCase):
             g = a
         try:
             g = always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.EmbeddedFunction)
         else:
             self.fail()

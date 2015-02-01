@@ -49,7 +49,7 @@ class InstanceCompilationTest(TestCase):
         h = 5
         try:
             instance(h)
-        except InstanceError, e:
+        except InstanceError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -59,7 +59,7 @@ class InstanceCompilationTest(TestCase):
             @instance
             def h():
                 return None
-        except InstanceError, e:
+        except InstanceError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -69,7 +69,7 @@ class InstanceCompilationTest(TestCase):
             @instance
             def h(n):
                 yield n
-        except InstanceError, e:
+        except InstanceError as e:
             self.assertEqual(e.kind, _error.NrOfArgs)
         else:
             self.fail()
