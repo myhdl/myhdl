@@ -20,8 +20,6 @@
 """ Module with the intbv class """
 from __future__ import absolute_import
 
-import sys
-maxint = sys.maxint
 import operator
 
 from myhdl._compat import long, integer_types, string_types, builtins
