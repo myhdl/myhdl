@@ -49,6 +49,7 @@ traceSignals -- function that enables signal tracing in a VCD file
 toVerilog -- function that converts a design to Verilog
 
 """
+from __future__ import absolute_import
 
 __version__ = "0.9dev"
 
@@ -111,31 +112,31 @@ def showwarning(message, category, filename, lineno, *args):
 warnings.showwarning = showwarning
 
 
-from _bin import bin
-from _concat import concat
-from _intbv import intbv
-from _modbv import modbv
-from _join import join
-from _Signal import posedge, negedge, Signal, SignalType
-from _ShadowSignal import ConcatSignal
-from _ShadowSignal import TristateSignal
-from _simulator import now
-from _delay import delay
-from _Cosimulation import Cosimulation
-from _Simulation import Simulation
-from _misc import instances, downrange
-from _always_comb import always_comb
-from _always_seq import always_seq, ResetSignal
-from _always import always
-from _instance import instance
-from _enum import enum, EnumType, EnumItemType
-from _traceSignals import traceSignals
+from ._bin import bin
+from ._concat import concat
+from ._intbv import intbv
+from ._modbv import modbv
+from ._join import join
+from ._Signal import posedge, negedge, Signal, SignalType
+from ._ShadowSignal import ConcatSignal
+from ._ShadowSignal import TristateSignal
+from ._simulator import now
+from ._delay import delay
+from ._Cosimulation import Cosimulation
+from ._Simulation import Simulation
+from ._misc import instances, downrange
+from ._always_comb import always_comb
+from ._always_seq import always_seq, ResetSignal
+from ._always import always
+from ._instance import instance
+from ._enum import enum, EnumType, EnumItemType
+from ._traceSignals import traceSignals
 
 from myhdl import conversion
-from conversion import toVerilog
-from conversion import toVHDL
+from .conversion import toVerilog
+from .conversion import toVHDL
 
-from _tristate import Tristate
+from ._tristate import Tristate
 
 
 __all__ = ["bin",
