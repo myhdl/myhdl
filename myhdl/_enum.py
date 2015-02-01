@@ -23,10 +23,9 @@
 from __future__ import absolute_import
 
 
-from types import StringType
-
 from myhdl._bin import bin
 from myhdl._Signal import _Signal
+from myhdl._compat import string_types
 
 class EnumType(object):
     def __init__(self):
@@ -53,7 +52,7 @@ def enum(*names, **kwargs):
     codedict = {}
     i = 0
     for name in names:
-        if not isinstance(name, StringType):
+        if not isinstance(name, string_types):
             raise TypeError()
         if codedict.has_key(name):
             raise ValueError("enum literals should be unique")
