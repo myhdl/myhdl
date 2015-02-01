@@ -75,7 +75,7 @@ def concat(base, *args):
         if not w:
             raise TypeError("concat: arg on pos %d should have length" % (i+1))
         width += w
-        val = val << w | v & (1L << w)-1
+        val = val << w | v & (long(1) << w)-1
  
     if basewidth:
         return intbv(val, _nrbits=basewidth + width)
