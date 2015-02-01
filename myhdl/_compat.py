@@ -4,10 +4,12 @@ PY2 = sys.version_info[0] == 2
 
 
 if not PY2:
+    string_types = (str, unicode)
     integer_types = (int,)
     long = int
     import builtins
 else:
+    str_types = (str,)
     integer_types = (int, long)
     long = long
     import __builtin__ as builtins

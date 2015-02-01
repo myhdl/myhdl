@@ -22,10 +22,9 @@ from __future__ import absolute_import
 
 import sys
 maxint = sys.maxint
-from types import StringType
 import operator
 
-from myhdl._compat import long, integer_types
+from myhdl._compat import long, integer_types, string_types
 from myhdl._compat.builtins import max as maxfunc
 from myhdl._bin import bin
 
@@ -51,7 +50,7 @@ class intbv(object):
                     _nrbits = maxfunc(len(bin(max-1))+1, len(bin(min)))
         if isinstance(val, integer_types):
             self._val = val
-        elif isinstance(val, StringType):
+        elif isinstance(val, string_types):
             mval = val.replace('_', '')
             self._val = long(mval, 2)
             _nrbits = len(mval)
