@@ -19,9 +19,6 @@
 
 """ Module with the intbv class """
 from __future__ import absolute_import
-from __builtin__ import max as maxfunc
-
-
 
 import sys
 maxint = sys.maxint
@@ -29,6 +26,7 @@ from types import StringType
 import operator
 
 from myhdl._compat import long, integer_types
+from myhdl._compat.builtins import max as maxfunc
 from myhdl._bin import bin
 
 
