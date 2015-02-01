@@ -33,7 +33,7 @@ from copy import copy, deepcopy
 
 from myhdl._intbv import intbv
 
-from myhdl._compat import integer_types
+from myhdl._compat import long, integer_types
 
 class TestIntbvInit(TestCase):
     def testDefaultValue(self):

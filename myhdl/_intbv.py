@@ -28,7 +28,7 @@ maxint = sys.maxint
 from types import StringType
 import operator
 
-from myhdl._compat import integer_types
+from myhdl._compat import long, integer_types
 from myhdl._bin import bin
 
 
@@ -147,7 +147,7 @@ class intbv(object):
             if i <= j:
                 raise ValueError("intbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j))
-            res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
+            res = intbv((self._val & (long(1) << i)-1) >> j, _nrbits=i-j)
             return res
         else:
             i = int(key)
@@ -168,15 +168,15 @@ class intbv(object):
                 raise ValueError("intbv[i:j] = v requires j >= 0\n" \
                       "            j == %s" % j)
             if i is None: # default
-                q = self._val % (1L << j)
-                self._val = val * (1L << j) + q
+                q = self._val % (long(1) << j)
+                self._val = val * (long(1) << j) + q
                 self._handleBounds()
                 return
             i = int(i)
             if i <= j:
                 raise ValueError("intbv[i:j] = v requires i > j\n" \
                       "            i, j, v == %s, %s, %s" % (i, j, val))
-            lim = (1L << (i-j))
+            lim = (long(1) << (i-j))
             if val >= lim or val < -lim:
                 raise ValueError("intbv[i:j] = v abs(v) too large\n" \
                       "            i, j, v == %s, %s, %s" % (i, j, val))
@@ -187,9 +187,9 @@ class intbv(object):
         else:
             i = int(key)
             if val == 1:
-                self._val |= (1L << i)
+                self._val |= (long(1) << i)
             elif val == 0:
-                self._val &= ~(1L << i)
+                self._val &= ~(long(1) << i)
             else:
                 raise ValueError("intbv[i] = v requires v in (0, 1)\n" \
                       "            i == %s " % i)
@@ -415,7 +415,7 @@ class intbv(object):
 
     def __invert__(self):
         if self._nrbits and self._min >= 0:
-            return type(self)(~self._val & (1L << self._nrbits)-1)
+            return type(self)(~self._val & (long(1) << self._nrbits)-1)
         else:
             return type(self)(~self._val)
     
