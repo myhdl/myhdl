@@ -22,15 +22,18 @@
 """
 from __future__ import absolute_import
 
+from myhdl._compat import integer_types
 from myhdl._intbv import intbv
 from myhdl._Signal import _Signal
+
+
 
 def concat(base, *args):
 
     if isinstance(base, intbv):
         basewidth = base._nrbits
         val = base._val
-    elif isinstance(base, (int, long)):
+    elif isinstance(base, integer_types):
         if isinstance(base, bool):
             basewidth = 1
         else:

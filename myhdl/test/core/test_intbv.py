@@ -33,6 +33,8 @@ from copy import copy, deepcopy
 
 from myhdl._intbv import intbv
 
+from myhdl._compat import integer_types
+
 class TestIntbvInit(TestCase):
     def testDefaultValue(self):
         self.assertEqual(intbv(), 0)
@@ -493,7 +495,7 @@ class TestIntbvBounds(TestCase):
             exec("a %s long(j)" % op)
         except (ZeroDivisionError, ValueError):
             return # prune
-        if not isinstance(a._val, (int, long)):
+        if not isinstance(a._val, integer_types):
             return # prune
         if abs(a) > maxint * maxint:
             return # keep it reasonable
