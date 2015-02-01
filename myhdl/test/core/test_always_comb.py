@@ -249,7 +249,7 @@ class AlwaysCombSimulationTest1(TestCase):
                 yield clk.posedge
                 yield clk.negedge
                 self.assertEqual(x, z)
-            raise StopSimulation, "always_comb simulation test"
+            raise StopSimulation("always_comb simulation test")
 
         return instances()
         
@@ -346,7 +346,7 @@ class AlwaysCombSimulationTest2(TestCase):
                 yield clk.posedge
                 yield clk.negedge
                 self.assertEqual(x, z)
-            raise StopSimulation, "always_comb simulation test"
+            raise StopSimulation("always_comb simulation test")
 
         return comb, gen, clkGen(), stimulus()
         

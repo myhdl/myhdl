@@ -69,7 +69,7 @@ def concat(base, *args):
             raise TypeError("concat: inappropriate argument type: %s" \
                             % type(arg))
         if not w:
-            raise TypeError, "concat: arg on pos %d should have length" % (i+1)
+            raise TypeError("concat: arg on pos %d should have length" % (i+1))
         width += w
         val = val << w | v & (1L << w)-1
  

@@ -113,7 +113,7 @@ class intbv(object):
     # iterator method
     def __iter__(self):
         if not self._nrbits:
-            raise TypeError, "Cannot iterate over unsized intbv"
+            raise TypeError("Cannot iterate over unsized intbv")
         return iter([self[i] for i in range(self._nrbits-1, -1, -1)])
 
     # logical testing
@@ -136,14 +136,14 @@ class intbv(object):
                 j = 0
             j = int(j)
             if j < 0:
-                raise ValueError, "intbv[i:j] requires j >= 0\n" \
-                      "            j == %s" % j
+                raise ValueError("intbv[i:j] requires j >= 0\n" \
+                      "            j == %s" % j)
             if i is None: # default
                 return intbv(self._val >> j)
             i = int(i)
             if i <= j:
-                raise ValueError, "intbv[i:j] requires i > j\n" \
-                      "            i, j == %s, %s" % (i, j)
+                raise ValueError("intbv[i:j] requires i > j\n" \
+                      "            i, j == %s, %s" % (i, j))
             res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
             return res
         else:
@@ -162,8 +162,8 @@ class intbv(object):
                 j = 0
             j = int(j)
             if j < 0:
-                raise ValueError, "intbv[i:j] = v requires j >= 0\n" \
-                      "            j == %s" % j
+                raise ValueError("intbv[i:j] = v requires j >= 0\n" \
+                      "            j == %s" % j)
             if i is None: # default
                 q = self._val % (1L << j)
                 self._val = val * (1L << j) + q
@@ -171,12 +171,12 @@ class intbv(object):
                 return
             i = int(i)
             if i <= j:
-                raise ValueError, "intbv[i:j] = v requires i > j\n" \
-                      "            i, j, v == %s, %s, %s" % (i, j, val)
+                raise ValueError("intbv[i:j] = v requires i > j\n" \
+                      "            i, j, v == %s, %s, %s" % (i, j, val))
             lim = (1L << (i-j))
             if val >= lim or val < -lim:
-                raise ValueError, "intbv[i:j] = v abs(v) too large\n" \
-                      "            i, j, v == %s, %s, %s" % (i, j, val)
+                raise ValueError("intbv[i:j] = v abs(v) too large\n" \
+                      "            i, j, v == %s, %s, %s" % (i, j, val))
             mask = (lim-1) << j
             self._val &= ~mask
             self._val |= (val << j)
@@ -188,8 +188,8 @@ class intbv(object):
             elif val == 0:
                 self._val &= ~(1L << i)
             else:
-                raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
-                      "            i == %s " % i
+                raise ValueError("intbv[i] = v requires v in (0, 1)\n" \
+                      "            i == %s " % i)
                
             self._handleBounds()
 
