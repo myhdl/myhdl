@@ -1,5 +1,6 @@
 """ myhdl's distutils distribution and installation script. """
 
+from __future__ import print_function
 import sys
 
 requiredVersion = (2, 6)
@@ -12,11 +13,11 @@ versionError = "ERROR: myhdl requires Python %s or higher" % requiredVersionStr
 try:
     sys.version_info
 except:
-    print versionError
+    print(versionError)
     raise SystemExit(1)
 
 if sys.version_info < requiredVersion:
-    print versionError
+    print(versionError)
     raise SystemExit(1)
 
 from distutils.core import setup
