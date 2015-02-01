@@ -9,7 +9,7 @@ if not PY2:
     long = int
     import builtins
 else:
-    str_types = (str,)
+    string_types = (str,)
     integer_types = (int, long)
     long = long
     import __builtin__ as builtins
