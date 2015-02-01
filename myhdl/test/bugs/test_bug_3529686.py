@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 
 def bug_3529686(clr, clk, run, ack, serialout):
