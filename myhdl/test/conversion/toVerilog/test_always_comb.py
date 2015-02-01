@@ -118,7 +118,7 @@ class AlwaysCombSimulationTest(TestCase):
                 self.assertEqual(q, q_v)
                 self.assertEqual(r, r_v)
                 
-            raise StopSimulation, "always_comb simulation test"
+            raise StopSimulation("always_comb simulation test")
 
         return design_inst, design_v_inst, clkGen(), stimulus()
         
