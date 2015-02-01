@@ -20,6 +20,7 @@
 """ MyHDL conversion analysis module.
 
 """
+from __future__ import absolute_import
 
 import inspect
 # import compiler

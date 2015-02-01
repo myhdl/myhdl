@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 
 from timer import timer_sig, timer_var

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import ast
 from myhdl._util import _flatten, _makeAST, _genfunc
 from myhdl._enum import EnumType

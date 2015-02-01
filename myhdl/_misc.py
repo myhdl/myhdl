@@ -24,6 +24,7 @@ instances -- function that returns instances in a generator function
 downrange -- function that returns a downward range
 
 """
+from __future__ import absolute_import
 
 
 import sys

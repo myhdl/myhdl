@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # cell dereferencing hack, thanks to Samuele Pedroni
 
 import new

@@ -26,6 +26,7 @@ posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
 
 """
+from __future__ import absolute_import
 
 from inspect import currentframe, getouterframes
 from copy import copy, deepcopy

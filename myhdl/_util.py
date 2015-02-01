@@ -20,6 +20,7 @@
 """ Module with utilility objects for MyHDL.
 
 """
+from __future__ import absolute_import
 
 
 import ast
