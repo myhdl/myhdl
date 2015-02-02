@@ -33,7 +33,7 @@ from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
 import operator
 
-from myhdl._compat import integer_types
+from myhdl._compat import integer_types, long
 from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
@@ -193,7 +193,7 @@ class _Signal(object):
                 self._val = None
             elif isinstance(val, intbv):
                 self._val._val = next._val
-            elif isinstance(val, (int, long, EnumItemType)):
+            elif isinstance(val, (integer_types, EnumItemType)):
                 self._val = next
             else:
                 self._val = deepcopy(next)
@@ -271,7 +271,7 @@ class _Signal(object):
         self._next = val
 
     def _setNextInt(self, val):
-        if not isinstance(val, (int, long, intbv)):
+        if not isinstance(val, (integer_types, intbv)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next = val
 
