@@ -29,7 +29,6 @@ from types import FunctionType, MethodType
 import re
 import ast
 from collections import defaultdict
-import __builtin__
 
 import myhdl
 from myhdl import *
@@ -45,9 +44,10 @@ from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
 from myhdl._util import _isTupleOfInts, _dedent, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._compat import builtins
 
 myhdlObjects = myhdl.__dict__.values()
-builtinObjects = __builtin__.__dict__.values()
+builtinObjects = builtins.__dict__.values()
 
 _enumTypeSet = set()
 _constDict = {}
@@ -876,8 +876,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     _constDict[ws] = self.tree.symdict[ws]
                     if ext:
                         _extConstDict[ws] = self.tree.symdict[ws]
-        elif n in __builtin__.__dict__:
-            node.obj = __builtin__.__dict__[n]
+        elif n in builtins.__dict__:
+            node.obj = builtins.__dict__[n]
         else:
             self.raiseError(node, _error.UnboundLocal, n)
 
