@@ -107,7 +107,7 @@ class SigTest(TestCase):
     def testInitialization(self):
         """ initial val and next should be equal """
         for s in self.sigs:
-            self.assertEqual(s.val, s.__next__)
+            self.assertEqual(s.val, s.next)
 
     def testUpdate(self):
         """ _update() should assign next into val """
@@ -145,7 +145,7 @@ class SigTest(TestCase):
         for s, n in zip(self.sigs, self.nexts):
             s.next = n
             s._update()
-            self.assertEqual(s.val, s.__next__)
+            self.assertEqual(s.val, s.next)
             
     def testModify(self):
         """ Modifying mutable next should be on a copy """
@@ -162,8 +162,8 @@ class SigTest(TestCase):
             elif type(s.val) is dict:
                 s.next[3] = 5
             else:
-                s.__next__ # plain read access
-            self.assert_(s.val is not s.__next__, repr(s.val))
+                s.next # plain read access
+            self.assert_(s.val is not s.next, repr(s.val))
 
     def testUpdatePosedge(self):
         """ update on posedge should return event and posedge waiters """
@@ -240,9 +240,9 @@ class SigTest(TestCase):
         s = [None] * 4
         for i in range(len(s)):
             s[i] = Signal(i)
-        s[1].__next__ # read access
+        s[1].next # read access
         s[2].next = 1
-        s[2].__next__
+        s[2].next
         s[3].next = 0
         s[3].next = 1
         s[3].next = 3
@@ -611,7 +611,7 @@ class TestSignalIntbvBounds(TestCase):
             for k in (6, 9, 10):
                 s.next[:] = 0
                 s.next[k:] = i
-                self.assertEqual(s.__next__, i)
+                self.assertEqual(s.next, i)
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
                 try:

@@ -601,7 +601,7 @@ class _SignalWrap(object):
         self.next = next
         self.timeStamp = timeStamp
     def apply(self):
-        return self.sig._apply(self.__next__, self.timeStamp)
+        return self.sig._apply(self.next, self.timeStamp)
 
 # for export
 SignalType = _Signal
