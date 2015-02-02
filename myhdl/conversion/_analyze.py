@@ -44,7 +44,7 @@ from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
 from myhdl._util import _isTupleOfInts, _dedent, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._compat import builtins
+from myhdl._compat import builtins, integer_types
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -576,7 +576,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = int(0) # XXX
         elif f is bool:
             node.obj = bool()
-        elif f in (int, long, ord):
+        elif f in (integer_types, ord):
             node.obj = int(-1)
 ##         elif f in (posedge , negedge):
 ##             node.obj = _EdgeDetector()
@@ -604,7 +604,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
                     obj = _cell_deref(c)
-                    if not  isinstance(obj, (int, long, _Signal)):
+                    if not  isinstance(obj, (integer_types, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
                     tree.symdict[n] = obj
             v = _FirstPassVisitor(tree)
@@ -647,7 +647,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             val = arg.obj
             if isinstance(val, bool):
                 val = int(val) # cast bool to int first
-            if isinstance(val, (EnumItemType, int, long)):
+            if isinstance(val, (EnumItemType, integer_types)):
                 node.case = (node.left, val)
             # check whether it can be part of an edge check
             n = node.left.id
