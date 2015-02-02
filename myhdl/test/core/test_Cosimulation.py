@@ -60,7 +60,7 @@ class CosimulationTest(TestCase):
         try:
             Cosimulation("bla -x 45")
         except CosimulationError as e:
-            self.assert_(e.kind in(_error.OSError, _error.SimulationEnd))
+            self.assertTrue(e.kind in(_error.OSError, _error.SimulationEnd))
         else:
             self.fail()
 

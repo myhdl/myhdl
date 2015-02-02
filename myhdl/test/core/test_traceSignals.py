@@ -130,14 +130,14 @@ class TestTraceSigs(TestCase):
     def testHierarchicalTrace1(self):
         p = "%s.vcd" % fun.__name__
         top()
-        self.assert_(path.exists(p))
+        self.assertTrue(path.exists(p))
 
     def testHierarchicalTrace2(self):
         pdut = "%s.vcd" % top.__name__
         psub = "%s.vcd" % fun.__name__
         dut = traceSignals(top)
-        self.assert_(path.exists(pdut))
-        self.assert_(not path.exists(psub))
+        self.assertTrue(path.exists(pdut))
+        self.assertTrue(not path.exists(psub))
 
     def testBackupOutputFile(self):
         p = "%s.vcd" % fun.__name__
@@ -147,14 +147,14 @@ class TestTraceSigs(TestCase):
         _simulator._tracing = 0
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
-        self.assert_(not path.exists(pbak))
+        self.assertTrue(not path.exists(pbak))
         dut = traceSignals(fun)
         _simulator._tf.close()
         _simulator._tracing = 0
-        self.assert_(path.exists(p))
-        self.assert_(path.exists(pbak))
-        self.assert_(path.getsize(pbak) == size)
-        self.assert_(path.getsize(p) < size)
+        self.assertTrue(path.exists(p))
+        self.assertTrue(path.exists(pbak))
+        self.assertTrue(path.getsize(pbak) == size)
+        self.assertTrue(path.getsize(p) < size)
 
 
 
