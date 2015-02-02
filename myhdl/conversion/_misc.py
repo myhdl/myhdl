@@ -184,7 +184,7 @@ class _UniqueSuffixGenerator(object):
         self.i = 0
     def reset(self):
         self.i = 0
-    def __next__(self):
+    def next(self):
         self.i += 1
         return "_%s" % self.i
 

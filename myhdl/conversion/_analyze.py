@@ -512,7 +512,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = getattr(obj, node.attr)
             if obj not in _enumTypeSet:
                 _enumTypeSet.add(obj)
-                suf = next(_genUniqueSuffix)
+                suf = _genUniqueSuffix.next()
                 obj._setName(n+suf)
         if node.obj is None: # attribute lookup failed
             self.raiseError(node, _error.UnsupportedAttribute, node.attr)
