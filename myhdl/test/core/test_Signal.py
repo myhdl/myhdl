@@ -26,7 +26,7 @@ import random
 from random import randrange
 random.seed(1) # random, but deterministic
 import sys
-maxint = sys.maxint
+maxint = sys.maxsize
 import types
 import copy
 
