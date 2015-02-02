@@ -147,7 +147,7 @@ class TestBinaryOps(TestCase):
                            And,
                            Or,
                            left, right)
-        binops_v = binaryOps_v(binaryOps.func_name,
+        binops_v = binaryOps_v(binaryOps.__name__,
                                Bitand_v,
                                Bitor_v,
                                Bitxor_v,
@@ -275,7 +275,7 @@ class TestMultiOps(TestCase):
                            And,
                            Or,
                            argm, argn, argp)
-        multiops_v = multiOps_v(multiOps.func_name,
+        multiops_v = multiOps_v(multiOps.__name__,
                                 Bitand_v,
                                 Bitor_v,
                                 Bitxor_v,
@@ -372,7 +372,7 @@ class TestUnaryOps(TestCase):
                              UnaryAdd,
                              UnarySub,
                              arg)
-        unaryops_v = unaryOps_v(unaryOps.func_name,
+        unaryops_v = unaryOps_v(unaryOps.__name__,
                                 Not_v,
                                 Invert_v,
                                 UnaryAdd_v,
@@ -515,7 +515,7 @@ class TestAugmOps(TestCase):
                            Sub,
                            Sum,
                            left, right)
-        augmops_v = augmOps_v( augmOps.func_name,
+        augmops_v = augmOps_v( augmOps.__name__,
                                Bitand_v,
                                Bitor_v,
                                Bitxor_v,

@@ -76,7 +76,7 @@ class TestGrayInc(unittest.TestCase):
                 
     def bench(self):
         gray_inc_reg_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
-        gray_inc_reg_v = GrayIncReg_v(GrayIncReg.func_name, graycnt_v, enable, clock, reset, width)
+        gray_inc_reg_v = GrayIncReg_v(GrayIncReg.__name__, graycnt_v, enable, clock, reset, width)
         clk_1 = self.clockGen()
         st_1 = self.stimulus()
         ch_1 = self.check()

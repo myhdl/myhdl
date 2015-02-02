@@ -124,7 +124,7 @@ class TestRandomScrambler(TestCase):
                        i7, i6, i5, i4, i3, i2, i1, i0
                        )
         # time.sleep(1)
-        rs_v = RandomScrambler_v(RandomScrambler.func_name,
+        rs_v = RandomScrambler_v(RandomScrambler.__name__,
                                  v7, v6, v5, v4, v3, v2, v1, v0,
                                  i7, i6, i5, i4, i3, i2, i1, i0
                                  )

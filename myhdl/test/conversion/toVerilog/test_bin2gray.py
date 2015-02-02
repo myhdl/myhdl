@@ -70,7 +70,7 @@ class TestBin2Gray(TestCase):
 
         bin2gray_inst = toVerilog(bin2gray, B, G, width)
         # bin2gray_inst = bin2gray(B, G, width)
-        bin2gray_v_inst = bin2gray_v(bin2gray.func_name, B, G_v)
+        bin2gray_v_inst = bin2gray_v(bin2gray.__name__, B, G_v)
 
         def stimulus():
             for i in range(2**width):

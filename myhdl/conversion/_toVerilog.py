@@ -123,7 +123,7 @@ class _ToVerilogConvertor(object):
 
         _converting = 1
         if self.name is None:
-            name = func.func_name
+            name = func.__name__
         else:
             name = str(self.name)
         try:

@@ -98,7 +98,7 @@ class AlwaysCombSimulationTest(TestCase):
         random.shuffle(vectors)
 
         design_inst = toVerilog(design, a, b, c, d, p, q, r)
-        design_v_inst = design_v(design.func_name, a, b, c, d, p_v, q_v, r_v)
+        design_v_inst = design_v(design.__name__, a, b, c, d, p_v, q_v, r_v)
 
         def clkGen():
             while 1:

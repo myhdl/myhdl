@@ -76,7 +76,7 @@ class _TraceSignalsClass(object):
         _tracing = 1
         try:
             if self.name is None:
-                name = dut.func_name
+                name = dut.__name__
             else:
                 name = str(self.name)
             if name is None:

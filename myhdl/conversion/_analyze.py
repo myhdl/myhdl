@@ -158,12 +158,12 @@ def _analyzeGens(top, absnames):
             #print ast.dump(tree)
             tree.sourcefile  = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
-            tree.symdict = f.func_globals.copy()
+            tree.symdict = f.__globals__.copy()
             tree.callstack = []
             # handle free variables
             tree.nonlocaldict = {}
-            if f.func_code.co_freevars:
-                for n, c in zip(f.func_code.co_freevars, f.func_closure):
+            if f.__code__.co_freevars:
+                for n, c in zip(f.__code__.co_freevars, f.__closure__):
                     obj = _cell_deref(c)
                     tree.symdict[n] = obj
                     # currently, only intbv as automatic nonlocals (until Python 3.0)
@@ -610,15 +610,15 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             tree.name = _Label(fname)
             tree.sourcefile = inspect.getsourcefile(f)
             tree.lineoffset = inspect.getsourcelines(f)[1]-1
-            tree.symdict = f.func_globals.copy()
+            tree.symdict = f.__globals__.copy()
             tree.nonlocaldict = {}
             if fname in self.tree.callstack:
                 self.raiseError(node, _error.NotSupported, "Recursive call")
             tree.callstack = self.tree.callstack[:]
             tree.callstack.append(fname)
             # handle free variables
-            if f.func_code.co_freevars:
-                for n, c in zip(f.func_code.co_freevars, f.func_closure):
+            if f.__code__.co_freevars:
+                for n, c in zip(f.__code__.co_freevars, f.__closure__):
                     obj = _cell_deref(c)
                     if not  isinstance(obj, (int, long, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)

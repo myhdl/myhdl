@@ -38,7 +38,7 @@ def instance(genFunc):
         raise InstanceError(_error.ArgType)
     if not _isGenFunc(genFunc):
         raise InstanceError(_error.ArgType)
-    if genFunc.func_code.co_argcount > 0:
+    if genFunc.__code__.co_argcount > 0:
         raise InstanceError(_error.NrOfArgs)
     return _Instantiator(genFunc)
 

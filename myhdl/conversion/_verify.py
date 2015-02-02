@@ -105,8 +105,8 @@ class  _VerificationClass(object):
     def __call__(self, func, *args, **kwargs):
 
         vals = {}
-        vals['topname'] = func.func_name
-        vals['unitname'] = func.func_name.lower()
+        vals['topname'] = func.__name__
+        vals['unitname'] = func.__name__.lower()
         vals['version'] = _version
 
         hdlsim = self.simulator
