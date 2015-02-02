@@ -21,6 +21,7 @@
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 
 import ast
@@ -37,7 +38,7 @@ def _printExcInfo():
     # msg = msg[msg.rindex('.')+1:]
     if str(value):
         msg += ": %s" % value
-        print >> sys.stderr, msg
+        print(msg, file=sys.stderr)
 
 _isGenFunc = inspect.isgeneratorfunction
 
