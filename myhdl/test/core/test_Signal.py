@@ -176,6 +176,7 @@ class SigTest(TestCase):
         s1._posedgeWaiters = self.posedgeWaiters[:]
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
+        print(waiters)
         expected = self.eventWaiters + self.posedgeWaiters
         waiters.sort()
         expected.sort()
@@ -307,19 +308,19 @@ class TestSignalAsNum(TestCase):
         for i, j in zip(self.seqi, self.seqj):
             bj = Signal(j)
             ref = long(i)
-            exec("ref %s j" % op)
+            ref = op(ref, j)
             r1 = bi1 = Signal(i)
             try:
-                exec("r1 %s j" % op)
+                r1 = op(r1, j)
             except TypeError:
                 pass
             else:
                 self.fail()
             r2 = long(i)
-            exec("r2 %s bj" % op)
+            r2 = op(r2, bj)
             r3 = bi3 = Signal(i)
             try:
-                exec("r3 %s bj" % op)
+                r3 = op(r3, bj)
             except TypeError:
                 pass
             else:
@@ -349,10 +350,10 @@ class TestSignalAsNum(TestCase):
         for i, j in zip(self.seqi, self.seqj):
             bi = Signal(i)
             bj = Signal(j)
-            exec("ref = i %s j" % op)
-            exec("r1 = bi %s j" % op)
-            exec("r2 = i %s bj" % op)
-            exec("r3 = bi %s bj" % op)
+            ref = op(i, j)
+            r1 = op(bi, j)
+            r2 = op(i, bj)
+            r3 = op(bi, bj)
             self.assertEqual(r1, ref)
             self.assertEqual(r2, ref)
             self.assertEqual(r3, ref)
@@ -377,7 +378,7 @@ class TestSignalAsNum(TestCase):
 
     def testLShift(self):
         self.binaryCheck(operator.lshift, jmax=256)
-        
+
     def testRShift(self):
         self.binaryCheck(operator.rshift, jmax=256)
 
@@ -386,42 +387,42 @@ class TestSignalAsNum(TestCase):
 
     def testOr(self):
         self.binaryCheck(operator.or_)
-        
+
     def testXor(self):
         self.binaryCheck(operator.xor)
 
     def testIAdd(self):
-        self.augmentedAssignCheck("+=")
+        self.augmentedAssignCheck(operator.iadd)
 
     def testISub(self):
-        self.augmentedAssignCheck("-=")
-        
+        self.augmentedAssignCheck(operator.isub)
+
     def testIMul(self):
-        self.augmentedAssignCheck("*=", imax=maxint) #XXX doesn't work for long i???
-        
+        self.augmentedAssignCheck(operator.imul, imax=maxint) #XXX doesn't work for long i???
+
     def testIDiv(self):
-        self.augmentedAssignCheck("/=", jmin=1)
-        
+        self.augmentedAssignCheck(operator.idiv, jmin=1)
+
     def testIMod(self):
-        self.augmentedAssignCheck("%=", jmin=1)
+        self.augmentedAssignCheck(operator.imod, jmin=1)
 
     def testIPow(self):
-        self.augmentedAssignCheck("**=", jmax=64)
+        self.augmentedAssignCheck(operator.ipow, jmax=64)
 
     def testIAnd(self):
-        self.augmentedAssignCheck("&=")
-        
+        self.augmentedAssignCheck(operator.iand)
+
     def testIOr(self):
-        self.augmentedAssignCheck("|=")
-        
+        self.augmentedAssignCheck(operator.ior)
+
     def testIXor(self):
-        self.augmentedAssignCheck("^=")
-        
+        self.augmentedAssignCheck(operator.ixor)
+
     def testILShift(self):
-        self.augmentedAssignCheck("<<=", jmax=256)
-        
+        self.augmentedAssignCheck(operator.ilshift, jmax=256)
+
     def testIRShift(self):
-        self.augmentedAssignCheck(">>=", jmax=256)
+        self.augmentedAssignCheck(operator.irshift, jmax=256)
 
     def testNeg(self):
         self.unaryCheck(operator.neg)
@@ -453,18 +454,17 @@ class TestSignalAsNum(TestCase):
         self.conversionCheck(hex)
 
     def testLt(self):
-        self.comparisonCheck("<")
+        self.comparisonCheck(operator.lt)
     def testLe(self):
-        self.comparisonCheck("<=")
+        self.comparisonCheck(operator.le)
     def testGt(self):
-        self.comparisonCheck(">")
+        self.comparisonCheck(operator.gt)
     def testGe(self):
-        self.comparisonCheck(">=")
+        self.comparisonCheck(operator.ge)
     def testEq(self):
-        self.comparisonCheck("==")
+        self.comparisonCheck(operator.eq)
     def testNe(self):
-        self.comparisonCheck("!=")
-
+        self.comparisonCheck(operator.ne)
 
 
 def getItem(s, i):
