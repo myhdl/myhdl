@@ -30,6 +30,7 @@ from unittest import TestCase
 import sys
 
 from myhdl import bin
+from myhdl._compat import long
 
 SIZE = 100
 
