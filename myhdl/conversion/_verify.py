@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 import sys
 import os
 import tempfile
@@ -144,11 +145,11 @@ class  _VerificationClass(object):
         #print(analyze)
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
-            print >> sys.stderr, "Analysis failed"
+            print("Analysis failed", file=sys.stderr)
             return ret
 
         if self._analyzeOnly:
-            print >> sys.stderr, "Analysis succeeded"
+            print("Analysis succeeded", file=sys.stderr)
             return 0
 
         f = tempfile.TemporaryFile()
@@ -162,7 +163,7 @@ class  _VerificationClass(object):
         flines = f.readlines()
         f.close()
         if not flines:
-            print >> sys.stderr, "No MyHDL simulation output - nothing to verify"
+            print("No MyHDL simulation output - nothing to verify", file=sys.stderr)
             return 1
 
 
@@ -170,7 +171,7 @@ class  _VerificationClass(object):
             #print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
             if ret != 0:
-                print >> sys.stderr, "Elaboration failed"
+                print("Elaboration failed", file=sys.stderr)
                 return ret
             
         g = tempfile.TemporaryFile()
@@ -215,9 +216,9 @@ class  _VerificationClass(object):
         d.close()
 
         if not s:
-            print >> sys.stderr, "Conversion verification succeeded"
+            print("Conversion verification succeeded", file=sys.stderr)
         else:
-            print >> sys.stderr, "Conversion verification failed"
+            print("Conversion verification failed", file=sys.stderr)
             # print >> sys.stderr, s ,
             return 1
 
