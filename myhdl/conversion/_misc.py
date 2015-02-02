@@ -172,7 +172,7 @@ _genLabel = _LabelGenerator()
 
 class _Label(object):
     def __init__(self, name):
-        self.name = _genLabel.next() + '_' + name
+        self.name = next(_genLabel) + '_' + name
         self.isActive = False
     def __str__(self):
         return str(self.name)

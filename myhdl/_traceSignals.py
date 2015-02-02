@@ -152,7 +152,7 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                 raise ValueError("%s of module %s has no initial value" % (n, name))
             if not s._tracing:
                 s._tracing = 1
-                s._code = namegen.next()
+                s._code = next(namegen)
                 siglist.append(s)
             w = s._nrbits
             # use real for enum strings
@@ -174,7 +174,7 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                         raise ValueError("%s of module %s has no initial value" % (n, name))
                     if not s._tracing:
                         s._tracing = 1
-                        s._code = namegen.next()
+                        s._code = next(namegen)
                         siglist.append(s)
                     w = s._nrbits
                     if w:
