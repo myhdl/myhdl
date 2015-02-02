@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 
 import sys
 
@@ -100,9 +101,9 @@ def c_testbench():
         reset.next = True
         yield delay(33)
         for ii in range(17):
-            print("a: x=%d y=%d z=%d"%(a.x,a.y,a.z))
-            print("b: x=%d y=%d z=%d"%(b.x,b.y,b.z))
-            print("c: x=%d y=%d z=%d"%(c.x,c.y,c.z))
+            print(("a: x=%d y=%d z=%d"%(a.x,a.y,a.z)))
+            print(("b: x=%d y=%d z=%d"%(b.x,b.y,b.z)))
+            print(("c: x=%d y=%d z=%d"%(c.x,c.y,c.z)))
             yield clock.posedge
 
         raise StopSimulation
@@ -121,4 +122,4 @@ def test_name_conflicts_verify():
 if __name__ == '__main__':
     verify.simulator = analyze.simulator = sys.argv[1]
     Simulation(c_testbench()).run()
-    print(verify(c_testbench))
+    print((verify(c_testbench)))

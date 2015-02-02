@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 import os
 path = os.path
 from random import randrange
@@ -73,7 +74,7 @@ def RomBench(rom):
             yield delay(1)
             if __debug__:
                 assert dout == ROM[i]
-            print dout
+            print(dout)
         raise StopSimulation()
 
     @instance

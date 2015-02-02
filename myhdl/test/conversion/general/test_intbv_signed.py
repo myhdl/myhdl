@@ -20,6 +20,7 @@
 
 """ Run the intbv.signed() unit tests. """
 from __future__ import absolute_import
+from __future__ import print_function
 
 from myhdl import *
 
@@ -51,7 +52,7 @@ def PlainIntbv():
     @instance
     def logic():
 
-        print "Plain Instance Test"
+        print("Plain Instance Test")
 
         yield delay(10)
         # intbv with positive range, pos number, and msb not set, return signed()
@@ -208,7 +209,7 @@ def SlicedSigned():
     def logic():
         b = intbv(4, min=-8, max=8)
         a = intbv(4, min=-8, max=8)
-        print "SLicedSigned test"
+        print("SLicedSigned test")
         yield delay(10)
         b[:] = a[4:]
         assert b == 4
@@ -228,7 +229,7 @@ def SignedConcat():
 
     @instance
     def logic():
-        print "Signed Concat test"
+        print("Signed Concat test")
         yield delay(10)
         
         # concat 3 bits

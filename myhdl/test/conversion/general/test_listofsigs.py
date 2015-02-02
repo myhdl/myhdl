@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -32,7 +33,7 @@ def intbv2list():
             a.next = i
             yield delay(10)
             assert z == a
-            print a
+            print(a)
         raise StopSimulation
 
     return extract, assemble, stimulus
@@ -186,7 +187,7 @@ def processlist(case, inv):
             a.next = i
             yield delay(10)
             assert z == ~a
-            print z
+            print(z)
         raise StopSimulation
 
     return case_inst, stimulus
@@ -225,7 +226,7 @@ def unsigned():
         a[0].next = 2
         a[1].next = 5
         yield delay(10)
-        print z
+        print(z)
 
     return logic, stimulus
 
@@ -247,7 +248,7 @@ def signed():
         a[0].next = 2
         a[1].next = -5
         yield delay(10)
-        print z
+        print(z)
 
     return logic, stimulus
 
@@ -270,7 +271,7 @@ def mixed():
         a[0].next = -6
         b[2].next = 15
         yield delay(10)
-        print z
+        print(z)
 
     return logic, stimulus
 

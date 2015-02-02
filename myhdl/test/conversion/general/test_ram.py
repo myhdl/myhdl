@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 import os
 path = os.path
 import unittest
@@ -117,7 +118,7 @@ def RamBench(ram, depth=128):
             yield clk.posedge
             yield delay(1)
             assert dout == i
-            print dout
+            print(dout)
         raise StopSimulation()
 
     @instance

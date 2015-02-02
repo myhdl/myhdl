@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 from myhdl import *
 
 def bench_AssignSignal():
@@ -20,8 +21,8 @@ def bench_AssignSignal():
             b.next = i
             a.next = not a
             yield delay(10)
-            print int(p)
-            print q
+            print(int(p))
+            print(q)
 
     return stimulus
 

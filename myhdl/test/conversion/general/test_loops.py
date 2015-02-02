@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 import os
 path = os.path
 from random import randrange
@@ -291,7 +292,7 @@ def LoopBench(LoopTest):
         for i in range(100):
             a.next = data[i]
             yield delay(10)
-            print z
+            print(z)
 
     return stimulus, looptest_inst
 
