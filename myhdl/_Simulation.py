@@ -24,6 +24,7 @@ from __future__ import print_function
 
 import sys
 import os
+from operator import itemgetter
 from warnings import warn
 from types import GeneratorType
 
@@ -157,7 +158,7 @@ class Simulation(object):
                     if t == maxTime:
                         raise _SuspendSimulation(
                             "Simulated %s timesteps" % duration)
-                    _futureEvents.sort()
+                    _futureEvents.sort(key=itemgetter(0))
                     t = _simulator._time = _futureEvents[0][0]
                     if tracing:
                         print("#%s" % t, file=tracefile)
