@@ -27,6 +27,7 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
@@ -296,16 +297,16 @@ class _Signal(object):
 
     # vcd print methods
     def _printVcdStr(self):
-        print >> sim._tf, "s%s %s" % (str(self._val), self._code)
+        print("s%s %s" % (str(self._val), self._code), file=sim._tf)
         
     def _printVcdHex(self):
-        print >> sim._tf, "s%s %s" % (hex(self._val), self._code)
+        print("s%s %s" % (hex(self._val), self._code), file=sim._tf)
 
     def _printVcdBit(self):
-        print >> sim._tf, "%d%s" % (self._val, self._code)
+        print("%d%s" % (self._val, self._code), file=sim._tf)
 
     def _printVcdVec(self):
-        print >> sim._tf, "b%s %s" % (bin(self._val, self._nrbits), self._code)
+        print("b%s %s" % (bin(self._val, self._nrbits), self._code), file=sim._tf)
 
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):

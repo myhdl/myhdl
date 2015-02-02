@@ -19,6 +19,7 @@
 
 """ Module that provides the Simulation class """
 from __future__ import absolute_import
+from __future__ import print_function
 
 
 import sys
@@ -159,7 +160,7 @@ class Simulation(object):
                     _futureEvents.sort()
                     t = _simulator._time = _futureEvents[0][0]
                     if tracing:
-                        print >> tracefile, "#%s" % t
+                        print("#%s" % t, file=tracefile)
                     if cosim:
                         cosim._put(t)
                     while _futureEvents:

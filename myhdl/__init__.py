@@ -50,6 +50,7 @@ toVerilog -- function that converts a design to Verilog
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 __version__ = "0.9dev"
 
@@ -107,7 +108,7 @@ class ToVHDLWarning(ConversionWarning):
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
 
 def showwarning(message, category, filename, lineno, *args):
-    print >> sys.stderr, "** %s: %s" % (category.__name__, message)
+    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
 
 warnings.showwarning = showwarning
 
