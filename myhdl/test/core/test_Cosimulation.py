@@ -238,15 +238,15 @@ class CosimulationTest(TestCase):
     def testToSignalVals(self):
         cosim = Cosimulation(exe + ".cosimToSignalVals", **allSigs)
         for n in toSignames:
-            self.assertEqual(toSigs[n].next, 0)
+            self.assertEqual(toSigs[n].__next__, 0)
         cosim._get()
         for n, v in zip(toSignames, toVals):
-            self.assertEqual(toSigs[n].next, v)
+            self.assertEqual(toSigs[n].__next__, v)
         os.write(cosim._wf, "DUMMY")
         cosim._getMode = 1
         cosim._get()
         for n in toSignames:
-            self.assertEqual(toSigs[n].next, 0)
+            self.assertEqual(toSigs[n].__next__, 0)
         
 
     def cosimToSignalVals(self):

@@ -172,7 +172,7 @@ _genLabel = _LabelGenerator()
 
 class _Label(object):
     def __init__(self, name):
-        self.name = _genLabel.next() + '_' + name
+        self.name = next(_genLabel) + '_' + name
         self.isActive = False
     def __str__(self):
         return str(self.name)
@@ -184,7 +184,7 @@ class _UniqueSuffixGenerator(object):
         self.i = 0
     def reset(self):
         self.i = 0
-    def next(self):
+    def __next__(self):
         self.i += 1
         return "_%s" % self.i
 
