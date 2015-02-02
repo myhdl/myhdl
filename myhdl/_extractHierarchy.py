@@ -321,10 +321,10 @@ class _HierExtr(object):
                     #All nested functions will be in co_consts
                     if func:
                         local_gens = []
-                        consts = func.func_code.co_consts
+                        consts = func.__code__.co_consts
                         for item in _flatten(arg):
                             genfunc = _genfunc(item)
-                            if genfunc.func_code in consts:
+                            if genfunc.__code__ in consts:
                                 local_gens.append(item)
                         if local_gens:
                             objlist = _resolveRefs(symdict, local_gens)

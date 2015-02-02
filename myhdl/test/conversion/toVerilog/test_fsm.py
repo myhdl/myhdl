@@ -174,7 +174,7 @@ class FramerCtrlTest(TestCase):
 
         framerctrl_ref_inst = FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State)
         framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n, t_State)
-        framerctrl_v_inst = FramerCtrl_v(FramerCtrl.func_name,
+        framerctrl_v_inst = FramerCtrl_v(FramerCtrl.__name__,
                                          SOF_v, state_v, syncFlag, clk, reset_n)
 
         def clkgen():

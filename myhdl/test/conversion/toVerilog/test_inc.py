@@ -160,7 +160,7 @@ class TestInc(TestCase):
         inc_inst_ref = incRef(count, enable, clock, reset, n=n)
         inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
         # inc_inst = inc(count, enable, clock, reset, n=n)
-        inc_inst_v = inc_v(inc.func_name, count_v, enable, clock, reset)
+        inc_inst_v = inc_v(inc.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

@@ -128,19 +128,19 @@ class TestTraceSigs(TestCase):
             self.fail()
 
     def testHierarchicalTrace1(self):
-        p = "%s.vcd" % fun.func_name
+        p = "%s.vcd" % fun.__name__
         top()
         self.assert_(path.exists(p))
 
     def testHierarchicalTrace2(self):
-        pdut = "%s.vcd" % top.func_name
-        psub = "%s.vcd" % fun.func_name
+        pdut = "%s.vcd" % top.__name__
+        psub = "%s.vcd" % fun.__name__
         dut = traceSignals(top)
         self.assert_(path.exists(pdut))
         self.assert_(not path.exists(psub))
 
     def testBackupOutputFile(self):
-        p = "%s.vcd" % fun.func_name
+        p = "%s.vcd" % fun.__name__
         dut = traceSignals(fun)
         Simulation(dut).run(1000, quiet=QUIET)
         _simulator._tf.close()

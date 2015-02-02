@@ -296,7 +296,7 @@ class TestInfer(unittest.TestCase):
 
         infertest_inst = toVerilog(Infertest, a, out)
         # infertest_inst = Infertest(hec, header)
-        infertest_v_inst = Infertest_v(Infertest.func_name, a, out_v)
+        infertest_v_inst = Infertest_v(Infertest.__name__, a, out_v)
  
         def stimulus():
             a.next = 1
