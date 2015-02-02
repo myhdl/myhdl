@@ -21,6 +21,7 @@
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 
 import sys
@@ -215,24 +216,24 @@ def _writeFileHeader(f, fn, ts):
                 date=datetime.today().ctime()
                 )
     if not toVerilog.no_myhdl_header:
-        print >> f, string.Template(myhdl_header).substitute(vars)
+        print(string.Template(myhdl_header).substitute(vars), file=f)
     if toVerilog.header:
-        print >> f, string.Template(toVerilog.header).substitute(vars)
-    print >> f
-    print >> f, "`timescale %s" % ts
-    print >> f
+        print(string.Template(toVerilog.header).substitute(vars), file=f)
+    print(file=f)
+    print("`timescale %s" % ts, file=f)
+    print(file=f)
 
 
 def _writeModuleHeader(f, intf, doc):
-    print >> f, "module %s (" % intf.name
+    print("module %s (" % intf.name, file=f)
     b = StringIO()
     for portname in intf.argnames:
-        print >> b, "    %s," % portname
-    print >> f, b.getvalue()[:-2]
+        print("    %s," % portname, file=b)
+    print(b.getvalue()[:-2], file=f)
     b.close()
-    print >> f, ");"
-    print >> f, doc
-    print >> f
+    print(");", file=f)
+    print(doc, file=f)
+    print(file=f)
     for portname in intf.argnames:
         s = intf.argdict[portname]
         if s._name is None:
@@ -248,18 +249,18 @@ def _writeModuleHeader(f, intf, doc):
                 warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
                               category=ToVerilogWarning
                               )
-            print >> f, "output %s%s%s;" % (p, r, portname)
+            print("output %s%s%s;" % (p, r, portname), file=f)
             if s._driven == 'reg':
-                print >> f, "reg %s%s%s;" % (p, r, portname)
+                print("reg %s%s%s;" % (p, r, portname), file=f)
             else:
-                print >> f, "wire %s%s%s;" % (p, r, portname)
+                print("wire %s%s%s;" % (p, r, portname), file=f)
         else:
             if not s._read:
                 warnings.warn("%s: %s" % (_error.UnusedPort, portname),
                               category=ToVerilogWarning
                               )
-            print >> f, "input %s%s%s;" % (p, r, portname)
-    print >> f
+            print("input %s%s%s;" % (p, r, portname), file=f)
+    print(file=f)
 
 
 def _writeSigDecls(f, intf, siglist, memlist):
@@ -281,7 +282,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 k = 'reg'
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (k, r, s._name, int(s._val))
-            print >> f, "%s %s%s%s;" % (k, p, r, s._name)
+            print("%s %s%s%s;" % (k, p, r, s._name), file=f)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -290,8 +291,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           category=ToVerilogWarning
                           )
             constwires.append(s)
-            print >> f, "wire %s%s;" % (r, s._name)
-    print >> f
+            print("wire %s%s;" % (r, s._name), file=f)
+    print(file=f)
     for m in memlist:
         if not m._used:
             continue
@@ -308,29 +309,29 @@ def _writeSigDecls(f, intf, siglist, memlist):
         k = 'wire'
         if m._driven:
             k = m._driven
-        print >> f, "%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth)
-    print >> f
+        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
+    print(file=f)
     for s in constwires:
         if s._type in (bool, intbv):
             c = int(s.val)
         else:
             raise ToVerilogError("Unexpected type for constant signal", s._name)
-        print >> f, "assign %s = %s;" % (s._name, c)
-    print >> f
+        print("assign %s = %s;" % (s._name, c), file=f)
+    print(file=f)
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVerilog') and s._read:
-            print >> f, s.toVerilog()
-    print >> f
+            print(s.toVerilog(), file=f)
+    print(file=f)
 
 
 def _writeModuleFooter(f):
-    print >> f, "endmodule"
+    print("endmodule", file=f)
 
 
 def _writeTestBench(f, intf, trace=False):
-    print >> f, "module tb_%s;" % intf.name
-    print >> f
+    print("module tb_%s;" % intf.name, file=f)
+    print(file=f)
     fr = StringIO()
     to = StringIO()
     pm = StringIO()
@@ -338,32 +339,32 @@ def _writeTestBench(f, intf, trace=False):
         s = intf.argdict[portname]
         r = _getRangeString(s)
         if s._driven:
-            print >> f, "wire %s%s;" % (r, portname)
-            print >> to, "        %s," % portname
+            print("wire %s%s;" % (r, portname), file=f)
+            print("        %s," % portname, file=to)
         else:
-            print >> f, "reg %s%s;" % (r, portname)
-            print >> fr, "        %s," % portname
-        print >> pm, "    %s," % portname
-    print >> f
-    print >> f, "initial begin"
+            print("reg %s%s;" % (r, portname), file=f)
+            print("        %s," % portname, file=fr)
+        print("    %s," % portname, file=pm)
+    print(file=f)
+    print("initial begin", file=f)
     if trace:
-        print >> f, '    $dumpfile("%s.vcd");' % intf.name
-        print >> f, '    $dumpvars(0, dut);'
+        print('    $dumpfile("%s.vcd");' % intf.name, file=f)
+        print('    $dumpvars(0, dut);', file=f)
     if fr.getvalue():
-        print >> f, "    $from_myhdl("
-        print >> f, fr.getvalue()[:-2]
-        print >> f, "    );"
+        print("    $from_myhdl(", file=f)
+        print(fr.getvalue()[:-2], file=f)
+        print("    );", file=f)
     if to.getvalue():
-        print >> f, "    $to_myhdl("
-        print >> f, to.getvalue()[:-2]
-        print >> f, "    );"
-    print >> f, "end"
-    print >> f
-    print >> f, "%s dut(" % intf.name
-    print >> f, pm.getvalue()[:-2]
-    print >> f, ");"
-    print >> f
-    print >> f, "endmodule"
+        print("    $to_myhdl(", file=f)
+        print(to.getvalue()[:-2], file=f)
+        print("    );", file=f)
+    print("end", file=f)
+    print(file=f)
+    print("%s dut(" % intf.name, file=f)
+    print(pm.getvalue()[:-2], file=f)
+    print(");", file=f)
+    print(file=f)
+    print("endmodule", file=f)
 
 
 def _getRangeString(s):

@@ -21,6 +21,7 @@
 
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 
 import sys
@@ -198,7 +199,7 @@ class _ToVHDLConvertor(object):
 
         if pfile:
             _writeFileHeader(pfile, ppath)
-            print >> pfile, _package
+            print(_package, file=pfile)
             pfile.close()
 
         _writeFileHeader(vfile, vpath)
@@ -259,45 +260,45 @@ def _writeFileHeader(f, fn):
                 date=datetime.today().ctime()
                 )
     if toVHDL.header:
-        print >> f, string.Template(toVHDL.header).substitute(vars)
+        print(string.Template(toVHDL.header).substitute(vars), file=f)
     if not toVHDL.no_myhdl_header:
-        print >> f, string.Template(myhdl_header).substitute(vars)
-    print >> f
+        print(string.Template(myhdl_header).substitute(vars), file=f)
+    print(file=f)
 
 
 def _writeCustomPackage(f, intf):
-    print >> f
-    print >> f, "package pck_%s is" % intf.name
-    print >> f
-    print >> f, "attribute enum_encoding: string;"
-    print >> f
+    print(file=f)
+    print("package pck_%s is" % intf.name, file=f)
+    print(file=f)
+    print("attribute enum_encoding: string;", file=f)
+    print(file=f)
     sortedList = list(_enumPortTypeSet)
     sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
     for t in sortedList:
-        print >> f, "    %s" % t._toVHDL()
-    print >> f
-    print >> f, "end package pck_%s;" % intf.name
-    print >> f
+        print("    %s" % t._toVHDL(), file=f)
+    print(file=f)
+    print("end package pck_%s;" % intf.name, file=f)
+    print(file=f)
 
 
 def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric):
-    print >> f, "library IEEE;"
-    print >> f, "use IEEE.std_logic_1164.all;"
-    print >> f, "use IEEE.numeric_std.all;"
-    print >> f, "use std.textio.all;"
-    print >> f
+    print("library IEEE;", file=f)
+    print("use IEEE.std_logic_1164.all;", file=f)
+    print("use IEEE.numeric_std.all;", file=f)
+    print("use std.textio.all;", file=f)
+    print(file=f)
     if lib != "work":
-        print >> f, "library %s;" % lib
+        print("library %s;" % lib, file=f)
     if useClauses is not None:
         f.write(useClauses)
         f.write("\n")
     else:
-        print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _shortversion)
-    print >> f
+        print("use %s.pck_myhdl_%s.all;" % (lib, _shortversion), file=f)
+    print(file=f)
     if needPck:
-        print >> f, "use %s.pck_%s.all;" % (lib, intf.name)
-        print >> f
-    print >> f, "entity %s is" % intf.name
+        print("use %s.pck_%s.all;" % (lib, intf.name), file=f)
+        print(file=f)
+    print("entity %s is" % intf.name, file=f)
     if intf.argnames:
         f.write("    port (")
         c = ''
@@ -327,11 +328,11 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric):
                                   )
                 f.write("\n        %s: in %s%s" % (portname, p, r))
         f.write("\n    );\n")
-    print >> f, "end entity %s;" % intf.name
-    print >> f, doc
-    print >> f
-    print >> f, "architecture %s of %s is" % (arch, intf.name)
-    print >> f
+    print("end entity %s;" % intf.name, file=f)
+    print(doc, file=f)
+    print(file=f)
+    print("architecture %s of %s is" % (arch, intf.name), file=f)
+    print(file=f)
 
 
 def _writeFuncDecls(f):
@@ -386,7 +387,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               )
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print >> f, "signal %s: %s%s;" % (s._name, p, r)
+            print("signal %s: %s%s;" % (s._name, p, r), file=f)
         elif s._read:
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
@@ -395,7 +396,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           category=ToVHDLWarning
                           )
             constwires.append(s)
-            print >> f, "signal %s: %s%s;" % (s._name, p, r)
+            print("signal %s: %s%s;" % (s._name, p, r), file=f)
     for m in memlist:
         if not m._used:
             continue
@@ -410,16 +411,16 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
-        print >> f, "type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r)
-        print >> f, "signal %s: %s;" % (m.name, t)
-    print >> f
+        print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
+        print("signal %s: %s;" % (m.name, t), file=f)
+    print(file=f)
 
 def _writeCompDecls(f,  compDecls):
     if compDecls is not None:
-        print >> f, compDecls
+        print(compDecls, file=f)
 
 def _writeModuleFooter(f, arch):
-    print >> f, "end architecture %s;" % arch
+    print("end architecture %s;" % arch, file=f)
 
 def _getRangeString(s):
     if isinstance(s._val, EnumItemType):
@@ -470,8 +471,8 @@ def _convertGens(genlist, siglist, memlist, vfile):
         v = Visitor(tree, blockBuf, funcBuf)
         v.visit(tree)
     vfile.write(funcBuf.getvalue()); funcBuf.close()
-    print >> vfile, "begin"
-    print >> vfile
+    print("begin", file=vfile)
+    print(file=vfile)
     for s in constwires:
         if s._type is bool:
             c = int(s._val)
@@ -486,19 +487,19 @@ def _convertGens(genlist, siglist, memlist, vfile):
                 pre, suf = "to_unsigned(", ", %s)" % w
         else:
             raise ToVHDLError("Unexpected type for constant signal", s._name)
-        print >> vfile, "%s <= %s%s%s;" % (s._name, pre, c, suf)
-    print >> vfile
+        print("%s <= %s%s%s;" % (s._name, pre, c, suf), file=vfile)
+    print(file=vfile)
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVHDL') and s._read:
-            print >> vfile, s.toVHDL()
+            print(s.toVHDL(), file=vfile)
     # hack for slice signals in a list
     for m in memlist:
         if m._read:
             for s in m.mem:
                 if hasattr(s, 'toVHDL'):
-                    print >> vfile, s.toVHDL()
-    print >> vfile
+                    print(s.toVHDL(), file=vfile)
+    print(file=vfile)
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
 
