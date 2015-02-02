@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import print_function
 import os
 path = os.path
 from random import randrange
@@ -140,7 +139,7 @@ def HecBench(HecCalculator):
         for i in range(len(headers)):
             header.next = headers[i]
             yield delay(10)
-            print(hec)
+            print hec
 
     return stimulus, heccalc_inst
 

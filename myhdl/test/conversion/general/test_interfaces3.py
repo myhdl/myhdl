@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import print_function
 
 import sys
 
@@ -52,7 +51,7 @@ def c_testbench_one():
     def tb_stim():
         y.next = 3
         yield delay(10)
-        print(("x: %d" % (x)))
+        print("x: %d" % (x))
         assert x == 3
         
     return tb_dut, tb_stim
@@ -84,7 +83,7 @@ def c_testbench_two():
         y.next = 3
         z.next = 2
         yield delay(10)
-        print(("x: %d" % (x)))        
+        print("x: %d" % (x))        
         assert x == 5
         
     return tb_dut, tb_stim
@@ -107,11 +106,11 @@ def test_two_verify():
     assert verify(c_testbench_two) == 0
 
 if __name__ == '__main__':
-    print((sys.argv[1]))
+    print(sys.argv[1])
     verify.simulator = analyze.simulator = sys.argv[1]
     print("*** verify myhdl simulation")    
     Simulation(c_testbench_one()).run()
     Simulation(c_testbench_two()).run()
     print("*** myhdl simulation ok")    
-    print((verify(c_testbench_one)))
-    print((verify(c_testbench_two)))    
+    print(verify(c_testbench_one))
+    print(verify(c_testbench_two))    

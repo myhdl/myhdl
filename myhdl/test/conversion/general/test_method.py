@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import print_function
 import sys
 from myhdl import *
 from myhdl.conversion import verify
@@ -137,7 +136,7 @@ def ObjBench(hObj):
             x.next = nx
             yield clk.posedge
             yield clk.posedge
-            print("x %d y %d" % (x, y))
+            print "x %d y %d" % (x, y)
             assert x == nx
             assert y == ny
         raise StopSimulation

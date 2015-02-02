@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import print_function
 import os
 path = os.path
 import unittest
@@ -56,7 +55,7 @@ def TernaryBench(ternary):
             clk.next = 1
             yield delay(10)
             assert dout == (i + 1) % 128
-            print(dout)
+            print dout
             clk.next = 0
             yield delay(10)
 

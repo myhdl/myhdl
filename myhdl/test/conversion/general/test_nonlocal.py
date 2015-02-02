@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import print_function
 import os
 path = os.path
 
@@ -41,19 +40,19 @@ def NonlocalBench():
         yield clk.negedge
         reset.next = 1
         yield clk.negedge
-        print(qout)
+        print qout
         assert qout == ONE
         reset.next = 0
         for i in range(100):
             yield clk.negedge
-            print(qout)
+            print qout
         init.next = 1
         yield clk.negedge
         assert qout == ALL_ONES
-        print(qout)
+        print qout
         init.next = 0
         for i in range(300):
-            print(qout)
+            print qout
         raise StopSimulation()
         
     return scrambler, clkgen, stimulus

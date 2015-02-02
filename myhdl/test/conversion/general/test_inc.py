@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import print_function
 import sys
 import os
 path = os.path
@@ -158,7 +157,7 @@ def IncBench(inc):
         yield clock.negedge
         while True:
             yield clock.negedge
-            print(count)
+            print count
 
     return inc_inst, clockgen, monitor
 
