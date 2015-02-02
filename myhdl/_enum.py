@@ -54,7 +54,7 @@ def enum(*names, **kwargs):
     for name in names:
         if not isinstance(name, string_types):
             raise TypeError()
-        if codedict.has_key(name):
+        if name in codedict:
             raise ValueError("enum literals should be unique")
         if encoding == "one_hot":
             code = bin(1<<i, nrbits)
