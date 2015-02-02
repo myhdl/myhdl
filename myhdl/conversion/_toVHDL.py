@@ -33,14 +33,14 @@ from datetime import datetime
 #import compiler
 #from compiler import ast as astNode
 import ast
-from types import GeneratorType, ClassType
+from types import GeneratorType
 import warnings
 from copy import copy
 import string
 
 import myhdl
 from myhdl import *
-from myhdl._compat import integer_types, StringIO
+from myhdl._compat import integer_types, class_types, StringIO
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVhdlCode, _userCodeMap)
@@ -980,7 +980,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(closing)
             self.write(suf)
             return
-        elif type(f) is ClassType and issubclass(f, Exception):
+        elif (type(f) in class_types) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -1336,7 +1336,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVHDL()
-            elif type(obj) is ClassType and issubclass(obj, Exception):
+            elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))

@@ -33,13 +33,13 @@ from datetime import datetime
 import ast
 import string
 
-from types import GeneratorType, ClassType, TypeType
+from types import GeneratorType
 from myhdl._compat import StringIO
 import warnings
 
 import myhdl
 from myhdl import *
-from myhdl._compat import integer_types
+from myhdl._compat import integer_types, class_types
 from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
@@ -748,7 +748,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(opening)
             self.visit(fn.value)
             self.write(closing)
-        elif type(f) in (ClassType, TypeType) and issubclass(f, Exception):
+        elif (type(f) in class_types) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -1017,7 +1017,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVerilog()
-            elif type(obj) in (ClassType, TypeType) and issubclass(obj, Exception):
+            elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
