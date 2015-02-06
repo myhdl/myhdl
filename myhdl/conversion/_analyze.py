@@ -39,7 +39,8 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always_seq import _AlwaysSeq
 from myhdl._always import _Always
 from myhdl.conversion._misc import (_error, _access, _kind,
-                                    _ConversionMixin, _Label, _genUniqueSuffix)
+                                    _ConversionMixin, _Label, _genUniqueSuffix,
+                                    _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
@@ -287,7 +288,7 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         if not self.toplevel:
             self.raiseError(node, _error.NotSupported, "embedded function definition")
         self.toplevel = False
-        node.argnames = [arg.id for arg in node.args.args]
+        node.argnames = _get_argnames(node)
         # don't visit decorator lists - they can support more than other calls
         # put official docstrings aside for separate processing
         node.doc = None
@@ -614,7 +615,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             v.visit(tree)
             node.obj = tree.returnObj
             node.tree = tree
-            tree.argnames = argnames = [arg.id for arg in tree.body[0].args.args]
+            tree.argnames = argnames = _get_argnames(tree.body[0])
             # extend argument list with keyword arguments on the correct position
             node.args.extend([None]*len(node.keywords))
             for kw in node.keywords:
@@ -1169,7 +1170,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
 
     def visit_FunctionDef(self, node):
         self.refStack.push()
-        argnames = [arg.id for arg in node.args.args]
+        argnames = _get_argnames(node)
         for i, arg in enumerate(self.args):
             n = argnames[i]
             self.tree.symdict[n] = self.getObj(arg)
@@ -1276,7 +1277,7 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
     def visit_FunctionDef(self, node):
 
         self.name = node.name
-        self.argnames = [arg.id for arg in node.args.args]
+        self.argnames = _get_argnames(node)
         if isboundmethod(self.func):
             if not self.argnames[0] == 'self':
                 self.raiseError(node, _error.NotSupported,
