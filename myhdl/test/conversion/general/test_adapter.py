@@ -1,4 +1,4 @@
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 from myhdl import *
 
 def adapter(o_err, i_err, o_spec, i_spec):
@@ -56,7 +56,7 @@ def bench_adapter(conv=False):
             assert o_err[1] == (i_err[2] | i_err[3] | i_err[4] | i_err[5])
             assert o_err[2] == i_err[1]
             assert o_err[3] == i_err[0]
-            print(o_err)
+            print o_err
 
     return dut, stimulus
 

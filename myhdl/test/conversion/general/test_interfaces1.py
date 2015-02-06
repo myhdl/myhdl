@@ -1,4 +1,4 @@
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 import sys
 
@@ -58,7 +58,7 @@ def c_testbench_one():
             yield clock.posedge
         assert ia.x == 3
         assert ia.y == 4
-        print(("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y)))
+        print("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y))
         raise StopSimulation
 
     return tb_dut, tb_clk, tb_stim
@@ -89,7 +89,7 @@ def c_testbench_two():
             yield clock.posedge
         assert ia.x == 5
         assert ia.y == 7
-        print(("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y)))
+        print("%d %d %d %d"%(ia.x,ia.y,ib.x,ib.y))
         raise StopSimulation
 
     return tb_dut, tb_clk, tb_stim
@@ -116,9 +116,9 @@ def test_two_level_verify():
 
 
 if __name__ == '__main__':
-    print((sys.argv[1]))
+    print(sys.argv[1])
     verify.simulator = analyze.simulator = sys.argv[1]
     Simulation(c_testbench_one()).run()
     Simulation(c_testbench_two()).run()
-    print((verify(c_testbench_one)))
-    print((verify(c_testbench_two)))
+    print(verify(c_testbench_one))
+    print(verify(c_testbench_two))
