@@ -40,7 +40,6 @@ import string
 
 import myhdl
 from myhdl import *
-from myhdl._compat import integer_types, class_types, StringIO
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVhdlCode, _userCodeMap)
@@ -52,6 +51,8 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
                                        _Ram, _Rom, _enumTypeSet, _constDict, _extConstDict)
 from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
+from myhdl._util import  _flatten
+from myhdl._compat import integer_types, class_types, StringIO
 
 
 _version = myhdl.__version__.replace('.','')
@@ -2053,7 +2054,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_unsigned(s)
         elif f is bool:
             node.vhd = vhd_boolean()
-        elif f in (integer_types, ord):
+        elif f in _flatten(integer_types, ord):
             node.vhd = vhd_int()
             node.args[0].vhd = vhd_int()
         elif f in (intbv, modbv):
