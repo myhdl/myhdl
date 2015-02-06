@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
