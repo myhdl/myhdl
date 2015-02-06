@@ -28,6 +28,7 @@ import inspect
 from types import FunctionType, MethodType
 import re
 import ast
+from itertools import chain
 from collections import defaultdict
 
 import myhdl
@@ -93,7 +94,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         name = inst.name
         sigdict = inst.sigdict
         memdict = inst.memdict
-        namedict = dict(sigdict.items() + memdict.items())
+        namedict = dict(chain(sigdict.items(),  memdict.items()))
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
