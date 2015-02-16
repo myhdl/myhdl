@@ -1866,6 +1866,10 @@ class vhd_enum(vhd_type):
     def __init__(self, tipe):
         self._type = tipe
 
+    def toStr(self, constr = True):
+        return self._type.__dict__['_name']
+      
+
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
         vhd_type.__init__(self)
