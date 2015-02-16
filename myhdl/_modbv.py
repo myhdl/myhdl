@@ -30,6 +30,9 @@ class modbv(intbv):
             if val < lo or val >= hi:
                 self._val = (val - lo) % (hi - lo) + lo
 
+    def __repr__(self):
+        return "modbv(" + repr(self._val) + ")"
+
 
     # indexing and slicing methods
     # dedicated for modbv to support "declaration by slicing"
