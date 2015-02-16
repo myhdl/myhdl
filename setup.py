@@ -22,7 +22,7 @@ if sys.version_info < requiredVersion:
 from distutils.core import setup
 
 classifiers = """\
-Development Status :: 4 - Beta 
+Development Status :: 5 - Production/Stable
 Intended Audience :: Developers
 License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
 Operating System :: OS Independent
@@ -38,7 +38,7 @@ setup(name="myhdl",
       author="Jan Decaluwe",
       author_email="jan@jandecaluwe.com",
       url="http://www.myhdl.org",
-      download_url="https://bitbucket.org/jandecaluwe/myhdl/get/0.8.zip",
+      download_url="https://bitbucket.org/jandecaluwe/myhdl/get/0.8.1.zip",
       packages=['myhdl', 'myhdl.conversion'],
       license="LGPL",
       platforms=["Any"],

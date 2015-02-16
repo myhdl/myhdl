@@ -31,6 +31,11 @@ Combinatorial logic
 Template
 --------
 
+.. testsetup:: *
+
+   from myhdl import *
+
+
 Combinatorial logic is described with a code pattern as follows::
 
    def top(<parameters>):
@@ -53,12 +58,14 @@ to all inputs, and that executes the function whenever an input changes.
 Example
 -------
 
-The following is an example of a combinatorial multiplexer::
+The following is an example of a combinatorial multiplexer
+
+
+.. testcode:: comb1
 
    from myhdl import Signal, Simulation, delay, always_comb
 
    def Mux(z, a, b, sel):
-
        """ Multiplexer.
 
        z -- mux output
@@ -66,7 +73,7 @@ The following is an example of a combinatorial multiplexer::
        sel -- control input: select a if asserted, otherwise b
 
        """
-
+       
        @always_comb
        def muxLogic():
            if sel == 1:
@@ -76,44 +83,53 @@ The following is an example of a combinatorial multiplexer::
 
        return muxLogic
 
+   # Once we've created some signals...
+   z, a, b, sel = [Signal(intbv(0)) for i in range(4)]
+
+   # ...it can be instantiated as follows
+   mux_1 = Mux(z, a, b, sel)
+
 To verify it, we will simulate the logic with some random patterns. The
 ``random`` module in Python's standard library comes in handy for such purposes.
 The function ``randrange(n)`` returns a random natural integer smaller than *n*.
-It is used in the test bench code to produce random input values::
+It is used in the test bench code to produce random input values
+
+.. testcode:: comb1
+   :hide:
+
+   import random
+   random.seed(0xDECAFBAD)
+
+.. testcode:: comb1
 
    from random import randrange
 
-   z, a, b, sel = [Signal(0) for i in range(4)]
-
-   mux_1 = Mux(z, a, b, sel)
-
    def test():
+   
        print "z a b sel"
        for i in range(8):
            a.next, b.next, sel.next = randrange(8), randrange(8), randrange(2)
            yield delay(10)
            print "%s %s %s %s" % (z, a, b, sel)
-
+   
+   
    test_1 = test()
-
-   sim = Simulation(mux_1, test_1)
-   sim.run()    
+   sim = Simulation(mux_1, test_1).run()   
 
 Because of the randomness, the simulation output varies between runs  [#]_. One
-particular run produced the following output::
+particular run produced the following output
 
-   % python mux.py
+.. testoutput:: comb1
+
    z a b sel
-   6 6 1 1
-   7 7 1 1
-   7 3 7 0
-   1 2 1 0
-   7 7 5 1
-   4 7 4 0
-   4 0 4 0
-   3 3 5 1
-   StopSimulation: No more events
-
+   6 6 0 1
+   7 7 2 1
+   7 6 7 0
+   0 3 0 0
+   1 1 1 1
+   1 5 1 0
+   2 3 2 0
+   1 1 0 1
 
 .. _model-seq:
 
@@ -159,9 +175,10 @@ Example
 -------
 
 The following code is a description of an incrementer with enable, and an
-asynchronous reset. ::
+asynchronous reset. 
 
-   from random import randrange
+.. testcode:: seq1
+
    from myhdl import *
   
    ACTIVE_LOW, INACTIVE_HIGH = 0, 1
@@ -185,10 +202,22 @@ asynchronous reset. ::
 
        return incLogic
 
+
+
 For the test bench, we will use an independent clock generator, stimulus
 generator, and monitor. After applying enough stimulus patterns, we can raise
 the :func:`StopSimulation()` exception to stop the simulation run. The test bench for
-a small incrementer and a small number of patterns is a follows::
+a small incrementer and a small number of patterns is a follows
+
+.. testcode:: seq1
+   :hide:
+
+   import random
+   random.seed(0xDECAFBAD)
+
+.. testcode:: seq1
+
+   from random import randrange
 
    def testbench():
        count, enable, clock = [Signal(intbv(0)) for i in range(3)]
@@ -225,27 +254,25 @@ a small incrementer and a small number of patterns is a follows::
 
 
    tb = testbench()
+   Simulation(tb).run()
 
-   def main():
-       Simulation(tb).run()
+The simulation produces the following output
 
-The simulation produces the following output::
+.. testoutput:: seq1
 
-   % python inc.py
    enable  count
-      0      0
       1      1
       0      1
+      1      2
+      1      3
+      0      3
+      1      0
+      1      1
       1      2
       1      3
       1      0
       0      0
       1      1
-      0      1
-      0      1
-      0      1
-      1      2
-   StopSimulation
 
 .. _mode-seq-templ-alt:
 
@@ -280,7 +307,10 @@ deserves special attention.
 
 For code clarity, the state values are typically represented by a set of
 identifiers. A standard Python idiom for this purpose is to assign a range of
-integers to a tuple of identifiers, like so::
+integers to a tuple of identifiers, like so
+
+
+.. doctest::
 
    >>> SEARCH, CONFIRM, SYNC = range(3)
    >>> CONFIRM
@@ -297,7 +327,10 @@ need an *enumeration type*.
 MyHDL supports enumeration types by providing a function :func:`enum`.  The
 arguments to :func:`enum` are the string representations of the identifiers, and
 its return value is an enumeration type. The identifiers are available as
-attributes of the type. For example::
+attributes of the type. For example
+
+
+.. doctest::
 
    >>> from myhdl import enum
    >>> t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
@@ -318,7 +351,9 @@ framing pattern and indicates it to the FSM with a ``syncFlag`` signal. When
 found, the FSM moves from the initial ``SEARCH`` state to the ``CONFIRM`` state.
 When the ``syncFlag`` is confirmed on the expected position, the FSM declares
 ``SYNC``, otherwise it falls back to the ``SEARCH`` state.  This FSM can be
-coded as follows::
+coded as follows
+
+.. testcode:: sm1
 
    from myhdl import *
 
@@ -396,14 +431,16 @@ number of non-keyword and keyword arguments that will be passed to the function
 call.
 
 A small test bench for our framing controller example, with signal tracing
-enabled, is shown below::
+enabled, is shown below:
+
+.. testcode:: sm1
 
    def testbench():
 
        SOF = Signal(bool(0))
        syncFlag = Signal(bool(0))
        clk = Signal(bool(0))
-       reset = ResetSignal(0, active=ACTIVE_LOW, async=True)
+       reset = ResetSignal(1, active=ACTIVE_LOW, async=True)
        state = Signal(t_State.SEARCH)
 
        framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset)
@@ -424,13 +461,59 @@ enabled, is shown below::
                    yield clk.posedge
            raise StopSimulation
 
-       return framectrl, clkgen, stimulus
-
+       @always_seq(clk.posedge, reset=reset)
+       def output_printer():
+           print syncFlag, SOF, state
+       
+       return framectrl, clkgen, stimulus, output_printer
 
    tb_fsm = traceSignals(testbench)
    sim = Simulation(tb_fsm)
    sim.run()
 
+.. testoutput:: sm1
+   :hide:
+   
+   False False SEARCH
+   False False SEARCH
+   False False SEARCH
+   1 False SEARCH
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False SEARCH
+   0 False SEARCH
+   0 False SEARCH
+   1 False SEARCH
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   0 False CONFIRM
+   1 False CONFIRM
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   0 False SYNC
+   1 True SYNC
+   0 False SYNC
+   0 False SYNC
+
+.. testcleanup:: sm1
+   
+   import os
+   os.remove('testbench.vcd')
+   
 When we run the test bench, it generates a VCD file called
 :file:`testbench.vcd`. When we load this file into :program:`gtkwave`, we can
 view the waveforms:
