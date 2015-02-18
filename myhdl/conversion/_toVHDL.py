@@ -24,6 +24,7 @@
 
 import sys
 import math
+import os
 
 import inspect
 from datetime import datetime
@@ -86,6 +87,7 @@ def _makeDoc(doc, indent=''):
 class _ToVHDLConvertor(object):
 
     __slots__ = ("name",
+                 "directory",                 
                  "component_declarations",
                  "header",
                  "no_myhdl_header",
@@ -98,6 +100,7 @@ class _ToVHDLConvertor(object):
 
     def __init__(self):
         self.name = None
+        self.directory = None        
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
@@ -130,10 +133,15 @@ class _ToVHDLConvertor(object):
         finally:
             _converting = 0
 
+        if self.directory is None:
+            directory = ''
+        else:
+            directory = self.directory
+
         compDecls = self.component_declarations
         useClauses = self.use_clauses
 
-        vpath = name + ".vhd"
+        vpath = os.path.join(directory, name + ".vhd")
         vfile = open(vpath, 'w')
         ppath = "pck_myhdl_%s.vhd" % _shortversion
         pfile = None

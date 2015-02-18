@@ -24,6 +24,8 @@
 
 import sys
 import math
+import os
+
 import inspect
 from datetime import datetime
 import ast
@@ -80,6 +82,7 @@ def _makeDoc(doc, indent=''):
 class _ToVerilogConvertor(object):
 
     __slots__ = ("name",
+                 "directory",
                  "timescale",
                  "standard",
                  "prefer_blocking_assignments",
@@ -93,6 +96,7 @@ class _ToVerilogConvertor(object):
 
     def __init__(self):
         self.name = None
+        self.directory = None
         self.timescale = "1ns/10ps"
         self.standard = '2001'
         self.prefer_blocking_assignments = True
@@ -125,7 +129,13 @@ class _ToVerilogConvertor(object):
         finally:
             _converting = 0
 
-        vpath = name + ".v"
+        if self.directory is None:
+            directory = ''
+        else:
+            directory = self.directory
+
+        vfilename = name + ".v"
+        vpath = os.path.join(directory, vfilename)
         vfile = open(vpath, 'w')
 
         ### initialize properly ###
@@ -154,7 +164,7 @@ class _ToVerilogConvertor(object):
 
         # don't write testbench if module has no ports
         if len(intf.argnames) > 0 and not toVerilog.no_testbench:
-            tbpath = "tb_" + vpath
+            tbpath = os.path.join(directory, "tb_" + vfilename)
             tbfile = open(tbpath, 'w')
             _writeTestBench(tbfile, intf, self.trace)
             tbfile.close()
