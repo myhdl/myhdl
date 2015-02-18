@@ -1590,8 +1590,18 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visit_FunctionDef(self, node):
+        # a local function works nicely too
+        def compressSensitivityList(senslist):
+            ''' reduce spelled out list items like [*name*(0), *name*(1), ..., *name*(n)] to just *name*'''
+            r = []
+            for item in senslist:
+                name = item._name.split('(',1)[0]
+                if not name in r:
+                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...        
+            return r
+        
         self.writeDoc(node)
-        senslist = self.tree.senslist
+        senslist = compressSensitivityList(self.tree.senslist)
         self.write("%s: process (" % self.tree.name)
         for e in senslist[:-1]:
             self.write(e)
