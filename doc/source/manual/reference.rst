@@ -710,6 +710,11 @@ Conversion
        This attribute is used to overwrite the default top-level instance name and the
        basename of the Verilog output filename.
 
+    .. attribute:: directory
+
+       This attribute is used to set the directory to which converted verilog
+       files are written. By default, the current working directory is used.
+
     .. attribute:: timescale
 
        This attribute is used to set the timescale in Verilog format. The assigned value
@@ -734,6 +739,11 @@ Conversion
 
        This attribute is used to overwrite the default top-level
        instance name and the basename of the VHDL output.
+
+    .. attribute:: directory
+
+       This attribute is used to set the directory to which converted VHDL
+       files are written. By default, the current working directory is used.
 
     .. attribute:: component_declarations
 
