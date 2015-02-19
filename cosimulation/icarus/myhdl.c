@@ -7,7 +7,7 @@
 
 #define MAXLINE 4096
 #define MAXWIDTH 10
-#define MAXARGS 64
+#define MAXARGS 1024
 // #define DEBUG 1
 
 /* Sized variables */

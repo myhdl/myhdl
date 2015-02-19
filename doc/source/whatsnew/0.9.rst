@@ -6,44 +6,87 @@
 What's new in MyHDL 0.9
 ***********************
 
-:Author: 
-
 Interfaces
 ===========
 
 Rationale
 ---------
-Complex designs often have many signals (ports) that 
-are passed to different levels of hierarchy.  Typically
-many of the signals can logically be grouped together.
-Grouping the signals into an *interface* simplifies the 
-code, improves efficiency, and reduces errors.
+Complex designs often have many signals (ports) that are passed to 
+different levels of hierarchy.  Typically, many of the signals can 
+logically be grouped together.  Grouping the signals into an 
+*interface* simplifies the code, improves efficiency, and reduces 
+errors.
 
-Previous versions supported /interfaces/ for modeling 
-and for conversion if the **attributes** were locally 
-referenced in a MyHDL module.  The proposed solution 
-will convert an example like the following:
+An *interface* is a collection of signals (:class:`Signal`)  embedded 
+in an class/object as attributes.  This provides a natural method 
+to group related signals and provides intuitive access through 
+attributes.  Multiple level of objects and attibutes provides a 
+hierarchy of signal structure if desired.
 
-    def complex_mult(clock,reset,a,b,c):
+The following is an example of an *interface* definition::
 
-        @always_seq(clock.posedge,reset=reset)
-        def rtl_mult():
+    class Complex:
+        def __init__(self, min=-2, max=2):
+	    self.real = Signal(intbv(0, min=min, max=max))
+	    self.imag = Signal(intbv(0, min=min, max=max))
+
+
+Previous versions supported *interfaces* for modeling and for 
+conversion if the attributes were locally referenced in a MyHDL 
+module outside of the `MyHDL generator`_.  If the attributes were 
+directly referenced in the `MyHDL generator`_ the code would not be 
+convertible.
+
+This features adds the ability to convert attributes that are 
+:class:`Signal` and referenced in the `MyHDL generator`_.  This is
+an evolution of a useful construct.  
+
+The following 
+is an example using the above ``Complex`` interface definition::
+
+    a,b = Complex(-8,8), Complex(-8,8)
+    c = Complex(-128,128)
+
+    def complex_multiply(clock, reset, a, b, c):
+
+        @always_seq(clock.posedge, reset=reset)
+        def cmult():
             c.real.next = (a.real*b.real) - (a.imag*b.imag)
 	    c.imag.next = (a.real*b.imag) + (a.imag*b.real)
 
-	return rtl_mult
-	            
+	return cmult
+	           
 
 Solution
 --------
-The proposed solution is to create uniques names for 
-attributes which are type Signal and used by a module.
-The converter will create a unique name by using the 
-name of the parent and the name of the attribute along 
-with the name of the MyHDL module instance (if applicable).
+The proposed solution is to create unique names for attributes which 
+are type :class:`Signal` and used by a `MyHDL generator`_.  The 
+converter will create a unique name by using the name of the parent 
+and the name of the attribute along with the name of the MyHDL module 
+instance (if required for uniqueness).  The convert will essentially 
+replace the "." with an "_" for each *interface* element.  
+
+Even though the target HDLs do not support *interfaces*, MyHDL is
+able to add high-level features that compile during conversion to the 
+target HDL (Verilog and VHDL).  
+
 
 Conversion
 ----------
+
+.. add details of the conversion, what policies are used name 
+.. extend the Signals.  Any useful information about the approach
+.. or structure in the converter used.
+
+
+Limitations
+-----------
+The current implementation only converts ``Signal`` attributes.  It
+does not convert other attribute types.  One of the main drawbacks
+is if constants are defined in a class.  These constants will not 
+be converted.  Local references need to be made to the constant 
+values.
+
 
 
 See also
@@ -51,4 +94,4 @@ See also
 For additional information see the original proposal `mep-107`_.
 
 .. _mep-107: http://http://myhdl.org/doku.php/meps:mep-107
-
+.. _MyHDL generator: http://docs.myhdl.org/en/latest/manual/reference.html#myhdl-generators-and-trigger-objects
