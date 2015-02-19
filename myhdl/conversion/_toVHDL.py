@@ -1598,8 +1598,18 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visit_FunctionDef(self, node):
+        # a local function works nicely too
+        def compressSensitivityList(senslist):
+            ''' reduce spelled out list items like [*name*(0), *name*(1), ..., *name*(n)] to just *name*'''
+            r = []
+            for item in senslist:
+                name = item._name.split('(',1)[0]
+                if not name in r:
+                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...        
+            return r
+        
         self.writeDoc(node)
-        senslist = self.tree.senslist
+        senslist = compressSensitivityList(self.tree.senslist)
         self.write("%s: process (" % self.tree.name)
         for e in senslist[:-1]:
             self.write(e)
@@ -1873,6 +1883,10 @@ class vhd_string(vhd_type):
 class vhd_enum(vhd_type):
     def __init__(self, tipe):
         self._type = tipe
+
+    def toStr(self, constr = True):
+        return self._type.__dict__['_name']
+      
 
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
