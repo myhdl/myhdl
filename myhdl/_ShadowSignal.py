@@ -172,8 +172,10 @@ class ConcatSignal(_ShadowSignal):
                     # a bool
                     lines.append("%s(%s) <= \'%s\';" % (self._name, lo, a))
                 else:
-                    lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, 'to_unsigned({},{})'.format( a, a._nrbits) ))
-
+                    if a._nrbits < 32:
+                    	lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, 'to_unsigned({},{})'.format( a, a._nrbits) ))
+            		else:
+                        lines.append('unsigned\'("%s")' % bin(0, a._nrbits))
             else:
                 if len(a) == 1:
                     if  a._type is bool:
