@@ -32,7 +32,7 @@ from __builtin__ import max as maxfunc
 
 class intbv(object):
     #__slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
-    
+
     def __init__(self, val=0, min=None, max=None, _nrbits=0):
         if _nrbits:
             self._min = 0
@@ -53,7 +53,7 @@ class intbv(object):
         elif isinstance(val, StringType):
             mval = val.replace('_', '')
             self._val = long(mval, 2)
-            _nrbits = len(val)
+            _nrbits = len(mval)
         elif isinstance(val, intbv):
             self._val = val._val
             self._min = val._min
@@ -63,7 +63,7 @@ class intbv(object):
             raise TypeError("intbv constructor arg should be int or string")
         self._nrbits = _nrbits
         self._handleBounds()
-        
+
     # support for the 'min' and 'max' attribute
     def _get_max(self):
         return self._max
@@ -81,7 +81,7 @@ class intbv(object):
             if self._val < self._min:
                 raise ValueError("intbv value %s < minimum %s" %
                                  (self._val, self._min))
-                
+
     def _hasFullRange(self):
         min, max = self._min, self._max
         if max <= 0:
@@ -94,7 +94,7 @@ class intbv(object):
     # hash
     def __hash__(self):
         raise TypeError("intbv objects are unhashable")
-        
+
     # copy methods
     def __copy__(self):
         c = type(self)(self._val)
@@ -152,7 +152,7 @@ class intbv(object):
             return res
 
 
-       
+
     def __setitem__(self, key, val):
         # convert val to int to avoid confusion with intbv or Signals
         val = int(val)
@@ -190,13 +190,13 @@ class intbv(object):
             else:
                 raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
                       "            i == %s " % i
-               
+
             self._handleBounds()
 
 
-        
+
     # integer-like methods
-    
+
     def __add__(self, other):
         if isinstance(other, intbv):
             return self._val + other._val
@@ -204,7 +204,7 @@ class intbv(object):
             return self._val + other
     def __radd__(self, other):
         return other + self._val
-    
+
     def __sub__(self, other):
         if isinstance(other, intbv):
             return self._val - other._val
@@ -228,7 +228,7 @@ class intbv(object):
             return self._val / other
     def __rdiv__(self, other):
         return other / self._val
-    
+
     def __truediv__(self, other):
         if isinstance(other, intbv):
             return operator.truediv(self._val, other._val)
@@ -236,7 +236,7 @@ class intbv(object):
             return operator.truediv(self._val, other)
     def __rtruediv__(self, other):
         return operator.truediv(other, self._val)
-    
+
     def __floordiv__(self, other):
         if isinstance(other, intbv):
             return self._val // other._val
@@ -244,7 +244,7 @@ class intbv(object):
             return self._val // other
     def __rfloordiv__(self, other):
         return other //  self._val
-    
+
     def __mod__(self, other):
         if isinstance(other, intbv):
             return self._val % other._val
@@ -254,7 +254,7 @@ class intbv(object):
         return other % self._val
 
     # divmod
-    
+
     def __pow__(self, other):
         if isinstance(other, intbv):
             return self._val ** other._val
@@ -270,7 +270,7 @@ class intbv(object):
             return intbv(long(self._val) << other)
     def __rlshift__(self, other):
         return other << self._val
-            
+
     def __rshift__(self, other):
         if isinstance(other, intbv):
             return type(self)(self._val >> other._val)
@@ -278,7 +278,7 @@ class intbv(object):
             return type(self)(self._val >> other)
     def __rrshift__(self, other):
         return other >> self._val
-           
+
     def __and__(self, other):
         if isinstance(other, intbv):
             return type(self)(self._val & other._val)
@@ -294,7 +294,7 @@ class intbv(object):
             return type(self)(self._val | other)
     def __ror__(self, other):
         return type(self)(other | self._val)
-    
+
     def __xor__(self, other):
         if isinstance(other, intbv):
             return type(self)(self._val ^ other._val)
@@ -310,7 +310,7 @@ class intbv(object):
             self._val += other
         self._handleBounds()
         return self
-        
+
     def __isub__(self, other):
         if isinstance(other, intbv):
             self._val -= other._val
@@ -318,7 +318,7 @@ class intbv(object):
             self._val -= other
         self._handleBounds()
         return self
-        
+
     def __imul__(self, other):
         if isinstance(other, intbv):
             self._val *= other._val
@@ -326,7 +326,7 @@ class intbv(object):
             self._val *= other
         self._handleBounds()
         return self
-    
+
     def __ifloordiv__(self, other):
         if isinstance(other, intbv):
             self._val //= other._val
@@ -339,7 +339,7 @@ class intbv(object):
         raise TypeError("intbv: Augmented classic division not supported")
     def __itruediv__(self, other):
         raise TypeError("intbv: Augmented true division not supported")
-    
+
     def __imod__(self, other):
         if isinstance(other, intbv):
             self._val %= other._val
@@ -347,10 +347,10 @@ class intbv(object):
             self._val %= other
         self._handleBounds()
         return self
-        
+
     def __ipow__(self, other, modulo=None):
         # XXX why 3rd param required?
-        # unused but needed in 2.2, not in 2.3 
+        # unused but needed in 2.2, not in 2.3
         if isinstance(other, intbv):
             self._val **= other._val
         else:
@@ -359,7 +359,7 @@ class intbv(object):
             raise ValueError("intbv value should be integer")
         self._handleBounds()
         return self
-        
+
     def __iand__(self, other):
         if isinstance(other, intbv):
             self._val &= other._val
@@ -415,10 +415,10 @@ class intbv(object):
             return type(self)(~self._val & (1L << self._nrbits)-1)
         else:
             return type(self)(~self._val)
-    
+
     def __int__(self):
         return int(self._val)
-        
+
     def __long__(self):
         return long(self._val)
 
@@ -426,16 +426,16 @@ class intbv(object):
         return float(self._val)
 
     # XXX __complex__ seems redundant ??? (complex() works as such?)
-    
+
     def __oct__(self):
         return oct(self._val)
-    
+
     def __hex__(self):
         return hex(self._val)
 
     def __index__(self):
         return int(self._val)
-        
+
     # comparisons
     def __eq__(self, other):
         if isinstance(other, intbv):
@@ -468,7 +468,7 @@ class intbv(object):
         else:
             return self._val >= other
 
-    # representation 
+    # representation
     def __str__(self):
         return str(self._val)
 
@@ -489,7 +489,7 @@ class intbv(object):
 
       The classification is based on the following possible combinations
       of the min and max value.
-          
+
         ----+----+----+----+----+----+----+----
            -3   -2   -1    0    1    2    3
       1                   min  max
@@ -507,7 +507,7 @@ class intbv(object):
       signed() function will convert the value to a signed number.
       Decision about the sign will be done based on the msb. The msb is
       based on the _nrbits value.
-      
+
       So the test will be if min >= 0 and _nrbits > 0. Then the instance
       is considered unsigned and the value is returned as 2's complement
       number.
@@ -520,7 +520,7 @@ class intbv(object):
         msb = self._nrbits-1
 
         sign = ((self._val >> msb) & 0x1) > 0
-        
+
         # mask off the bits msb-1:lsb, they are always positive
         mask = (1<<msb) - 1
         retVal = self._val & mask
