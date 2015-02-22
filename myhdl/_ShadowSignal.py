@@ -29,6 +29,10 @@ from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
 from myhdl._intbv import intbv
 from myhdl._simulator import _siglist
+from myhdl._bin import bin
+
+
+
 
 # shadow signals
         
@@ -175,7 +179,7 @@ class ConcatSignal(_ShadowSignal):
                     if a._nrbits < 32:
                     	lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, 'to_unsigned({},{})'.format( a, a._nrbits) ))
             		else:
-                        lines.append('unsigned\'("%s")' % bin(0, a._nrbits))
+                        lines.append("%s(%s-1 downto %s) <= unsigned\'( \"%s\" );" % (self._name, hi, lo, bin(a, a._nrbits)))
             else:
                 if len(a) == 1:
                     if  a._type is bool:
