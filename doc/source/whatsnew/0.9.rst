@@ -63,7 +63,7 @@ The proposed solution is to create unique names for attributes which
 are type :class:`Signal` and used by a `MyHDL generator`_.  The 
 converter will create a unique name by using the name of the parent 
 and the name of the attribute along with the name of the MyHDL module 
-instance (if required for uniqueness).  The convert will essentially 
+instance (if required for uniqueness).  The converter will essentially 
 replace the "." with an "_" for each *interface* element.  
 
 Even though the target HDLs do not support *interfaces*, MyHDL is
@@ -74,18 +74,17 @@ target HDL (Verilog and VHDL).
 Conversion
 ----------
 
-.. add details of the conversion, what policies are used name 
+.. add details of the conversion, what policies are used to name 
 .. extend the Signals.  Any useful information about the approach
 .. or structure in the converter used.
 
 
 Limitations
 -----------
-The current implementation only converts ``Signal`` attributes.  It
-does not convert other attribute types.  One of the main drawbacks
-is if constants are defined in a class.  These constants will not 
-be converted.  Local references need to be made to the constant 
-values.
+The current implementation only converts ``Signal`` attributes and 
+constants (read-only ints).  Other Python structures will not be 
+analyzed (e.g. dict) and attributes used as variables will not be
+converted.
 
 
 
