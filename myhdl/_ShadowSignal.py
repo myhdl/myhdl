@@ -29,6 +29,10 @@ from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
 from myhdl._intbv import intbv
 from myhdl._simulator import _siglist
+from myhdl._bin import bin
+
+
+
 
 # shadow signals
         
@@ -90,6 +94,8 @@ class _SliceSignal(_ShadowSignal):
                 self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
             else:
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
+				# remember if the 'base' vector was a std_logic_vector or not
+                self._numeric = self._sig._numeric
 
     def _markRead(self):
         self._read = True
@@ -164,10 +170,28 @@ class ConcatSignal(_ShadowSignal):
         hi = self._nrbits
         for a in self._args:
             lo = hi - len(a)
-            if len(a) == 1:
-                lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+            if a._name is None:
+                # this is an un-named argument
+	            if len(a) == 1:
+                    # a bool
+                    lines.append("%s(%s) <= \'%s\';" % (self._name, lo, a))
+                else:
+                    if a._nrbits < 32:
+                    	lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, 'to_unsigned({},{})'.format( a, a._nrbits) ))
+            		else:
+                        lines.append("%s(%s-1 downto %s) <= unsigned\'( \"%s\" );" % (self._name, hi, lo, bin(a, a._nrbits)))
             else:
-                lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
+                if len(a) == 1:
+                    if  a._type is bool:
+                		lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+            		else:
+                        lines.append("%s(%s) <= %s(0);" % (self._name, lo, a._name))
+                else:
+                    # this may need a cast
+                    if a._numeric:
+                		lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
+                    else:
+                        lines.append("%s(%s-1 downto %s) <= unsigned( %s );" % (self._name, hi, lo, a._name))
             hi = lo
         return "\n".join(lines)
 
@@ -176,10 +200,19 @@ class ConcatSignal(_ShadowSignal):
         hi = self._nrbits
         for a in self._args:
             lo = hi - len(a)
-            if len(a) == 1:
-                lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+            if a._name is None:
+                # this is an un-named argument
+                if len(a) == 1:
+                    # a bool
+                    lines.append("assign %s[%s] = %s;" % (self._name, lo, a))
+                else:
+                    lines.append("assign  %s[%s-1:%s] = %s;" % (self._name, hi, lo, a ))
+
             else:
-                lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
+	            if len(a) == 1:
+	                lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+	            else:
+	                lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
             hi = lo
         return "\n".join(lines)
 
