@@ -51,9 +51,19 @@ class intbv(object):
         if isinstance(val, (int, long)):
             self._val = val
         elif isinstance(val, StringType):
-            mval = val.replace('_', '')
-            self._val = long(mval, 2)
-            _nrbits = len(mval)
+            if len(val.replace('_','').replace( '1', '').replace('0', '')):
+                # have a 'text' string to convert
+                _nrbits = len(val) * 8
+                lval = 0
+                # reverse the string
+                for i in range(len(val)-1, -1, -1):
+                    lval = lval * 256 + ord(val[i])
+                self._val = lval
+            else:
+                # just ones, zeroes and the occasional underscore
+                mval = val.replace('_', '')
+                self._val = long(mval, 2)
+                _nrbits = len(mval)
         elif isinstance(val, intbv):
             self._val = val._val
             self._min = val._min
