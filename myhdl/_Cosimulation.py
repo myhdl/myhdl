@@ -22,7 +22,6 @@
 
 import sys
 import os
-import exceptions
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError

@@ -1,0 +1,29 @@
+# General
+*~
+*.swp
+*.out
+build/
+
+# Python
+*.py[cod]
+__pycache__/
+*egg-info/
+dist/
+
+# Cosim
+*.o
+*.vpi
+
+# Simulator generated files
+*.vcd
+modelsim.ini
+transcript
+*.log
+work/
+work_vlog/
+work_vcom/
+*.wlf
+
+# Test artifacts
+myhdl/**/*.v
+myhdl/**/*.vhd
