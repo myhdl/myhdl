@@ -72,10 +72,16 @@ Generator are mapped to Verilog or VHDL constructs
   ``always`` blocks, continuous assignments or ``initial`` blocks. For VHDL,
   it will map them to ``process`` statements or concurrent signal assignments.
 
-The module interface is inferred from signal usage
+The module ports are inferred from signal usage
   In MyHDL, the input or output direction of interface signals is not explicitly
   declared. The converter investigates signal usage in the design hierarchy to
   infer whether a signal is used as input, output, or as an internal signal.
+
+Interfaces are expanded
+  MyHDL provides a power mechanism to define complex module interfaces.
+  These interfaces are name extended to individual signals in the target
+  HDL (Verilog and VHDL).  This enables MyHDL to support higher-level 
+  abstractions that are not available in the target HDL.
 
 Function calls are mapped to Verilog or VHDL subprograms
   The converter analyzes function calls and function code. Each function is
@@ -423,6 +429,21 @@ Conversely, when list syntax is used in some generator, then a Verilog
 memory or VHDL array will be declared. The typical example is the
 description of RAM memories.
 
+
+.. _conv-interfaces:
+
+Conversion of Interfaces
+========================
+Interfaces simplify the complicated interconnect between modules.
+In MyHDL the interfaces provide an intuitive approach to group
+logically related ports.  The grouping of ports has many benefits
+such as reducing complexity and increasing modularity.
+
+The converter will name extend the interfaces during conversion,
+in the converted code each attribute will appear as a individual 
+signal.  Because the hierarchy is flattened the name extension 
+may need to include information on the where in the hierarchy
+the interface occurs to prevent name collisions.
 
 .. _conv-meth-assign:
 
