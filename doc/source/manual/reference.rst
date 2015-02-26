@@ -647,8 +647,13 @@ MyHDL
 
    Class to construct a new Cosimulation object.
 
-   The *exe* argument is a command string to execute an HDL simulation. The
-   *kwargs* keyword arguments provide a named association between signals (regs &
+   The *exe* argument is the command to execute an HDL simulation, which can be
+   either a string of the entire command line or a list of strings.
+   In the latter case, the first element is the executable, and subsequent elements
+   are program arguments. Providing a list of arguments allows Python to correctly
+   handle spaces or other characters in program arguments.
+
+   The *kwargs* keyword arguments provide a named association between signals (regs &
    nets) in the HDL simulator and signals in the MyHDL simulator. Each keyword
    should be a name listed in a ``$to_myhdl`` or ``$from_myhdl`` call in the HDL
    code. Each argument should be a :class:`Signal` declared in the MyHDL code.
