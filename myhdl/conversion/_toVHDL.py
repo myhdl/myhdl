@@ -143,7 +143,7 @@ class _ToVHDLConvertor(object):
 
         vpath = os.path.join(directory, name + ".vhd")
         vfile = open(vpath, 'w')
-        ppath = "pck_myhdl_%s.vhd" % _shortversion
+        ppath = os.path.join(directory, "pck_myhdl_%s.vhd" % _shortversion)
         pfile = None
 #        # write MyHDL package always during development, as it may change
 #        pfile = None
