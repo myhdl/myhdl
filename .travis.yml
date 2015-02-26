@@ -1,0 +1,14 @@
+language: python
+python:
+  - "2.6"
+  - "2.7"
+  - "pypy"
+
+install:
+  - pip install .
+
+env:
+  - CI_TARGET=core
+  - CI_TARGET=icarus
+
+script: ./ci.sh
