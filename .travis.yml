@@ -4,6 +4,12 @@ python:
   - "2.7"
   - "pypy"
 
+before_install:
+  - if [ $CI_TARGET == "icarus" ]; then
+      sudo apt-get update -qq;
+      sudo apt-get install -y iverilog;
+    fi
+
 install:
   - pip install .
 
