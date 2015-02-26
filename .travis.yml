@@ -12,3 +12,6 @@ env:
   - CI_TARGET=icarus
 
 script: ./ci.sh
+
+notifications:
+  email: false
