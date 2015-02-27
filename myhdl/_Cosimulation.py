@@ -22,7 +22,6 @@
 
 import sys
 import os
-import exceptions
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
@@ -72,7 +71,8 @@ class Cosimulation(object):
             os.close(wf)
             os.environ['MYHDL_TO_PIPE'] = str(wt)
             os.environ['MYHDL_FROM_PIPE'] = str(rf)
-            arglist = exe.split()
+            if isinstance(exe, list): arglist = exe
+            else: arglist = exe.split()
             p = arglist[0]
             arglist[0] = os.path.basename(p)
             try:

@@ -1,6 +1,6 @@
 import os
 path = os.path
-
+import subprocess
 from myhdl import *
 
 # Icarus
@@ -9,9 +9,9 @@ def setupCosimulationIcarus(**kwargs):
     objfile = "%s.o" % name
     if path.exists(objfile):
         os.remove(objfile)
-    analyze_cmd = "iverilog -o %s %s.v tb_%s.v" % (objfile, name, name)
-    os.system(analyze_cmd)
-    simulate_cmd = "vvp -m ../../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+    analyze_cmd = ['iverilog', '-o', objfile, '%s.v' %name, 'tb_%s.v' % name]
+    subprocess.call(analyze_cmd)
+    simulate_cmd = ['vvp', '-m', '../../../../cosimulation/icarus/myhdl.vpi', objfile]
     return Cosimulation(simulate_cmd, **kwargs)
 
 # cver

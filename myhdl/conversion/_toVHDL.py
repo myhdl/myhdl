@@ -143,7 +143,7 @@ class _ToVHDLConvertor(object):
 
         vpath = os.path.join(directory, name + ".vhd")
         vfile = open(vpath, 'w')
-        ppath = "pck_myhdl_%s.vhd" % _shortversion
+        ppath = os.path.join(directory, "pck_myhdl_%s.vhd" % _shortversion)
         pfile = None
 #        # write MyHDL package always during development, as it may change
 #        pfile = None
@@ -776,6 +776,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         node.obj = self.getObj(node.value)
 
     def getAttr(self, node):
+        if isinstance(node.value, ast.Subscript):
+            self.setAttr(node)
+            return
+
         assert isinstance(node.value, ast.Name), node.value
         n = node.value.id
         if n in self.tree.symdict:
