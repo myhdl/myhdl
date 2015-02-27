@@ -1297,7 +1297,7 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
     def visit_FunctionDef(self, node):
 
         self.name = node.name
-        self.argnames = [arg.id for arg in node.args.args]
+        self.argnames = _get_argnames(node)
         if isboundmethod(self.func):
             if not self.argnames[0] == 'self':
                 self.raiseError(node, _error.NotSupported,
