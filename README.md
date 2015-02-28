@@ -3,6 +3,7 @@ MyHDL 0.9
 
 [![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=latest)](http://docs.myhdl.org/en/latest/manual)
 [![Build Status](https://travis-ci.org/jck/myhdl.svg?branch=master)](https://travis-ci.org/jck/myhdl)
+[![Code Health](https://landscape.io/github/javValverde/myhdl/master/landscape.svg?style=flat)](https://landscape.io/github/javValverde/myhdl/master)
 
 What is MyHDL?
 --------------
