@@ -4,7 +4,7 @@ echo "Running $CI_TARGET tests"
 
 if [ "$CI_TARGET" == "core" ]; then
   make -C myhdl/test/core
-  py.test myhdl/test/core2
+  make -C myhdl/test/core2
 elif [ "$CI_TARGET" == "icarus" ]; then
   echo "======================================================================="
   echo "=========== A. Test Converted Verilog Code                    ========="
