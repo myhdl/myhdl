@@ -85,6 +85,13 @@ elif [ "$CI_TARGET" == "icarus" ]; then
   run_test make -C cosimulation/icarus
   run_test make -C myhdl/test/conversion/toVerilog
 
+elif [ "$CI_TARGET" == "ghdl" ]; then
+
+  print_heading "Test Converted VHDL Code"
+  run_test make -C "myhdl/test/conversion/general" GHDL
+
+  print_heading "Test Co-Simulation with Converted VHDL Code" 
+  run_test make -C myhdl/test/conversion/toVHDL GHDL
 fi
 
 exit $foundError
