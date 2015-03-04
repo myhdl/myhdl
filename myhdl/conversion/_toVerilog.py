@@ -173,9 +173,15 @@ class _ToVerilogConvertor(object):
             _writeTestBench(tbfile, intf, self.trace)
             tbfile.close()
 
+        # build portmap for cosimulation
+        portmap = {}
+        for n, s in intf.argdict.iteritems():
+            if hasattr(s, 'driver'): portmap[n] = s.driver()
+            else: portmap[n] = s
+        self.portmap = portmap
+
         ### clean-up properly ###
         self._cleanup(siglist)
-        self.portmap = intf.argdict
 
         return h.top
 

@@ -39,9 +39,6 @@ def tristate_obuf_i(obuf):
 
     return hdl
 
-def tristate_obuf_v(name, A, Y, OE):
-    return setupCosimulation(**locals())
-
 class TestTristate(unittest.TestCase):
     def bench(self, obuf=None):
         if obuf:
@@ -53,7 +50,7 @@ class TestTristate(unittest.TestCase):
             OE = Signal(False)
             toVerilog(tristate_obuf, A, Y, OE)
 
-        inst = tristate_obuf_v(tristate_obuf.func_name, A, Y.driver(), OE)
+        inst = setupCosimulation(name='tristate_obuf', **toVerilog.portmap)
         #inst = tristate_obuf(A, Y, OE)
 
         @instance
