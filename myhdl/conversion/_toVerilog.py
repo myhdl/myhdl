@@ -322,7 +322,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
     print(file=f)
     # shadow signal assignments
     for s in siglist:
-        if hasattr(s, 'toVerilog') and s._read:
+        if hasattr(s, 'toVerilog') and s._driven:
             print(s.toVerilog(), file=f)
     print(file=f)
 

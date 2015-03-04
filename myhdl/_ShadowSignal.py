@@ -245,13 +245,15 @@ class _TristateSignal(_ShadowSignal):
     def toVerilog(self):
         lines = []
         for d in self._drivers:
-            lines.append("assign %s = %s;" % (self._name, d._name))
+            if d._driven:
+                lines.append("assign %s = %s;" % (self._name, d._name))
         return "\n".join(lines)
 
     def toVHDL(self):
         lines = []
         for d in self._drivers:
-            lines.append("%s <= %s;" % (self._name, d._name))
+            if d._driven:
+                lines.append("%s <= %s;" % (self._name, d._name))
         return "\n".join(lines)
 
 
