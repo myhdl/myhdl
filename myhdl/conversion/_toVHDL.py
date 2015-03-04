@@ -1,4 +1,4 @@
-
+#  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
 #  Copyright (C) 2003-2014 Jan Decaluwe
@@ -598,7 +598,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 pre, suf = "bool(", ")"
         elif isinstance(vhd, vhd_std_logic):
             if not isinstance(ori, vhd_std_logic):
-                pre, suf = "stdl(", ")"
+                if isinstance(ori, vhd_unsigned) :
+                    pre, suf = "", "(0)"
+                else:
+                	pre, suf = "stdl(", ")"
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"
