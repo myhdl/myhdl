@@ -15,18 +15,45 @@ def tristate_obuf(A, Y, OE):
 
     return hdl
 
+
+class OBuf(object):
+    def __init__(self):
+        self.Y  = TristateSignal(True)
+        self.A  = Signal(False)
+        self.OE = Signal(False)
+
+    def interface(self):
+        return self.A, self.Y, self.OE
+
+def tristate_obuf_i(obuf):
+    '''three-state output buffer, using interface'''
+
+    # Caveat: A local name of the interface signals must be declared,
+    #         Otherwise, _HierExtr.extract() will not add them to symdict
+    #         and conversion will fail.
+    A, Y, OE = obuf.interface()
+    Y_d = Y.driver()
+    @always_comb
+    def hdl():
+        Y_d.next = A if OE else None
+
+    return hdl
+
 def tristate_obuf_v(name, A, Y, OE):
     return setupCosimulation(**locals())
 
 class TestTristate(unittest.TestCase):
-    def bench(self):
-        Y  = TristateSignal(True)
-        Y_d = Y.driver()
-        A  = Signal(True)
-        OE = Signal(False)
+    def bench(self, obuf=None):
+        if obuf:
+            toVerilog(tristate_obuf_i, obuf)
+            A, Y, OE = obuf.interface()
+        else:
+            Y  = TristateSignal(True)
+            A  = Signal(True)
+            OE = Signal(False)
+            toVerilog(tristate_obuf, A, Y, OE)
 
-        toVerilog(tristate_obuf, A, Y, OE)
-        inst = tristate_obuf_v(tristate_obuf.func_name, A, Y_d, OE)
+        inst = tristate_obuf_v(tristate_obuf.func_name, A, Y.driver(), OE)
         #inst = tristate_obuf(A, Y, OE)
 
         @instance
@@ -48,9 +75,13 @@ class TestTristate(unittest.TestCase):
             raise StopSimulation
         return instances()
 
-
     def testOBuf(self):
         sim = Simulation(self.bench())
+        sim.run()
+
+    def testOBufInterface(self):
+        obuf = OBuf()
+        sim = Simulation(self.bench(obuf))
         sim.run()
 
 if __name__ == '__main__':
