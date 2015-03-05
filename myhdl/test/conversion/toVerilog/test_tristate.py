@@ -69,6 +69,11 @@ class TestTristate(unittest.TestCase):
             #print now(), A, OE, Y
             self.assertEqual(Y, A)
 
+            OE.next = False
+            yield delay(1)
+            #print now(), A, OE, Y
+            self.assertEqual(Y, None)
+
             raise StopSimulation
         return instances()
 
