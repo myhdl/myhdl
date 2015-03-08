@@ -266,12 +266,16 @@ class _Signal(object):
 
     # set next methods
     def _setNextBool(self, val):
+        if isinstance(val, intbv):
+            val = val._val
         if not val in (0, 1):
             raise ValueError("Expected boolean value, got %s (%s)" % (repr(val), type(val)))
         self._next = val
 
     def _setNextInt(self, val):
-        if not isinstance(val, (integer_types, intbv)):
+        if isinstance(val, intbv):
+            val = val._val
+        elif not isinstance(val, (integer_types, intbv)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next = val
 
@@ -280,8 +284,6 @@ class _Signal(object):
             val = val._val
         elif not isinstance(val, integer_types):
             raise TypeError("Expected int or intbv, got %s" % type(val))
-#        if self._next is self._val:
-#            self._next = type(self._val)(self._val)
         self._next._val = val
         self._next._handleBounds()
 
