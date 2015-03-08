@@ -164,7 +164,7 @@ class SigTest(TestCase):
                 s.next[3] = 5
             else:
                 s.next # plain read access
-            self.assertTrue(s.val is not s.next, `s.val`)
+            self.assertTrue(s.val is not s.next, repr(s.val))
 
     def testUpdatePosedge(self):
         """ update on posedge should return event and posedge waiters """
