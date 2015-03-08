@@ -1,4 +1,4 @@
-
+#  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
 #  Copyright (C) 2003-2014 Jan Decaluwe
@@ -129,6 +129,14 @@ class _ToVHDLConvertor(object):
         else:
             name = str(self.name)
         try:
+            for arg in args:
+                if isinstance(arg, _Signal) :
+                    # a quick hack: set _numeric here ...
+                    # from now on we now what to do when this arguments appears on either the lhs or the rhs, even when sliced
+                    if arg._nrbits > 1:
+# ?                    if not arg._type is bool:
+                        arg._numeric = self.numeric_ports
+
             h = _HierExtr(name, func, *args, **kwargs)
         finally:
             _converting = 0
@@ -540,6 +548,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.isLhs = False
         self.labelStack = []
         self.context = None
+        self.astinfo = None
 
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -598,7 +607,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 pre, suf = "bool(", ")"
         elif isinstance(vhd, vhd_std_logic):
             if not isinstance(ori, vhd_std_logic):
-                pre, suf = "stdl(", ")"
+                if isinstance(ori, vhd_unsigned) :
+                    pre, suf = "", "(0)"
+                else:
+                	pre, suf = "stdl(", ")"
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"
@@ -876,6 +888,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if not sig._numeric:
                     #if not isinstance(rhs, ast.Num):
                     convOpen, convClose = "std_logic_vector(", ")"
+            elif isinstance(lhs.value, ast.Attribute):
+                if not lhs.value.value.obj._numeric:
+                    convOpen, convClose = "std_logic_vector(", ")"
+
             self.write(' <= ')
             self.SigAss = False
         else:
@@ -1247,6 +1263,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def getName(self, node):
         n = node.id
+        # must invalidate the astinfo, or replace it
+        newastinfo = None
         if n == 'False':
             if isinstance(node.vhd, vhd_std_logic):
                 s = "'0'"
@@ -1316,12 +1334,25 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
                 # print 'name', n
-                # support for non-numeric signals
-                if self.SigAss is not obj._name and not obj._numeric:
-                    if obj._min < 0:
-                        s = "signed(%s)" %s
+                if (not obj._numeric) and (not self.SigAss is obj._name):
+                    if self.astinfo == 'accessSlice':
+                        if obj._min < 0:
+                            s = "signed( %s " %s
+                        else:
+                            s = "unsigned( %s " %s
+                        # need a closing ')' later after the slice-specification -> unsigned( name( ... downto ...))
+                        newastinfo = 'ClosingParenthesis'
+
+                    elif  self.astinfo == 'accessIndex':
+                        # do nothing, a single bit of either an unsigned or std_logic_vector is a std_logic
+                        pass
+
                     else:
-                        s = "unsigned(%s)" %s
+               	 		# support for non-numeric signals
+	                    if obj._min < 0:
+	                        s = "signed(%s)" %s
+	                    else:
+	                        s = "unsigned(%s)" %s
                 pre, suf = self.inferCast(node.vhd, ori)
                 s = "%s%s%s" % (pre, s, suf)
             elif _isMem(obj):
@@ -1336,6 +1367,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:
             raise AssertionError("name ref: %s" % n)
+        self.astinfo = newastinfo
         self.write(s)
 
     def visit_Pass(self, node):
@@ -1405,6 +1437,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("%s" % c)
             self.write(post)
             return
+
+        self.astinfo = 'accessSlice'
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         if isinstance(node.value.vhd, vhd_signed) and isinstance(node.ctx, ast.Load):
             pre = pre + "unsigned("
@@ -1428,8 +1462,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(upper)
         self.write(")")
         self.write(suf)
+        if needclosingparenthesis:
+            self.write(" )")
+        self.astinfo = None
+        tracejbdedent()
 
     def accessIndex(self, node):
+        self.astinfo = 'accessIndex'
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
         self.visit(node.value)
@@ -1438,6 +1477,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.slice.value)
         self.write(")")
         self.write(suf)
+        self.astinfo = None
 
     def visit_stmt(self, body):
         for stmt in body:
