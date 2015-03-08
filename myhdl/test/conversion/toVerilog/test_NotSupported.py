@@ -57,7 +57,7 @@ class TestNotSupported(unittest.TestCase):
                 while 1:
                     yield a
                     z.next = 1
-                    repr(a)
+                    `a`
             return logic
         self.check(g, z, a)
 
