@@ -178,9 +178,7 @@ class SigTest(TestCase):
         waiters = s1._update()
         print(waiters)
         expected = self.eventWaiters + self.posedgeWaiters
-        waiters.sort()
-        expected.sort()
-        self.assertEqual(waiters, expected)
+        self.assertEqual(set(waiters), set(expected))
         self.assertEqual(s1._eventWaiters, [])
         self.assertEqual(s1._posedgeWaiters, [])
         self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
@@ -196,9 +194,7 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters + self.negedgeWaiters
-        waiters.sort()
-        expected.sort()
-        self.assertEqual(waiters, expected)
+        self.assertEqual(set(waiters), set(expected))
         self.assertEqual(s1._eventWaiters, [])
         self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
         self.assertEqual(s1._negedgeWaiters, [])
@@ -214,9 +210,7 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters
-        waiters.sort()
-        expected.sort()
-        self.assertEqual(waiters, expected)
+        self.assertEqual(set(waiters), set(expected))
         self.assertEqual(s1._eventWaiters, [])
         self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
         self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
