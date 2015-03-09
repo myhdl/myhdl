@@ -323,11 +323,10 @@ class _Signal(object):
         raise TypeError("Signals are unhashable")
         
     
-    def __nonzero__(self):
-        if self._val:
-            return 1
-        else:
-            return 0
+    def __bool__(self):
+        return bool(self._val)
+
+    __nonzero__ = __bool__
 
     # length
     def __len__(self):
