@@ -114,11 +114,10 @@ class intbv(object):
         return iter([self[i] for i in range(self._nrbits-1, -1, -1)])
 
     # logical testing
-    def __nonzero__(self):
-        if self._val:
-            return 1
-        else:
-            return 0
+    def __bool__(self):
+        return bool(self._val)
+
+    __nonzero__ = __bool__
 
     # length
     def __len__(self):
