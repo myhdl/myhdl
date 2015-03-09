@@ -341,8 +341,8 @@ class TestIntBvAsInt(TestCase):
     def testMul(self):
         self.binaryCheck(operator.mul, imax=maxint) # XXX doesn't work for long i???
 
-    def testDiv(self):
-        self.binaryCheck(operator.div, jmin=1)
+    def testTrueDiv(self):
+        self.binaryCheck(operator.truediv, jmin=1)
         
     def testFloorDiv(self):
         self.binaryCheck(operator.floordiv, jmin=1)
