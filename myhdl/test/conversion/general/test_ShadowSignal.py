@@ -36,16 +36,16 @@ def bench_ConcatSignal():
     
     s = ConcatSignal(a, b, c, d)
 
-    I = 2**len(a)
-    J = 2**len(b)
-    K = 2**len(c)
-    M = 2**len(d)
+    I_max = 2**len(a)
+    J_max = 2**len(b)
+    K_max = 2**len(c)
+    M_max = 2**len(d)
     @instance
     def check():
-        for i in range(I):
-            for j in range(J):
-                for k in range(K):
-                    for m in range(M):
+        for i in range(I_max):
+            for j in range(J_max):
+                for k in range(K_max):
+                    for m in range(M_max):
                         a.next = i
                         b.next = j
                         c.next = k
