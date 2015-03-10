@@ -8,6 +8,10 @@ before_install:
   - if [ $CI_TARGET == "icarus" ]; then
       sudo apt-get update -qq;
       sudo apt-get install -y iverilog;
+    elif [ $CI_TARGET == "ghdl" ]; then
+      sudo apt-add-repository -y ppa:pgavin/ghdl;
+      sudo apt-get update -qq;
+      sudo apt-get install -y ghdl;
     fi
 
 install:
@@ -16,6 +20,7 @@ install:
 env:
   - CI_TARGET=core
   - CI_TARGET=icarus
+  - CI_TARGET=ghdl
 
 script: ./ci.sh
 
