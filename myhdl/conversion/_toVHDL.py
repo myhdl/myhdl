@@ -601,7 +601,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(ori, vhd_unsigned) :
                     pre, suf = "", "(0)"
                 else:
-                	pre, suf = "stdl(", ")"
+                    pre, suf = "stdl(", ")"
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"
