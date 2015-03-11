@@ -152,12 +152,7 @@ def _analyzeGens(top, absnames):
             tree = g
         elif isinstance(g, (_AlwaysComb, _AlwaysSeq, _Always)):
             f = g.func
-            s = inspect.getsource(f)
-            s = _dedent(s)
-            tree = ast.parse(s)
-            #print ast.dump(tree)
-            tree.sourcefile  = inspect.getsourcefile(f)
-            tree.lineoffset = inspect.getsourcelines(f)[1]-1
+            tree = _makeAST(f)
             tree.symdict = f.__globals__.copy()
             tree.callstack = []
             # handle free variables
@@ -183,12 +178,7 @@ def _analyzeGens(top, absnames):
             v.visit(tree)
         else: # @instance
             f = g.gen.gi_frame
-            s = inspect.getsource(f)
-            s = _dedent(s)
-            tree = ast.parse(s)
-            # print ast.dump(tree)
-            tree.sourcefile = inspect.getsourcefile(f)
-            tree.lineoffset = inspect.getsourcelines(f)[1]-1
+            tree = _makeAST(f)
             tree.symdict = f.f_globals.copy()
             tree.symdict.update(f.f_locals)
             tree.nonlocaldict = {}
@@ -601,15 +591,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             pass
         elif type(f) is FunctionType:
             argsAreInputs = False
-            s = inspect.getsource(f)
-            s = _dedent(s)
-            tree = ast.parse(s)
-            # print ast.dump(tree)
-            # print tree
+            tree = _makeAST(f)
             fname = f.__name__
             tree.name = _Label(fname)
-            tree.sourcefile = inspect.getsourcefile(f)
-            tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.__globals__.copy()
             tree.nonlocaldict = {}
             if fname in self.tree.callstack:
