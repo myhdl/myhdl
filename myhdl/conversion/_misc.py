@@ -20,18 +20,16 @@
 """ myhdl toVerilog package.
 
 """
+from __future__ import absolute_import
 
 
 import inspect
-import compiler
-from compiler import ast as astNode
 import ast
 
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._util import _flatten
-from myhdl._unparse import _unparse
 
 class _error(object):
     FirstArgType = "first argument should be a classic function"

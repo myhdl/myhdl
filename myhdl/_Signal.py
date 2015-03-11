@@ -26,6 +26,8 @@ posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
@@ -295,16 +297,16 @@ class _Signal(object):
 
     # vcd print methods
     def _printVcdStr(self):
-        print >> sim._tf, "s%s %s" % (str(self._val), self._code)
+        print("s%s %s" % (str(self._val), self._code), file=sim._tf)
         
     def _printVcdHex(self):
-        print >> sim._tf, "s%s %s" % (hex(self._val), self._code)
+        print("s%s %s" % (hex(self._val), self._code), file=sim._tf)
 
     def _printVcdBit(self):
-        print >> sim._tf, "%d%s" % (self._val, self._code)
+        print("%d%s" % (self._val, self._code), file=sim._tf)
 
     def _printVcdVec(self):
-        print >> sim._tf, "b%s %s" % (bin(self._val, self._nrbits), self._code)
+        print("b%s %s" % (bin(self._val, self._nrbits), self._code), file=sim._tf)
 
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):
@@ -510,14 +512,14 @@ class _Signal(object):
 
     # augmented assignment not supported
     def _augm(self):
-        raise TypeError, "Signal object doesn't support augmented assignment"
+        raise TypeError("Signal object doesn't support augmented assignment")
 
     __iadd__ = __isub__ = __idiv__ = __imul__ = __ipow__ = __imod__ = _augm
     __ior__ = __iand__ = __ixor__ = __irshift__ = __ilshift__ = _augm
 
     # index and slice assignment not supported
     def __setitem__(self, key, val):
-        raise TypeError, "Signal object doesn't support item/slice assignment"
+        raise TypeError("Signal object doesn't support item/slice assignment")
 
 
     # continues assignment support

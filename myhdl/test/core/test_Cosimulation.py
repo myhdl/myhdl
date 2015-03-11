@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run unit tests for Cosimulation """
+from __future__ import absolute_import
 
 
 import sys
@@ -58,8 +59,8 @@ class CosimulationTest(TestCase):
     def testWrongExe(self):
         try:
             Cosimulation("bla -x 45")
-        except CosimulationError, e:
-            self.assert_(e.kind in(_error.OSError, _error.SimulationEnd))
+        except CosimulationError as e:
+            self.assertTrue(e.kind in(_error.OSError, _error.SimulationEnd))
         else:
             self.fail()
 
@@ -67,7 +68,7 @@ class CosimulationTest(TestCase):
         cosim1 = Cosimulation(exe + ".cosimNotUnique", **allSigs)
         try:
             Cosimulation(exe + ".cosimNotUnique", **allSigs)
-        except CosimulationError, e:
+        except CosimulationError as e:
             self.assertEqual(e.kind, _error.MultipleCosim)
         else:
             self.fail()
@@ -146,7 +147,7 @@ class CosimulationTest(TestCase):
     def testTimeZero(self):
         try:
             Cosimulation(exe + ".cosimTimeZero", **allSigs)
-        except CosimulationError, e:
+        except CosimulationError as e:
             self.assertEqual(e.kind, _error.TimeZero)
         except:
             self.fail()
@@ -162,7 +163,7 @@ class CosimulationTest(TestCase):
     def testNoComm(self):
         try:
             Cosimulation(exe + ".cosimNoComm", **allSigs)
-        except CosimulationError, e:
+        except CosimulationError as e:
             self.assertEqual(e.kind, _error.NoCommunication)
         else:
             self.fail()
@@ -180,7 +181,7 @@ class CosimulationTest(TestCase):
     def testFromSignalsDupl(self):
         try:
             Cosimulation(exe + ".cosimFromSignalsDupl", **allSigs)
-        except CosimulationError, e:
+        except CosimulationError as e:
             self.assertEqual(e.kind, _error.DuplicateSigNames)
         else:
             self.fail()
@@ -197,7 +198,7 @@ class CosimulationTest(TestCase):
     def testToSignalsDupl(self):
         try:
             Cosimulation(exe + ".cosimToSignalsDupl", **allSigs)
-        except CosimulationError, e:
+        except CosimulationError as e:
             self.assertEqual(e.kind, _error.DuplicateSigNames)
         else:
             self.fail()

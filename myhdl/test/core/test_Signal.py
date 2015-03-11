@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for Signal """
+from __future__ import absolute_import
 
 
 import operator
@@ -114,16 +115,16 @@ class SigTest(TestCase):
             cur = copy.copy(s.val)
             s.next = n
             # assigning to next should not change current value ...
-            self.assert_(s.val == cur)
+            self.assertTrue(s.val == cur)
             s._update()
-            self.assert_(s.val == n)
+            self.assertTrue(s.val == n)
 
     def testNextType(self):
         """ sig.next = n should fail on access if type(n) incompatible """
         i = 0
         for s in (self.sigs + self.incompatibleSigs):
             for n in (self.vals + self.incompatibleVals):
-                self.assert_(isinstance(s.val, s._type))
+                self.assertTrue(isinstance(s.val, s._type))
                 if isinstance(s.val, (int, long, intbv)):
                     t = (int, long, intbv)
                 else:
@@ -137,7 +138,7 @@ class SigTest(TestCase):
                         pass
                     else:
                         self.fail()
-        self.assert_(i >= len(self.incompatibleSigs), "Nothing tested %s" %i)
+        self.assertTrue(i >= len(self.incompatibleSigs), "Nothing tested %s" %i)
 
     def testAfterUpdate(self):
         """ updated val and next should be equal but not identical """
@@ -162,7 +163,7 @@ class SigTest(TestCase):
                 s.next[3] = 5
             else:
                 s.next # plain read access
-            self.assert_(s.val is not s.next, `s.val`)
+            self.assertTrue(s.val is not s.next, `s.val`)
 
     def testUpdatePosedge(self):
         """ update on posedge should return event and posedge waiters """
@@ -521,7 +522,7 @@ class TestSignalIntBvIndexing(TestCase):
                         res = sbv[i:j]
                         resi = sbvi[i:j]
                     except ValueError:
-                        self.assert_(i<=j)
+                        self.assertTrue(i<=j)
                         continue
                     ref = long(getSlice(s, i, j), 2)
                     self.assertEqual(res, ref)

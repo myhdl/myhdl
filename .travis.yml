@@ -3,6 +3,7 @@ python:
   - "2.6"
   - "2.7"
   - "pypy"
+  - "3.4"
 
 before_install:
   - if [ $CI_TARGET == "icarus" ]; then
@@ -21,6 +22,10 @@ env:
   - CI_TARGET=core
   - CI_TARGET=icarus
   - CI_TARGET=ghdl
+
+matrix:
+  allow_failures:
+    - python: "3.4"
 
 script: ./ci.sh
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -234,7 +235,7 @@ class TestInc(TestCase):
         inc_inst_ref = incRef(count, enable, clock, reset, n=n)
         inc_inst = toVerilog(incVer, count, enable, clock, reset, n=n)
         # inc_inst = inc(count, enable, clock, reset, n=n)
-        inc_inst_v = inc_v(incVer.func_name, count_v, enable, clock, reset)
+        inc_inst_v = inc_v(incVer.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)
@@ -271,7 +272,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
             inc_inst = toVerilog(incGen, count_v, enable, clock, reset, n=n)
-        except ConversionError, e:
+        except ConversionError as e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -284,7 +285,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
             inc_inst = toVerilog(incErr, count_v, enable, clock, reset, n=n)
-        except ConversionError, e:
+        except ConversionError as e:
             pass
         else:
             self.fail()

@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for instance """
+from __future__ import absolute_import
 
 
 import random
@@ -49,7 +50,7 @@ class InstanceCompilationTest(TestCase):
         h = 5
         try:
             instance(h)
-        except InstanceError, e:
+        except InstanceError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -59,7 +60,7 @@ class InstanceCompilationTest(TestCase):
             @instance
             def h():
                 return None
-        except InstanceError, e:
+        except InstanceError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -69,7 +70,7 @@ class InstanceCompilationTest(TestCase):
             @instance
             def h(n):
                 yield n
-        except InstanceError, e:
+        except InstanceError as e:
             self.assertEqual(e.kind, _error.NrOfArgs)
         else:
             self.fail()

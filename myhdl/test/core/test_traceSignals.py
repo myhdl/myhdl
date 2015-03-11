@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for traceSignals """
+from __future__ import absolute_import
 
 
 import random
@@ -103,7 +104,7 @@ class TestTraceSigs(TestCase):
     def testMultipleTraces(self):
         try:
             dut = top3()
-        except TraceSignalsError, e:
+        except TraceSignalsError as e:
             self.assertEqual(e.kind, _error.MultipleTraces)
         else:
             self.fail()
@@ -111,7 +112,7 @@ class TestTraceSigs(TestCase):
     def testArgType1(self):
         try:
             dut = traceSignals([1, 2])
-        except TraceSignalsError, e:
+        except TraceSignalsError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -121,39 +122,39 @@ class TestTraceSigs(TestCase):
         from myhdl._extractHierarchy import _error
         try:
             dut = traceSignals(dummy)
-        except ExtractHierarchyError, e:
+        except ExtractHierarchyError as e:
             self.assertEqual(e.kind, _error.InconsistentToplevel % (2, "dummy"))
         else:
             self.fail()
 
     def testHierarchicalTrace1(self):
-        p = "%s.vcd" % fun.func_name
+        p = "%s.vcd" % fun.__name__
         top()
-        self.assert_(path.exists(p))
+        self.assertTrue(path.exists(p))
 
     def testHierarchicalTrace2(self):
-        pdut = "%s.vcd" % top.func_name
-        psub = "%s.vcd" % fun.func_name
+        pdut = "%s.vcd" % top.__name__
+        psub = "%s.vcd" % fun.__name__
         dut = traceSignals(top)
-        self.assert_(path.exists(pdut))
-        self.assert_(not path.exists(psub))
+        self.assertTrue(path.exists(pdut))
+        self.assertTrue(not path.exists(psub))
 
     def testBackupOutputFile(self):
-        p = "%s.vcd" % fun.func_name
+        p = "%s.vcd" % fun.__name__
         dut = traceSignals(fun)
         Simulation(dut).run(1000, quiet=QUIET)
         _simulator._tf.close()
         _simulator._tracing = 0
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
-        self.assert_(not path.exists(pbak))
+        self.assertTrue(not path.exists(pbak))
         dut = traceSignals(fun)
         _simulator._tf.close()
         _simulator._tracing = 0
-        self.assert_(path.exists(p))
-        self.assert_(path.exists(pbak))
-        self.assert_(path.getsize(pbak) == size)
-        self.assert_(path.getsize(p) < size)
+        self.assertTrue(path.exists(p))
+        self.assertTrue(path.exists(pbak))
+        self.assertTrue(path.getsize(pbak) == size)
+        self.assertTrue(path.getsize(p) < size)
 
 
 

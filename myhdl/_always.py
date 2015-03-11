@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the always function. """
+from __future__ import absolute_import
 
 
 from types import FunctionType
@@ -53,7 +54,7 @@ def always(*args):
             raise AlwaysError(_error.ArgType)
         if _isGenFunc(func):
             raise AlwaysError(_error.ArgType)
-        if func.func_code.co_argcount > 0:
+        if func.__code__.co_argcount > 0:
             raise AlwaysError(_error.NrOfArgs)
         return _Always(func, args)
     return _always_decorator
