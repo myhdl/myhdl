@@ -176,7 +176,6 @@ class SigTest(TestCase):
         s1._posedgeWaiters = self.posedgeWaiters[:]
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
-        print(waiters)
         expected = self.eventWaiters + self.posedgeWaiters
         self.assertEqual(set(waiters), set(expected))
         self.assertEqual(s1._eventWaiters, [])
