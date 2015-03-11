@@ -87,7 +87,7 @@ def _makeDoc(doc, indent=''):
 class _ToVHDLConvertor(object):
 
     __slots__ = ("name",
-                 "directory",                 
+                 "directory",
                  "component_declarations",
                  "header",
                  "no_myhdl_header",
@@ -100,7 +100,7 @@ class _ToVHDLConvertor(object):
 
     def __init__(self):
         self.name = None
-        self.directory = None        
+        self.directory = None
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
@@ -1341,11 +1341,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
                     else:
                         #if self.astinfo is None:
-                # support for non-numeric signals
-                    if obj._min < 0:
-                        s = "signed(%s)" %s
-                    else:
-                        s = "unsigned(%s)" %s
+                        # support for non-numeric signals
+                        if obj._min < 0:
+                            s = "signed(%s)" %s
+                        else:
+                            s = "unsigned(%s)" %s
                 pre, suf = self.inferCast(node.vhd, ori)
                 s = "%s%s%s" % (pre, s, suf)
             elif _isMem(obj):
@@ -1642,9 +1642,9 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
             for item in senslist:
                 name = item._name.split('(',1)[0]
                 if not name in r:
-                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...        
+                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...
             return r
-        
+
         self.writeDoc(node)
         senslist = compressSensitivityList(self.tree.senslist)
         self.write("%s: process (" % self.tree.name)
@@ -1923,7 +1923,7 @@ class vhd_enum(vhd_type):
 
     def toStr(self, constr = True):
         return self._type.__dict__['_name']
-      
+
 
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
@@ -2075,7 +2075,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(a, ast.Str):
                     a.vhd = vhd_unsigned(a.vhd.size)
                 elif isinstance(a.vhd, vhd_signed):
-                    a.vhd = vhd_unsigned(a.vhd.size) 
+                    a.vhd = vhd_unsigned(a.vhd.size)
                 s += a.vhd.size
             node.vhd = vhd_unsigned(s)
         elif f is bool:
@@ -2162,9 +2162,9 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             right.vhd = vhd_unsigned(1)
         if isinstance(right.vhd, vhd_unsigned):
             if maybeNegative(left.vhd) or \
-               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')): 
+               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')):
                 right.vhd = vhd_signed(right.vhd.size + 1)
-        if isinstance(left.vhd, vhd_unsigned): 
+        if isinstance(left.vhd, vhd_unsigned):
             if maybeNegative(right.vhd) or \
                (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')):
                 left.vhd = vhd_signed(left.vhd.size + 1)
