@@ -399,7 +399,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if not m._used:
             continue
         # infer attributes for the case of named signals in a list
-        for i, s in enumerate(m.mem):
+        for _, s in enumerate(m.mem):
             if not m._driven and s._driven:
                 m._driven = s._driven
             if not m._read and s._read:
@@ -540,6 +540,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.isLhs = False
         self.labelStack = []
         self.context = None
+        self.astinfo = None
 
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -879,6 +880,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if not sig._numeric:
                     #if not isinstance(rhs, ast.Num):
                     convOpen, convClose = "std_logic_vector(", ")"
+            elif isinstance(lhs.value, ast.Attribute):
+                if not lhs.value.value.obj._numeric:
+                    convOpen, convClose = "std_logic_vector(", ")"
+
             self.write(' <= ')
             self.SigAss = False
         else:
@@ -1250,6 +1255,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def getName(self, node):
         n = node.id
+        # must invalidate the astinfo, or replace it
+        newastinfo = None
         if n == 'False':
             if isinstance(node.vhd, vhd_std_logic):
                 s = "'0'"
@@ -1319,8 +1326,22 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
                 # print 'name', n
+                if (not obj._numeric) and (not self.SigAss is obj._name):
+                    if self.astinfo == 'accessSlice':
+                        if obj._min < 0:
+                            s = "signed( %s " %s
+                        else:
+                            s = "unsigned( %s " %s
+                        # need a closing ')' later after the slice-specification -> unsigned( name( ... downto ...))
+                        newastinfo = 'ClosingParenthesis'
+
+                    elif  self.astinfo == 'accessIndex':
+                        # do nothing, a single bit of either an unsigned or std_logic_vector is a std_logic
+                        pass
+
+                    else:
+                        #if self.astinfo is None:
                 # support for non-numeric signals
-                if self.SigAss is not obj._name and not obj._numeric:
                     if obj._min < 0:
                         s = "signed(%s)" %s
                     else:
@@ -1339,6 +1360,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:
             raise AssertionError("name ref: %s" % n)
+        self.astinfo = newastinfo
         self.write(s)
 
     def visit_Pass(self, node):
@@ -1408,12 +1430,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("%s" % c)
             self.write(post)
             return
+
+        self.astinfo = 'accessSlice'
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         if isinstance(node.value.vhd, vhd_signed) and isinstance(node.ctx, ast.Load):
             pre = pre + "unsigned("
             suf = ")" + suf
         self.write(pre)
         self.visit(node.value)
+        needclosingparenthesis = (self.astinfo == 'ClosingParenthesis')
         lower, upper = node.slice.lower, node.slice.upper
         # special shortcut case for [:] slice
         if lower is None and upper is None:
@@ -1431,8 +1456,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(upper)
         self.write(")")
         self.write(suf)
+        if needclosingparenthesis:
+            self.write(" )")
+        self.astinfo = None
 
     def accessIndex(self, node):
+        self.astinfo = 'accessIndex'
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
         self.visit(node.value)
@@ -1441,6 +1470,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.slice.value)
         self.write(")")
         self.write(suf)
+        self.astinfo = None
 
     def visit_stmt(self, body):
         for stmt in body:
