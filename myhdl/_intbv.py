@@ -502,7 +502,7 @@ class intbv(object):
       '''
 
       # value is considered unsigned
-      if self.min >= 0 and self._nrbits > 0:
+      if self.min is not None and self.min >= 0 and self._nrbits > 0:
 
         # get 2's complement value of bits
         msb = self._nrbits-1
