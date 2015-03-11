@@ -937,7 +937,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is len:
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
-            self.write(`val`)
+            self.write(repr(val))
             return
         elif f is now:
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
