@@ -43,7 +43,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
-from myhdl._util import _isTupleOfInts, _dedent
+from myhdl._util import _isTupleOfInts, _dedent, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
 
 myhdlObjects = myhdl.__dict__.values()
@@ -77,13 +77,6 @@ def _makeName(n, prefixes, namedict):
 ##     print name
     return name
 
-def _makeAST(f):
-    s = inspect.getsource(f)
-    s = _dedent(s)
-    tree = ast.parse(s)
-    tree.sourcefile = inspect.getsourcefile(f)
-    tree.lineoffset = inspect.getsourcelines(f)[1]-1
-    return tree
 
 def _analyzeSigs(hierarchy, hdl='Verilog'):
     curlevel = 0
