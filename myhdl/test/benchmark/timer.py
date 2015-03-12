@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from myhdl import *
 
 def timer_sig(flag, clock, reset, MAXVAL):

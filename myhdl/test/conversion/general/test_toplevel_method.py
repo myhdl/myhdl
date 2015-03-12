@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import sys
 from myhdl import *
 from myhdl import ConversionError
@@ -121,7 +120,7 @@ def test_hdlobjnotself():
     hdlobj_inst = HdlObjNotSelf()
     try:
         analyze(hdlobj_inst.method_func, clk, x, srst, y)
-    except ConversionError as e:
+    except ConversionError, e:
         assert e.kind == _error.NotSupported
     else:
         assert False

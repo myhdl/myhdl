@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -72,7 +71,7 @@ class TestRom(TestCase):
 
         # rom_inst = rom(dout, din, addr, we, clk, depth)
         rom_inst = toVerilog(rom, dout, addr, clk)
-        rom_v_inst = rom_v(rom.__name__, dout_v, addr, clk)
+        rom_v_inst = rom_v(rom.func_name, dout_v, addr, clk)
 
         def stimulus():
             for i in range(D):

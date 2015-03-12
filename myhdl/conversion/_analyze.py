@@ -20,7 +20,6 @@
 """ MyHDL conversion analysis module.
 
 """
-from __future__ import absolute_import
 
 import inspect
 # import compiler
@@ -43,7 +42,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
-from myhdl._util import _isTupleOfInts, _dedent, _makeAST
+from myhdl._util import _isTupleOfInts, _dedent
 from myhdl._resolverefs import _AttrRefTransformer
 
 myhdlObjects = myhdl.__dict__.values()
@@ -77,6 +76,13 @@ def _makeName(n, prefixes, namedict):
 ##     print name
     return name
 
+def _makeAST(f):
+    s = inspect.getsource(f)
+    s = _dedent(s)
+    tree = ast.parse(s)
+    tree.sourcefile = inspect.getsourcefile(f)
+    tree.lineoffset = inspect.getsourcelines(f)[1]-1
+    return tree
 
 def _analyzeSigs(hierarchy, hdl='Verilog'):
     curlevel = 0
@@ -152,13 +158,18 @@ def _analyzeGens(top, absnames):
             tree = g
         elif isinstance(g, (_AlwaysComb, _AlwaysSeq, _Always)):
             f = g.func
-            tree = _makeAST(f)
-            tree.symdict = f.__globals__.copy()
+            s = inspect.getsource(f)
+            s = _dedent(s)
+            tree = ast.parse(s)
+            #print ast.dump(tree)
+            tree.sourcefile  = inspect.getsourcefile(f)
+            tree.lineoffset = inspect.getsourcelines(f)[1]-1
+            tree.symdict = f.func_globals.copy()
             tree.callstack = []
             # handle free variables
             tree.nonlocaldict = {}
-            if f.__code__.co_freevars:
-                for n, c in zip(f.__code__.co_freevars, f.__closure__):
+            if f.func_code.co_freevars:
+                for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
                     tree.symdict[n] = obj
                     # currently, only intbv as automatic nonlocals (until Python 3.0)
@@ -178,7 +189,12 @@ def _analyzeGens(top, absnames):
             v.visit(tree)
         else: # @instance
             f = g.gen.gi_frame
-            tree = _makeAST(f)
+            s = inspect.getsource(f)
+            s = _dedent(s)
+            tree = ast.parse(s)
+            # print ast.dump(tree)
+            tree.sourcefile = inspect.getsourcefile(f)
+            tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.f_globals.copy()
             tree.symdict.update(f.f_locals)
             tree.nonlocaldict = {}
@@ -591,18 +607,24 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             pass
         elif type(f) is FunctionType:
             argsAreInputs = False
-            tree = _makeAST(f)
+            s = inspect.getsource(f)
+            s = _dedent(s)
+            tree = ast.parse(s)
+            # print ast.dump(tree)
+            # print tree
             fname = f.__name__
             tree.name = _Label(fname)
-            tree.symdict = f.__globals__.copy()
+            tree.sourcefile = inspect.getsourcefile(f)
+            tree.lineoffset = inspect.getsourcelines(f)[1]-1
+            tree.symdict = f.func_globals.copy()
             tree.nonlocaldict = {}
             if fname in self.tree.callstack:
                 self.raiseError(node, _error.NotSupported, "Recursive call")
             tree.callstack = self.tree.callstack[:]
             tree.callstack.append(fname)
             # handle free variables
-            if f.__code__.co_freevars:
-                for n, c in zip(f.__code__.co_freevars, f.__closure__):
+            if f.func_code.co_freevars:
+                for n, c in zip(f.func_code.co_freevars, f.func_closure):
                     obj = _cell_deref(c)
                     if not  isinstance(obj, (int, long, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
@@ -747,7 +769,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.kind = _kind.DECLARATION
         try:
             self.visit(node.elt)
-        except ConversionError as e:
+        except ConversionError, e:
             if e.kind == _error.UnboundLocal:
                 pass
             else:

@@ -20,8 +20,6 @@
 """ myhdl toVHDL conversion module.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
 
 
 import sys
@@ -89,7 +87,7 @@ def _makeDoc(doc, indent=''):
 class _ToVHDLConvertor(object):
 
     __slots__ = ("name",
-                 "directory",                 
+                 "directory",
                  "component_declarations",
                  "header",
                  "no_myhdl_header",
@@ -102,7 +100,7 @@ class _ToVHDLConvertor(object):
 
     def __init__(self):
         self.name = None
-        self.directory = None        
+        self.directory = None
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
@@ -127,7 +125,7 @@ class _ToVHDLConvertor(object):
 
         _converting = 1
         if self.name is None:
-            name = func.__name__
+            name = func.func_name
         else:
             name = str(self.name)
         try:
@@ -199,7 +197,7 @@ class _ToVHDLConvertor(object):
 
         if pfile:
             _writeFileHeader(pfile, ppath)
-            print(_package, file=pfile)
+            print >> pfile, _package
             pfile.close()
 
         _writeFileHeader(vfile, vpath)
@@ -260,45 +258,45 @@ def _writeFileHeader(f, fn):
                 date=datetime.today().ctime()
                 )
     if toVHDL.header:
-        print(string.Template(toVHDL.header).substitute(vars), file=f)
+        print >> f, string.Template(toVHDL.header).substitute(vars)
     if not toVHDL.no_myhdl_header:
-        print(string.Template(myhdl_header).substitute(vars), file=f)
-    print(file=f)
+        print >> f, string.Template(myhdl_header).substitute(vars)
+    print >> f
 
 
 def _writeCustomPackage(f, intf):
-    print(file=f)
-    print("package pck_%s is" % intf.name, file=f)
-    print(file=f)
-    print("attribute enum_encoding: string;", file=f)
-    print(file=f)
+    print >> f
+    print >> f, "package pck_%s is" % intf.name
+    print >> f
+    print >> f, "attribute enum_encoding: string;"
+    print >> f
     sortedList = list(_enumPortTypeSet)
     sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
     for t in sortedList:
-        print("    %s" % t._toVHDL(), file=f)
-    print(file=f)
-    print("end package pck_%s;" % intf.name, file=f)
-    print(file=f)
+        print >> f, "    %s" % t._toVHDL()
+    print >> f
+    print >> f, "end package pck_%s;" % intf.name
+    print >> f
 
 
 def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric):
-    print("library IEEE;", file=f)
-    print("use IEEE.std_logic_1164.all;", file=f)
-    print("use IEEE.numeric_std.all;", file=f)
-    print("use std.textio.all;", file=f)
-    print(file=f)
+    print >> f, "library IEEE;"
+    print >> f, "use IEEE.std_logic_1164.all;"
+    print >> f, "use IEEE.numeric_std.all;"
+    print >> f, "use std.textio.all;"
+    print >> f
     if lib != "work":
-        print("library %s;" % lib, file=f)
+        print >> f, "library %s;" % lib
     if useClauses is not None:
         f.write(useClauses)
         f.write("\n")
     else:
-        print("use %s.pck_myhdl_%s.all;" % (lib, _shortversion), file=f)
-    print(file=f)
+        print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _shortversion)
+    print >> f
     if needPck:
-        print("use %s.pck_%s.all;" % (lib, intf.name), file=f)
-        print(file=f)
-    print("entity %s is" % intf.name, file=f)
+        print >> f, "use %s.pck_%s.all;" % (lib, intf.name)
+        print >> f
+    print >> f, "entity %s is" % intf.name
     if intf.argnames:
         f.write("    port (")
         c = ''
@@ -328,11 +326,11 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric):
                                   )
                 f.write("\n        %s: in %s%s" % (portname, p, r))
         f.write("\n    );\n")
-    print("end entity %s;" % intf.name, file=f)
-    print(doc, file=f)
-    print(file=f)
-    print("architecture %s of %s is" % (arch, intf.name), file=f)
-    print(file=f)
+    print >> f, "end entity %s;" % intf.name
+    print >> f, doc
+    print >> f
+    print >> f, "architecture %s of %s is" % (arch, intf.name)
+    print >> f
 
 
 def _writeFuncDecls(f):
@@ -387,7 +385,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               )
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print("signal %s: %s%s;" % (s._name, p, r), file=f)
+            print >> f, "signal %s: %s%s;" % (s._name, p, r)
         elif s._read:
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
@@ -396,12 +394,12 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           category=ToVHDLWarning
                           )
             constwires.append(s)
-            print("signal %s: %s%s;" % (s._name, p, r), file=f)
+            print >> f, "signal %s: %s%s;" % (s._name, p, r)
     for m in memlist:
         if not m._used:
             continue
         # infer attributes for the case of named signals in a list
-        for i, s in enumerate(m.mem):
+        for _, s in enumerate(m.mem):
             if not m._driven and s._driven:
                 m._driven = s._driven
             if not m._read and s._read:
@@ -411,16 +409,16 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
-        print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
-        print("signal %s: %s;" % (m.name, t), file=f)
-    print(file=f)
+        print >> f, "type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r)
+        print >> f, "signal %s: %s;" % (m.name, t)
+    print >> f
 
 def _writeCompDecls(f,  compDecls):
     if compDecls is not None:
-        print(compDecls, file=f)
+        print >> f, compDecls
 
 def _writeModuleFooter(f, arch):
-    print("end architecture %s;" % arch, file=f)
+    print >> f, "end architecture %s;" % arch
 
 def _getRangeString(s):
     if isinstance(s._val, EnumItemType):
@@ -471,8 +469,8 @@ def _convertGens(genlist, siglist, memlist, vfile):
         v = Visitor(tree, blockBuf, funcBuf)
         v.visit(tree)
     vfile.write(funcBuf.getvalue()); funcBuf.close()
-    print("begin", file=vfile)
-    print(file=vfile)
+    print >> vfile, "begin"
+    print >> vfile
     for s in constwires:
         if s._type is bool:
             c = int(s._val)
@@ -487,19 +485,19 @@ def _convertGens(genlist, siglist, memlist, vfile):
                 pre, suf = "to_unsigned(", ", %s)" % w
         else:
             raise ToVHDLError("Unexpected type for constant signal", s._name)
-        print("%s <= %s%s%s;" % (s._name, pre, c, suf), file=vfile)
-    print(file=vfile)
+        print >> vfile, "%s <= %s%s%s;" % (s._name, pre, c, suf)
+    print >> vfile
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVHDL') and s._read:
-            print(s.toVHDL(), file=vfile)
+            print >> vfile, s.toVHDL()
     # hack for slice signals in a list
     for m in memlist:
         if m._read:
             for s in m.mem:
                 if hasattr(s, 'toVHDL'):
-                    print(s.toVHDL(), file=vfile)
-    print(file=vfile)
+                    print >> vfile, s.toVHDL()
+    print >> vfile
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
 
@@ -542,6 +540,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.isLhs = False
         self.labelStack = []
         self.context = None
+        self.astinfo = None
 
     def write(self, arg):
         self.buf.write("%s" % arg)
@@ -881,6 +880,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if not sig._numeric:
                     #if not isinstance(rhs, ast.Num):
                     convOpen, convClose = "std_logic_vector(", ")"
+            elif isinstance(lhs.value, ast.Attribute):
+                if not lhs.value.value.obj._numeric:
+                    convOpen, convClose = "std_logic_vector(", ")"
+
             self.write(' <= ')
             self.SigAss = False
         else:
@@ -1252,6 +1255,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def getName(self, node):
         n = node.id
+        # must invalidate the astinfo, or replace it
+        newastinfo = None
         if n == 'False':
             if isinstance(node.vhd, vhd_std_logic):
                 s = "'0'"
@@ -1321,12 +1326,26 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
                 # print 'name', n
-                # support for non-numeric signals
-                if self.SigAss is not obj._name and not obj._numeric:
-                    if obj._min < 0:
-                        s = "signed(%s)" %s
+                if (not obj._numeric) and (not self.SigAss is obj._name):
+                    if self.astinfo == 'accessSlice':
+                        if obj._min < 0:
+                            s = "signed( %s " %s
+                        else:
+                            s = "unsigned( %s " %s
+                        # need a closing ')' later after the slice-specification -> unsigned( name( ... downto ...))
+                        newastinfo = 'ClosingParenthesis'
+
+                    elif  self.astinfo == 'accessIndex':
+                        # do nothing, a single bit of either an unsigned or std_logic_vector is a std_logic
+                        pass
+
                     else:
-                        s = "unsigned(%s)" %s
+                        #if self.astinfo is None:
+                        # support for non-numeric signals
+                        if obj._min < 0:
+                            s = "signed(%s)" %s
+                        else:
+                            s = "unsigned(%s)" %s
                 pre, suf = self.inferCast(node.vhd, ori)
                 s = "%s%s%s" % (pre, s, suf)
             elif _isMem(obj):
@@ -1341,6 +1360,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:
             raise AssertionError("name ref: %s" % n)
+        self.astinfo = newastinfo
         self.write(s)
 
     def visit_Pass(self, node):
@@ -1410,12 +1430,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("%s" % c)
             self.write(post)
             return
+
+        self.astinfo = 'accessSlice'
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         if isinstance(node.value.vhd, vhd_signed) and isinstance(node.ctx, ast.Load):
             pre = pre + "unsigned("
             suf = ")" + suf
         self.write(pre)
         self.visit(node.value)
+        needclosingparenthesis = (self.astinfo == 'ClosingParenthesis')
         lower, upper = node.slice.lower, node.slice.upper
         # special shortcut case for [:] slice
         if lower is None and upper is None:
@@ -1433,8 +1456,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(upper)
         self.write(")")
         self.write(suf)
+        if needclosingparenthesis:
+            self.write(" )")
+        self.astinfo = None
 
     def accessIndex(self, node):
+        self.astinfo = 'accessIndex'
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
         self.visit(node.value)
@@ -1443,6 +1470,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.slice.value)
         self.write(")")
         self.write(suf)
+        self.astinfo = None
 
     def visit_stmt(self, body):
         for stmt in body:
@@ -1614,9 +1642,9 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
             for item in senslist:
                 name = item._name.split('(',1)[0]
                 if not name in r:
-                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...        
+                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...
             return r
-        
+
         self.writeDoc(node)
         senslist = compressSensitivityList(self.tree.senslist)
         self.write("%s: process (" % self.tree.name)
@@ -1895,7 +1923,7 @@ class vhd_enum(vhd_type):
 
     def toStr(self, constr = True):
         return self._type.__dict__['_name']
-      
+
 
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
@@ -2047,7 +2075,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(a, ast.Str):
                     a.vhd = vhd_unsigned(a.vhd.size)
                 elif isinstance(a.vhd, vhd_signed):
-                    a.vhd = vhd_unsigned(a.vhd.size) 
+                    a.vhd = vhd_unsigned(a.vhd.size)
                 s += a.vhd.size
             node.vhd = vhd_unsigned(s)
         elif f is bool:
@@ -2134,9 +2162,9 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             right.vhd = vhd_unsigned(1)
         if isinstance(right.vhd, vhd_unsigned):
             if maybeNegative(left.vhd) or \
-               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')): 
+               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')):
                 right.vhd = vhd_signed(right.vhd.size + 1)
-        if isinstance(left.vhd, vhd_unsigned): 
+        if isinstance(left.vhd, vhd_unsigned):
             if maybeNegative(right.vhd) or \
                (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')):
                 left.vhd = vhd_signed(left.vhd.size + 1)

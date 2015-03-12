@@ -20,8 +20,6 @@
 """ Module with utilility objects for MyHDL.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
 
 
 import ast
@@ -38,7 +36,7 @@ def _printExcInfo():
     # msg = msg[msg.rindex('.')+1:]
     if str(value):
         msg += ": %s" % value
-        print(msg, file=sys.stderr)
+        print >> sys.stderr, msg
 
 _isGenFunc = inspect.isgeneratorfunction
 

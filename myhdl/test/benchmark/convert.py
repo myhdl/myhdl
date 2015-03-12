@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from myhdl import *
 
 from test_lfsr24 import test_lfsr24

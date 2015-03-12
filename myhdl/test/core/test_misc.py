@@ -18,7 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for Signal """
-from __future__ import absolute_import
 
 
 import random
@@ -72,7 +71,7 @@ class InstancesTest(TestCase):
         # that would become part of the instances also!
         self.assertEqual(len(i), 4)
         for e in (D_1, A_1, B_1, C_1):
-            self.assertTrue(e in i)
+            self.assert_(e in i)
 
 
 if __name__ == "__main__":

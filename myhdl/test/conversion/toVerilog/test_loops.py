@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -266,7 +265,7 @@ class TestLoops(unittest.TestCase):
 
         looptest_inst = toVerilog(LoopTest, a, out)
         # looptest_inst = LoopTest(hec, header)
-        looptest_v_inst = LoopTest_v(LoopTest.__name__, a, out_v)
+        looptest_v_inst = LoopTest_v(LoopTest.func_name, a, out_v)
  
         def stimulus():
             for i in range(100):
