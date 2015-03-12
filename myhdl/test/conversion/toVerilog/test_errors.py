@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -358,7 +357,7 @@ class TestErr(TestCase):
     def testInternalSignal(self):
         try:
             self.bench(internalSignal)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.TypeInfer)
         else:
             self.fail()
@@ -366,7 +365,7 @@ class TestErr(TestCase):
     def testMultipleDrivenSignal(self):
         try:
             self.bench(multipleDrivenSignal)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.SigMultipleDriven)
         else:
             self.fail()
@@ -374,7 +373,7 @@ class TestErr(TestCase):
     def testShadowingSignal(self):
         try:
             self.bench(shadowingSignal)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.ShadowingSignal)
         else:
             self.fail()
@@ -382,7 +381,7 @@ class TestErr(TestCase):
     def testUndefinedBitWidthSignal(self):
         try:
             self.bench(undefinedBitWidthSignal)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.UndefinedBitWidth)
         else:
             self.fail()
@@ -390,7 +389,7 @@ class TestErr(TestCase):
     def testFreeVarTypeError(self):
         try:
             self.bench(freeVarTypeError)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.FreeVarTypeError)
         else:
             self.fail()
@@ -406,7 +405,7 @@ class TestErr(TestCase):
     def testYield1(self):
         try:
             self.bench(yieldObject1)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.UnsupportedYield)
         else:
             self.fail()
@@ -414,7 +413,7 @@ class TestErr(TestCase):
     def testYield2(self):
         try:
             self.bench(yieldObject2)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -422,7 +421,7 @@ class TestErr(TestCase):
     def testRecursion1(self):
         try:
             self.bench(recursion1)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -430,7 +429,7 @@ class TestErr(TestCase):
     def testRecursion2(self):
         try:
             self.bench(recursion2)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -438,7 +437,7 @@ class TestErr(TestCase):
     def testFunctionNoReturnVal(self):
         try:
             self.bench(functionNoReturnVal)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -446,7 +445,7 @@ class TestErr(TestCase):
     def testTaskReturnVal(self):
         try:
             self.bench(taskReturnVal)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -454,7 +453,7 @@ class TestErr(TestCase):
     def testPrintnlToFile(self):
         try:
             self.bench(printnlToFile)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -462,7 +461,7 @@ class TestErr(TestCase):
     def testPrintToFile(self):
         try:
             self.bench(printToFile)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -470,7 +469,7 @@ class TestErr(TestCase):
     def testListComp1(self):
         try:
             self.bench(listComp1)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
             self.fail()
@@ -478,7 +477,7 @@ class TestErr(TestCase):
     def testListComp2(self):
         try:
             self.bench(listComp2)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.UnsupportedListComp)
         else:
             self.fail()
@@ -486,7 +485,7 @@ class TestErr(TestCase):
     def testListComp3(self):
         try:
             self.bench(listComp3)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.UnsupportedListComp)
         else:
             self.fail()
@@ -494,7 +493,7 @@ class TestErr(TestCase):
     def testListComp4(self):
         try:
             self.bench(listComp4)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.UnsupportedListComp)
         else:
             self.fail()
@@ -502,7 +501,7 @@ class TestErr(TestCase):
     def testListComp5(self):
         try:
             self.bench(listComp5)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.UnsupportedListComp)
         else:
             self.fail()
@@ -510,7 +509,7 @@ class TestErr(TestCase):
     def testUndefinedBitWidthMem(self):
         try:
             self.bench(undefinedBitWidthMem)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.UndefinedBitWidth)
         else:
             self.fail()
@@ -518,7 +517,7 @@ class TestErr(TestCase):
     def testInconsistentTypeMem(self):
         try:
             self.bench(inconsistentTypeMem)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.InconsistentType)
         else:
             self.fail()
@@ -526,7 +525,7 @@ class TestErr(TestCase):
     def testInconsistentBitWidthMem(self):
         try:
             self.bench(inconsistentBitWidthMem)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.InconsistentBitWidth)
         else:
             self.fail()

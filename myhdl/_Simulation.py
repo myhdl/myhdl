@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module that provides the Simulation class """
-from __future__ import absolute_import
-from __future__ import print_function
 
 
 import sys
@@ -160,7 +158,7 @@ class Simulation(object):
                     _futureEvents.sort()
                     t = _simulator._time = _futureEvents[0][0]
                     if tracing:
-                        print("#%s" % t, file=tracefile)
+                        print >> tracefile, "#%s" % t
                     if cosim:
                         cosim._put(t)
                     while _futureEvents:
@@ -190,7 +188,7 @@ class Simulation(object):
                 self._finished = True
                 return 0
 
-            except Exception as e:
+            except Exception, e:
                 if tracing:
                     tracefile.flush()
                 # if the exception came from a yield, make sure we can resume

@@ -18,7 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run all myhdl unit tests. """
-from __future__ import absolute_import
 
 
 import test_Simulation, test_Signal, test_intbv, test_Cosimulation, test_misc, \

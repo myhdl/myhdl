@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 path = os.path
 
@@ -260,7 +259,7 @@ def testInc3():
 def testIncGen():
     try:
         assert conversion.verify(customBench, incGen) == 0
-    except ConversionError as e:
+    except ConversionError, e:
         pass
     else:
         assert False
@@ -268,7 +267,7 @@ def testIncGen():
 def testIncErr():
     try:
         assert conversion.verify(customBench, incErr) == 0
-    except ConversionError as e:
+    except ConversionError, e:
         pass
     else:
         assert False

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import warnings
 
 from myhdl._Signal import _Signal, _DelayedSignal

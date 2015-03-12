@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from myhdl import *
 
 from util import verilogCompile
@@ -36,7 +35,7 @@ def test():
     x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
 
     toVerilog(TestModule, x,a,b,c,d,e)
-    verilogCompile(TestModule.__name__)
+    verilogCompile(TestModule.func_name)
 
 test()
 
@@ -79,7 +78,7 @@ def test():
     x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
 
     toVerilog(TestModule, x,a,b,c,d,e)
-    verilogCompile(TestModule.__name__)
+    verilogCompile(TestModule.func_name)
 
 test()
 
@@ -111,7 +110,7 @@ def test():
     SOF = Signal(bool(0))
    
     toVerilog(top, SOF, clk, reset_n)
-    verilogCompile(top.__name__)
+    verilogCompile(top.func_name)
 
 test()
 

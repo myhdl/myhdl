@@ -18,7 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for the @always decorator """
-from __future__ import absolute_import
 
 
 import random
@@ -53,7 +52,7 @@ class AlwaysCompilationTest(TestCase):
         h = 5
         try:
             always(delay(3))(h)
-        except AlwaysError as e:
+        except AlwaysError, e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -63,7 +62,7 @@ class AlwaysCompilationTest(TestCase):
             @always(delay(3))
             def h():
                 yield None
-        except AlwaysError as e:
+        except AlwaysError, e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -73,7 +72,7 @@ class AlwaysCompilationTest(TestCase):
             @always(delay(3))
             def h(n):
                 return n
-        except AlwaysError as e:
+        except AlwaysError, e:
             self.assertEqual(e.kind, _error.NrOfArgs)
         else:
             self.fail()
@@ -83,7 +82,7 @@ class AlwaysCompilationTest(TestCase):
             @always
             def h(n):
                 return n
-        except AlwaysError as e:
+        except AlwaysError, e:
             self.assertEqual(e.kind, _error.DecArgType)
         else:
             self.fail()
@@ -93,7 +92,7 @@ class AlwaysCompilationTest(TestCase):
             @always(g)
             def h(n):
                 return n
-        except AlwaysError as e:
+        except AlwaysError, e:
             self.assertEqual(e.kind, _error.DecArgType)
         else:
             self.fail()

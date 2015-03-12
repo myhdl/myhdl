@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -82,7 +81,7 @@ def PrintError1():
 def testPrintError1():
     try:
         conversion.verify(PrintError1)
-    except ConversionError as e:
+    except ConversionError, e:
         assert e.kind == _error.UnsupportedFormatString
     else:
         assert False
@@ -98,7 +97,7 @@ def PrintError2():
 def testPrintError2():
     try:
         conversion.verify(PrintError2)
-    except ConversionError as e:
+    except ConversionError, e:
         assert e.kind == _error.FormatString
     else:
         assert False
@@ -115,7 +114,7 @@ def PrintError3():
 def testPrintError3():
     try:
         conversion.verify(PrintError3)
-    except ConversionError as e:
+    except ConversionError, e:
         assert e.kind == _error.FormatString
     else:
         assert False
@@ -131,7 +130,7 @@ def PrintError4():
 def testPrintError4():
     try:
         conversion.verify(PrintError4)
-    except ConversionError as e:
+    except ConversionError, e:
         assert e.kind == _error.UnsupportedFormatString
     else:
         assert False
@@ -147,7 +146,7 @@ def PrintError5():
 def testPrintError5():
     try:
         conversion.verify(PrintError5)
-    except ConversionError as e:
+    except ConversionError, e:
         assert e.kind == _error.UnsupportedFormatString
     else:
         assert False

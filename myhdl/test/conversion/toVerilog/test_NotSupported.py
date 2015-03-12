@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -12,7 +11,7 @@ class TestNotSupported(unittest.TestCase):
     def check(self, *args):
         try:
             i = toVerilog(*args)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         except:
             self.fail()

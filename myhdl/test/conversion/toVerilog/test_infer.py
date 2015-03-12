@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -139,7 +138,7 @@ class TestErrors(unittest.TestCase):
     def check(self, *args):
         try:
             i = toVerilog(*args)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, _error.NotSupported)
         except:
             self.fail()
@@ -152,7 +151,7 @@ class TestErrors(unittest.TestCase):
         out = Signal(intbv(0)[16:])
         try:
             infertest_inst = toVerilog(Infertest, a, out)
-        except ConversionError as e:
+        except ConversionError, e:
             self.assertEqual(e.kind, err)
         except:
             self.fail()
@@ -296,7 +295,7 @@ class TestInfer(unittest.TestCase):
 
         infertest_inst = toVerilog(Infertest, a, out)
         # infertest_inst = Infertest(hec, header)
-        infertest_v_inst = Infertest_v(Infertest.__name__, a, out_v)
+        infertest_v_inst = Infertest_v(Infertest.func_name, a, out_v)
  
         def stimulus():
             a.next = 1

@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import sys
 import os
 import tempfile
@@ -105,8 +103,8 @@ class  _VerificationClass(object):
     def __call__(self, func, *args, **kwargs):
 
         vals = {}
-        vals['topname'] = func.__name__
-        vals['unitname'] = func.__name__.lower()
+        vals['topname'] = func.func_name
+        vals['unitname'] = func.func_name.lower()
         vals['version'] = _version
 
         hdlsim = self.simulator
@@ -145,11 +143,11 @@ class  _VerificationClass(object):
         #print(analyze)
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
-            print("Analysis failed", file=sys.stderr)
+            print >> sys.stderr, "Analysis failed"
             return ret
 
         if self._analyzeOnly:
-            print("Analysis succeeded", file=sys.stderr)
+            print >> sys.stderr, "Analysis succeeded"
             return 0
 
         f = tempfile.TemporaryFile()
@@ -163,7 +161,7 @@ class  _VerificationClass(object):
         flines = f.readlines()
         f.close()
         if not flines:
-            print("No MyHDL simulation output - nothing to verify", file=sys.stderr)
+            print >> sys.stderr, "No MyHDL simulation output - nothing to verify"
             return 1
 
 
@@ -171,7 +169,7 @@ class  _VerificationClass(object):
             #print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
             if ret != 0:
-                print("Elaboration failed", file=sys.stderr)
+                print >> sys.stderr, "Elaboration failed"
                 return ret
             
         g = tempfile.TemporaryFile()
@@ -216,9 +214,9 @@ class  _VerificationClass(object):
         d.close()
 
         if not s:
-            print("Conversion verification succeeded", file=sys.stderr)
+            print >> sys.stderr, "Conversion verification succeeded"
         else:
-            print("Conversion verification failed", file=sys.stderr)
+            print >> sys.stderr, "Conversion verification failed"
             # print >> sys.stderr, s ,
             return 1
 

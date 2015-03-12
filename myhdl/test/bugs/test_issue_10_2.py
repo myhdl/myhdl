@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """Failed VHDL code example
 """
-from __future__ import absolute_import
 
 from myhdl import *
 from myhdl.conversion import verify

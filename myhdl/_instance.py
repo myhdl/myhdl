@@ -18,7 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the always function. """
-from __future__ import absolute_import
 
 
 from types import FunctionType
@@ -38,7 +37,7 @@ def instance(genFunc):
         raise InstanceError(_error.ArgType)
     if not _isGenFunc(genFunc):
         raise InstanceError(_error.ArgType)
-    if genFunc.__code__.co_argcount > 0:
+    if genFunc.func_code.co_argcount > 0:
         raise InstanceError(_error.NrOfArgs)
     return _Instantiator(genFunc)
 

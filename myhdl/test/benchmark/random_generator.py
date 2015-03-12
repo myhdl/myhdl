@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from myhdl import *
 
 def random_generator(random_word, enable, clock, reset):
