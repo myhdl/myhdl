@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the always_comb function. """
+from __future__ import absolute_import
 
 import sys
 import inspect
@@ -47,16 +48,16 @@ def always_comb(func):
         raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
         raise AlwaysCombError(_error.ArgType)
-    if func.func_code.co_argcount > 0:
+    if func.__code__.co_argcount > 0:
         raise AlwaysCombError(_error.NrOfArgs)
-    varnames = func.func_code.co_varnames
+    varnames = func.__code__.co_varnames
     symdict = {}
-    for n, v in func.func_globals.items():
+    for n, v in func.__globals__.items():
         if n not in varnames:
             symdict[n] = v
     # handle free variables
-    if func.func_code.co_freevars:
-        for n, c in zip(func.func_code.co_freevars, func.func_closure):
+    if func.__code__.co_freevars:
+        for n, c in zip(func.__code__.co_freevars, func.__closure__):
             try:
                 obj = _cell_deref(c)
                 symdict[n] = obj

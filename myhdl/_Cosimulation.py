@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module that provides the Cosimulation class """
+from __future__ import absolute_import
 
 
 import sys
@@ -77,7 +78,7 @@ class Cosimulation(object):
             arglist[0] = os.path.basename(p)
             try:
                 os.execvp(p, arglist)
-            except OSError, e:
+            except OSError as e:
                 raise CosimulationError(_error.OSError, str(e))
         else:
             os.close(wt)

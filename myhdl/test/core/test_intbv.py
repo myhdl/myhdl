@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the intbv unit tests. """
+from __future__ import absolute_import
 
 
 import unittest
@@ -121,7 +122,7 @@ class TestIntBvIndexing(TestCase):
                         res = bv[i:j]
                         resi = bvi[i:j]
                     except ValueError:
-                        self.assert_(i<=j)
+                        self.assertTrue(i<=j)
                         continue
                     ref = long(getSlice(s, i, j), 2)
                     self.assertEqual(res, ref)
@@ -189,7 +190,7 @@ class TestIntBvIndexing(TestCase):
                         try:
                             bv[i:j] = val
                         except ValueError:
-                            self.assert_(i<=j or val >= 2**(i-j))
+                            self.assertTrue(i<=j or val >= 2**(i-j))
                             continue
                         else:
                             ref = long(setSlice(s, i, j, extv), 2)
@@ -199,7 +200,7 @@ class TestIntBvIndexing(TestCase):
                         try:
                             bvi[i:j] = vali
                         except ValueError:
-                            self.assert_(vali >= 2**(i-j))
+                            self.assertTrue(vali >= 2**(i-j))
                             continue
                         else:
                             refi = ~long(setSlice(s, i, j, extv), 2)
@@ -295,8 +296,8 @@ class TestIntBvAsInt(TestCase):
             self.assertEqual(r1, ref)
             self.assertEqual(r2, ref)
             self.assertEqual(r3, ref)
-            self.assert_(r1 is bi1)
-            self.assert_(r3 is bi3)
+            self.assertTrue(r1 is bi1)
+            self.assertTrue(r3 is bi3)
             
     def unaryCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)

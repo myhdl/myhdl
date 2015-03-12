@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for enum """
+from __future__ import absolute_import
 
 
 import random
@@ -72,15 +73,15 @@ class TestEnum(TestCase):
             self.fail()
 
     def testHomograph(self):
-        self.assert_(t_State is not t_Homograph)
+        self.assertTrue(t_State is not t_Homograph)
         
     def testHomographLiteral(self):
-        self.assert_(t_State.SEARCH is not t_Homograph.SEARCH)
+        self.assertTrue(t_State.SEARCH is not t_Homograph.SEARCH)
 
     def testItemCopy(self):
         e = copy.deepcopy(t_State.SEARCH)
-        self.assert_(e == t_State.SEARCH)
-        self.assert_(e != t_State.CONFIRM)
+        self.assertTrue(e == t_State.SEARCH)
+        self.assertTrue(e != t_State.CONFIRM)
 
 
 if __name__ == "__main__":

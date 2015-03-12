@@ -18,8 +18,9 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the modbv class """
+from __future__ import absolute_import
 
-from _intbv import intbv
+from ._intbv import intbv
 
 class modbv(intbv):
     __slots__ = []
@@ -44,14 +45,14 @@ class modbv(intbv):
                 j = 0
             j = int(j)
             if j < 0:
-                raise ValueError, "modbv[i:j] requires j >= 0\n" \
-                      "            j == %s" % j
+                raise ValueError("modbv[i:j] requires j >= 0\n" \
+                      "            j == %s" % j)
             if i is None: # default
                 return modbv(self._val >> j)
             i = int(i)
             if i <= j:
-                raise ValueError, "modbv[i:j] requires i > j\n" \
-                      "            i, j == %s, %s" % (i, j)
+                raise ValueError("modbv[i:j] requires i > j\n" \
+                      "            i, j == %s, %s" % (i, j))
             res = modbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
             return res
         else:

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 
 def adapter(o_err, i_err, o_spec, i_spec):

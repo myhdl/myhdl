@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -87,8 +88,8 @@ class TestInc_initial(TestCase):
         count_v = Signal(intbv(0)[m:])
         enable, clock, reset = [Signal(bool()) for i in range(3)]
 
-        inc_initial_1 = toVerilog(top, top.func_name, count, enable, clock, reset, n=n)
-        inc_initial_v = top(top.func_name, count_v, enable, clock, reset, n=n, arch='verilog')
+        inc_initial_1 = toVerilog(top, top.__name__, count, enable, clock, reset, n=n)
+        inc_initial_v = top(top.__name__, count_v, enable, clock, reset, n=n, arch='verilog')
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

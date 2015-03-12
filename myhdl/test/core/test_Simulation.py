@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run unit tests for Simulation """
+from __future__ import absolute_import
 
 
 import unittest
@@ -42,7 +43,7 @@ class SimArgs(TestCase):
     def test1(self):
         try:
             Simulation(None)
-        except SimulationError, e:
+        except SimulationError as e:
             self.assertEqual(e.kind, _error.ArgType)
         except:
             self.fail()
@@ -53,7 +54,7 @@ class SimArgs(TestCase):
         i = g()
         try:
             Simulation(i, i)
-        except SimulationError, e:
+        except SimulationError as e:
             self.assertEqual(e.kind, _error.DuplicatedArg)
         except:
             self.fail()
@@ -254,7 +255,7 @@ class JoinedGen(TestCase):
             self.assertEqual(sig2.val, 1)
             self.assertEqual(now(), offset + td * max(n0, n1, n2))
 
-        raise StopSimulation, "Joined concurrent generator yield"
+        raise StopSimulation("Joined concurrent generator yield")
 
     def testYieldJoinedGen(self):
         Simulation(self.bench()).run(quiet=QUIET)
@@ -286,7 +287,7 @@ class SignalUpdateFirst(TestCase):
             self.assertEqual(Q.val, 1) # control
             self.assertEqual(R.val, 1) # control
             self.assertEqual(S.val, 1) # control
-            raise StopSimulation, "Signal update test"
+            raise StopSimulation("Signal update test")
 
         return process()
 
@@ -324,7 +325,7 @@ class YieldZeroDelay(TestCase):
             yield sig2.posedge
             self.assertEqual(now(), offset + n2*td)
         
-        raise StopSimulation, "Zero delay yield"
+        raise StopSimulation("Zero delay yield")
 
     def testYieldZeroDelay(self):
         Simulation(self.bench()).run(quiet=QUIET)
@@ -360,7 +361,7 @@ class YieldConcurrentGen(TestCase):
             yield sig2.posedge
             self.assertEqual(now(), offset + n2*td)
 
-        raise StopSimulation, "Concurrent generator yield"
+        raise StopSimulation("Concurrent generator yield")
 
     def testYieldConcurrentGen(self):
         Simulation(self.bench()).run(quiet=QUIET)
@@ -410,7 +411,7 @@ class YieldGen(TestCase):
             for nlist in nlists:
                 yield task(nlist)
             self.assertEqual(shared.cnt, expected[-1])
-            raise StopSimulation, "Generator yield"
+            raise StopSimulation("Generator yield")
 
         return(module(), clkGen())
 
@@ -469,7 +470,7 @@ class DeltaCycleOrder(TestCase):
                 yield clk.posedge
                 yield clk.posedge
                 self.assertEqual(z.val, function(v[0], v[1], v[2], v[3]))
-            raise StopSimulation, "Delta cycle order"
+            raise StopSimulation("Delta cycle order")
 
         inputGen = [inGen(i) for i in range(4)]
         instance = [clkGen(), deltaGen(), logic(), stimulus(), inputGen]
@@ -692,7 +693,7 @@ class Waveform(TestCase):
                 self.sig.delay = sigdelay
 
     def response(self, clause, expected):
-        self.assert_(len(expected) > 100) # we should test something
+        self.assertTrue(len(expected) > 100) # we should test something
         i = 0
         while 1:
             yield clause
@@ -712,7 +713,7 @@ class Waveform(TestCase):
         expected = getExpectedTimes(self.waveform, isPosedge)     
         response = self.response(clause=s.posedge, expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
 
     def testNegedge(self):
         """ Negedge waveform test """
@@ -721,7 +722,7 @@ class Waveform(TestCase):
         expected = getExpectedTimes(self.waveform, isNegedge)     
         response = self.response(clause=s.negedge, expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
 
     def testEdge(self):
         """ Edge waveform test """
@@ -731,7 +732,7 @@ class Waveform(TestCase):
         response = self.response(clause=(s.negedge, s.posedge),
                                  expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
 
     def testEvent(self):
         """ Event waveform test """
@@ -741,7 +742,7 @@ class Waveform(TestCase):
         # print expected
         response = self.response(clause=s, expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
             
     def testRedundantEvents(self):
         """ Redundant event waveform test """
@@ -750,7 +751,7 @@ class Waveform(TestCase):
         expected = getExpectedTimes(self.waveform, isEvent)     
         response = self.response(clause=(s,) * 6, expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
         
     def testRedundantEventAndEdges(self):       
         """ Redundant edge waveform test """
@@ -760,7 +761,7 @@ class Waveform(TestCase):
         response = self.response(clause=(s, s.negedge, s.posedge),
                                  expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
         
     def testRedundantPosedges(self):
         """ Redundant posedge waveform test """
@@ -769,7 +770,7 @@ class Waveform(TestCase):
         expected = getExpectedTimes(self.waveform, isPosedge)     
         response = self.response(clause=(s.posedge,) * 3, expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
 
     def testRedundantNegedges(self):
         """ Redundant negedge waveform test """
@@ -778,7 +779,7 @@ class Waveform(TestCase):
         expected = getExpectedTimes(self.waveform, isNegedge)     
         response = self.response(clause=(s.negedge,) * 9, expected=expected)
         self.runSim(Simulation(stimulus, response))
-        self.assert_(self.duration <= now())
+        self.assertTrue(self.duration <= now())
 
         
 class WaveformSigDelay(Waveform):

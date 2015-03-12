@@ -1,6 +1,7 @@
+
 # cell dereferencing hack, thanks to Samuele Pedroni
 
-import new
+from types import FunctionType
 
 def _proto_acc(v=None):
     def acc():
@@ -9,10 +10,10 @@ def _proto_acc(v=None):
 
 _acc0 = _proto_acc()
 
-_make_acc = lambda cell: (new.function (_acc0.func_code,
-                                        _acc0.func_globals,
+_make_acc = lambda cell: (FunctionType(_acc0.__code__,
+                                        _acc0.__globals__,
                                         '#cell_acc',
-                                        _acc0.func_defaults,
+                                        _acc0.__defaults__,
                                         (cell,)
                                         )
                           )

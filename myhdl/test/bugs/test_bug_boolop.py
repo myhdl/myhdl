@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 
 def gray_counter (clk, reset, enable, gray_count):

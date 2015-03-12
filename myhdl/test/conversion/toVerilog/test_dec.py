@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -182,7 +183,7 @@ class TestDec(TestCase):
         dec_inst_ref = decRef(count, enable, clock, reset, n=n)
         dec_inst = toVerilog(dec, count, enable, clock, reset, n=n)
         # dec_inst = dec(count, enable, clock, reset, n=n)
-        dec_inst_v = dec_v(dec.func_name, count_v, enable, clock, reset)
+        dec_inst_v = dec_v(dec.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

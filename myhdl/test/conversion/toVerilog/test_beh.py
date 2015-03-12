@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -82,7 +83,7 @@ class TestBeh(TestCase):
 
         beh_inst = toVerilog(beh, count, enable, clock, reset, n=n)
         # beh_inst = beh(count, enable, clock, reset, n=n)
-        beh_inst_v = beh_v(beh.func_name, count_v, enable, clock, reset)
+        beh_inst_v = beh_v(beh.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

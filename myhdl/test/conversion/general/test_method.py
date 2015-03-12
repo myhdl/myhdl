@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import sys
 from myhdl import *
 from myhdl.conversion import verify
@@ -105,7 +106,7 @@ def ObjBench(hObj):
         hdlobj_inst = hObj()
         hdl_inst = hdlobj_inst.method_func(clk, srst, x, y)
     else:
-        raise StandardError, "Incorrect hOjb %s" % (type(hObj), str(hObj))
+        raise StandardError("Incorrect hOjb %s" % (type(hObj), str(hObj)))
 
 
     @instance
