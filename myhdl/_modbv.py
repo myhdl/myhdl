@@ -53,7 +53,7 @@ class modbv(intbv):
             if i <= j:
                 raise ValueError("modbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j))
-            res = modbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
+            res = modbv((self._val & (long(1) << i)-1) >> j, _nrbits=i-j)
             return res
         else:
             i = int(key)

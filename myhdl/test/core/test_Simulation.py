@@ -436,7 +436,7 @@ class DeltaCycleOrder(TestCase):
         s = [a, b, c, d]
         vectors = [intbv(j) for i in range(8) for j in range(16)]
         random.shuffle(vectors)
-        index = range(4)
+        index = list(range(4))
 
         def clkGen():
             while 1:

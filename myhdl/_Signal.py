@@ -33,10 +33,12 @@ from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
 import operator
 
+from myhdl._compat import integer_types, long
 from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
+
 # from myhdl._enum import EnumItemType
 
 _schedule = _futureEvents.append
@@ -136,8 +138,8 @@ class _Signal(object):
             self._setNextVal = self._setNextBool
             self._printVcd = self._printVcdBit
             self._nrbits = 1
-        elif isinstance(val, (int, long)):
-            self._type = (int, long)
+        elif isinstance(val, integer_types):
+            self._type = integer_types
             self._setNextVal = self._setNextInt
         elif isinstance(val, intbv):
             self._type = intbv
@@ -191,7 +193,7 @@ class _Signal(object):
                 self._val = None
             elif isinstance(val, intbv):
                 self._val._val = next._val
-            elif isinstance(val, (int, long, EnumItemType)):
+            elif isinstance(val, (integer_types, EnumItemType)):
                 self._val = next
             else:
                 self._val = deepcopy(next)
@@ -273,14 +275,14 @@ class _Signal(object):
     def _setNextInt(self, val):
         if isinstance(val, intbv):
             val = val._val
-        elif not isinstance(val, (int, long)):
+        elif not isinstance(val, (integer_types, intbv)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next = val
 
     def _setNextIntbv(self, val):
         if isinstance(val, intbv):
             val = val._val
-        elif not isinstance(val, (int, long)):
+        elif not isinstance(val, integer_types):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next._val = val
         self._next._handleBounds()
@@ -321,11 +323,10 @@ class _Signal(object):
         raise TypeError("Signals are unhashable")
         
     
-    def __nonzero__(self):
-        if self._val:
-            return 1
-        else:
-            return 0
+    def __bool__(self):
+        return bool(self._val)
+
+    __nonzero__ = __bool__
 
     # length
     def __len__(self):
@@ -363,21 +364,13 @@ class _Signal(object):
     def __rmul__(self, other):
         return other * self._val
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, _Signal):
             return self._val / other._val
         else:
             return self._val / other
-    def __rdiv__(self, other):
-        return other / self._val
-    
-    def __truediv__(self, other):
-        if isinstance(other, _Signal):
-            return operator.truediv(self._val, other._val)
-        else:
-            return operator.truediv(self._val, other)
     def __rtruediv__(self, other):
-        return operator.truediv(other, self._val)
+        return other / self._val
     
     def __floordiv__(self, other):
         if isinstance(other, _Signal):
@@ -514,8 +507,10 @@ class _Signal(object):
     def _augm(self):
         raise TypeError("Signal object doesn't support augmented assignment")
 
-    __iadd__ = __isub__ = __idiv__ = __imul__ = __ipow__ = __imod__ = _augm
+    __iadd__ = __isub__ = __imul__ = __ipow__ = __imod__ = _augm
     __ior__ = __iand__ = __ixor__ = __irshift__ = __ilshift__ = _augm
+    __itruediv__ = __ifloordiv__ = _augm
+
 
     # index and slice assignment not supported
     def __setitem__(self, key, val):

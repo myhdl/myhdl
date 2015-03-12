@@ -33,8 +33,7 @@ from datetime import datetime
 #import compiler
 #from compiler import ast as astNode
 import ast
-from types import GeneratorType, ClassType
-from cStringIO import StringIO
+from types import GeneratorType
 import warnings
 from copy import copy
 import string
@@ -52,6 +51,9 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
                                        _Ram, _Rom, _enumTypeSet, _constDict, _extConstDict)
 from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
+from myhdl._util import  _flatten
+from myhdl._compat import integer_types, class_types, StringIO
+
 
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
@@ -935,7 +937,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is len:
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
-            self.write(`val`)
+            self.write(repr(val))
             return
         elif f is now:
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
@@ -950,7 +952,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1" )
                 else:
                     node.args[0].s = ord(node.args[0].s)
-        elif f in (int, long):
+        elif f in integer_types:
             opening, closing = '', ''
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
@@ -979,7 +981,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(closing)
             self.write(suf)
             return
-        elif type(f) is ClassType and issubclass(f, Exception):
+        elif (type(f) in class_types) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -1288,7 +1290,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if n in _constDict and obj == _constDict[n]:
                     if isinstance(node.vhd, vhd_boolean):
                         s = "bool(%s)" % n
-            elif isinstance(obj, (int, long)):
+            elif isinstance(obj, integer_types):
                 # print the symbol for an integer in the global constant dict
                 if n in _constDict and obj == _constDict[n]:
                     assert abs(obj) < 2**31
@@ -1335,7 +1337,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVHDL()
-            elif type(obj) is ClassType and issubclass(obj, Exception):
+            elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
@@ -1987,7 +1989,7 @@ def inferVhdlObj(obj):
         else:
             tipe = obj._type
         vhd = vhd_enum(tipe)
-    elif isinstance(obj, (int, long)):
+    elif isinstance(obj, integer_types):
         if obj >= 0:
             vhd = vhd_nat()
         else:
@@ -2052,7 +2054,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_unsigned(s)
         elif f is bool:
             node.vhd = vhd_boolean()
-        elif f in (int, long, ord):
+        elif f in _flatten(integer_types, ord):
             node.vhd = vhd_int()
             node.args[0].vhd = vhd_int()
         elif f in (intbv, modbv):

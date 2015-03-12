@@ -67,7 +67,7 @@ class _Waiter(object):
             clone = _Waiter(self.generator, self.caller)
             
         try:
-            clause = self.generator.next()
+            clause = next(self.generator)
         except StopIteration:
             if self.caller:
                 waiters.append(self.caller)
@@ -126,7 +126,7 @@ class _DelayWaiter(_Waiter):
         self.generator = generator
     
     def next(self, waiters, actives, exc):
-        clause = self.generator.next()
+        clause = next(self.generator)
         schedule((_simulator._time + clause._time, self))
         
 
@@ -139,7 +139,7 @@ class _EdgeWaiter(_Waiter):
         self.hasRun = 0
     
     def next(self, waiters, actives, exc):
-        clause = self.generator.next()
+        clause = next(self.generator)
         clause.append(self)
         
     
@@ -154,7 +154,7 @@ class _EdgeTupleWaiter(_Waiter):
     def next(self, waiters, actives, exc):
         if self.hasRun:
             raise StopIteration
-        clauses = self.generator.next()
+        clauses = next(self.generator)
         self.hasRun = 1
         clone = _EdgeTupleWaiter(self.generator)
         for clause in clauses:
@@ -171,7 +171,7 @@ class _SignalWaiter(_Waiter):
         self.hasRun = 0
     
     def next(self, waiters, actives, exc):
-        clause = self.generator.next()
+        clause = next(self.generator)
         clause._eventWaiters.append(self)
         
 
@@ -186,7 +186,7 @@ class _SignalTupleWaiter(_Waiter):
     def next(self, waiters, actives, exc):
         if self.hasRun:
             raise StopIteration
-        clauses = self.generator.next()
+        clauses = next(self.generator)
         self.hasRun = 1
         clone = _SignalTupleWaiter(self.generator)
         for clause in clauses:

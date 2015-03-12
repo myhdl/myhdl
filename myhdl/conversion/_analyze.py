@@ -28,8 +28,8 @@ import inspect
 from types import FunctionType, MethodType
 import re
 import ast
+from itertools import chain
 from collections import defaultdict
-import __builtin__
 
 import myhdl
 from myhdl import *
@@ -43,11 +43,12 @@ from myhdl.conversion._misc import (_error, _access, _kind,
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
-from myhdl._util import _isTupleOfInts, _dedent, _makeAST
+from myhdl._util import _isTupleOfInts, _dedent, _flatten, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._compat import builtins, integer_types
 
 myhdlObjects = myhdl.__dict__.values()
-builtinObjects = __builtin__.__dict__.values()
+builtinObjects = builtins.__dict__.values()
 
 _enumTypeSet = set()
 _constDict = {}
@@ -93,7 +94,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         name = inst.name
         sigdict = inst.sigdict
         memdict = inst.memdict
-        namedict = dict(sigdict.items() + memdict.items())
+        namedict = dict(chain(sigdict.items(),  memdict.items()))
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
@@ -576,7 +577,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = int(0) # XXX
         elif f is bool:
             node.obj = bool()
-        elif f in (int, long, ord):
+        elif f in _flatten(integer_types, ord):
             node.obj = int(-1)
 ##         elif f in (posedge , negedge):
 ##             node.obj = _EdgeDetector()
@@ -604,7 +605,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
                     obj = _cell_deref(c)
-                    if not  isinstance(obj, (int, long, _Signal)):
+                    if not  isinstance(obj, (integer_types, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
                     tree.symdict[n] = obj
             v = _FirstPassVisitor(tree)
@@ -647,7 +648,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             val = arg.obj
             if isinstance(val, bool):
                 val = int(val) # cast bool to int first
-            if isinstance(val, (EnumItemType, int, long)):
+            if isinstance(val, (EnumItemType, integer_types)):
                 node.case = (node.left, val)
             # check whether it can be part of an edge check
             n = node.left.id
@@ -876,8 +877,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     _constDict[ws] = self.tree.symdict[ws]
                     if ext:
                         _extConstDict[ws] = self.tree.symdict[ws]
-        elif n in __builtin__.__dict__:
-            node.obj = __builtin__.__dict__[n]
+        elif n in builtins.__dict__:
+            node.obj = builtins.__dict__[n]
         else:
             self.raiseError(node, _error.UnboundLocal, n)
 

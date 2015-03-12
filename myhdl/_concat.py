@@ -22,15 +22,19 @@
 """
 from __future__ import absolute_import
 
+from myhdl._compat import integer_types
 from myhdl._intbv import intbv
 from myhdl._Signal import _Signal
+from myhdl._compat import long
+
+
 
 def concat(base, *args):
 
     if isinstance(base, intbv):
         basewidth = base._nrbits
         val = base._val
-    elif isinstance(base, (int, long)):
+    elif isinstance(base, integer_types):
         if isinstance(base, bool):
             basewidth = 1
         else:
@@ -72,7 +76,7 @@ def concat(base, *args):
         if not w:
             raise TypeError("concat: arg on pos %d should have length" % (i+1))
         width += w
-        val = val << w | v & (1L << w)-1
+        val = val << w | v & (long(1) << w)-1
  
     if basewidth:
         return intbv(val, _nrbits=basewidth + width)

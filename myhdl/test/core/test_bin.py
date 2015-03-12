@@ -30,6 +30,7 @@ from unittest import TestCase
 import sys
 
 from myhdl import bin
+from myhdl._compat import long
 
 SIZE = 100
 
@@ -70,30 +71,30 @@ class TestBin(TestCase):
 
     def testRandomInt(self):
         for j in range(SIZE):
-            i = randrange(-sys.maxint, sys.maxint)
+            i = randrange(-sys.maxsize, sys.maxsize)
             self.assertEqual(bin(i), binref(i))
             
     def testRandomIntWidth(self):
         for j in range(SIZE):
             w = randrange(1, 1000)
-            i = randrange(-sys.maxint, sys.maxint)
+            i = randrange(-sys.maxsize, sys.maxsize)
             self.assertEqual(bin(i, w), binref(i, w))
 
     def testRandomLong(self):
         for j in range(SIZE):
-            k = randrange(sys.maxint)
-            i = k + sys.maxint
+            k = randrange(sys.maxsize)
+            i = k + sys.maxsize
             self.assertEqual(bin(i), binref(i))
-            i = -k - sys.maxint
+            i = -k - sys.maxsize
             self.assertEqual(bin(i), binref(i))
             
     def testRandomLongWith(self):
         for j in range(SIZE):
             w = randrange(1, 1000)
-            k = randrange(sys.maxint)
-            i = k + sys.maxint
+            k = randrange(sys.maxsize)
+            i = k + sys.maxsize
             self.assertEqual(bin(i, w), binref(i, w))
-            i = -k - sys.maxint
+            i = -k - sys.maxsize
             self.assertEqual(bin(i, w), binref(i, w))
             
 

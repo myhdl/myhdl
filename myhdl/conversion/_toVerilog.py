@@ -33,12 +33,13 @@ from datetime import datetime
 import ast
 import string
 
-from types import GeneratorType, ClassType, TypeType
-from cStringIO import StringIO
+from types import GeneratorType
+from myhdl._compat import StringIO
 import warnings
 
 import myhdl
 from myhdl import *
+from myhdl._compat import integer_types, class_types
 from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
@@ -49,6 +50,7 @@ from myhdl.conversion._misc import (_error, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
 from myhdl._Signal import _Signal
+
 
 _converting = 0
 _profileFunc = None
@@ -718,7 +720,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is len:
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
-            self.write(`val`)
+            self.write(repr(val))
             return
         elif f is now:
             self.write("$time")
@@ -730,7 +732,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1")
                 else:
                     node.args[0].s = str(ord(node.args[0].s))
-        elif f in (int, long):
+        elif f in integer_types:
             opening, closing = '', ''
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
@@ -746,7 +748,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(opening)
             self.visit(fn.value)
             self.write(closing)
-        elif type(f) in (ClassType, TypeType) and issubclass(f, Exception):
+        elif (type(f) in class_types) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -1004,7 +1006,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             obj = self.tree.symdict[n]
             if isinstance(obj, bool):
                 s = "%s" % int(obj)
-            elif isinstance(obj, (int, long)):
+            elif isinstance(obj, integer_types):
                 s = self.IntRepr(obj)
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
@@ -1015,7 +1017,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVerilog()
-            elif type(obj) in (ClassType, TypeType) and issubclass(obj, Exception):
+            elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
@@ -1427,7 +1429,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 def _maybeNegative(obj):
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
         return True
-    if isinstance(obj, (int, long)) and obj < 0:
+    if isinstance(obj, integer_types) and obj < 0:
         return True
     return False
 
