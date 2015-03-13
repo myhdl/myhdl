@@ -42,7 +42,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,
                                     _ConversionMixin, _Label, _genUniqueSuffix)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
-from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
+from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
 from myhdl._util import _isTupleOfInts, _dedent, _flatten, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
 from myhdl._compat import builtins, integer_types
@@ -808,6 +808,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             # mark shadow signal as driven only when they are seen somewhere
             if isinstance(sig, _ShadowSignal):
                 sig._driven = 'wire'
+            # mark tristate signal as driven if its driver is seen somewhere
+            if isinstance(sig, _TristateDriver):
+                sig._sig._driven = 'wire'
             if not isinstance(sig, _Signal):
                 # print "not a signal: %s" % n
                 pass

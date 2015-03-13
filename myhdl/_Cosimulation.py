@@ -132,13 +132,18 @@ class Cosimulation(object):
         e = buf.split()
         for i in range(1, len(e), 2):
             s, v = self._toSigDict[e[i]], e[i+1]
-            try:
-                next = int(v, 16)
-                if s._nrbits and s._min is not None and s._min < 0:
-                    if next >= (1 << (s._nrbits-1)):
-                        next |= (-1 << s._nrbits)
-            except ValueError:
-                next = intbv(0)
+            if v in 'zZ':
+                next = None
+            elif v in 'xX':
+                next = s._init
+            else:
+                try:
+                    next = int(v, 16)
+                    if s._nrbits and s._min is not None and s._min < 0:
+                        if next >= (1 << (s._nrbits-1)):
+                            next |= (-1 << s._nrbits)
+                except ValueError:
+                    next = intbv(0)
             s.next = next
                  
         self._getMode = 0

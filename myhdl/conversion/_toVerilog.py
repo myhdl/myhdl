@@ -173,9 +173,15 @@ class _ToVerilogConvertor(object):
             _writeTestBench(tbfile, intf, self.trace)
             tbfile.close()
 
+        # build portmap for cosimulation
+        portmap = {}
+        for n, s in intf.argdict.iteritems():
+            if hasattr(s, 'driver'): portmap[n] = s.driver()
+            else: portmap[n] = s
+        self.portmap = portmap
+
         ### clean-up properly ###
         self._cleanup(siglist)
-        self.portmap = intf.argdict
 
         return h.top
 
@@ -322,7 +328,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
     print(file=f)
     # shadow signal assignments
     for s in siglist:
-        if hasattr(s, 'toVerilog') and s._read:
+        if hasattr(s, 'toVerilog') and s._driven:
             print(s.toVerilog(), file=f)
     print(file=f)
 
