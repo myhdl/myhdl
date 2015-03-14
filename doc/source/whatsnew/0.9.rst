@@ -92,5 +92,5 @@ See also
 --------
 For additional information see the original proposal `mep-107`_.
 
-.. _mep-107: http://http://myhdl.org/doku.php/meps:mep-107
+.. _mep-107: http://dev.myhdl.org/meps/mep-107.html
 .. _MyHDL generator: http://docs.myhdl.org/en/latest/manual/reference.html#myhdl-generators-and-trigger-objects
