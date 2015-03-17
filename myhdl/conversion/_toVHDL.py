@@ -275,7 +275,7 @@ def _writeCustomPackage(f, intf):
     print("attribute enum_encoding: string;", file=f)
     print(file=f)
     sortedList = list(_enumPortTypeSet)
-    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
         print("    %s" % t._toVHDL(), file=f)
     print(file=f)
@@ -366,7 +366,7 @@ def _writeConstants(f):
 def _writeTypeDefs(f):
     f.write("\n")
     sortedList = list(_enumTypeSet)
-    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
         f.write("%s\n" % t._toVHDL())
     f.write("\n")
