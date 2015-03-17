@@ -772,6 +772,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.raiseError(node, _error.UnsupportedListComp)
         mem.depth = cf.args[0].obj
 
+    def visit_NameConstant(self, node):
+        node.obj = node.value
+
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setName(node)

@@ -1248,6 +1248,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         for stmt in node.body:
             self.visit(stmt)
 
+    def visit_NameConstant(self, node):
+        node.id = str(node.value)
+        self.getName(node)
+
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setName(node)
@@ -2105,6 +2109,10 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         # make it possible to detect loop variable
         self.tree.vardict[var] = _loopInt(-1)
         self.generic_visit(node)
+
+    def visit_NameConstant(self, node):
+        node.vhd = inferVhdlObj(node.value)
+        node.vhdOri = copy(node.vhd)
 
     def visit_Name(self, node):
         if node.id in self.tree.vardict:
