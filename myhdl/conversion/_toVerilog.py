@@ -175,7 +175,7 @@ class _ToVerilogConvertor(object):
 
         # build portmap for cosimulation
         portmap = {}
-        for n, s in intf.argdict.iteritems():
+        for n, s in intf.argdict.items():
             if hasattr(s, 'driver'): portmap[n] = s.driver()
             else: portmap[n] = s
         self.portmap = portmap
