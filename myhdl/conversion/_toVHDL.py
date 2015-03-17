@@ -926,6 +926,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         fn = node.func
         # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
+
+        if f is print:
+            self.visit_Print(node)
+            return
+
         fname = ''
         pre, suf = '', ''
         opening, closing = '(', ')'

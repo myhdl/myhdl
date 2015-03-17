@@ -20,7 +20,7 @@
 """ MyHDL conversion analysis module.
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import inspect
 # import compiler
@@ -46,7 +46,7 @@ from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
 from myhdl._util import _isTupleOfInts, _dedent, _flatten, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._compat import builtins, integer_types
+from myhdl._compat import builtins, integer_types, PY2
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -560,6 +560,13 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Call(self, node):
         self.visit(node.func)
+        f = self.getObj(node.func)
+        node.obj = None
+
+        if f is print:
+            self.visit_Print(node)
+            return
+
         self.access = _access.UNKNOWN
         for arg in node.args:
             self.visit(arg)
@@ -567,8 +574,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(kw)
         self.access = _access.INPUT
         argsAreInputs = True
-        f = self.getObj(node.func)
-        node.obj = None
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
         elif f is concat:
@@ -894,7 +899,13 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         f = []
         nr = 0
         a = []
-        for n in node.values:
+
+        if PY2 and isinstance(node, ast.Print):
+            node_args = node.values
+        else:
+            node_args = node.args
+
+        for n in node_args:
             if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mod) and \
                isinstance(n.left, ast.Str):
                 if isinstance(n.right, ast.Tuple):
