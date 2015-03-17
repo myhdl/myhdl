@@ -139,7 +139,7 @@ def HecBench(HecCalculator):
         for i in range(len(headers)):
             header.next = headers[i]
             yield delay(10)
-            print hec
+            print(hec)
 
     return stimulus, heccalc_inst
 

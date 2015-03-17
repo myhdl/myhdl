@@ -70,7 +70,7 @@ def bench_case(map_case, N):
         for i in range(N):
             a.next = i
             yield delay(10)
-            print z
+            print(z)
 
     return stimulus, inst
 
