@@ -81,7 +81,7 @@ class TestGrayCodeProperties(TestCase):
                 yield delay(10)
                 actual.append(int(G))
             actual.sort()
-            expected = range(2**width)
+            expected = list(range(2**width))
             self.assertEqual(actual, expected)
        
         for width in range(1, MAX_WIDTH):
