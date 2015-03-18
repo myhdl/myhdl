@@ -1984,7 +1984,7 @@ def inferVhdlObj(obj):
     if (isinstance(obj, _Signal) and obj._type is intbv) or \
        isinstance(obj, intbv):
         ls = getattr(obj, 'lenStr', False)
-        if obj.min < 0:
+        if obj.min is None or obj.min < 0:
             vhd = vhd_signed(size=len(obj), lenStr=ls)
         else:
             vhd = vhd_unsigned(size=len(obj), lenStr=ls)
