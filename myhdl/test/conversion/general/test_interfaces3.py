@@ -182,7 +182,7 @@ def test_three_analyze():
     x = Signal(intbv(3, min=-5000, max=5000))
     y = Signal(intbv(4, min=-200, max=200))
     intf = IntfWithConstant2()
-    analyze(m_top_const, clock, reset, x, y, const)
+    analyze(m_top_const, clock, reset, x, y, intf)
 
 def test_three_verify():
     assert verify(c_testbench_three) == 0
