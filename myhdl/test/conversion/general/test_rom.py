@@ -73,7 +73,7 @@ def RomBench(rom):
             yield delay(1)
             if __debug__:
                 assert dout == ROM[i]
-            print dout
+            print(dout)
         raise StopSimulation()
 
     @instance

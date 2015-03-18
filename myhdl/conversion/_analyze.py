@@ -20,7 +20,7 @@
 """ MyHDL conversion analysis module.
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import inspect
 # import compiler
@@ -39,13 +39,14 @@ from myhdl._always_comb import _AlwaysComb
 from myhdl._always_seq import _AlwaysSeq
 from myhdl._always import _Always
 from myhdl.conversion._misc import (_error, _access, _kind,
-                                    _ConversionMixin, _Label, _genUniqueSuffix)
+                                    _ConversionMixin, _Label, _genUniqueSuffix,
+                                    _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
 from myhdl._util import _isTupleOfInts, _dedent, _flatten, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._compat import builtins, integer_types
+from myhdl._compat import builtins, integer_types, PY2
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -287,7 +288,7 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         if not self.toplevel:
             self.raiseError(node, _error.NotSupported, "embedded function definition")
         self.toplevel = False
-        node.argnames = [arg.id for arg in node.args.args]
+        node.argnames = _get_argnames(node)
         # don't visit decorator lists - they can support more than other calls
         # put official docstrings aside for separate processing
         node.doc = None
@@ -559,6 +560,13 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Call(self, node):
         self.visit(node.func)
+        f = self.getObj(node.func)
+        node.obj = None
+
+        if f is print:
+            self.visit_Print(node)
+            return
+
         self.access = _access.UNKNOWN
         for arg in node.args:
             self.visit(arg)
@@ -566,8 +574,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(kw)
         self.access = _access.INPUT
         argsAreInputs = True
-        f = self.getObj(node.func)
-        node.obj = None
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
         elif f is concat:
@@ -614,7 +620,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             v.visit(tree)
             node.obj = tree.returnObj
             node.tree = tree
-            tree.argnames = argnames = [arg.id for arg in tree.body[0].args.args]
+            tree.argnames = argnames = _get_argnames(tree.body[0])
             # extend argument list with keyword arguments on the correct position
             node.args.extend([None]*len(node.keywords))
             for kw in node.keywords:
@@ -766,6 +772,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.raiseError(node, _error.UnsupportedListComp)
         mem.depth = cf.args[0].obj
 
+    def visit_NameConstant(self, node):
+        node.obj = node.value
+
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setName(node)
@@ -893,7 +902,13 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         f = []
         nr = 0
         a = []
-        for n in node.values:
+
+        if PY2 and isinstance(node, ast.Print):
+            node_args = node.values
+        else:
+            node_args = node.args
+
+        for n in node_args:
             if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mod) and \
                isinstance(n.left, ast.Str):
                 if isinstance(n.right, ast.Tuple):
@@ -1169,7 +1184,7 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
 
     def visit_FunctionDef(self, node):
         self.refStack.push()
-        argnames = [arg.id for arg in node.args.args]
+        argnames = _get_argnames(node)
         for i, arg in enumerate(self.args):
             n = argnames[i]
             self.tree.symdict[n] = self.getObj(arg)
@@ -1276,7 +1291,7 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
     def visit_FunctionDef(self, node):
 
         self.name = node.name
-        self.argnames = [arg.id for arg in node.args.args]
+        self.argnames = _get_argnames(node)
         if isboundmethod(self.func):
             if not self.argnames[0] == 'self':
                 self.raiseError(node, _error.NotSupported,

@@ -30,6 +30,7 @@ import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._util import _flatten
+from myhdl._compat import PY2
 
 class _error(object):
     FirstArgType = "first argument should be a classic function"
@@ -209,3 +210,9 @@ class _namesVisitor(ast.NodeVisitor):
 
     def visit_Name(self, node):
         self.names.append(node.id)
+
+def _get_argnames(node):
+    if PY2:
+        return [arg.id for arg in node.args.args]
+    else:
+        return [arg.arg for arg in node.args.args]

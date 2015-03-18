@@ -77,6 +77,9 @@ def enum(*names, **kwargs):
             self._nritems = type._nritems
             self._type = type
 
+        def __hash__(self):
+            return hash((self._type, self._index))
+
         def __repr__(self):
             return self._name
 
