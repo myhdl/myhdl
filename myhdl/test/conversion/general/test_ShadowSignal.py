@@ -129,7 +129,7 @@ def bench_permute(conv=False):
         for i in range(2**len(a)):
             a.next = i
             yield delay(10)
-            print(x, a)
+            print("%d %d" % (x, a))
             assert x[2] == a[0]
             assert x[1] == a[2]
             assert x[0] == a[1]
