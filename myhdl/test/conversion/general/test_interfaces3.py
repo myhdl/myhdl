@@ -140,6 +140,7 @@ def c_testbench_three():
     
     @instance
     def tbclk():
+        clock.next = False
         while True:
             yield delay(3)
             clock.next = not clock
