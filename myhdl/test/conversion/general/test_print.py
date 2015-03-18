@@ -21,47 +21,47 @@ def PrintBench():
         i2[:] = -7
         si2.next = -5
         yield delay(10)
-        print
-        print i1
-        print i2
-        print i1, i2
-        print si1
-        print si2
+        print()
+        print(i1)
+        print(i2)
+        print(i1, i2)
+        print(si1)
+        print(si2)
         
         yield delay(10)
-        print "This is a test"
+        print("This is a test")
         
         yield delay(10)
-        print int(b)
-        print int(sb)
+        print(int(b))
+        print(int(sb))
         
         yield delay(10)
-        print "i1 is %s" % i1
+        print("i1 is %s" % i1)
         
         yield delay(10)
-        print "i1 is %s, i2 is %s" % (i1, i2)
-        print "i1 %s i2 %s b %s si1 %s si2 %s" % (i1, i2, b, si1, si2)
-        print "i1 %d i2 %d b %d si1 %d si2 %d" % (i1, i2, b, si1, si2)
-        print b
+        print("i1 is %s, i2 is %s" % (i1, i2))
+        print("i1 %s i2 %s b %s si1 %s si2 %s" % (i1, i2, b, si1, si2))
+        print("i1 %d i2 %d b %d si1 %d si2 %d" % (i1, i2, b, si1, si2))
+        print(b)
         #print "%% %s" % i1
         
         yield delay(10)       
-        print state
-        print "the state is %s" % state
-        print "the state is %s" % (state,)
-        print "i1 is %s and the state is %s" % (i1, state)
+        print(state)
+        print("the state is %s" % state)
+        print("the state is %s" % (state,))
+        print("i1 is %s and the state is %s" % (i1, state))
 
         # ord test
         yield delay(10)
-        print ord('y')
-        print ord('2')
+        print(ord('y'))
+        print(ord('2'))
 
         # signed
         yield delay(10)
-        print i1.signed()
-        print i2.signed()
-        print si1.signed()
-        print si2.signed()
+        print(i1.signed())
+        print(i2.signed())
+        print(si1.signed())
+        print(si2.signed())
 
     return logic
 
@@ -76,7 +76,7 @@ def PrintError1():
      def logic():
          i1 = intbv(12)[8:]
          yield delay(10)
-         print "floating point %f end" % i1
+         print("floating point %f end" % i1)
      return logic
 
 def testPrintError1():
@@ -92,7 +92,7 @@ def PrintError2():
      def logic():
          i1 = intbv(12)[8:]
          yield delay(10)
-         print "begin %s %s end" % i1
+         print("begin %s %s end" % i1)
      return logic
 
 def testPrintError2():
@@ -109,7 +109,7 @@ def PrintError3():
          i1 = intbv(12)[8:]
          i2 = intbv(13)[8:]
          yield delay(10)
-         print "begin %s end" % (i1, i2)
+         print("begin %s end" % (i1, i2))
      return logic
 
 def testPrintError3():
@@ -125,7 +125,7 @@ def PrintError4():
      def logic():
          i1 = intbv(12)[8:]
          yield delay(10)
-         print "%10s" % i1
+         print("%10s" % i1)
      return logic
 
 def testPrintError4():
@@ -141,7 +141,7 @@ def PrintError5():
      def logic():
          i1 = intbv(12)[8:]
          yield delay(10)
-         print "%-10s" % i1
+         print("%-10s" % i1)
      return logic
 
 def testPrintError5():
