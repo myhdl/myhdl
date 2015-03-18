@@ -275,7 +275,7 @@ def _writeCustomPackage(f, intf):
     print("attribute enum_encoding: string;", file=f)
     print(file=f)
     sortedList = list(_enumPortTypeSet)
-    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
         print("    %s" % t._toVHDL(), file=f)
     print(file=f)
@@ -366,7 +366,7 @@ def _writeConstants(f):
 def _writeTypeDefs(f):
     f.write("\n")
     sortedList = list(_enumTypeSet)
-    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
         f.write("%s\n" % t._toVHDL())
     f.write("\n")
@@ -926,6 +926,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         fn = node.func
         # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
+
+        if f is print:
+            self.visit_Print(node)
+            return
+
         fname = ''
         pre, suf = '', ''
         opening, closing = '(', ')'
@@ -1242,6 +1247,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Module(self, node):
         for stmt in node.body:
             self.visit(stmt)
+
+    def visit_NameConstant(self, node):
+        node.id = str(node.value)
+        self.getName(node)
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1975,7 +1984,7 @@ def inferVhdlObj(obj):
     if (isinstance(obj, _Signal) and obj._type is intbv) or \
        isinstance(obj, intbv):
         ls = getattr(obj, 'lenStr', False)
-        if obj.min < 0:
+        if obj.min is None or obj.min < 0:
             vhd = vhd_signed(size=len(obj), lenStr=ls)
         else:
             vhd = vhd_unsigned(size=len(obj), lenStr=ls)
@@ -2100,6 +2109,10 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         # make it possible to detect loop variable
         self.tree.vardict[var] = _loopInt(-1)
         self.generic_visit(node)
+
+    def visit_NameConstant(self, node):
+        node.vhd = inferVhdlObj(node.value)
+        node.vhdOri = copy(node.vhd)
 
     def visit_Name(self, node):
         if node.id in self.tree.vardict:

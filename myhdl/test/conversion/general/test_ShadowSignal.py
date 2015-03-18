@@ -13,13 +13,13 @@ def bench_SliceSignal():
         for i in range(N):
             s.next = i
             yield delay(10)
-            print int(a)
-            print int(b)
-            print int(c)
-            print d
-            print e
-            print f
-            print g
+            print(int(a))
+            print(int(b))
+            print(int(c))
+            print(d)
+            print(e)
+            print(f)
+            print(g)
 
     return check
 
@@ -52,7 +52,7 @@ def bench_ConcatSignal():
                         c.next = k
                         d.next = m
                         yield delay(10)
-                        print s
+                        print(s)
 
     return check
 
@@ -78,15 +78,15 @@ def bench_TristateSignal():
         #print s
         a.next = 1
         yield delay(10)
-        print s
+        print(s)
         a.next = None
         b.next = 122
         yield delay(10)
-        print s
+        print(s)
         b.next = None
         c.next = 233
         yield delay(10)
-        print s
+        print(s)
         c.next = None
         yield delay(10)
         #print s
@@ -129,7 +129,7 @@ def bench_permute(conv=False):
         for i in range(2**len(a)):
             a.next = i
             yield delay(10)
-            print x, a
+            print("%d %d" % (x, a))
             assert x[2] == a[0]
             assert x[1] == a[2]
             assert x[0] == a[1]
