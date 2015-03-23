@@ -302,13 +302,22 @@ class _Signal(object):
         print("s%s %s" % (str(self._val), self._code), file=sim._tf)
         
     def _printVcdHex(self):
-        print("s%s %s" % (hex(self._val), self._code), file=sim._tf)
+        if self._val is None:
+            print("sz %s" % self._code, file=sim._tf)
+        else:
+            print("s%s %s" % (hex(self._val), self._code), file=sim._tf)
 
     def _printVcdBit(self):
-        print("%d%s" % (self._val, self._code), file=sim._tf)
+        if self._val is None:
+            print("z%s" % self._code, file=sim._tf)
+        else:
+            print("%d%s" % (self._val, self._code), file=sim._tf)
 
     def _printVcdVec(self):
-        print("b%s %s" % (bin(self._val, self._nrbits), self._code), file=sim._tf)
+        if self._val is None:
+            print("b%s %s" % ('z'*self._nrbits, self._code), file=sim._tf)
+        else:
+            print("b%s %s" % (bin(self._val, self._nrbits), self._code), file=sim._tf)
 
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):
