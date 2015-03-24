@@ -445,7 +445,7 @@ opmap = {
 
 nameconstant_map = {
     True: "1'b1",
-    False: "0'b1",
+    False: "1'b0",
     None: "'bz"
 }
 
