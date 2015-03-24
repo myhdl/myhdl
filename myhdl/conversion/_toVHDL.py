@@ -1186,6 +1186,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             item = test.case[1]
             if isinstance(item, EnumItemType):
                 itemRepr = item._toVHDL()
+            elif isinstance(item, (int,long)):
+                itemRepr = i
             else:
                 itemRepr = self.BitRepr(item, obj)
             comment = ""

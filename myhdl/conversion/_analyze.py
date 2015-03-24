@@ -400,7 +400,7 @@ def _getNritems(obj):
     elif isinstance(obj, EnumItemType):
         return len(obj._type)
     else:
-        raise TypeError("Unexpected type")
+        raise TypeError("Unexpected type, missing final \'else:\'?")
 
 
 class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
@@ -746,7 +746,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         node.isCase = True
         node.caseVar = var1
         node.caseItem = item1
-        if (len(choices) == _getNritems(var1.obj)) or node.else_:
+        if node.else_ or (len(choices) == _getNritems(var1.obj)) :
             node.isFullCase = True
 
     def visit_ListComp(self, node):
