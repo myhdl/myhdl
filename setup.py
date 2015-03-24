@@ -1,5 +1,7 @@
 """ myhdl's distribution and installation script. """
 
+import ast
+import re
 import sys
 
 if sys.version_info < (2, 6) or (3, 0) <= sys.version_info < (3, 4):
@@ -12,9 +14,17 @@ try:
 except ImportError:
     from distutils.core import setup
 
+
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
+
+with open('myhdl/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
+
+
 setup(
     name="myhdl",
-    version="0.9.dev0",
+    version=version,
     description="Python as a Hardware Description Language",
     long_description="See home page.",
     author="Jan Decaluwe",
