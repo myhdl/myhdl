@@ -11,8 +11,7 @@ from myhdl.conversion import analyze, verify
 
 from myhdl import *
 
-xfail_ghdl = pytest.mark.xfail(verify.simulator == 'GHDL',
-                               reason='issue #33')
+from conftest import bug
 
 class Intf1:
     def __init__(self, x):
@@ -189,7 +188,7 @@ def test_three_analyze():
     intf = IntfWithConstant2()
     analyze(m_top_const, clock, reset, x, y, intf)
 
-@xfail_ghdl
+@bug('33', 'vhdl')
 def test_three_verify():
     assert verify(c_testbench_three) == 0
 
