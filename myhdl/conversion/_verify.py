@@ -63,7 +63,7 @@ registerSimulator(
     simulate='vsim work_vlog.%(topname)s -quiet -c -do "run -all; quit -f"',
     skiplines=6,
     skipchars=2,
-    ignore=("# **", )
+    ignore=("# **", "# run -all")
     )
 
 registerSimulator(
@@ -73,7 +73,7 @@ registerSimulator(
     simulate='vsim work_vcom.%(topname)s -quiet -c -do "run -all; quit -f"',
     skiplines=6,
     skipchars=2,
-    ignore=("# **", "#    Time:")
+    ignore=("# **", "#    Time:", "# run -all")
     )
 
 
