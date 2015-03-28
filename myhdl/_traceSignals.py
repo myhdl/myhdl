@@ -35,6 +35,7 @@ import shutil
 from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
 _tracing = 0
 _profileFunc = None
@@ -148,7 +149,14 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                 print("$upscope $end", file=f)
         print("$scope module %s $end" % name, file=f)
         for n, s in sigdict.items():
-            if s._val is None:
+            if isinstance(s, _TristateSignal):
+                seffval = s._orival
+            elif isinstance(s, _TristateDriver):
+                seffval = s._sig._orival
+            else:
+                seffval = s._val
+
+            if seffval is None:
                 raise ValueError("%s of module %s has no initial value" % (n, name))
             if not s._tracing:
                 s._tracing = 1
@@ -156,7 +164,7 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                 siglist.append(s)
             w = s._nrbits
             # use real for enum strings
-            if w and not isinstance(s._val, EnumItemType):
+            if w and not isinstance(seffval, EnumItemType):
                 if w == 1:
                     print("$var reg 1 %s %s $end" % (s._code, n), file=f)
                 else:
@@ -170,7 +178,14 @@ def _writeVcdSigs(f, hierarchy, tracelists):
             for n in memdict.keys():
                 memindex = 0
                 for s in memdict[n].mem:
-                    if s._val is None:
+                    if isinstance(s, _TristateSignal):
+                        seffval = s._orival
+                    elif isinstance(s, _TristateDriver):
+                        seffval = s._sig._orival
+                    else:
+                        seffval = s._val
+
+                    if seffval is None:
                         raise ValueError("%s of module %s has no initial value" % (n, name))
                     if not s._tracing:
                         s._tracing = 1
