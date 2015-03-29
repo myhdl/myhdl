@@ -31,6 +31,9 @@ elif [ "$CI_TARGET" == "icarus" ]; then
 elif [ "$CI_TARGET" == "ghdl" ]; then
   run_test make -C "myhdl/test/conversion/general" GHDL
   run_test make -C myhdl/test/conversion/toVHDL GHDL
+elif [ "$CI_TARGET" == "bugs" ]; then
+  run_test make -C "myhdl/test/bugs" icarus
+  run_test make -C "myhdl/test/bugs" GHDL
 fi
 
 exit $foundError
