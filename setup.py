@@ -31,7 +31,7 @@ for base, dir, files in os.walk('cosimulation'):
     for pat in ('*.c', 'Makefile*', '*.py', '*.v', '*.txt'):
         good = fnmatch.filter(files, pat)
         if good:
-            cosim_data[base].extend(os.path.join(base,f) for f in good)
+            cosim_data[base].extend(os.path.join(base, f) for f in good)
 
 setup(
     name="myhdl",
@@ -41,7 +41,6 @@ setup(
     author="Jan Decaluwe",
     author_email="jan@jandecaluwe.com",
     url="http://www.myhdl.org",
-    download_url="https://bitbucket.org/jandecaluwe/myhdl/get/0.8.1.zip",
     packages=['myhdl', 'myhdl.conversion'],
     data_files=[(os.path.join(data_root, k), v) for k, v in cosim_data.items()],
     license="LGPL",
