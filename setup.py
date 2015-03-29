@@ -1,48 +1,62 @@
-""" myhdl's distutils distribution and installation script. """
+""" myhdl's distribution and installation script. """
 
-from __future__ import print_function
+import ast
+import fnmatch
+import re
+import os
 import sys
 
-requiredVersion = (2, 6)
-requiredVersionStr = ".".join([str(i) for i in requiredVersion])
+from collections import defaultdict
 
-versionError = "ERROR: myhdl requires Python %s or higher" % requiredVersionStr
+if sys.version_info < (2, 6) or (3, 0) <= sys.version_info < (3, 4):
+    raise RuntimeError("Python version 2.6, 2.7 or >= 3.4 required.")
 
-# use version_info to check version
-# this was new in 2.0, so first see if it exists
+
+# Prefer setuptools over distutils
 try:
-    sys.version_info
-except:
-    print(versionError)
-    raise SystemExit(1)
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 
-if sys.version_info < requiredVersion:
-    print(versionError)
-    raise SystemExit(1)
 
-from distutils.core import setup
+_version_re = re.compile(r'__version__\s+=\s+(.*)')
 
-classifiers = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Developers
-License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
-Operating System :: OS Independent
-Programming Language :: Python
-Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
-"""
+with open('myhdl/__init__.py', 'rb') as f:
+    version = str(ast.literal_eval(_version_re.search(
+        f.read().decode('utf-8')).group(1)))
 
-    
-setup(name="myhdl",
-      version="0.9",
-      description="Python as a Hardware Description Language",
-      long_description = "See home page.",
-      author="Jan Decaluwe",
-      author_email="jan@jandecaluwe.com",
-      url="http://www.myhdl.org",
-      download_url="https://bitbucket.org/jandecaluwe/myhdl/get/0.8.1.zip",
-      packages=['myhdl', 'myhdl.conversion'],
-      license="LGPL",
-      platforms=["Any"],
-      keywords="HDL ASIC FPGA hardware design",
-      classifiers=filter(None, classifiers.split("\n")),
-      )
+data_root = 'share/myhdl'
+cosim_data = defaultdict(list)
+for base, dir, files in os.walk('cosimulation'):
+    for pat in ('*.c', 'Makefile*', '*.py', '*.v', '*.txt'):
+        good = fnmatch.filter(files, pat)
+        if good:
+            cosim_data[base].extend(os.path.join(base, f) for f in good)
+
+setup(
+    name="myhdl",
+    version=version,
+    description="Python as a Hardware Description Language",
+    long_description="See home page.",
+    author="Jan Decaluwe",
+    author_email="jan@jandecaluwe.com",
+    url="http://www.myhdl.org",
+    packages=['myhdl', 'myhdl.conversion'],
+    data_files=[(os.path.join(data_root, k), v) for k, v in cosim_data.items()],
+    license="LGPL",
+    platforms='any',
+    keywords="HDL ASIC FPGA hardware design",
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)',
+        'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+    ]
+)
