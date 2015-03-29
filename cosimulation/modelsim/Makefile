@@ -29,3 +29,6 @@ myhdl_vpi.so:	myhdl_vpi.o
 clean:
 	-rm *.o *.so
  
+.PHONY: test
+test: myhdl_vpi.so
+	make -C test
