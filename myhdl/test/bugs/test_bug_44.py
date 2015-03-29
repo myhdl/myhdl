@@ -36,6 +36,6 @@ def tb_stimulus():
 tb = instances()
 
 def test_bug_44():
-    print instances()
+    print(instances())
     Simulation(tb).run()
 
