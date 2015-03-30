@@ -9,11 +9,12 @@ python:
   - "3.4"
 
 addons:
-  apt_sources:
-    - pgavin-ghdl
-  apt_packages:
-    - iverilog
-    - ghdl
+  apt:
+    sources:
+      - pgavin-ghdl
+    packages:
+      - iverilog
+      - ghdl
 
 install:
   - pip install .
