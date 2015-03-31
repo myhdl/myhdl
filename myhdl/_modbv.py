@@ -21,6 +21,7 @@
 from __future__ import absolute_import
 
 from ._intbv import intbv
+from ._compat import long
 
 class modbv(intbv):
     __slots__ = []

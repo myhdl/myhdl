@@ -24,7 +24,7 @@ def dec():
 def tb_stimulus():
     # My logic happens on posedge, so I'll perform all checks on negedge.
     yield clk.negedge
-    for x_val in xrange(-2**WIDTH, 2**WIDTH):
+    for x_val in range(-2**WIDTH, 2**WIDTH):
         #print('x_val={} x.next={}'.format(x_val, x_val % 2**WIDTH))
         x.next = x_val % 2**WIDTH
         yield clk.negedge
@@ -36,6 +36,6 @@ def tb_stimulus():
 tb = instances()
 
 def test_bug_44():
-    print instances()
+    print(instances())
     Simulation(tb).run()
 
