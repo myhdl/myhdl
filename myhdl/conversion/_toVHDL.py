@@ -387,9 +387,13 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVHDLWarning
                               )
-            # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print("signal %s: %s%s;" % (s._name, p, r), file=f)
+            # Initial zero value assignments
+            if p in ['signed', 'unsigned', 'std_logic_vector']:
+                print("signal %s: %s%s := (others => '0');" % (s._name, p, r), file=f)
+            elif p == 'std_logic':
+                print("signal %s: %s%s := '0';" % (s._name, p, r), file=f)
+            else:
+                print("signal %s: %s%s;" % (s._name, p, r), file=f)
         elif s._read:
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
