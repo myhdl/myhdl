@@ -101,11 +101,11 @@ def bench_ConcatConcatedSignal():
                         ab.next = iab
                         ba.next = iba
                         bb.next = ibb
-			            yield delay(10)
- 			            assert s[8:6] == aa
-			            assert s[6:4] == ab
-			            assert s[4:2] == ba
-			            assert s[2:0] == bb
+			yield delay(10)
+ 			assert s[8:6] == aa
+			assert s[6:4] == ab
+			assert s[4:2] == ba
+			assert s[2:0] == bb
     return check
 
 def test_ConcatConcatedSignal():
