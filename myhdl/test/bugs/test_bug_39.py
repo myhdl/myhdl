@@ -22,7 +22,7 @@ def dut():
         d.next = 0
         for i in range(100):
             yield delay(10)
-            print rx
+            print(rx)
             a.next = (a + 37) % 256
             b.next = (b + 67) % 256
             c.next = (c + 97) % 256

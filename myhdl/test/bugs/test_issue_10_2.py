@@ -34,7 +34,7 @@ def Logic(flags, position):
         yield delay(10)
         conc.next = concat(flags, position)
         yield delay(10)
-        print conc 
+        print(conc) 
     return doit
 
 def test_issue_10_2():

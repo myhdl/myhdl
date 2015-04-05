@@ -2,7 +2,7 @@
 WARNS=-Wall
 
 # change this path to point to the pli include files directory for cver
-INCS=-I /opt/Altera/11.0/modelsim_ase/include
+INCS=-I $(shell dirname `which vsim`)/../include
 
 # maybe want -O<something> and/or -g
 
@@ -29,3 +29,6 @@ myhdl_vpi.so:	myhdl_vpi.o
 clean:
 	-rm *.o *.so
  
+.PHONY: test
+test: myhdl_vpi.so
+	make -C test

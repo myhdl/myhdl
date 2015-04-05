@@ -136,7 +136,7 @@ def ObjBench(hObj):
             x.next = nx
             yield clk.posedge
             yield clk.posedge
-            print "x %d y %d" % (x, y)
+            print("x %d y %d" % (x, y))
             assert x == nx
             assert y == ny
         raise StopSimulation

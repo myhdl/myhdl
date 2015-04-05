@@ -1,4 +1,5 @@
 from __future__ import generators
+from __future__ import print_function
 
 from myhdl import Signal, Simulation, Cosimulation
 from myhdl import delay, intbv, now
@@ -23,7 +24,7 @@ def stimulus(a, b):
 def response(c):
     while 1:
         yield c
-        print "Python: %s %s %s %s" % (now(), c, a, b)
+        print("Python: %s %s %s %s" % (now(), c, a, b))
 
 sim = Simulation(stimulus(a=a, b=b), response(c=c), cosim)
 sim.run()
