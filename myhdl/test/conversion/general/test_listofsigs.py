@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 from myhdl import *
 from myhdl.conversion._toVerilog import ToVerilogError
 from myhdl.conversion._toVHDL import ConversionError
@@ -352,7 +353,10 @@ def test_listAsPort():
     else:
         assert False
 
-def m_2dlos(clk, reset, x, y, Nrows=4, Mcols=8):
+
+# signals in 2D lists
+
+def sigIn2DLists(clk, reset, x, y, Nrows=4, Mcols=8):
     
     mem2d = [[Signal(intbv(randint(1, 7689), min=0, max=7690)) 
               for col in range(Mcols)] 
@@ -376,14 +380,14 @@ def m_2dlos(clk, reset, x, y, Nrows=4, Mcols=8):
  
     return rtl
     
-def verify_m_2dlos():
+def verify_sigIn2DLists():
     clk = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=True)
     x = Signal(intbv(0, min=0, max=7690))
     y = Signal(intbv(1, min=0, max=7690))
 
     N,M = 4,8
-    tbdut = m_2dlos(clk, reset, x, y, Nrows=N, Mcols=M)
+    tbdut = sigIn2DLists(clk, reset, x, y, Nrows=N, Mcols=M)
 
     @always(delay(3))
     def tbclk():
@@ -412,8 +416,8 @@ def verify_m_2dlos():
     return tbdut, tbclk, tbstim
 
 
-def test_2dlos():
-    Simulation(verify_m_2dlos()).run()
+def test_sigIn2DLists():
+    Simulation(verify_sigIn2DLists()).run()
 
     clk = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=True)
@@ -421,7 +425,7 @@ def test_2dlos():
     y = Signal(intbv(1, min=0, max=7690))
   
     try:
-        inst = conversion.verify(m_2dlos, clk, reset, x, y)
+        inst = conversion.verify(sigIn2DLists, clk, reset, x, y)
     except ConversionError as e:
 #       assert e.kind == _error.ListAsPort
         print("Failed to convert to VHDL")
