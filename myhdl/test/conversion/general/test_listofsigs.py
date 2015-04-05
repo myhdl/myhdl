@@ -1,7 +1,10 @@
 from __future__ import absolute_import
+from __future__ import print_function
 from myhdl import *
-from myhdl import ConversionError
+from myhdl.conversion._toVerilog import ToVerilogError
+from myhdl.conversion._toVHDL import ConversionError
 from myhdl.conversion._misc import _error
+from random import randint
 
 N = 8
 M= 2**N
@@ -351,5 +354,82 @@ def test_listAsPort():
         assert False
 
 
+# signals in 2D lists
 
+def sigIn2DLists(clk, reset, x, y, Nrows=4, Mcols=8):
     
+    mem2d = [[Signal(intbv(randint(1, 7689), min=0, max=7690)) 
+              for col in range(Mcols)] 
+             for row in range(Nrows)]
+    rcnt = Signal(intbv(0, min=0, max=Nrows))
+    ccnt = Signal(intbv(0, min=0, max=Mcols))
+    
+    @always_seq(clk.posedge, reset=reset)
+    def rtl():
+        if ccnt == Mcols-1:
+            if rcnt == Nrows - 1:
+                rcnt.next = 0
+            else :
+                rcnt.next = rcnt + 1
+            ccnt.next = 0
+        else :
+            ccnt.next = ccnt + 1
+        
+        mem2d[rcnt][ccnt].next = x
+        y.next = mem2d[rcnt][ccnt]
+ 
+    return rtl
+    
+def verify_sigIn2DLists():
+    clk = Signal(bool(0))
+    reset = ResetSignal(0, active=0, async=True)
+    x = Signal(intbv(0, min=0, max=7690))
+    y = Signal(intbv(1, min=0, max=7690))
+
+    N,M = 4,8
+    tbdut = sigIn2DLists(clk, reset, x, y, Nrows=N, Mcols=M)
+
+    @always(delay(3))
+    def tbclk():
+        clk.next = not clk
+
+    @instance
+    def tbstim():
+        x.next = 0
+        reset.next = reset.active
+        yield delay(33)
+        reset.next = not reset.active
+        yield clk.posedge
+        yield clk.posedge
+
+        # the default values are not 0
+        for ii in range(N*M):
+            assert y != 0
+            yield clk.posedge
+ 
+        for ii in range(N*M):
+            assert y == 0
+            yield clk.posedge
+
+        raise StopSimulation
+
+    return tbdut, tbclk, tbstim
+
+
+def test_sigIn2DLists():
+    Simulation(verify_sigIn2DLists()).run()
+
+    clk = Signal(bool(0))
+    reset = ResetSignal(0, active=0, async=True)
+    x = Signal(intbv(0, min=0, max=7690))
+    y = Signal(intbv(1, min=0, max=7690))
+  
+    try:
+        inst = conversion.verify(sigIn2DLists, clk, reset, x, y)
+    except ConversionError as e:
+        print("Failed to convert to VHDL")
+    except ToVerilogError as e:
+        print("Failed to convert to Verilog")
+    else:
+        assert False
+   
