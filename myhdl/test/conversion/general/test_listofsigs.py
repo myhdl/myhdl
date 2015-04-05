@@ -427,7 +427,6 @@ def test_sigIn2DLists():
     try:
         inst = conversion.verify(sigIn2DLists, clk, reset, x, y)
     except ConversionError as e:
-#       assert e.kind == _error.ListAsPort
         print("Failed to convert to VHDL")
     except ToVerilogError as e:
         print("Failed to convert to Verilog")
