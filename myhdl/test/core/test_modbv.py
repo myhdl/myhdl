@@ -20,12 +20,20 @@
 """ Run the modbv unit tests. """
 from __future__ import absolute_import
 
-
 import unittest
 from unittest import TestCase
 
+import random
+from random import randrange
+random.seed(2) # random, but deterministic
+
+import sys
+maxint = sys.maxsize
+
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
+
+import operator
 
 class TestModbvWrap(TestCase):
 
@@ -47,7 +55,6 @@ class TestModbvWrap(TestCase):
         x[:] = x - 1
         self.assertEqual(-2, x)
 
-
     def testInit(self):
         self.assertRaises(ValueError, intbv, 15, min=-8, max=8)
         x = modbv(15, min=-8, max=8)
@@ -56,7 +63,6 @@ class TestModbvWrap(TestCase):
         # Arbitrary boundraries support (no exception)
         modbv(5, min=-3, max=8)
         
-
     def testNoWrap(self):
         # Validate the base class fails for the wraps
         x = intbv(0, min=-8, max=8)
@@ -72,8 +78,88 @@ class TestModbvWrap(TestCase):
             self.fail()
         except ValueError:
             pass
-        
 
+class TestOps(TestCase):     
+    def binaryCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
+        self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
+        for i, j in zip(self.seqi, self.seqj):
+            bi = intbv(long(i))
+            bj = intbv(j)
+            ref = op(long(i), j)
+            r1 = op(bi, j)
+            r2 = op(long(i), bj)
+            r3 = op(bi, bj)
+            
+            self.assertEqual(r1, ref)
+            self.assertEqual(r2, ref)
+            self.assertEqual(r3, ref)   
+
+    def seqSetup(self, imin, imax, jmin=0, jmax=None):
+        seqi = [imin, imin,   12, 34]
+        seqj = [jmin, 12  , jmin, 34]
+        if not imax and not jmax:
+            l = 2222222222222222222222222222
+            seqi.append(l)
+            seqj.append(l)
+        # first some smaller ints
+        for n in range(100):
+            ifirstmax = jfirstmax = 100000
+            if imax:
+                ifirstmax = min(imax, ifirstmax)
+            if jmax:
+                jfirstmax = min(jmax, jfirstmax)
+            i = randrange(imin, ifirstmax)
+            j = randrange(jmin, jfirstmax)
+            seqi.append(i)
+            seqj.append(j)
+        # then some potentially longs
+        for n in range(100):
+            if not imax:
+                i = randrange(maxint) + randrange(maxint)
+            else:
+                i = randrange(imin, imax)
+            if not jmax:
+                j = randrange(maxint) + randrange(maxint)
+            else:
+                j = randrange(jmin, jmax)
+            seqi.append(i)
+            seqj.append(j)
+        self.seqi = seqi
+        self.seqj = seqj
+
+    def testAdd(self):
+        self.binaryCheck(operator.add)
+
+    def testSub(self):
+        self.binaryCheck(operator.sub)
+
+    def testMult(self):
+        self.binaryCheck(operator.mul)
+
+    def testTrueDiv(self):
+        self.binaryCheck(operator.truediv, jmin=1)
+
+    def testFloorDiv(self):
+        self.binaryCheck(operator.floordiv, jmin=1)
+
+    def testPow(self):
+        self.binaryCheck(pow, jmax=64)
+
+    def testLShift(self):
+        self.binaryCheck(operator.lshift, jmax=256)
+        
+    def testRShift(self):
+        self.binaryCheck(operator.rshift, jmax=256)
+
+    def testAnd(self):
+        self.binaryCheck(operator.and_)
+
+    def testOr(self):
+        self.binaryCheck(operator.or_)
+        
+    def testXor(self):
+        self.binaryCheck(operator.xor)
+  
 if __name__ == "__main__":
     unittest.main()
        
