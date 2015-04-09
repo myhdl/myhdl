@@ -88,12 +88,12 @@ def negedge(sig):
     return sig.negedge
 
 # signal factory function
-def Signal(val=None, delay=None):
+def Signal(val=None, delay=None, transport=False):
     """ Return a new _Signal (default or delay 0) or DelayedSignal """
     if delay is not None:
         if delay < 0:
             raise TypeError("Signal: delay should be >= 0")
-        return _DelayedSignal(val, delay)
+        return _DelayedSignal(val, delay, transport)
     else:
         return _Signal(val)
     
@@ -553,12 +553,13 @@ class _DelayedSignal(_Signal):
     __slots__ = ('_nextZ', '_delay', '_timeStamp',
                 )
 
-    def __init__(self, val=None, delay=1):
+    def __init__(self, val=None, delay=1, transport=False):
         """ Construct a new DelayedSignal.
 
         Automatically invoked through the Signal new method.
         val -- initial value
         delay -- non-zero delay value
+        transport -- transport delay
         """
         _Signal.__init__(self, val)
         self._nextZ = val
@@ -566,8 +567,9 @@ class _DelayedSignal(_Signal):
         self._timeStamp = 0
 
     def _update(self):
-        if self._next != self._nextZ:
-            self._timeStamp = sim._time
+        if not transport:
+            if self._next != self._nextZ:
+                self._timeStamp = sim._time
         self._nextZ = self._next
         t = sim._time + self._delay
         _schedule((t, _SignalWrap(self, self._next, self._timeStamp)))
