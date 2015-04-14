@@ -32,10 +32,11 @@ random.seed(1) # random, but deterministic
 
 MAXLINE = 4096
 
+import pytest
 from myhdl import Signal
 
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
-from myhdl._compat import to_bytes
+from myhdl._compat import to_bytes, PYPY
 
 exe = "python test_Cosimulation.py CosimulationTest"
 
@@ -55,6 +56,7 @@ toXVals = ["X00", "FZ3", "34XZ", "56U"]
 allSigs = fromSigs.copy()
 allSigs.update(toSigs)
 
+@pytest.mark.xfail(PYPY, reason="This test does not work on pypy")
 class CosimulationTest(TestCase):
     
     def testWrongExe(self):
