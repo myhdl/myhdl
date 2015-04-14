@@ -28,6 +28,9 @@ env:
 matrix:
   allow_failures:
     - python: "3.4"
+      env: CI_TARGET=icarus
+    - python: "3.4"
+      env: CI_TARGET=ghdl
 
 script: ./ci.sh
 
