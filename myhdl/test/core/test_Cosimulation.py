@@ -35,6 +35,7 @@ MAXLINE = 4096
 from myhdl import Signal
 
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
+from myhdl._compat import to_bytes
 
 exe = "python test_Cosimulation.py CosimulationTest"
 
@@ -76,11 +77,11 @@ class CosimulationTest(TestCase):
     def cosimNotUnique(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        os.write(wt, "TO 00 a 1")
+        os.write(wt, b"TO 00 a 1")
         os.read(rf, MAXLINE)
-        os.write(wt, "FROM 00 d 1")
+        os.write(wt, b"FROM 00 d 1")
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
 
     def testFromSignals(self):
@@ -94,11 +95,11 @@ class CosimulationTest(TestCase):
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "TO 0000 a 1")
+        os.write(wt, b"TO 0000 a 1")
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
 
     def testToSignals(self):
@@ -114,11 +115,11 @@ class CosimulationTest(TestCase):
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "FROM 0000")
+        os.write(wt, b"FROM 0000")
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
 
     def testFromToSignals(self):
@@ -134,14 +135,14 @@ class CosimulationTest(TestCase):
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
     
     def testTimeZero(self):
@@ -158,7 +159,7 @@ class CosimulationTest(TestCase):
         buf = "TO 01 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
     def testNoComm(self):
         try:
@@ -171,11 +172,11 @@ class CosimulationTest(TestCase):
     def cosimNoComm(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        os.write(wt, "FROM 0000")
+        os.write(wt, b"FROM 0000")
         os.read(rf, MAXLINE)
-        os.write(wt, "TO 0000")
+        os.write(wt, b"TO 0000")
         os.read(rf, MAXLINE)
-        os.write(wt, "START ")
+        os.write(wt, b"START ")
         os.read(rf, MAXLINE)
 
     def testFromSignalsDupl(self):
@@ -193,7 +194,7 @@ class CosimulationTest(TestCase):
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
         buf += "bb 5"
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
     def testToSignalsDupl(self):
         try:
@@ -210,7 +211,7 @@ class CosimulationTest(TestCase):
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
         buf += "fff 6"
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
     def testFromSignalVals(self):
         cosim = Cosimulation(exe + ".cosimFromSignalVals", **allSigs)
@@ -224,15 +225,15 @@ class CosimulationTest(TestCase):
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "TO 0000 a 1")
+        os.write(wt, b"TO 0000 a 1")
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
-        os.write(wt, "DUMMY")
+        os.write(wt, b"DUMMY")
         s = os.read(rf, MAXLINE)
-        vals = [long(e, 16) for e in s.split()[1:]]
+        vals = [int(e, 16) for e in s.split()[1:]]
         self.assertEqual(vals, fromVals)
 
     def testToSignalVals(self):
@@ -242,7 +243,7 @@ class CosimulationTest(TestCase):
         cosim._get()
         for n, v in zip(toSignames, toVals):
             self.assertEqual(toSigs[n].next, v)
-        os.write(cosim._wf, "DUMMY")
+        os.write(cosim._wf, b"DUMMY")
         cosim._getMode = 1
         cosim._get()
         for n in toSignames:
@@ -255,14 +256,14 @@ class CosimulationTest(TestCase):
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
         buf = "0 "
         for s, v in zip(toSignames, toVals):
@@ -270,7 +271,7 @@ class CosimulationTest(TestCase):
             buf += " "
             buf += hex(v)[2:]
             buf += " "
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
         buf = "0 "
         for s, v in zip(toSignames, toXVals):
@@ -278,7 +279,7 @@ class CosimulationTest(TestCase):
             buf += " "
             buf += v
             buf += " "
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
 def suite():
     return unittest.makeSuite(CosimulationTest, 'test')
