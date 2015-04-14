@@ -31,4 +31,5 @@ clean:
  
 .PHONY: test
 test: myhdl_vpi.so
-	make -C test
+	rm -rf test/work
+	cd test && vlib work && python test_all.py
