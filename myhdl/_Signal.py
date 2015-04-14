@@ -204,58 +204,65 @@ class _Signal(object):
             return []
 
     # support for the 'val' attribute
-    def _get_val(self):
+    @property
+    def val(self):
         return self._val
-    val = property(_get_val, None, None, "'val' access methods")
 
     # support for the 'next' attribute
-    def _get_next(self):
+    @property
+    def next(self):
 #        if self._next is self._val:
 #            self._next = deepcopy(self._val)
         _siglist.append(self)
         return self._next
-    def _set_next(self, val):
+
+    @next.setter
+    def next(self, val):
         if isinstance(val, _Signal):
             val = val._val
         self._setNextVal(val)
         _siglist.append(self)
-    next = property(_get_next, _set_next, None, "'next' access methods")
 
     # support for the 'posedge' attribute
-    def _get_posedge(self):
+    @property
+    def posedge(self):
         return self._posedgeWaiters
-    posedge = property(_get_posedge, None, None, "'posedge' access methods")
                        
     # support for the 'negedge' attribute
-    def _get_negedge(self):
+    @property
+    def negedge(self):
         return self._negedgeWaiters
-    negedge = property(_get_negedge, None, None, "'negedge' access methods")
     
     # support for the 'min' and 'max' attribute
-    def _get_max(self):
+    @property
+    def max(self):
         return self._max
-    max = property(_get_max, None)
-    def _get_min(self):
+
+    @property
+    def min(self):
         return self._min
-    min = property(_get_min, None)
 
     # support for the 'driven' attribute
-    def _get_driven(self):
+    @property
+    def driven(self):
         return self._driven
-    def _set_driven(self, val):
+
+    @driven.setter
+    def driven(self, val):
         if not val  in ("reg", "wire", True):
             raise ValueError('Expected value "reg", "wire", or True, got "%s"' % val)
         self._driven = val
-    driven = property(_get_driven, _set_driven, None, "'driven' access methods")
     
     # support for the 'read' attribute
-    def _get_read(self):
+    @property
+    def read(self):
         return self._read
-    def _set_read(self, val):
+
+    @read.setter
+    def read(self, val):
         if not val in (True, ):
             raise ValueError('Expected value True, got "%s"' % val)
         self._markRead()
-    read = property(_get_read, _set_read, None, "'read' access methods")
 
     def _markRead(self):
         self._read = True
@@ -591,12 +598,14 @@ class _DelayedSignal(_Signal):
         else:
             return []
 
-   # support for the 'delay' attribute
-    def _get_delay(self):
-         return self._delay
-    def _set_delay(self, delay):
-         self._delay = delay
-    delay = property(_get_delay, _set_delay, None, "'delay' access methods")
+    # support for the 'delay' attribute
+    @property
+    def delay(self):
+        return self._delay
+
+    @delay.setter
+    def delay(self, delay):
+        self._delay = delay
 
         
 class _SignalWrap(object):

@@ -43,7 +43,9 @@ class _ShadowSignal(_Signal):
         # self._driven = True # set this in conversion analyzer
 
     # remove next attribute assignment
-    next = property(_Signal._get_next, None, None, "'next' access methods")
+    @_Signal.next.setter
+    def next(self, val):
+        raise AttributeError("ShadowSignals are readonly")
 
 
         
@@ -68,14 +70,14 @@ class _SliceSignal(_ShadowSignal):
 
     def _genfuncIndex(self):
         sig, index = self._sig, self._left
-        set_next = _ShadowSignal._set_next
+        set_next = _Signal.next.fset
         while 1:
             set_next(self, sig[index])
             yield sig
 
     def _genfuncSlice(self):
         sig, left, right = self._sig, self._left, self._right
-        set_next = _Signal._set_next
+        set_next = _Signal.next.fset
         while 1:
             set_next(self, sig[left:right])
             yield sig
@@ -137,7 +139,7 @@ class ConcatSignal(_ShadowSignal):
         self._waiter = _SignalTupleWaiter(gen)
 
     def genfunc(self):
-        set_next = _ShadowSignal._set_next
+        set_next = _Signal.next.fset
         args = self._args
         nrbits = self._nrbits
         newval = intbv(0)[nrbits:]
@@ -268,7 +270,8 @@ class _TristateDriver(_Signal):
         self._next = self._val = self._init = None
         self._sig = sig
 
-    def _set_next(self, val):
+    @_Signal.next.setter
+    def next(self, val):
         if isinstance(val, _Signal):
             val = val._val
         if val is None:
@@ -278,6 +281,3 @@ class _TristateDriver(_Signal):
             self._next = self._sig._orival
             self._setNextVal(val)
         _siglist.append(self)   
-         
-    # redefine property because standard inheritance doesn't work for setter/getter functions
-    next = property(_Signal._get_next, _set_next, None, "'next' access methods")
