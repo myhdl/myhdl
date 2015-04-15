@@ -9,6 +9,7 @@ build/
 __pycache__/
 *egg-info/
 dist/
+.tox
 
 # Cosim
 *.o
