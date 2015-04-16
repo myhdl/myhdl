@@ -188,7 +188,6 @@ def test_three_analyze():
     intf = IntfWithConstant2()
     analyze(m_top_const, clock, reset, x, y, intf)
 
-@bug('33', 'vhdl')
 def test_three_verify():
     assert verify(c_testbench_three) == 0
 
