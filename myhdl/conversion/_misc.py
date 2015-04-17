@@ -20,18 +20,17 @@
 """ myhdl toVerilog package.
 
 """
+from __future__ import absolute_import
 
 
 import inspect
-import compiler
-from compiler import ast as astNode
 import ast
 
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._util import _flatten
-from myhdl._unparse import _unparse
+from myhdl._compat import PY2
 
 class _error(object):
     FirstArgType = "first argument should be a classic function"
@@ -174,7 +173,7 @@ _genLabel = _LabelGenerator()
 
 class _Label(object):
     def __init__(self, name):
-        self.name = _genLabel.next() + '_' + name
+        self.name = next(_genLabel) + '_' + name
         self.isActive = False
     def __str__(self):
         return str(self.name)
@@ -211,3 +210,9 @@ class _namesVisitor(ast.NodeVisitor):
 
     def visit_Name(self, node):
         self.names.append(node.id)
+
+def _get_argnames(node):
+    if PY2:
+        return [arg.id for arg in node.args.args]
+    else:
+        return [arg.arg for arg in node.args.args]

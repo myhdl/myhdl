@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 from random import randrange
@@ -41,7 +42,7 @@ def LoopBench(LoopTest):
 def testForLoopError1():
     try:
         analyze(LoopBench, ForLoopError1)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.Requirement
     else:
         assert False

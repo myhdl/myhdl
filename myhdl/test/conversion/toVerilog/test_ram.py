@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -115,7 +116,7 @@ class TestMemory(TestCase):
 
         # mem_inst = ram(dout, din, addr, we, clk, depth)
         mem_inst = toVerilog(ram, dout, din, addr, we, clk, depth)
-        mem_v_inst = ram_v(ram.func_name, dout_v, din, addr, we, clk, depth)
+        mem_v_inst = ram_v(ram.__name__, dout_v, din, addr, we, clk, depth)
 
         def stimulus():
             for i in range(depth):

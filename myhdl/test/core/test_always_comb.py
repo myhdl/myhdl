@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for always_comb """
+from __future__ import absolute_import
 
 
 import random
@@ -50,7 +51,7 @@ class AlwaysCombCompilationTest(TestCase):
         h = 5
         try:
             always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -60,7 +61,7 @@ class AlwaysCombCompilationTest(TestCase):
             yield None
         try:
             always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.ArgType)
         else:
             self.fail()
@@ -70,7 +71,7 @@ class AlwaysCombCompilationTest(TestCase):
             return n
         try:
             always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.NrOfArgs)
         else:
             self.fail()
@@ -135,7 +136,7 @@ class AlwaysCombCompilationTest(TestCase):
             a += 1
         try:
             g = always_comb(h).gen
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.SignalAsInout % "c")
         else:
             self.fail()
@@ -147,7 +148,7 @@ class AlwaysCombCompilationTest(TestCase):
             x.next = c
         try:
             g = always_comb(h).gen
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.SignalAsInout % "c")
         else:
             self.fail()
@@ -203,7 +204,7 @@ class AlwaysCombCompilationTest(TestCase):
             g = a
         try:
             g = always_comb(h)
-        except AlwaysCombError, e:
+        except AlwaysCombError as e:
             self.assertEqual(e.kind, _error.EmbeddedFunction)
         else:
             self.fail()
@@ -249,7 +250,7 @@ class AlwaysCombSimulationTest1(TestCase):
                 yield clk.posedge
                 yield clk.negedge
                 self.assertEqual(x, z)
-            raise StopSimulation, "always_comb simulation test"
+            raise StopSimulation("always_comb simulation test")
 
         return instances()
         
@@ -346,7 +347,7 @@ class AlwaysCombSimulationTest2(TestCase):
                 yield clk.posedge
                 yield clk.negedge
                 self.assertEqual(x, z)
-            raise StopSimulation, "always_comb simulation test"
+            raise StopSimulation("always_comb simulation test")
 
         return comb, gen, clkGen(), stimulus()
         

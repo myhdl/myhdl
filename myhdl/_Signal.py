@@ -26,15 +26,19 @@ posedge -- callable to model a rising edge on a signal in a yield statement
 negedge -- callable to model a falling edge on a signal in a yield statement
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
 import operator
 
+from myhdl._compat import integer_types, long
 from myhdl import _simulator as sim
 from myhdl._simulator import _signals, _siglist, _futureEvents, now
 from myhdl._intbv import intbv
 from myhdl._bin import bin
+
 # from myhdl._enum import EnumItemType
 
 _schedule = _futureEvents.append
@@ -134,8 +138,8 @@ class _Signal(object):
             self._setNextVal = self._setNextBool
             self._printVcd = self._printVcdBit
             self._nrbits = 1
-        elif isinstance(val, (int, long)):
-            self._type = (int, long)
+        elif isinstance(val, integer_types):
+            self._type = integer_types
             self._setNextVal = self._setNextInt
         elif isinstance(val, intbv):
             self._type = intbv
@@ -189,7 +193,7 @@ class _Signal(object):
                 self._val = None
             elif isinstance(val, intbv):
                 self._val._val = next._val
-            elif isinstance(val, (int, long, EnumItemType)):
+            elif isinstance(val, (integer_types, EnumItemType)):
                 self._val = next
             else:
                 self._val = deepcopy(next)
@@ -271,14 +275,14 @@ class _Signal(object):
     def _setNextInt(self, val):
         if isinstance(val, intbv):
             val = val._val
-        elif not isinstance(val, (int, long)):
+        elif not isinstance(val, (integer_types, intbv)):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next = val
 
     def _setNextIntbv(self, val):
         if isinstance(val, intbv):
             val = val._val
-        elif not isinstance(val, (int, long)):
+        elif not isinstance(val, integer_types):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next._val = val
         self._next._handleBounds()
@@ -295,16 +299,25 @@ class _Signal(object):
 
     # vcd print methods
     def _printVcdStr(self):
-        print >> sim._tf, "s%s %s" % (str(self._val), self._code)
+        print("s%s %s" % (str(self._val), self._code), file=sim._tf)
         
     def _printVcdHex(self):
-        print >> sim._tf, "s%s %s" % (hex(self._val), self._code)
+        if self._val is None:
+            print("sz %s" % self._code, file=sim._tf)
+        else:
+            print("s%s %s" % (hex(self._val), self._code), file=sim._tf)
 
     def _printVcdBit(self):
-        print >> sim._tf, "%d%s" % (self._val, self._code)
+        if self._val is None:
+            print("z%s" % self._code, file=sim._tf)
+        else:
+            print("%d%s" % (self._val, self._code), file=sim._tf)
 
     def _printVcdVec(self):
-        print >> sim._tf, "b%s %s" % (bin(self._val, self._nrbits), self._code)
+        if self._val is None:
+            print("b%s %s" % ('z'*self._nrbits, self._code), file=sim._tf)
+        else:
+            print("b%s %s" % (bin(self._val, self._nrbits), self._code), file=sim._tf)
 
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):
@@ -319,11 +332,10 @@ class _Signal(object):
         raise TypeError("Signals are unhashable")
         
     
-    def __nonzero__(self):
-        if self._val:
-            return 1
-        else:
-            return 0
+    def __bool__(self):
+        return bool(self._val)
+
+    __nonzero__ = __bool__
 
     # length
     def __len__(self):
@@ -361,21 +373,13 @@ class _Signal(object):
     def __rmul__(self, other):
         return other * self._val
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, _Signal):
             return self._val / other._val
         else:
             return self._val / other
-    def __rdiv__(self, other):
-        return other / self._val
-    
-    def __truediv__(self, other):
-        if isinstance(other, _Signal):
-            return operator.truediv(self._val, other._val)
-        else:
-            return operator.truediv(self._val, other)
     def __rtruediv__(self, other):
-        return operator.truediv(other, self._val)
+        return other / self._val
     
     def __floordiv__(self, other):
         if isinstance(other, _Signal):
@@ -510,14 +514,16 @@ class _Signal(object):
 
     # augmented assignment not supported
     def _augm(self):
-        raise TypeError, "Signal object doesn't support augmented assignment"
+        raise TypeError("Signal object doesn't support augmented assignment")
 
-    __iadd__ = __isub__ = __idiv__ = __imul__ = __ipow__ = __imod__ = _augm
+    __iadd__ = __isub__ = __imul__ = __ipow__ = __imod__ = _augm
     __ior__ = __iand__ = __ixor__ = __irshift__ = __ilshift__ = _augm
+    __itruediv__ = __ifloordiv__ = _augm
+
 
     # index and slice assignment not supported
     def __setitem__(self, key, val):
-        raise TypeError, "Signal object doesn't support item/slice assignment"
+        raise TypeError("Signal object doesn't support item/slice assignment")
 
 
     # continues assignment support

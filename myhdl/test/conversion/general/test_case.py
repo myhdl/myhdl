@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 
 def map_case4(z, a):
@@ -69,7 +70,7 @@ def bench_case(map_case, N):
         for i in range(N):
             a.next = i
             yield delay(10)
-            print z
+            print(z)
 
     return stimulus, inst
 

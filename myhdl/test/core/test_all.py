@@ -18,16 +18,17 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run all myhdl unit tests. """
+from __future__ import absolute_import
 
 
 import test_Simulation, test_Signal, test_intbv, test_Cosimulation, test_misc, \
        test_always_comb, test_bin, test_traceSignals, test_enum, test_concat, \
-       test_unparse, test_inferWaiter, test_always, test_instance, test_signed, \
+       test_inferWaiter, test_always, test_instance, test_signed, \
        test_modbv
 
 modules = (test_Simulation, test_Signal, test_intbv, test_misc, test_always_comb,
            test_bin, test_traceSignals, test_enum, test_concat,
-           test_unparse, test_inferWaiter, test_always, test_instance, test_signed,
+           test_inferWaiter, test_always, test_instance, test_signed,
            test_modbv
           )
 

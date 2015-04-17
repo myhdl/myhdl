@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -100,7 +101,7 @@ class TestEdge(TestCase):
             self.assertEqual(flag, expected)
 
         edge_inst = toVerilog(edge, flag, sig, clock)
-        edge_inst_v = edge_v(edge.func_name, flag, sig, clock)
+        edge_inst_v = edge_v(edge.__name__, flag, sig, clock)
 
         return clockgen, stimulus, delayline, check, edge_inst_v
           

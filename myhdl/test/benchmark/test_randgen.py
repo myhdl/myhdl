@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 
 from random_generator import random_generator

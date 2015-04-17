@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 
@@ -101,7 +102,7 @@ def FSMBench(FramerCtrl, t_State):
         yield clk.posedge
         while True:
             yield clk.negedge
-            print "negedge"
+            print("negedge")
             # in the end, this should work
             # print state
 

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import unittest
 import os
 path = os.path
@@ -57,7 +58,7 @@ class TestConstWires(unittest.TestCase):
         q_v = Signal(bool(0))
 
         constwire_inst = toVerilog(ConstWire, p, q)
-        constwire_v_inst = ConstWire_v(ConstWire.func_name, p, q_v)
+        constwire_v_inst = ConstWire_v(ConstWire.__name__, p, q_v)
 
         def stimulus():
             for i in range(100):
@@ -82,7 +83,7 @@ class TestConstWires(unittest.TestCase):
         q_v = Signal(intbv(0)[8:])
 
         constwire_inst = toVerilog(ConstWire, p, q)
-        constwire_v_inst = ConstWire_v(ConstWire.func_name, p, q_v)
+        constwire_v_inst = ConstWire_v(ConstWire.__name__, p, q_v)
 
         def stimulus():
             for i in range(100):
@@ -132,7 +133,7 @@ class TestIgnoreCode(unittest.TestCase):
 
         ignorecode_inst = toVerilog(adder, a, b, c)
         # ignorecode_inst = adder(a, b, c)
-        ignorecode_v_inst = Ignorecode_v(adder.func_name, a, b, c_v)
+        ignorecode_v_inst = Ignorecode_v(adder.__name__, a, b, c_v)
 
         def stimulus():
             for i in range(100):

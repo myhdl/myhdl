@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 import unittest
@@ -144,7 +145,7 @@ class TestHec(unittest.TestCase):
 
         heccalc_inst = toVerilog(HecCalculator, hec, header)
         # heccalc_inst = HecCalculator(hec, header)
-        heccalc_v_inst = HecCalculator_v(HecCalculator.func_name, hec_v, header)
+        heccalc_v_inst = HecCalculator_v(HecCalculator.__name__, hec_v, header)
  
         def stimulus():
             for h in headers:

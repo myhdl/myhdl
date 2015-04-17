@@ -20,12 +20,12 @@
 """ Module that implements enum.
 
 """
+from __future__ import absolute_import
 
-
-from types import StringType
 
 from myhdl._bin import bin
 from myhdl._Signal import _Signal
+from myhdl._compat import string_types
 
 class EnumType(object):
     def __init__(self):
@@ -52,9 +52,9 @@ def enum(*names, **kwargs):
     codedict = {}
     i = 0
     for name in names:
-        if not isinstance(name, StringType):
+        if not isinstance(name, string_types):
             raise TypeError()
-        if codedict.has_key(name):
+        if name in codedict:
             raise ValueError("enum literals should be unique")
         if encoding == "one_hot":
             code = bin(1<<i, nrbits)
@@ -76,6 +76,9 @@ def enum(*names, **kwargs):
             self._nrbits = type._nrbits
             self._nritems = type._nritems
             self._type = type
+
+        def __hash__(self):
+            return hash((self._type, self._index))
 
         def __repr__(self):
             return self._name

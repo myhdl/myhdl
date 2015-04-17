@@ -18,6 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for always_comb """
+from __future__ import absolute_import
 
 
 import random
@@ -97,7 +98,7 @@ class AlwaysCombSimulationTest(TestCase):
         random.shuffle(vectors)
 
         design_inst = toVerilog(design, a, b, c, d, p, q, r)
-        design_v_inst = design_v(design.func_name, a, b, c, d, p_v, q_v, r_v)
+        design_v_inst = design_v(design.__name__, a, b, c, d, p_v, q_v, r_v)
 
         def clkGen():
             while 1:
@@ -118,7 +119,7 @@ class AlwaysCombSimulationTest(TestCase):
                 self.assertEqual(q, q_v)
                 self.assertEqual(r, r_v)
                 
-            raise StopSimulation, "always_comb simulation test"
+            raise StopSimulation("always_comb simulation test")
 
         return design_inst, design_v_inst, clkGen(), stimulus()
         

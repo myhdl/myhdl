@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 from random import randrange
@@ -116,9 +117,9 @@ def HecCalculator_v(name, hec, header):
 
 
 
-headers = [ 0x00000000L,
-            0x01234567L,
-            0xbac6f4caL
+headers = [ 0x00000000,
+            0x01234567,
+            0xbac6f4ca
           ]
 
 headers.extend([randrange(2**32-1) for i in range(10)])
@@ -138,7 +139,7 @@ def HecBench(HecCalculator):
         for i in range(len(headers)):
             header.next = headers[i]
             yield delay(10)
-            print hec
+            print(hec)
 
     return stimulus, heccalc_inst
 

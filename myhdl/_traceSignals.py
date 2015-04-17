@@ -20,6 +20,8 @@
 """ myhdl traceSignals module.
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 
 
@@ -33,6 +35,7 @@ import shutil
 from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
 _tracing = 0
 _profileFunc = None
@@ -74,7 +77,7 @@ class _TraceSignalsClass(object):
         _tracing = 1
         try:
             if self.name is None:
-                name = dut.func_name
+                name = dut.__name__
             else:
                 name = str(self.name)
             if name is None:
@@ -118,16 +121,25 @@ def _namecode(n):
     return code
 
 def _writeVcdHeader(f, timescale):
-    print >> f, "$date"
-    print >> f, "    %s" % time.asctime()
-    print >> f, "$end"
-    print >> f, "$version"
-    print >> f, "    MyHDL %s" % __version__
-    print >> f, "$end"
-    print >> f, "$timescale"
-    print >> f, "    %s" % timescale
-    print >> f, "$end"
-    print >> f
+    print("$date", file=f)
+    print("    %s" % time.asctime(), file=f)
+    print("$end", file=f)
+    print("$version", file=f)
+    print("    MyHDL %s" % __version__, file=f)
+    print("$end", file=f)
+    print("$timescale", file=f)
+    print("    %s" % timescale, file=f)
+    print("$end", file=f)
+    print(file=f)
+
+def _getSval(s):
+    if isinstance(s, _TristateSignal):
+        sval = s._orival
+    elif isinstance(s, _TristateDriver):
+        sval = s._sig._orival
+    else:
+        sval = s._val
+    return sval
 
 def _writeVcdSigs(f, hierarchy, tracelists):
     curlevel = 0
@@ -143,24 +155,25 @@ def _writeVcdSigs(f, hierarchy, tracelists):
         assert(delta >= -1)
         if delta >= 0:
             for i in range(delta + 1):
-                print >> f, "$upscope $end"
-        print >> f, "$scope module %s $end" % name
+                print("$upscope $end", file=f)
+        print("$scope module %s $end" % name, file=f)
         for n, s in sigdict.items():
-            if s._val is None:
+            sval = _getSval(s)
+            if sval is None:
                 raise ValueError("%s of module %s has no initial value" % (n, name))
             if not s._tracing:
                 s._tracing = 1
-                s._code = namegen.next()
+                s._code = next(namegen)
                 siglist.append(s)
             w = s._nrbits
             # use real for enum strings
-            if w and not isinstance(s._val, EnumItemType):
+            if w and not isinstance(sval, EnumItemType):
                 if w == 1:
-                    print >> f, "$var reg 1 %s %s $end" % (s._code, n)
+                    print("$var reg 1 %s %s $end" % (s._code, n), file=f)
                 else:
-                    print >> f, "$var reg %s %s %s $end" % (w, s._code, n)
+                    print("$var reg %s %s %s $end" % (w, s._code, n), file=f)
             else:
-                print >> f, "$var real 1 %s %s $end" % (s._code, n)
+                print("$var real 1 %s %s $end" % (s._code, n), file=f)
         # Memory dump by Frederik Teichert, http://teichert-ing.de, date: 2011.03.28
         # The Value Change Dump standard doesn't support multidimensional arrays so 
         # all memories are flattened and renamed.
@@ -168,29 +181,30 @@ def _writeVcdSigs(f, hierarchy, tracelists):
             for n in memdict.keys():
                 memindex = 0
                 for s in memdict[n].mem:
-                    if s._val is None:
+                    sval = _getSval(s)
+                    if sval is None:
                         raise ValueError("%s of module %s has no initial value" % (n, name))
                     if not s._tracing:
                         s._tracing = 1
-                        s._code = namegen.next()
+                        s._code = next(namegen)
                         siglist.append(s)
                     w = s._nrbits
                     if w:
                         if w == 1:
-                            print >> f, "$var reg 1 %s %s(%i) $end" % (s._code, n, memindex)
+                            print("$var reg 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
                         else:
-                            print >> f, "$var reg %s %s %s(%i) $end" % (w, s._code, n, memindex)
+                            print("$var reg %s %s %s(%i) $end" % (w, s._code, n, memindex), file=f)
                     else:
-                        print >> f, "$var real 1 %s %s(%i) $end" % (s._code, n, memindex)
+                        print("$var real 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
                     memindex += 1
     for i in range(curlevel):
-        print >> f, "$upscope $end"
-    print >> f
-    print >> f, "$enddefinitions $end"
-    print >> f, "$dumpvars"
+        print("$upscope $end", file=f)
+    print(file=f)
+    print("$enddefinitions $end", file=f)
+    print("$dumpvars", file=f)
     for s in siglist:
         s._printVcd() # initial value
-    print >> f, "$end"
+    print("$end", file=f)
             
             
         

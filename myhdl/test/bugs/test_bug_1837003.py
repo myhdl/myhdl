@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -25,7 +26,7 @@ yin = Signal(bool(0))
 def test_bug_1837003():
     try:
         toVerilog(SubFunction,xout,yout,x,y)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.ShadowingVar
     else:
         assert False

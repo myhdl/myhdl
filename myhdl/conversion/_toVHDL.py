@@ -1,4 +1,4 @@
-
+#  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
 #  Copyright (C) 2003-2014 Jan Decaluwe
@@ -20,6 +20,8 @@
 """ myhdl toVHDL conversion module.
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 
 import sys
@@ -31,8 +33,7 @@ from datetime import datetime
 #import compiler
 #from compiler import ast as astNode
 import ast
-from types import GeneratorType, ClassType
-from cStringIO import StringIO
+from types import GeneratorType
 import warnings
 from copy import copy
 import string
@@ -50,6 +51,9 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
                                        _Ram, _Rom, _enumTypeSet, _constDict, _extConstDict)
 from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
+from myhdl._util import  _flatten
+from myhdl._compat import integer_types, class_types, StringIO
+
 
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
@@ -87,7 +91,7 @@ def _makeDoc(doc, indent=''):
 class _ToVHDLConvertor(object):
 
     __slots__ = ("name",
-                 "directory",                 
+                 "directory",
                  "component_declarations",
                  "header",
                  "no_myhdl_header",
@@ -100,7 +104,7 @@ class _ToVHDLConvertor(object):
 
     def __init__(self):
         self.name = None
-        self.directory = None        
+        self.directory = None
         self.component_declarations = None
         self.header = ''
         self.no_myhdl_header = False
@@ -125,7 +129,7 @@ class _ToVHDLConvertor(object):
 
         _converting = 1
         if self.name is None:
-            name = func.func_name
+            name = func.__name__
         else:
             name = str(self.name)
         try:
@@ -197,7 +201,7 @@ class _ToVHDLConvertor(object):
 
         if pfile:
             _writeFileHeader(pfile, ppath)
-            print >> pfile, _package
+            print(_package, file=pfile)
             pfile.close()
 
         _writeFileHeader(vfile, vpath)
@@ -258,45 +262,45 @@ def _writeFileHeader(f, fn):
                 date=datetime.today().ctime()
                 )
     if toVHDL.header:
-        print >> f, string.Template(toVHDL.header).substitute(vars)
+        print(string.Template(toVHDL.header).substitute(vars), file=f)
     if not toVHDL.no_myhdl_header:
-        print >> f, string.Template(myhdl_header).substitute(vars)
-    print >> f
+        print(string.Template(myhdl_header).substitute(vars), file=f)
+    print(file=f)
 
 
 def _writeCustomPackage(f, intf):
-    print >> f
-    print >> f, "package pck_%s is" % intf.name
-    print >> f
-    print >> f, "attribute enum_encoding: string;"
-    print >> f
+    print(file=f)
+    print("package pck_%s is" % intf.name, file=f)
+    print(file=f)
+    print("attribute enum_encoding: string;", file=f)
+    print(file=f)
     sortedList = list(_enumPortTypeSet)
-    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
-        print >> f, "    %s" % t._toVHDL()
-    print >> f
-    print >> f, "end package pck_%s;" % intf.name
-    print >> f
+        print("    %s" % t._toVHDL(), file=f)
+    print(file=f)
+    print("end package pck_%s;" % intf.name, file=f)
+    print(file=f)
 
 
 def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric):
-    print >> f, "library IEEE;"
-    print >> f, "use IEEE.std_logic_1164.all;"
-    print >> f, "use IEEE.numeric_std.all;"
-    print >> f, "use std.textio.all;"
-    print >> f
+    print("library IEEE;", file=f)
+    print("use IEEE.std_logic_1164.all;", file=f)
+    print("use IEEE.numeric_std.all;", file=f)
+    print("use std.textio.all;", file=f)
+    print(file=f)
     if lib != "work":
-        print >> f, "library %s;" % lib
+        print("library %s;" % lib, file=f)
     if useClauses is not None:
         f.write(useClauses)
         f.write("\n")
     else:
-        print >> f, "use %s.pck_myhdl_%s.all;" % (lib, _shortversion)
-    print >> f
+        print("use %s.pck_myhdl_%s.all;" % (lib, _shortversion), file=f)
+    print(file=f)
     if needPck:
-        print >> f, "use %s.pck_%s.all;" % (lib, intf.name)
-        print >> f
-    print >> f, "entity %s is" % intf.name
+        print("use %s.pck_%s.all;" % (lib, intf.name), file=f)
+        print(file=f)
+    print("entity %s is" % intf.name, file=f)
     if intf.argnames:
         f.write("    port (")
         c = ''
@@ -326,11 +330,11 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric):
                                   )
                 f.write("\n        %s: in %s%s" % (portname, p, r))
         f.write("\n    );\n")
-    print >> f, "end entity %s;" % intf.name
-    print >> f, doc
-    print >> f
-    print >> f, "architecture %s of %s is" % (arch, intf.name)
-    print >> f
+    print("end entity %s;" % intf.name, file=f)
+    print(doc, file=f)
+    print(file=f)
+    print("architecture %s of %s is" % (arch, intf.name), file=f)
+    print(file=f)
 
 
 def _writeFuncDecls(f):
@@ -362,7 +366,7 @@ def _writeConstants(f):
 def _writeTypeDefs(f):
     f.write("\n")
     sortedList = list(_enumTypeSet)
-    sortedList.sort(cmp=lambda a, b: cmp(a._name, b._name))
+    sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
         f.write("%s\n" % t._toVHDL())
     f.write("\n")
@@ -385,7 +389,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               )
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print >> f, "signal %s: %s%s;" % (s._name, p, r)
+            print("signal %s: %s%s;" % (s._name, p, r), file=f)
         elif s._read:
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
@@ -394,7 +398,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           category=ToVHDLWarning
                           )
             constwires.append(s)
-            print >> f, "signal %s: %s%s;" % (s._name, p, r)
+            print("signal %s: %s%s;" % (s._name, p, r), file=f)
     for m in memlist:
         if not m._used:
             continue
@@ -409,16 +413,16 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
-        print >> f, "type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r)
-        print >> f, "signal %s: %s;" % (m.name, t)
-    print >> f
+        print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
+        print("signal %s: %s;" % (m.name, t), file=f)
+    print(file=f)
 
 def _writeCompDecls(f,  compDecls):
     if compDecls is not None:
-        print >> f, compDecls
+        print(compDecls, file=f)
 
 def _writeModuleFooter(f, arch):
-    print >> f, "end architecture %s;" % arch
+    print("end architecture %s;" % arch, file=f)
 
 def _getRangeString(s):
     if isinstance(s._val, EnumItemType):
@@ -469,8 +473,8 @@ def _convertGens(genlist, siglist, memlist, vfile):
         v = Visitor(tree, blockBuf, funcBuf)
         v.visit(tree)
     vfile.write(funcBuf.getvalue()); funcBuf.close()
-    print >> vfile, "begin"
-    print >> vfile
+    print("begin", file=vfile)
+    print(file=vfile)
     for s in constwires:
         if s._type is bool:
             c = int(s._val)
@@ -485,19 +489,19 @@ def _convertGens(genlist, siglist, memlist, vfile):
                 pre, suf = "to_unsigned(", ", %s)" % w
         else:
             raise ToVHDLError("Unexpected type for constant signal", s._name)
-        print >> vfile, "%s <= %s%s%s;" % (s._name, pre, c, suf)
-    print >> vfile
+        print("%s <= %s%s%s;" % (s._name, pre, c, suf), file=vfile)
+    print(file=vfile)
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVHDL') and s._read:
-            print >> vfile, s.toVHDL()
+            print(s.toVHDL(), file=vfile)
     # hack for slice signals in a list
     for m in memlist:
         if m._read:
             for s in m.mem:
                 if hasattr(s, 'toVHDL'):
-                    print >> vfile, s.toVHDL()
-    print >> vfile
+                    print(s.toVHDL(), file=vfile)
+    print(file=vfile)
     vfile.write(blockBuf.getvalue()); blockBuf.close()
 
 
@@ -598,7 +602,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 pre, suf = "bool(", ")"
         elif isinstance(vhd, vhd_std_logic):
             if not isinstance(ori, vhd_std_logic):
-                pre, suf = "stdl(", ")"
+                if isinstance(ori, vhd_unsigned) :
+                    pre, suf = "", "(0)"
+                else:
+                    pre, suf = "stdl(", ")"
         elif isinstance(vhd, vhd_string):
             if isinstance(ori, vhd_enum):
                 pre, suf = "%s'image(" % ori._type._name, ")"
@@ -919,6 +926,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         fn = node.func
         # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
+
+        if f is print:
+            self.visit_Print(node)
+            return
+
         fname = ''
         pre, suf = '', ''
         opening, closing = '(', ')'
@@ -930,7 +942,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is len:
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
-            self.write(`val`)
+            self.write(repr(val))
             return
         elif f is now:
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
@@ -945,7 +957,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1" )
                 else:
                     node.args[0].s = ord(node.args[0].s)
-        elif f in (int, long):
+        elif f in integer_types:
             opening, closing = '', ''
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
@@ -974,7 +986,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(closing)
             self.write(suf)
             return
-        elif type(f) is ClassType and issubclass(f, Exception):
+        elif (type(f) in class_types) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -1174,8 +1186,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             item = test.case[1]
             if isinstance(item, EnumItemType):
                 itemRepr = item._toVHDL()
-            else:
+            elif hasattr(obj, '_nrbits'):
                 itemRepr = self.BitRepr(item, obj)
+            else:
+                itemRepr = i
             comment = ""
             # potentially use default clause for last test
             if (i == len(node.tests)-1) and not node.else_:
@@ -1236,6 +1250,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         for stmt in node.body:
             self.visit(stmt)
 
+    def visit_NameConstant(self, node):
+        node.id = str(node.value)
+        self.getName(node)
+
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setName(node)
@@ -1283,7 +1301,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if n in _constDict and obj == _constDict[n]:
                     if isinstance(node.vhd, vhd_boolean):
                         s = "bool(%s)" % n
-            elif isinstance(obj, (int, long)):
+            elif isinstance(obj, integer_types):
                 # print the symbol for an integer in the global constant dict
                 if n in _constDict and obj == _constDict[n]:
                     assert abs(obj) < 2**31
@@ -1330,7 +1348,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVHDL()
-            elif type(obj) is ClassType and issubclass(obj, Exception):
+            elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
@@ -1609,9 +1627,9 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
             for item in senslist:
                 name = item._name.split('(',1)[0]
                 if not name in r:
-                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...        
+                    r.append( name ) # note that the list now contains names and not Signals, but we are interested in the strings anyway ...
             return r
-        
+
         self.writeDoc(node)
         senslist = compressSensitivityList(self.tree.senslist)
         self.write("%s: process (" % self.tree.name)
@@ -1890,7 +1908,7 @@ class vhd_enum(vhd_type):
 
     def toStr(self, constr = True):
         return self._type.__dict__['_name']
-      
+
 
 class vhd_std_logic(vhd_type):
     def __init__(self, size=0):
@@ -1968,7 +1986,7 @@ def inferVhdlObj(obj):
     if (isinstance(obj, _Signal) and obj._type is intbv) or \
        isinstance(obj, intbv):
         ls = getattr(obj, 'lenStr', False)
-        if obj.min < 0:
+        if obj.min is None or obj.min < 0:
             vhd = vhd_signed(size=len(obj), lenStr=ls)
         else:
             vhd = vhd_unsigned(size=len(obj), lenStr=ls)
@@ -1982,7 +2000,7 @@ def inferVhdlObj(obj):
         else:
             tipe = obj._type
         vhd = vhd_enum(tipe)
-    elif isinstance(obj, (int, long)):
+    elif isinstance(obj, integer_types):
         if obj >= 0:
             vhd = vhd_nat()
         else:
@@ -2042,12 +2060,12 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(a, ast.Str):
                     a.vhd = vhd_unsigned(a.vhd.size)
                 elif isinstance(a.vhd, vhd_signed):
-                    a.vhd = vhd_unsigned(a.vhd.size) 
+                    a.vhd = vhd_unsigned(a.vhd.size)
                 s += a.vhd.size
             node.vhd = vhd_unsigned(s)
         elif f is bool:
             node.vhd = vhd_boolean()
-        elif f in (int, long, ord):
+        elif f in _flatten(integer_types, ord):
             node.vhd = vhd_int()
             node.args[0].vhd = vhd_int()
         elif f in (intbv, modbv):
@@ -2094,6 +2112,10 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.tree.vardict[var] = _loopInt(-1)
         self.generic_visit(node)
 
+    def visit_NameConstant(self, node):
+        node.vhd = inferVhdlObj(node.value)
+        node.vhdOri = copy(node.vhd)
+
     def visit_Name(self, node):
         if node.id in self.tree.vardict:
             node.obj = self.tree.vardict[node.id]
@@ -2129,9 +2151,9 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             right.vhd = vhd_unsigned(1)
         if isinstance(right.vhd, vhd_unsigned):
             if maybeNegative(left.vhd) or \
-               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')): 
+               (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')):
                 right.vhd = vhd_signed(right.vhd.size + 1)
-        if isinstance(left.vhd, vhd_unsigned): 
+        if isinstance(left.vhd, vhd_unsigned):
             if maybeNegative(right.vhd) or \
                (isinstance(op, ast.Sub) and not hasattr(node, 'isRhs')):
                 left.vhd = vhd_signed(left.vhd.size + 1)

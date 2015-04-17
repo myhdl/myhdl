@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 path = os.path
 from random import randrange
@@ -290,7 +291,7 @@ def LoopBench(LoopTest):
         for i in range(100):
             a.next = data[i]
             yield delay(10)
-            print z
+            print(z)
 
     return stimulus, looptest_inst
 
@@ -344,7 +345,7 @@ def testWhileBreakContinueLoop():
 def testForLoopError1():
     try:
         analyze(LoopBench, ForLoopError1)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.Requirement
     else:
         assert False
@@ -352,7 +353,7 @@ def testForLoopError1():
 def testForLoopError2():
     try:
         analyze(LoopBench, ForLoopError2)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.Requirement
     else:
         assert False

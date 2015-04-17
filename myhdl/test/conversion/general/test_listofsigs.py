@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -31,7 +32,7 @@ def intbv2list():
             a.next = i
             yield delay(10)
             assert z == a
-            print a
+            print(a)
         raise StopSimulation
 
     return extract, assemble, stimulus
@@ -185,7 +186,7 @@ def processlist(case, inv):
             a.next = i
             yield delay(10)
             assert z == ~a
-            print z
+            print(z)
         raise StopSimulation
 
     return case_inst, stimulus
@@ -224,7 +225,7 @@ def unsigned():
         a[0].next = 2
         a[1].next = 5
         yield delay(10)
-        print z
+        print(z)
 
     return logic, stimulus
 
@@ -246,7 +247,7 @@ def signed():
         a[0].next = 2
         a[1].next = -5
         yield delay(10)
-        print z
+        print(z)
 
     return logic, stimulus
 
@@ -269,7 +270,7 @@ def mixed():
         a[0].next = -6
         b[2].next = 15
         yield delay(10)
-        print z
+        print(z)
 
     return logic, stimulus
 
@@ -298,7 +299,7 @@ def test_portInList():
 
     try:
         inst = conversion.analyze(portInList, z, a, b)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.PortInList
     else:
         assert False
@@ -323,7 +324,7 @@ def test_sigInMultipleLists():
 
     try:
         inst = conversion.analyze(sigInMultipleLists)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.SignalInMultipleLists
     else:
         assert False
@@ -344,7 +345,7 @@ def test_listAsPort():
     outp = [Signal(intbv(0)[8:0]) for index in range(count)]
     try:
         inst = conversion.analyze(my_register, clk, inp, outp)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.ListAsPort
     else:
         assert False

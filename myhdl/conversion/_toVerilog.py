@@ -20,6 +20,8 @@
 """ myhdl toVerilog conversion module.
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 
 
 import sys
@@ -31,12 +33,13 @@ from datetime import datetime
 import ast
 import string
 
-from types import GeneratorType, ClassType, TypeType
-from cStringIO import StringIO
+from types import GeneratorType
+from myhdl._compat import StringIO
 import warnings
 
 import myhdl
 from myhdl import *
+from myhdl._compat import integer_types, class_types, PY2
 from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
@@ -47,6 +50,7 @@ from myhdl.conversion._misc import (_error, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
 from myhdl._Signal import _Signal
+
 
 _converting = 0
 _profileFunc = None
@@ -121,7 +125,7 @@ class _ToVerilogConvertor(object):
 
         _converting = 1
         if self.name is None:
-            name = func.func_name
+            name = func.__name__
         else:
             name = str(self.name)
         try:
@@ -169,9 +173,15 @@ class _ToVerilogConvertor(object):
             _writeTestBench(tbfile, intf, self.trace)
             tbfile.close()
 
+        # build portmap for cosimulation
+        portmap = {}
+        for n, s in intf.argdict.items():
+            if hasattr(s, 'driver'): portmap[n] = s.driver()
+            else: portmap[n] = s
+        self.portmap = portmap
+
         ### clean-up properly ###
         self._cleanup(siglist)
-        self.portmap = intf.argdict
 
         return h.top
 
@@ -214,24 +224,24 @@ def _writeFileHeader(f, fn, ts):
                 date=datetime.today().ctime()
                 )
     if not toVerilog.no_myhdl_header:
-        print >> f, string.Template(myhdl_header).substitute(vars)
+        print(string.Template(myhdl_header).substitute(vars), file=f)
     if toVerilog.header:
-        print >> f, string.Template(toVerilog.header).substitute(vars)
-    print >> f
-    print >> f, "`timescale %s" % ts
-    print >> f
+        print(string.Template(toVerilog.header).substitute(vars), file=f)
+    print(file=f)
+    print("`timescale %s" % ts, file=f)
+    print(file=f)
 
 
 def _writeModuleHeader(f, intf, doc):
-    print >> f, "module %s (" % intf.name
+    print("module %s (" % intf.name, file=f)
     b = StringIO()
     for portname in intf.argnames:
-        print >> b, "    %s," % portname
-    print >> f, b.getvalue()[:-2]
+        print("    %s," % portname, file=b)
+    print(b.getvalue()[:-2], file=f)
     b.close()
-    print >> f, ");"
-    print >> f, doc
-    print >> f
+    print(");", file=f)
+    print(doc, file=f)
+    print(file=f)
     for portname in intf.argnames:
         s = intf.argdict[portname]
         if s._name is None:
@@ -247,18 +257,18 @@ def _writeModuleHeader(f, intf, doc):
                 warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
                               category=ToVerilogWarning
                               )
-            print >> f, "output %s%s%s;" % (p, r, portname)
+            print("output %s%s%s;" % (p, r, portname), file=f)
             if s._driven == 'reg':
-                print >> f, "reg %s%s%s;" % (p, r, portname)
+                print("reg %s%s%s;" % (p, r, portname), file=f)
             else:
-                print >> f, "wire %s%s%s;" % (p, r, portname)
+                print("wire %s%s%s;" % (p, r, portname), file=f)
         else:
             if not s._read:
                 warnings.warn("%s: %s" % (_error.UnusedPort, portname),
                               category=ToVerilogWarning
                               )
-            print >> f, "input %s%s%s;" % (p, r, portname)
-    print >> f
+            print("input %s%s%s;" % (p, r, portname), file=f)
+    print(file=f)
 
 
 def _writeSigDecls(f, intf, siglist, memlist):
@@ -280,7 +290,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 k = 'reg'
             # the following line implements initial value assignments
             # print >> f, "%s %s%s = %s;" % (k, r, s._name, int(s._val))
-            print >> f, "%s %s%s%s;" % (k, p, r, s._name)
+            print("%s %s%s%s;" % (k, p, r, s._name), file=f)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -289,8 +299,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           category=ToVerilogWarning
                           )
             constwires.append(s)
-            print >> f, "wire %s%s;" % (r, s._name)
-    print >> f
+            print("wire %s%s;" % (r, s._name), file=f)
+    print(file=f)
     for m in memlist:
         if not m._used:
             continue
@@ -307,29 +317,29 @@ def _writeSigDecls(f, intf, siglist, memlist):
         k = 'wire'
         if m._driven:
             k = m._driven
-        print >> f, "%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth)
-    print >> f
+        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
+    print(file=f)
     for s in constwires:
         if s._type in (bool, intbv):
             c = int(s.val)
         else:
             raise ToVerilogError("Unexpected type for constant signal", s._name)
-        print >> f, "assign %s = %s;" % (s._name, c)
-    print >> f
+        print("assign %s = %s;" % (s._name, c), file=f)
+    print(file=f)
     # shadow signal assignments
     for s in siglist:
-        if hasattr(s, 'toVerilog') and s._read:
-            print >> f, s.toVerilog()
-    print >> f
+        if hasattr(s, 'toVerilog') and s._driven:
+            print(s.toVerilog(), file=f)
+    print(file=f)
 
 
 def _writeModuleFooter(f):
-    print >> f, "endmodule"
+    print("endmodule", file=f)
 
 
 def _writeTestBench(f, intf, trace=False):
-    print >> f, "module tb_%s;" % intf.name
-    print >> f
+    print("module tb_%s;" % intf.name, file=f)
+    print(file=f)
     fr = StringIO()
     to = StringIO()
     pm = StringIO()
@@ -337,32 +347,32 @@ def _writeTestBench(f, intf, trace=False):
         s = intf.argdict[portname]
         r = _getRangeString(s)
         if s._driven:
-            print >> f, "wire %s%s;" % (r, portname)
-            print >> to, "        %s," % portname
+            print("wire %s%s;" % (r, portname), file=f)
+            print("        %s," % portname, file=to)
         else:
-            print >> f, "reg %s%s;" % (r, portname)
-            print >> fr, "        %s," % portname
-        print >> pm, "    %s," % portname
-    print >> f
-    print >> f, "initial begin"
+            print("reg %s%s;" % (r, portname), file=f)
+            print("        %s," % portname, file=fr)
+        print("    %s," % portname, file=pm)
+    print(file=f)
+    print("initial begin", file=f)
     if trace:
-        print >> f, '    $dumpfile("%s.vcd");' % intf.name
-        print >> f, '    $dumpvars(0, dut);'
+        print('    $dumpfile("%s.vcd");' % intf.name, file=f)
+        print('    $dumpvars(0, dut);', file=f)
     if fr.getvalue():
-        print >> f, "    $from_myhdl("
-        print >> f, fr.getvalue()[:-2]
-        print >> f, "    );"
+        print("    $from_myhdl(", file=f)
+        print(fr.getvalue()[:-2], file=f)
+        print("    );", file=f)
     if to.getvalue():
-        print >> f, "    $to_myhdl("
-        print >> f, to.getvalue()[:-2]
-        print >> f, "    );"
-    print >> f, "end"
-    print >> f
-    print >> f, "%s dut(" % intf.name
-    print >> f, pm.getvalue()[:-2]
-    print >> f, ");"
-    print >> f
-    print >> f, "endmodule"
+        print("    $to_myhdl(", file=f)
+        print(to.getvalue()[:-2], file=f)
+        print("    );", file=f)
+    print("end", file=f)
+    print(file=f)
+    print("%s dut(" % intf.name, file=f)
+    print(pm.getvalue()[:-2], file=f)
+    print(");", file=f)
+    print(file=f)
+    print("endmodule", file=f)
 
 
 def _getRangeString(s):
@@ -431,6 +441,12 @@ opmap = {
     ast.NotEq    : '!=',
     ast.And      : '&&',
     ast.Or       : '||',
+}
+
+nameconstant_map = {
+    True: "1'b1",
+    False: "1'b0",
+    None: "'bz"
 }
 
 
@@ -706,6 +722,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         fn = node.func
         # assert isinstance(fn, astNode.Name)
         f = self.getObj(fn)
+
+        if f is print:
+            self.visit_Print(node)
+            return
+
         opening, closing = '(', ')'
         if f is bool:
             self.write("(")
@@ -716,7 +737,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is len:
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
-            self.write(`val`)
+            self.write(repr(val))
             return
         elif f is now:
             self.write("$time")
@@ -728,7 +749,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.raiseError(node, _error.UnsupportedType, "Strings with length > 1")
                 else:
                     node.args[0].s = str(ord(node.args[0].s))
-        elif f in (int, long):
+        elif f in integer_types:
             opening, closing = '', ''
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
@@ -744,7 +765,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(opening)
             self.visit(fn.value)
             self.write(closing)
-        elif type(f) in (ClassType, TypeType) and issubclass(f, Exception):
+        elif (type(f) in class_types) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -972,6 +993,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_ListComp(self, node):
         pass # do nothing
 
+    def visit_NameConstant(self, node):
+        self.write(nameconstant_map[node.obj])
+
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setName(node)
@@ -982,16 +1006,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(node.id)
 
     def getName(self, node):
+        n = node.id
+        if PY2 and n in ('True', 'False', 'None'):
+            self.visit_NameConstant(node)
+            return
+
         addSignBit = False
         isMixedExpr = (not node.signed) and (self.context == _context.SIGNED)
-        n = node.id
-        if n == 'False':
-            s = "1'b0"
-        elif n == 'True':
-            s = "1'b1"
-        elif n == 'None':
-            s = "'bz"
-        elif n in self.tree.vardict:
+        if n in self.tree.vardict:
             addSignBit = isMixedExpr
             s = n
         elif n in self.tree.argnames:
@@ -1002,7 +1024,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             obj = self.tree.symdict[n]
             if isinstance(obj, bool):
                 s = "%s" % int(obj)
-            elif isinstance(obj, (int, long)):
+            elif isinstance(obj, integer_types):
                 s = self.IntRepr(obj)
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
@@ -1013,7 +1035,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVerilog()
-            elif type(obj) in (ClassType, TypeType) and issubclass(obj, Exception):
+            elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
@@ -1425,7 +1447,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 def _maybeNegative(obj):
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
         return True
-    if isinstance(obj, (int, long)) and obj < 0:
+    if isinstance(obj, integer_types) and obj < 0:
         return True
     return False
 

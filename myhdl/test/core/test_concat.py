@@ -18,18 +18,21 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the concatunit tests. """
+from __future__ import absolute_import
 
 
 import unittest
 from unittest import TestCase
 import random
 from random import randrange
+from functools import reduce
 random.seed(2) # random, but deterministic
 import operator
 
 from myhdl._intbv import intbv
 from myhdl._Signal import Signal
 from myhdl._concat import concat
+from myhdl._compat import long
 
 
 

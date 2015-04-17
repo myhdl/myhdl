@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import sys
 import os
 path = os.path
@@ -21,8 +22,8 @@ def bug_1835797():
         v = intbv(0, min=-15, max=45)
         """Wrongly placed docstring"""
         yield delay(10)
-        print v.min
-        print v.max
+        print(v.min)
+        print(v.max)
         
     return logic
 

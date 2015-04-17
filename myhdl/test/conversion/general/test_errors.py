@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -15,7 +16,7 @@ def test_SigAugmAssignUnsupported():
     a = Signal(intbv(0)[8:])
     try:
         verify(sigAugmAssignUnsupported, z, a)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.NotSupported
     else:
         assert False
@@ -34,7 +35,7 @@ def test_modbvRange():
     b = Signal(intbv(0)[4:])
     try:
         verify(modbvRange, z, a, b)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.ModbvRange
     else:
         assert False
@@ -51,7 +52,7 @@ def test_modbvSigRange():
     b = Signal(intbv(0)[4:])
     try:
         verify(modbvSigRange, z, a, b)
-    except ConversionError, e:
+    except ConversionError as e:
         assert e.kind == _error.ModbvRange
     else:
         assert False

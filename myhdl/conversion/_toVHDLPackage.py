@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #

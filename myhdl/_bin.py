@@ -20,7 +20,7 @@
 """ module with the bin function.
 
 """
-
+from myhdl._compat import long
 
 
 def _int2bitstring(num):

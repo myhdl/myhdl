@@ -18,17 +18,14 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the intbv class """
+from __future__ import absolute_import, division
 
-
-
-import sys
-maxint = sys.maxint
-from types import StringType
 import operator
 
+from myhdl._compat import long, integer_types, string_types, builtins
 from myhdl._bin import bin
 
-from __builtin__ import max as maxfunc
+
 
 class intbv(object):
     #__slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
@@ -47,10 +44,10 @@ class intbv(object):
                     _nrbits = len(bin(min))
                 else:
                     # make sure there is a leading zero bit in positive numbers
-                    _nrbits = maxfunc(len(bin(max-1))+1, len(bin(min)))
-        if isinstance(val, (int, long)):
+                    _nrbits = builtins.max(len(bin(max-1))+1, len(bin(min)))
+        if isinstance(val, integer_types):
             self._val = val
-        elif isinstance(val, StringType):
+        elif isinstance(val, string_types):
             mval = val.replace('_', '')
             self._val = long(mval, 2)
             _nrbits = len(mval)
@@ -113,15 +110,14 @@ class intbv(object):
     # iterator method
     def __iter__(self):
         if not self._nrbits:
-            raise TypeError, "Cannot iterate over unsized intbv"
+            raise TypeError("Cannot iterate over unsized intbv")
         return iter([self[i] for i in range(self._nrbits-1, -1, -1)])
 
     # logical testing
-    def __nonzero__(self):
-        if self._val:
-            return 1
-        else:
-            return 0
+    def __bool__(self):
+        return bool(self._val)
+
+    __nonzero__ = __bool__
 
     # length
     def __len__(self):
@@ -136,15 +132,15 @@ class intbv(object):
                 j = 0
             j = int(j)
             if j < 0:
-                raise ValueError, "intbv[i:j] requires j >= 0\n" \
-                      "            j == %s" % j
+                raise ValueError("intbv[i:j] requires j >= 0\n" \
+                      "            j == %s" % j)
             if i is None: # default
                 return intbv(self._val >> j)
             i = int(i)
             if i <= j:
-                raise ValueError, "intbv[i:j] requires i > j\n" \
-                      "            i, j == %s, %s" % (i, j)
-            res = intbv((self._val & (1L << i)-1) >> j, _nrbits=i-j)
+                raise ValueError("intbv[i:j] requires i > j\n" \
+                      "            i, j == %s, %s" % (i, j))
+            res = intbv((self._val & (long(1) << i)-1) >> j, _nrbits=i-j)
             return res
         else:
             i = int(key)
@@ -162,21 +158,21 @@ class intbv(object):
                 j = 0
             j = int(j)
             if j < 0:
-                raise ValueError, "intbv[i:j] = v requires j >= 0\n" \
-                      "            j == %s" % j
+                raise ValueError("intbv[i:j] = v requires j >= 0\n" \
+                      "            j == %s" % j)
             if i is None: # default
-                q = self._val % (1L << j)
-                self._val = val * (1L << j) + q
+                q = self._val % (long(1) << j)
+                self._val = val * (long(1) << j) + q
                 self._handleBounds()
                 return
             i = int(i)
             if i <= j:
-                raise ValueError, "intbv[i:j] = v requires i > j\n" \
-                      "            i, j, v == %s, %s, %s" % (i, j, val)
-            lim = (1L << (i-j))
+                raise ValueError("intbv[i:j] = v requires i > j\n" \
+                      "            i, j, v == %s, %s, %s" % (i, j, val))
+            lim = (long(1) << (i-j))
             if val >= lim or val < -lim:
-                raise ValueError, "intbv[i:j] = v abs(v) too large\n" \
-                      "            i, j, v == %s, %s, %s" % (i, j, val)
+                raise ValueError("intbv[i:j] = v abs(v) too large\n" \
+                      "            i, j, v == %s, %s, %s" % (i, j, val))
             mask = (lim-1) << j
             self._val &= ~mask
             self._val |= (val << j)
@@ -184,12 +180,12 @@ class intbv(object):
         else:
             i = int(key)
             if val == 1:
-                self._val |= (1L << i)
+                self._val |= (long(1) << i)
             elif val == 0:
-                self._val &= ~(1L << i)
+                self._val &= ~(long(1) << i)
             else:
-                raise ValueError, "intbv[i] = v requires v in (0, 1)\n" \
-                      "            i == %s " % i
+                raise ValueError("intbv[i] = v requires v in (0, 1)\n" \
+                      "            i == %s " % i)
                
             self._handleBounds()
 
@@ -221,21 +217,13 @@ class intbv(object):
     def __rmul__(self, other):
         return other * self._val
 
-    def __div__(self, other):
+    def __truediv__(self, other):
         if isinstance(other, intbv):
             return self._val / other._val
         else:
             return self._val / other
-    def __rdiv__(self, other):
-        return other / self._val
-    
-    def __truediv__(self, other):
-        if isinstance(other, intbv):
-            return operator.truediv(self._val, other._val)
-        else:
-            return operator.truediv(self._val, other)
     def __rtruediv__(self, other):
-        return operator.truediv(other, self._val)
+        return other / self._val
     
     def __floordiv__(self, other):
         if isinstance(other, intbv):
@@ -355,7 +343,7 @@ class intbv(object):
             self._val **= other._val
         else:
             self._val **= other
-        if not isinstance(self._val, (int, long)):
+        if not isinstance(self._val, integer_types):
             raise ValueError("intbv value should be integer")
         self._handleBounds()
         return self
@@ -412,7 +400,7 @@ class intbv(object):
 
     def __invert__(self):
         if self._nrbits and self._min >= 0:
-            return type(self)(~self._val & (1L << self._nrbits)-1)
+            return type(self)(~self._val & (long(1) << self._nrbits)-1)
         else:
             return type(self)(~self._val)
     
@@ -514,7 +502,7 @@ class intbv(object):
       '''
 
       # value is considered unsigned
-      if self.min >= 0 and self._nrbits > 0:
+      if self.min is not None and self.min >= 0 and self._nrbits > 0:
 
         # get 2's complement value of bits
         msb = self._nrbits-1
