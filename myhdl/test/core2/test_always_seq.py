@@ -28,7 +28,7 @@ def test_clock():
         def logic2():
             pass
     except:
-        pytest.fail()
+        assert False
 
 def test_reset(): 
     """ check the reset parameter """
@@ -37,7 +37,7 @@ def test_reset():
     clock = Signal(bool(0))
     reset = Signal(bool(0))
 
-    with raises(AlwaysSeqError):
+    with raises(AlwaysSeqError) as e:
         @always_seq(clock.posedge, reset=reset)
         def logic():
             pass
@@ -50,5 +50,5 @@ def test_reset():
         def logic2():
             pass
     except:
-        pytest.fail()
+        assert False
 
