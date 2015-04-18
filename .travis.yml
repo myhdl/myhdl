@@ -31,7 +31,7 @@ matrix:
     - python: "3.4"
       env: CI_TARGET=ghdl
 
-script: ./ci.sh
+script: ./scripts/ci.sh
 
 notifications:
   email: false
