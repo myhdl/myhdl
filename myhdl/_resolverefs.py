@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import ast
+import itertools
 from types import FunctionType
 
 from myhdl._util import _flatten, _makeAST, _genfunc
@@ -24,6 +25,10 @@ def _resolveRefs(symdict, arg):
 
 #TODO: Refactor this into two separate nodetransformers, since _resolveRefs
 #needs only the names, not the objects
+
+def _suffixer(name):
+    suffixed_names = (name+'_renamed{0}'.format(i) for i in itertools.count())
+    return itertools.chain([name], suffixed_names)
 
 
 class _AttrRefTransformer(ast.NodeTransformer):
@@ -52,13 +57,12 @@ class _AttrRefTransformer(ast.NodeTransformer):
                 return node
 
         attrobj = getattr(obj, node.attr)
-        new_name = node.value.id+'.'+node.attr
-        if new_name not in self.data.symdict:
-            self.data.symdict[new_name] = attrobj
-            self.data.objlist.append(new_name)
-        else:
-            pass
-            #assert self.data.symdict[new_name] == attrobj
+
+        name = node.value.id + '_' + node.attr
+        new_name = next(s for s in _suffixer(name) if s not in self.data.symdict)
+        self.data.symdict[new_name] = attrobj
+        self.data.objlist.append(new_name)
+
         new_node = ast.Name(id=new_name, ctx=node.value.ctx)
         return ast.copy_location(new_node, node)
 
