@@ -23,16 +23,14 @@ echo -e "Running $CI_TARGET tests\n"
 CI_TARGET=${CI_TARGET:-core}
 if [ "$CI_TARGET" == "core" ]; then
   run_test make -C myhdl/test/core
-  run_test make -C myhdl/test/core2
 elif [ "$CI_TARGET" == "icarus" ]; then
   run_test make -C "myhdl/test/conversion/general" icarus
   run_test make -C cosimulation/icarus test
   run_test make -C myhdl/test/conversion/toVerilog
+  run_test make -C "myhdl/test/bugs" icarus
 elif [ "$CI_TARGET" == "ghdl" ]; then
   run_test make -C "myhdl/test/conversion/general" GHDL
   run_test make -C myhdl/test/conversion/toVHDL GHDL
-elif [ "$CI_TARGET" == "bugs" ]; then
-  run_test make -C "myhdl/test/bugs" icarus
   run_test make -C "myhdl/test/bugs" GHDL
 fi
 
