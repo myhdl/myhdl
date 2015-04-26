@@ -54,7 +54,8 @@ class _TristateDriver(_Signal):
         self._val = None
         self._bus = bus
 
-    def _set_next(self, val):
+    @_Signal.next.setter
+    def next(self, val):
          if isinstance(val, _Signal):
             val = val._val
          if val is None:
@@ -62,7 +63,6 @@ class _TristateDriver(_Signal):
          else:             
              self._setNextVal(val)
          _siglist.append(self._bus)   
-    next = property(_Signal._get_next, _set_next, None, "'next' access methods")
 
     
 class _DelayedTristate(_DelayedSignal, _Tristate):
