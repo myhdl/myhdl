@@ -9,10 +9,12 @@ build/
 __pycache__/
 *egg-info/
 dist/
+.tox
 
 # Cosim
 *.o
 *.vpi
+*.so
 
 # Simulator generated files
 *.vcd

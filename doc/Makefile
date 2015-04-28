@@ -19,6 +19,7 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html      to make standalone HTML files"
+	@echo "  livehtml  to make continuously updating standalone HTML files"
 	@echo "  web       to make files usable by Sphinx.web"
 	@echo "  htmlhelp  to make HTML files and a HTML help project"
 	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
@@ -40,6 +41,10 @@ html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
+
+livehtml:
+	mkdir -p build/html build/doctrees
+	sphinx-autobuild -b html $(ALLSPHINXOPTS) build/html
 
 web:
 	mkdir -p build/web build/doctrees
