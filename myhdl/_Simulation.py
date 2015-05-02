@@ -78,7 +78,7 @@ class Simulation(object):
             _simulator._cosim = 0
             os.close(cosim._rt)
             os.close(cosim._wf)
-            os.waitpid(cosim._child_pid, 0)
+            cosim._child.wait()
         if _simulator._tracing:
             _simulator._tracing = 0
             _simulator._tf.close()

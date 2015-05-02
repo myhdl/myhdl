@@ -62,12 +62,13 @@ class intbv(object):
         self._handleBounds()
         
     # support for the 'min' and 'max' attribute
-    def _get_max(self):
+    @property
+    def max(self):
         return self._max
-    max = property(_get_max, None)
-    def _get_min(self):
+
+    @property
+    def min(self):
         return self._min
-    min = property(_get_min, None)
 
     def _handleBounds(self):
         if self._max is not None:

@@ -5,7 +5,7 @@ myhdl.vpi: myhdl.c myhdl_table.c
 
 .PHONY: test
 test: myhdl.vpi
-	make -C test
+	cd test && python test_all.py
 
 clean:
 	-rm *.o *.vpi
