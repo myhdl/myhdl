@@ -11,11 +11,11 @@ description and verification language.
 
 To find out whether MyHDL can be useful to you, please read:
 
-[http://www.myhdl.org/start/why.html](http://www.myhdl.org/start/why.html)
+   - http://www.myhdl.org/start/why.html
 
 License
 -------
-MyHDL is available under the LGPL license.  See LICENSE.txt.
+MyHDL is available under the LGPL license.  See ``LICENSE.txt``.
 
 Website
 -------
@@ -25,13 +25,13 @@ Documentation
 -------------
 The manual is available on-line:
 
-   http://docs.myhdl.org/en/latest/manual
+   - http://docs.myhdl.org/en/latest/manual
 
 What's new
 ----------
 To find out what's new in this release, please read:
 
-[http://docs.myhdl.org/en/latest/whatsnew/0.8.html](http://docs.myhdl.org/en/latest/whatsnew/0.8.html)
+   - http://docs.myhdl.org/en/latest/whatsnew/0.9.html
 
 Installation
 ------------
@@ -52,7 +52,7 @@ python setup.py install --home=$HOME
 ```
 
 In this case, be sure to add the appropriate install dir to the
-$PYTHONPATH.
+``$PYTHONPATH``.
 
 If necessary, consult the distutils documentation in the standard
 Python library if necessary for more details;
@@ -67,6 +67,5 @@ python test_all.py
 
 To install co-simulation support:
 
-Go to the directory co-simulation/<platform> for your target platform
-and following the instructions in the README.txt file.
-
+Go to the directory ``cosimulation/<platform>`` for your target platform
+and following the instructions in the ``README.txt`` file.
