@@ -29,6 +29,7 @@ random.seed(1) # random, but deterministic
 
 from myhdl import Simulation, SimulationError, now, delay, StopSimulation, join
 from myhdl import Signal, intbv
+from myhdl import instance, always
 from myhdl._Simulation import _error
 
 from myhdl._simulator import _siglist
@@ -868,6 +869,42 @@ class TimeZeroEvents(TestCase):
         testBench = self.bench(sig=s, next=0, clause=s.negedge)
         Simulation(testBench).run(quiet=QUIET)
 
+class NewSimResetsSignal(TestCase):
+    '''Check that a new sim instances resets the signal states.
+    '''
+    def trivial_test(self, clock):
+        
+        HALF_PERIOD = 5
+        @instance
+        def clockgen():
+            while True:
+                yield delay(HALF_PERIOD)
+                clock.next = not clock
+
+        @always(clock.posedge)
+        def trivial():
+            pass
+
+        return clockgen, trivial
+
+    def test_signals_reset(self):
+        '''When a new simulation instance is created, the sim state should be
+        cleared.
+
+        This is so that existing waiters on a signal don't cause problems
+        in which instances that should not be part of this simulation
+        are called.
+        '''
+        clock = Signal(bool(0))
+
+        sim = Simulation(self.trivial_test(clock))
+        sim.run(40, quiet=QUIET)
+        self.assertTrue(len(clock._posedgeWaiters) > 0)
+
+        sim = Simulation(self.trivial_test(clock))
+        # The creation of the new instance should have cleared the sim state
+        # on the signal.
+        self.assertTrue(len(clock._posedgeWaiters) == 0)
 
         
 if __name__ == "__main__":

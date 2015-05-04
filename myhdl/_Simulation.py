@@ -70,6 +70,11 @@ class Simulation(object):
         self._finished = False
         del _futureEvents[:]
         del _siglist[:]
+
+        # We need to clear all the signals since we have a new simulation
+        # instance. This will break other simulation instances.
+        for s in _signals:
+            s._clear()
         
         
     def _finalize(self):
