@@ -62,7 +62,7 @@ You can test the proper installation as follows:
 
 ```
 cd myhdl/test/core
-python test_all.py
+py.test
 ```
 
 To install co-simulation support:
