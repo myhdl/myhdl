@@ -47,17 +47,53 @@ def bench_ConcatSignal():
                         c.next = k
                         d.next = m
                         yield delay(10)
-                        assert s[16:8] == a
+                        assert s[13:8] == a
                         assert s[7] == b
                         assert s[7:4] == c
                         assert s[4:] == d
 
     return check
 
-
 def test_ConcatSignal():
     Simulation(bench_ConcatSignal()).run()
 
+def bench_ConcatSignalWithConsts():
+    
+    a = Signal(intbv(0)[5:])
+    b = Signal(bool(0))
+    c = Signal(intbv(0)[3:])
+    d = Signal(intbv(0)[4:])
+    c1 = "10"
+    c2 = '0'
+    c3 = intbv(5)[3:]
+    c4 = bool(1) 
+    
+    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d)
+
+    @instance
+    def check():
+        for i in range(2**len(a)):
+            for j in (0, 1):
+                for k in range(2**len(c)):
+                    for m in range(2**len(d)):
+                        a.next = i
+                        b.next = j
+                        c.next = k
+                        d.next = m
+                        yield delay(10)
+                        assert s[20:18] == long(c1, 2)
+                        assert s[18:13] == a
+                        assert s[12] == long(c2, 2)
+                        assert s[11] == b
+                        assert s[11:8] == c3
+                        assert s[8:5] == c
+                        assert s[4] == c4
+                        assert s[4:] == d
+
+    return check
+
+def test_ConcatSignalWithConsts():
+    Simulation(bench_ConcatSignalWithConsts()).run()
 
 
 def bench_TristateSignal():

@@ -119,21 +119,39 @@ class _SliceSignal(_ShadowSignal):
 
 class ConcatSignal(_ShadowSignal):
 
-    __slots__ = ('_args',)
+    __slots__ = ('_args', '_sigargs', '_initval')
 
     def __init__(self, *args):
         assert len(args) >= 2
         self._args = args
-        ### XXX error checks
+        self._sigargs = sigargs = []
+
         nrbits = 0
+        val = 0
         for a in args:
-            nrbits += len(a)
-        ini = intbv(0)[nrbits:]
-        hi = nrbits
-        for a in args:
-            lo = hi - len(a)
-            ini[hi:lo] = a
-            hi = lo
+            if isinstance(a, intbv):
+                w = a._nrbits
+                v = a._val
+            elif isinstance(a, _Signal):
+                sigargs.append(a)
+                w = a._nrbits
+                if isinstance(a._val, intbv):
+                    v = a._val._val
+                else:
+                    v = a._val
+            elif isinstance(a, bool):
+                w = 1
+                v = a 
+            elif isinstance(a, str):
+                w = len(a)
+                v = long(a, 2)
+            else:
+                raise TypeError("ConcatSignal: inappropriate argument type: %s" \
+                                % type(arg))
+            nrbits += w
+            val = val << w | v & (long(1) << w)-1
+        self._initval = val
+        ini = intbv(val)[nrbits:]
         _ShadowSignal.__init__(self, ini)
         gen = self.genfunc()
         self._waiter = _SignalTupleWaiter(gen)
@@ -141,25 +159,31 @@ class ConcatSignal(_ShadowSignal):
     def genfunc(self):
         set_next = _Signal.next.fset
         args = self._args
+        sigargs = self._sigargs
         nrbits = self._nrbits
-        newval = intbv(0)[nrbits:]
+        newval = intbv(self._initval)[nrbits:]
         while 1:
             hi = nrbits
             for a in args:
-                lo = hi - len(a)
-                newval[hi:lo] = a
+                if isinstance(a, bool):
+                    w = 1
+                else:
+                    w = len(a)
+                lo = hi - w
+                if a in sigargs:
+                    newval[hi:lo] = a
                 hi = lo
             set_next(self, newval)
-            yield args
+            yield sigargs
 
     def _markRead(self):
         self._read = True
-        for s in self._args:
+        for s in self._sigargs:
             s._markRead() 
 
     def _markUsed(self):
         self._used = True
-        for s in self._args:
+        for s in self._sigargs:
             s._markUsed() 
 
     def toVHDL(self):
