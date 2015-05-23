@@ -56,11 +56,45 @@ def bench_ConcatSignal():
 
     return check
 
-
 def test_ConcatSignal():
     assert conversion.verify(bench_ConcatSignal) == 0
 
+def bench_ConcatSignalWithConsts():
+    
+    a = Signal(intbv(0)[5:])
+    b = Signal(bool(0))
+    c = Signal(intbv(0)[3:])
+    d = Signal(intbv(0)[4:])
 
+    c1 = "10"
+    c2 = intbv(53)[3:]
+    c3 = '0'
+    c4 = bool(1)
+  
+    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d)
+
+    I_max = 2**len(a)
+    J_max = 2**len(b)
+    K_max = 2**len(c)
+    M_max = 2**len(d)
+    @instance
+    def check():
+        for i in range(I_max):
+            for j in range(J_max):
+                for k in range(K_max):
+                    for m in range(M_max):
+                        a.next = i
+                        b.next = j
+                        c.next = k
+                        d.next = m
+                        yield delay(10)
+                        print(s)
+
+    return check
+
+
+def test_ConcatSignalWithConsts():
+    assert conversion.verify(bench_ConcatSignalWithConsts) == 0
 
 
 def bench_TristateSignal():

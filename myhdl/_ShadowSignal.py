@@ -188,25 +188,47 @@ class ConcatSignal(_ShadowSignal):
 
     def toVHDL(self):
         lines = []
+        ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
         for a in self._args:
-            lo = hi - len(a)
-            if len(a) == 1:
-                lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+            if isinstance(a, bool):
+                w = 1
             else:
-                lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
+                w = len(a)
+            lo = hi - w
+            if w == 1:
+                if isinstance(a, _Signal): 
+                     lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+                else:
+                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])[2:]))
+            else:
+                if isinstance(a, _Signal): 
+                    lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
+                else:
+                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo])[2:]))
             hi = lo
         return "\n".join(lines)
 
     def toVerilog(self):
         lines = []
+        ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
         for a in self._args:
-            lo = hi - len(a)
-            if len(a) == 1:
-                lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+            if isinstance(a, bool):
+                w = 1
             else:
-                lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
+                w = len(a)
+            lo = hi - w 
+            if w == 1:
+                if isinstance(a, _Signal): 
+                    lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+                else:
+                    lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])[2:]))
+            else:
+                if isinstance(a, _Signal): 
+                    lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
+                else:
+                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo])[2:]))
             hi = lo
         return "\n".join(lines)
 
