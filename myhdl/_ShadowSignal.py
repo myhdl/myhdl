@@ -150,7 +150,7 @@ class ConcatSignal(_ShadowSignal):
                 raise TypeError("ConcatSignal: inappropriate argument type: %s" \
                                 % type(arg))
             nrbits += w
-            val = val << w | v & (long(1) << w)-1
+            val = val << w | v & (int(1) << w)-1
         self._initval = val
         ini = intbv(val)[nrbits:]
         _ShadowSignal.__init__(self, ini)
