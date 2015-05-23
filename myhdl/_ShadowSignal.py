@@ -200,8 +200,8 @@ class ConcatSignal(_ShadowSignal):
             if w == 1:
                 if isinstance(a, _Signal):
                     if isinstance(a, bool):
-                     lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
-                else:
+                        lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+                    else:
                         lines.append("%s(%s) <= %s(0);" % (self._name, lo, a._name))
                 else:
                      lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
