@@ -229,7 +229,7 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal): 
                     lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo],w)]))
+                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo],w)))
             hi = lo
         return "\n".join(lines)
 
