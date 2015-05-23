@@ -148,7 +148,7 @@ class ConcatSignal(_ShadowSignal):
                 v = int(a, 2)
             else:
                 raise TypeError("ConcatSignal: inappropriate argument type: %s" \
-                                % type(arg))
+                                % type(a))
             nrbits += w
             val = val << w | v & (int(1) << w)-1
         self._initval = val
@@ -199,7 +199,7 @@ class ConcatSignal(_ShadowSignal):
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
-                    if isinstance(a, bool):
+                    if a._type == bool:
                         lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
                     else:
                         lines.append("%s(%s) <= %s(0);" % (self._name, lo, a._name))
@@ -209,7 +209,7 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal):
                     lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo],w)))
+                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -225,14 +225,17 @@ class ConcatSignal(_ShadowSignal):
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
-                    lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+                    if a._type == bool:
+                        lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+                    else:
+                        lines.append("assign %s[%s] = %s[0];" % (self._name, lo, a._name))
                 else:
                     lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal):
                     lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo],w)))
+                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
