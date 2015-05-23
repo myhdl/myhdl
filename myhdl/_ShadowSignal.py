@@ -30,10 +30,11 @@ from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
 from myhdl._intbv import intbv
 from myhdl._simulator import _siglist
+from myhdl._bin import bin
 
 # shadow signals
-        
-        
+
+
 class _ShadowSignal(_Signal):
 
     __slots__ = ('_waiter', )
@@ -48,7 +49,7 @@ class _ShadowSignal(_Signal):
         raise AttributeError("ShadowSignals are readonly")
 
 
-        
+
 class _SliceSignal(_ShadowSignal):
 
     __slots__ = ('_sig', '_left', '_right')
@@ -83,7 +84,7 @@ class _SliceSignal(_ShadowSignal):
             yield sig
 
     def _setName(self, hdl):
-        if self._right is None:       
+        if self._right is None:
             if hdl == 'Verilog':
                 self._name = "%s[%s]" % (self._sig._name, self._left)
             else:
@@ -101,14 +102,14 @@ class _SliceSignal(_ShadowSignal):
     def _markUsed(self):
         self._used = True
         self._sig._used = True
-        
+
 
     def toVerilog(self):
         if self._right is None:
             return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
         else:
             return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
-    
+
     def toVHDL(self):
         if self._right is None:
             return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
@@ -141,15 +142,15 @@ class ConcatSignal(_ShadowSignal):
                     v = a._val
             elif isinstance(a, bool):
                 w = 1
-                v = a 
+                v = a
             elif isinstance(a, str):
                 w = len(a)
-                v = long(a, 2)
+                v = int(a, 2)
             else:
                 raise TypeError("ConcatSignal: inappropriate argument type: %s" \
-                                % type(arg))
+                                % type(a))
             nrbits += w
-            val = val << w | v & (long(1) << w)-1
+            val = val << w | v & (int(1) << w)-1
         self._initval = val
         ini = intbv(val)[nrbits:]
         _ShadowSignal.__init__(self, ini)
@@ -179,12 +180,12 @@ class ConcatSignal(_ShadowSignal):
     def _markRead(self):
         self._read = True
         for s in self._sigargs:
-            s._markRead() 
+            s._markRead()
 
     def _markUsed(self):
         self._used = True
         for s in self._sigargs:
-            s._markUsed() 
+            s._markUsed()
 
     def toVHDL(self):
         lines = []
@@ -197,15 +198,18 @@ class ConcatSignal(_ShadowSignal):
                 w = len(a)
             lo = hi - w
             if w == 1:
-                if isinstance(a, _Signal): 
-                     lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+                if isinstance(a, _Signal):
+                    if a._type == bool:
+                        lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
+                    else:
+                        lines.append("%s(%s) <= %s(0);" % (self._name, lo, a._name))
                 else:
-                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])[2:]))
+                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
             else:
-                if isinstance(a, _Signal): 
+                if isinstance(a, _Signal):
                     lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo])[2:]))
+                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -218,17 +222,20 @@ class ConcatSignal(_ShadowSignal):
                 w = 1
             else:
                 w = len(a)
-            lo = hi - w 
+            lo = hi - w
             if w == 1:
-                if isinstance(a, _Signal): 
-                    lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+                if isinstance(a, _Signal):
+                    if a._type == bool:
+                        lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
+                    else:
+                        lines.append("assign %s[%s] = %s[0];" % (self._name, lo, a._name))
                 else:
-                    lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])[2:]))
+                    lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])))
             else:
-                if isinstance(a, _Signal): 
+                if isinstance(a, _Signal):
                     lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo])[2:]))
+                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -249,8 +256,8 @@ warnings.filterwarnings('always', r".*", BusContentionWarning)
 #         return _DelayedTristate(val, delay)
 #     else:
 #         return _Tristate(val)
- 
- 
+
+
 def TristateSignal(val):
     return _TristateSignal(val)
 
@@ -258,11 +265,11 @@ def TristateSignal(val):
 class _TristateSignal(_ShadowSignal):
 
     __slots__ = ('_drivers', '_orival' )
-            
+
     def __init__(self, val):
         self._drivers = []
         # construct normally to set type / size info right
-        _ShadowSignal.__init__(self, val)     
+        _ShadowSignal.__init__(self, val)
         self._orival = deepcopy(val) # keep for drivers
         # reset signal values to None
         self._next = self._val = self._init = None
@@ -309,7 +316,7 @@ class _TristateSignal(_ShadowSignal):
 class _TristateDriver(_Signal):
 
     __slots__ = ('_sig',)
-    
+
     def __init__(self, sig):
         _Signal.__init__(self, sig._orival)
         # reset signal values to None
@@ -322,8 +329,8 @@ class _TristateDriver(_Signal):
             val = val._val
         if val is None:
             self._next = None
-        else:     
+        else:
             # restore original value to cater for intbv handler
             self._next = self._sig._orival
             self._setNextVal(val)
-        _siglist.append(self)   
+        _siglist.append(self)

@@ -2,11 +2,11 @@ from __future__ import absolute_import
 from myhdl import *
 
 def bench_SliceSignal():
-    
+
     s = Signal(intbv(0)[8:])
     a, b, c = s(7), s(5), s(0)
     d, e, f, g = s(8,5), s(6,3), s(8,0), s(4,3)
-    N = len(s) 
+    N = len(s)
 
     @instance
     def check():
@@ -29,12 +29,12 @@ def test_SliceSignal():
 
 
 def bench_ConcatSignal():
-    
+
     a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
     c = Signal(intbv(0)[3:])
     d = Signal(intbv(0)[4:])
-    
+
     s = ConcatSignal(a, b, c, d)
 
     I_max = 2**len(a)
@@ -60,7 +60,7 @@ def test_ConcatSignal():
     assert conversion.verify(bench_ConcatSignal) == 0
 
 def bench_ConcatSignalWithConsts():
-    
+
     a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
     c = Signal(intbv(0)[3:])
@@ -68,10 +68,12 @@ def bench_ConcatSignalWithConsts():
 
     c1 = "10"
     c2 = intbv(53)[3:]
+    c2a = intbv(53)[8:]
     c3 = '0'
     c4 = bool(1)
-  
-    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d)
+    c5 = intbv(1)[1:]
+
+    s = ConcatSignal(c1, a, c2, c2a, b, c3, c, c4, d, c5)
 
     I_max = 2**len(a)
     J_max = 2**len(b)
@@ -124,7 +126,7 @@ def bench_TristateSignal():
         c.next = None
         yield delay(10)
         #print s
-    
+
     return check
 
 
@@ -136,9 +138,9 @@ def test_TristateSignal():
 def permute(x, a, mapping):
 
     p = [a(m) for m in mapping]
-    
+
     q = ConcatSignal(*p)
-    
+
     @always_comb
     def assign():
         x.next = q
