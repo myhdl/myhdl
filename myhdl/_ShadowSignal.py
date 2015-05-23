@@ -30,6 +30,7 @@ from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
 from myhdl._intbv import intbv
 from myhdl._simulator import _siglist
+from myhdl._bin import bin
 
 # shadow signals
         
@@ -200,12 +201,12 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal): 
                      lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
                 else:
-                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])[2:]))
+                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal): 
                     lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo])[2:]))
+                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo],w)))
             hi = lo
         return "\n".join(lines)
 
@@ -223,12 +224,12 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal): 
                     lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
                 else:
-                    lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])[2:]))
+                    lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal): 
                     lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo])[2:]))
+                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo],w)]))
             hi = lo
         return "\n".join(lines)
 
