@@ -67,7 +67,7 @@ def bench_ConcatSignalWithConsts():
     d = Signal(intbv(0)[4:])
 
     c1 = "10"
-    c2 = intbv(53)[3:]
+    c2 = intbv(3)[3:]
     c3 = '0'
     c4 = bool(1)
   
