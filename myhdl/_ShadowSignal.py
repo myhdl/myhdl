@@ -26,6 +26,7 @@ from __future__ import absolute_import
 import warnings
 from copy import deepcopy
 
+from myhdl._compat import long
 from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
 from myhdl._intbv import intbv
@@ -148,7 +149,7 @@ class ConcatSignal(_ShadowSignal):
                 v = long(a, 2)
             else:
                 raise TypeError("ConcatSignal: inappropriate argument type: %s" \
-                                % type(arg))
+                                % type(a))
             nrbits += w
             val = val << w | v & (long(1) << w)-1
         self._initval = val
