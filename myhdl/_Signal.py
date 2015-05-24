@@ -32,6 +32,7 @@ from __future__ import print_function
 from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
 import operator
+import warnings
 
 from myhdl._compat import integer_types, long
 from myhdl import _simulator as sim
@@ -469,13 +470,25 @@ class _Signal(object):
     # conversions
     
     def __int__(self):
-        return int(self._val)
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return int(0)
+        else:
+            return int(self._val)
         
     def __long__(self):
-        return long(self._val)
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return long(0)
+        else:
+            return long(self._val)
 
     def __float__(self):
-        return float(self._val)
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return 0.0
+        else:
+            return float(self._val)
     
     def __oct__(self):
         return oct(self._val)
@@ -484,7 +497,11 @@ class _Signal(object):
         return hex(self._val)
     
     def __index__(self):
-        return int(self._val)
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return int(0)
+        else:
+            return int(self._val)
 
 
     # comparisons
