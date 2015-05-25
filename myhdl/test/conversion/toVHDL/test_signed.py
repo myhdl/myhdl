@@ -1,4 +1,6 @@
+from __future__ import absolute_import, print_function
 from __future__ import absolute_import
+
 import os
 path = os.path
 import random
@@ -140,7 +142,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
 
     @instance
     def check():
-        while 1:
+        while True:
             yield left, right
             aBit.next = not aBit
             yield delay(1)
@@ -163,24 +165,24 @@ def binaryBench(Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ## ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-            print LeftShift
+            print(int(left), "<<", int(right), "=", int(LeftShift))
             # print Modulo
-            print Mul
+            print(int(left), "*", int(right), "=", int(Mul))
                 # self.assertEqual(Pow, Pow_v)
-            print RightShift
-            print Sub
-            print Sum
-            print Sum1
-            print Sum2
-            print Sum3
-            print int(EQ)
-            print int(NE)
-            print int(LT)
-            print int(GT)
-            print int(LE)
-            print int(GE)
-            print int(BoolAnd)
-            print int(BoolOr)
+            print(int(left), ">>", int(right), "=", int(RightShift))
+            print(int(left), "-", int(right), "=", int(Sub))
+            print(int(left), "+(0)", int(right), "=", int(Sum))
+            print(int(left), "+(1)", int(right), "=", int(Sum1))
+            print(int(left), "+(2)", int(right), "=", int(Sum2))
+            print(int(left), "+(3)", int(right), "=", int(Sum3))
+            print(int(left), "==", int(right), "=", int(EQ))
+            print(int(left), "!=", int(right), "=", int(NE))
+            print(int(left), "<", int(right), "=", int(LT))
+            print(int(left), ">", int(right), "=", int(GT))
+            print(int(left), "<=", int(right), "=", int(LE))
+            print(int(left), ">=", int(right), "=", int(GE))
+            print(int(left), "and", int(right), "=", int(BoolAnd))
+            print(int(left), "or", int(right), "=", int(BoolOr))
 
     return binops, stimulus, check
     
@@ -201,9 +203,9 @@ def testBinaryOps():
         yield checkBinaryOps, Ll, Ml, Lr, Mr
 
 
-
-
-            
+ 
+ 
+             
 def unaryOps(
              BoolNot,
              Invert,
@@ -219,61 +221,61 @@ def unaryOps(
             # UnaryAdd.next = +arg
             UnarySub.next = --arg
     return logic
-
-
-
-            
-
+  
+  
+  
+              
+  
 def unaryBench( m):
-
+  
     M = 2**m
     seqM = tuple([i for i in range(-M, M)])
-
+  
     arg = Signal(intbv(0, min=-M, max=+M))
     BoolNot = Signal(bool(0))
     Invert = Signal(intbv(0, min=-M, max=+M))
     UnaryAdd = Signal(intbv(0, min=-M, max=+M))
     UnarySub = Signal(intbv(0, min=-M, max=+M))
-
+  
     unaryops = unaryOps(
                          BoolNot,
                          Invert,
                          UnaryAdd,
                          UnarySub,
                          arg)
-
+  
     @instance
     def stimulus():
         for i in range(len(seqM)):
             arg.next = seqM[i]
             yield delay(10)
         raise StopSimulation
-
+  
     @instance
     def check():
         while 1:
             yield arg
             yield delay(1)
             # print BoolNot
-            print Invert
+            print(int(Invert))
             # print UnaryAdd
-            print UnarySub
-
-                             
+            print(int(UnarySub))
+  
+                               
     return unaryops, stimulus, check
-
-
+  
+  
 def checkUnaryOps(m):
     assert verify(unaryBench, m) == 0
-    
-
+      
+  
 def testUnaryOps():
     for m in (4, 7):
         yield checkUnaryOps, m
-
-
-
-
+  
+  
+  
+  
 def augmOps(
 ##               Bitand,
 ##               Bitor,
@@ -286,7 +288,7 @@ def augmOps(
               Sub,
               Sum,
               left, right):
-
+  
     M = 2**17
     N = 2**64
     @instance
@@ -319,27 +321,27 @@ def augmOps(
             var[:] = left
             var *= right
             Mul.next = var
-
+  
             var[:] = left
             if right >= 0:
                 var >>= right
                 RightShift.next = var
-
+  
             var[:] = left
             var -= right
             Sub.next = var
             var[:] = left
             var += right
             Sum.next = var
-
+  
     return logic
-
-
-
+  
+  
+  
 def augmBench( Ll, Ml, Lr, Mr):
-    
+      
     M = 2**17
-    
+      
     seqL = []
     seqR = []
     for i in range(NRTESTS):
@@ -350,26 +352,26 @@ def augmBench( Ll, Ml, Lr, Mr):
         seqR.append(k)
     seqL = tuple(seqL)
     seqR = tuple(seqR)
-    
+      
     left = Signal(intbv(Ll, min=Ll, max=Ml))
     right = Signal(intbv(Lr, min=Lr, max=Mr))
-
-        
+  
+          
 ##         Bitand = Signal(intbv(0)[max(m, n):])
 ##         Bitor = Signal(intbv(0)[max(m, n):])
 ##         Bitxor = Signal(intbv(0)[max(m, n):])
-        
+          
 ##         FloorDiv = Signal(intbv(0)[m:])
     LeftShift = Signal(intbv(0, min=-2**64, max=2**64))
 ##         Modulo = Signal(intbv(0)[m:])
-        
+          
     Mul = Signal(intbv(0, min=-M, max=+M))
-        
+          
     RightShift = Signal(intbv(0, min=-M, max=+M))
-
+  
     Sub = Signal(intbv(0, min=-M, max=+M))
     Sum = Signal(intbv(0, min=-M, max=+M))
-
+  
     augmops = augmOps(
 ##                            Bitand,
 ##                            Bitor,
@@ -382,7 +384,7 @@ def augmBench( Ll, Ml, Lr, Mr):
         Sub,
         Sum,
         left, right)
-
+  
     @instance
     def stimulus():
         for i in range(len(seqL)):
@@ -399,19 +401,19 @@ def augmBench( Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-            print LeftShift
+            print(int(LeftShift))
 ##                 self.assertEqual(Modulo, Modulo_v)
-            print Mul
-            print RightShift
-            print Sub
-            print Sum
-
+            print(int(Mul))
+            print(int(RightShift))
+            print(int(Sub))
+            print(int(Sum))
+  
     return augmops,  stimulus, check
-    
-            
+      
+              
 def checkAugmOps( Ll, Ml, Lr, Mr):
     assert verify(augmBench, Ll, Ml, Lr, Mr) == 0
-
+  
 def testAugmOps():
     for Ll, Ml, Lr, Mr in (
                             (-254, 236, 0, 4),
@@ -423,19 +425,19 @@ def testAugmOps():
                             (-25, -12, -123, -66),
                            ):
         yield checkAugmOps, Ll, Ml, Lr, Mr
-
-
+  
+  
 def expressions(a, b, clk):
-
+  
     c = Signal(intbv(0, min=0, max=47))
     e = Signal(bool())
-
+  
     @instance
     def logic():
-
+  
         d = intbv(0, min=-23, max=43)
         d[:] = -17
-
+  
         c.next = 5
         yield clk.posedge
         a.next = c + 1
@@ -467,42 +469,38 @@ def expressions(a, b, clk):
         yield clk.posedge
         a.next = ~c + 1
         b.next = ~d + 1
-        
+          
         yield clk.posedge
         raise StopSimulation
-
+  
     return logic
-        
-
-
+          
+  
+  
 def expressionsBench():
-
+  
     a = Signal(intbv(0, min=-34, max=47))
     b = Signal(intbv(0, min=0, max=47))
     clk = Signal(bool())
-
+  
     expr = expressions(a, b, clk)
-
+  
     @instance
     def check():
         while 1:
             yield clk.posedge
             yield delay(1)
-            print int(a)
-            print int(b)
-
+            print(int(a))
+            print(int(b))
+  
     @instance
     def clkgen():
         while True:
             yield delay(10)
             clk.next = not clk
-
+  
     return expr, check, clkgen
-
-
+  
+  
 def testExpressions():
     assert verify(expressionsBench) == 0
-
-
-
-

@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from __future__ import print_function
+
 import os
 path = os.path
 import random
@@ -145,27 +147,27 @@ def binaryBench(m, n):
             yield left, right
             yield delay(1)
 
-            print Bitand
-            print Bitor
-            print Bitxor
-            print FloorDiv
-            print LeftShift
+            print(int(Bitand))
+            print(int(Bitor))
+            print(int(Bitxor))
+            print(int(FloorDiv))
+            print(int(LeftShift))
 
             # print Pow, Pow_v
 
-            print Modulo
-            print RightShift
-            print Mul
-            print Sub
-            print Sum
-            print int(EQ)
-            print int(NE)
-            print int(LT)
-            print int(GT)
-            print int(LE)
-            print int(GE)
-            print int(Booland)
-            print int(Boolor)
+            print(int(Modulo))
+            print(int(RightShift))
+            print(int(Mul))
+            print(int(Sub))
+            print(int(Sum))
+            print(int(EQ))
+            print(int(NE))
+            print(int(LT))
+            print(int(GT))
+            print(int(LE))
+            print(int(GE))
+            print(int(Booland))
+            print(int(Boolor))
 
     return binops, stimulus, check
 
@@ -176,9 +178,6 @@ def testBinary():
     for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
     # for m, n in ((2, 6),):
         yield checkBinary, m, n
-
-
-
 
 def multiOps(
               Bitand,
@@ -253,11 +252,11 @@ def multiBench(m, n, p):
             yield argm, argn, argp
             yield delay(1)
 
-            print Bitand
-            print Bitor
-            print Bitxor
-            print int(Booland)
-            print int(Boolor)
+            print(int(Bitand))
+            print(int(Bitor))
+            print(int(Bitxor))
+            print(int(Booland))
+            print(int(Boolor))
 
     return multiops, stimulus, check
 
@@ -291,7 +290,7 @@ def unaryBench(m):
     M = 2**m
     seqM = tuple([randrange(M) for i in range(NRTESTS)])
 
-    arg = Signal(intbv(0)[m:])
+    arg = Signal(intbv(m)[m:])
     Not_kw = Signal(bool(0))
     Invert = Signal(intbv(0)[m:])
     UnaryAdd = Signal(intbv(0)[m:])
@@ -308,15 +307,15 @@ def unaryBench(m):
         for i in range(NRTESTS):
             arg.next = seqM[i]
             yield delay(10)
-        raise StopSimulation
+        #raise StopSimulation
 
     @instance
     def check():
         while 1:
             yield arg
             yield delay(1)
-            print int(Not_kw)
-            print Invert
+            print(int(Not_kw))
+            print(int(Invert))
             # check unary operator support in vhdl
             # print UnaryAdd
             # print UnarySub
@@ -449,16 +448,17 @@ def augmBench(m, n):
         while True:
             yield left, right
             yield delay(1)
-            print Bitand
-            print Bitor
-            print Bitxor
-            print Sub
-            print Sum
-            print FloorDiv
-            print LeftShift
-            print Modulo
-            print Mul
-            print RightShift
+            print(int(left), int(right))
+            print(int(Bitand))
+            print(int(Bitor))
+            print(int(Bitxor))
+            print(int(Sub))
+            print(int(Sum))
+            print(int(FloorDiv))
+            print(int(LeftShift))
+            print(int(Modulo))
+            print(int(Mul))
+            print(int(RightShift))
             
     return augmops, stimulus, check
 
@@ -469,4 +469,3 @@ def checkAugmOps(m, n):
 def testAugmOps():
     for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
         yield checkAugmOps, m, n
-
