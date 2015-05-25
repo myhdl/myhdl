@@ -32,7 +32,6 @@ from __future__ import print_function
 from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
 import operator
-import warnings
 
 from myhdl._compat import integer_types, long
 from myhdl import _simulator as sim
