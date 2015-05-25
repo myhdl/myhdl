@@ -52,7 +52,7 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
 from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
 from myhdl._util import  _flatten
-from myhdl._compat import integer_types, class_types, StringIO
+from myhdl._compat import integer_types, class_types, StringIO, PY2
 
 
 _version = myhdl.__version__.replace('.','')
@@ -782,6 +782,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
 
     def visit_UnaryOp(self, node):
+        if isinstance(node.op, ast.USub):
+            if isinstance(node.operand, ast.Num):
+                n = node.operand.n
+                newnode = copy(node.operand)
+                newnode.n = -n
+                newnode.vhd = node.vhd
+                newnode.vhdOri = node.vhdOri
+                self.visit(newnode)
+                return
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
         self.write("(")
