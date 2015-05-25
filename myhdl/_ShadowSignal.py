@@ -210,10 +210,7 @@ class ConcatSignal(_ShadowSignal):
                      lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal):
-                    if a._numeric:
-                        lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
-                    else:
-                        lines.append("%s(%s-1 downto %s) <= unsigned( %s );" % (self._name, hi, lo, a._name))
+                    lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
                 else:
                     lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo],w)))
             hi = lo
