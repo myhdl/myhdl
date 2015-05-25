@@ -35,7 +35,7 @@ from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl import _simulator
 from myhdl._simulator import _siglist, _futureEvents
 from myhdl._enum import enum
-
+from myhdl._compat import ast_parse
 
 schedule = _futureEvents.append
 
@@ -209,7 +209,7 @@ def _inferWaiter(gen):
     f = gen.gi_frame
     s = inspect.getsource(f)
     s = _dedent(s)
-    root = ast.parse(s)
+    root = ast_parse(s)
     root.symdict = f.f_globals.copy()
     root.symdict.update(f.f_locals)
     # print ast.dump(root)
