@@ -95,8 +95,6 @@ class _SliceSignal(_ShadowSignal):
                 self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
             else:
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
-                # remember if the 'base' vector was a std_logic_vector or not
-                self._numeric = self._sig._numeric
 
     def _markRead(self):
         self._read = True

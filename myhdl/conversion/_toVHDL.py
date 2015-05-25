@@ -99,7 +99,6 @@ class _ToVHDLConvertor(object):
                  "library",
                  "use_clauses",
                  "architecture",
-                 "numeric_ports",
                  "std_logic_ports",
                  )
 
@@ -113,7 +112,6 @@ class _ToVHDLConvertor(object):
         self.library = "work"
         self.use_clauses = None
         self.architecture = "MyHDL"
-        self.numeric_ports = True
         self.std_logic_ports = False 
 
     def __call__(self, func, *args, **kwargs):
@@ -197,7 +195,6 @@ class _ToVHDLConvertor(object):
         needPck = len(_enumPortTypeSet) > 0
         lib = self.library
         arch = self.architecture
-        numeric = self.numeric_ports
         stdLogicPorts = self.std_logic_ports
 
         self._convert_filter(h, intf, siglist, memlist, genlist)
@@ -210,7 +207,7 @@ class _ToVHDLConvertor(object):
         _writeFileHeader(vfile, vpath)
         if needPck:
             _writeCustomPackage(vfile, intf)
-        _writeModuleHeader(vfile, intf, needPck, lib, arch, useClauses, doc, numeric, stdLogicPorts)
+        _writeModuleHeader(vfile, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts)
         _writeFuncDecls(vfile)
         _writeConstants(vfile)
         _writeTypeDefs(vfile)
@@ -242,7 +239,6 @@ class _ToVHDLConvertor(object):
         self.no_myhdl_header = False
         self.no_myhdl_package = False
         self.architecture = "MyHDL"
-        self.numeric_ports = True
         self.std_logic_ports = False
 
 
@@ -288,7 +284,7 @@ def _writeCustomPackage(f, intf):
 
 portConversions = []
 
-def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric, stdLogicPorts):
+def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts):
     print("library IEEE;", file=f)
     print("use IEEE.std_logic_1164.all;", file=f)
     print("use IEEE.numeric_std.all;", file=f)
@@ -322,9 +318,6 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, numeric, st
                 convertPort = True
             else:
                 s._name = portname
-            # make it non-numeric optionally
-            if s._type is intbv:
-                s._numeric = numeric
             r = _getRangeString(s)
             pt = st = _getTypeString(s)
             if convertPort:
@@ -464,8 +457,6 @@ def _getTypeString(s):
         return s._val._type._name
     elif s._type is bool:
         return "std_logic"
-    if not s._numeric:
-        return "std_logic_vector"
     if s._min is not None and s._min < 0:
         return "signed "
     else:
@@ -903,9 +894,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if self.SigAss:
             if isinstance(lhs.value, ast.Name):
                 sig = self.tree.symdict[lhs.value.id]
-                if not sig._numeric:
-                    #if not isinstance(rhs, ast.Num):
-                    convOpen, convClose = "std_logic_vector(", ")"
             self.write(' <= ')
             self.SigAss = False
         else:
@@ -1359,13 +1347,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
-                # print 'name', n
-                # support for non-numeric signals
-                if self.SigAss is not obj._name and not obj._numeric:
-                    if obj._min < 0:
-                        s = "signed(%s)" %s
-                    else:
-                        s = "unsigned(%s)" %s
                 pre, suf = self.inferCast(node.vhd, ori)
                 s = "%s%s%s" % (pre, s, suf)
             elif _isMem(obj):
@@ -1745,8 +1726,6 @@ def _convertInitVal(reg, init):
     pre, suf = '', ''
     if isinstance(reg, _Signal):
         tipe = reg._type
-        if not reg._numeric:
-            pre, suf = 'std_logic_vector(', ')'
     else:
         assert isinstance(reg, intbv)
         tipe = intbv
