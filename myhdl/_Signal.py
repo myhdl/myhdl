@@ -470,25 +470,13 @@ class _Signal(object):
     # conversions
     
     def __int__(self):
-        if self._val is None:
-            warnings.warn("Metavalue detected in conversion")
-            return int(0)
-        else:
-            return int(self._val)
+        return int(self._val)
         
     def __long__(self):
-        if self._val is None:
-            warnings.warn("Metavalue detected in conversion")
-            return long(0)
-        else:
-            return long(self._val)
+        return long(self._val)
 
     def __float__(self):
-        if self._val is None:
-            warnings.warn("Metavalue detected in conversion")
-            return 0.0
-        else:
-            return float(self._val)
+        return float(self._val)
     
     def __oct__(self):
         return oct(self._val)
@@ -497,11 +485,7 @@ class _Signal(object):
         return hex(self._val)
     
     def __index__(self):
-        if self._val is None:
-            warnings.warn("Metavalue detected in conversion")
-            return int(0)
-        else:
-            return int(self._val)
+        return int(self._val)
 
 
     # comparisons

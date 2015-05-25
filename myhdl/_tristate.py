@@ -46,6 +46,36 @@ class _Tristate(_Signal):
         self._resolve()
         return super(Tristate, self)._update()
 
+    # conversions
+    
+    def __int__(self):
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return int(0)
+        else:
+            return int(self._val)
+        
+    def __long__(self):
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return long(0)
+        else:
+            return long(self._val)
+
+    def __float__(self):
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return 0.0
+        else:
+            return float(self._val)
+    
+    def __index__(self):
+        if self._val is None:
+            warnings.warn("Metavalue detected in conversion")
+            return int(0)
+        else:
+            return int(self._val)
+
 
 class _TristateDriver(_Signal):
     
