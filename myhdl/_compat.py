@@ -1,5 +1,8 @@
+from __future__ import print_function
+from __future__ import division
 import sys
 import types
+from ast import PyCF_ONLY_AST
 
 PY2 = sys.version_info[0] == 2
 PYPY = hasattr(sys, 'pypy_translation_info')
@@ -31,3 +34,7 @@ else:
 
     to_bytes = _identity
     to_str = _identity
+
+def ast_parse(s):
+    return compile(s, '<string>', 'exec', \
+                   print_function.compiler_flag|division.compiler_flag|PyCF_ONLY_AST)
