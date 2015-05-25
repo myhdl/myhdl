@@ -3,7 +3,7 @@ from myhdl import *
 from myhdl._compat import long
 
 def bench_SliceSignal():
-    
+
     s = Signal(intbv(0)[8:])
     a, b, c = s(7), s(5), s(0)
     d, e, f, g = s(8,5), s(6,3), s(8,0), s(4,3)
@@ -29,12 +29,12 @@ def test_SliceSignal():
 
 
 def bench_ConcatSignal():
-    
+
     a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
     c = Signal(intbv(0)[3:])
     d = Signal(intbv(0)[4:])
-    
+
     s = ConcatSignal(a, b, c, d)
 
     @instance
@@ -59,17 +59,20 @@ def test_ConcatSignal():
     Simulation(bench_ConcatSignal()).run()
 
 def bench_ConcatSignalWithConsts():
-    
+
     a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
     c = Signal(intbv(0)[3:])
     d = Signal(intbv(0)[4:])
+    e = Signal(intbv(0)[1:])
+
     c1 = "10"
     c2 = '0'
     c3 = intbv(5)[3:]
-    c4 = bool(1) 
-    
-    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d)
+    c4 = bool(1)
+    c5 = intbv(42)[8:]  # with leading zeroes
+
+    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
 
     @instance
     def check():
@@ -77,19 +80,23 @@ def bench_ConcatSignalWithConsts():
             for j in (0, 1):
                 for k in range(2**len(c)):
                     for m in range(2**len(d)):
-                        a.next = i
-                        b.next = j
-                        c.next = k
-                        d.next = m
-                        yield delay(10)
-                        assert s[20:18] == long(c1, 2)
-                        assert s[18:13] == a
-                        assert s[12] == long(c2, 2)
-                        assert s[11] == b
-                        assert s[11:8] == c3
-                        assert s[8:5] == c
-                        assert s[4] == c4
-                        assert s[4:] == d
+                        for n in range(2**len(e)):
+                            a.next = i
+                            b.next = j
+                            c.next = k
+                            d.next = m
+                            e.next = n
+                            yield delay(10)
+                            assert s[29:27] == long(c1, 2)
+                            assert s[27:22] == a
+                            assert s[21] == long(c2, 2)
+                            assert s[20] == b
+                            assert s[20:17] == c3
+                            assert s[17:14] == c
+                            assert s[13] == c4
+                            assert s[13:9] == d
+                            assert s[9:1] == c5
+                            assert s[1:] == e
 
     return check
 
@@ -120,10 +127,10 @@ def bench_TristateSignal():
         c.next = None
         yield delay(10)
         assert s == None
-    
+
     return check
 
 
 def test_TristateSignal():
     Simulation(bench_TristateSignal()).run()
-    
+
