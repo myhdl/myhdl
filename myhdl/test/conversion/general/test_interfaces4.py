@@ -118,7 +118,7 @@ def c_testbench_one():
         reset.next = not ra
         yield clock.posedge
         for ii in range(10):
-            print("sdi: {:5}, sdo: {:5}".format(sdi, sdo))
+            print("sdi: %d, sdo: %d" % (sdi, sdo))
             assert sdo == expected[ii]
             sdi.next = not sdi
             yield clock.posedge
