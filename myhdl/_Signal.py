@@ -113,7 +113,7 @@ class _Signal(object):
                  '_setNextVal', '_copyVal2Next', '_printVcd', 
                  '_driven' ,'_read', '_name', '_used', '_inList',
                  '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
-                 '_numeric'
+                 '_numeric', '_toplevelport'
                 )
 
 
@@ -132,6 +132,7 @@ class _Signal(object):
         self._inList = False
         self._nrbits = 0
         self._numeric = True
+        self._toplevelport = False
         self._printVcd = self._printVcdStr
         if isinstance(val, bool):
             self._type = bool

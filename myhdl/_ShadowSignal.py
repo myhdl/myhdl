@@ -84,16 +84,20 @@ class _SliceSignal(_ShadowSignal):
             set_next(self, sig[left:right])
             yield sig
 
-    def _setName(self, hdl):
+    def _setName(self, hdl, convertoplevelport):
         if self._right is None:
             if hdl == 'Verilog':
                 self._name = "%s[%s]" % (self._sig._name, self._left)
             else:
-                self._name = "%s(%s)" % (self._sig._name, self._left)
+                self._name = "%s%s(%s)" % (self._sig._name, '_num' if convertoplevelport and self._sig._toplevelport else '', self._left)
         else:
             if hdl == 'Verilog':
                 self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
             else:
+                if self._sig._min < 0:
+                    self._name = "unsigned( %s%s(%s-1 downto %s))" % (self._sig._name, '_num' if convertoplevelport and self._sig._toplevelport else '', self._left, self._right)
+                else:
+                    self._name = "%s%s(%s-1 downto %s)" % (self._sig._name, '_num' if convertoplevelport and self._sig._toplevelport else '', self._left, self._right)
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
 
     def _markRead(self):

@@ -165,15 +165,23 @@ class _ToVHDLConvertor(object):
 
         arglist = _flatten(h.top)
         _checkArgs(arglist)
-        genlist = _analyzeGens(arglist, h.absnames)
-        siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL')
-        # print h.top
-        _annotateTypes(genlist)
 
+        # 26-05-2015 jb moved this here
         ### infer interface
         top_inst = h.hierarchy[0]
         intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
         intf.name = name
+        # have intf, can now flag the port signals ...
+        if intf.argnames:
+            for portname in intf.argnames:
+                print( portname )
+        for arg in intf.args:
+            if isinstance(arg, _Signal):
+                arg._toplevelport = True
+
+        genlist = _analyzeGens(arglist, h.absnames)
+        siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL', convertoplevelport = self.std_logic_ports)
+        _annotateTypes(genlist)
         # sanity checks on interface
         for portname in intf.argnames:
             s = intf.argdict[portname]
