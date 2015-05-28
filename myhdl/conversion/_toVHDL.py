@@ -112,7 +112,7 @@ class _ToVHDLConvertor(object):
         self.library = "work"
         self.use_clauses = None
         self.architecture = "MyHDL"
-        self.std_logic_ports = False 
+        self.std_logic_ports = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -172,9 +172,6 @@ class _ToVHDLConvertor(object):
         intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
         intf.name = name
         # have intf, can now flag the port signals ...
-        if intf.argnames:
-            for portname in intf.argnames:
-                print( portname )
         for arg in intf.args:
             if isinstance(arg, _Signal):
                 arg._toplevelport = True
