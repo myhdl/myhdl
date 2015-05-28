@@ -554,9 +554,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         f = self.getObj(node.func)
         node.obj = None
 
-        if f is print:
-            self.visit_Print(node)
-            return
+#        if f is print:
+#            self.visit_Print(node)
+#            return
 
         self.access = _access.UNKNOWN
         for arg in node.args:
@@ -583,6 +583,15 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         ### suprize: identity comparison on unbound methods doesn't work in python 2.5??
         elif f == intbv.signed:
             node.obj = int(-1)
+        elif f is print:
+            argsAreInputs = False
+            if hasattr(node, 'keywords'):
+                for keyword in node.keywords:
+                    if keyword.arg =='file':
+                        self.raiseError(node, _error.NotSupported, 'print to file with file= syntax')
+                    elif keyword.arg =='end':
+                        self.raiseError(node, _error.NotSupported, 'print end keyword not support')
+            self.visit_Print(node)
         elif f in myhdlObjects:
             pass
         elif f in builtinObjects:
@@ -995,6 +1004,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Tuple(self, node):
         self.generic_visit(node)
 
+    def visit_Try(self, node):
+        self.raiseError(node, _error.NotSupported, "try statement")
+
     def visit_While(self, node):
         node.breakLabel = _Label("BREAK")
         node.loopLabel = _Label("LOOP")
@@ -1213,6 +1225,8 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             obj = None
         elif isinstance(node.value, ast.Name) and node.value.id == 'None':
             obj = None
+        elif (not PY2) and isinstance(node.value, ast.NameConstant):
+            obj = node.value.value
         elif node.value.obj is not None:
             obj = node.value.obj
         else:

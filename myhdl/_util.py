@@ -30,7 +30,7 @@ import inspect
 
 from tokenize import generate_tokens, untokenize, INDENT
 
-from myhdl._compat import integer_types, StringIO
+from myhdl._compat import integer_types, StringIO, ast_parse
 
 def _printExcInfo():
     kind, value = sys.exc_info()[:2]
@@ -76,7 +76,7 @@ def _dedent(s):
 def _makeAST(f):
     s = inspect.getsource(f)
     s = _dedent(s)
-    tree = ast.parse(s)
+    tree = ast_parse(s)
     tree.sourcefile = inspect.getsourcefile(f)
     tree.lineoffset = inspect.getsourcelines(f)[1]-1
     return tree

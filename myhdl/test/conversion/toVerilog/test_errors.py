@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+from __future__ import print_function
+
 import os
 path = os.path
 import unittest
@@ -13,6 +15,8 @@ from myhdl.conversion._misc import _error
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+global f
+f = None
 
 def freeVarTypeError(count, enable, clock, reset, n):
     cnt = intbv(0)[8:]
@@ -197,7 +201,7 @@ def printnlToFile(count, enable, clock, reset, n):
                 count.next = 0
             else:
                 if enable:
-                    print >> f, count
+                    print(count, file=f)
                     count.next = count + 1
     return logic
 
@@ -211,7 +215,7 @@ def printToFile(count, enable, clock, reset, n):
                 count.next = 0
             else:
                 if enable:
-                    print >> f, count,
+                    print(count, end='')
                     count.next = count + 1
     return logic
 

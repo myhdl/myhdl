@@ -48,18 +48,19 @@ class TestNotSupported(unittest.TestCase):
             return logic
         self.check(g, z, a)
 
-    def testBackquote(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            @instance
-            def logic():
-                while 1:
-                    yield a
-                    z.next = 1
-                    `a`
-            return logic
-        self.check(g, z, a)
+# Backquote not available in py3
+#     def testBackquote(self):
+#         a = Signal(bool())
+#         z = Signal(bool())
+#         def g(z, a):
+#             @instance
+#             def logic():
+#                 while 1:
+#                     yield a
+#                     z.next = 1
+#                     `a`
+#             return logic
+#         self.check(g, z, a)
 
 
     def testClass(self):
@@ -102,18 +103,19 @@ class TestNotSupported(unittest.TestCase):
             return logic
         self.check(g, z, a)
 
-    def testExec(self):
-        a = Signal(bool())
-        z = Signal(bool())
-        def g(z, a):
-            @instance
-            def logic():
-                while 1:
-                    yield a
-                    z.next = 1
-                    exec "1 + 2" in globals , locals
-            return logic
-        self.check(g, z, a)
+# In PY3 a file with a exec without parenthesis is not read.
+#     def testExec(self):
+#         a = Signal(bool())
+#         z = Signal(bool())
+#         def g(z, a):
+#             @instance
+#             def logic():
+#                 while 1:
+#                     yield a
+#                     z.next = 1
+#                     exec "1 + 2" in globals , locals
+#             return logic
+#         self.check(g, z, a)
 
     def testFrom(self):
         a = Signal(bool())
