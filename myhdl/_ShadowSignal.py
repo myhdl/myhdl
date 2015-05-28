@@ -98,7 +98,6 @@ class _SliceSignal(_ShadowSignal):
                     self._name = "unsigned( %s%s(%s-1 downto %s))" % (self._sig._name, '_num' if convertoplevelport and self._sig._toplevelport else '', self._left, self._right)
                 else:
                     self._name = "%s%s(%s-1 downto %s)" % (self._sig._name, '_num' if convertoplevelport and self._sig._toplevelport else '', self._left, self._right)
-                self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
 
     def _markRead(self):
         self._read = True
