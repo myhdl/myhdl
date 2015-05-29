@@ -71,7 +71,7 @@ def _makeName(n, prefixes, namedict):
     return name
 
 
-def _analyzeSigs(hierarchy, hdl='Verilog'):
+def _analyzeSigs(hierarchy, hdl='Verilog', convertoplevelport = False):
     curlevel = 0
     siglist = []
     memlist = []
@@ -107,7 +107,8 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
             # slice signals
             for sl in s._slicesigs:
-                sl._setName(hdl)
+                sl._setName(hdl, convertoplevelport)
+
             siglist.append(s)
         # list of signals
         for n, m in memdict.items():
@@ -1262,6 +1263,8 @@ def _analyzeTopFunc(top_inst, func, *args, **kwargs):
                 if not signame:
                     signame = name + '_' + attr
                     attrobj._name = signame
+                if signame in v.argdict:
+                    v.raiseError(signame, _error.SignalNameConflict, "generated signal name {{{}}} clashes with other signal names" .format(signame))
                 v.argdict[signame] = attrobj
                 v.argnames.append(signame)
 

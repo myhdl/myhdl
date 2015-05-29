@@ -4,6 +4,7 @@ import sys
 
 from myhdl import *
 from myhdl.conversion import analyze,verify
+from myhdl.test.conversion.conftest import bug
 
 class Intf(object):
     def __init__(self):
@@ -69,7 +70,7 @@ def name_conflict_after_replace(clock, reset, a, a_x):
 
     return logic
 
-
+@bug('80')
 def test_name_conflict_after_replace():
     clock = Signal(False)
     reset = ResetSignal(0, active=0, async=False)

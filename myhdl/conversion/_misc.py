@@ -74,7 +74,7 @@ class _error(object):
     PortInList = "Port in list is not supported"
     ListAsPort = "List of signals as a port is not supported"
     SignalInMultipleLists = "Signal in multiple list is not supported"
-
+    SignalNameConflict = "SignalNameConflict"
 
 class _access(object):
     INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
