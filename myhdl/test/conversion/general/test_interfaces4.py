@@ -104,28 +104,33 @@ def c_testbench_one():
     sdo = Signal(bool(0))
     tbdut = m_top(clock, reset, sdi, sdo)
 
-    @always(delay(3))
+    @instance    
     def tbclk():
-        clock.next = not clock
+        clock.next = False
+        while True:
+            yield delay(3)
+            clock.next = not clock
         
     expected = (False, False, False, True, True, True,
                 False, True, False, True)
     ra = reset.active    
     @instance
     def tbstim():
+        sdi.next = False
         reset.next = ra
         yield delay(13)
         reset.next = not ra
         yield clock.posedge
         for ii in range(10):
             print("sdi: %d, sdo: %d" % (sdi, sdo))
-            assert sdo == expected[ii]
+            expected_bit = expected[ii]
+            assert sdo == expected_bit
             sdi.next = not sdi
             yield clock.posedge
 
         raise StopSimulation
 
-    return tbdut, tbclk, tbstim
+    return tbclk, tbstim, tbdut
 
 
 def test_one_testbench():
@@ -149,14 +154,21 @@ def test_one_analyze():
 def test_one_verify():
     assert verify(c_testbench_one) == 0
 
+@bug('82')
+def test_conversion():
+    toVerilog(c_testbench_one)
+    toVHDL(c_testbench_one)
+
 
 if __name__ == '__main__':
     print(sys.argv[1])
     verify.simulator = analyze.simulator = sys.argv[1]
     print("*** verify example testbench ")
     test_one_testbench()
-    print("*** verify example conversion ")
+    print("*** verify example module conversion ")
     test_one_analyze()
+    print("*** test testbench conversion ")
+    test_conversion()
     print("*** verify testbench conversion and execution")
     test_one_verify()
     
