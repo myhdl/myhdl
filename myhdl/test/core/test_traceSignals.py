@@ -173,12 +173,9 @@ class TestTraceSigs(TestCase):
         dut = traceSignals(top)
         self.assertTrue(path.exists(pdut))
         self.assertTrue(not path.exists(psub))
-<<<<<<< HEAD
-=======
 
     def testTristateTrace(self):
         Simulation(topTristate()).run(100, quiet=QUIET)
->>>>>>> 846f7ad444059d0ca33d36f10adb2214223129f5
 
     def testBackupOutputFile(self):
         p = "%s.vcd" % fun.__name__

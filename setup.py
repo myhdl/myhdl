@@ -1,13 +1,9 @@
 """ myhdl's distribution and installation script. """
 
-<<<<<<< HEAD
-from __future__ import print_function
-=======
 import ast
 import fnmatch
 import re
 import os
->>>>>>> 846f7ad444059d0ca33d36f10adb2214223129f5
 import sys
 
 from collections import defaultdict
@@ -18,43 +14,6 @@ if sys.version_info < (2, 6) or (3, 0) <= sys.version_info < (3, 4):
 
 # Prefer setuptools over distutils
 try:
-<<<<<<< HEAD
-    sys.version_info
-except:
-    print(versionError)
-    raise SystemExit(1)
-
-if sys.version_info < requiredVersion:
-    print(versionError)
-    raise SystemExit(1)
-
-from distutils.core import setup
-
-classifiers = """\
-Development Status :: 5 - Production/Stable
-Intended Audience :: Developers
-License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)
-Operating System :: OS Independent
-Programming Language :: Python
-Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)
-"""
-
-    
-setup(name="myhdl",
-      version="0.9",
-      description="Python as a Hardware Description Language",
-      long_description = "See home page.",
-      author="Jan Decaluwe",
-      author_email="jan@jandecaluwe.com",
-      url="http://www.myhdl.org",
-      download_url="https://bitbucket.org/jandecaluwe/myhdl/get/0.8.1.zip",
-      packages=['myhdl', 'myhdl.conversion'],
-      license="LGPL",
-      platforms=["Any"],
-      keywords="HDL ASIC FPGA hardware design",
-      classifiers=filter(None, classifiers.split("\n")),
-      )
-=======
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
@@ -101,4 +60,3 @@ setup(
         'Programming Language :: Python :: 3.4',
     ]
 )
->>>>>>> 846f7ad444059d0ca33d36f10adb2214223129f5

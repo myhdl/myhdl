@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from __future__ import absolute_import, print_function
-=======
 from __future__ import absolute_import
->>>>>>> 846f7ad444059d0ca33d36f10adb2214223129f5
 
 import sys
 
@@ -196,17 +192,13 @@ def test_three_verify():
 
 
 if __name__ == '__main__':
-    print((sys.argv[1]))
+    print(sys.argv[1])
     verify.simulator = analyze.simulator = sys.argv[1]
     print("*** verify myhdl simulation")    
     Simulation(c_testbench_one()).run()
     Simulation(c_testbench_two()).run()
     Simulation(c_testbench_three()).run()
     print("*** myhdl simulation ok")    
-<<<<<<< HEAD
-    print((verify(c_testbench_one)))
-    print((verify(c_testbench_two)))    
-=======
     print("")
 
     print("*** myhdl verify conversion")    
@@ -215,4 +207,3 @@ if __name__ == '__main__':
     print(verify(c_testbench_three))  
     print("*** myhdl conversion ok")      
     print("")
->>>>>>> 846f7ad444059d0ca33d36f10adb2214223129f5
