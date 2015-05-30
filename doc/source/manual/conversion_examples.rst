@@ -23,7 +23,6 @@ A small sequential design
 
 Consider the following MyHDL code for an incrementer module::
 
-    ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
     def Inc(count, enable, clock, reset):
         
@@ -33,7 +32,6 @@ Consider the following MyHDL code for an incrementer module::
         enable -- control input, increment when 1
         clock -- clock input
         reset -- asynchronous reset input
-        n -- counter max value
         
         """
         
@@ -59,7 +57,7 @@ Normally, to simulate the design, we would elaborate it as follows::
 ``inc_inst`` is an elaborated design instance that can be simulated. To convert
 it to Verilog, we change the last line as follows::
 
-   inc_inst = toVerilog(Inc, count, enable, clock, reset, n=n)
+   inc_inst = toVerilog(Inc, count, enable, clock, reset)
 
 Again, this creates an instance that can be simulated, but as a side effect, it
 also generates an equivalent Verilog module in file :file:`Inc.v`. The Verilog

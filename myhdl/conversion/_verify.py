@@ -63,7 +63,7 @@ registerSimulator(
     simulate='vsim work_vlog.%(topname)s -quiet -c -do "run -all; quit -f"',
     skiplines=6,
     skipchars=2,
-    ignore=("# **", )
+    ignore=("# **", "# run -all")
     )
 
 registerSimulator(
@@ -73,7 +73,7 @@ registerSimulator(
     simulate='vsim work_vcom.%(topname)s -quiet -c -do "run -all; quit -f"',
     skiplines=6,
     skipchars=2,
-    ignore=("# **", "#    Time:")
+    ignore=("# **", "#    Time:", "# run -all")
     )
 
 
@@ -152,7 +152,7 @@ class  _VerificationClass(object):
             print("Analysis succeeded", file=sys.stderr)
             return 0
 
-        f = tempfile.TemporaryFile()
+        f = tempfile.TemporaryFile(mode='w+t')
         sys.stdout = f
         sim = Simulation(inst)
         sim.run()
@@ -174,7 +174,7 @@ class  _VerificationClass(object):
                 print("Elaboration failed", file=sys.stderr)
                 return ret
             
-        g = tempfile.TemporaryFile()
+        g = tempfile.TemporaryFile(mode='w+t')
         #print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
     #    if ret != 0:

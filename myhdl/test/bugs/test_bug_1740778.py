@@ -22,11 +22,11 @@ def bug_1740778 ():
     def logic():
         v = intbv(0, min=-15, max=45)
         yield delay(10)
-        print v.min
-        print v.max
-        print s.val
-        print s.min
-        print s.max
+        print(v.min)
+        print(v.max)
+        print(s.val)
+        print(s.min)
+        print(s.max)
         
     return logic
 

@@ -20,7 +20,7 @@
 """ MyHDL conversion analysis module.
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import inspect
 # import compiler
@@ -43,10 +43,10 @@ from myhdl.conversion._misc import (_error, _access, _kind,
                                     _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
-from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal
-from myhdl._util import _isTupleOfInts, _dedent, _flatten
+from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
+from myhdl._util import _isTupleOfInts, _dedent, _flatten, _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._compat import builtins, integer_types
+from myhdl._compat import builtins, integer_types, PY2
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -57,15 +57,6 @@ _extConstDict = {}
 
 
 def _makeName(n, prefixes, namedict):
-    #Take care of names with periods
-    #For attribute references, periods are replaced with '_'.
-    if '.' in n:
-        n = n.replace('.', '_')
-        if n in namedict:
-            i = 0
-            while (n + '_{0}'.format(i)) in namedict:
-                i += 1
-            n += '_{0}'.format(i)
     # trim empty prefixes
     prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
@@ -79,13 +70,6 @@ def _makeName(n, prefixes, namedict):
 ##     print name
     return name
 
-def _makeAST(f):
-    s = inspect.getsource(f)
-    s = _dedent(s)
-    tree = ast.parse(s)
-    tree.sourcefile = inspect.getsourcefile(f)
-    tree.lineoffset = inspect.getsourcelines(f)[1]-1
-    return tree
 
 def _analyzeSigs(hierarchy, hdl='Verilog'):
     curlevel = 0
@@ -161,12 +145,7 @@ def _analyzeGens(top, absnames):
             tree = g
         elif isinstance(g, (_AlwaysComb, _AlwaysSeq, _Always)):
             f = g.func
-            s = inspect.getsource(f)
-            s = _dedent(s)
-            tree = ast.parse(s)
-            #print ast.dump(tree)
-            tree.sourcefile  = inspect.getsourcefile(f)
-            tree.lineoffset = inspect.getsourcelines(f)[1]-1
+            tree = _makeAST(f)
             tree.symdict = f.__globals__.copy()
             tree.callstack = []
             # handle free variables
@@ -192,12 +171,7 @@ def _analyzeGens(top, absnames):
             v.visit(tree)
         else: # @instance
             f = g.gen.gi_frame
-            s = inspect.getsource(f)
-            s = _dedent(s)
-            tree = ast.parse(s)
-            # print ast.dump(tree)
-            tree.sourcefile = inspect.getsourcefile(f)
-            tree.lineoffset = inspect.getsourcelines(f)[1]-1
+            tree = _makeAST(f)
             tree.symdict = f.f_globals.copy()
             tree.symdict.update(f.f_locals)
             tree.nonlocaldict = {}
@@ -417,7 +391,7 @@ def _getNritems(obj):
     elif isinstance(obj, EnumItemType):
         return len(obj._type)
     else:
-        raise TypeError("Unexpected type")
+        raise TypeError("Unexpected type, missing final \'else:\'?")
 
 
 class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
@@ -577,6 +551,13 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Call(self, node):
         self.visit(node.func)
+        f = self.getObj(node.func)
+        node.obj = None
+
+        if f is print:
+            self.visit_Print(node)
+            return
+
         self.access = _access.UNKNOWN
         for arg in node.args:
             self.visit(arg)
@@ -584,8 +565,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(kw)
         self.access = _access.INPUT
         argsAreInputs = True
-        f = self.getObj(node.func)
-        node.obj = None
         if type(f) is type and issubclass(f, intbv):
             node.obj = self.getVal(node)
         elif f is concat:
@@ -612,15 +591,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             pass
         elif type(f) is FunctionType:
             argsAreInputs = False
-            s = inspect.getsource(f)
-            s = _dedent(s)
-            tree = ast.parse(s)
-            # print ast.dump(tree)
-            # print tree
+            tree = _makeAST(f)
             fname = f.__name__
             tree.name = _Label(fname)
-            tree.sourcefile = inspect.getsourcefile(f)
-            tree.lineoffset = inspect.getsourcelines(f)[1]-1
             tree.symdict = f.__globals__.copy()
             tree.nonlocaldict = {}
             if fname in self.tree.callstack:
@@ -766,7 +739,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         node.isCase = True
         node.caseVar = var1
         node.caseItem = item1
-        if (len(choices) == _getNritems(var1.obj)) or node.else_:
+        if node.else_ or (len(choices) == _getNritems(var1.obj)) :
             node.isFullCase = True
 
     def visit_ListComp(self, node):
@@ -791,6 +764,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if f is not range or len(cf.args) != 1:
             self.raiseError(node, _error.UnsupportedListComp)
         mem.depth = cf.args[0].obj
+
+    def visit_NameConstant(self, node):
+        node.obj = node.value
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -834,6 +810,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             # mark shadow signal as driven only when they are seen somewhere
             if isinstance(sig, _ShadowSignal):
                 sig._driven = 'wire'
+            # mark tristate signal as driven if its driver is seen somewhere
+            if isinstance(sig, _TristateDriver):
+                sig._sig._driven = 'wire'
             if not isinstance(sig, _Signal):
                 # print "not a signal: %s" % n
                 pass
@@ -916,7 +895,13 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         f = []
         nr = 0
         a = []
-        for n in node.values:
+
+        if PY2 and isinstance(node, ast.Print):
+            node_args = node.values
+        else:
+            node_args = node.args
+
+        for n in node_args:
             if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mod) and \
                isinstance(n.left, ast.Str):
                 if isinstance(n.right, ast.Tuple):

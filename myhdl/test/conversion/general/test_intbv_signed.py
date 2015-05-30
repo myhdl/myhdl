@@ -19,7 +19,11 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the intbv.signed() unit tests. """
+<<<<<<< HEAD
 from __future__ import absolute_import, print_function
+=======
+from __future__ import absolute_import
+>>>>>>> 846f7ad444059d0ca33d36f10adb2214223129f5
 
 from myhdl import *
 

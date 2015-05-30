@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from __future__ import absolute_import, print_function
+=======
+from __future__ import absolute_import
+>>>>>>> 846f7ad444059d0ca33d36f10adb2214223129f5
 import os
 path = os.path
 from random import randrange
@@ -117,9 +121,9 @@ def HecCalculator_v(name, hec, header):
 
 
 
-headers = [ 0x00000000L,
-            0x01234567L,
-            0xbac6f4caL
+headers = [ 0x00000000,
+            0x01234567,
+            0xbac6f4ca
           ]
 
 headers.extend([randrange(2**32-1) for i in range(10)])
