@@ -76,7 +76,7 @@ def c_testbench_one():
     def tb_stim():
         y.next = 3
         yield delay(10)
-        print(("x: %d" % (x)))
+        print("x: %d" % (x))
         assert x == 3
         
     return tb_dut, tb_stim
@@ -108,7 +108,7 @@ def c_testbench_two():
         y.next = 3
         z.next = 2
         yield delay(10)
-        print(("x: %d" % (x)))        
+        print("x: %d" % (x))       
         assert x == 5
         
     return tb_dut, tb_stim
