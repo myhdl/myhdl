@@ -112,7 +112,7 @@ class _ToVHDLConvertor(object):
         self.library = "work"
         self.use_clauses = None
         self.architecture = "MyHDL"
-        self.std_logic_ports = False 
+        self.std_logic_ports = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -316,6 +316,8 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             if stdLogicPorts and s._type is intbv:
                 s._name = portname + "_num"
                 convertPort = True
+                for sl in s._slicesigs:
+                    sl._setName( 'VHDL' )
             else:
                 s._name = portname
             r = _getRangeString(s)
