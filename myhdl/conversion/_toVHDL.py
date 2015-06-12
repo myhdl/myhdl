@@ -100,6 +100,7 @@ class _ToVHDLConvertor(object):
                  "use_clauses",
                  "architecture",
                  "std_logic_ports",
+                 "disable_initial_value"
                  )
 
     def __init__(self):
@@ -113,6 +114,7 @@ class _ToVHDLConvertor(object):
         self.use_clauses = None
         self.architecture = "MyHDL"
         self.std_logic_ports = False
+        self.disable_initial_value = True
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -403,8 +405,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               category=ToVHDLWarning
                               )
             # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print("signal %s: %s%s;" % (s._name, p, r), file=f)
+            if toVHDL.disable_initial_value:
+                print("signal %s: %s%s;" % (s._name, p, r), file=f)
+            else:
+                print("signal %s: %s%s = %s;" % (s._name, p, r, int(s._val)), file=f)
         elif s._read:
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)

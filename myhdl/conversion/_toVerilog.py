@@ -95,7 +95,8 @@ class _ToVerilogConvertor(object):
                  "no_myhdl_header",
                  "no_testbench",
                  "portmap",
-                 "trace"
+                 "trace",
+                 "disable_initial_value"
                  )
 
     def __init__(self):
@@ -109,6 +110,7 @@ class _ToVerilogConvertor(object):
         self.no_myhdl_header = False
         self.no_testbench = False
         self.trace = False
+        self.disable_initial_value = True
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -289,8 +291,12 @@ def _writeSigDecls(f, intf, siglist, memlist):
             if s._driven == 'reg':
                 k = 'reg'
             # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (k, r, s._name, int(s._val))
-            print("%s %s%s%s;" % (k, p, r, s._name), file=f)
+            # don't initial value "wire", inital assignment to a wire
+            # equates to a continuous assignment [reference]
+            if toVerilog.disable_initial_value or k == 'wire':
+                print("%s %s%s%s;" % (k, p, r, s._name), file=f)
+            else:
+                print("%s %s%s%s = %s;" % (k, p, r, s._name, int(s._val)), file=f)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
