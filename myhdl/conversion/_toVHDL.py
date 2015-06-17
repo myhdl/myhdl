@@ -405,10 +405,22 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               category=ToVHDLWarning
                               )
             # the following line implements initial value assignments
+
+            sig_vhdl_obj = inferVhdlObj(s)
+
             if toVHDL.disable_initial_value:
-                print("signal %s: %s%s;" % (s._name, p, r), file=f)
+                val_str = ""
             else:
-                print("signal %s: %s%s = %s;" % (s._name, p, r, int(s._val)), file=f)
+                
+                if isinstance(sig_vhdl_obj, vhd_std_logic):
+                    val_str = " := '%s'" % int(s._init)
+                elif isinstance(sig_vhdl_obj, vhd_int):
+                    val_str = " := %s" % s._init
+                else:
+                    val_str = ' := "%s"' % bin(s._init, sig_vhdl_obj.size)
+            
+            print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
+
         elif s._read:
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
