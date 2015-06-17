@@ -297,7 +297,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 print("%s %s%s%s;" % (k, p, r, s._name), file=f)
             else:
                 print("%s %s%s%s = %s;" % 
-                      (k, p, r, s._name, _intRepr(s._val)), file=f)
+                      (k, p, r, s._name, _intRepr(s._init)), file=f)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)

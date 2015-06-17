@@ -183,12 +183,26 @@ class InitialValueTestMixin(object):
         _, ref_signals = myhdl_cosimulation(
             test_cycles, trivial, trivial, self.args, self.arg_types)
 
-        self.args['input_signal']._val = self.args['input_signal'].val - 1
-        self.args['output_signal']._val = self.args['output_signal'].val - 1
+        # Currently we're actually testing veriutils, not the conversion
+        # code...
+#        import veriutils
+#        def wrapped_Simulation(*args, **kwargs):
+#            result = Simulation(*args, **kwargs)
+#
+#            self.args['input_signal']._val = (
+#                self.args['input_signal'].val - 1)
+#            self.args['output_signal']._val = (
+#                self.args['output_signal'].val - 1)
+#
+#            return result
+
+#        veriutils.cosimulation.Simulation = wrapped_Simulation
 
         dut_signals, _ = self.cosimulate(
             test_cycles, trivial, trivial, self.args, self.arg_types, 
             config_file=_config_file, template_path_prefix=_template_prefix)
+
+#        veriutils.cosimulation.Simulation = Simulation
 
         self.assertTrue(ref_signals['output_signal'] == expected_outputs)        
         self.assertTrue(dut_signals['output_signal'] == expected_outputs)
