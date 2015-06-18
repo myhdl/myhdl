@@ -19,14 +19,20 @@ _config_path = os.path.split(__file__)[0]
 _config_file = os.path.join(_config_path, 'veriutils.cfg')
 _template_prefix = _config_path
 
-def trivial(input_signal, output_signal, clock):
+def trivial(input_signal, output_signal, driver_flag, clock):
+
+    @always(clock.posedge)
+    def mock_input_driver():
+        if driver_flag:
+            # Should never be accessed
+            input_signal.next = 0
 
     @always(clock.posedge)
     def trivial_instance():
 
         output_signal.next = input_signal
 
-    return trivial_instance
+    return trivial_instance, mock_input_driver
 
 @unittest.skipIf(not veriutils_available, 'Veriutils cannot be imported.')
 @unittest.skipIf(VIVADO_EXECUTABLE is None, 'Vivado executable not in path')
@@ -42,10 +48,22 @@ class InitialValueTestMixin(object):
         toVerilog.disable_initial_value = False
         toVHDL.disable_initial_value = False
 
-        self.args = {'clock': Signal(False)}
-        self.arg_types = {'input_signal': 'custom',
+        def zero_driver(driver_flag, clock):
+            @always(clock.posedge)
+            def driver_inst():
+                driver_flag.next = False
+
+            return driver_inst
+
+        self.args = {'clock': Signal(False),
+                     'driver_flag': Signal(False)}
+        self.arg_types = {'input_signal': 'output',
                           'output_signal': 'output',
+                          'driver_flag': 'custom',
                           'clock': 'clock'}
+
+        self._custom_sources = [zero_driver(
+            self.args['driver_flag'], self.args['clock'])]
 
     def tearDown(self):
         toVerilog.disable_initial_value = self._verilog_disable_initial_value
@@ -131,6 +149,7 @@ class InitialValueTestMixin(object):
 
         dut_signals, ref_signals = self.cosimulate(
             test_cycles, trivial, trivial, self.args, self.arg_types, 
+            custom_sources=self._custom_sources,
             config_file=_config_file, template_path_prefix=_template_prefix)
 
         self.assertTrue(ref_signals['output_signal'] == expected_outputs)        
@@ -183,26 +202,30 @@ class InitialValueTestMixin(object):
         _, ref_signals = myhdl_cosimulation(
             test_cycles, trivial, trivial, self.args, self.arg_types)
 
-        # Currently we're actually testing veriutils, not the conversion
-        # code...
-#        import veriutils
-#        def wrapped_Simulation(*args, **kwargs):
-#            result = Simulation(*args, **kwargs)
-#
-#            self.args['input_signal']._val = (
-#                self.args['input_signal'].val - 1)
-#            self.args['output_signal']._val = (
-#                self.args['output_signal'].val - 1)
-#
-#            return result
+        # Monkey patch veriutils so we can manifest the problem should it
+        # exist.
+        import veriutils        
+        orig_method = veriutils.SynchronousTest.cosimulate        
+        def patched_cosimulate(self, cycles):
+            
+            output = orig_method(self, cycles)
 
-#        veriutils.cosimulation.Simulation = wrapped_Simulation
+            # hack about with the signal values
+            self.args['input_signal'].val[:] = (
+                self.args['input_signal'].val - 1)
+            self.args['output_signal'].val[:] = (
+                self.args['output_signal'].val - 1)
+            
+            return output
+
+        veriutils.SynchronousTest.cosimulate = patched_cosimulate
 
         dut_signals, _ = self.cosimulate(
             test_cycles, trivial, trivial, self.args, self.arg_types, 
             config_file=_config_file, template_path_prefix=_template_prefix)
 
-#        veriutils.cosimulation.Simulation = Simulation
+        # Undo the monkey patching
+        veriutils.SynchronousTest.cosimulate = orig_method
 
         self.assertTrue(ref_signals['output_signal'] == expected_outputs)        
         self.assertTrue(dut_signals['output_signal'] == expected_outputs)
