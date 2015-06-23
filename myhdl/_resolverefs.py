@@ -48,7 +48,13 @@ class _AttrRefTransformer(ast.NodeTransformer):
         if not isinstance(node.value, ast.Name):
             return node
 
-        obj = self.data.symdict[node.value.id]
+        # cases exist where node.value id is not in the symdict,
+        # skip these cases for now.
+        if node.value.id in self.data.symdict:
+            obj = self.data.symdict[node.value.id]
+        else:
+            return node
+
         #Don't handle enums and functions, handle signals as long as it is a new attribute
         if isinstance(obj, (EnumType, FunctionType)):
             return node
