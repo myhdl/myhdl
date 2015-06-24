@@ -33,6 +33,8 @@ from unittest import TestCase
 import shutil
 import glob
 
+import pytest
+
 from myhdl import delay, intbv, Signal, Simulation, _simulator, instance
 from myhdl._traceSignals import traceSignals, TraceSignalsError, _error
 
@@ -109,34 +111,18 @@ def topTristate():
     inst = traceSignals(tristate)
     return inst
 
-class TestTraceSigs(TestCase):
+@pytest.yield_fixture
+def vcd_dir(tmpdir):
+    with tmpdir.as_cwd():
+        yield tmpdir
+    if _simulator._tracing:
+        _simulator._tf.close()
+        _simulator._tracing = 0
 
-    def setUp(self):
-        paths = glob.glob("*.vcd") + glob.glob("*.vcd.*")
-        for p in paths:
-            os.remove(p)
 
-    def tearDown(self):
-        paths = glob.glob("*.vcd") + glob.glob("*.vcd.*")
-        if _simulator._tracing:
-            _simulator._tf.close()
-            _simulator._tracing = 0
-        #for p in paths:
-        #    os.remove(p)
+class TestTraceSigs:
 
-##     def testTopName(self):
-##         p = "dut.vcd"
-##         dut = traceSignals(fun)
-##         _simulator._tf.close()
-##         _simulator._tracing = 0
-##         try:
-##             traceSignals(fun)
-##         except TraceSignalsError, e:
-##             self.assertEqual(e.kind, _error.TopLevelName)
-##         else:
-##             self.fail()
-
-    def testMultipleTraces(self):
+    def testMultipleTraces(self, vcd_dir):
         try:
             dut = top3()
         except TraceSignalsError as e:
@@ -144,7 +130,7 @@ class TestTraceSigs(TestCase):
         else:
             raise AssertionError
 
-    def testArgType1(self):
+    def testArgType1(self, vcd_dir):
         try:
             dut = traceSignals([1, 2])
         except TraceSignalsError as e:
@@ -152,7 +138,7 @@ class TestTraceSigs(TestCase):
         else:
             raise AssertionError
 
-    def testReturnVal(self):
+    def testReturnVal(self, vcd_dir):
         from myhdl import ExtractHierarchyError
         from myhdl._extractHierarchy import _error
         try:
@@ -162,22 +148,22 @@ class TestTraceSigs(TestCase):
         else:
             raise AssertionError
 
-    def testHierarchicalTrace1(self):
+    def testHierarchicalTrace1(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
         top()
         assert path.exists(p)
 
-    def testHierarchicalTrace2(self):
+    def testHierarchicalTrace2(self, vcd_dir):
         pdut = "%s.vcd" % top.__name__
         psub = "%s.vcd" % fun.__name__
         dut = traceSignals(top)
         assert path.exists(pdut)
         assert not path.exists(psub)
 
-    def testTristateTrace(self):
+    def testTristateTrace(self, vcd_dir):
         Simulation(topTristate()).run(100, quiet=QUIET)
 
-    def testBackupOutputFile(self):
+    def testBackupOutputFile(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
         dut = traceSignals(fun)
         Simulation(dut).run(1000, quiet=QUIET)
