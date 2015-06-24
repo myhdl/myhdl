@@ -46,7 +46,7 @@ def g():
 
 x = Signal(0)
 
-class AlwaysCompilationTest(TestCase):
+class TestAlwaysCompilation:
     
 
     def testArgIsFunction(self):
@@ -155,7 +155,7 @@ def GeneralFunc(a, b, c, d, r):
     
 
 
-class InferWaiterTest(TestCase):
+class TestInferWaiter:
 
     def bench(self, MyHDLFunc, waiterType):
 

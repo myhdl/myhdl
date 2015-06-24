@@ -28,7 +28,7 @@ import pytest
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
 
-class TestModbvWrap(TestCase):
+class TestModbvWrap:
 
     def testWrap(self):
         x = modbv(0, min=-8, max=8)

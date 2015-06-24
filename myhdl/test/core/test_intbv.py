@@ -35,7 +35,7 @@ from myhdl._intbv import intbv
 
 from myhdl._compat import long, integer_types
 
-class TestIntbvInit(TestCase):
+class TestIntbvInit:
     def testDefaultValue(self):
         assert intbv() == 0
     
@@ -83,7 +83,7 @@ def setSliceLeftOpen(s, j, val):
         return val
     
 
-class TestIntBvIndexing(TestCase):
+class TestIntBvIndexing:
 
     def seqsSetup(self):
         seqs = ["0", "1", "000", "111", "010001", "110010010", "011010001110010"]
@@ -230,7 +230,7 @@ class TestIntBvIndexing(TestCase):
     
                             
 
-class TestIntBvAsInt(TestCase):
+class TestIntBvAsInt:
 
     def seqSetup(self, imin, imax, jmin=0, jmax=None):
         seqi = [imin, imin,   12, 34]
@@ -444,7 +444,7 @@ class TestIntBvAsInt(TestCase):
         self.comparisonCheck(operator.ne)
         
               
-class TestIntbvBounds(TestCase):
+class TestIntbvBounds:
     
     def testConstructor(self):
         assert intbv(40, max=54) == 40
@@ -563,7 +563,7 @@ class TestIntbvBounds(TestCase):
         self.checkOp(">>=")
 
 
-class TestIntbvCopy(TestCase):
+class TestIntbvCopy:
 
     def testCopy(self):
 

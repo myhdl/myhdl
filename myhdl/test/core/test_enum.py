@@ -38,7 +38,7 @@ t_State = enum("SEARCH", "CONFIRM", "SYNC")
 t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
 
 
-class TestEnum(TestCase):
+class TestEnum:
 
     def testUniqueLiterals(self):
         try:

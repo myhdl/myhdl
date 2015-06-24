@@ -129,7 +129,7 @@ def GeneralFunc(a, b, c, d, r):
      
 
 
-class InferWaiterTest(TestCase):
+class TestInferWaiter:
 
     def bench(self, genFunc, waiterType):
 

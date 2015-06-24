@@ -29,7 +29,7 @@ from random import randrange
 from myhdl import *
 
 
-class TestIntbvSigned(TestCase):
+class TestIntbvSigned:
     '''Test cases to verify the intbv.signed() member function'''
 
     def testPlainIntbvInstance(self):

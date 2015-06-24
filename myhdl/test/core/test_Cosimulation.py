@@ -57,7 +57,7 @@ allSigs = fromSigs.copy()
 allSigs.update(toSigs)
 
 @pytest.mark.xfail(PYPY, reason="This test does not work on pypy")
-class CosimulationTest(TestCase):
+class TestCosimulation:
     
     def testWrongExe(self):
         try:

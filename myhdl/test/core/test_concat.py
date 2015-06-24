@@ -37,7 +37,7 @@ from myhdl._compat import long
 
 
 
-class TestConcat(TestCase):
+class TestConcat:
 
     bases = ("0", "1", "10101", "01010", "110", "011", "1001000100001011111000")
     extslist = [ ["0"], ["1"], ["00"], ["11"], ["000"], ["111"], ["1010101010"],

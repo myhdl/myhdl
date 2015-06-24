@@ -43,7 +43,7 @@ def g():
 
 x = Signal(0)
 
-class InstanceCompilationTest(TestCase):
+class TestInstanceCompilation:
     
 
     def testArgIsFunction(self):

@@ -51,7 +51,7 @@ def C(n):
 
 g = 3
 
-class InstancesTest(TestCase):
+class TestInstances:
 
     def testInstances(self):
 

@@ -44,7 +44,7 @@ def g():
 
 x = Signal(0)
 
-class AlwaysCombCompilationTest(TestCase):
+class TestAlwaysCombCompilation:
     
 
     def testArgIsFunction(self):
@@ -210,7 +210,7 @@ class AlwaysCombCompilationTest(TestCase):
             raise AssertionError
 
 
-class AlwaysCombSimulationTest1(TestCase):
+class TestAlwaysCombSimulation1:
 
     def bench(self, function):
 
@@ -284,7 +284,7 @@ class AlwaysCombSimulationTest1(TestCase):
         Simulation(self.bench(function)).run(quiet=QUIET)
 
         
-class AlwaysCombSimulationTest2(TestCase):
+class TestAlwaysCombSimulation2:
 
     def bench(self, funcName="and"):
 
@@ -386,7 +386,7 @@ def SignalTupleGen1(a, b, c, d, r):
 
 
         
-class InferWaiterTest(TestCase):
+class TestInferWaiter:
 
     def bench(self, MyHDLFunc, waiterType):
 

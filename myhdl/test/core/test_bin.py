@@ -58,7 +58,7 @@ def binref(num, width=0):
     return s
 
 
-class TestBin(TestCase):
+class TestBin:
 
     def testSmall(self):
         for i in range(-65, 65):
