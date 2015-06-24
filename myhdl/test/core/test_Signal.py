@@ -38,9 +38,9 @@ from myhdl import intbv, Signal
 from myhdl._compat import long
 
         
-class SigTest(TestCase):
+class TestSig:
 
-    def setUp(self):
+    def setup_method(self, method):
         self.vals   = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]  
         self.nexts  = [0, 1, 1, 0, 1, 0, 4, 5, intbv(1), intbv(0), intbv(0)]
         self.vals  += [intbv(0), intbv(1), intbv(0), intbv(1), 2           ]
@@ -245,7 +245,7 @@ class SigTest(TestCase):
             assert _siglist.count(s[i]) == i
             
     
-class TestSignalAsNum(TestCase):
+class TestSignalAsNum:
 
     def seqSetup(self, imin, imax, jmin=0, jmax=None):
         seqi = [imin, imin,   12, 34]
@@ -475,7 +475,7 @@ def getSlice(s, i, j):
 
 
 
-class TestSignalIntBvIndexing(TestCase):
+class TestSignalIntBvIndexing:
 
     def seqsSetup(self):
         seqs = ["0", "1", "000", "111", "010001", "110010010", "011010001110010"]
@@ -544,7 +544,7 @@ class TestSignalIntBvIndexing(TestCase):
             raise AssertionError
 
 
-class TestSignalNrBits(TestCase):
+class TestSignalNrBits:
 
     def testBool(self):
         if type(bool) is not type : # bool not a type in 2.2
@@ -578,7 +578,7 @@ class TestSignalNrBits(TestCase):
             assert s._nrbits == n+2
             
 
-class TestSignalBoolBounds(TestCase):
+class TestSignalBoolBounds:
     
     def testSignalBoolBounds(self):
         if type(bool) is not type: # bool not a type in 2.2
@@ -597,7 +597,7 @@ class TestSignalBoolBounds(TestCase):
                 raise AssertionError
 
                 
-class TestSignalIntbvBounds(TestCase):
+class TestSignalIntbvBounds:
 
     def testSliceAssign(self):
         s = Signal(intbv(min=-24, max=34))
