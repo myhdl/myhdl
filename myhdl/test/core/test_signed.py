@@ -60,7 +60,7 @@ class TestIntbvSigned(TestCase):
         # Expect the number to be returned
         a = intbv(0x3b, min=0, max=0x7c)
         b = a.signed()
-        self.assertEqual(b, 0x3b)
+        assert b == 0x3b
 
         # intbv with positive range, pos number, and msb set, return signed()
         # test various bit patterns to see that the 2's complement
@@ -68,71 +68,71 @@ class TestIntbvSigned(TestCase):
         # Expect the number to be converted to a negative number
         a = intbv(7, min=0, max=8)
         b = a.signed()
-        self.assertEqual(b, -1)
+        assert b == -1
 
         a = intbv(6, min=0, max=8)
         b = a.signed()
-        self.assertEqual(b, -2)
+        assert b == -2
 
         a = intbv(5, min=0, max=8)
         b = a.signed()
-        self.assertEqual(b, -3)
+        assert b == -3
 
         # set bit #3 and increase the range so that the set bit is considered
         # the sign bit. Here min = 0
         # Expect to return -4
         a = intbv(4, min=0, max=5)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         a = intbv(4, min=0, max=6)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         a = intbv(4, min=0, max=7)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         a = intbv(4, min=0, max=8)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         # here it is not the sign bit anymore
         # Expect the value to be 4
         a = intbv(4, min=0, max=9)
         b = a.signed()
-        self.assertEqual(b, 4)
+        assert b == 4
 
         # set bit #3 and increase the range so that the set bit is considered
         # the sign bit. Here min > 0
         # Expect to return -4
         a = intbv(4, min=1, max=5)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         a = intbv(4, min=2, max=6)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         a = intbv(4, min=3, max=7)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         a = intbv(4, min=4, max=8)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         # again with min > 0, here it is not the sign bit anymore
         # Expect the value to be 4
         a = intbv(4, min=2, max=9)
         b = a.signed()
-        self.assertEqual(b, 4)
+        assert b == 4
 
         # intbv with positive range, value = 0, return signed()
         # Expect the number to be returned
         a = intbv(0, min=0, max=0x8)
         b = a.signed()
-        self.assertEqual(b, 0)
+        assert b == 0
 
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -144,46 +144,46 @@ class TestIntbvSigned(TestCase):
         # Expect value to be returned as is
         a = intbv(8)
         b = a.signed()
-        self.assertEqual(b, 8)
+        assert b == 8
 
         # intbv without range, neg number, return signed()
         # Expect value to be returned as is
         a = intbv(-8)
         b = a.signed()
-        self.assertEqual(b, -8)
+        assert b == -8
 
         # set bit #3 and increase the range that the set bit is actually the
         # msb, but due to the negative range not considered signed
         # Expect to return 4
         a = intbv(4, min=-1, max=5)
         b = a.signed()
-        self.assertEqual(b, 4)
+        assert b == 4
 
         a = intbv(4, min=-1, max=6)
         b = a.signed()
-        self.assertEqual(b, 4)
+        assert b == 4
 
         a = intbv(4, min=-1, max=7)
         b = a.signed()
-        self.assertEqual(b, 4)
+        assert b == 4
 
         a = intbv(4, min=-1, max=8)
         b = a.signed()
-        self.assertEqual(b, 4)
+        assert b == 4
 
         # intbv with negative range, pos number, and msb set, return signed()
         # Expect the number to returned as is
         a = intbv(7, min=-1, max=8)
         b = a.signed()
-        self.assertEqual(b, 7)
+        assert b == 7
 
         a = intbv(6, min=-1, max=8)
         b = a.signed()
-        self.assertEqual(b, 6)
+        assert b == 6
 
         a = intbv(5, min=-1, max=8)
         b = a.signed()
-        self.assertEqual(b, 5)
+        assert b == 5
 
 
         # intbv with symmetric (min = -max) range, pos value, msb set
@@ -191,21 +191,21 @@ class TestIntbvSigned(TestCase):
         # Expect value returned as is
         a = intbv(4, min=-8, max=8)
         b = a.signed()
-        self.assertEqual(b, 4)
+        assert b == 4
 
         # intbv with symmetric (min = -max) range, neg value,
         # return signed()
         # Expect value returned as is
         a = intbv(-4, min=-8, max=8)
         b = a.signed()
-        self.assertEqual(b, -4)
+        assert b == -4
 
         # intbv with symmetric (min=-max) range, value = 0,
         # return signed()
         # Expect value returned as is
         a = intbv(0, min=-8, max=8)
         b = a.signed()
-        self.assertEqual(b, 0)
+        assert b == 0
 
 
   
@@ -218,14 +218,14 @@ class TestIntbvSigned(TestCase):
         '''
         a = intbv(4, min=-8, max=8)
         b = a[4:]
-        self.assertEqual(b, 4)
+        assert b == 4
         b = a[4:].signed()
-        self.assertEqual(b, 4)    # msb is not set with a 4 bit slice
+        assert b == 4    # msb is not set with a 4 bit slice
 
         b = a[3:]
-        self.assertEqual(b, 4)
+        assert b == 4
         b = a[3:].signed()
-        self.assertEqual(b, -4)   # msb is set with 3 bits sliced
+        assert b == -4   # msb is set with 3 bits sliced
 
 
     def testSignedConcat(self):
@@ -234,12 +234,12 @@ class TestIntbvSigned(TestCase):
         # concat 3 bits
         # Expect the signed function to return a negative value
         a = concat(True, True, True).signed()
-        self.assertEqual(a, -1)
+        assert a == -1
 
         # concate a 3 bit intbv with msb set and two bits
         # Expect a negative number
         b = concat(intbv(5,min=0,max=8), True, True).signed()
-        self.assertEqual(b, -9)
+        assert b == -9
 
 
     def checkInvariants(self, a):
@@ -247,10 +247,10 @@ class TestIntbvSigned(TestCase):
         W = len(a)
         b = intbv(a.signed())
         if W > 0:
-            self.assertEqual(a[W:], b[W:])
-            self.assertEqual(b[:W], -a[W-1])
+            assert a[W:] == b[W:]
+            assert b[:W] == -a[W-1]
         else:
-            self.assertEqual(a, b)
+            assert a == b
 
     def testRandom(self):
         NRTESTS = 1000

@@ -140,17 +140,17 @@ class TestTraceSigs(TestCase):
         try:
             dut = top3()
         except TraceSignalsError as e:
-            self.assertEqual(e.kind, _error.MultipleTraces)
+            assert e.kind == _error.MultipleTraces
         else:
-            self.fail()
+            raise AssertionError
 
     def testArgType1(self):
         try:
             dut = traceSignals([1, 2])
         except TraceSignalsError as e:
-            self.assertEqual(e.kind, _error.ArgType)
+            assert e.kind == _error.ArgType
         else:
-            self.fail()
+            raise AssertionError
 
     def testReturnVal(self):
         from myhdl import ExtractHierarchyError
@@ -158,21 +158,21 @@ class TestTraceSigs(TestCase):
         try:
             dut = traceSignals(dummy)
         except ExtractHierarchyError as e:
-            self.assertEqual(e.kind, _error.InconsistentToplevel % (2, "dummy"))
+            assert e.kind == _error.InconsistentToplevel % (2, "dummy")
         else:
-            self.fail()
+            raise AssertionError
 
     def testHierarchicalTrace1(self):
         p = "%s.vcd" % fun.__name__
         top()
-        self.assertTrue(path.exists(p))
+        assert path.exists(p)
 
     def testHierarchicalTrace2(self):
         pdut = "%s.vcd" % top.__name__
         psub = "%s.vcd" % fun.__name__
         dut = traceSignals(top)
-        self.assertTrue(path.exists(pdut))
-        self.assertTrue(not path.exists(psub))
+        assert path.exists(pdut)
+        assert not path.exists(psub)
 
     def testTristateTrace(self):
         Simulation(topTristate()).run(100, quiet=QUIET)
@@ -185,14 +185,14 @@ class TestTraceSigs(TestCase):
         _simulator._tracing = 0
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
-        self.assertTrue(not path.exists(pbak))
+        assert not path.exists(pbak)
         dut = traceSignals(fun)
         _simulator._tf.close()
         _simulator._tracing = 0
-        self.assertTrue(path.exists(p))
-        self.assertTrue(path.exists(pbak))
-        self.assertTrue(path.getsize(pbak) == size)
-        self.assertTrue(path.getsize(p) < size)
+        assert path.exists(p)
+        assert path.exists(pbak)
+        assert path.getsize(pbak) == size
+        assert path.getsize(p) < size
 
 
 

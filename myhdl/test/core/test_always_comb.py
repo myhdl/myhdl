@@ -52,9 +52,9 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             always_comb(h)
         except AlwaysCombError as e:
-            self.assertEqual(e.kind, _error.ArgType)
+            assert e.kind == _error.ArgType
         else:
-            self.fail()
+            raise AssertionError
     
     def testArgIsNormalFunction(self):
         def h():
@@ -62,9 +62,9 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             always_comb(h)
         except AlwaysCombError as e:
-            self.assertEqual(e.kind, _error.ArgType)
+            assert e.kind == _error.ArgType
         else:
-            self.fail()
+            raise AssertionError
 
     def testArgHasNoArgs(self):
         def h(n):
@@ -72,9 +72,9 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             always_comb(h)
         except AlwaysCombError as e:
-            self.assertEqual(e.kind, _error.NrOfArgs)
+            assert e.kind == _error.NrOfArgs
         else:
-            self.fail()
+            raise AssertionError
 
 ##     def testScope(self):
 ##         try:
@@ -93,7 +93,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
         
     def testInfer2(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -104,7 +104,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'x'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
 
     def testInfer3(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -115,7 +115,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['x'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
 
     def testInfer4(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -126,7 +126,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
         
         
     def testInfer5(self):
@@ -137,9 +137,9 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             g = always_comb(h).gen
         except AlwaysCombError as e:
-            self.assertEqual(e.kind, _error.SignalAsInout % "c")
+            assert e.kind == _error.SignalAsInout % "c"
         else:
-            self.fail()
+            raise AssertionError
 
     def testInfer6(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -149,9 +149,9 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             g = always_comb(h).gen
         except AlwaysCombError as e:
-            self.assertEqual(e.kind, _error.SignalAsInout % "c")
+            assert e.kind == _error.SignalAsInout % "c"
         else:
-            self.fail()
+            raise AssertionError
 
     def testInfer7(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -160,7 +160,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'b', 'x'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
         
     def testInfer8(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -171,7 +171,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'b', 'x'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
          
     def testInfer9(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -180,7 +180,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'b', 'x'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
         
     def testInfer10(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -191,7 +191,7 @@ class AlwaysCombCompilationTest(TestCase):
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'b', 'd', 'x'])
-        self.assertEqual(i.inputs, expected)
+        assert i.inputs == expected
 
     def testEmbeddedFunction(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -205,9 +205,9 @@ class AlwaysCombCompilationTest(TestCase):
         try:
             g = always_comb(h)
         except AlwaysCombError as e:
-            self.assertEqual(e.kind, _error.EmbeddedFunction)
+            assert e.kind == _error.EmbeddedFunction
         else:
-            self.fail()
+            raise AssertionError
 
 
 class AlwaysCombSimulationTest1(TestCase):
@@ -249,7 +249,7 @@ class AlwaysCombSimulationTest1(TestCase):
                 d.next = v[3]
                 yield clk.posedge
                 yield clk.negedge
-                self.assertEqual(x, z)
+                assert x == z
             raise StopSimulation("always_comb simulation test")
 
         return instances()
@@ -346,7 +346,7 @@ class AlwaysCombSimulationTest2(TestCase):
                 k.next = v
                 yield clk.posedge
                 yield clk.negedge
-                self.assertEqual(x, z)
+                assert x == z
             raise StopSimulation("always_comb simulation test")
 
         return comb, gen, clkGen(), stimulus()
@@ -393,7 +393,7 @@ class InferWaiterTest(TestCase):
         a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
 
         inst_r = MyHDLFunc(a, b, c, d, r)
-        self.assertEqual(type(inst_r.waiter), waiterType)
+        assert type(inst_r.waiter) == waiterType
         
         inst_s = MyHDLFunc(a, b, c, d, s)
 
@@ -411,7 +411,7 @@ class InferWaiterTest(TestCase):
         def check():
             while 1:
                 yield a, b, c, r, s
-                self.assertEqual(r, s)
+                assert r == s
 
         return inst_r, _Waiter(inst_s.gen), _Waiter(stimulus()), _Waiter(check())
 

@@ -70,9 +70,9 @@ class InstancesTest(TestCase):
         i = instances()
         # can't just construct an expected list;
         # that would become part of the instances also!
-        self.assertEqual(len(i), 4)
+        assert len(i) == 4
         for e in (D_1, A_1, B_1, C_1):
-            self.assertTrue(e in i)
+            assert e in i
 
 
 if __name__ == "__main__":

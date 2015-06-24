@@ -138,7 +138,7 @@ class InferWaiterTest(TestCase):
         gen_inst_r = genFunc(a, b, c, d, r)
         if not isinstance(gen_inst_r, GeneratorType): # decorator type
             gen_inst_r = gen_inst_r.gen
-        self.assertEqual(type(_inferWaiter(gen_inst_r)), waiterType)
+        assert type(_inferWaiter(gen_inst_r)) == waiterType
         
         gen_inst_s = genFunc(a, b, c, d, s)
         if not isinstance(gen_inst_s, GeneratorType): # decorator type
@@ -158,7 +158,7 @@ class InferWaiterTest(TestCase):
         def check():
             while 1:
                 yield a, b, c, r, s
-                self.assertEqual(r, s)
+                assert r == s
 
         return gen_inst_r, _Waiter(gen_inst_s), _Waiter(stimulus()), _Waiter(check())
 

@@ -54,9 +54,9 @@ class AlwaysCompilationTest(TestCase):
         try:
             always(delay(3))(h)
         except AlwaysError as e:
-            self.assertEqual(e.kind, _error.ArgType)
+            assert e.kind == _error.ArgType
         else:
-            self.fail()
+            raise AssertionError
     
     def testArgIsNormalFunction(self):
         try:
@@ -64,9 +64,9 @@ class AlwaysCompilationTest(TestCase):
             def h():
                 yield None
         except AlwaysError as e:
-            self.assertEqual(e.kind, _error.ArgType)
+            assert e.kind == _error.ArgType
         else:
-            self.fail()
+            raise AssertionError
 
     def testArgHasNoArgs(self):
         try:
@@ -74,9 +74,9 @@ class AlwaysCompilationTest(TestCase):
             def h(n):
                 return n
         except AlwaysError as e:
-            self.assertEqual(e.kind, _error.NrOfArgs)
+            assert e.kind == _error.NrOfArgs
         else:
-            self.fail()
+            raise AssertionError
 
     def testDecArgType1(self):
         try:
@@ -84,9 +84,9 @@ class AlwaysCompilationTest(TestCase):
             def h(n):
                 return n
         except AlwaysError as e:
-            self.assertEqual(e.kind, _error.DecArgType)
+            assert e.kind == _error.DecArgType
         else:
-            self.fail()
+            raise AssertionError
 
     def testDecArgType2(self):
         try:
@@ -94,9 +94,9 @@ class AlwaysCompilationTest(TestCase):
             def h(n):
                 return n
         except AlwaysError as e:
-            self.assertEqual(e.kind, _error.DecArgType)
+            assert e.kind == _error.DecArgType
         else:
-            self.fail()
+            raise AssertionError
 
 
 
@@ -162,7 +162,7 @@ class InferWaiterTest(TestCase):
         a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
 
         inst_r = MyHDLFunc(a, b, c, d, r)
-        self.assertEqual(type(inst_r.waiter), waiterType)
+        assert type(inst_r.waiter) == waiterType
         
         inst_s = MyHDLFunc(a, b, c, d, s)
 
@@ -180,7 +180,7 @@ class InferWaiterTest(TestCase):
         def check():
             while 1:
                 yield a, b, c, r, s
-                self.assertEqual(r, s)
+                assert r == s
 
         return inst_r, _Waiter(inst_s.gen), _Waiter(stimulus()), _Waiter(check())
 

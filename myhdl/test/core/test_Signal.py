@@ -68,7 +68,7 @@ class SigTest(TestCase):
         except AttributeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
 
     def testDrivenAttrValue(self):
         """ driven attribute only accepts value 'reg' or 'wire' """
@@ -78,7 +78,7 @@ class SigTest(TestCase):
         except ValueError:
             pass
         else:
-            self.fail()
+            raise AssertionError
         
     def testPosedgeAttrReadOnly(self):
         """ posedge attribute should not be writable"""
@@ -88,7 +88,7 @@ class SigTest(TestCase):
         except AttributeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
             
     def testNegedgeAttrReadOnly(self):
         """ negedge attribute should not be writable"""
@@ -98,17 +98,17 @@ class SigTest(TestCase):
         except AttributeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
 
     def testInitDefault(self):
         """ initial value is None by default """
         s1 = Signal()
-        self.assertEqual(s1, None)
+        assert s1 == None
 
     def testInitialization(self):
         """ initial val and next should be equal """
         for s in self.sigs:
-            self.assertEqual(s.val, s.next)
+            assert s.val == s.next
 
     def testUpdate(self):
         """ _update() should assign next into val """
@@ -116,16 +116,16 @@ class SigTest(TestCase):
             cur = copy.copy(s.val)
             s.next = n
             # assigning to next should not change current value ...
-            self.assertTrue(s.val == cur)
+            assert s.val == cur
             s._update()
-            self.assertTrue(s.val == n)
+            assert s.val == n
 
     def testNextType(self):
         """ sig.next = n should fail on access if type(n) incompatible """
         i = 0
         for s in (self.sigs + self.incompatibleSigs):
             for n in (self.vals + self.incompatibleVals):
-                self.assertTrue(isinstance(s.val, s._type))
+                assert isinstance(s.val, s._type)
                 if isinstance(s.val, (int, long, intbv)):
                     t = (int, long, intbv)
                 else:
@@ -138,15 +138,15 @@ class SigTest(TestCase):
                     except (TypeError, ValueError):
                         pass
                     else:
-                        self.fail()
-        self.assertTrue(i >= len(self.incompatibleSigs), "Nothing tested %s" %i)
+                        raise AssertionError
+        assert i >= len(self.incompatibleSigs), "Nothing tested %s" %i
 
     def testAfterUpdate(self):
         """ updated val and next should be equal but not identical """
         for s, n in zip(self.sigs, self.nexts):
             s.next = n
             s._update()
-            self.assertEqual(s.val, s.next)
+            assert s.val == s.next
             
     def testModify(self):
         """ Modifying mutable next should be on a copy """
@@ -164,7 +164,7 @@ class SigTest(TestCase):
                 s.next[3] = 5
             else:
                 s.next # plain read access
-            self.assertTrue(s.val is not s.next, repr(s.val))
+            assert s.val is not s.next, repr(s.val)
 
     def testUpdatePosedge(self):
         """ update on posedge should return event and posedge waiters """
@@ -177,10 +177,10 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters + self.posedgeWaiters
-        self.assertEqual(set(waiters), set(expected))
-        self.assertEqual(s1._eventWaiters, [])
-        self.assertEqual(s1._posedgeWaiters, [])
-        self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
+        assert set(waiters) == set(expected)
+        assert s1._eventWaiters == []
+        assert s1._posedgeWaiters == []
+        assert s1._negedgeWaiters == self.negedgeWaiters
             
     def testUpdateNegedge(self):
         """ update on negedge should return event and negedge waiters """
@@ -193,10 +193,10 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters + self.negedgeWaiters
-        self.assertEqual(set(waiters), set(expected))
-        self.assertEqual(s1._eventWaiters, [])
-        self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
-        self.assertEqual(s1._negedgeWaiters, [])
+        assert set(waiters) == set(expected)
+        assert s1._eventWaiters == []
+        assert s1._posedgeWaiters == self.posedgeWaiters
+        assert s1._negedgeWaiters == []
 
     def testUpdateEvent(self):
         """ update on non-edge event should return event waiters """
@@ -209,10 +209,10 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters
-        self.assertEqual(set(waiters), set(expected))
-        self.assertEqual(s1._eventWaiters, [])
-        self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
-        self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
+        assert set(waiters) == set(expected)
+        assert s1._eventWaiters == []
+        assert s1._posedgeWaiters == self.posedgeWaiters
+        assert s1._negedgeWaiters == self.negedgeWaiters
         
     def testUpdateNoEvent(self):
         """ update without value change should not return event waiters """
@@ -224,10 +224,10 @@ class SigTest(TestCase):
         s1._posedgeWaiters = self.posedgeWaiters[:]
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
-        self.assertEqual(waiters, [])
-        self.assertEqual(s1._eventWaiters, self.eventWaiters)
-        self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
-        self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
+        assert waiters == []
+        assert s1._eventWaiters == self.eventWaiters
+        assert s1._posedgeWaiters == self.posedgeWaiters
+        assert s1._negedgeWaiters == self.negedgeWaiters
     
     def testNextAccess(self):
         """ each next attribute access puts a sig in a global siglist """
@@ -242,7 +242,7 @@ class SigTest(TestCase):
         s[3].next = 1
         s[3].next = 3
         for i in range(len(s)):
-            self.assertEqual(_siglist.count(s[i]), i)
+            assert _siglist.count(s[i]) == i
             
     
 class TestSignalAsNum(TestCase):
@@ -289,12 +289,12 @@ class TestSignalAsNum(TestCase):
             r1 = op(bi, j)
             r2 = op(long(i), bj)
             r3 = op(bi, bj)
-            self.assertEqual(type(r1), type(ref))
-            self.assertEqual(type(r2), type(ref))
-            self.assertEqual(type(r3), type(ref))
-            self.assertEqual(r1, ref)
-            self.assertEqual(r2, ref)
-            self.assertEqual(r3, ref)
+            assert type(r1) == type(ref)
+            assert type(r2) == type(ref)
+            assert type(r3) == type(ref)
+            assert r1 == ref
+            assert r2 == ref
+            assert r3 == ref
 
     def augmentedAssignCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
@@ -308,7 +308,7 @@ class TestSignalAsNum(TestCase):
             except TypeError:
                 pass
             else:
-                self.fail()
+                raise AssertionError
             r2 = long(i)
             r2 = op(r2, bj)
             r3 = bi3 = Signal(i)
@@ -317,8 +317,8 @@ class TestSignalAsNum(TestCase):
             except TypeError:
                 pass
             else:
-                self.fail()
-            self.assertEqual(r2, ref)
+                raise AssertionError
+            assert r2 == ref
             
     def unaryCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
@@ -326,8 +326,8 @@ class TestSignalAsNum(TestCase):
             bi = Signal(i)
             ref = op(i)
             r1 = op(bi)
-            self.assertEqual(type(r1), type(ref))
-            self.assertEqual(r1, ref)
+            assert type(r1) == type(ref)
+            assert r1 == ref
             
     def conversionCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
@@ -335,8 +335,8 @@ class TestSignalAsNum(TestCase):
             bi = Signal(i)
             ref = op(i)
             r1 = op(bi)
-            self.assertEqual(type(r1), type(ref))
-            self.assertEqual(r1, ref)
+            assert type(r1) == type(ref)
+            assert r1 == ref
             
     def comparisonCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
@@ -347,9 +347,9 @@ class TestSignalAsNum(TestCase):
             r1 = op(bi, j)
             r2 = op(i, bj)
             r3 = op(bi, bj)
-            self.assertEqual(r1, ref)
-            self.assertEqual(r2, ref)
-            self.assertEqual(r3, ref)
+            assert r1 == ref
+            assert r2 == ref
+            assert r3 == ref
 
     def testAdd(self):
         self.binaryCheck(operator.add)
@@ -499,10 +499,10 @@ class TestSignalIntBvIndexing(TestCase):
                 ref = long(getItem(s, i), 2)
                 res = sbv[i]
                 resi = sbvi[i]
-                self.assertEqual(res, ref)
-                self.assertEqual(type(res), bool)
-                self.assertEqual(resi, ref^1)
-                self.assertEqual(type(resi), bool)
+                assert res == ref
+                assert type(res) == bool
+                assert resi == ref^1
+                assert type(resi) == bool
 
     def testGetSlice(self):
         self.seqsSetup()
@@ -516,14 +516,14 @@ class TestSignalIntBvIndexing(TestCase):
                         res = sbv[i:j]
                         resi = sbvi[i:j]
                     except ValueError:
-                        self.assertTrue(i<=j)
+                        assert i<=j
                         continue
                     ref = long(getSlice(s, i, j), 2)
-                    self.assertEqual(res, ref)
-                    self.assertEqual(type(res), intbv)
+                    assert res == ref
+                    assert type(res) == intbv
                     mask = (2**(i-j))-1
-                    self.assertEqual(resi, ref ^ mask)
-                    self.assertEqual(type(resi), intbv)
+                    assert resi == ref ^ mask
+                    assert type(resi) == intbv
 
     def testSetItem(self):
         sbv = Signal(intbv(5))
@@ -532,7 +532,7 @@ class TestSignalIntBvIndexing(TestCase):
         except TypeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
             
     def testSetSlice(self):
         sbv = Signal(intbv(5))
@@ -541,7 +541,7 @@ class TestSignalIntBvIndexing(TestCase):
         except TypeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
 
 
 class TestSignalNrBits(TestCase):
@@ -550,32 +550,32 @@ class TestSignalNrBits(TestCase):
         if type(bool) is not type : # bool not a type in 2.2
             return
         s = Signal(bool())
-        self.assertEqual(s._nrbits, 1)
+        assert s._nrbits == 1
 
     def testIntbvSlice(self):
         for n in range(1, 40):
             for m in range(0, n):
                 s = Signal(intbv()[n:m])
-                self.assertEqual(s._nrbits, n-m)
+                assert s._nrbits == n-m
 
     def testIntbvBounds(self):
         for n in range(1, 40):
             s = Signal(intbv(min=-(2**n)))
-            self.assertEqual(s._nrbits, 0)
+            assert s._nrbits == 0
             s = Signal(intbv(max=2**n))
-            self.assertEqual(s._nrbits, 0)
+            assert s._nrbits == 0
             s = Signal(intbv(min=0, max=2**n))
-            self.assertEqual(s._nrbits, n)
+            assert s._nrbits == n
             s = Signal(intbv(1, min=1, max=2**n))
-            self.assertEqual(s._nrbits, n)
+            assert s._nrbits == n
             s = Signal(intbv(min=0, max=2**n+1))
-            self.assertEqual(s._nrbits, n+1)
+            assert s._nrbits == n+1
             s = Signal(intbv(min=-(2**n), max=2**n-1))
-            self.assertEqual(s._nrbits, n+1)
+            assert s._nrbits == n+1
             s = Signal(intbv(min=-(2**n), max=1))
-            self.assertEqual(s._nrbits, n+1)
+            assert s._nrbits == n+1
             s = Signal(intbv(min=-(2**n)-1, max=2**n-1))
-            self.assertEqual(s._nrbits, n+2)
+            assert s._nrbits == n+2
             
 
 class TestSignalBoolBounds(TestCase):
@@ -594,7 +594,7 @@ class TestSignalBoolBounds(TestCase):
             except ValueError:
                 pass
             else:
-                self.fail()
+                raise AssertionError
 
                 
 class TestSignalIntbvBounds(TestCase):
@@ -605,7 +605,7 @@ class TestSignalIntbvBounds(TestCase):
             for k in (6, 9, 10):
                 s.next[:] = 0
                 s.next[k:] = i
-                self.assertEqual(s.next, i)
+                assert s.next == i
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
                 try:
@@ -614,7 +614,7 @@ class TestSignalIntbvBounds(TestCase):
                 except ValueError:
                     pass
                 else:
-                    self.fail()
+                    raise AssertionError
         s = Signal(intbv(5)[8:])
         for v in (0, 2**8-1, 100):
             s.next[:] = v
@@ -625,7 +625,7 @@ class TestSignalIntbvBounds(TestCase):
             except ValueError:
                 pass
             else:
-                self.fail()
+                raise AssertionError
             
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@
 from __future__ import absolute_import
 
 
+import pytest
 import unittest
 from unittest import TestCase
 import random
@@ -52,8 +53,8 @@ class TestConcat(TestCase):
                 refstr = basestr + reduce(operator.add, extstr)
                 reflen = len(refstr)
                 ref = long(refstr, 2)
-                self.assertEqual(bv, ref)
-                self.assertEqual(len(bv), reflen)
+                assert bv == ref
+                assert len(bv) == reflen
 
     def ConcatToUnsizedBase(self, bases, extslist):
         for base, basestr in zip(bases, self.bases):
@@ -61,8 +62,8 @@ class TestConcat(TestCase):
                 bv = concat(base, *exts)
                 refstr = basestr + reduce(operator.add, extstr)
                 ref = long(refstr, 2)
-                self.assertEqual(bv, ref)
-                self.assertEqual(len(bv), 0)
+                assert bv == ref
+                assert len(bv) == 0
 
 
     def testConcatStringsToString(self):
@@ -240,12 +241,14 @@ class TestConcat(TestCase):
 
     def testWrongType(self):
         a = intbv(4)
-        self.assertRaises(TypeError, concat, a, 5)
+        with pytest.raises(TypeError):
+            concat(a, 5)
             
     def testUnsizedConcat(self):
         a = intbv(4)
         b = intbv(5)
-        self.assertRaises(TypeError, concat, a, b)
+        with pytest.raises(TypeError):
+            concat(a, b)
 
 if __name__ == "__main__":
     unittest.main()

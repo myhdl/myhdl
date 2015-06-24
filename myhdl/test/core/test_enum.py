@@ -46,7 +46,7 @@ class TestEnum(TestCase):
         except ValueError:
             pass
         else:
-            self.fail()
+            raise AssertionError
 
     def testWrongAttr(self):
         try:
@@ -54,7 +54,7 @@ class TestEnum(TestCase):
         except AttributeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
 
     def testAttrAssign(self):
         try:
@@ -62,7 +62,7 @@ class TestEnum(TestCase):
         except AttributeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
 
     def testWrongAttrAssign(self):
         try:
@@ -70,18 +70,18 @@ class TestEnum(TestCase):
         except AttributeError:
             pass
         else:
-            self.fail()
+            raise AssertionError
 
     def testHomograph(self):
-        self.assertTrue(t_State is not t_Homograph)
+        assert t_State is not t_Homograph
         
     def testHomographLiteral(self):
-        self.assertTrue(t_State.SEARCH is not t_Homograph.SEARCH)
+        assert t_State.SEARCH is not t_Homograph.SEARCH
 
     def testItemCopy(self):
         e = copy.deepcopy(t_State.SEARCH)
-        self.assertTrue(e == t_State.SEARCH)
-        self.assertTrue(e != t_State.CONFIRM)
+        assert e == t_State.SEARCH
+        assert e != t_State.CONFIRM
 
 
 if __name__ == "__main__":

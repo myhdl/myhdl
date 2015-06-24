@@ -63,18 +63,18 @@ class CosimulationTest(TestCase):
         try:
             Cosimulation("bla -x 45")
         except CosimulationError as e:
-            self.assertEqual(e.kind, _error.OSError)
+            assert e.kind == _error.OSError
         else:
-            self.fail()
+            raise AssertionError
 
     def testNotUnique(self):
         cosim1 = Cosimulation(exe + ".cosimNotUnique", **allSigs)
         try:
             Cosimulation(exe + ".cosimNotUnique", **allSigs)
         except CosimulationError as e:
-            self.assertEqual(e.kind, _error.MultipleCosim)
+            assert e.kind == _error.MultipleCosim
         else:
-            self.fail()
+            raise AssertionError
 
     def cosimNotUnique(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -88,8 +88,8 @@ class CosimulationTest(TestCase):
 
     def testFromSignals(self):
         cosim = Cosimulation(exe + ".cosimFromSignals", **allSigs)
-        self.assertEqual(cosim._fromSignames, fromSignames)
-        self.assertEqual(cosim._fromSizes, fromSizes)
+        assert cosim._fromSignames == fromSignames
+        assert cosim._fromSizes == fromSizes
 
     def cosimFromSignals(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -106,10 +106,10 @@ class CosimulationTest(TestCase):
 
     def testToSignals(self):
         cosim = Cosimulation(exe + ".cosimToSignals", **toSigs)
-        self.assertEqual(cosim._fromSignames, [])
-        self.assertEqual(cosim._fromSizes, [])
-        self.assertEqual(cosim._toSignames, toSignames)
-        self.assertEqual(cosim._toSizes, toSizes)
+        assert cosim._fromSignames == []
+        assert cosim._fromSizes == []
+        assert cosim._toSignames == toSignames
+        assert cosim._toSizes == toSizes
 
     def cosimToSignals(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -126,10 +126,10 @@ class CosimulationTest(TestCase):
 
     def testFromToSignals(self):
         cosim = Cosimulation(exe + ".cosimFromToSignals", **allSigs)
-        self.assertEqual(cosim._fromSignames, fromSignames)
-        self.assertEqual(cosim._fromSizes, fromSizes)
-        self.assertEqual(cosim._toSignames, toSignames)
-        self.assertEqual(cosim._toSizes, toSizes)
+        assert cosim._fromSignames == fromSignames
+        assert cosim._fromSizes == fromSizes
+        assert cosim._toSignames == toSignames
+        assert cosim._toSizes == toSizes
 
     def cosimFromToSignals(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -151,9 +151,9 @@ class CosimulationTest(TestCase):
         try:
             Cosimulation(exe + ".cosimTimeZero", **allSigs)
         except CosimulationError as e:
-            self.assertEqual(e.kind, _error.TimeZero)
+            assert e.kind == _error.TimeZero
         except:
-            self.fail()
+            raise AssertionError
 
     def cosimTimeZero(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -167,9 +167,9 @@ class CosimulationTest(TestCase):
         try:
             Cosimulation(exe + ".cosimNoComm", **allSigs)
         except CosimulationError as e:
-            self.assertEqual(e.kind, _error.NoCommunication)
+            assert e.kind == _error.NoCommunication
         else:
-            self.fail()
+            raise AssertionError
  
     def cosimNoComm(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -185,9 +185,9 @@ class CosimulationTest(TestCase):
         try:
             Cosimulation(exe + ".cosimFromSignalsDupl", **allSigs)
         except CosimulationError as e:
-            self.assertEqual(e.kind, _error.DuplicateSigNames)
+            assert e.kind == _error.DuplicateSigNames
         else:
-            self.fail()
+            raise AssertionError
 
     def cosimFromSignalsDupl(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -202,9 +202,9 @@ class CosimulationTest(TestCase):
         try:
             Cosimulation(exe + ".cosimToSignalsDupl", **allSigs)
         except CosimulationError as e:
-            self.assertEqual(e.kind, _error.DuplicateSigNames)
+            assert e.kind == _error.DuplicateSigNames
         else:
-            self.fail()
+            raise AssertionError
  
     def cosimToSignalsDupl(self):
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -236,20 +236,20 @@ class CosimulationTest(TestCase):
         os.write(wt, b"DUMMY")
         s = os.read(rf, MAXLINE)
         vals = [int(e, 16) for e in s.split()[1:]]
-        self.assertEqual(vals, fromVals)
+        assert vals == fromVals
 
     def testToSignalVals(self):
         cosim = Cosimulation(exe + ".cosimToSignalVals", **allSigs)
         for n in toSignames:
-            self.assertEqual(toSigs[n].next, 0)
+            assert toSigs[n].next == 0
         cosim._get()
         for n, v in zip(toSignames, toVals):
-            self.assertEqual(toSigs[n].next, v)
+            assert toSigs[n].next == v
         os.write(cosim._wf, b"DUMMY")
         cosim._getMode = 1
         cosim._get()
         for n in toSignames:
-            self.assertEqual(toSigs[n].next, 0)
+            assert toSigs[n].next == 0
         
 
     def cosimToSignalVals(self):

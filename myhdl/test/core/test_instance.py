@@ -51,9 +51,9 @@ class InstanceCompilationTest(TestCase):
         try:
             instance(h)
         except InstanceError as e:
-            self.assertEqual(e.kind, _error.ArgType)
+            assert e.kind == _error.ArgType
         else:
-            self.fail()
+            raise AssertionError
     
     def testArgIsGeneratorFunction(self):
         try:
@@ -61,9 +61,9 @@ class InstanceCompilationTest(TestCase):
             def h():
                 return None
         except InstanceError as e:
-            self.assertEqual(e.kind, _error.ArgType)
+            assert e.kind == _error.ArgType
         else:
-            self.fail()
+            raise AssertionError
 
     def testArgHasNoArgs(self):
         try:
@@ -71,9 +71,9 @@ class InstanceCompilationTest(TestCase):
             def h(n):
                 yield n
         except InstanceError as e:
-            self.assertEqual(e.kind, _error.NrOfArgs)
+            assert e.kind == _error.NrOfArgs
         else:
-            self.fail()
+            raise AssertionError
 
 
 if __name__ == "__main__":
