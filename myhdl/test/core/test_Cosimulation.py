@@ -38,7 +38,7 @@ from myhdl import Signal
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
 from myhdl._compat import to_bytes, PYPY
 
-exe = "python test_Cosimulation.py CosimulationTest"
+exe = "python {0} CosimulationTest".format(os.path.abspath(__file__))
 
 fromSignames = ['a', 'bb', 'ccc']
 fromSizes = [1, 11, 63]
