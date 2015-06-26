@@ -29,7 +29,7 @@ if sys.platform == "win32":
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
-from myhdl._compat import PY2, string_types, to_bytes, to_str
+from myhdl._compat import string_types, to_bytes, to_str
 
 _MAXLINE = 4096
 
@@ -108,10 +108,13 @@ class Cosimulation(object):
         self._getMode = 1
 
         env = os.environ.copy()
-        env['MYHDL_TO_PIPE'] = str(wt) if sys.platform != "win32"
-                               else str(msvcrt.get_osfhandle(wt))
-        env['MYHDL_FROM_PIPE'] = str(rf) if sys.platform != "win32"
-                                 else str(msvcrt.get_osfhandle(rf))
+
+        if sys.platform != "win32":
+            env['MYHDL_TO_PIPE'] = str(wt)
+            env['MYHDL_FROM_PIPE'] = str(rf)
+        else:
+            env['MYHDL_TO_PIPE'] = str(msvcrt.get_osfhandle(wt))
+            env['MYHDL_FROM_PIPE'] = str(msvcrt.get_osfhandle(rf))
 
         if isinstance(exe, string_types):
             exe = shlex.split(exe)
