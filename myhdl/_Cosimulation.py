@@ -20,10 +20,12 @@
 """ Module that provides the Cosimulation class """
 from __future__ import absolute_import
 
-
+import sys
 import os
 import shlex
 import subprocess
+if sys.platform == "win32":
+    import msvcrt
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
@@ -46,20 +48,54 @@ class Cosimulation(object):
     """ Cosimulation class. """
 
     def __init__(self, exe="", **kwargs):
-        
+
         """ Construct a cosimulation object. """
-        
+
         if _simulator._cosim:
             raise CosimulationError(_error.MultipleCosim)
         _simulator._cosim = 1
-        
-        self._rt, self._wt = rt, wt = os.pipe()
-        self._rf, self._wf = rf, wf = os.pipe()
 
-        # New pipes are not inheritable by default since py 3.4
-        if not PY2:
-            for p in rt, wt, rf, wf:
-                os.set_inheritable(p, True)
+        if hasattr(os, 'set_inheritable'):
+            set_inheritable = os.set_inheritable
+        else:
+            # No luck on python < 3.4, so we need to implement it ouselves
+            def set_inheritable(fd, inheritable):
+                if sys.platform == "win32":
+                    import ctypes
+
+                    HANDLE_FLAG_INHERIT = 1
+                    flag = 1 if inheritable else 0
+
+                    if ctypes.windll.kernel32.SetHandleInformation(msvcrt.get_osfhandle(fd),
+                                                                   HANDLE_FLAG_INHERIT,
+                                                                   flag) == 0:
+                        raise IOError("Failed on HANDLE_FLAG_INHERIT")
+                else:
+                    import fcntl
+
+                    fd_flags = fcntl.fcntl(fd, fcntl.F_GETFD)
+
+                    if inheritable:
+                        fd_flags &= ~fcntl.FD_CLOEXEC
+                    else:
+                        fd_flags |= fcntl.FD_CLOEXEC
+
+                    fcntl.fcntl(fd, fcntl.F_SETFD, fd_flags)
+
+        rt, wt = os.pipe()
+        rf, wf = os.pipe()
+
+        # Disable inheritance for ends that we don't want the child to have
+        set_inheritable(rt, False)
+        set_inheritable(wf, False)
+
+        # Enable inheritance for child ends
+        # (needed for python >= 3.4, doesn't hurt for earlier versions)
+        set_inheritable(wt, True)
+        set_inheritable(rf, True)
+
+        self._rt = rt
+        self._wf = wf
 
         self._fromSignames = fromSignames = []
         self._fromSizes = fromSizes = []
@@ -71,20 +107,17 @@ class Cosimulation(object):
         self._hasChange = 0
         self._getMode = 1
 
-        def close_rt_wf():
-            os.close(rt)
-            os.close(wf)
-
         env = os.environ.copy()
-        env['MYHDL_TO_PIPE'] = str(wt)
-        env['MYHDL_FROM_PIPE'] = str(rf)
+        env['MYHDL_TO_PIPE'] = str(wt) if sys.platform != "win32"
+                               else str(msvcrt.get_osfhandle(wt))
+        env['MYHDL_FROM_PIPE'] = str(rf) if sys.platform != "win32"
+                                 else str(msvcrt.get_osfhandle(rf))
 
         if isinstance(exe, string_types):
             exe = shlex.split(exe)
-            
+
         try:
-            sp = subprocess.Popen(exe, env=env, close_fds=False,
-                                  preexec_fn=close_rt_wf)
+            sp = subprocess.Popen(exe, env=env, close_fds=False)
         except OSError as e:
             raise CosimulationError(_error.OSError, str(e))
 
@@ -154,7 +187,7 @@ class Cosimulation(object):
                 except ValueError:
                     next = intbv(0)
             s.next = next
-                 
+
         self._getMode = 0
 
     def _put(self, time):
@@ -182,7 +215,7 @@ class Cosimulation(object):
         while 1:
             yield sigs
             self._hasChange = 1
-            
+
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """
         _simulator._cosim = 0
