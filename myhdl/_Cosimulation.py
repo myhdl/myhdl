@@ -55,44 +55,20 @@ class Cosimulation(object):
             raise CosimulationError(_error.MultipleCosim)
         _simulator._cosim = 1
 
-        if hasattr(os, 'set_inheritable'):
-            set_inheritable = os.set_inheritable
-        else:
-            # No luck on python < 3.4, so we need to implement it ouselves
-            def set_inheritable(fd, inheritable):
-                if sys.platform == "win32":
-                    import ctypes
-
-                    HANDLE_FLAG_INHERIT = 1
-                    flag = 1 if inheritable else 0
-
-                    if ctypes.windll.kernel32.SetHandleInformation(msvcrt.get_osfhandle(fd),
-                                                                   HANDLE_FLAG_INHERIT,
-                                                                   flag) == 0:
-                        raise IOError("Failed on HANDLE_FLAG_INHERIT")
-                else:
-                    import fcntl
-
-                    fd_flags = fcntl.fcntl(fd, fcntl.F_GETFD)
-
-                    if inheritable:
-                        fd_flags &= ~fcntl.FD_CLOEXEC
-                    else:
-                        fd_flags |= fcntl.FD_CLOEXEC
-
-                    fcntl.fcntl(fd, fcntl.F_SETFD, fd_flags)
-
         rt, wt = os.pipe()
         rf, wf = os.pipe()
 
-        # Disable inheritance for ends that we don't want the child to have
-        set_inheritable(rt, False)
-        set_inheritable(wf, False)
+        # Support for python 3.4 non-inheritable pipes
+        # On < 3.4 Windows still has non-inheritable pipes, but < 3.4 support
+        # was dropped in [#38](https://github.com/jandecaluwe/myhdl/issues/38)
+        if hasattr(os, 'set_inheritable'):
+            # Disable inheritance for ends that we don't want the child to have
+            os.set_inheritable(rt, False)
+            os.set_inheritable(wf, False)
 
-        # Enable inheritance for child ends
-        # (needed for python >= 3.4, doesn't hurt for earlier versions)
-        set_inheritable(wt, True)
-        set_inheritable(rf, True)
+            # Enable inheritance for child ends
+            os.set_inheritable(wt, True)
+            os.set_inheritable(rf, True)
 
         self._rt = rt
         self._wf = wf
@@ -109,6 +85,8 @@ class Cosimulation(object):
 
         env = os.environ.copy()
 
+        # In Windows the FDs aren't inheritable when using Popen,
+        # only the HANDLEs are
         if sys.platform != "win32":
             env['MYHDL_TO_PIPE'] = str(wt)
             env['MYHDL_FROM_PIPE'] = str(rf)

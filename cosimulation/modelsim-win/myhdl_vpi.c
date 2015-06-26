@@ -1,9 +1,9 @@
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+#include <Windows.h>
 #include "vpi_user.h"
 #include "sv_vpi_user.h"
 
@@ -26,8 +26,8 @@ typedef unsigned char   PLI_UBYTE8;
 /* 64 bit type for time calculations */
 typedef unsigned long long myhdl_time64_t;
 
-static int rpipe;
-static int wpipe;
+static HANDLE rpipe;
+static HANDLE wpipe;
 
 static vpiHandle from_myhdl_systf_handle = NULL;
 static vpiHandle to_myhdl_systf_handle = NULL;
@@ -62,6 +62,30 @@ static myhdl_time64_t timestruct_to_time(const struct t_vpi_time*ts)
       return ti;
 }
 
+static int read_pipe(void *buf, size_t count)
+{
+    DWORD read;
+
+    if (!ReadFile(rpipe, buf, (DWORD)count, &read, NULL))
+    {
+        return -1;
+    }
+
+    return (int)read;
+}
+
+static int write_pipe(const void *buf, size_t count)
+{
+    DWORD written;
+
+    if (!WriteFile(wpipe, buf, (DWORD)count, &written, NULL))
+    {
+        return -1;
+    }
+
+    return (int)written;
+}
+
 static int init_pipes()
 {
   char *w;
@@ -83,8 +107,8 @@ static int init_pipes()
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
   }
-  wpipe = atoi(w);
-  rpipe = atoi(r);
+  wpipe = (HANDLE)atoi(w);
+  rpipe = (HANDLE)atoi(r);
   init_pipes_flag = 1;
   return (0);
 }
@@ -137,9 +161,9 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
   }
   //vpi_free_object(reg_iter);
 
-  n = write(wpipe, buf, strlen(buf));
+  n = write_pipe(buf, strlen(buf));
 
-  if ((n = read(rpipe, buf, MAXLINE)) == 0) {
+  if ((n = read_pipe(buf, MAXLINE)) == 0) {
     vpi_printf("Info: MyHDL simulator down\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
@@ -216,9 +240,9 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
   }
   //vpi_free_object(net_iter);
 
-  n = write(wpipe, buf, strlen(buf));
+  n = write_pipe(buf, strlen(buf));
 
-  if ((n = read(rpipe, buf, MAXLINE)) == 0) {
+  if ((n = read_pipe(buf, MAXLINE)) == 0) {
     vpi_printf("ABORT from $to_myhdl\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
@@ -274,9 +298,9 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
 
   if (start_flag) {
     start_flag = 0;
-    n = write(wpipe, "START", 5);
+    n = write_pipe("START", 5);
     // vpi_printf("INFO: RO cb at start-up\n");
-    if ((n = read(rpipe, buf, MAXLINE)) == 0) {
+    if ((n = read_pipe(buf, MAXLINE)) == 0) {
       vpi_printf("ABORT from RO cb at start-up\n");
       vpi_control(vpiFinish, 1);  /* abort simulation */
     }
@@ -312,8 +336,8 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   }
   //vpi_free_object(net_iter);
 
-  n = write(wpipe, buf, strlen(buf));
-  if ((n = read(rpipe, buf, MAXLINE)) == 0) {
+  n = write_pipe(buf, strlen(buf));
+  if ((n = read_pipe(buf, MAXLINE)) == 0) {
     // vpi_printf("ABORT from RO cb\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
@@ -463,6 +487,7 @@ static PLI_INT32 change_callback(p_cb_data cb_data)
 }
 
 
+__declspec(dllexport)
 void myhdl_register()
 {
   s_vpi_systf_data tf_data;
@@ -486,6 +511,7 @@ void myhdl_register()
   //vpi_free_object(tf_data);               // @mod cfelton
 }
 
+__declspec(dllexport)
 void (*vlog_startup_routines[])() = {
       myhdl_register,
       0
@@ -493,6 +519,7 @@ void (*vlog_startup_routines[])() = {
 
 /* dummy +loadvpi= boostrap routine - mimics old style exec all routines */
 /* in standard PLI vlog_startup_routines table */
+__declspec(dllexport)
 void vpi_compat_bootstrap(void)
 {
  int i;
