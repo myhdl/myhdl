@@ -37,6 +37,8 @@ from myhdl._simulator import _siglist
 from myhdl import intbv, Signal
 from myhdl._compat import long
 
+import pytest
+
         
 class TestSig:
 
@@ -63,42 +65,26 @@ class TestSig:
     def testValAttrReadOnly(self):
         """ val attribute should not be writable"""
         s1 = Signal(1)
-        try:
+        with pytest.raises(AttributeError):
             s1.val = 1
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError
 
     def testDrivenAttrValue(self):
         """ driven attribute only accepts value 'reg' or 'wire' """
         s1 = Signal(1)
-        try:
+        with pytest.raises(ValueError):
             s1.driven = "signal"
-        except ValueError:
-            pass
-        else:
-            raise AssertionError
         
     def testPosedgeAttrReadOnly(self):
         """ posedge attribute should not be writable"""
         s1 = Signal(1)
-        try:
+        with pytest.raises(AttributeError):
             s1.posedge = 1
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError
             
     def testNegedgeAttrReadOnly(self):
         """ negedge attribute should not be writable"""
         s1 = Signal(1)
-        try:
+        with pytest.raises(AttributeError):
             s1.negedge = 1
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError
 
     def testInitDefault(self):
         """ initial value is None by default """
@@ -132,13 +118,10 @@ class TestSig:
                     t = s._type
                 if not isinstance(n, t):
                     i += 1
-                    try:
+                    with pytest.raises((TypeError, ValueError)):
                         oldval = s.val
                         s.next = n
-                    except (TypeError, ValueError):
-                        pass
-                    else:
-                        raise AssertionError
+
         assert i >= len(self.incompatibleSigs), "Nothing tested %s" %i
 
     def testAfterUpdate(self):
@@ -303,21 +286,15 @@ class TestSignalAsNum:
             ref = long(i)
             ref = op(ref, j)
             r1 = bi1 = Signal(i)
-            try:
+            with pytest.raises(TypeError):
                 r1 = op(r1, j)
-            except TypeError:
-                pass
-            else:
-                raise AssertionError
+
             r2 = long(i)
             r2 = op(r2, bj)
             r3 = bi3 = Signal(i)
-            try:
+            with pytest.raises(TypeError):
                 r3 = op(r3, bj)
-            except TypeError:
-                pass
-            else:
-                raise AssertionError
+
             assert r2 == ref
             
     def unaryCheck(self, op, imin=0, imax=None):
@@ -527,21 +504,13 @@ class TestSignalIntBvIndexing:
 
     def testSetItem(self):
         sbv = Signal(intbv(5))
-        try:
+        with pytest.raises(TypeError):
             sbv[1] = 1
-        except TypeError:
-            pass
-        else:
-            raise AssertionError
             
     def testSetSlice(self):
         sbv = Signal(intbv(5))
-        try:
+        with pytest.raises(TypeError):
             sbv[1:0] = 1
-        except TypeError:
-            pass
-        else:
-            raise AssertionError
 
 
 class TestSignalNrBits:
@@ -587,14 +556,8 @@ class TestSignalBoolBounds:
         s.next = 1
         s.next = 0
         for v in (-1, -8, 2, 5):
-            try:
+            with pytest.raises(ValueError):
                 s.next = v
-                #s._update()
-                #s.val
-            except ValueError:
-                pass
-            else:
-                raise AssertionError
 
                 
 class TestSignalIntbvBounds:
@@ -608,21 +571,12 @@ class TestSignalIntbvBounds:
                 assert s.next == i
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
-                try:
+                with pytest.raises(ValueError):
                     s.next[k:] = i
-                    # s._update()
-                except ValueError:
-                    pass
-                else:
-                    raise AssertionError
+
         s = Signal(intbv(5)[8:])
         for v in (0, 2**8-1, 100):
             s.next[:] = v
         for v in (-1, 2**8, -10, 1000):
-            try:
+            with pytest.raises(ValueError):
                 s.next[:] = v
-                # s._update()
-            except ValueError:
-                pass
-            else:
-                raise AssertionError
