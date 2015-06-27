@@ -63,15 +63,9 @@ class TestModbvWrap:
     def testNoWrap(self):
         # Validate the base class fails for the wraps
         x = intbv(0, min=-8, max=8)
-        try:
+        with pytest.raises(ValueError):
             x[:] += 15
-            raise AssertionError
-        except ValueError:
-            pass
 
         x = intbv(0, min=-8, max=8)
-        try:
+        with pytest.raises(ValueError):
             x[:] += 15
-            raise AssertionError
-        except ValueError:
-            pass
