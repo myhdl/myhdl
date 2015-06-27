@@ -187,8 +187,11 @@ The following is a list of the statements that are supported by the
 Verilog converter, possibly qualified with restrictions or usage notes.
 
 The :keyword:`break` statement.
+
 The :keyword:`continue` statement.
+
 The :keyword:`def` statement.
+
 The :keyword:`for` statement.
     The only supported iteration scheme is iterating through sequences
     of integers returned by built-in function :func:`range` or
@@ -200,6 +203,7 @@ The :keyword:`if` statement.
     fully supported.
 
 The :keyword:`pass` statement.
+
 The :keyword:`print` statement.
     When printing an interpolated string, the format specifiers are
     copied verbatim to the Verilog output. Printing to a file (with
@@ -210,6 +214,7 @@ The :keyword:`raise` statement.
     simulation with an error message.
 
 The :keyword:`return` statement.
+
 The :keyword:`yield` statement.
     The yielded expression can be a signal, a signal edge as specified
     by MyHDL functions :func:`posedge` or :func:`negedge`, or a tuple of
