@@ -30,6 +30,7 @@ import copy
 
 import unittest
 from unittest import TestCase
+import pytest
 
 from myhdl import enum
 
@@ -41,36 +42,20 @@ t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
 class TestEnum:
 
     def testUniqueLiterals(self):
-        try:
+        with pytest.raises(ValueError):
             t_State = enum("SEARCH", "CONFIRM", "SEARCH")
-        except ValueError:
-            pass
-        else:
-            raise AssertionError
 
     def testWrongAttr(self):
-        try:
+        with pytest.raises(AttributeError):
             t_State.TYPO
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError
 
     def testAttrAssign(self):
-        try:
+        with pytest.raises(AttributeError):
             t_State.SEARCH = 4
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError
 
     def testWrongAttrAssign(self):
-        try:
+        with pytest.raises(AttributeError):
             t_State.TYPO = 4
-        except AttributeError:
-            pass
-        else:
-            raise AssertionError
 
     def testHomograph(self):
         assert t_State is not t_Homograph
