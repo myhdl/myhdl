@@ -30,11 +30,9 @@ from myhdl._compat import to_bytes
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
 from utils import raises_kind
 
-random.seed(1) # random, but deterministic
+random.seed(1)  # random, but deterministic
 
 MAXLINE = 4096
-
-
 
 
 exe = "python {0} ".format(os.path.abspath(__file__))
@@ -60,7 +58,7 @@ class TestCosimulation:
 
     def setup_method(self, method):
         gc.collect()
-    
+
     def testWrongExe(self):
         with raises_kind(CosimulationError, _error.OSError):
             Cosimulation('bla -x 45')
@@ -144,7 +142,7 @@ class TestCosimulation:
         os.read(rf, MAXLINE)
         os.write(wt, b"START")
         os.read(rf, MAXLINE)
-    
+
     def testTimeZero(self):
         with raises_kind(CosimulationError, _error.TimeZero):
             Cosimulation(exe + "cosimTimeZero", **allSigs)
@@ -161,7 +159,7 @@ class TestCosimulation:
     def testNoComm(self):
         with raises_kind(CosimulationError, _error.NoCommunication):
             Cosimulation(exe + "cosimNoComm", **allSigs)
- 
+
     @staticmethod
     def cosimNoComm():
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -190,7 +188,7 @@ class TestCosimulation:
     def testToSignalsDupl(self):
         with raises_kind(CosimulationError, _error.DuplicateSigNames):
             Cosimulation(exe + "cosimToSignalsDupl", **allSigs)
- 
+
     @staticmethod
     def cosimToSignalsDupl():
         wt = int(os.environ['MYHDL_TO_PIPE'])
@@ -237,7 +235,6 @@ class TestCosimulation:
         cosim._get()
         for n in toSignames:
             assert toSigs[n].next == 0
-        
 
     @staticmethod
     def cosimToSignalVals():

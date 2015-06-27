@@ -29,14 +29,12 @@ from myhdl import Signal, Simulation, _simulator, delay, instance, intbv
 from myhdl._traceSignals import TraceSignalsError, _error, traceSignals
 from utils import raises_kind
 
-random.seed(1) # random, but deterministic
+random.seed(1)  # random, but deterministic
 path = os.path
 
 
-
-
-
 QUIET=1
+
 
 def gen(clk):
     @instance
@@ -46,25 +44,30 @@ def gen(clk):
             clk.next = not clk
     return logic
 
+
 def fun():
     clk = Signal(bool(0))
     inst = gen(clk)
     return inst
+
 
 def dummy():
     clk = Signal(bool(0))
     inst = gen(clk)
     return 1
 
+
 def top():
     inst = traceSignals(fun)
     return inst
+
 
 def top2():
     inst = [{} for i in range(4)]
     j = 3
     inst[j-2]['key'] = traceSignals(fun)
     return inst
+
 
 def top3():
     inst_1 = traceSignals(fun)
@@ -82,6 +85,7 @@ def genTristate(clk, x, y, z):
         while 1:
             yield delay(10)
             clk.next = not clk
+
     @instance
     def logic():
         for v in [True, False, None, 0, True, None, None, 1]:
@@ -95,6 +99,7 @@ def genTristate(clk, x, y, z):
                 yd.next = zd.next = 0
     return ckgen,logic
 
+
 def tristate():
     from myhdl import TristateSignal
     clk = Signal(bool(0))
@@ -105,9 +110,11 @@ def tristate():
     inst = genTristate(clk, x, y, z)
     return inst
 
+
 def topTristate():
     inst = traceSignals(tristate)
     return inst
+
 
 @pytest.yield_fixture
 def vcd_dir(tmpdir):

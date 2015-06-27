@@ -57,8 +57,10 @@ def bench_ConcatSignal():
 
     return check
 
+
 def test_ConcatSignal():
     Simulation(bench_ConcatSignal()).run()
+
 
 def bench_ConcatSignalWithConsts():
 
@@ -101,6 +103,7 @@ def bench_ConcatSignalWithConsts():
                             assert s[1:] == e
 
     return check
+
 
 def test_ConcatSignalWithConsts():
     Simulation(bench_ConcatSignalWithConsts()).run()

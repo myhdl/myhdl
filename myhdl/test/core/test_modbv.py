@@ -46,7 +46,6 @@ class TestModbvWrap:
         x[:] = x - 1
         assert -2 == x
 
-
     def testInit(self):
         with pytest.raises(ValueError):
             intbv(15, min=-8, max=8)
@@ -56,7 +55,6 @@ class TestModbvWrap:
 
         # Arbitrary boundraries support (no exception)
         modbv(5, min=-3, max=8)
-        
 
     def testNoWrap(self):
         # Validate the base class fails for the wraps

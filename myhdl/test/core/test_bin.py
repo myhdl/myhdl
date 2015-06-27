@@ -27,11 +27,11 @@ from random import randrange
 from myhdl import bin
 from myhdl._compat import long
 
-random.seed(1) # random, but deterministic
-
+random.seed(1)  # random, but deterministic
 
 
 SIZE = 100
+
 
 def _int2bitstring(num):
     if num == 0:
@@ -39,6 +39,7 @@ def _int2bitstring(num):
     if abs(num) == 1:
         return '1'
     return _int2bitstring(num // 2) + _int2bitstring(num % 2)
+
 
 def binref(num, width=0):
     """Return a binary string representation.
@@ -62,7 +63,7 @@ class TestBin:
     def testSmall(self):
         for i in range(-65, 65):
             assert bin(i) == binref(i)
-                                     
+
     def testSmallWidth(self):
         for i in range(-65, 65):
             w = randrange(1, 8)
@@ -72,7 +73,7 @@ class TestBin:
         for j in range(SIZE):
             i = randrange(-sys.maxsize, sys.maxsize)
             assert bin(i) == binref(i)
-            
+
     def testRandomIntWidth(self):
         for j in range(SIZE):
             w = randrange(1, 1000)
@@ -86,7 +87,7 @@ class TestBin:
             assert bin(i) == binref(i)
             i = -k - sys.maxsize
             assert bin(i) == binref(i)
-            
+
     def testRandomLongWith(self):
         for j in range(SIZE):
             w = randrange(1, 1000)

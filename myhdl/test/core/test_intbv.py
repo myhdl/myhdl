@@ -31,16 +31,14 @@ import pytest
 from myhdl._compat import integer_types, long
 from myhdl._intbv import intbv
 
-random.seed(2) # random, but deterministic
+random.seed(2)  # random, but deterministic
 maxint = sys.maxsize
-
-
 
 
 class TestIntbvInit:
     def testDefaultValue(self):
         assert intbv() == 0
-    
+
 
 def getItem(s, i):
     ext = '0' * (i-len(s)+1)
@@ -48,12 +46,14 @@ def getItem(s, i):
     si = len(exts)-1-i
     return exts[si]
 
+
 def getSlice(s, i, j):
     ext = '0' * (i-len(s)+1)
     exts = ext + s
     si = len(exts)-i
     sj = len(exts)-j
     return exts[si:sj]
+
 
 def getSliceLeftOpen(s, j):
     ext = '0' * (j-len(s)+1)
@@ -63,11 +63,13 @@ def getSliceLeftOpen(s, j):
     else:
         return exts
 
+
 def setItem(s, i, val):
     ext = '0' * (i-len(s)+1)
     exts = ext + s
     si = len(exts)-1-i
     return exts[:si] + val + exts[si+1:]
+
 
 def setSlice(s, i, j, val):
     ext = '0' * (i-len(s)+1)
@@ -76,6 +78,7 @@ def setSlice(s, i, j, val):
     sj = len(exts)-j
     return exts[:si] + val[si-sj:] + exts[sj:]
 
+
 def setSliceLeftOpen(s, j, val):
     ext = '0' * (j-len(s)+1)
     exts = ext + s
@@ -83,7 +86,7 @@ def setSliceLeftOpen(s, j, val):
         return val + exts[-j:]
     else:
         return val
-    
+
 
 class TestIntBvIndexing:
 
@@ -134,7 +137,7 @@ class TestIntBvIndexing:
                     mask = (2**(i-j))-1
                     assert resi == ref ^ mask
                     assert type(resi) == intbv
-                    
+
     def testGetSliceLeftOpen(self):
         self.seqsSetup()
         for s in self.seqs:
@@ -149,7 +152,6 @@ class TestIntBvIndexing:
                 assert type(res) == intbv
                 assert resi+ref == -1
                 assert type(res) == intbv
-                        
 
     def testSetItem(self):
         self.seqsSetup()
@@ -174,10 +176,10 @@ class TestIntBvIndexing:
                     assert bv1 == ref1
                     assert bv0i == ref0i
                     assert bv1i == ref1i
-                
+
     def testSetSlice(self):
         self.seqsSetup()
-        toggle = 0 
+        toggle = 0
         for s in self.seqs:
             n = long(s, 2)
             for i in range(1, len(s)+5):
@@ -209,10 +211,10 @@ class TestIntBvIndexing:
                         else:
                             refi = ~long(setSlice(s, i, j, extv), 2)
                             assert bvi == refi
-                            
+
     def testSetSliceLeftOpen(self):
         self.seqsSetup()
-        toggle = 0 
+        toggle = 0
         for s in self.seqs:
             n = long(s, 2)
             for j in range(0, len(s)+5):
@@ -229,8 +231,7 @@ class TestIntBvIndexing:
                     assert bv == ref
                     refi = ~long(setSliceLeftOpen(s, j, v), 2)
                     assert bvi == refi
-    
-                            
+
 
 class TestIntBvAsInt:
 
@@ -266,7 +267,7 @@ class TestIntBvAsInt:
             seqj.append(j)
         self.seqi = seqi
         self.seqj = seqj
-        
+
     def binaryCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
@@ -302,7 +303,7 @@ class TestIntBvAsInt:
             assert r3 == ref
             assert r1 is bi1
             assert r3 is bi3
-            
+
     def unaryCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
         for i in self.seqi:
@@ -311,7 +312,7 @@ class TestIntBvAsInt:
             r1 = op(bi)
             #self.assertEqual(type(r1), intbv)
             assert r1 == ref
-            
+
     def conversionCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
         for i in self.seqi:
@@ -320,7 +321,7 @@ class TestIntBvAsInt:
             r1 = op(bi)
             assert type(r1) == type(ref)
             assert r1 == ref
-            
+
     def comparisonCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
@@ -341,14 +342,14 @@ class TestIntBvAsInt:
         self.binaryCheck(operator.sub)
 
     def testMul(self):
-        self.binaryCheck(operator.mul, imax=maxint) # XXX doesn't work for long i???
+        self.binaryCheck(operator.mul, imax=maxint)  # XXX doesn't work for long i???
 
     def testTrueDiv(self):
         self.binaryCheck(operator.truediv, jmin=1)
-        
+
     def testFloorDiv(self):
         self.binaryCheck(operator.floordiv, jmin=1)
-        
+
     def testMod(self):
         self.binaryCheck(operator.mod, jmin=1)
 
@@ -357,7 +358,7 @@ class TestIntBvAsInt:
 
     def testLShift(self):
         self.binaryCheck(operator.lshift, jmax=256)
-        
+
     def testRShift(self):
         self.binaryCheck(operator.rshift, jmax=256)
 
@@ -366,7 +367,7 @@ class TestIntBvAsInt:
 
     def testOr(self):
         self.binaryCheck(operator.or_)
-        
+
     def testXor(self):
         self.binaryCheck(operator.xor)
 
@@ -375,13 +376,13 @@ class TestIntBvAsInt:
 
     def testISub(self):
         self.augmentedAssignCheck(operator.isub)
-        
+
     def testIMul(self):
-        self.augmentedAssignCheck(operator.imul, imax=maxint) #XXX doesn't work for long i???
-        
+        self.augmentedAssignCheck(operator.imul, imax=maxint)  # XXX doesn't work for long i???
+
     def testIFloorDiv(self):
         self.augmentedAssignCheck(operator.ifloordiv, jmin=1)
-        
+
     def testIMod(self):
         self.augmentedAssignCheck(operator.imod, jmin=1)
 
@@ -390,22 +391,22 @@ class TestIntBvAsInt:
 
     def testIAnd(self):
         self.augmentedAssignCheck(operator.iand)
-        
+
     def testIOr(self):
         self.augmentedAssignCheck(operator.ior)
-        
+
     def testIXor(self):
         self.augmentedAssignCheck(operator.ixor)
-        
+
     def testILShift(self):
         self.augmentedAssignCheck(operator.ilshift, jmax=256)
-        
+
     def testIRShift(self):
         self.augmentedAssignCheck(operator.irshift, jmax=256)
 
     def testNeg(self):
         self.unaryCheck(operator.neg)
-        
+
     def testNeg(self):
         self.unaryCheck(operator.pos)
 
@@ -417,37 +418,42 @@ class TestIntBvAsInt:
 
     def testInt(self):
         self.conversionCheck(int, imax=maxint)
-        
+
     def testLong(self):
         self.conversionCheck(long)
-        
+
     def testFloat(self):
         self.conversionCheck(float)
 
     # XXX __complex__ seems redundant ??? (complex() works as such?)
-  
+
     def testOct(self):
         self.conversionCheck(oct)
-        
+
     def testHex(self):
         self.conversionCheck(hex)
 
     def testLt(self):
         self.comparisonCheck(operator.lt)
+
     def testLe(self):
         self.comparisonCheck(operator.le)
+
     def testGt(self):
         self.comparisonCheck(operator.gt)
+
     def testGe(self):
         self.comparisonCheck(operator.ge)
+
     def testEq(self):
         self.comparisonCheck(operator.eq)
+
     def testNe(self):
         self.comparisonCheck(operator.ne)
-        
-              
+
+
 class TestIntbvBounds:
-    
+
     def testConstructor(self):
         assert intbv(40, max=54) == 40
         with pytest.raises(ValueError):
@@ -478,15 +484,15 @@ class TestIntbvBounds:
 
     def checkBounds(self, i, j, op):
         a = intbv(i)
-        assert a == i # just to be sure
+        assert a == i  # just to be sure
         try:
             exec("a %s long(j)" % op)
         except (ZeroDivisionError, ValueError):
-            return # prune
+            return  # prune
         if not isinstance(a._val, integer_types):
-            return # prune
+            return  # prune
         if abs(a) > maxint * maxint:
-            return # keep it reasonable
+            return  # keep it reasonable
         if a > i:
             b = intbv(i, min=i, max=a+1)
             for m in (i+1, a):
@@ -495,32 +501,32 @@ class TestIntbvBounds:
                     exec("b %s long(j)" % op)
         elif a < i :
             b = intbv(i, min=a, max=i+1)
-            exec("b %s long(j)" % op) # should be ok
+            exec("b %s long(j)" % op)  # should be ok
             for m in (a+1, i):
                 b = intbv(i, min=m, max=i+1)
                 with pytest.raises(ValueError):
                     exec("b %s long(j)" % op)
-        else: # a == i
+        else:  # a == i
             b = intbv(i, min=i, max=i+1)
-            exec("b %s long(j)" % op) # should be ok
-            
+            exec("b %s long(j)" % op)  # should be ok
+
     def checkOp(self, op):
         for i in (0, 1, -1, 2, -2, 16, -24, 129, -234, 1025, -15660):
             for j in (0, 1, -1, 2, -2, 9, -15, 123, -312, 2340, -23144):
                 self.checkBounds(i, j, op)
-                
+
     def testIAdd(self):
         self.checkOp("+=")
 
     def testISub(self):
         self.checkOp("-=")
-        
+
     def testIMul(self):
-        self.checkOp("*=") 
-        
+        self.checkOp("*=")
+
     def testIFloorDiv(self):
         self.checkOp("//=")
-        
+
     def testIMod(self):
         self.checkOp("%=")
 
@@ -529,16 +535,16 @@ class TestIntbvBounds:
 
     def testIAnd(self):
         self.checkOp("&=")
-        
+
     def testIOr(self):
         self.checkOp("|=")
-        
+
     def testIXor(self):
         self.checkOp("^=")
-        
+
     def testILShift(self):
         self.checkOp("<<=")
-        
+
     def testIRShift(self):
         self.checkOp(">>=")
 

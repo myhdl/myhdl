@@ -24,8 +24,7 @@ import random
 
 from myhdl import instance, instances
 
-random.seed(1) # random, but deterministic
-
+random.seed(1)  # random, but deterministic
 
 
 def A(n):
@@ -34,11 +33,13 @@ def A(n):
         yield None
     return logic
 
+
 def B(n):
     @instance
     def logic():
         yield None
     return logic
+
 
 def C(n):
     A_1 = A(1)
@@ -47,6 +48,7 @@ def C(n):
     return A_1, A_2, B_1
 
 g = 3
+
 
 class TestInstances:
 

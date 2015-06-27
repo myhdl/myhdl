@@ -32,26 +32,22 @@ from utils import raises_kind
 # random.seed(3) # random, but deterministic
 
 
-
-
-
-
-
 QUIET=1
+
 
 def g():
     pass
 
 x = Signal(0)
 
+
 class TestAlwaysCompilation:
-    
 
     def testArgIsFunction(self):
         h = 5
         with raises_kind(AlwaysError, _error.ArgType):
             always(delay(3))(h)
-    
+
     def testArgIsNormalFunction(self):
         with raises_kind(AlwaysError, _error.ArgType):
             @always(delay(3))
@@ -123,13 +119,12 @@ def EdgeTupleFunc1(a, b, c, d, r):
 
 
 def GeneralFunc(a, b, c, d, r):
-    
+
     @always(c.posedge, d)
     def logic():
         r.next = a + b + c + d
 
     return logic
-    
 
 
 class TestInferWaiter:
@@ -140,7 +135,7 @@ class TestInferWaiter:
 
         inst_r = MyHDLFunc(a, b, c, d, r)
         assert type(inst_r.waiter) == waiterType
-        
+
         inst_s = MyHDLFunc(a, b, c, d, s)
 
         def stimulus():
@@ -164,7 +159,7 @@ class TestInferWaiter:
     def testSignal1(self):
         sim = Simulation(self.bench(SignalFunc1, _SignalWaiter))
         sim.run()
-        
+
     def testSignalTuple1(self):
         sim = Simulation(self.bench(SignalTupleFunc1, _SignalTupleWaiter))
         sim.run()
@@ -176,11 +171,11 @@ class TestInferWaiter:
     def testEdge1(self):
         sim = Simulation(self.bench(EdgeFunc1, _EdgeWaiter))
         sim.run()
-        
+
     def testEdgeTuple1(self):
         sim = Simulation(self.bench(EdgeTupleFunc1, _EdgeTupleWaiter))
         sim.run()
-        
+
     def testGeneral(self):
         sim = Simulation(self.bench(GeneralFunc, _Waiter))
         sim.run()

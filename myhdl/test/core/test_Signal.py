@@ -32,17 +32,14 @@ from myhdl import Signal, intbv
 from myhdl._compat import long
 from myhdl._simulator import _siglist
 
-random.seed(1) # random, but deterministic
+random.seed(1)  # random, but deterministic
 maxint = sys.maxsize
 
 
-
-
-        
 class TestSig:
 
     def setup_method(self, method):
-        self.vals   = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]  
+        self.vals   = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]
         self.nexts  = [0, 1, 1, 0, 1, 0, 4, 5, intbv(1), intbv(0), intbv(0)]
         self.vals  += [intbv(0), intbv(1), intbv(0), intbv(1), 2           ]
         self.nexts += [intbv(0), intbv(1), 1       , 0       , intbv(3)    ]
@@ -51,16 +48,15 @@ class TestSig:
         self.vals  += [bool(0), bool(1), bool(0), bool(1), bool(0), bool(1)]
         self.nexts += [bool(0), bool(1), bool(1), bool(0), 1      , 0      ]
         self.sigs = [Signal(i) for i in self.vals]
-        
+
         self.incompatibleVals  = [ [3, 4], (1, 2),  3 , intbv(0), [1]      ]
         self.incompatibleNexts = [ 4     , 3     , "3", (0)     , intbv(1) ]
         self.incompatibleSigs = [Signal(i) for i in self.incompatibleVals]
-        
+
         self.eventWaiters = [object() for i in range(3)]
         self.posedgeWaiters = [object() for i in range(5)]
         self.negedgeWaiters = [object() for i in range(7)]
 
-        
     def testValAttrReadOnly(self):
         """ val attribute should not be writable"""
         s1 = Signal(1)
@@ -72,13 +68,13 @@ class TestSig:
         s1 = Signal(1)
         with pytest.raises(ValueError):
             s1.driven = "signal"
-        
+
     def testPosedgeAttrReadOnly(self):
         """ posedge attribute should not be writable"""
         s1 = Signal(1)
         with pytest.raises(AttributeError):
             s1.posedge = 1
-            
+
     def testNegedgeAttrReadOnly(self):
         """ negedge attribute should not be writable"""
         s1 = Signal(1)
@@ -129,7 +125,7 @@ class TestSig:
             s.next = n
             s._update()
             assert s.val == s.next
-            
+
     def testModify(self):
         """ Modifying mutable next should be on a copy """
         for s in self.sigs:
@@ -145,7 +141,7 @@ class TestSig:
             elif type(s.val) is dict:
                 s.next[3] = 5
             else:
-                s.next # plain read access
+                s.next  # plain read access
             assert s.val is not s.next, repr(s.val)
 
     def testUpdatePosedge(self):
@@ -163,7 +159,7 @@ class TestSig:
         assert s1._eventWaiters == []
         assert s1._posedgeWaiters == []
         assert s1._negedgeWaiters == self.negedgeWaiters
-            
+
     def testUpdateNegedge(self):
         """ update on negedge should return event and negedge waiters """
         s1 = Signal(1)
@@ -195,7 +191,7 @@ class TestSig:
         assert s1._eventWaiters == []
         assert s1._posedgeWaiters == self.posedgeWaiters
         assert s1._negedgeWaiters == self.negedgeWaiters
-        
+
     def testUpdateNoEvent(self):
         """ update without value change should not return event waiters """
         s1 = Signal(1)
@@ -210,14 +206,14 @@ class TestSig:
         assert s1._eventWaiters == self.eventWaiters
         assert s1._posedgeWaiters == self.posedgeWaiters
         assert s1._negedgeWaiters == self.negedgeWaiters
-    
+
     def testNextAccess(self):
         """ each next attribute access puts a sig in a global siglist """
         del _siglist[:]
         s = [None] * 4
         for i in range(len(s)):
             s[i] = Signal(i)
-        s[1].next # read access
+        s[1].next  # read access
         s[2].next = 1
         s[2].next
         s[3].next = 0
@@ -225,8 +221,8 @@ class TestSig:
         s[3].next = 3
         for i in range(len(s)):
             assert _siglist.count(s[i]) == i
-            
-    
+
+
 class TestSignalAsNum:
 
     def seqSetup(self, imin, imax, jmin=0, jmax=None):
@@ -261,7 +257,7 @@ class TestSignalAsNum:
             seqj.append(j)
         self.seqi = seqi
         self.seqj = seqj
-        
+
     def binaryCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
@@ -295,7 +291,7 @@ class TestSignalAsNum:
                 r3 = op(r3, bj)
 
             assert r2 == ref
-            
+
     def unaryCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
         for i in self.seqi:
@@ -304,7 +300,7 @@ class TestSignalAsNum:
             r1 = op(bi)
             assert type(r1) == type(ref)
             assert r1 == ref
-            
+
     def conversionCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
         for i in self.seqi:
@@ -313,7 +309,7 @@ class TestSignalAsNum:
             r1 = op(bi)
             assert type(r1) == type(ref)
             assert r1 == ref
-            
+
     def comparisonCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
@@ -334,7 +330,7 @@ class TestSignalAsNum:
         self.binaryCheck(operator.sub)
 
     def testMul(self):
-        self.binaryCheck(operator.mul, imax=maxint) # XXX doesn't work for long i???
+        self.binaryCheck(operator.mul, imax=maxint)  # XXX doesn't work for long i???
 
     def testFloorDiv(self):
         self.binaryCheck(operator.floordiv, jmin=1)
@@ -367,7 +363,7 @@ class TestSignalAsNum:
         self.augmentedAssignCheck(operator.isub)
 
     def testIMul(self):
-        self.augmentedAssignCheck(operator.imul, imax=maxint) #XXX doesn't work for long i???
+        self.augmentedAssignCheck(operator.imul, imax=maxint)  # XXX doesn't work for long i???
 
     def testIFloorDiv(self):
         self.augmentedAssignCheck(operator.ifloordiv, jmin=1)
@@ -395,7 +391,7 @@ class TestSignalAsNum:
 
     def testNeg(self):
         self.unaryCheck(operator.neg)
-        
+
     def testNeg(self):
         self.unaryCheck(operator.pos)
 
@@ -407,31 +403,36 @@ class TestSignalAsNum:
 
     def testInt(self):
         self.conversionCheck(int, imax=maxint)
-        
+
     def testLong(self):
         self.conversionCheck(long)
-        
+
     def testFloat(self):
         self.conversionCheck(float)
 
     # XXX __complex__ seems redundant ??? (complex() works as such?)
-  
+
     def testOct(self):
         self.conversionCheck(oct)
-        
+
     def testHex(self):
         self.conversionCheck(hex)
 
     def testLt(self):
         self.comparisonCheck(operator.lt)
+
     def testLe(self):
         self.comparisonCheck(operator.le)
+
     def testGt(self):
         self.comparisonCheck(operator.gt)
+
     def testGe(self):
         self.comparisonCheck(operator.ge)
+
     def testEq(self):
         self.comparisonCheck(operator.eq)
+
     def testNe(self):
         self.comparisonCheck(operator.ne)
 
@@ -442,13 +443,13 @@ def getItem(s, i):
     si = len(exts)-1-i
     return exts[si]
 
+
 def getSlice(s, i, j):
     ext = '0' * (i-len(s)+1)
     exts = ext + s
     si = len(exts)-i
     sj = len(exts)-j
     return exts[si:sj]
-
 
 
 class TestSignalIntBvIndexing:
@@ -505,7 +506,7 @@ class TestSignalIntBvIndexing:
         sbv = Signal(intbv(5))
         with pytest.raises(TypeError):
             sbv[1] = 1
-            
+
     def testSetSlice(self):
         sbv = Signal(intbv(5))
         with pytest.raises(TypeError):
@@ -515,7 +516,7 @@ class TestSignalIntBvIndexing:
 class TestSignalNrBits:
 
     def testBool(self):
-        if type(bool) is not type : # bool not a type in 2.2
+        if type(bool) is not type :  # bool not a type in 2.2
             return
         s = Signal(bool())
         assert s._nrbits == 1
@@ -544,12 +545,12 @@ class TestSignalNrBits:
             assert s._nrbits == n+1
             s = Signal(intbv(min=-(2**n)-1, max=2**n-1))
             assert s._nrbits == n+2
-            
+
 
 class TestSignalBoolBounds:
-    
+
     def testSignalBoolBounds(self):
-        if type(bool) is not type: # bool not a type in 2.2
+        if type(bool) is not type:  # bool not a type in 2.2
             return
         s = Signal(bool())
         s.next = 1
@@ -558,7 +559,7 @@ class TestSignalBoolBounds:
             with pytest.raises(ValueError):
                 s.next = v
 
-                
+
 class TestSignalIntbvBounds:
 
     def testSliceAssign(self):

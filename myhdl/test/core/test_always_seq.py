@@ -25,9 +25,10 @@ def test_clock():
     except:
         assert False
 
-def test_reset(): 
+
+def test_reset():
     """ check the reset parameter """
-    
+
     # should fail without a valid ResetSignal
     clock = Signal(bool(0))
     reset = Signal(bool(0))

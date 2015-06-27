@@ -27,10 +27,7 @@ import pytest
 
 from myhdl import enum
 
-random.seed(1) # random, but deterministic
-
-
-
+random.seed(1)  # random, but deterministic
 
 
 t_State = enum("SEARCH", "CONFIRM", "SYNC")
@@ -57,7 +54,7 @@ class TestEnum:
 
     def testHomograph(self):
         assert t_State is not t_Homograph
-        
+
     def testHomographLiteral(self):
         assert t_State.SEARCH is not t_Homograph.SEARCH
 

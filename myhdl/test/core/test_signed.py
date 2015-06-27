@@ -131,7 +131,6 @@ class TestIntbvSigned:
         b = a.signed()
         assert b == 0
 
-
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # in these cases the .signed() function should classify the
         # value of the intbv instance as signed and return the value as is
@@ -182,7 +181,6 @@ class TestIntbvSigned:
         b = a.signed()
         assert b == 5
 
-
         # intbv with symmetric (min = -max) range, pos value, msb set
         # return signed()
         # Expect value returned as is
@@ -204,8 +202,6 @@ class TestIntbvSigned:
         b = a.signed()
         assert b == 0
 
-
-  
     def testSlicedSigned(self):
         '''Test a slice with .signed()
 
@@ -224,7 +220,6 @@ class TestIntbvSigned:
         b = a[3:].signed()
         assert b == -4   # msb is set with 3 bits sliced
 
-
     def testSignedConcat(self):
         '''Test the .signed() function with the concatenate function'''
 
@@ -237,7 +232,6 @@ class TestIntbvSigned:
         # Expect a negative number
         b = concat(intbv(5,min=0,max=8), True, True).signed()
         assert b == -9
-
 
     def checkInvariants(self, a):
         """Check invariants of signed operator."""

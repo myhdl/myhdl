@@ -32,26 +32,22 @@ from utils import raises_kind
 # random.seed(3) # random, but deterministic
 
 
-
-
-
-
-
 QUIET=1
+
 
 def g():
     pass
 
 x = Signal(0)
 
+
 class TestAlwaysCombCompilation:
-    
 
     def testArgIsFunction(self):
         h = 5
         with raises_kind(AlwaysCombError, _error.ArgType):
             always_comb(h)
-    
+
     def testArgIsNormalFunction(self):
         def h():
             yield None
@@ -75,6 +71,7 @@ class TestAlwaysCombCompilation:
     def testInfer1(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         u = 1
+
         def h():
             c.next = a
             v = u
@@ -82,10 +79,11 @@ class TestAlwaysCombCompilation:
         i = g.gi_frame.f_locals['self']
         expected = set(['a'])
         assert i.inputs == expected
-        
+
     def testInfer2(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         u = 1
+
         def h():
             c.next = x
             g = a
@@ -97,6 +95,7 @@ class TestAlwaysCombCompilation:
     def testInfer3(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         u = 1
+
         def h():
             c.next = a + x + u
             a = 1
@@ -108,6 +107,7 @@ class TestAlwaysCombCompilation:
     def testInfer4(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         u = 1
+
         def h():
             c.next = a + x + u
             x = 1
@@ -115,10 +115,10 @@ class TestAlwaysCombCompilation:
         i = g.gi_frame.f_locals['self']
         expected = set(['a'])
         assert i.inputs == expected
-        
-        
+
     def testInfer5(self):
         a, b, c, d = [Signal(0) for i in range(4)]
+
         def h():
             c.next += 1
             a += 1
@@ -127,6 +127,7 @@ class TestAlwaysCombCompilation:
 
     def testInfer6(self):
         a, b, c, d = [Signal(0) for i in range(4)]
+
         def h():
             c.next = a
             x.next = c
@@ -135,16 +136,18 @@ class TestAlwaysCombCompilation:
 
     def testInfer7(self):
         a, b, c, d = [Signal(0) for i in range(4)]
+
         def h():
             c.next[a:0] = x[b:0]
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'b', 'x'])
         assert i.inputs == expected
-        
+
     def testInfer8(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         u = 1
+
         def h():
             v = 2
             c.next[8:1+a+v] = x[4:b*3+u]
@@ -152,20 +155,23 @@ class TestAlwaysCombCompilation:
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'b', 'x'])
         assert i.inputs == expected
-         
+
     def testInfer9(self):
         a, b, c, d = [Signal(0) for i in range(4)]
+
         def h():
             c.next[a-1] = x[b-1]
         g = always_comb(h).gen
         i = g.gi_frame.f_locals['self']
         expected = set(['a', 'b', 'x'])
         assert i.inputs == expected
-        
+
     def testInfer10(self):
         a, b, c, d = [Signal(0) for i in range(4)]
+
         def f(x, y, z):
             return 0
+
         def h():
             c.next = f(a, 2*b, d*x)
         g = always_comb(h).gen
@@ -176,6 +182,7 @@ class TestAlwaysCombCompilation:
     def testEmbeddedFunction(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         u = 1
+
         def h():
             def g():
                 e = b
@@ -199,7 +206,6 @@ class TestAlwaysCombSimulation1:
         vectors = [intbv(j) for i in range(32) for j in range(16)]
         random.shuffle(vectors)
 
-        
         def combFunc():
             if __debug__:
                 f = x
@@ -229,18 +235,17 @@ class TestAlwaysCombSimulation1:
             raise StopSimulation("always_comb simulation test")
 
         return instances()
-        
 
     def testAnd(self):
         def andFunction(a, b, c, d):
             return a & b & c & d
         Simulation(self.bench(andFunction)).run(quiet=QUIET)
-        
+
     def testOr(self):
         def orFunction(a, b, c, d):
             return a | b | c | d
         Simulation(self.bench(orFunction)).run(quiet=QUIET)
-        
+
     def testXor(self):
         def xorFunction(a, b, c, d):
             return a ^ b ^ c ^ d
@@ -259,7 +264,7 @@ class TestAlwaysCombSimulation1:
             return not (a & (not b)) | ((not c) & d)
         Simulation(self.bench(function)).run(quiet=QUIET)
 
-        
+
 class TestAlwaysCombSimulation2:
 
     def bench(self, funcName="and"):
@@ -277,20 +282,23 @@ class TestAlwaysCombSimulation2:
 
         def andFunc():
             x.next = a & b & c & d
+
         def andGenFunc():
             while 1:
                 z.next =  a & b & c & d
                 yield a, b, c, d
-            
+
         def orFunc():
             x.next = a | b | c | d
+
         def orGenFunc():
             while 1:
                 z.next = a | b | c | d
                 yield a, b, c, d
-            
+
         def logicFunc():
             x.next = not (a & (not b)) | ((not c) & d)
+
         def logicGenFunc():
             while 1:
                 z.next = not (a & (not b)) | ((not c) & d)
@@ -298,11 +306,12 @@ class TestAlwaysCombSimulation2:
 
         def incFunc():
             x.next = k + 1
+
         def incGenFunc():
             while 1:
                 z.next = k + 1
                 yield k
-       
+
         combFunc = eval(funcName + "Func")
         comb = always_comb(combFunc)
         genFunc = eval(funcName + "GenFunc")
@@ -326,25 +335,22 @@ class TestAlwaysCombSimulation2:
             raise StopSimulation("always_comb simulation test")
 
         return comb, gen, clkGen(), stimulus()
-        
 
     def testAnd(self):
         Simulation(self.bench("and")).run(quiet=QUIET)
-        
+
     def testOr(self):
         Simulation(self.bench("or")).run(quiet=QUIET)
-        
+
     def testLogic(self):
         Simulation(self.bench("logic")).run(quiet=QUIET)
-        
+
     def testInc(self):
         Simulation(self.bench("inc")).run(quiet=QUIET)
 
 
-
-
 def SignalGen1(a, b, c, d, r):
-    
+
     @always_comb
     def logic():
         r.next = a
@@ -361,7 +367,6 @@ def SignalTupleGen1(a, b, c, d, r):
     return logic
 
 
-        
 class TestInferWaiter:
 
     def bench(self, MyHDLFunc, waiterType):
@@ -370,7 +375,7 @@ class TestInferWaiter:
 
         inst_r = MyHDLFunc(a, b, c, d, r)
         assert type(inst_r.waiter) == waiterType
-        
+
         inst_s = MyHDLFunc(a, b, c, d, s)
 
         def stimulus():
@@ -394,7 +399,7 @@ class TestInferWaiter:
     def testSignal1(self):
         sim = Simulation(self.bench(SignalGen1, _SignalWaiter))
         sim.run()
-        
+
     def testSignalTuple1(self):
         sim = Simulation(self.bench(SignalTupleGen1, _SignalTupleWaiter))
         sim.run()

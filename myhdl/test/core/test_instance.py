@@ -28,26 +28,22 @@ from utils import raises_kind
 # random.seed(3) # random, but deterministic
 
 
-
-
-
-
-
 QUIET=1
+
 
 def g():
     pass
 
 x = Signal(0)
 
+
 class TestInstanceCompilation:
-    
 
     def testArgIsFunction(self):
         h = 5
         with raises_kind(InstanceError, _error.ArgType):
             instance(h)
-    
+
     def testArgIsGeneratorFunction(self):
         with raises_kind(InstanceError, _error.ArgType):
             @instance
