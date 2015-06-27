@@ -201,7 +201,3 @@ class TestInferWaiter:
     def testGeneral(self):
         sim = Simulation(self.bench(GeneralFunc, _Waiter))
         sim.run()
-
-
-if __name__ == "__main__":
-    unittest.main()

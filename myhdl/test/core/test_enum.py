@@ -82,7 +82,3 @@ class TestEnum:
         e = copy.deepcopy(t_State.SEARCH)
         assert e == t_State.SEARCH
         assert e != t_State.CONFIRM
-
-
-if __name__ == "__main__":
-    unittest.main()

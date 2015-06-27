@@ -179,8 +179,3 @@ class TestTraceSigs:
         assert path.exists(pbak)
         assert path.getsize(pbak) == size
         assert path.getsize(p) < size
-
-
-
-if __name__ == "__main__":
-    unittest.main()

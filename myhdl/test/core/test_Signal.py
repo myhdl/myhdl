@@ -626,7 +626,3 @@ class TestSignalIntbvBounds:
                 pass
             else:
                 raise AssertionError
-            
-
-if __name__ == "__main__":
-    unittest.main()

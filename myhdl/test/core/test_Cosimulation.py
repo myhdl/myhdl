@@ -280,8 +280,5 @@ class TestCosimulation:
             buf += " "
         os.write(wt, to_bytes(buf))
 
-# def suite():
-#     return unittest.makeSuite(TestCosimulation, 'test')
-        
 if __name__ == "__main__":
     getattr(TestCosimulation, sys.argv[1])()

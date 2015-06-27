@@ -867,9 +867,3 @@ class TimeZeroEvents(TestCase):
         s = Signal(1)
         testBench = self.bench(sig=s, next=0, clause=s.negedge)
         Simulation(testBench).run(quiet=QUIET)
-
-
-        
-if __name__ == "__main__":
-    unittest.main()
-                

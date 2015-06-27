@@ -249,8 +249,3 @@ class TestConcat:
         b = intbv(5)
         with pytest.raises(TypeError):
             concat(a, b)
-
-if __name__ == "__main__":
-    unittest.main()
-       
-        

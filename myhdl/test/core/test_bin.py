@@ -96,13 +96,3 @@ class TestBin:
             assert bin(i, w) == binref(i, w)
             i = -k - sys.maxsize
             assert bin(i, w) == binref(i, w)
-            
-
-            
-
-              
-
-       
-
-if __name__ == "__main__":
-    unittest.main()

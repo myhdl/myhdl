@@ -422,8 +422,3 @@ class TestInferWaiter:
     def testSignalTuple1(self):
         sim = Simulation(self.bench(SignalTupleGen1, _SignalTupleWaiter))
         sim.run()
-
-
-
-if __name__ == "__main__":
-    unittest.main()

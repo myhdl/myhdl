@@ -74,7 +74,3 @@ class TestInstanceCompilation:
             assert e.kind == _error.NrOfArgs
         else:
             raise AssertionError
-
-
-if __name__ == "__main__":
-    unittest.main()

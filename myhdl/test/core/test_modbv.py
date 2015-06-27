@@ -75,9 +75,3 @@ class TestModbvWrap:
             raise AssertionError
         except ValueError:
             pass
-        
-
-if __name__ == "__main__":
-    unittest.main()
-       
-        

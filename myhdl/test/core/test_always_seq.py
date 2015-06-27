@@ -51,4 +51,3 @@ def test_reset():
             pass
     except:
         assert False
-

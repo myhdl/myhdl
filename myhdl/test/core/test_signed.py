@@ -262,11 +262,3 @@ class TestIntbvSigned:
                 a = intbv(v, min=lo, max=hi)
                 self.checkInvariants(a)
                 self.checkInvariants(Signal(a))
-    
-
-
-########################################################################
-# main
-#
-if __name__ == "__main__":
-    unittest.main()

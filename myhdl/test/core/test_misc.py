@@ -73,7 +73,3 @@ class TestInstances:
         assert len(i) == 4
         for e in (D_1, A_1, B_1, C_1):
             assert e in i
-
-
-if __name__ == "__main__":
-    unittest.main()

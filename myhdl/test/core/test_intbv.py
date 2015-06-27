@@ -578,10 +578,3 @@ class TestIntbvCopy:
                 assert n.min == m.min
                 assert n.max == m.max
                 assert len(n) == len(m)
-
-        
-
-if __name__ == "__main__":
-    unittest.main()
-       
-        

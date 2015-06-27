@@ -133,4 +133,3 @@ def bench_TristateSignal():
 
 def test_TristateSignal():
     Simulation(bench_TristateSignal()).run()
-
