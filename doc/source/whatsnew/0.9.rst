@@ -6,6 +6,12 @@
 What's new in MyHDL 0.9
 ***********************
 
+Python 3 Support
+================
+Experimental Python 3 support has been added to MyHDL 0.9
+
+See :doc:`/python3` for more info.
+
 Interfaces (Conversion of attribute accesses)
 =============================================
 
