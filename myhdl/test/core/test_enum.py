@@ -20,19 +20,17 @@
 """ Run the unit tests for enum """
 from __future__ import absolute_import
 
-
-import random
-from random import randrange
-random.seed(1) # random, but deterministic
-
-import sys
 import copy
+import random
 
-import unittest
-from unittest import TestCase
 import pytest
 
 from myhdl import enum
+
+random.seed(1) # random, but deterministic
+
+
+
 
 
 t_State = enum("SEARCH", "CONFIRM", "SYNC")

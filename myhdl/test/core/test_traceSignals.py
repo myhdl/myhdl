@@ -20,25 +20,21 @@
 """ Run the unit tests for traceSignals """
 from __future__ import absolute_import
 
-
-import random
-from random import randrange
-random.seed(1) # random, but deterministic
-import sys
 import os
-path = os.path
-
-import unittest
-from unittest import TestCase
-import shutil
-import glob
+import random
 
 import pytest
 
-from myhdl import delay, intbv, Signal, Simulation, _simulator, instance
-from myhdl._traceSignals import traceSignals, TraceSignalsError, _error
-
+from myhdl import Signal, Simulation, _simulator, delay, instance, intbv
+from myhdl._traceSignals import TraceSignalsError, _error, traceSignals
 from utils import raises_kind
+
+random.seed(1) # random, but deterministic
+path = os.path
+
+
+
+
 
 QUIET=1
 

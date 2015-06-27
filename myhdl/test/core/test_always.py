@@ -20,25 +20,21 @@
 """ Run the unit tests for the @always decorator """
 from __future__ import absolute_import
 
-
-import random
 from random import randrange
+
+from myhdl import (AlwaysError, Signal, Simulation, StopSimulation, delay,
+                   instances, intbv, now)
+from myhdl._always import _error, always
+from myhdl._Waiter import (_DelayWaiter, _EdgeTupleWaiter, _EdgeWaiter,
+                           _SignalTupleWaiter, _SignalWaiter, _Waiter)
+from utils import raises_kind
+
 # random.seed(3) # random, but deterministic
 
-import unittest
-from unittest import TestCase
-import inspect
 
-from myhdl import Signal, Simulation, instances, AlwaysError, \
-                  intbv, delay, StopSimulation, now
 
-from myhdl._always import always, _Always, _error
 
-from myhdl._Waiter import _inferWaiter, _Waiter
-from myhdl._Waiter import _SignalWaiter,_SignalTupleWaiter, _DelayWaiter, \
-                          _EdgeWaiter, _EdgeTupleWaiter
 
-from utils import raises_kind
 
 
 QUIET=1

@@ -20,20 +20,19 @@
 """ Run the concatunit tests. """
 from __future__ import absolute_import
 
+import operator
+import random
+from functools import reduce
 
 import pytest
-import unittest
-from unittest import TestCase
-import random
-from random import randrange
-from functools import reduce
-random.seed(2) # random, but deterministic
-import operator
 
+from myhdl._compat import long
+from myhdl._concat import concat
 from myhdl._intbv import intbv
 from myhdl._Signal import Signal
-from myhdl._concat import concat
-from myhdl._compat import long
+
+random.seed(2) # random, but deterministic
+
 
 
 

@@ -20,20 +20,19 @@
 """ Run unit tests for Simulation """
 from __future__ import absolute_import
 
-
-import unittest
-from unittest import TestCase
 import random
 from random import randrange
+from unittest import TestCase
+
+from myhdl import (Signal, Simulation, SimulationError, StopSimulation, delay,
+                   intbv, join, now)
+from myhdl._Simulation import _error
+from utils import raises_kind
+
 random.seed(1) # random, but deterministic
 
-from myhdl import Simulation, SimulationError, now, delay, StopSimulation, join
-from myhdl import Signal, intbv
-from myhdl._Simulation import _error
 
-from myhdl._simulator import _siglist
 
-from utils import raises_kind
 
 QUIET=1
 

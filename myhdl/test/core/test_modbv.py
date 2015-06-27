@@ -20,13 +20,11 @@
 """ Run the modbv unit tests. """
 from __future__ import absolute_import
 
-
-import unittest
-from unittest import TestCase
 import pytest
 
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
+
 
 class TestModbvWrap:
 

@@ -22,16 +22,16 @@ from __future__ import absolute_import
 
 import random
 from random import randrange
-random.seed(1) # random, but deterministic
 from types import GeneratorType
 
-import unittest
-from unittest import TestCase
-
 from myhdl import *
-from myhdl._Waiter import _inferWaiter, _Waiter
-from myhdl._Waiter import _SignalWaiter,_SignalTupleWaiter, _DelayWaiter, \
-                          _EdgeWaiter, _EdgeTupleWaiter
+from myhdl._Waiter import (_DelayWaiter, _EdgeTupleWaiter, _EdgeWaiter,
+                           _inferWaiter, _SignalTupleWaiter, _SignalWaiter,
+                           _Waiter)
+
+random.seed(1) # random, but deterministic
+
+
 
 
 QUIET=1

@@ -21,9 +21,6 @@
 """ Run the intbv.signed() unit tests. """
 from __future__ import absolute_import
 
-import unittest
-from unittest import TestCase
-
 from random import randrange
 
 from myhdl import *

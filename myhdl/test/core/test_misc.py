@@ -20,16 +20,13 @@
 """ Run the unit tests for Signal """
 from __future__ import absolute_import
 
-
 import random
-from random import randrange
-random.seed(1) # random, but deterministic
-from types import GeneratorType
-
-import unittest
-from unittest import TestCase
 
 from myhdl import instance, instances
+
+random.seed(1) # random, but deterministic
+
+
 
 def A(n):
     @instance

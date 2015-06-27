@@ -1,13 +1,7 @@
-from random import randrange
-from pytest import raises
 from myhdl import *
-
-from myhdl import Signal, Simulation, instances, now
-
-from myhdl._always_seq import always_seq, _AlwaysSeq, _error, AlwaysSeqError
-
+from myhdl import Signal
+from myhdl._always_seq import AlwaysSeqError, _error, always_seq
 from utils import raises_kind
-
 
 
 def test_clock():

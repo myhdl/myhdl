@@ -20,21 +20,16 @@
 """ Run the unit tests for instance """
 from __future__ import absolute_import
 
+from myhdl import (InstanceError, Signal, Simulation, StopSimulation, delay,
+                   instances, intbv, now)
+from myhdl._instance import _error, instance
+from utils import raises_kind
 
-import random
-from random import randrange
 # random.seed(3) # random, but deterministic
 
-import unittest
-from unittest import TestCase
-import inspect
 
-from myhdl import Signal, Simulation, instances, InstanceError, \
-                  intbv, delay, StopSimulation, now
 
-from myhdl._instance import instance, _error
 
-from utils import raises_kind
 
 
 

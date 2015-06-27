@@ -20,22 +20,22 @@
 """ Run the intbv unit tests. """
 from __future__ import absolute_import
 
-
-import unittest
-from unittest import TestCase
-import random
-from random import randrange
-random.seed(2) # random, but deterministic
-import sys
-maxint = sys.maxsize
 import operator
+import random
+import sys
 from copy import copy, deepcopy
+from random import randrange
 
 import pytest
 
+from myhdl._compat import integer_types, long
 from myhdl._intbv import intbv
 
-from myhdl._compat import long, integer_types
+random.seed(2) # random, but deterministic
+maxint = sys.maxsize
+
+
+
 
 class TestIntbvInit:
     def testDefaultValue(self):

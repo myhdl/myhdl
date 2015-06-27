@@ -20,27 +20,22 @@
 """ Run unit tests for Cosimulation """
 from __future__ import absolute_import
 
-
 import gc
-import sys
 import os
-import errno
-import unittest
-from unittest import TestCase
 import random
-from random import randrange
+import sys
+
+from myhdl import Signal
+from myhdl._compat import to_bytes
+from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
+from utils import raises_kind
+
 random.seed(1) # random, but deterministic
 
 MAXLINE = 4096
 
-import pytest
-from myhdl import Signal
 
-import myhdl
-from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
-from myhdl._compat import to_bytes, PYPY
 
-from utils import raises_kind
 
 exe = "python {0} ".format(os.path.abspath(__file__))
 

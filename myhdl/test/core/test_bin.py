@@ -20,17 +20,16 @@
 """ Run the unit tests for bin """
 from __future__ import absolute_import
 
-
 import random
-from random import randrange
-random.seed(1) # random, but deterministic
-
-import unittest
-from unittest import TestCase
 import sys
+from random import randrange
 
 from myhdl import bin
 from myhdl._compat import long
+
+random.seed(1) # random, but deterministic
+
+
 
 SIZE = 100
 

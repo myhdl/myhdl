@@ -20,23 +20,21 @@
 """ Run the unit tests for always_comb """
 from __future__ import absolute_import
 
-
 import random
 from random import randrange
+
+from myhdl import (AlwaysCombError, Signal, Simulation, StopSimulation, delay,
+                   instances, intbv, now)
+from myhdl._always_comb import _error, always_comb
+from myhdl._Waiter import _SignalTupleWaiter, _SignalWaiter, _Waiter
+from utils import raises_kind
+
 # random.seed(3) # random, but deterministic
 
-import unittest
-from unittest import TestCase
-import inspect
 
-from myhdl import Signal, Simulation, instances, AlwaysCombError, \
-                  intbv, delay, StopSimulation, now
 
-from myhdl._always_comb import always_comb, _AlwaysComb, _error
 
-from myhdl._Waiter import _Waiter,_SignalWaiter,_SignalTupleWaiter
 
-from utils import raises_kind
 
 
 QUIET=1

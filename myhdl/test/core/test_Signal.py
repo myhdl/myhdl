@@ -20,24 +20,23 @@
 """ Run the unit tests for Signal """
 from __future__ import absolute_import
 
-
+import copy
 import operator
 import random
-from random import randrange
-random.seed(1) # random, but deterministic
 import sys
-maxint = sys.maxsize
-import types
-import copy
-
-import unittest
-from unittest import TestCase
-
-from myhdl._simulator import _siglist
-from myhdl import intbv, Signal
-from myhdl._compat import long
+from random import randrange
 
 import pytest
+
+from myhdl import Signal, intbv
+from myhdl._compat import long
+from myhdl._simulator import _siglist
+
+random.seed(1) # random, but deterministic
+maxint = sys.maxsize
+
+
+
 
         
 class TestSig:
