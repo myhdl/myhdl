@@ -40,6 +40,8 @@ import myhdl
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
 from myhdl._compat import to_bytes, PYPY
 
+from utils import raises_kind
+
 exe = "python {0} ".format(os.path.abspath(__file__))
 
 fromSignames = ['a', 'bb', 'ccc']
@@ -65,15 +67,13 @@ class TestCosimulation:
         gc.collect()
     
     def testWrongExe(self):
-        with pytest.raises(CosimulationError) as excinfo:
-            Cosimulation("bla -x 45")
-        assert excinfo.value.kind == _error.OSError
+        with raises_kind(CosimulationError, _error.OSError):
+            Cosimulation('bla -x 45')
 
     def testNotUnique(self):
         cosim1 = Cosimulation(exe + "cosimNotUnique", **allSigs)
-        with pytest.raises(CosimulationError) as excinfo:
+        with raises_kind(CosimulationError, _error.MultipleCosim):
             Cosimulation(exe + "cosimNotUnique", **allSigs)
-        assert excinfo.value.kind == _error.MultipleCosim
 
     @staticmethod
     def cosimNotUnique():
@@ -151,9 +151,8 @@ class TestCosimulation:
         os.read(rf, MAXLINE)
     
     def testTimeZero(self):
-        with pytest.raises(CosimulationError) as excinfo:
+        with raises_kind(CosimulationError, _error.TimeZero):
             Cosimulation(exe + "cosimTimeZero", **allSigs)
-        assert excinfo.value.kind == _error.TimeZero
 
     @staticmethod
     def cosimTimeZero():
@@ -165,9 +164,8 @@ class TestCosimulation:
         os.write(wt, to_bytes(buf))
 
     def testNoComm(self):
-        with pytest.raises(CosimulationError) as excinfo:
+        with raises_kind(CosimulationError, _error.NoCommunication):
             Cosimulation(exe + "cosimNoComm", **allSigs)
-        assert excinfo.value.kind == _error.NoCommunication
  
     @staticmethod
     def cosimNoComm():
@@ -181,9 +179,8 @@ class TestCosimulation:
         os.read(rf, MAXLINE)
 
     def testFromSignalsDupl(self):
-        with pytest.raises(CosimulationError) as excinfo:
+        with raises_kind(CosimulationError, _error.DuplicateSigNames):
             Cosimulation(exe + "cosimFromSignalsDupl", **allSigs)
-        assert excinfo.value.kind == _error.DuplicateSigNames
 
     @staticmethod
     def cosimFromSignalsDupl():
@@ -196,9 +193,8 @@ class TestCosimulation:
         os.write(wt, to_bytes(buf))
 
     def testToSignalsDupl(self):
-        with pytest.raises(CosimulationError) as excinfo:
+        with raises_kind(CosimulationError, _error.DuplicateSigNames):
             Cosimulation(exe + "cosimToSignalsDupl", **allSigs)
-        assert excinfo.value.kind == _error.DuplicateSigNames
  
     @staticmethod
     def cosimToSignalsDupl():

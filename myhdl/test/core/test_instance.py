@@ -34,6 +34,8 @@ from myhdl import Signal, Simulation, instances, InstanceError, \
 
 from myhdl._instance import instance, _error
 
+from utils import raises_kind
+
 
 
 QUIET=1
@@ -48,29 +50,17 @@ class TestInstanceCompilation:
 
     def testArgIsFunction(self):
         h = 5
-        try:
+        with raises_kind(InstanceError, _error.ArgType):
             instance(h)
-        except InstanceError as e:
-            assert e.kind == _error.ArgType
-        else:
-            raise AssertionError
     
     def testArgIsGeneratorFunction(self):
-        try:
+        with raises_kind(InstanceError, _error.ArgType):
             @instance
             def h():
                 return None
-        except InstanceError as e:
-            assert e.kind == _error.ArgType
-        else:
-            raise AssertionError
 
     def testArgHasNoArgs(self):
-        try:
+        with raises_kind(InstanceError, _error.NrOfArgs):
             @instance
             def h(n):
                 yield n
-        except InstanceError as e:
-            assert e.kind == _error.NrOfArgs
-        else:
-            raise AssertionError

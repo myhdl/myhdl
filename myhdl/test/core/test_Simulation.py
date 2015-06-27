@@ -33,6 +33,8 @@ from myhdl._Simulation import _error
 
 from myhdl._simulator import _siglist
 
+from utils import raises_kind
+
 QUIET=1
 
 class Shared:
@@ -41,23 +43,15 @@ class Shared:
 class SimArgs(TestCase):
     """ Simulation arguments """
     def test1(self):
-        try:
+        with raises_kind(SimulationError, _error.ArgType):
             Simulation(None)
-        except SimulationError as e:
-            assert e.kind == _error.ArgType
-        except:
-            raise AssertionError
 
     def test2(self):
         def g():
             yield delay(10)
         i = g()
-        try:
+        with raises_kind(SimulationError, _error.DuplicatedArg):
             Simulation(i, i)
-        except SimulationError as e:
-            assert e.kind == _error.DuplicatedArg
-        except:
-            raise AssertionError
             
 
 class YieldNone(TestCase):

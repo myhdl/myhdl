@@ -36,6 +36,8 @@ from myhdl._always_comb import always_comb, _AlwaysComb, _error
 
 from myhdl._Waiter import _Waiter,_SignalWaiter,_SignalTupleWaiter
 
+from utils import raises_kind
+
 
 QUIET=1
 
@@ -49,32 +51,20 @@ class TestAlwaysCombCompilation:
 
     def testArgIsFunction(self):
         h = 5
-        try:
+        with raises_kind(AlwaysCombError, _error.ArgType):
             always_comb(h)
-        except AlwaysCombError as e:
-            assert e.kind == _error.ArgType
-        else:
-            raise AssertionError
     
     def testArgIsNormalFunction(self):
         def h():
             yield None
-        try:
+        with raises_kind(AlwaysCombError, _error.ArgType):
             always_comb(h)
-        except AlwaysCombError as e:
-            assert e.kind == _error.ArgType
-        else:
-            raise AssertionError
 
     def testArgHasNoArgs(self):
         def h(n):
             return n
-        try:
+        with raises_kind(AlwaysCombError, _error.NrOfArgs):
             always_comb(h)
-        except AlwaysCombError as e:
-            assert e.kind == _error.NrOfArgs
-        else:
-            raise AssertionError
 
 ##     def testScope(self):
 ##         try:
@@ -134,24 +124,16 @@ class TestAlwaysCombCompilation:
         def h():
             c.next += 1
             a += 1
-        try:
+        with raises_kind(AlwaysCombError, _error.SignalAsInout % "c"):
             g = always_comb(h).gen
-        except AlwaysCombError as e:
-            assert e.kind == _error.SignalAsInout % "c"
-        else:
-            raise AssertionError
 
     def testInfer6(self):
         a, b, c, d = [Signal(0) for i in range(4)]
         def h():
             c.next = a
             x.next = c
-        try:
+        with raises_kind(AlwaysCombError, _error.SignalAsInout % "c"):
             g = always_comb(h).gen
-        except AlwaysCombError as e:
-            assert e.kind == _error.SignalAsInout % "c"
-        else:
-            raise AssertionError
 
     def testInfer7(self):
         a, b, c, d = [Signal(0) for i in range(4)]
@@ -202,12 +184,8 @@ class TestAlwaysCombCompilation:
                 return e
             c.next = x
             g = a
-        try:
+        with raises_kind(AlwaysCombError, _error.EmbeddedFunction):
             g = always_comb(h)
-        except AlwaysCombError as e:
-            assert e.kind == _error.EmbeddedFunction
-        else:
-            raise AssertionError
 
 
 class TestAlwaysCombSimulation1:

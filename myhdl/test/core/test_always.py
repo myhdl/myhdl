@@ -38,6 +38,8 @@ from myhdl._Waiter import _inferWaiter, _Waiter
 from myhdl._Waiter import _SignalWaiter,_SignalTupleWaiter, _DelayWaiter, \
                           _EdgeWaiter, _EdgeTupleWaiter
 
+from utils import raises_kind
+
 
 QUIET=1
 
@@ -51,53 +53,32 @@ class TestAlwaysCompilation:
 
     def testArgIsFunction(self):
         h = 5
-        try:
+        with raises_kind(AlwaysError, _error.ArgType):
             always(delay(3))(h)
-        except AlwaysError as e:
-            assert e.kind == _error.ArgType
-        else:
-            raise AssertionError
     
     def testArgIsNormalFunction(self):
-        try:
+        with raises_kind(AlwaysError, _error.ArgType):
             @always(delay(3))
             def h():
                 yield None
-        except AlwaysError as e:
-            assert e.kind == _error.ArgType
-        else:
-            raise AssertionError
 
     def testArgHasNoArgs(self):
-        try:
+        with raises_kind(AlwaysError, _error.NrOfArgs):
             @always(delay(3))
             def h(n):
                 return n
-        except AlwaysError as e:
-            assert e.kind == _error.NrOfArgs
-        else:
-            raise AssertionError
 
     def testDecArgType1(self):
-        try:
+        with raises_kind(AlwaysError, _error.DecArgType):
             @always
             def h(n):
                 return n
-        except AlwaysError as e:
-            assert e.kind == _error.DecArgType
-        else:
-            raise AssertionError
 
     def testDecArgType2(self):
-        try:
+        with raises_kind(AlwaysError, _error.DecArgType):
             @always(g)
             def h(n):
                 return n
-        except AlwaysError as e:
-            assert e.kind == _error.DecArgType
-        else:
-            raise AssertionError
-
 
 
 def SignalFunc1(a, b, c, d, r):

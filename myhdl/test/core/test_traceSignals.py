@@ -38,6 +38,8 @@ import pytest
 from myhdl import delay, intbv, Signal, Simulation, _simulator, instance
 from myhdl._traceSignals import traceSignals, TraceSignalsError, _error
 
+from utils import raises_kind
+
 QUIET=1
 
 def gen(clk):
@@ -123,30 +125,19 @@ def vcd_dir(tmpdir):
 class TestTraceSigs:
 
     def testMultipleTraces(self, vcd_dir):
-        try:
+        with raises_kind(TraceSignalsError, _error.MultipleTraces):
             dut = top3()
-        except TraceSignalsError as e:
-            assert e.kind == _error.MultipleTraces
-        else:
-            raise AssertionError
 
     def testArgType1(self, vcd_dir):
-        try:
+        with raises_kind(TraceSignalsError, _error.ArgType):
             dut = traceSignals([1, 2])
-        except TraceSignalsError as e:
-            assert e.kind == _error.ArgType
-        else:
-            raise AssertionError
 
     def testReturnVal(self, vcd_dir):
         from myhdl import ExtractHierarchyError
         from myhdl._extractHierarchy import _error
-        try:
+        kind = _error.InconsistentToplevel % (2, "dummy")
+        with raises_kind(ExtractHierarchyError, kind):
             dut = traceSignals(dummy)
-        except ExtractHierarchyError as e:
-            assert e.kind == _error.InconsistentToplevel % (2, "dummy")
-        else:
-            raise AssertionError
 
     def testHierarchicalTrace1(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
