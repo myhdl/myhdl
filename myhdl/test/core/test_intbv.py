@@ -31,6 +31,8 @@ maxint = sys.maxsize
 import operator
 from copy import copy, deepcopy
 
+import pytest
+
 from myhdl._intbv import intbv
 
 from myhdl._compat import long, integer_types
@@ -448,19 +450,12 @@ class TestIntbvBounds:
     
     def testConstructor(self):
         assert intbv(40, max=54) == 40
-        try:
+        with pytest.raises(ValueError):
             intbv(40, max=27)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError
+
         assert intbv(25, min=16) == 25
-        try:
+        with pytest.raises(ValueError):
             intbv(25, min=27)
-        except ValueError:
-            pass
-        else:
-            raise AssertionError
 
     def testSliceAssign(self):
         a = intbv(min=-24, max=34)
@@ -471,22 +466,15 @@ class TestIntbvBounds:
                 assert a == i
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
-                try:
+                with pytest.raises(ValueError):
                     a[k:] = i
-                except ValueError:
-                    pass
-                else:
-                    raise AssertionError
+
         a = intbv(5)[8:]
         for v in (0, 2**8-1, 100):
             a[:] = v
         for v in (-1, 2**8, -10, 1000):
-            try:
+            with pytest.raises(ValueError):
                 a[:] = v
-            except ValueError:
-                pass
-            else:
-                raise AssertionError
 
     def checkBounds(self, i, j, op):
         a = intbv(i)
@@ -503,23 +491,15 @@ class TestIntbvBounds:
             b = intbv(i, min=i, max=a+1)
             for m in (i+1, a):
                 b = intbv(i, min=i, max=m)
-                try:
+                with pytest.raises(ValueError):
                     exec("b %s long(j)" % op)
-                except ValueError:
-                    pass
-                else:
-                    raise AssertionError
         elif a < i :
             b = intbv(i, min=a, max=i+1)
             exec("b %s long(j)" % op) # should be ok
             for m in (a+1, i):
                 b = intbv(i, min=m, max=i+1)
-                try:
+                with pytest.raises(ValueError):
                     exec("b %s long(j)" % op)
-                except ValueError:
-                    pass
-                else:
-                    raise AssertionError
         else: # a == i
             b = intbv(i, min=i, max=i+1)
             exec("b %s long(j)" % op) # should be ok
