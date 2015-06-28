@@ -26,9 +26,10 @@ def _resolveRefs(symdict, arg):
 #TODO: Refactor this into two separate nodetransformers, since _resolveRefs
 #needs only the names, not the objects
 
-def _suffixer(name):
+def _suffixer(name, used_names):
     suffixed_names = (name+'_renamed{0}'.format(i) for i in itertools.count())
-    return itertools.chain([name], suffixed_names)
+    new_names = itertools.chain([name], suffixed_names)
+    return next(s for s in new_names if s not in used_names)
 
 
 class _AttrRefTransformer(ast.NodeTransformer):
@@ -36,6 +37,7 @@ class _AttrRefTransformer(ast.NodeTransformer):
         self.data = data
         self.data.objlist = []
         self.myhdl_types = (EnumType, SignalType)
+        self.name_map = {}
 
     def visit_Attribute(self, node):
         self.generic_visit(node)
@@ -58,8 +60,11 @@ class _AttrRefTransformer(ast.NodeTransformer):
 
         attrobj = getattr(obj, node.attr)
 
-        name = node.value.id + '_' + node.attr
-        new_name = next(s for s in _suffixer(name) if s not in self.data.symdict)
+        orig_name = node.value.id + '.' + node.attr
+        if orig_name not in self.name_map:
+            base_name = node.value.id + '_' + node.attr
+            self.name_map[orig_name] = _suffixer(base_name, self.data.symdict)
+        new_name = self.name_map[orig_name]
         self.data.symdict[new_name] = attrobj
         self.data.objlist.append(new_name)
 
