@@ -96,6 +96,10 @@ def _genfunc(gen):
 if hasattr(os, 'set_inheritable'):
     _setInheritable = os.set_inheritable
 else:
+# This implementation of set_inheritable is based on a code sample in
+# [PEP 0446](https://www.python.org/dev/peps/pep-0446/) and on the
+# CPython implementation of that proposal which can be browsed [here]
+# (hg.python.org/releasing/3.4/file/8671f89107c8/Modules/posixmodule.c#l11130)
     def _setInheritable(fd, inheritable):
         if sys.platform == "win32":
             import msvcrt
