@@ -41,7 +41,7 @@ def suite():
 def main():
     unittest.main(defaultTest='suite',
                   testRunner=unittest.TextTestRunner(verbosity=2))
-    
+
 
 if __name__ == '__main__':
     main()

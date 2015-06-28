@@ -163,7 +163,7 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
 
   n = write_pipe(buf, strlen(buf));
 
-  if ((n = read_pipe(buf, MAXLINE)) == 0) {
+  if ((n = read_pipe(buf, MAXLINE)) <= 0) {
     vpi_printf("Info: MyHDL simulator down\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
@@ -242,7 +242,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data)
 
   n = write_pipe(buf, strlen(buf));
 
-  if ((n = read_pipe(buf, MAXLINE)) == 0) {
+  if ((n = read_pipe(buf, MAXLINE)) <= 0) {
     vpi_printf("ABORT from $to_myhdl\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);
@@ -300,7 +300,7 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
     start_flag = 0;
     n = write_pipe("START", 5);
     // vpi_printf("INFO: RO cb at start-up\n");
-    if ((n = read_pipe(buf, MAXLINE)) == 0) {
+    if ((n = read_pipe(buf, MAXLINE)) <= 0) {
       vpi_printf("ABORT from RO cb at start-up\n");
       vpi_control(vpiFinish, 1);  /* abort simulation */
     }
@@ -337,7 +337,7 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
   //vpi_free_object(net_iter);
 
   n = write_pipe(buf, strlen(buf));
-  if ((n = read_pipe(buf, MAXLINE)) == 0) {
+  if ((n = read_pipe(buf, MAXLINE)) <= 0) {
     // vpi_printf("ABORT from RO cb\n");
     vpi_control(vpiFinish, 1);  /* abort simulation */
     return(0);

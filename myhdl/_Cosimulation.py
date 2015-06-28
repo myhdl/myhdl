@@ -24,14 +24,14 @@ import sys
 import os
 import shlex
 import subprocess
-if sys.platform == "win32":
-    import msvcrt
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
 from myhdl._compat import string_types, to_bytes, to_str
+from myhdl._util import _setInheritable
 
 _MAXLINE = 4096
+
 
 class _error:
     pass
@@ -42,6 +42,7 @@ _error.TimeZero = "myhdl vpi call when not at time 0"
 _error.NoCommunication = "No signals communicating to myhdl"
 _error.SimulationEnd = "Premature simulation end"
 _error.OSError = "OSError"
+
 
 class Cosimulation(object):
 
@@ -58,17 +59,13 @@ class Cosimulation(object):
         rt, wt = os.pipe()
         rf, wf = os.pipe()
 
-        # Support for python 3.4 non-inheritable pipes
-        # On < 3.4 Windows still has non-inheritable pipes, but < 3.4 support
-        # was dropped in [#38](https://github.com/jandecaluwe/myhdl/issues/38)
-        if hasattr(os, 'set_inheritable'):
-            # Disable inheritance for ends that we don't want the child to have
-            os.set_inheritable(rt, False)
-            os.set_inheritable(wf, False)
+        # Disable inheritance for ends that we don't want the child to have
+        _setInheritable(rt, False)
+        _setInheritable(wf, False)
 
-            # Enable inheritance for child ends
-            os.set_inheritable(wt, True)
-            os.set_inheritable(rf, True)
+        # Enable inheritance for child ends
+        _setInheritable(wt, True)
+        _setInheritable(rf, True)
 
         self._rt = rt
         self._wf = wf
@@ -91,6 +88,7 @@ class Cosimulation(object):
             env['MYHDL_TO_PIPE'] = str(wt)
             env['MYHDL_FROM_PIPE'] = str(rf)
         else:
+            import msvcrt
             env['MYHDL_TO_PIPE'] = str(msvcrt.get_osfhandle(wt))
             env['MYHDL_FROM_PIPE'] = str(msvcrt.get_osfhandle(rf))
 

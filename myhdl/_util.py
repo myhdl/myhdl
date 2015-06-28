@@ -23,14 +23,15 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-
 import ast
 import sys
+import os
 import inspect
 
 from tokenize import generate_tokens, untokenize, INDENT
 
 from myhdl._compat import integer_types, StringIO
+
 
 def _printExcInfo():
     kind, value = sys.exc_info()[:2]
@@ -91,3 +92,29 @@ def _genfunc(gen):
     else:
         func = gen.genfunc
     return func
+
+if hasattr(os, 'set_inheritable'):
+    _setInheritable = os.set_inheritable
+else:
+    def _setInheritable(fd, inheritable):
+        if sys.platform == "win32":
+            import msvcrt
+            import ctypes.windll.kernel32 as kernel32
+
+            HANDLE_FLAG_INHERIT = 1
+
+            if kernel32.SetHandleInformation(msvcrt.get_osfhandle(fd),
+                                             HANDLE_FLAG_INHERIT,
+                                             1 if inheritable else 0) == 0:
+                raise IOError("Failed on HANDLE_FLAG_INHERIT")
+        else:
+            import fcntl
+
+            fd_flags = fcntl.fcntl(fd, fcntl.F_GETFD)
+
+            if inheritable:
+                fd_flags &= ~fcntl.FD_CLOEXEC
+            else:
+                fd_flags |= fcntl.FD_CLOEXEC
+
+            fcntl.fcntl(fd, fcntl.F_SETFD, fd_flags)
