@@ -19,9 +19,17 @@ Welcome to the MyHDL documentation
 
    manual/index
    whatsnew/0.9
+   python3
+
+Old Whatsnew documents
+======================
+.. toctree::
+   :maxdepth: 1
+
    whatsnew/0.8
    whatsnew/0.7
    whatsnew/0.6
+
 
 Index
 =====
@@ -31,4 +39,3 @@ Index
 Search
 ======
 * :ref:`search`
-

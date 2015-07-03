@@ -20,23 +20,21 @@
 """ Run the unit tests for traceSignals """
 from __future__ import absolute_import
 
-
-import random
-from random import randrange
-random.seed(1) # random, but deterministic
-import sys
 import os
+import random
+
+import pytest
+
+from myhdl import Signal, Simulation, _simulator, delay, instance, intbv
+from myhdl._traceSignals import TraceSignalsError, _error, traceSignals
+from utils import raises_kind
+
+random.seed(1)  # random, but deterministic
 path = os.path
 
-import unittest
-from unittest import TestCase
-import shutil
-import glob
-
-from myhdl import delay, intbv, Signal, Simulation, _simulator, instance
-from myhdl._traceSignals import traceSignals, TraceSignalsError, _error
 
 QUIET=1
+
 
 def gen(clk):
     @instance
@@ -46,25 +44,30 @@ def gen(clk):
             clk.next = not clk
     return logic
 
+
 def fun():
     clk = Signal(bool(0))
     inst = gen(clk)
     return inst
+
 
 def dummy():
     clk = Signal(bool(0))
     inst = gen(clk)
     return 1
 
+
 def top():
     inst = traceSignals(fun)
     return inst
+
 
 def top2():
     inst = [{} for i in range(4)]
     j = 3
     inst[j-2]['key'] = traceSignals(fun)
     return inst
+
 
 def top3():
     inst_1 = traceSignals(fun)
@@ -82,6 +85,7 @@ def genTristate(clk, x, y, z):
         while 1:
             yield delay(10)
             clk.next = not clk
+
     @instance
     def logic():
         for v in [True, False, None, 0, True, None, None, 1]:
@@ -95,6 +99,7 @@ def genTristate(clk, x, y, z):
                 yd.next = zd.next = 0
     return ckgen,logic
 
+
 def tristate():
     from myhdl import TristateSignal
     clk = Signal(bool(0))
@@ -105,79 +110,54 @@ def tristate():
     inst = genTristate(clk, x, y, z)
     return inst
 
+
 def topTristate():
     inst = traceSignals(tristate)
     return inst
 
-class TestTraceSigs(TestCase):
 
-    def setUp(self):
-        paths = glob.glob("*.vcd") + glob.glob("*.vcd.*")
-        for p in paths:
-            os.remove(p)
+@pytest.yield_fixture
+def vcd_dir(tmpdir):
+    with tmpdir.as_cwd():
+        yield tmpdir
+    if _simulator._tracing:
+        _simulator._tf.close()
+        _simulator._tracing = 0
 
-    def tearDown(self):
-        paths = glob.glob("*.vcd") + glob.glob("*.vcd.*")
-        if _simulator._tracing:
-            _simulator._tf.close()
-            _simulator._tracing = 0
-        #for p in paths:
-        #    os.remove(p)
 
-##     def testTopName(self):
-##         p = "dut.vcd"
-##         dut = traceSignals(fun)
-##         _simulator._tf.close()
-##         _simulator._tracing = 0
-##         try:
-##             traceSignals(fun)
-##         except TraceSignalsError, e:
-##             self.assertEqual(e.kind, _error.TopLevelName)
-##         else:
-##             self.fail()
+class TestTraceSigs:
 
-    def testMultipleTraces(self):
-        try:
+    def testMultipleTraces(self, vcd_dir):
+        with raises_kind(TraceSignalsError, _error.MultipleTraces):
             dut = top3()
-        except TraceSignalsError as e:
-            self.assertEqual(e.kind, _error.MultipleTraces)
-        else:
-            self.fail()
 
-    def testArgType1(self):
-        try:
+    def testArgType1(self, vcd_dir):
+        with raises_kind(TraceSignalsError, _error.ArgType):
             dut = traceSignals([1, 2])
-        except TraceSignalsError as e:
-            self.assertEqual(e.kind, _error.ArgType)
-        else:
-            self.fail()
 
-    def testReturnVal(self):
+    def testReturnVal(self, vcd_dir):
         from myhdl import ExtractHierarchyError
         from myhdl._extractHierarchy import _error
-        try:
+        kind = _error.InconsistentToplevel % (2, "dummy")
+        with raises_kind(ExtractHierarchyError, kind):
             dut = traceSignals(dummy)
-        except ExtractHierarchyError as e:
-            self.assertEqual(e.kind, _error.InconsistentToplevel % (2, "dummy"))
-        else:
-            self.fail()
 
-    def testHierarchicalTrace1(self):
+    def testHierarchicalTrace1(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
         top()
-        self.assertTrue(path.exists(p))
+        assert path.exists(p)
 
-    def testHierarchicalTrace2(self):
+    def testHierarchicalTrace2(self, vcd_dir):
         pdut = "%s.vcd" % top.__name__
         psub = "%s.vcd" % fun.__name__
         dut = traceSignals(top)
-        self.assertTrue(path.exists(pdut))
-        self.assertTrue(not path.exists(psub))
+        assert path.exists(pdut)
+        assert not path.exists(psub)
 
-    def testTristateTrace(self):
+    def testTristateTrace(self, vcd_dir):
         Simulation(topTristate()).run(100, quiet=QUIET)
 
-    def testBackupOutputFile(self):
+    def testBackupOutputFile(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
         dut = traceSignals(fun)
         Simulation(dut).run(1000, quiet=QUIET)
@@ -185,16 +165,11 @@ class TestTraceSigs(TestCase):
         _simulator._tracing = 0
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
-        self.assertTrue(not path.exists(pbak))
+        assert not path.exists(pbak)
         dut = traceSignals(fun)
         _simulator._tf.close()
         _simulator._tracing = 0
-        self.assertTrue(path.exists(p))
-        self.assertTrue(path.exists(pbak))
-        self.assertTrue(path.getsize(pbak) == size)
-        self.assertTrue(path.getsize(p) < size)
-
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert path.exists(p)
+        assert path.exists(pbak)
+        assert path.getsize(pbak) == size
+        assert path.getsize(p) < size
