@@ -20,61 +20,48 @@
 """ Run the modbv unit tests. """
 from __future__ import absolute_import
 
-
-import unittest
-from unittest import TestCase
+import pytest
 
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
 
-class TestModbvWrap(TestCase):
+
+class TestModbvWrap:
 
     def testWrap(self):
         x = modbv(0, min=-8, max=8)
         x[:] = x + 1
-        self.assertEqual(1, x)
+        assert 1 == x
         x[:] = x + 2
-        self.assertEqual(3, x)
+        assert 3 == x
         x[:] = x + 5
-        self.assertEqual(-8, x)
+        assert -8 == x
         x[:] = x + 1
-        self.assertEqual(-7, x)
+        assert -7 == x
         x[:] = x - 5
-        self.assertEqual(4, x)
+        assert 4 == x
         x[:] = x - 4
-        self.assertEqual(0, x)
+        assert 0 == x
         x[:] += 15
         x[:] = x - 1
-        self.assertEqual(-2, x)
-
+        assert -2 == x
 
     def testInit(self):
-        self.assertRaises(ValueError, intbv, 15, min=-8, max=8)
+        with pytest.raises(ValueError):
+            intbv(15, min=-8, max=8)
+
         x = modbv(15, min=-8, max=8)
-        self.assertEqual(-1, x)
+        assert -1 == x
 
         # Arbitrary boundraries support (no exception)
         modbv(5, min=-3, max=8)
-        
 
     def testNoWrap(self):
         # Validate the base class fails for the wraps
         x = intbv(0, min=-8, max=8)
-        try:
+        with pytest.raises(ValueError):
             x[:] += 15
-            self.fail()
-        except ValueError:
-            pass
 
         x = intbv(0, min=-8, max=8)
-        try:
+        with pytest.raises(ValueError):
             x[:] += 15
-            self.fail()
-        except ValueError:
-            pass
-        
-
-if __name__ == "__main__":
-    unittest.main()
-       
-        

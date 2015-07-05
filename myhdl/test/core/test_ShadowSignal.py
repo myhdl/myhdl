@@ -1,6 +1,8 @@
 from __future__ import absolute_import
+
 from myhdl import *
 from myhdl._compat import long
+
 
 def bench_SliceSignal():
 
@@ -55,8 +57,10 @@ def bench_ConcatSignal():
 
     return check
 
+
 def test_ConcatSignal():
     Simulation(bench_ConcatSignal()).run()
+
 
 def bench_ConcatSignalWithConsts():
 
@@ -100,6 +104,7 @@ def bench_ConcatSignalWithConsts():
 
     return check
 
+
 def test_ConcatSignalWithConsts():
     Simulation(bench_ConcatSignalWithConsts()).run()
 
@@ -133,4 +138,3 @@ def bench_TristateSignal():
 
 def test_TristateSignal():
     Simulation(bench_TristateSignal()).run()
-
