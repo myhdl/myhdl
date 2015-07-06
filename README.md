@@ -1,5 +1,5 @@
-MyHDL 0.9
-=========
+MyHDL 0.9.0
+===========
 
 [![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=master)](http://docs.myhdl.org/en/latest/manual)
 [![Build Status](https://travis-ci.org/jandecaluwe/myhdl.svg?branch=master)](https://travis-ci.org/jandecaluwe/myhdl)

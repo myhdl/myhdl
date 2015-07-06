@@ -52,7 +52,7 @@ toVerilog -- function that converts a design to Verilog
 from __future__ import absolute_import
 from __future__ import print_function
 
-__version__ = "0.9.dev0"
+__version__ = "0.9.0"
 
 import sys
 import warnings
