@@ -212,7 +212,7 @@ Shadow signals
 .. class:: _SliceSignal(sig, left[, right=None])
 
     This class implements read-only structural slicing and indexing. It creates a new
-    signal that shadows the slice or index of the parent signal *sig*. If the
+    shadow signal of the slice or index of the parent signal *sig*. If the
     *right* parameter is omitted, you get indexing instead of slicing.
     Parameters *left*  and *right* have the usual meaning for slice
     indices: in particular, *left* is non-inclusive but *right*
@@ -229,11 +229,15 @@ Shadow signals
 
 .. class:: ConcatSignal(*args)
 
-    This class creates a new signal that shadows the concatenation
-    of its parent signal values. You can pass an arbitrary number
-    of signals to the constructor. The signal arguments should be bit-oriented
-    with a defined number of bits.
+   This class creates a new shadow signal of the concatenation of its arguments. 
 
+   You can pass an arbitrary number of arguments to the constructor.  The
+   arguments should be bit-oriented with a defined number of bits.  The following
+   argument types are supported: :class:`intbv` objects with a defined bit width,
+   :class:`bool` objects, signals of the previous objects, and bit strings. 
+
+   The new signal follows the value changes of the signal arguments. The non-signal
+   arguments are used to define constant values in the concatenation.  
 
 .. class:: TristateSignal(val)
 
@@ -601,8 +605,10 @@ useful for hardware description.
 
    The following argument types are supported: :class:`intbv` objects with a
    defined bit width, :class:`bool` objects, signals of the previous objects, and
-   bit strings. All these objects have a defined bit width. The first argument
-   *base* is special as it doesn't need to have a defined bit width. In addition to
+   bit strings. All these objects have a defined bit width. 
+
+   The first argument *base* is special as it does not need to have a 
+   defined bit width. In addition to
    the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
    :class:`long` objects are supported, as well as signals of such objects.
 

@@ -29,6 +29,7 @@ Old Whatsnew documents
    whatsnew/0.8
    whatsnew/0.7
    whatsnew/0.6
+   whatsnew/0.5
    whatsnew/0.4
    whatsnew/0.3
 
