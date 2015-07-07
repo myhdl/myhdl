@@ -1,7 +1,8 @@
 MyHDL 0.9.0
 ===========
 
-[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=master)](http://docs.myhdl.org/en/latest/manual)
+[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=stable)](http://docs.myhdl.org/en/stable/manual)
+[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=latest)](http://docs.myhdl.org/en/latest/manual)
 [![Build Status](https://travis-ci.org/jandecaluwe/myhdl.svg?branch=master)](https://travis-ci.org/jandecaluwe/myhdl)
 
 What is MyHDL?
@@ -25,13 +26,13 @@ Documentation
 -------------
 The manual is available on-line:
 
-   - http://docs.myhdl.org/en/latest/manual
+   - http://docs.myhdl.org/en/stable/manual
 
 What's new
 ----------
 To find out what's new in this release, please read:
 
-   - http://docs.myhdl.org/en/latest/whatsnew/0.9.html
+   - http://docs.myhdl.org/en/stable/whatsnew/0.9.html
 
 Installation
 ------------
