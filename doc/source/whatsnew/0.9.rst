@@ -17,17 +17,12 @@ Interfaces (Conversion of attribute accesses)
 
 Rationale
 ---------
-Complex designs often have many signals (ports) that are passed to 
-different levels of hierarchy.  Typically, many of the signals can 
-logically be grouped together.  Grouping the signals into an 
-*interface* simplifies the code, improves efficiency, and reduces 
-errors.
 
-An *interface* is a collection of signals (:class:`Signal`)  embedded 
-in an class/object as attributes.  This provides a natural method 
-to group related signals and provides intuitive access through 
-attributes.  Multiple level of objects and attributes provides a 
-hierarchy of signal structure if desired.
+Complex designs often have many signals that are passed to different levels of
+hierarchy.  Typically, many signals logically belong together. This can be
+modelled by an *interface*: an object that has a number of :class:`Signal`
+objects as its attributes.  Grouping signals into an interface simplifies the
+code, improves efficiency, and reduces errors.
 
 The following is an example of an *interface* definition::
 
@@ -37,13 +32,10 @@ The following is an example of an *interface* definition::
 	    self.imag = Signal(intbv(0, min=min, max=max))
 
 
-Although previous versions supported *interfaces* for modeling,
-`MyHDL generator`_\s which directly referenced attributes were not 
-convertible. 
-MyHDL now supports conversion of designs which contain attribute accesses.
+Although previous versions supported interfaces for modeling, they were not 
+convertible.  MyHDL 0.9 now supports conversion of designs that use interfaces.
 
-The following 
-is an example using the above ``Complex`` interface definition::
+The following is an example using the above ``Complex`` interface definition::
 
     a,b = Complex(-8,8), Complex(-8,8)
     c = Complex(-128,128)
@@ -60,32 +52,18 @@ is an example using the above ``Complex`` interface definition::
 
 Solution
 --------
-The proposed solution is to create unique names for attributes which 
-are used by `MyHDL generator`_\s.  The converter will create a unique 
-name by using the name of the parent 
-and the name of the attribute along with the name of the MyHDL module 
-instance (if required for uniqueness).  The converter will essentially 
-replace the "." with an "_" for each *interface* element.  
 
-Even though the target HDLs do not support *interfaces*, MyHDL is
-able to add high-level features that compile during conversion to the 
-target HDL (Verilog and VHDL).  
+The proposed solution is to create unique names for attributes which are used
+by `MyHDL generator`_\s.  The converter will create a unique name by using the
+name of the parent and the name of the attribute along with the name of the
+MyHDL module instance. The converter will essentially replace the "." with an
+"_" for each interface element. In essence, interfaces are supported
+using hierarchical name expansion and name mangling. 
 
-
-Conversion
-----------
-
-.. add details of the conversion, what policies are used to name 
-.. extend the Signals.  Any useful information about the approach
-.. or structure in the converter used.
-
-
-Limitations
------------
-Currently, MyHDL only converts interfaces in the form of attribute accesses.
-Dictionaries are not yet supported.
-
-
+Note that the MyHDL convertor supports interfaces, even though
+the target HDLs do not. This is another great example where the
+convertor supports a high-level feature that is not available
+in the target HDLs.
 
 See also
 --------
