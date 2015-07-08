@@ -768,6 +768,13 @@ Conversion
        file. The assigned value should be a string. The default 
        library is ``work``.
 
+    .. attribute:: std_logic_ports
+
+       This boolean attribute can be used to have only ``std_logic`` type
+       ports on the top-level interface (when ``True``) instead of the
+       default ``signed/unsigned`` types (when ``False``, the default). 
+
+
 
 .. _ref-conv-user:
 
