@@ -73,15 +73,13 @@ Generator are mapped to Verilog or VHDL constructs
   it will map them to ``process`` statements or concurrent signal assignments.
 
 The module ports are inferred from signal usage
-  In MyHDL, the input or output direction of interface signals is not explicitly
+  In MyHDL, the input or output direction of ports is not explicitly
   declared. The converter investigates signal usage in the design hierarchy to
   infer whether a signal is used as input, output, or as an internal signal.
 
-Interfaces are expanded
-  MyHDL provides a power mechanism to define complex module interfaces.
-  These interfaces are name extended to individual signals in the target
-  HDL (Verilog and VHDL).  This enables MyHDL to support higher-level 
-  abstractions that are not available in the target HDL.
+Interfaces are convertible 
+  An *interface*: an object that has a number of :class:`Signal` objects as its
+  attributes. The convertor supports this by name expansion and mangling.
 
 Function calls are mapped to Verilog or VHDL subprograms
   The converter analyzes function calls and function code. Each function is
@@ -434,16 +432,15 @@ description of RAM memories.
 
 Conversion of Interfaces
 ========================
-Interfaces simplify the complicated interconnect between modules.
-In MyHDL the interfaces provide an intuitive approach to group
-logically related ports.  The grouping of ports has many benefits
-such as reducing complexity and increasing modularity.
 
-The converter will name extend the interfaces during conversion,
-in the converted code each attribute will appear as a individual 
-signal.  Because the hierarchy is flattened the name extension 
-may need to include information on the where in the hierarchy
-the interface occurs to prevent name collisions.
+Complex designs often have many signals that are passed to different levels of
+hierarchy.  Typically, many signals logically belong together. This can be
+modelled by an *interface*: an object that has a number of :class:`Signal`
+objects as its attributes.  Grouping signals into an interface simplifies the
+code, improves efficiency, and reduces errors.
+
+The convertor supports interface using hierarchical name expansion and name
+mangling. 
 
 .. _conv-meth-assign:
 
