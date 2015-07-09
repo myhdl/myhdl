@@ -6,9 +6,12 @@
 What's new in MyHDL 0.9
 ***********************
 
-Python 3 Support
+Python 3 support
 ================
-Experimental Python 3 support has been added to MyHDL 0.9
+
+Experimental Python 3 support has been added to MyHDL 0.9.
+This was a major effort to modernize the code. As a result,
+Python 2 and 3 are supported from a single codebase.
 
 See :doc:`/python3` for more info.
 
@@ -71,3 +74,41 @@ For additional information see the original proposal `mep-107`_.
 
 .. _mep-107: http://dev.myhdl.org/meps/mep-107.html
 .. _MyHDL generator: http://docs.myhdl.org/en/latest/manual/reference.html#myhdl-generators-and-trigger-objects
+
+Other noteworthy improvements
+=============================
+
+``ConcatSignal`` interface
+--------------------------
+
+The interface of :class:`ConcatSignal` was enhanced. In
+addition to signals, you can now also use constant values 
+in the concatenation.
+
+``std_logic`` type ports 
+------------------------
+
+:func:`toVHDL` has a new attibute ``std_logic_ports``. When
+set, only ``std_logic`` type ports are used in the interface
+of the top-level VHDL module.
+
+Development flow
+----------------
+
+The MyHDL development flow has been modernized by moving to git and `github`_
+for version control. In addition, travis has set up so that all pull requests
+are tested automatically, enabling continuous intergration.
+
+Acknowledgments
+===============
+
+The Python 3 support effort was coordinated by Keerthan Jaic, who also
+implemented most of if. Convertible interfaces were championed by Chris Felton,
+and implemented by Keerthan Jaic.
+
+MyHDL development is a collaborative effort, as can be seen on `github`_.
+Thanks to all who contributed with suggestions, issues and pull requests.
+
+.. _github: https://www.github.com/jandecaluwe/myhdl
+
+

@@ -1,4 +1,4 @@
-Release 0.9.0 7-Jul-2015 
+Release 0.9.0 11-Jul-2015 
 -------------------------
 
 Full details about new features and changes can be found here:
