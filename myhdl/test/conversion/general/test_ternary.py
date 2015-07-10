@@ -83,7 +83,6 @@ def ternary_z(single, vector, single_i, single_o, vector_i, vector_o):
     def comb():
         single_i.next = single
         single_d.next = False if not single_o else None
-
         vector_i.next = vector
         vector_d.next = vector_o if single_o else None
 
