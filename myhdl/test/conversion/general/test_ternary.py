@@ -4,6 +4,7 @@ path = os.path
 import unittest
 
 from myhdl import *
+from myhdl.conversion import analyze
 
 def ternary1(dout, clk, rst):
 
@@ -63,8 +64,6 @@ def TernaryBench(ternary):
 
     return stimulus, ternary_inst
 
-
-
 # uncomment when we have a VHDL-2008 compliant simulator
 # def test_ternary1():
 #     assert conversion.verify(TernaryBench, ternary1) == 0
@@ -72,3 +71,30 @@ def TernaryBench(ternary):
 def test_ternary2():
     assert conversion.verify(TernaryBench, ternary2) == 0
 
+def ternary_z(single, vector, single_i, single_o, vector_i, vector_o):
+    """Simple I2C bi-dir converter.
+    This example will break the I2C bi-directional signals into
+    uni-dir explicit signals.
+    """
+    single_d = single.driver()
+    vector_d = vector.driver()
+
+    @always_comb
+    def comb():
+        single_i.next = single
+        single_d.next = False if not single_o else None
+        vector_i.next = vector
+        vector_d.next = vector_o if single_o else None
+
+    return comb
+
+def test_ternary_z():
+    single = TristateSignal(True)
+    vector = TristateSignal(intbv(0)[8:])
+    single_i = Signal(False)
+    single_o = Signal(False)
+    vector_i = Signal(intbv(0)[8:])
+    vector_o = Signal(intbv(0)[8:])
+
+    assert conversion.analyze(ternary_z, single, vector, single_i, single_o,
+                              vector_i, vector_o) == 0
