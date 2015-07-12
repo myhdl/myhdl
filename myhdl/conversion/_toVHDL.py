@@ -1103,17 +1103,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(';')
 
     def visit_IfExp(self, node):
-        pre, suf = self.inferCast(node.vhd, node.body.vhdOri)
-        self.write(pre)
+        # propagate the node's vhd attribute  
+        node.body.vhd = node.orelse.vhd = node.vhd
         self.visit(node.body)
-        self.write(suf)
         self.write(' when ')
         self.visit(node.test)
         self.write(' else ')
-        pre, suf = self.inferCast(node.vhd, node.orelse.vhdOri)
-        self.write(pre)
         self.visit(node.orelse)
-        self.write(suf)
 
     def visit_For(self, node):
         self.labelStack.append(node.breakLabel)
@@ -1289,7 +1285,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 s = "True"
         elif n == 'None':
-            if node.vhd.size == 1:
+            if isinstance(node.vhd, vhd_std_logic):
                 s = "'Z'"
             else:
             	s = "(others => 'Z')"
