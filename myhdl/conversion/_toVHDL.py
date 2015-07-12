@@ -890,7 +890,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("end case;")
             return
         elif isinstance(node.value, ast.IfExp):
-            # Ternary case not concurrent
+            # Ternary operator in a not concurrent environment
             if not isinstance(self, _ConvertSimpleAlwaysCombVisitor):
                 newnode = ast.If()
                 newnode.test = node.value.test
