@@ -123,7 +123,7 @@ def bench_TristateSignal():
         d.next = True
         yield delay(10)
         print(s)
-        print(t)
+        print(int(t))
         a[1:].next = None
         yield delay(10)
         a.next = None
@@ -132,7 +132,7 @@ def bench_TristateSignal():
         e.next = False
         yield delay(10)
         print(s)
-        print(t)
+        print(int(t))
         b.next = None
         c.next = 233
         e.next = None
