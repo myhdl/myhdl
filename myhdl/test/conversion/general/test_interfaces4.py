@@ -2,8 +2,6 @@ from __future__ import absolute_import
 
 import sys
 
-import pytest
-
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -110,9 +108,13 @@ def c_testbench_one():
         while True:
             yield delay(3)
             clock.next = not clock
-        
-    expected = (False, False, False, True, True, True,
-                False, True, False, True)
+     
+    # there is an issue when using bools with varialbes and
+    # VHDL conversion, this might be an expected limitation?
+    #expected = (False, False, False, True, True, True,
+    #            False, True, False, True)
+    expected = (0, 0, 0, 1, 1, 1, 0, 1, 0, 1)
+
     ra = reset.active    
     @instance
     def tbstim():
@@ -123,10 +125,8 @@ def c_testbench_one():
         yield clock.posedge
         for ii in range(10):
             print("sdi: %d, sdo: %d" % (sdi, sdo))
-            # The following two lines run into an unrelated VHDL tuple
-            # conversion bug.
-            # expected_bit = expected[ii]
-            # assert sdo == expected_bit
+            expected_bit = expected[ii]
+            assert sdo == expected_bit
             sdi.next = not sdi
             yield clock.posedge
 
@@ -153,6 +153,7 @@ def test_one_analyze():
 
 def test_one_verify():
     assert verify(c_testbench_one) == 0
+
 
 def test_conversion():
     toVerilog(c_testbench_one)
