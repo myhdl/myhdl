@@ -110,8 +110,8 @@ class _AlwaysComb(_Instantiator):
         v.visit(tree)
         v = _SigNameVisitor(self.symdict)
         v.visit(tree)
-        self.inputs = v.inputs
-        self.outputs = v.outputs
+        self.inputs = v.results['input']
+        self.outputs = v.results['output']
         senslist = []
         for n in self.inputs:
             s = self.symdict[n]

@@ -3,6 +3,7 @@ import ast
 from myhdl import AlwaysCombError
 from myhdl._Signal import _Signal, _isListOfSigs
 
+
 class _error:
     pass
 
@@ -13,21 +14,20 @@ _error.SignalAsInout = "signal (%s) used as inout in always_comb function argume
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
 _error.EmptySensitivityList= "sensitivity list is empty"
 
-INPUT, OUTPUT, INOUT = range(3)
-
-
 
 class _SigNameVisitor(ast.NodeVisitor):
     def __init__(self, symdict):
-        self.inputs = set()
-        self.outputs = set()
         self.toplevel = 1
         self.symdict = symdict
-        self.context = INPUT
+        self.results = {
+            'input': set(),
+            'output': set()
+        }
+        self.context = 'input'
 
     def visit_Module(self, node):
-        inputs = self.inputs
-        outputs = self.outputs
+        inputs = self.results['input']
+        outputs = self.results['output']
         for n in node.body:
             self.visit(n)
         for n in inputs:
@@ -36,7 +36,7 @@ class _SigNameVisitor(ast.NodeVisitor):
 
     def visit_FunctionDef(self, node):
         if self.toplevel:
-            self.toplevel = 0 # skip embedded functions
+            self.toplevel = 0  # skip embedded functions
             for n in node.body:
                 self.visit(n)
         else:
@@ -46,7 +46,7 @@ class _SigNameVisitor(ast.NodeVisitor):
         if not node.orelse:
             if isinstance(node.test, ast.Name) and \
                node.test.id == '__debug__':
-                return # skip
+                return  # skip
         self.generic_visit(node)
 
     def visit_Name(self, node):
@@ -55,20 +55,19 @@ class _SigNameVisitor(ast.NodeVisitor):
             return
         s = self.symdict[id]
         if isinstance(s, _Signal) or _isListOfSigs(s):
-            if self.context == INPUT:
-                self.inputs.add(id)
-            elif self.context == OUTPUT:
-                self.outputs.add(id)
-            elif self.context == INOUT:
+            if self.context in ('input', 'output'):
+                self.results[self.context].add(id)
+            elif self.context == 'inout':
                 raise AlwaysCombError(_error.SignalAsInout % id)
             else:
+                print(self.context)
                 raise AssertionError("bug in always_comb")
 
     def visit_Assign(self, node):
-        self.context = OUTPUT
+        self.context = 'output'
         for n in node.targets:
             self.visit(n)
-        self.context = INPUT
+        self.context = 'input'
         self.visit(node.value)
 
     def visit_Attribute(self, node):
@@ -82,17 +81,16 @@ class _SigNameVisitor(ast.NodeVisitor):
             pass
         else:
             self.generic_visit(node)
-            
 
-    def visit_Subscript(self, node, access=INPUT):
+    def visit_Subscript(self, node, access='input'):
         self.visit(node.value)
-        self.context = INPUT
+        self.context = 'input'
         self.visit(node.slice)
 
-    def visit_AugAssign(self, node, access=INPUT):
-        self.context = INOUT
+    def visit_AugAssign(self, node, access='input'):
+        self.context = 'inout'
         self.visit(node.target)
-        self.context = INPUT
+        self.context = 'input'
         self.visit(node.value)
 
     def visit_ClassDef(self, node):
