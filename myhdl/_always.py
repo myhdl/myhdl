@@ -24,7 +24,7 @@ from __future__ import absolute_import
 from types import FunctionType
 
 from myhdl import AlwaysError
-from myhdl._util import _isGenFunc
+from myhdl._util import _isGenFunc, _makeAST
 from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
@@ -94,6 +94,10 @@ class _Always(_Instantiator):
                 W = _EdgeTupleWaiter
 
         return W
+
+    @property
+    def ast(self):
+        return _makeAST(self.func)
 
     def genfunc(self):
         senslist = self.senslist

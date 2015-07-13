@@ -24,7 +24,7 @@ from __future__ import absolute_import
 from types import FunctionType
 
 from myhdl import InstanceError
-from myhdl._util import _isGenFunc
+from myhdl._util import _isGenFunc, _makeAST
 from myhdl._Waiter import _inferWaiter
 
 class _error:
@@ -52,3 +52,7 @@ class _Instantiator(object):
     @property
     def _waiter(self):
         return _inferWaiter
+    
+    @property
+    def ast(self):
+        return _makeAST(self.gen.gi_frame)
