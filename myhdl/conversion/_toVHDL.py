@@ -1124,17 +1124,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(';')
 
     def visit_IfExp(self, node):
-        pre, suf = self.inferCast(node.vhd, node.body.vhdOri)
-        self.write(pre)
+        node.body.vhd = node.orelse.vhd = node.vhd
         self.visit(node.body)
-        self.write(suf)
         self.write(' when ')
         self.visit(node.test)
         self.write(' else ')
-        pre, suf = self.inferCast(node.vhd, node.orelse.vhdOri)
-        self.write(pre)
         self.visit(node.orelse)
-        self.write(suf)
 
     def visit_For(self, node):
         self.labelStack.append(node.breakLabel)
@@ -1300,15 +1295,19 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def getName(self, node):
         n = node.id
         if n == 'False':
-            if isinstance(node.vhd, vhd_std_logic):
+            if isinstance(node.vhd, vhd_boolean):
+                s = "False"
+            elif isinstance(node.vhd, vhd_std_logic):
                 s = "'0'"
             else:
-                s = "False"
+                s = '"0"'
         elif n == 'True':
-            if isinstance(node.vhd, vhd_std_logic):
+            if isinstance(node.vhd, vhd_boolean):
+                s = "True"
+            elif isinstance(node.vhd, vhd_std_logic):
                 s = "'1'"
             else:
-                s = "True"
+                s = '"1"'
         elif n == 'None':
             if node.vhd is None or isinstance(node.vhd, vhd_std_logic):
                 s = "'Z'"
