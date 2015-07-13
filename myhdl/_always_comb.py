@@ -32,6 +32,7 @@ from myhdl._util import _isGenFunc, _dedent
 from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
 from myhdl._instance import _Instantiator
+from myhdl._always import _Always
 from myhdl._resolverefs import _AttrRefTransformer
 from myhdl._visitors import _SigNameVisitor
 
@@ -68,7 +69,8 @@ def always_comb(func):
     return c
 
 
-class _AlwaysComb(_Instantiator):
+# class _AlwaysComb(_Instantiator):
+class _AlwaysComb(_Always):
 
 #     def __init__(self, func, symdict):
 #         self.func = func
@@ -100,7 +102,6 @@ class _AlwaysComb(_Instantiator):
 #         self.waiter = W(self.gen)
 
     def __init__(self, func, symdict):
-        self.func = func
         self.symdict = symdict
         s = inspect.getsource(func)
         s = _dedent(s)
@@ -128,16 +129,10 @@ class _AlwaysComb(_Instantiator):
             else: # list of sigs
                 senslist.extend(s)
         self.senslist = tuple(senslist)
-        self.gen = self.genfunc()
         if len(self.senslist) == 0:
             raise AlwaysCombError(_error.EmptySensitivityList)
-        if len(self.senslist) == 1:
-            W = _SignalWaiter
-        else:
-            W = _SignalTupleWaiter
-        self.waiter = W(self.gen)
 
-
+        super(_AlwaysComb, self).__init__(func, senslist)
 
     def genfunc(self):
         senslist = self.senslist
