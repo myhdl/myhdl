@@ -1309,7 +1309,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 s = '"1"'
         elif n == 'None':
-            if node.vhd is None or isinstance(node.vhd, vhd_std_logic):
+            if isinstance(node.vhd, vhd_std_logic):
                 s = "'Z'"
             else:
             	s = "(others => 'Z')"
