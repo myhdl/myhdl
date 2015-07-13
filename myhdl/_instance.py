@@ -44,8 +44,11 @@ def instance(genFunc):
 
 class _Instantiator(object):
     
-    def __init__(self, genFunc):
-        self.genfunc = genFunc
-        self.gen = genFunc()
-        self.waiter = _inferWaiter(self.gen)
-        
+    def __init__(self, genfunc):
+        self.genfunc = genfunc
+        self.gen = genfunc()
+        self.waiter = self._waiter(self.gen)
+
+    @property
+    def _waiter(self):
+        return _inferWaiter
