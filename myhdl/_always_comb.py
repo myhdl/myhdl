@@ -112,6 +112,14 @@ class _AlwaysComb(_Instantiator):
         v.visit(tree)
         self.inputs = v.results['input']
         self.outputs = v.results['output']
+
+        inouts = v.results['inout'] | self.inputs.intersection(self.outputs)
+        if inouts:
+            raise AlwaysCombError(_error.SignalAsInout % inouts)
+
+        if v.results['embedded_func']:
+            raise AlwaysCombError(_error.EmbeddedFunction)
+
         senslist = []
         for n in self.inputs:
             s = self.symdict[n]
