@@ -95,7 +95,8 @@ class _ToVerilogConvertor(object):
                  "no_myhdl_header",
                  "no_testbench",
                  "portmap",
-                 "trace"
+                 "trace",
+                 "disable_initial_value"
                  )
 
     def __init__(self):
@@ -109,6 +110,7 @@ class _ToVerilogConvertor(object):
         self.no_myhdl_header = False
         self.no_testbench = False
         self.trace = False
+        self.disable_initial_value = True
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -289,8 +291,13 @@ def _writeSigDecls(f, intf, siglist, memlist):
             if s._driven == 'reg':
                 k = 'reg'
             # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (k, r, s._name, int(s._val))
-            print("%s %s%s%s;" % (k, p, r, s._name), file=f)
+            # don't initial value "wire", inital assignment to a wire
+            # equates to a continuous assignment [reference]
+            if toVerilog.disable_initial_value or k == 'wire':
+                print("%s %s%s%s;" % (k, p, r, s._name), file=f)
+            else:
+                print("%s %s%s%s = %s;" % 
+                      (k, p, r, s._name, _intRepr(s._init)), file=f)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -390,6 +397,24 @@ def _getSignString(s):
     else:
         return ''
 
+def _intRepr(n, radix=''):
+    # write size for large integers (beyond 32 bits signed)
+    # with some safety margin
+    # XXX signed indication 's' ???
+    p = abs(n)
+    size = ''
+    num = str(p).rstrip('L')
+    if radix == "hex" or p >= 2**30:
+        radix = "'h"
+        num = hex(p)[2:].rstrip('L')
+    if p >= 2**30:
+        size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
+#            if not radix:
+#                radix = "'d"
+    r = "%s%s%s" % (size, radix, num)
+    if n < 0: # add brackets and sign on negative numbers
+        r = "(-%s)" % r
+    return r
 
 def _convertGens(genlist, vfile):
     blockBuf = StringIO()
@@ -489,23 +514,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.ind = self.ind[:-4]
 
     def IntRepr(self, n, radix=''):
-        # write size for large integers (beyond 32 bits signed)
-        # with some safety margin
-        # XXX signed indication 's' ???
-        p = abs(n)
-        size = ''
-        num = str(p).rstrip('L')
-        if radix == "hex" or p >= 2**30:
-            radix = "'h"
-            num = hex(p)[2:].rstrip('L')
-        if p >= 2**30:
-            size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
-#            if not radix:
-#                radix = "'d"
-        r = "%s%s%s" % (size, radix, num)
-        if n < 0: # add brackets and sign on negative numbers
-            r = "(-%s)" % r
-        return r
+        return _intRepr(n, radix)
 
     def writeDeclaration(self, obj, name, dir):
         if dir: dir = dir + ' '
