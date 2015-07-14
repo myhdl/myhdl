@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 from myhdl import *
 
 def bench_SliceSignal():
@@ -103,26 +103,39 @@ def test_ConcatSignalWithConsts():
 
 def bench_TristateSignal():
     s = TristateSignal(intbv(0)[8:])
+    t = TristateSignal(False)
     a = s.driver()
     b = s.driver()
     c = s.driver()
+    d = t.driver()
+    e = t.driver()
 
     @instance
     def check():
         a.next = None
         b.next = None
         c.next = None
+        d.next = None
+        e.next = None
         yield delay(10)
         #print s
         a.next = 1
+        d.next = True
         yield delay(10)
         print(s)
+        print(int(t))
+        a[1:].next = None
+        yield delay(10)
         a.next = None
         b.next = 122
+        d.next = None
+        e.next = False
         yield delay(10)
         print(s)
+        print(int(t))
         b.next = None
         c.next = 233
+        e.next = None
         yield delay(10)
         print(s)
         c.next = None
