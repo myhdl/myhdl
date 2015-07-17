@@ -20,19 +20,18 @@
 """ Run the unit tests for bin """
 from __future__ import absolute_import
 
-
 import random
-from random import randrange
-random.seed(1) # random, but deterministic
-
-import unittest
-from unittest import TestCase
 import sys
+from random import randrange
 
 from myhdl import bin
 from myhdl._compat import long
 
+random.seed(1)  # random, but deterministic
+
+
 SIZE = 100
+
 
 def _int2bitstring(num):
     if num == 0:
@@ -40,6 +39,7 @@ def _int2bitstring(num):
     if abs(num) == 1:
         return '1'
     return _int2bitstring(num // 2) + _int2bitstring(num % 2)
+
 
 def binref(num, width=0):
     """Return a binary string representation.
@@ -58,51 +58,41 @@ def binref(num, width=0):
     return s
 
 
-class TestBin(TestCase):
+class TestBin:
 
     def testSmall(self):
         for i in range(-65, 65):
-            self.assertEqual(bin(i), binref(i))
-                                     
+            assert bin(i) == binref(i)
+
     def testSmallWidth(self):
         for i in range(-65, 65):
             w = randrange(1, 8)
-            self.assertEqual(bin(i, w), binref(i, w))
+            assert bin(i, w) == binref(i, w)
 
     def testRandomInt(self):
         for j in range(SIZE):
             i = randrange(-sys.maxsize, sys.maxsize)
-            self.assertEqual(bin(i), binref(i))
-            
+            assert bin(i) == binref(i)
+
     def testRandomIntWidth(self):
         for j in range(SIZE):
             w = randrange(1, 1000)
             i = randrange(-sys.maxsize, sys.maxsize)
-            self.assertEqual(bin(i, w), binref(i, w))
+            assert bin(i, w) == binref(i, w)
 
     def testRandomLong(self):
         for j in range(SIZE):
             k = randrange(sys.maxsize)
             i = k + sys.maxsize
-            self.assertEqual(bin(i), binref(i))
+            assert bin(i) == binref(i)
             i = -k - sys.maxsize
-            self.assertEqual(bin(i), binref(i))
-            
+            assert bin(i) == binref(i)
+
     def testRandomLongWith(self):
         for j in range(SIZE):
             w = randrange(1, 1000)
             k = randrange(sys.maxsize)
             i = k + sys.maxsize
-            self.assertEqual(bin(i, w), binref(i, w))
+            assert bin(i, w) == binref(i, w)
             i = -k - sys.maxsize
-            self.assertEqual(bin(i, w), binref(i, w))
-            
-
-            
-
-              
-
-       
-
-if __name__ == "__main__":
-    unittest.main()
+            assert bin(i, w) == binref(i, w)
