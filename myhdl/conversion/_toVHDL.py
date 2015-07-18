@@ -1006,7 +1006,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(f.__name__)
         elif f is delay:
             self.visit(node.args[0])
-            self.write(" ns")
+            self.write(" * 1 ns")
             return
         elif f is concat:
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
@@ -1103,17 +1103,16 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(';')
 
     def visit_IfExp(self, node):
-        pre, suf = self.inferCast(node.vhd, node.body.vhdOri)
-        self.write(pre)
-        self.visit(node.body)
-        self.write(suf)
-        self.write(' when ')
+        # propagate the node's vhd attribute  
+        node.body.vhd = node.orelse.vhd = node.vhd
+        self.write('tern_op(')
+        self.write('cond => ')
         self.visit(node.test)
-        self.write(' else ')
-        pre, suf = self.inferCast(node.vhd, node.orelse.vhdOri)
-        self.write(pre)
+        self.write(', if_true => ')
+        self.visit(node.body)
+        self.write(', if_false => ')
         self.visit(node.orelse)
-        self.write(suf)
+        self.write(')')
 
     def visit_For(self, node):
         self.labelStack.append(node.breakLabel)
@@ -1289,10 +1288,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 s = "True"
         elif n == 'None':
-            if node.vhd.size == 1:
+            if isinstance(node.vhd, vhd_std_logic):
                 s = "'Z'"
             else:
-            	s = "(others => 'Z')"
+                assert hasattr(node.vhd, 'size')
+                s = '"%s"' % ('Z' * node.vhd.size)
         elif n in self.tree.vardict:
             s = n
             obj = self.tree.vardict[n]

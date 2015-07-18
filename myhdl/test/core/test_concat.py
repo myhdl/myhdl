@@ -20,23 +20,21 @@
 """ Run the concatunit tests. """
 from __future__ import absolute_import
 
-
-import unittest
-from unittest import TestCase
-import random
-from random import randrange
-from functools import reduce
-random.seed(2) # random, but deterministic
 import operator
+import random
+from functools import reduce
 
+import pytest
+
+from myhdl._compat import long
+from myhdl._concat import concat
 from myhdl._intbv import intbv
 from myhdl._Signal import Signal
-from myhdl._concat import concat
-from myhdl._compat import long
+
+random.seed(2)  # random, but deterministic
 
 
-
-class TestConcat(TestCase):
+class TestConcat:
 
     bases = ("0", "1", "10101", "01010", "110", "011", "1001000100001011111000")
     extslist = [ ["0"], ["1"], ["00"], ["11"], ["000"], ["111"], ["1010101010"],
@@ -52,8 +50,8 @@ class TestConcat(TestCase):
                 refstr = basestr + reduce(operator.add, extstr)
                 reflen = len(refstr)
                 ref = long(refstr, 2)
-                self.assertEqual(bv, ref)
-                self.assertEqual(len(bv), reflen)
+                assert bv == ref
+                assert len(bv) == reflen
 
     def ConcatToUnsizedBase(self, bases, extslist):
         for base, basestr in zip(bases, self.bases):
@@ -61,9 +59,8 @@ class TestConcat(TestCase):
                 bv = concat(base, *exts)
                 refstr = basestr + reduce(operator.add, extstr)
                 ref = long(refstr, 2)
-                self.assertEqual(bv, ref)
-                self.assertEqual(len(bv), 0)
-
+                assert bv == ref
+                assert len(bv) == 0
 
     def testConcatStringsToString(self):
         bases = self.bases
@@ -74,12 +71,12 @@ class TestConcat(TestCase):
         bases = [long(base, 2) for base in self.bases]
         extslist = self.extslist
         self.ConcatToUnsizedBase(bases, extslist)
-        
+
     def testConcatStringsToSignalInt(self):
         bases = [Signal(long(base, 2)) for base in self.bases]
         extslist = self.extslist
         self.ConcatToUnsizedBase(bases, extslist)
-                
+
     def testConcatStringsToIntbv(self):
         bases = [intbv(base) for base in self.bases]
         extslist = self.extslist
@@ -101,7 +98,7 @@ class TestConcat(TestCase):
                 bases.append(intbv(base))
         extslist = self.extslist
         self.ConcatToSizedBase(bases, extslist)
-        
+
     def testConcatStringsToSignalBool(self):
         if type(bool) is not type:
             return
@@ -113,15 +110,14 @@ class TestConcat(TestCase):
                 bases.append(intbv(base))
         extslist = self.extslist
         self.ConcatToSizedBase(bases, extslist)
-        
-        
+
     def testConcatIntbvsToIntbv(self):
         bases = [intbv(base) for base in self.bases]
         extslist = []
         for exts in self.extslist:
             extslist.append([intbv(ext) for ext in exts])
         self.ConcatToSizedBase(bases, extslist)
-        
+
     def testConcatSignalIntbvsToIntbv(self):
         bases = [intbv(base) for base in self.bases]
         extslist = []
@@ -143,14 +139,13 @@ class TestConcat(TestCase):
             extslist.append([Signal(intbv(ext)) for ext in exts])
         self.ConcatToSizedBase(bases, extslist)
 
-    
     def testConcatIntbvsToInt(self):
         bases = [long(base, 2) for base in self.bases]
         extslist = []
         for exts in self.extslist:
             extslist.append([intbv(ext) for ext in exts])
         self.ConcatToUnsizedBase(bases, extslist)
-        
+
     def testConcatSignalIntbvsToInt(self):
         bases = [long(base, 2) for base in self.bases]
         extslist = []
@@ -171,7 +166,6 @@ class TestConcat(TestCase):
         for exts in self.extslist:
             extslist.append([Signal(intbv(ext)) for ext in exts])
         self.ConcatToUnsizedBase(bases, extslist)
-        
 
     def testConcatIntbvsBoolsToIntbv(self):
         if type(bool) is not type:
@@ -187,7 +181,6 @@ class TestConcat(TestCase):
                     newexts.append(intbv(ext))
             extslist.append(newexts)
         self.ConcatToSizedBase(bases, extslist)
-    
 
     def testConcatMixToSizedBase(self):
         bases = []
@@ -216,7 +209,6 @@ class TestConcat(TestCase):
                 newexts.append(random.choice(seq))
             extslist.append(newexts)
         self.ConcatToUnsizedBase(bases, extslist)
-        
 
     def testConcatMixBoolToSizedBase(self):
         if type(bool) is not type:
@@ -236,18 +228,14 @@ class TestConcat(TestCase):
                 newexts.append(random.choice(seq))
             extslist.append(newexts)
         self.ConcatToSizedBase(bases, extslist)
-               
 
     def testWrongType(self):
         a = intbv(4)
-        self.assertRaises(TypeError, concat, a, 5)
-            
+        with pytest.raises(TypeError):
+            concat(a, 5)
+
     def testUnsizedConcat(self):
         a = intbv(4)
         b = intbv(5)
-        self.assertRaises(TypeError, concat, a, b)
-
-if __name__ == "__main__":
-    unittest.main()
-       
-        
+        with pytest.raises(TypeError):
+            concat(a, b)

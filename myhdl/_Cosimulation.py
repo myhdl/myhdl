@@ -20,16 +20,18 @@
 """ Module that provides the Cosimulation class """
 from __future__ import absolute_import
 
-
+import sys
 import os
 import shlex
 import subprocess
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
-from myhdl._compat import PY2, string_types, to_bytes, to_str
+from myhdl._compat import string_types, to_bytes, to_str
+from myhdl._util import _setInheritable
 
 _MAXLINE = 4096
+
 
 class _error:
     pass
@@ -41,25 +43,32 @@ _error.NoCommunication = "No signals communicating to myhdl"
 _error.SimulationEnd = "Premature simulation end"
 _error.OSError = "OSError"
 
+
 class Cosimulation(object):
 
     """ Cosimulation class. """
 
     def __init__(self, exe="", **kwargs):
-        
+
         """ Construct a cosimulation object. """
-        
+
         if _simulator._cosim:
             raise CosimulationError(_error.MultipleCosim)
         _simulator._cosim = 1
-        
-        self._rt, self._wt = rt, wt = os.pipe()
-        self._rf, self._wf = rf, wf = os.pipe()
 
-        # New pipes are not inheritable by default since py 3.4
-        if not PY2:
-            for p in rt, wt, rf, wf:
-                os.set_inheritable(p, True)
+        rt, wt = os.pipe()
+        rf, wf = os.pipe()
+
+        # Disable inheritance for ends that we don't want the child to have
+        _setInheritable(rt, False)
+        _setInheritable(wf, False)
+
+        # Enable inheritance for child ends
+        _setInheritable(wt, True)
+        _setInheritable(rf, True)
+
+        self._rt = rt
+        self._wf = wf
 
         self._fromSignames = fromSignames = []
         self._fromSizes = fromSizes = []
@@ -71,20 +80,23 @@ class Cosimulation(object):
         self._hasChange = 0
         self._getMode = 1
 
-        def close_rt_wf():
-            os.close(rt)
-            os.close(wf)
-
         env = os.environ.copy()
-        env['MYHDL_TO_PIPE'] = str(wt)
-        env['MYHDL_FROM_PIPE'] = str(rf)
+
+        # In Windows the FDs aren't inheritable when using Popen,
+        # only the HANDLEs are
+        if sys.platform != "win32":
+            env['MYHDL_TO_PIPE'] = str(wt)
+            env['MYHDL_FROM_PIPE'] = str(rf)
+        else:
+            import msvcrt
+            env['MYHDL_TO_PIPE'] = str(msvcrt.get_osfhandle(wt))
+            env['MYHDL_FROM_PIPE'] = str(msvcrt.get_osfhandle(rf))
 
         if isinstance(exe, string_types):
             exe = shlex.split(exe)
-            
+
         try:
-            sp = subprocess.Popen(exe, env=env, close_fds=False,
-                                  preexec_fn=close_rt_wf)
+            sp = subprocess.Popen(exe, env=env, close_fds=False)
         except OSError as e:
             raise CosimulationError(_error.OSError, str(e))
 
@@ -154,7 +166,7 @@ class Cosimulation(object):
                 except ValueError:
                     next = intbv(0)
             s.next = next
-                 
+
         self._getMode = 0
 
     def _put(self, time):
@@ -182,7 +194,7 @@ class Cosimulation(object):
         while 1:
             yield sigs
             self._hasChange = 1
-            
+
     def __del__(self):
         """ Clear flag when this object destroyed - to suite unittest. """
         _simulator._cosim = 0
