@@ -1292,7 +1292,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = "'Z'"
             else:
                 assert hasattr(node.vhd, 'size')
-                s = "(%d downto 0 => 'Z')" % (node.vhd.size-1)
+                s = '"%s"' % ('Z' * node.vhd.size)
         elif n in self.tree.vardict:
             s = n
             obj = self.tree.vardict[n]
