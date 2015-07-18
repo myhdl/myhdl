@@ -3,8 +3,8 @@ all: vcom
 vcom:
 	py.test --sim vcom
 
-GHDL:
-	py.test --sim GHDL
+ghdl:
+	py.test --sim ghdl
 
 clean:
 	- rm *.o *.out *.v *.vhd *.pyc *~ *.vcd* *.log *_ghdl

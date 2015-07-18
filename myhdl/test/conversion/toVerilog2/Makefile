@@ -3,8 +3,8 @@ all: vlog
 vlog:
 	py.test --sim vlog
 
-icarus:
-	py.test --sim icarus
+iverilog:
+	py.test --sim iverilog
 
 cver:
 	py.test --sim cver

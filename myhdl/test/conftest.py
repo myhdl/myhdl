@@ -7,8 +7,8 @@ from myhdl.conversion import analyze, verify
 xfail = pytest.mark.xfail
 
 hdlmap = {
-    'verilog': ('icarus', 'vlog', 'cver'),
-    'vhdl': ('GHDL', 'vcom')
+    'verilog': ('iverilog', 'vlog', 'cver'),
+    'vhdl': ('ghdl', 'vcom')
 }
 
 all_sims = list(chain.from_iterable(hdlmap.values()))

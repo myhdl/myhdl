@@ -8,11 +8,11 @@ vcom:
 	py.test --sim vcom
 
 
-GHDL:
-	py.test --sim GHDL
+ghdl:
+	py.test --sim ghdl
 
-icarus:
-	py.test --sim icarus
+iverilog:
+	py.test --sim iverilog
 
 cver:
 	py.test --sim cver

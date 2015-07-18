@@ -48,7 +48,7 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
     _ignoreMap[name] = ignore
 
 registerSimulator(
-    name="GHDL",
+    name="ghdl",
     hdl="VHDL",
     analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
     elaborate="ghdl -e --workdir=work -o %(unitname)s %(topname)s",
@@ -85,7 +85,7 @@ registerSimulator(
 
 
 registerSimulator(
-    name="icarus",
+    name="iverilog",
     hdl="Verilog",
     analyze="iverilog -o %(topname)s.o %(topname)s.v",
     simulate="vvp %(topname)s.o"

@@ -23,15 +23,15 @@ echo -e "Running $CI_TARGET tests\n"
 CI_TARGET=${CI_TARGET:-core}
 if [ "$CI_TARGET" == "core" ]; then
   run_test make -C myhdl/test/core
-elif [ "$CI_TARGET" == "icarus" ]; then
-  run_test make -C "myhdl/test/conversion/general" icarus
+elif [ "$CI_TARGET" == "iverilog" ]; then
+  run_test make -C "myhdl/test/conversion/general" iverilog
   run_test make -C cosimulation/icarus test
   run_test make -C myhdl/test/conversion/toVerilog
-  run_test make -C "myhdl/test/bugs" icarus
+  run_test make -C "myhdl/test/bugs" iverilog
 elif [ "$CI_TARGET" == "ghdl" ]; then
-  run_test make -C "myhdl/test/conversion/general" GHDL
-  run_test make -C myhdl/test/conversion/toVHDL GHDL
-  run_test make -C "myhdl/test/bugs" GHDL
+  run_test make -C "myhdl/test/conversion/general" ghdl
+  run_test make -C myhdl/test/conversion/toVHDL ghdl
+  run_test make -C "myhdl/test/bugs" ghdl
 fi
 
 exit $foundError

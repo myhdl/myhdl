@@ -1,7 +1,7 @@
 all:  vlog vcom 
 
-GHDL:
-	py.test --sim GHDL
+ghdl:
+	py.test --sim ghdl
 
 vlog:
 	py.test --sim vlog
@@ -9,8 +9,8 @@ vlog:
 vcom:
 	py.test --sim vcom
 
-icarus:
-	py.test --sim icarus
+iverilog:
+	py.test --sim iverilog
 
 cver:
 	py.test --sim cver
