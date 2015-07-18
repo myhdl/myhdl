@@ -58,11 +58,11 @@ package pck_myhdl_%(version)s is
 
     function "-" (arg: unsigned) return signed;
 
-    function tern_op(if_true: std_logic; cond: boolean; if_false: std_logic) return std_logic;
+    function tern_op(cond: boolean; if_true: std_logic; if_false: std_logic) return std_logic;
 
-    function tern_op(if_true: unsigned; cond: boolean; if_false: unsigned) return unsigned;
+    function tern_op(cond: boolean; if_true: unsigned; if_false: unsigned) return unsigned;
 
-    function tern_op(if_true: signed; cond: boolean; if_false: signed) return signed;
+    function tern_op(cond: boolean; if_true: signed; if_false: signed) return signed;
 
 end pck_myhdl_%(version)s;
 
@@ -163,7 +163,7 @@ package body pck_myhdl_%(version)s is
         return - signed(resize(arg, arg'length+1));
     end function "-";
 
-    function tern_op(if_true: std_logic; cond: boolean; if_false: std_logic) return std_logic is
+    function tern_op(cond: boolean; if_true: std_logic; if_false: std_logic) return std_logic is
     begin
         if cond then
             return if_true;
@@ -172,7 +172,7 @@ package body pck_myhdl_%(version)s is
         end if;
     end function tern_op;
 
-    function tern_op(if_true: unsigned; cond: boolean; if_false: unsigned) return unsigned is
+    function tern_op(cond: boolean; if_true: unsigned; if_false: unsigned) return unsigned is
     begin
         if cond then
             return if_true;
@@ -181,7 +181,7 @@ package body pck_myhdl_%(version)s is
         end if;
     end function tern_op;
 
-    function tern_op(if_true: signed; cond: boolean; if_false: signed) return signed is
+    function tern_op(cond: boolean; if_true: signed; if_false: signed) return signed is
     begin
         if cond then
             return if_true;

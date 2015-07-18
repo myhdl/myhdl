@@ -1106,9 +1106,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # propagate the node's vhd attribute  
         node.body.vhd = node.orelse.vhd = node.vhd
         self.write('tern_op(')
-        self.visit(node.body)
-        self.write(', cond => ')
+        self.write('cond => ')
         self.visit(node.test)
+        self.write(', if_true => ')
+        self.visit(node.body)
         self.write(', if_false => ')
         self.visit(node.orelse)
         self.write(')')
