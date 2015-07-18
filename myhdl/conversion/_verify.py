@@ -104,17 +104,24 @@ class  _VerificationClass(object):
 
     def __call__(self, func, *args, **kwargs):
 
-        vals = {}
-        vals['topname'] = func.__name__
-        vals['unitname'] = func.__name__.lower()
-        vals['version'] = _version
-
         hdlsim = self.simulator
         if not hdlsim:
             raise ValueError("No simulator specified")
         if  not hdlsim in _simulators:
             raise ValueError("Simulator %s is not registered" % hdlsim)
-        hdl  = _hdlMap[hdlsim]
+        hdl = _hdlMap[hdlsim]
+        if hdl == 'Verilog' and toVerilog.name is not None:
+            name = toVerilog.name
+        elif hdl == 'VHDL' and toVHDL.name is not None:
+            name = toVHDL.name
+        else:
+            name = func.__name__
+
+        vals = {}
+        vals['topname'] = name
+        vals['unitname'] = name.lower()
+        vals['version'] = _version
+
         analyze = _analyzeCommands[hdlsim] % vals
         elaborate = _elaborateCommands[hdlsim]
         if elaborate is not None:
