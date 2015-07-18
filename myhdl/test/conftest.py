@@ -1,18 +1,12 @@
-from itertools import chain
-
+import py
 import pytest
 
 from myhdl.conversion import analyze, verify
+from myhdl.conversion._verify import _simulators
 
 xfail = pytest.mark.xfail
 
-hdlmap = {
-    'verilog': ('iverilog', 'vlog', 'cver'),
-    'vhdl': ('ghdl', 'vcom')
-}
-
-all_sims = list(chain.from_iterable(hdlmap.values()))
-
+all_sims = list(_simulators)
 
 def pytest_addoption(parser):
     parser.addoption("--sim", action="store", choices=all_sims,
@@ -26,13 +20,17 @@ def pytest_configure(config):
 
 
 def pytest_report_header(config):
+    sim = config.getoption('sim')
     if config.getoption('sim') is not None:
-        return 'Simulator: '+verify.simulator
+        hdr = ['Simulator: {sim}']
+        if not py.path.local.sysfind(sim):
+            hdr += ['Warning: {sim} not found in PATH']
+        return '\n'.join(hdr).format(sim=sim)
 
 
 def bug(issue_no, hdl='all'):
     if hdl == 'all':
         sims = all_sims
     else:
-        sims = hdlmap[hdl]
+        sims = [k for k, v in _simulators.items() if v.hdl.lower() == hdl]
     return xfail(verify.simulator in sims, reason='issue '+issue_no)
