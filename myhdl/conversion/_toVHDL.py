@@ -1105,11 +1105,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_IfExp(self, node):
         # propagate the node's vhd attribute  
         node.body.vhd = node.orelse.vhd = node.vhd
+        self.write('tern_op(')
         self.visit(node.body)
-        self.write(' when ')
+        self.write(', cond => ')
         self.visit(node.test)
-        self.write(' else ')
+        self.write(', if_false => ')
         self.visit(node.orelse)
+        self.write(')')
 
     def visit_For(self, node):
         self.labelStack.append(node.breakLabel)
@@ -1288,7 +1290,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(node.vhd, vhd_std_logic):
                 s = "'Z'"
             else:
-            	s = "(others => 'Z')"
+                assert hasattr(node.vhd, 'size')
+            	s = "(%d downto 0 => 'Z')" % (node.vhd.size-1)
         elif n in self.tree.vardict:
             s = n
             obj = self.tree.vardict[n]
