@@ -1,13 +1,13 @@
 all: vlog  
 
 vlog:
-	py.test vlog.py test_*.py
+	py.test --sim vlog
 
 icarus:
-	py.test icarus.py test_*.py
+	py.test --sim icarus
 
 cver:
-	py.test cver.py test_*.py
+	py.test --sim cver
 
 clean:
 	- rm *.o *.out *.v *.vhd *.pyc *~ *.vcd* *.log

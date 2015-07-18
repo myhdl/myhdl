@@ -1,10 +1,10 @@
 all: vcom 
 
 vcom:
-	py.test vcom.py test_*.py
+	py.test --sim vcom
 
 GHDL:
-	py.test GHDL.py test_*.py
+	py.test --sim GHDL
 
 clean:
 	- rm *.o *.out *.v *.vhd *.pyc *~ *.vcd* *.log *_ghdl
