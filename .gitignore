@@ -22,6 +22,7 @@ modelsim.ini
 transcript
 *.log
 work/
+work_nvc/
 work_vlog/
 work_vcom/
 *.wlf

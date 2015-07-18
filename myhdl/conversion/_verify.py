@@ -55,6 +55,13 @@ registerSimulator(
     simulate="ghdl -r --workdir=work %(unitname)s"
     )
 
+registerSimulator(
+    name="nvc",
+    hdl="VHDL",
+    analyze="nvc --work=work_nvc -a pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+    elaborate="nvc --work=work_nvc -e %(topname)s",
+    simulate="nvc --work=work_nvc -r %(topname)s"
+    )
 
 registerSimulator(
     name="vlog",
