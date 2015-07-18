@@ -1,5 +1,5 @@
-MyHDL 0.9.0
-===========
+MyHDL 1.0dev 
+============
 
 [![Join the chat at https://gitter.im/jandecaluwe/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jandecaluwe/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
