@@ -253,10 +253,11 @@ def _writeModuleHeader(f, intf, doc):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if s._read:
-                warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                              category=ToVerilogWarning
-                              )
+            if s._read :
+                if not hasattr(s, 'driver'):
+                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                                  category=ToVerilogWarning
+                                  )
             print("output %s%s%s;" % (p, r, portname), file=f)
             if s._driven == 'reg':
                 print("reg %s%s%s;" % (p, r, portname), file=f)
@@ -281,7 +282,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if not s._read:
+            if not s._read and not hasattr(s, '_sig'):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVerilogWarning
                               )

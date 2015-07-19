@@ -325,10 +325,11 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             if convertPort:
                 pt = "std_logic_vector"
             if s._driven:
-                if s._read:
-                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                                  category=ToVHDLWarning
-                                  )
+                if s._read :
+                    if not hasattr(s, 'driver'):
+                        warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                                      category=ToVHDLWarning
+                                      )
                     f.write("\n        %s: inout %s%s" % (portname, pt, r))
                 else:
                     f.write("\n        %s: out %s%s" % (portname, pt, r))
@@ -398,7 +399,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(s)
         p = _getTypeString(s)
         if s._driven:
-            if not s._read:
+            if not s._read and not hasattr(s, '_sig'):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVHDLWarning
                               )
