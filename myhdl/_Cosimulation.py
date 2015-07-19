@@ -27,8 +27,7 @@ import subprocess
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
-from myhdl._compat import string_types, to_bytes, to_str
-from myhdl._util import _setInheritable
+from myhdl._compat import set_inheritable, string_types, to_bytes, to_str
 
 _MAXLINE = 4096
 
@@ -60,12 +59,12 @@ class Cosimulation(object):
         rf, wf = os.pipe()
 
         # Disable inheritance for ends that we don't want the child to have
-        _setInheritable(rt, False)
-        _setInheritable(wf, False)
+        set_inheritable(rt, False)
+        set_inheritable(wf, False)
 
         # Enable inheritance for child ends
-        _setInheritable(wt, True)
-        _setInheritable(rf, True)
+        set_inheritable(wt, True)
+        set_inheritable(rf, True)
 
         self._rt = rt
         self._wf = wf

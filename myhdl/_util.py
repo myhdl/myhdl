@@ -92,33 +92,3 @@ def _genfunc(gen):
     else:
         func = gen.genfunc
     return func
-
-if hasattr(os, 'set_inheritable'):
-    _setInheritable = os.set_inheritable
-else:
-# This implementation of set_inheritable is based on a code sample in
-# [PEP 0446](https://www.python.org/dev/peps/pep-0446/) and on the
-# CPython implementation of that proposal which can be browsed [here]
-# (hg.python.org/releasing/3.4/file/8671f89107c8/Modules/posixmodule.c#l11130)
-    def _setInheritable(fd, inheritable):
-        if sys.platform == "win32":
-            import msvcrt
-            import ctypes.windll.kernel32 as kernel32
-
-            HANDLE_FLAG_INHERIT = 1
-
-            if kernel32.SetHandleInformation(msvcrt.get_osfhandle(fd),
-                                             HANDLE_FLAG_INHERIT,
-                                             1 if inheritable else 0) == 0:
-                raise IOError("Failed on HANDLE_FLAG_INHERIT")
-        else:
-            import fcntl
-
-            fd_flags = fcntl.fcntl(fd, fcntl.F_GETFD)
-
-            if inheritable:
-                fd_flags &= ~fcntl.FD_CLOEXEC
-            else:
-                fd_flags |= fcntl.FD_CLOEXEC
-
-            fcntl.fcntl(fd, fcntl.F_SETFD, fd_flags)

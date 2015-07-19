@@ -1,19 +1,19 @@
 all:  vlog vcom 
 
-GHDL:
-	py.test GHDL.py test_*.py
+ghdl:
+	py.test --sim ghdl
 
 vlog:
-	py.test vlog.py test_*.py
+	py.test --sim vlog
 
 vcom:
-	py.test vcom.py test_*.py
+	py.test --sim vcom
 
-icarus:
-	py.test icarus.py test_*.py
+iverilog:
+	py.test --sim iverilog
 
 cver:
-	py.test cver.py test_*.py
+	py.test --sim cver
 
 clean:
 	- rm *.o *.out *.v *.vhd *.pyc *~ *.vcd* *.log *_ghdl
