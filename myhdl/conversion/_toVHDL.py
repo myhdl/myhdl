@@ -53,6 +53,7 @@ from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
 from myhdl._util import  _flatten
 from myhdl._compat import integer_types, class_types, StringIO
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
 
 _version = myhdl.__version__.replace('.','')
@@ -326,7 +327,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
                 pt = "std_logic_vector"
             if s._driven:
                 if s._read :
-                    if not hasattr(s, 'driver'):
+                    if not isinstance(s, _TristateSignal):
                         warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
                                       category=ToVHDLWarning
                                       )
@@ -399,7 +400,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(s)
         p = _getTypeString(s)
         if s._driven:
-            if not s._read and not hasattr(s, '_sig'):
+            if not s._read and not isinstance(s, _TristateDriver):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVHDLWarning
                               )

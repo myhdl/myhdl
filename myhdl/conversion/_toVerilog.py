@@ -50,7 +50,7 @@ from myhdl.conversion._misc import (_error, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
 from myhdl._Signal import _Signal
-
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
 _converting = 0
 _profileFunc = None
@@ -254,7 +254,7 @@ def _writeModuleHeader(f, intf, doc):
         p = _getSignString(s)
         if s._driven:
             if s._read :
-                if not hasattr(s, 'driver'):
+                if not isinstance(s, _TristateSignal):
                     warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
                                   category=ToVerilogWarning
                                   )
@@ -282,7 +282,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if not s._read and not hasattr(s, '_sig'):
+            if not s._read and not isinstance(s, _TristateDriver):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVerilogWarning
                               )
