@@ -66,9 +66,11 @@ def TernaryBench(ternary):
 
 
 # uncomment when we have a VHDL-2008 compliant simulator
-# def test_ternary1():
-#     assert conversion.verify(TernaryBench, ternary1) == 0
+def test_ternary1():
+    toVHDL.name = 'ternary1'
+    assert conversion.verify(TernaryBench, ternary1) == 0
 
 def test_ternary2():
+    toVHDL.name = 'ternary2'
     assert conversion.verify(TernaryBench, ternary2) == 0
 

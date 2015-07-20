@@ -53,6 +53,7 @@ from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
 from myhdl._util import  _flatten
 from myhdl._compat import integer_types, class_types, StringIO
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
 
 _version = myhdl.__version__.replace('.','')
@@ -325,10 +326,11 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             if convertPort:
                 pt = "std_logic_vector"
             if s._driven:
-                if s._read:
-                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                                  category=ToVHDLWarning
-                                  )
+                if s._read :
+                    if not isinstance(s, _TristateSignal):
+                        warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                                      category=ToVHDLWarning
+                                      )
                     f.write("\n        %s: inout %s%s" % (portname, pt, r))
                 else:
                     f.write("\n        %s: out %s%s" % (portname, pt, r))
@@ -398,7 +400,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(s)
         p = _getTypeString(s)
         if s._driven:
-            if not s._read:
+            if not s._read and not isinstance(s, _TristateDriver):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVHDLWarning
                               )
@@ -1105,11 +1107,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_IfExp(self, node):
         # propagate the node's vhd attribute  
         node.body.vhd = node.orelse.vhd = node.vhd
-        self.visit(node.body)
-        self.write(' when ')
+        self.write('tern_op(')
+        self.write('cond => ')
         self.visit(node.test)
-        self.write(' else ')
+        self.write(', if_true => ')
+        self.visit(node.body)
+        self.write(', if_false => ')
         self.visit(node.orelse)
+        self.write(')')
 
     def visit_For(self, node):
         self.labelStack.append(node.breakLabel)
@@ -1288,7 +1293,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(node.vhd, vhd_std_logic):
                 s = "'Z'"
             else:
-            	s = "(others => 'Z')"
+                assert hasattr(node.vhd, 'size')
+                s = '"%s"' % ('Z' * node.vhd.size)
         elif n in self.tree.vardict:
             s = n
             obj = self.tree.vardict[n]

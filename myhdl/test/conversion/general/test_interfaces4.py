@@ -9,10 +9,6 @@ from myhdl.conversion import analyze, verify
 
 from myhdl import *
 
-from myhdl.test.conversion.conftest import bug
-
-from myhdl import *
-
 """
 This set of tests exercies a peculiar scenario where an
 expanded interface Signal is flagged as having multiple
