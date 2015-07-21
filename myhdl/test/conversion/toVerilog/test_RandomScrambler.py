@@ -25,7 +25,7 @@ def XorGate(z, a, b, c):
     return logic
 
 def randOthers(i, n):
-    l = range(n)
+    l = list(range(n))
     l.remove(i)
     random.shuffle(l)
     return l[0], l[1]
