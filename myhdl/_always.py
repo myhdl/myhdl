@@ -67,7 +67,6 @@ class _Always(_Instantiator):
         self.senslist = tuple(senslist)
         super(_Always, self).__init__(self.genfunc)
 
-    @property
     def _waiter(self):
         # infer appropriate waiter class
         # first infer base type of arguments

@@ -47,9 +47,11 @@ class _Instantiator(object):
     def __init__(self, genfunc):
         self.genfunc = genfunc
         self.gen = genfunc()
-        self.waiter = self._waiter(self.gen)
 
     @property
+    def waiter(self):
+        return self._waiter()(self.gen)
+
     def _waiter(self):
         return _inferWaiter
     
