@@ -28,7 +28,6 @@ import ast
 
 from myhdl import AlwaysError, intbv
 from myhdl._util import _isGenFunc, _dedent
-from myhdl._cell_deref import _cell_deref
 from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
 from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
@@ -113,7 +112,7 @@ class _AlwaysSeq(_Always):
         if func.__code__.co_freevars:
             for n, c in zip(func.__code__.co_freevars, func.__closure__):
                 try:
-                    obj = _cell_deref(c)
+                    obj = c.cell_contents
                     symdict[n] = obj
                 except NameError:
                     raise NameError(n)
