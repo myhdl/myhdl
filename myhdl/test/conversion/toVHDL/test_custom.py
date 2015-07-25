@@ -215,7 +215,7 @@ def check(count, enable, clock, reset, n):
         expect = 0
         yield reset.posedge
         # assert count == expect
-        print count
+        print(count)
         while 1:
             yield clock.posedge
             if enable:
@@ -223,7 +223,7 @@ def check(count, enable, clock, reset, n):
             yield delay(1)
             # print "%d count %s expect %s count_v %s" % (now(), count, expect, count_v)
             # assert count == expect
-            print count
+            print(count)
     return logic
 
 
