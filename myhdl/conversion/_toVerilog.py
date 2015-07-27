@@ -258,7 +258,10 @@ def _writeModuleHeader(f, intf, doc):
                     warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
                                   category=ToVerilogWarning
                                   )
-            print("output %s%s%s;" % (p, r, portname), file=f)
+            if isinstance(s, _TristateSignal):
+                print("inout %s%s%s;" % (p, r, portname), file=f)
+            else:
+                print("output %s%s%s;" % (p, r, portname), file=f)
             if s._driven == 'reg':
                 print("reg %s%s%s;" % (p, r, portname), file=f)
             else:
