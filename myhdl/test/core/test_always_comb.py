@@ -122,7 +122,7 @@ class TestAlwaysCombCompilation:
         def h():
             c.next += 1
             a += 1
-        with raises_kind(AlwaysCombError, _error.SignalAsInout % "c"):
+        with raises_kind(AlwaysCombError, _error.SignalAsInout % set('c')):
             g = always_comb(h).gen
 
     def testInfer6(self):
@@ -131,7 +131,7 @@ class TestAlwaysCombCompilation:
         def h():
             c.next = a
             x.next = c
-        with raises_kind(AlwaysCombError, _error.SignalAsInout % "c"):
+        with raises_kind(AlwaysCombError, _error.SignalAsInout % set('c')):
             g = always_comb(h).gen
 
     def testInfer7(self):
