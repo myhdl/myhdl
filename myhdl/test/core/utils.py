@@ -1,10 +1,17 @@
-from contextlib import contextmanager
-
 import pytest
 
 
-@contextmanager
-def raises_kind(exc, kind):
-    with pytest.raises(exc) as excinfo:
-        yield
-    assert excinfo.value.kind == kind
+class raises_kind(object):
+    def __init__(self, exc, kind):
+        self.exc = exc
+        self.kind = kind
+
+    def __enter__(self):
+        return None
+    
+    def __exit__(self, *tp):
+        __tracebackhide__ = True
+        if tp[0] is None:
+            pytest.fail("DID NOT RAISE")
+        assert tp[1].kind == self.kind
+        return issubclass(tp[0], self.exc)

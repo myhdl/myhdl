@@ -3,7 +3,7 @@ import ast
 import itertools
 from types import FunctionType
 
-from myhdl._util import _flatten, _makeAST, _genfunc
+from myhdl._util import _flatten
 from myhdl._enum import EnumType
 from myhdl._Signal import SignalType
 
@@ -18,9 +18,7 @@ def _resolveRefs(symdict, arg):
     data.symdict = symdict
     v = _AttrRefTransformer(data)
     for gen in gens:
-        func = _genfunc(gen)
-        tree = _makeAST(func)
-        v.visit(tree)
+        v.visit(gen.ast)
     return data.objlist
 
 #TODO: Refactor this into two separate nodetransformers, since _resolveRefs

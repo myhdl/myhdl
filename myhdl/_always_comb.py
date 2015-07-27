@@ -32,7 +32,9 @@ from myhdl._util import _isGenFunc, _dedent
 from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
 from myhdl._instance import _Instantiator
+from myhdl._always import _Always
 from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._visitors import _SigNameVisitor
 
 class _error:
     pass
@@ -67,100 +69,8 @@ def always_comb(func):
     return c
 
 
-INPUT, OUTPUT, INOUT = range(3)
-
-
-
-class _SigNameVisitor(ast.NodeVisitor):
-    def __init__(self, symdict):
-        self.inputs = set()
-        self.outputs = set()
-        self.toplevel = 1
-        self.symdict = symdict
-        self.context = INPUT
-
-    def visit_Module(self, node):
-        inputs = self.inputs
-        outputs = self.outputs
-        for n in node.body:
-            self.visit(n)
-        for n in inputs:
-            if n in outputs:
-                raise AlwaysCombError(_error.SignalAsInout % n)
-
-    def visit_FunctionDef(self, node):
-        if self.toplevel:
-            self.toplevel = 0 # skip embedded functions
-            for n in node.body:
-                self.visit(n)
-        else:
-            raise AlwaysCombError(_error.EmbeddedFunction)
-
-    def visit_If(self, node):
-        if not node.orelse:
-            if isinstance(node.test, ast.Name) and \
-               node.test.id == '__debug__':
-                return # skip
-        self.generic_visit(node)
-
-    def visit_Name(self, node):
-        id = node.id
-        if id not in self.symdict:
-            return
-        s = self.symdict[id]
-        if isinstance(s, _Signal) or _isListOfSigs(s):
-            if self.context == INPUT:
-                self.inputs.add(id)
-            elif self.context == OUTPUT:
-                self.outputs.add(id)
-            elif self.context == INOUT:
-                raise AlwaysCombError(_error.SignalAsInout % id)
-            else:
-                raise AssertionError("bug in always_comb")
-
-    def visit_Assign(self, node):
-        self.context = OUTPUT
-        for n in node.targets:
-            self.visit(n)
-        self.context = INPUT
-        self.visit(node.value)
-
-    def visit_Attribute(self, node):
-        self.visit(node.value)
-
-    def visit_Call(self, node):
-        fn = None
-        if isinstance(node.func, ast.Name):
-            fn = node.func.id
-        if fn == "len":
-            pass
-        else:
-            self.generic_visit(node)
-            
-
-    def visit_Subscript(self, node, access=INPUT):
-        self.visit(node.value)
-        self.context = INPUT
-        self.visit(node.slice)
-
-    def visit_AugAssign(self, node, access=INPUT):
-        self.context = INOUT
-        self.visit(node.target)
-        self.context = INPUT
-        self.visit(node.value)
-
-    def visit_ClassDef(self, node):
-        pass # skip
-
-    def visit_Exec(self, node):
-        pass # skip
-
-    def visit_Print(self, node):
-        pass # skip
-
-
-
-class _AlwaysComb(_Instantiator):
+# class _AlwaysComb(_Instantiator):
+class _AlwaysComb(_Always):
 
 #     def __init__(self, func, symdict):
 #         self.func = func
@@ -192,7 +102,6 @@ class _AlwaysComb(_Instantiator):
 #         self.waiter = W(self.gen)
 
     def __init__(self, func, symdict):
-        self.func = func
         self.symdict = symdict
         s = inspect.getsource(func)
         s = _dedent(s)
@@ -202,8 +111,16 @@ class _AlwaysComb(_Instantiator):
         v.visit(tree)
         v = _SigNameVisitor(self.symdict)
         v.visit(tree)
-        self.inputs = v.inputs
-        self.outputs = v.outputs
+        self.inputs = v.results['input']
+        self.outputs = v.results['output']
+
+        inouts = v.results['inout'] | self.inputs.intersection(self.outputs)
+        if inouts:
+            raise AlwaysCombError(_error.SignalAsInout % inouts)
+
+        if v.results['embedded_func']:
+            raise AlwaysCombError(_error.EmbeddedFunction)
+
         senslist = []
         for n in self.inputs:
             s = self.symdict[n]
@@ -212,16 +129,10 @@ class _AlwaysComb(_Instantiator):
             else: # list of sigs
                 senslist.extend(s)
         self.senslist = tuple(senslist)
-        self.gen = self.genfunc()
         if len(self.senslist) == 0:
             raise AlwaysCombError(_error.EmptySensitivityList)
-        if len(self.senslist) == 1:
-            W = _SignalWaiter
-        else:
-            W = _SignalTupleWaiter
-        self.waiter = W(self.gen)
 
-
+        super(_AlwaysComb, self).__init__(func, senslist)
 
     def genfunc(self):
         senslist = self.senslist
