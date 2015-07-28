@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 def ram(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """

@@ -10,7 +10,7 @@ import time
 
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 N = 8
 M = 2 ** N

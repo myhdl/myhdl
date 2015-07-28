@@ -6,7 +6,7 @@ from random import randrange
 
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 COSET = 0x55
 

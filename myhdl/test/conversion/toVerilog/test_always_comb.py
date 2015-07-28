@@ -32,7 +32,7 @@ from unittest import TestCase
 
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 QUIET = 1
 

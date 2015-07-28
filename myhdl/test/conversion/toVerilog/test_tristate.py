@@ -3,7 +3,7 @@ path = os.path
 import unittest
 
 from myhdl import *
-from util import setupCosimulation
+from .util import setupCosimulation
 
 def tristate_obuf(A, Y, OE):
     '''three-state output buffer'''

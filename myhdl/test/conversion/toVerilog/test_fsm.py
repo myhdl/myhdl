@@ -6,7 +6,7 @@ from unittest import TestCase
 
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 # SEARCH, CONFIRM, SYNC = range(3)
 ACTIVE_LOW = 0
