@@ -27,7 +27,7 @@ from myhdl import (AlwaysCombError, Signal, Simulation, StopSimulation, delay,
                    instances, intbv, now)
 from myhdl._always_comb import _error, always_comb
 from myhdl._Waiter import _SignalTupleWaiter, _SignalWaiter, _Waiter
-from utils import raises_kind
+from helpers import raises_kind
 
 # random.seed(3) # random, but deterministic
 

@@ -23,7 +23,7 @@ from __future__ import absolute_import
 from myhdl import (InstanceError, Signal, Simulation, StopSimulation, delay,
                    instances, intbv, now)
 from myhdl._instance import _error, instance
-from utils import raises_kind
+from helpers import raises_kind
 
 # random.seed(3) # random, but deterministic
 
