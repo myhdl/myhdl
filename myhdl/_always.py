@@ -72,13 +72,10 @@ class _Always(_Instantiator):
             if n not in varnames:
                 symdict[n] = v
         # handle free variables
-        if func.__code__.co_freevars:
-            for n, c in zip(func.__code__.co_freevars, func.__closure__):
-                try:
-                    obj = c.cell_contents
-                    symdict[n] = obj
-                except NameError:
-                    raise NameError(n)
+        freevars = func.__code__.co_freevars
+        if freevars:
+            closure = (c.cell_contents for c in func.__closure__)
+            symdict.update(zip(freevars, closure))
         self.symdict = symdict
 
     def _waiter(self):
