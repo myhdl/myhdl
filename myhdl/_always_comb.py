@@ -126,7 +126,7 @@ class _AlwaysComb(_Always):
             s = self.symdict[n]
             if isinstance(s, _Signal):
                 senslist.append(s)
-            else: # list of sigs
+            elif _isListOfSigs(s):
                 senslist.extend(s)
         self.senslist = tuple(senslist)
         if len(self.senslist) == 0:
