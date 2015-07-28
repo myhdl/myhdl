@@ -101,23 +101,6 @@ class _AlwaysSeq(_Always):
 
         super(_AlwaysSeq, self).__init__(func, senslist)
 
-        # find symdict
-        # similar to always_comb, but in class constructor
-        varnames = func.__code__.co_varnames
-        symdict = {}
-        for n, v in func.__globals__.items():
-            if n not in varnames:
-                symdict[n] = v
-        # handle free variables
-        if func.__code__.co_freevars:
-            for n, c in zip(func.__code__.co_freevars, func.__closure__):
-                try:
-                    obj = c.cell_contents
-                    symdict[n] = obj
-                except NameError:
-                    raise NameError(n)
-        self.symdict = symdict
-
         # now infer outputs to be reset
         s = inspect.getsource(func)
         s = _dedent(s)
