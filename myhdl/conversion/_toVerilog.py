@@ -1027,7 +1027,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif n in self.tree.symdict:
             obj = self.tree.symdict[n]
             if isinstance(obj, bool):
-                s = "%s" % int(obj)
+                s = "1'b%s" % int(obj)
             elif isinstance(obj, integer_types):
                 s = self.IntRepr(obj)
             elif isinstance(obj, _Signal):
