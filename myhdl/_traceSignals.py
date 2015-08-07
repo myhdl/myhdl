@@ -179,6 +179,7 @@ def _writeVcdSigs(f, hierarchy, tracelists):
         # all memories are flattened and renamed.
         if tracelists:
             for n in memdict.keys():
+                print("$scope module {} $end" .format(n), file=f)
                 memindex = 0
                 for s in memdict[n].mem:
                     sval = _getSval(s)
@@ -197,6 +198,7 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                     else:
                         print("$var real 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
                     memindex += 1
+                print("$upscope $end", file=f)
     for i in range(curlevel):
         print("$upscope $end", file=f)
     print(file=f)
