@@ -777,6 +777,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
 
     def visit_UnaryOp(self, node):
+        # in python3 a negative Num is represented as an USub of a positive Num
+        # Fix: restore python2 behavior by a shortcut: invert value of Num, inherit
+        # vhdl type from UnaryOp node, and visit the modified operand
+        if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
+           node.operand.n = -node.operand.n
+           node.operand.vhd = node.vhd
+           self.visit(node.operand)
+           return
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
         self.write("(")
