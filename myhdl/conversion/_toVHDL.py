@@ -982,6 +982,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     node.args[0].s = ord(node.args[0].s)
         elif f in integer_types:
             opening, closing = '', ''
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
                 node.args[0].n = int(node.args[0].n)
