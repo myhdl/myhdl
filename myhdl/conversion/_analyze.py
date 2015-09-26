@@ -52,9 +52,6 @@ myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
 
 _enumTypeSet = set()
-_constDict = {}
-_extConstDict = {}
-
 
 def _makeName(n, prefixes, namedict):
     # trim empty prefixes
@@ -849,9 +846,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.tree.hasLos = True
             elif isinstance(node.obj, int):
                 node.value = node.obj
-                # put VHDL compliant integer constants in global dict
-                if n not in _constDict and abs(node.obj) < 2**31:
-                    _constDict[n] = node.obj
             if n in self.tree.nonlocaldict:
                 # hack: put nonlocal intbv's in the vardict
                 self.tree.vardict[n] = v = node.obj

@@ -48,7 +48,7 @@ from myhdl._instance import _Instantiator
 from myhdl.conversion._misc import (_error,_kind,_context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
-                                       _Ram, _Rom, _enumTypeSet, _constDict, _extConstDict)
+                                       _Ram, _Rom, _enumTypeSet)
 from myhdl._Signal import _Signal,_WaiterList
 from myhdl.conversion._toVHDLPackage import _package
 from myhdl._util import  _flatten
@@ -161,8 +161,6 @@ class _ToVHDLConvertor(object):
         _genUniqueSuffix.reset()
         _enumTypeSet.clear()
         _enumPortTypeSet.clear()
-        _constDict.clear()
-        _extConstDict.clear()
 
         arglist = _flatten(h.top)
         _checkArgs(arglist)
@@ -210,7 +208,6 @@ class _ToVHDLConvertor(object):
             _writeCustomPackage(vfile, intf)
         _writeModuleHeader(vfile, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts)
         _writeFuncDecls(vfile)
-        _writeConstants(vfile)
         _writeTypeDefs(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
@@ -357,28 +354,6 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
 def _writeFuncDecls(f):
     return
     # print >> f, package
-
-def _writeConstants(f):
-    f.write("\n")
-    # guess nice representation
-    for c in _constDict:
-        if c in _extConstDict:
-            continue
-        v = _constDict[c]
-        s = str(int(v))
-        sign = ''
-        if v < 0:
-            sign = '-'
-        for i in range(4, 31):
-            if abs(v) == 2**i:
-                s = "%s2**%s" % (sign, i)
-                break
-            if abs(v) == 2**i-1:
-                s = "%s2**%s-1" % (sign, i)
-                break
-        v = _constDict[c]
-        f.write("constant %s: integer := %s;\n" % (c, s))
-    f.write("\n")
 
 def _writeTypeDefs(f):
     f.write("\n")
@@ -1319,40 +1294,27 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             obj = self.tree.symdict[n]
             s = n
             if isinstance(obj, bool):
-                s = "'%s'" % int(obj)
-                # print the symbol for a boolean in the global constant dict
-                if n in _constDict and obj == _constDict[n]:
-                    if isinstance(node.vhd, vhd_boolean):
-                        s = "bool(%s)" % n
-            elif isinstance(obj, integer_types):
-                # print the symbol for an integer in the global constant dict
-                if n in _constDict and obj == _constDict[n]:
-                    assert abs(obj) < 2**31
-                    if isinstance(node.vhd, vhd_int):
-                        s = n
-                    elif isinstance(node.vhd, vhd_boolean):
-                        s = "bool(%s)" % n
-                    elif isinstance(node.vhd, vhd_std_logic):
-                        s = "stdl(%s)" % n
-                    elif isinstance(node.vhd, vhd_unsigned):
-                        s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
-                    elif isinstance(node.vhd, vhd_signed):
-                        s = "to_signed(%s, %s)" % (n, node.vhd.size)
+                if isinstance(node.vhd, vhd_std_logic):
+                    s = "'%s'" % int(obj)
                 else:
-                    if isinstance(node.vhd, vhd_int):
-                        s = self.IntRepr(obj)
-                    elif isinstance(node.vhd, vhd_std_logic):
-                        s = "'%s'" % int(obj)
-                    elif isinstance(node.vhd, vhd_unsigned):
-                        if abs(obj) < 2** 31:
-                            s = "to_unsigned(%s, %s)" % (n, node.vhd.size)
-                        else:
-                            s = 'unsigned\'("%s")' % bin(obj, node.vhd.size)
-                    elif isinstance(node.vhd, vhd_signed):
-                        if abs(obj) < 2** 31:
-                            s = "to_signed(%s, %s)" % (n, node.vhd.size)
-                        else:
-                            s = 'signed\'("%s")' % bin(obj, node.vhd.size)
+                    s = "%s" % obj
+            elif isinstance(obj, integer_types):
+                if isinstance(node.vhd, vhd_int):
+                    s = self.IntRepr(obj)
+                elif isinstance(node.vhd, vhd_boolean):
+                    s = "%s" % bool(obj) 
+                elif isinstance(node.vhd, vhd_std_logic):
+                    s = "'%s'" % int(obj)
+                elif isinstance(node.vhd, vhd_unsigned):
+                    if abs(obj) < 2** 31:
+                        s = "to_unsigned(%s, %s)" % (obj, node.vhd.size)
+                    else:
+                        s = 'unsigned\'("%s")' % bin(obj, node.vhd.size)
+                elif isinstance(node.vhd, vhd_signed):
+                    if abs(obj) < 2** 31:
+                        s = "to_signed(%s, %s)" % (obj, node.vhd.size)
+                    else:
+                        s = 'signed\'("%s")' % bin(obj, node.vhd.size)
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
