@@ -447,11 +447,7 @@ def _getRangeString(s):
     elif s._type is bool:
         return ''
     elif s._nrbits is not None:
-        ls = getattr(s, 'lenStr', False)
-        if ls:
-            msb = ls + '-1'
-        else:
-            msb = s._nrbits-1
+        msb = s._nrbits-1
         return "(%s downto 0)" %  msb
     else:
         raise AssertionError
@@ -1943,29 +1939,20 @@ class vhd_boolean(vhd_type):
         return 'boolean'
 
 class vhd_vector(vhd_type):
-    def __init__(self, size=0, lenStr=False):
+    def __init__(self, size=0):
         vhd_type.__init__(self, size)
-        self.lenStr = lenStr
 
 class vhd_unsigned(vhd_vector):
     def toStr(self, constr=True):
         if constr:
-            ls = self.lenStr
-            if ls:
-                return "unsigned(%s-1 downto 0)" % ls
-            else:
-                return "unsigned(%s downto 0)" % (self.size-1)
+            return "unsigned(%s downto 0)" % (self.size-1)
         else:
             return "unsigned"
 
 class vhd_signed(vhd_vector):
     def toStr(self, constr=True):
         if constr:
-            ls = self.lenStr
-            if ls:
-                return "signed(%s-1 downto 0)" % ls
-            else:
-                return "signed(%s downto 0)" % (self.size-1)
+            return "signed(%s downto 0)" % (self.size-1)
         else:
             return "signed"
 
@@ -2003,11 +1990,10 @@ def inferVhdlObj(obj):
     vhd = None
     if (isinstance(obj, _Signal) and obj._type is intbv) or \
        isinstance(obj, intbv):
-        ls = getattr(obj, 'lenStr', False)
         if obj.min is None or obj.min < 0:
-            vhd = vhd_signed(size=len(obj), lenStr=ls)
+            vhd = vhd_signed(size=len(obj))
         else:
-            vhd = vhd_unsigned(size=len(obj), lenStr=ls)
+            vhd = vhd_unsigned(size=len(obj))
     elif (isinstance(obj, _Signal) and obj._type is bool) or \
          isinstance(obj, bool):
         vhd = vhd_std_logic()

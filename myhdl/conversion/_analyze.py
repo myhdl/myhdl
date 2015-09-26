@@ -517,12 +517,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(obj, modbv):
                 if not obj._hasFullRange():
                     self.raiseError(node, _error.ModbvRange, n)
-            ws = getattr(obj, 'lenStr', False)
-            ext = getattr(obj, 'external', False)
-            if ws and ws in self.tree.symdict:
-                _constDict[ws] = self.tree.symdict[ws]
-                if ext:
-                    _extConstDict[ws] = self.tree.symdict[ws]
             if n in self.tree.vardict:
                 curObj = self.tree.vardict[n]
                 if isinstance(obj, type(curObj)):
@@ -817,12 +811,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 if sig._type is bool:
                     node.edge = sig.posedge
-                ws = getattr(sig._val, 'lenStr', False)
-                ext = getattr(sig._val, 'external', False)
-                if ws and ws in self.tree.symdict:
-                    _constDict[ws] = self.tree.symdict[ws]
-                    if ext:
-                        _extConstDict[ws] = self.tree.symdict[ws]
             if self.access == _access.INPUT:
                 self.tree.inputs.add(n)
             elif self.access == _access.OUTPUT:
@@ -859,12 +847,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 else:
                     assert False, "unexpected mem access %s %s" % (n, self.access)
                 self.tree.hasLos = True
-                ws = getattr(m.elObj._val, 'lenStr', False)
-                ext = getattr(m.elObj._val, 'external', False)
-                if ws and ws in self.tree.symdict:
-                    _constDict[ws] = self.tree.symdict[ws]
-                    if ext:
-                        _extConstDict[ws] = self.tree.symdict[ws]
             elif isinstance(node.obj, int):
                 node.value = node.obj
                 # put VHDL compliant integer constants in global dict
@@ -873,13 +855,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if n in self.tree.nonlocaldict:
                 # hack: put nonlocal intbv's in the vardict
                 self.tree.vardict[n] = v = node.obj
-                # typedef string for nonlocal intbv's
-                ws = getattr(v, 'lenStr', False)
-                ext = getattr(v, 'external', False)
-                if ws and ws in self.tree.symdict:
-                    _constDict[ws] = self.tree.symdict[ws]
-                    if ext:
-                        _extConstDict[ws] = self.tree.symdict[ws]
         elif n in builtins.__dict__:
             node.obj = builtins.__dict__[n]
         else:
