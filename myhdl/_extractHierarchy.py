@@ -36,6 +36,7 @@ from myhdl._Signal import _Signal, _isListOfSigs
 from myhdl._util import _isGenFunc, _flatten, _genfunc
 from myhdl._misc import _isGenSeq
 from myhdl._resolverefs import _resolveRefs
+from myhdl._getcellvars import _getCellVars
 
 
 _profileFunc = None
@@ -316,9 +317,8 @@ class _HierExtr(object):
                     symdict = frame.f_globals.copy()
                     symdict.update(frame.f_locals)
                     cellvars = []
-                    cellvars.extend(frame.f_code.co_cellvars)
 
-                    #All nested functions will be in co_consts
+                    # All nested functions will be in co_consts
                     if func:
                         local_gens = []
                         consts = func.__code__.co_consts
@@ -327,6 +327,8 @@ class _HierExtr(object):
                             if genfunc.__code__ in consts:
                                 local_gens.append(item)
                         if local_gens:
+                            cellvarlist = _getCellVars(symdict, local_gens)
+                            cellvars.extend(cellvarlist)
                             objlist = _resolveRefs(symdict, local_gens)
                             cellvars.extend(objlist)
                     #for dict in (frame.f_globals, frame.f_locals):
