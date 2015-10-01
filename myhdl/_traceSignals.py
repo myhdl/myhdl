@@ -83,6 +83,7 @@ class _TraceSignalsClass(object):
             if name is None:
                 raise TraceSignalsError(_error.TopLevelName)
             h = _HierExtr(name, dut, *args, **kwargs)
+            h.extract()
             vcdpath = name + ".vcd"
             if path.exists(vcdpath):
                 backup = vcdpath + '.' + str(path.getmtime(vcdpath))

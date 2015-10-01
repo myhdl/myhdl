@@ -135,6 +135,7 @@ class _ToVHDLConvertor(object):
             name = str(self.name)
         try:
             h = _HierExtr(name, func, *args, **kwargs)
+            h.extract()
         finally:
             _converting = 0
 
