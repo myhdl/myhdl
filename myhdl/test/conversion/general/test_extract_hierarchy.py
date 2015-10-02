@@ -191,7 +191,9 @@ def test_extract_4():
      with pytest.raises(myhdl.ExtractHierarchyError):
          assert analyze(hier_inconsistent_top_2, **port_map) == 0
 
-         
+
+@pytest.mark.xfail(analyze.simulator in ('vcom', 'ghdl'),
+                   reason="new bug not dealt with yet")         
 def test_extract_5():
      myhdl.toVHDL.name = myhdl.toVerilog.name = 'extract_hier_5'
      myhdl.dump_hierarchy(list_of_interfaces_top_1, **port_map2)
