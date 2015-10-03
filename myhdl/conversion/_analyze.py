@@ -258,11 +258,19 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
 
     def visit_Call(self, node):
-        if node.starargs:
+        # ast.Call signature changed in python 3.5
+        # http://greentreesnakes.readthedocs.org/en/latest/nodes.html#Call
+        if sys.version_info >= (3, 5):
+            starargs = any(isinstance(arg, ast.Starred) for arg in node.args)
+            kwargs = any(kw.arg is None for kw in node.keywords)
+        else:
+            starargs = node.starargs is not None
+            kwargs = node.kwargs is not None
+
+        if starargs:
             self.raiseError(node, _error.NotSupported, "extra positional arguments")
-        if node.kwargs:
+        if kwargs:
             self.raiseError(node, _error.NotSupported, "extra named arguments")
-        # f = eval(_unparse(node.node), self.tree.symdict)
         self.generic_visit(node)
 
     def visit_Compare(self, node):
