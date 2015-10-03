@@ -245,6 +245,12 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         self.raiseError(node, _error.NotSupported, "list")
     def visitSliceObj(self, node):
         self.raiseError(node, _error.NotSupported, "slice object")
+
+    # All try blocks from python 3.3+
+    def visit_Try(self, node):
+        self.raiseError(node, _error.NotSupported, "try statement")
+
+    # Legacy try blocks
     def visit_TryExcept(self, node):
         self.raiseError(node, _error.NotSupported, "try-except statement")
     def visit_TryFinally(self, node):
