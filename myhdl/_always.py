@@ -66,6 +66,17 @@ class _Always(_Instantiator):
         self.func = func
         self.senslist = tuple(senslist)
         super(_Always, self).__init__(self.genfunc)
+        varnames = func.__code__.co_varnames
+        symdict = {}
+        for n, v in func.__globals__.items():
+            if n not in varnames:
+                symdict[n] = v
+        # handle free variables
+        freevars = func.__code__.co_freevars
+        if freevars:
+            closure = (c.cell_contents for c in func.__closure__)
+            symdict.update(zip(freevars, closure))
+        self.symdict = symdict
 
     def _waiter(self):
         # infer appropriate waiter class

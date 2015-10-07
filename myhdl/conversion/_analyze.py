@@ -34,7 +34,6 @@ from collections import defaultdict
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
-from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always_seq import _AlwaysSeq
 from myhdl._always import _Always
@@ -149,7 +148,7 @@ def _analyzeGens(top, absnames):
             tree.nonlocaldict = {}
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
-                    obj = _cell_deref(c)
+                    obj = c.cell_contents
                     tree.symdict[n] = obj
                     # currently, only intbv as automatic nonlocals (until Python 3.0)
                     if isinstance(obj, intbv):
@@ -592,7 +591,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             # handle free variables
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
-                    obj = _cell_deref(c)
+                    obj = c.cell_contents
                     if not  isinstance(obj, (integer_types, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
                     tree.symdict[n] = obj

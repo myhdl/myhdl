@@ -28,7 +28,6 @@ import ast
 
 from myhdl import AlwaysError, intbv
 from myhdl._util import _isGenFunc, _dedent
-from myhdl._cell_deref import _cell_deref
 from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
 from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
@@ -101,23 +100,6 @@ class _AlwaysSeq(_Always):
             self.genfunc = self.genfunc_no_reset
 
         super(_AlwaysSeq, self).__init__(func, senslist)
-
-        # find symdict
-        # similar to always_comb, but in class constructor
-        varnames = func.__code__.co_varnames
-        symdict = {}
-        for n, v in func.__globals__.items():
-            if n not in varnames:
-                symdict[n] = v
-        # handle free variables
-        if func.__code__.co_freevars:
-            for n, c in zip(func.__code__.co_freevars, func.__closure__):
-                try:
-                    obj = _cell_deref(c)
-                    symdict[n] = obj
-                except NameError:
-                    raise NameError(n)
-        self.symdict = symdict
 
         # now infer outputs to be reset
         s = inspect.getsource(func)

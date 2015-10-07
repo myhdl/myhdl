@@ -29,7 +29,6 @@ import ast
 from myhdl import AlwaysCombError
 from myhdl._Signal import _Signal, _isListOfSigs
 from myhdl._util import _isGenFunc, _dedent
-from myhdl._cell_deref import _cell_deref
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
 from myhdl._instance import _Instantiator
 from myhdl._always import _Always
@@ -52,20 +51,7 @@ def always_comb(func):
         raise AlwaysCombError(_error.ArgType)
     if func.__code__.co_argcount > 0:
         raise AlwaysCombError(_error.NrOfArgs)
-    varnames = func.__code__.co_varnames
-    symdict = {}
-    for n, v in func.__globals__.items():
-        if n not in varnames:
-            symdict[n] = v
-    # handle free variables
-    if func.__code__.co_freevars:
-        for n, c in zip(func.__code__.co_freevars, func.__closure__):
-            try:
-                obj = _cell_deref(c)
-                symdict[n] = obj
-            except NameError:
-                raise NameError(n)
-    c = _AlwaysComb(func, symdict)
+    c = _AlwaysComb(func)
     return c
 
 
@@ -101,8 +87,10 @@ class _AlwaysComb(_Always):
 #             W = _SignalTupleWaiter
 #         self.waiter = W(self.gen)
 
-    def __init__(self, func, symdict):
-        self.symdict = symdict
+    def __init__(self, func):
+        senslist = []
+        super(_AlwaysComb, self).__init__(func, senslist)
+
         s = inspect.getsource(func)
         s = _dedent(s)
         tree = ast.parse(s)
@@ -121,7 +109,6 @@ class _AlwaysComb(_Always):
         if v.results['embedded_func']:
             raise AlwaysCombError(_error.EmbeddedFunction)
 
-        senslist = []
         for n in self.inputs:
             s = self.symdict[n]
             if isinstance(s, _Signal):
@@ -131,8 +118,6 @@ class _AlwaysComb(_Always):
         self.senslist = tuple(senslist)
         if len(self.senslist) == 0:
             raise AlwaysCombError(_error.EmptySensitivityList)
-
-        super(_AlwaysComb, self).__init__(func, senslist)
 
     def genfunc(self):
         senslist = self.senslist
