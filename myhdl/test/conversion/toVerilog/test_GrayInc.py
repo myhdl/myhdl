@@ -6,10 +6,10 @@ from random import randrange
 
 from myhdl import *
 
-from test_bin2gray import bin2gray
-from test_inc import inc
+from .test_bin2gray import bin2gray
+from .test_inc import inc
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 

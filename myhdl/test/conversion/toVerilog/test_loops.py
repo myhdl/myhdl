@@ -7,7 +7,7 @@ from random import randrange
 
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 def ForLoop1(a, out):
     @instance

@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from myhdl import *
 
-from util import verilogCompile
+from .util import verilogCompile
 
 #############################
 # bug report (Tom Dillon)
@@ -88,7 +88,7 @@ test()
 # case variable name in embedded FSM
 ####################################
 
-from test_fsm import FramerCtrl
+from .test_fsm import FramerCtrl
 
 def mid(SOF, clk, reset_n):
     t_State = enum('SEARCH', 'CONFIRM', 'SYNC')

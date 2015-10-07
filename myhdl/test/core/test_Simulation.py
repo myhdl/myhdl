@@ -27,7 +27,7 @@ from unittest import TestCase
 from myhdl import (Signal, Simulation, SimulationError, StopSimulation, delay,
                    intbv, join, now)
 from myhdl._Simulation import _error
-from utils import raises_kind
+from helpers import raises_kind
 
 random.seed(1)  # random, but deterministic
 

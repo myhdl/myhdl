@@ -7,6 +7,7 @@ python:
   - "2.7"
   - "pypy"
   - "3.4"
+  - "3.5"
 
 addons:
   apt:
@@ -29,6 +30,10 @@ matrix:
     - python: "3.4"
       env: CI_TARGET=iverilog
     - python: "3.4"
+      env: CI_TARGET=ghdl
+    - python: "3.5"
+      env: CI_TARGET=iverilog
+    - python: "3.5"
       env: CI_TARGET=ghdl
 
 script: ./scripts/ci.sh

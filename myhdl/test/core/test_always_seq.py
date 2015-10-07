@@ -1,7 +1,7 @@
 from myhdl import *
 from myhdl import Signal
 from myhdl._always_seq import AlwaysSeqError, _error, always_seq
-from utils import raises_kind
+from helpers import raises_kind
 
 
 def test_clock():

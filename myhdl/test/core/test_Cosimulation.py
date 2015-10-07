@@ -28,7 +28,9 @@ import sys
 from myhdl import Signal
 from myhdl._compat import to_bytes
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
-from utils import raises_kind
+
+if __name__ != '__main__':
+    from helpers import raises_kind
 
 random.seed(1)  # random, but deterministic
 

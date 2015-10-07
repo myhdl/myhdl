@@ -8,7 +8,7 @@ class raises_kind(object):
 
     def __enter__(self):
         return None
-    
+
     def __exit__(self, *tp):
         __tracebackhide__ = True
         if tp[0] is None:

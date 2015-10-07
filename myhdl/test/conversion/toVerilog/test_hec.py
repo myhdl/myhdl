@@ -6,7 +6,7 @@ from random import randrange
 
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 COSET = 0x55
 
@@ -128,9 +128,9 @@ def HecCalculator_v(name, hec, header):
 
 
 
-headers = [ 0x00000000L,
-            0x01234567L,
-            0xbac6f4caL
+headers = [ 0x00000000,
+            0x01234567,
+            0xbac6f4ca
           ]
 
 headers.extend([randrange(2**32-1) for i in range(10)])
