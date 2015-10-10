@@ -108,6 +108,41 @@ def bench_ConcatSignalWithConsts():
 def test_ConcatSignalWithConsts():
     Simulation(bench_ConcatSignalWithConsts()).run()
 
+def bench_ConcatSignalWithNegs():
+
+    Am = 2**(5-1)
+    Cm = 2**(3-1)
+    Dm = 2**(4-1)
+
+    a = Signal(intbv(-1, min=-Am, max=Am))
+    b = Signal(bool(0))
+    c = Signal(intbv(-1, min=-Cm, max=Cm))
+    d = Signal(intbv(-1, min=-Dm, max=Dm))
+
+    s = ConcatSignal(a, b, c, d)
+
+    @instance
+    def check():
+        for i in range(-Am, Am):
+            for j in (0, 1):
+                for k in range(-Cm, Cm):
+                    for m in range(-Dm, Dm):
+                        a.next = i
+                        b.next = j
+                        c.next = k
+                        d.next = m
+                        yield delay(10)
+                         
+                        assert s[13:8] == a[len(a):]
+                        assert s[7] == b
+                        assert s[7:4] == c[len(c):]
+                        assert s[4:] == d[len(d):]
+
+    return check
+
+def test_ConcatSignalWithNegs():
+    Simulation(bench_ConcatSignalWithNegs()).run()
+
 
 def bench_TristateSignal():
     s = TristateSignal(intbv(0)[8:])
