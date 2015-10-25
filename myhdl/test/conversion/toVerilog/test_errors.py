@@ -154,7 +154,8 @@ def recursion2(count, enable, clock, reset, n):
     return logic
 
 def h1(n):
-    return None
+    pass
+    # return None
 
 def functionNoReturnVal(count, enable, clock, reset, n):
     @instance
@@ -556,4 +557,3 @@ if __name__ == '__main__':
                 
 
         
-
