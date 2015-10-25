@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2013 Jan Decaluwe
+#  Copyright (C) 2003-2015 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -262,35 +262,35 @@ class intbv(object):
             
     def __rshift__(self, other):
         if isinstance(other, intbv):
-            return type(self)(self._val >> other._val)
+            return intbv(self._val >> other._val)
         else:
-            return type(self)(self._val >> other)
+            return intbv(self._val >> other)
     def __rrshift__(self, other):
         return other >> self._val
            
     def __and__(self, other):
         if isinstance(other, intbv):
-            return type(self)(self._val & other._val)
+            return intbv(self._val & other._val)
         else:
-            return type(self)(self._val & other)
+            return intbv(self._val & other)
     def __rand__(self, other):
-        return type(self)(other & self._val)
+        return intbv(other & self._val)
 
     def __or__(self, other):
         if isinstance(other, intbv):
-            return type(self)(self._val | other._val)
+            return intbv(self._val | other._val)
         else:
-            return type(self)(self._val | other)
+            return intbv(self._val | other)
     def __ror__(self, other):
-        return type(self)(other | self._val)
+        return intbv(other | self._val)
     
     def __xor__(self, other):
         if isinstance(other, intbv):
-            return type(self)(self._val ^ other._val)
+            return intbv(self._val ^ other._val)
         else:
-            return type(self)(self._val ^ other)
+            return intbv(self._val ^ other)
     def __rxor__(self, other):
-        return type(self)(other ^ self._val)
+        return intbv(other ^ self._val)
 
     def __iadd__(self, other):
         if isinstance(other, intbv):
@@ -401,9 +401,9 @@ class intbv(object):
 
     def __invert__(self):
         if self._nrbits and self._min >= 0:
-            return type(self)(~self._val & (long(1) << self._nrbits)-1)
+            return intbv(~self._val & (long(1) << self._nrbits)-1)
         else:
-            return type(self)(~self._val)
+            return intbv(~self._val)
     
     def __int__(self):
         return int(self._val)
