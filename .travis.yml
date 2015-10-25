@@ -25,16 +25,16 @@ env:
   - CI_TARGET=iverilog
   - CI_TARGET=ghdl
 
-matrix:
-  allow_failures:
-    - python: "3.4"
-      env: CI_TARGET=iverilog
-    - python: "3.4"
-      env: CI_TARGET=ghdl
-    - python: "3.5"
-      env: CI_TARGET=iverilog
-    - python: "3.5"
-      env: CI_TARGET=ghdl
+# matrix:
+#  allow_failures:
+#    - python: "3.4"
+#      env: CI_TARGET=iverilog
+#    - python: "3.4"
+#      env: CI_TARGET=ghdl
+#    - python: "3.5"
+#      env: CI_TARGET=iverilog
+#    - python: "3.5"
+#      env: CI_TARGET=ghdl
 
 script: ./scripts/ci.sh
 
