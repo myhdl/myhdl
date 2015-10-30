@@ -473,9 +473,17 @@ def _convertGens(genlist, siglist, memlist, vfile):
             w = len(s)
             assert w != 0
             if s._min < 0:
-                pre, suf = "to_signed(", ", %s)" % w
+                if w <= 31:
+                    pre, suf = "to_signed(", ", %s)" % w
+                else:
+                    pre, suf = "signed'(", ")" 
+                    c = '"%s"' % bin(c, w)
             else:
-                pre, suf = "to_unsigned(", ", %s)" % w
+                if w <= 31:
+                    pre, suf = "to_unsigned(", ", %s)" % w
+                else:
+                    pre, suf = "unsigned'(", ")" 
+                    c = '"%s"' % bin(c, w)
         else:
             raise ToVHDLError("Unexpected type for constant signal", s._name)
         print("%s <= %s%s%s;" % (s._name, pre, c, suf), file=vfile)
