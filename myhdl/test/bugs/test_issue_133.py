@@ -9,9 +9,9 @@ def issue_133():
     def check():
         z.next = large_signal[10]
         yield delay(10)
-        print large_signal[31:] 
-        print large_signal[62:31] 
-        print large_signal[93:62] 
+        print (large_signal[31:])
+        print (large_signal[62:31])
+        print (large_signal[93:62])
 
     return check 
 
