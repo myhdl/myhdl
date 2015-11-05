@@ -864,11 +864,11 @@ MyHDL distribution, as follows:
 +-----------------+---------------------------------+
 | Identifier      | Simulator                       |
 +=================+=================================+
-| ``"GHDL"``      | The GHDL VHDL simulator         |
+| ``"ghdl"``      | The GHDL VHDL simulator         |
 +-----------------+---------------------------------+
 | ``"vsim"``      | The ModelSim VHDL simulator     |
 +-----------------+---------------------------------+
-| ``"icarus"``    | The Icarus Verilog simulator    |
+| ``"iverilog"``  | The Icarus Verilog simulator    |
 +-----------------+---------------------------------+
 | ``"cver"``      | The cver Verilog simulator      |
 +-----------------+---------------------------------+
@@ -892,3 +892,38 @@ is rarely needed, this interface is not further described here.
 Please refer to the source code in :mod:`myhdl.conversion._verify`
 to learn how registration works. If you need help, please
 contact the MyHDL community.
+
+
+Conversion support functions
+----------------------------
+
+.. function:: dump_hierarchy(func[, *args][, **kwargs])
+
+    Used like :func:`traceSignals()`, :func:`toVHDL()`, and :func:`toVerilog()`.
+    It prints out the hierarcy of the module passed.  This function can be
+    used to debug :exception:`ExtractHierError` errors.  The function will
+    attempt to print the names of the functions and objects.  The prints
+    are compact to support large designs.  The following is an example of a
+    hiearchy dump::
+
+        Hierarchy for "hier_inconsistent_top_1"
+        :hier_inconsistent_top_1(472) [248, 208,  16, 456, 776]
+           returns <gen list?>, <gen list?>, <gen list?>, gen1, gen2
+         :mod_tuple(16) [280, 328]
+             returns gen1, gen2
+         :mod_tuple(208) [336, 384]
+             returns gen1, gen2
+         :mod_tuple(248) [  0, 536]
+             returns gen1, gen2
+
+
+Each line that starts with an `:` indicates the function at this level.
+Preceding the name in parenthesis `()` is the object `id` of the function.
+In the square brackes `[]` are the object ids of the generators returned
+from the function listed on the line.  The next line lists the names of
+the generators returned in the same order as the ids.  The names and ids
+havea a one to one correspondence.  This continues for each level of the
+hierarchy.  When an :exception:`ExtractHierError` is encountered this
+ utility can be used to debug and determine which generators were not
+ returned.
+

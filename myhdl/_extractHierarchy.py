@@ -21,7 +21,7 @@
 
 """
 from __future__ import absolute_import
-
+from __future__ import print_function
 
 import sys
 import inspect
@@ -214,6 +214,24 @@ class _CallFuncVisitor(object):
         self.lineno = node.lineno
 
 
+def dump_hierarchy(top_level, *args, **kwargs):
+    """ debug utility that dumps a modules hierarchy """
+    assert hasattr(top_level, '__call__')
+    # make sure the function has no Python compile errors
+    try:
+        g = top_level(*args, **kwargs)
+    except Exception as err:
+        raise err
+
+    print("\nHierarchy for \"{}\"  ".format(top_level.__name__)) 
+    try:
+        h = _HierExtr(top_level.__name__, top_level, *args, **kwargs)
+        h.extract()
+    except ExtractHierarchyError as err:
+        print(str(err))        
+    h._dump(h.hierarchy)
+    print("")
+
 
 class _HierExtr(object):
 
@@ -229,13 +247,35 @@ class _HierExtr(object):
                           'instances', \
                           'processes', 'posedge', 'negedge')
         self.skip = 0
-        self.hierarchy = hierarchy = []
-        self.absnames = absnames = {}
+        self.hierarchy = []
+        self.absnames = {}
         self.level = 0
+        self.name = name
+        self.dut = dut
+        self.args = args
+        self.kwargs = kwargs
 
+    def _get_name(self, obj):
+        if hasattr(obj, '__name__'):
+            name = obj.__name__
+        elif hasattr(obj, 'func'):
+            name = obj.func.__name__
+        elif hasattr(obj, 'genfunc'):
+            name = obj.genfunc.__name__
+        elif isinstance(obj, (list, tuple)):
+            name = '<gen list?>'
+        else:
+            name = 'unknown'
+        return name
+
+    def extract(self):
+        """ extract the hierarchy """
+        name = self.name
+        hierarchy = self.hierarchy
+        absnames = self.absnames
         _profileFunc = self.extractor
         sys.setprofile(_profileFunc)
-        _top = dut(*args, **kwargs)
+        _top = self.dut(*self.args, **self.kwargs)
         sys.setprofile(None)
         if not hierarchy:
             raise ExtractHierarchyError(_error.NoInstances)
@@ -252,9 +292,13 @@ class _HierExtr(object):
         absnames[id(obj)] = name
         if not top_inst.level == 1:
             raise ExtractHierarchyError(_error.InconsistentToplevel % (top_inst.level, name))
+
+        # verify the hierarchy is consistent and valid
         for inst in hierarchy:
             obj, subs = inst.obj, inst.subs
             if id(obj) not in names:
+                name = self._get_name(obj)
+                print("Hierarchy Error: {} {} ({}) missing ".format(name, type(obj), id(obj)))
                 raise ExtractHierarchyError(_error.InconsistentHierarchy)
             inst.name = names[id(obj)]
             tn = absnames[id(obj)]
@@ -267,6 +311,52 @@ class _HierExtr(object):
                         names[id(soi)] = sni
                         absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
 
+    def _dump(self, hierarchy, obj=None, level=0, levels=-1):
+        """ print out the hierarchy levels 
+        The sys.profiler uses the self.extractor to examine the functions
+        used in the design to be simulated / converted.  The self.extractor
+        will create the `hierarchy` list.  The `hierarchy` is a list of 
+        `_Instance`.  The `_Instance` contains information about the instance,
+        this funciton will walk the list and print out the hierarchy.
+        """                
+        id_limit = 1000   # only use the 3 least sig digits
+        tobj = obj        # object to highlight
+        for ii, inst in enumerate(hierarchy): 
+            if isinstance(inst, _Instance):
+                gens = None
+                if levels > 0 and inst.level > levels:
+                    continue
+                obj, subs = inst.obj, inst.subs
+                indent = '  '*inst.level
+                func, sid = inst.func, id(obj)%id_limit
+                name = self._get_name(func)
+                if level == 0 and name == 'unknown':
+                    name = self.dut.__name__
+
+                # the _Instance.obj should be a function or list of generators, 
+                # the list of generators should have an associated function
+                if isinstance(obj, (list, tuple)):
+                    fc = ' ' if name == 'unknown' else ':'
+                    lstr = ', '.join(["{:3d}".format(id(oo)%1000) for oo in obj])
+                    print("{} {}{}({}) [{}]".format(indent, fc, name, sid, lstr), end='')
+                    gens = obj
+                else:
+                    c = '*' if id(obj) == id(tobj) else ' '
+                    print("{} +{}({})".format(indent, name, sid), end='')
+                    # print the number of returns, number of signals, number of memories 
+                    fstr = "{} has {}, {}, {}"
+                    print(fstr.format(c, len(inst.argdict), 
+                                      len(inst.sigdict), len(inst.memdict)), end='')
+                    if len(subs) > 0:
+                        gens = [gg[1] for gg in subs]
+
+                if gens is not None:
+                    rg = ", ".join(["{}".format(self._get_name(gg)) for gg in gens])
+                    print("\n{}     returns {}".format(indent, rg))
+                else:
+                    print(" ")
+            else:
+                print("Error in hierarchy processing")
 
     def extractor(self, frame, event, arg):
         if event == "call":
@@ -356,7 +446,6 @@ class _HierExtr(object):
                         for elt in _inferArgs(arg):
                             if elt is sub:
                                 subs.append((n, sub))
-
 
                     inst = _Instance(self.level, arg, subs, sigdict, memdict, func, argdict)
                     self.hierarchy.append(inst)

@@ -132,6 +132,7 @@ from ._always import always
 from ._instance import instance
 from ._enum import enum, EnumType, EnumItemType
 from ._traceSignals import traceSignals
+from ._extractHierarchy import dump_hierarchy
 
 from myhdl import conversion
 from .conversion import toVerilog
@@ -167,6 +168,7 @@ __all__ = ["bin",
            "EnumType",
            "EnumItemType",
            "traceSignals",
+           "dump_hierarchy",
            "toVerilog",
            "toVHDL",
            "conversion",
