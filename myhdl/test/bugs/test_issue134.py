@@ -4,6 +4,7 @@ can get renamed to the name of the argument. When the
 function is called multiple times, this causes name collisions """
 
 from __future__ import absolute_import
+import pytest
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -18,12 +19,13 @@ def invert(sigin, sigout):
         sigout.next = not sigin
     return foo
 
-def issue_133(ab_in, ab_out):
+def issue_134(ab_in, ab_out):
     """ Instantiate an inverter for each signal """
     inverta = invert(ab_in.a, ab_out.a)
     invertb = invert(ab_in.b, ab_out.b)
     return inverta, invertb
 
-def test_issue_133():
+@pytest.mark.xfail
+def test_issue_134():
     """ check for port name collision"""
-    assert verify(issue_133, AB(), AB()) == 0
+    assert verify(issue_134, AB(), AB()) == 0
