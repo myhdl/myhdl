@@ -6,7 +6,7 @@ function is called multiple times, this causes name collisions """
 from __future__ import absolute_import
 import pytest
 from myhdl import *
-from myhdl.conversion import verify
+from myhdl.conversion import analyze
 
 class AB:
     def __init__(self):
@@ -28,4 +28,4 @@ def issue_134(ab_in, ab_out):
 @pytest.mark.xfail
 def test_issue_134():
     """ check for port name collision"""
-    assert verify(issue_134, AB(), AB()) == 0
+    assert analyze(issue_134, AB(), AB()) == 0
