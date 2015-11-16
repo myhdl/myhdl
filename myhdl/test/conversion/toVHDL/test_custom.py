@@ -74,10 +74,10 @@ def inc(count, enable, clock, reset, n):
     __vhdl__ = \
 """
 process (%(clock)s, %(reset)s) begin
-    if (reset = '0') then
+    if (%(reset)s = '0') then
         %(count)s <= (others => '0');
     elsif rising_edge(%(clock)s) then
-        if (enable = '1') then
+        if (%(enable)s = '1') then
             %(count)s <= (%(count)s + 1) mod %(n)s;
         end if;
     end if;
@@ -104,11 +104,11 @@ def incErr(count, enable, clock, reset, n):
     __vhdl__ = \
 """
 always @(posedge %(clock)s, negedge %(reset)s) begin
-    if (reset == 0) begin
+    if (%(reset)s == 0) begin
         %(count)s <= 0;
     end
     else begin
-        if (enable) begin
+        if (%(enable)s) begin
             %(count)s <= (%(countq)s + 1) %% %(n)s;
         end
     end
@@ -151,10 +151,10 @@ def inc_seq(count, nextCount, enable, clock, reset):
     __vhdl__ = \
 """
 process (%(clock)s, %(reset)s) begin
-    if (reset = '0') then
+    if (%(reset)s = '0') then
         %(count)s <= (others => '0');
     elsif rising_edge(%(clock)s) then
-        if (enable = '1') then
+        if (%(enable)s = '1') then
             %(count)s <= %(nextCount)s;
         end if;
     end if;
