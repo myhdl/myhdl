@@ -74,10 +74,10 @@ def inc(count, enable, clock, reset, n):
     inc.vhdl_code = \
 """
 process ($clock, $reset) begin
-    if (reset = '0') then
+    if ($reset = '0') then
         $count <= (others => '0');
     elsif rising_edge($clock) then
-        if (enable = '1') then
+        if ($enable = '1') then
             $count <= ($count + 1) mod $n;
         end if;
     end if;
@@ -104,11 +104,11 @@ def incErr(count, enable, clock, reset, n):
     incErr.vhdl_code = \
 """
 always @(posedge $clock, negedge $reset) begin
-    if (reset == 0) begin
+    if ($reset == 0) begin
         $count <= 0;
     end
     else begin
-        if (enable) begin
+        if ($enable) begin
             $count <= ($countq + 1) %% $n;
         end
     end
@@ -151,10 +151,10 @@ def inc_seq(count, nextCount, enable, clock, reset):
     inc_seq.vhdl_code = \
 """
 process ($clock, $reset) begin
-    if (reset = '0') then
+    if ($reset = '0') then
         $count <= (others => '0');
     elsif rising_edge($clock) then
-        if (enable = '1') then
+        if ($enable = '1') then
             $count <= $nextCount;
         end if;
     end if;
