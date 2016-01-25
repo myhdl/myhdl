@@ -173,3 +173,16 @@ class TestTraceSigs:
         assert path.exists(pbak)
         assert path.getsize(pbak) == size
         assert path.getsize(p) < size
+
+    def testSetDirectory(self, vcd_dir):
+        traceSignals.directory = 'some_vcd_dir'
+        os.mkdir(path.join(str(vcd_dir), traceSignals.directory))
+        pdut = "%s.vcd" % top.__name__
+        psub = "%s.vcd" % fun.__name__
+        pdutd = path.join(traceSignals.directory, "%s.vcd" % top.__name__)
+        psubd = path.join(traceSignals.directory, "%s.vcd" % fun.__name__)
+        dut = traceSignals(top)
+        assert not path.exists(pdut)
+        assert not path.exists(psub)
+        assert path.exists(pdutd)
+        assert not path.exists(psubd)

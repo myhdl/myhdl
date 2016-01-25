@@ -85,8 +85,13 @@ Waveform tracing
       This attribute is used to overwrite the default top-level instance name and the
       basename of the VCD output filename.
 
+   .. attribute:: directory
+
+      This attribute is used to set the directory to which VCD files are written. By
+      default, the current working directory is used.
+
    .. attribute:: timescale
-   
+
       This attribute is used to set the timescale corresponding to unit steps,
       according to the VCD format. The assigned value should be a string.
       The default timescale is "1ns".
