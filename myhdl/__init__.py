@@ -82,6 +82,8 @@ class AlwaysCombError(Error):
     pass
 class InstanceError(Error):
     pass
+class ModuleError(Error):
+    pass
 class CosimulationError(Error):
     pass
 class ExtractHierarchyError(Error):
@@ -130,6 +132,7 @@ from ._always_comb import always_comb
 from ._always_seq import always_seq, ResetSignal
 from ._always import always
 from ._instance import instance
+from ._module import module
 from ._enum import enum, EnumType, EnumItemType
 from ._traceSignals import traceSignals
 
@@ -159,6 +162,7 @@ __all__ = ["bin",
            "Simulation",
            "instances",
            "instance",
+           "module",
            "always_comb",
            "always_seq",
            "ResetSignal",

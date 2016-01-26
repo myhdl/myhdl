@@ -12,6 +12,7 @@ t_State_b = enum('SEARCH', 'CONFIRM', 'SYNC')
 t_State_oh = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 t_State_oc = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_cold")
 
+@module
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
     
     """ Framing control FSM.
@@ -55,8 +56,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
             
     return FSM
 
-
-  
+@module
 def FSMBench(FramerCtrl, t_State):
 
     SOF = Signal(bool(0))
@@ -110,5 +110,5 @@ def FSMBench(FramerCtrl, t_State):
 
 
 def test():
-    assert verify(FSMBench, FramerCtrl, t_State_b) == 0
+    assert verify(FSMBench(FramerCtrl, t_State_b)) == 0
 

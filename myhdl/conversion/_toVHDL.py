@@ -55,6 +55,8 @@ from myhdl._util import  _flatten
 from myhdl._compat import integer_types, class_types, StringIO
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
+from myhdl._module import _ModuleInstance
+from myhdl._getHierarchy import _getHierarchy
 
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
@@ -70,6 +72,8 @@ def _checkArgs(arglist):
 def _flatten(*args):
     arglist = []
     for arg in args:
+        if isinstance(arg, _ModuleInstance):
+            arg = arg.subs
         if id(arg) in _userCodeMap['vhdl']:
             arglist.append(_userCodeMap['vhdl'][id(arg)])
         elif isinstance(arg, (list, tuple, set)):
@@ -125,18 +129,28 @@ class _ToVHDLConvertor(object):
         from myhdl import _traceSignals
         if _traceSignals._tracing:
             raise ToVHDLError("Cannot use toVHDL while tracing signals")
-        if not callable(func):
-            raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
+        if not isinstance(func, _ModuleInstance):
+            if not callable(func):
+                raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
 
         _converting = 1
         if self.name is None:
             name = func.__name__
+            if isinstance(func, _ModuleInstance):
+                name = func.mod.__name__
         else:
             name = str(self.name)
-        try:
-            h = _HierExtr(name, func, *args, **kwargs)
-        finally:
-            _converting = 0
+
+        if isinstance(func, _ModuleInstance):
+            try:
+                h = _getHierarchy(name, func)
+            finally:
+                _converting = 0
+        else:
+            try:
+                h = _HierExtr(name, func, *args, **kwargs)
+            finally:
+                _converting = 0
 
         if self.directory is None:
             directory = ''
@@ -170,7 +184,10 @@ class _ToVHDLConvertor(object):
         _annotateTypes(genlist)
 
         ### infer interface
-        intf = _analyzeTopFunc(func, *args, **kwargs)
+        if isinstance(func, _ModuleInstance):
+            intf = func # already inferred
+        else:
+            intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         # sanity checks on interface
         for portname in intf.argnames:

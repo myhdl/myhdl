@@ -13,6 +13,8 @@ class _SigNameVisitor(ast.NodeVisitor):
         self.inouts = set()
         self.embedded_func = None
         self.context = 'input'
+        self.sigdict = {}
+        self.losdict = {}
 
     def visit_Module(self, node):
         for n in node.body:
@@ -34,20 +36,24 @@ class _SigNameVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Name(self, node):
-        id = node.id
-        if id not in self.symdict:
+        n = node.id
+        if n not in self.symdict:
             return
-        s = self.symdict[id]
+        s = self.symdict[n]
         if isinstance(s, (_Signal, intbv)) or _isListOfSigs(s):
             if self.context == 'input':
-                self.inputs.add(id)
+                self.inputs.add(n)
             elif self.context == 'output':
-                self.outputs.add(id)
+                self.outputs.add(n)
             elif self.context == 'inout':
-                self.inouts.add(id)
+                self.inouts.add(n)
             else:
                 print(self.context)
                 raise AssertionError("bug in _SigNameVisitor")
+        if isinstance(s, _Signal):
+            self.sigdict[n] = s
+        elif _isListOfSigs(s):
+            self.losdict[n] = s
 
     def visit_Assign(self, node):
         self.context = 'output'

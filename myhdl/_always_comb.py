@@ -30,7 +30,7 @@ from myhdl import AlwaysCombError
 from myhdl._Signal import _Signal, _isListOfSigs
 from myhdl._util import _isGenFunc, _dedent
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
-from myhdl._instance import _Instantiator
+from myhdl._instance import _getCallInfo
 from myhdl._always import _Always
 
 class _error:
@@ -43,51 +43,22 @@ _error.EmbeddedFunction = "embedded functions in always_comb function argument n
 _error.EmptySensitivityList= "sensitivity list is empty"
 
 def always_comb(func):
+    modname, modctxt = _getCallInfo()
     if not isinstance( func, FunctionType):
         raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
         raise AlwaysCombError(_error.ArgType)
     if func.__code__.co_argcount > 0:
         raise AlwaysCombError(_error.NrOfArgs)
-    c = _AlwaysComb(func)
+    c = _AlwaysComb(func, modname=modname, modctxt=modctxt)
     return c
 
 
-# class _AlwaysComb(_Instantiator):
 class _AlwaysComb(_Always):
 
-#     def __init__(self, func, symdict):
-#         self.func = func
-#         self.symdict = symdict
-#         s = inspect.getsource(func)
-#         # remove decorators
-#         s = re.sub(r"@.*", "", s)
-#         s = s.lstrip()
-#         tree = compiler.parse(s)
-#         v = _SigNameVisitor(symdict)
-#         compiler.walk(tree, v)
-#         self.inputs = v.inputs
-#         self.outputs = v.outputs
-#         senslist = []
-#         for n in self.inputs:
-#             s = self.symdict[n]
-#             if isinstance(s, Signal):
-#                 senslist.append(s)
-#             else: # list of sigs
-#                 senslist.extend(s)
-#         self.senslist = tuple(senslist)
-#         self.gen = self.genfunc()
-#         if len(self.senslist) == 0:
-#             raise AlwaysCombError(_error.EmptySensitivityList)
-#         if len(self.senslist) == 1:
-#             W = _SignalWaiter
-#         else:
-#             W = _SignalTupleWaiter
-#         self.waiter = W(self.gen)
-
-    def __init__(self, func):
+    def __init__(self, func, modname, modctxt):
         senslist = []
-        super(_AlwaysComb, self).__init__(func, senslist)
+        super(_AlwaysComb, self).__init__(func, senslist, modname=modname, modctxt=modctxt)
 
         inouts = self.inouts | self.inputs.intersection(self.outputs)
         if inouts:

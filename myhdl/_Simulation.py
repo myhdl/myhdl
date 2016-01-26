@@ -32,11 +32,10 @@ from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
-from myhdl._util import _flatten, _printExcInfo
+from myhdl._util import _printExcInfo
 from myhdl._instance import _Instantiator
+from myhdl._module import _ModuleInstance
 from myhdl._ShadowSignal import _ShadowSignal
-
-
 
 schedule = _futureEvents.append
 
@@ -45,7 +44,22 @@ class _error:
 _error.ArgType = "Inappriopriate argument type"
 _error.MultipleCosim = "Only a single cosimulator argument allowed"
 _error.DuplicatedArg = "Duplicated argument"
-            
+
+# flatten Module objects out
+def _flatten(*args):
+    arglist = []
+    for arg in args:
+        if isinstance(arg, _ModuleInstance):
+            arg = arg.subs
+        if isinstance(arg, (list, tuple, set)):
+            for item in arg:
+                arglist.extend(_flatten(item))
+        else:
+            arglist.append(arg)
+    return arglist
+
+
+
 class Simulation(object):
 
     """ Simulation class.
@@ -70,8 +84,8 @@ class Simulation(object):
         self._finished = False
         del _futureEvents[:]
         del _siglist[:]
-        
-        
+
+
     def _finalize(self):
         cosim = self._cosim
         if cosim:
@@ -86,8 +100,8 @@ class Simulation(object):
         for s in _signals:
             s._clear()
         self._finished = True
-            
-        
+
+
     def runc(self, duration=0, quiet=0):
         simrunc.run(sim=self, duration=duration, quiet=quiet)
 
@@ -201,7 +215,7 @@ class Simulation(object):
                     self._finalize()
                 # now reraise the exepction
                 raise
-                
+
 
 def _makeWaiters(arglist):
     waiters = []
@@ -231,4 +245,3 @@ def _makeWaiters(arglist):
         if hasattr(sig, '_waiter'):
             waiters.append(sig._waiter)
     return waiters, cosim
-        

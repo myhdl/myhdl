@@ -12,6 +12,7 @@ import myhdl
 from myhdl._Simulation import Simulation
 from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
+from myhdl._module import _ModuleInstance
 
 _version = myhdl.__version__.replace('.','')
 # strip 'dev' for version
@@ -22,7 +23,7 @@ _simulators = {}
 sim = namedtuple('sim', 'name hdl analyze elaborate simulate skiplines skipchars ignore')
 
 
-def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, 
+def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None,
                       skiplines=None, skipchars=None, ignore=None):
     if not isinstance(name, str) or (name.strip() == ""):
         raise ValueError("Invalid simulator name")
@@ -96,7 +97,7 @@ class  _VerificationClass(object):
     __slots__ = ("simulator", "_analyzeOnly")
 
     def __init__(self, analyzeOnly=False):
-        self.simulator = None 
+        self.simulator = None
         self._analyzeOnly = analyzeOnly
 
 
@@ -112,6 +113,8 @@ class  _VerificationClass(object):
             name = toVerilog.name
         elif hdl == 'VHDL' and toVHDL.name is not None:
             name = toVHDL.name
+        elif isinstance(func, _ModuleInstance):
+            name = func.mod.__name__
         else:
             name = func.__name__
 
@@ -129,10 +132,16 @@ class  _VerificationClass(object):
         skipchars = hdlsim.skipchars
         ignore = hdlsim.ignore
 
-        if hdl == "VHDL":
-            inst = toVHDL(func, *args, **kwargs)
+        if isinstance(func, _ModuleInstance):
+            if hdl == "VHDL":
+                inst = toVHDL(func)
+            else:
+                inst = toVerilog(func)
         else:
-            inst = toVerilog(func, *args, **kwargs)
+            if hdl == "VHDL":
+                inst = toVHDL(func, *args, **kwargs)
+            else:
+                inst = toVerilog(func, *args, **kwargs)
 
         if hdl == "VHDL":
             if not os.path.exists("work"):
@@ -178,7 +187,7 @@ class  _VerificationClass(object):
             if ret != 0:
                 print("Elaboration failed", file=sys.stderr)
                 return ret
-            
+
         g = tempfile.TemporaryFile(mode='w+t')
         #print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)

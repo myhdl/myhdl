@@ -32,6 +32,7 @@ from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
 from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._always import _Always
+from myhdl._instance import _getCallInfo
 
 # evacuate this later
 AlwaysSeqError = AlwaysError
@@ -59,6 +60,7 @@ class ResetSignal(_Signal):
 
 
 def always_seq(edge, reset):
+    modname, modctxt = _getCallInfo()
     if not isinstance(edge, _WaiterList):
         raise AlwaysSeqError(_error.EdgeType)
     edge.sig._read = True
@@ -76,13 +78,13 @@ def always_seq(edge, reset):
             raise AlwaysSeqError(_error.ArgType)
         if func.__code__.co_argcount > 0:
             raise AlwaysSeqError(_error.NrOfArgs)
-        return _AlwaysSeq(func, edge, reset)
+        return _AlwaysSeq(func, edge, reset, modname=modname, modctxt=modctxt)
     return _always_seq_decorator
 
 
 class _AlwaysSeq(_Always):
 
-    def __init__(self, func, edge, reset):
+    def __init__(self, func, edge, reset, modname, modctxt):
         senslist = [edge]
         self.reset = reset
         if reset is not None:
@@ -97,7 +99,7 @@ class _AlwaysSeq(_Always):
         else:
             self.genfunc = self.genfunc_no_reset
 
-        super(_AlwaysSeq, self).__init__(func, senslist)
+        super(_AlwaysSeq, self).__init__(func, senslist, modname=modname, modctxt=modctxt)
 
         if self.inouts:
             raise AlwaysSeqError(_error.SigAugAssign, v.inouts)

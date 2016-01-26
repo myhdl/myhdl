@@ -29,7 +29,7 @@ from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
                           _DelayWaiter, _EdgeWaiter, _EdgeTupleWaiter
-from myhdl._instance import _Instantiator
+from myhdl._instance import _Instantiator, _getCallInfo
 
 class _error:
     pass
@@ -40,6 +40,7 @@ _error.DecNrOfArgs = "decorator should have arguments"
 
 
 def always(*args):
+    modname, modctxt = _getCallInfo()
     for arg in args:
         if isinstance(arg, _Signal):
             arg._read = True
@@ -56,16 +57,16 @@ def always(*args):
             raise AlwaysError(_error.ArgType)
         if func.__code__.co_argcount > 0:
             raise AlwaysError(_error.NrOfArgs)
-        return _Always(func, args)
+        return _Always(func, args, modname=modname, modctxt=modctxt)
     return _always_decorator
 
 
 class _Always(_Instantiator):
 
-    def __init__(self, func, senslist):
+    def __init__(self, func, senslist, modname, modctxt):
         self.func = func
         self.senslist = tuple(senslist)
-        super(_Always, self).__init__(self.genfunc)
+        super(_Always, self).__init__(self.genfunc, modname=modname, modctxt=modctxt)
 
     @property
     def funcobj(self):

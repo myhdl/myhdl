@@ -21,6 +21,7 @@
 from __future__ import absolute_import
 
 
+import inspect
 from types import FunctionType
 
 from myhdl import InstanceError
@@ -34,19 +35,42 @@ class _error:
 _error.NrOfArgs = "decorated generator function should not have arguments"
 _error.ArgType = "decorated object should be a generator function"
 
+def _getCallInfo():
+    """Get info of the callers of e.g. an instantiator decorator.
+
+    For hierarchy extraction, instantator decorators should only be used
+    within a module context. This function is hack to get info to check
+    that. It uses theframe stack:
+    0: this function
+    1: the instantiator decorator
+    2: the module function that defines instances
+    3: the caller of the module function, e.g. the ModuleInstance class.
+    """
+    from myhdl import _module
+    modname = inspect.stack()[2][3]
+    modctxt = False
+    f_locals = inspect.stack()[3][0].f_locals
+    if 'self' in f_locals:
+        print f_locals['self'].__class__
+        modctxt = isinstance(f_locals['self'], _module._ModuleInstance)
+    return modname, modctxt
+
 
 def instance(genfunc):
+    modname, modctxt = _getCallInfo()
     if not isinstance(genfunc, FunctionType):
         raise InstanceError(_error.ArgType)
     if not _isGenFunc(genfunc):
         raise InstanceError(_error.ArgType)
     if genfunc.__code__.co_argcount > 0:
         raise InstanceError(_error.NrOfArgs)
-    return _Instantiator(genfunc)
+    return _Instantiator(genfunc, modname=modname, modctxt=modctxt)
 
 class _Instantiator(object):
 
-    def __init__(self, genfunc):
+    def __init__(self, genfunc, modname, modctxt):
+        self.modname = modname
+        self.modctxt = modctxt
         self.genfunc = genfunc
         self.gen = genfunc()
         # infer symdict
@@ -73,6 +97,12 @@ class _Instantiator(object):
         self.outputs = v.outputs
         self.inouts = v.inouts
         self.embedded_func = v.embedded_func
+        self.sigdict = v.sigdict
+        self.losdict = v.losdict
+
+    @property
+    def name(self):
+        return self.funcobj.__name__
 
     @property
     def funcobj(self):
