@@ -96,7 +96,7 @@ class  _VerificationClass(object):
     __slots__ = ("simulator", "_analyzeOnly")
 
     def __init__(self, analyzeOnly=False):
-        self.simulator = "GHDL"
+        self.simulator = None 
         self._analyzeOnly = analyzeOnly
 
 
