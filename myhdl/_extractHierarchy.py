@@ -49,8 +49,8 @@ _error.InconsistentToplevel = "Inconsistent top level %s for %s - should be 1"
 
 
 class _Instance(object):
-    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name', 'func', 'argdict', 'objdict']
-    def __init__(self, level, obj, subs, sigdict, memdict, func, argdict, objdict=None):
+    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name', 'func', 'argdict']
+    def __init__(self, level, obj, subs, sigdict, memdict, func, argdict):
         self.level = level
         self.obj = obj
         self.subs = subs
@@ -58,8 +58,6 @@ class _Instance(object):
         self.memdict = memdict
         self.func = func
         self.argdict = argdict
-        if objdict:
-            self.objdict = objdict
 
 
 _memInfoMap = {}
