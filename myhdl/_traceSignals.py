@@ -92,12 +92,12 @@ class _TraceSignalsClass(object):
                 directory = self.directory
 
             if self.filename is None:
-                filename = self.name
+                filename = name
             else:
-                filename = self.filename
+                filename = str(self.filename)
 
             h = _HierExtr(name, dut, *args, **kwargs)
-            vcdpath = os.path.join(directory, filename + ".vcd")
+            vcdpath = os.path.join(directory, name + ".vcd")
             if path.exists(vcdpath):
                 backup = vcdpath + '.' + str(path.getmtime(vcdpath))
                 shutil.copyfile(vcdpath, backup)
