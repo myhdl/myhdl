@@ -33,20 +33,37 @@ _error.NrOfArgs = "decorated generator function should not have arguments"
 _error.ArgType = "decorated object should be a generator function"
 
 
-def instance(genFunc):
-    if not isinstance(genFunc, FunctionType):
+def instance(genfunc):
+    if not isinstance(genfunc, FunctionType):
         raise InstanceError(_error.ArgType)
-    if not _isGenFunc(genFunc):
+    if not _isGenFunc(genfunc):
         raise InstanceError(_error.ArgType)
-    if genFunc.__code__.co_argcount > 0:
+    if genfunc.__code__.co_argcount > 0:
         raise InstanceError(_error.NrOfArgs)
-    return _Instantiator(genFunc)
+    return _Instantiator(genfunc)
 
 class _Instantiator(object):
-    
+
     def __init__(self, genfunc):
         self.genfunc = genfunc
         self.gen = genfunc()
+        # infer symdict
+        f = self.funcobj
+        varnames = f.__code__.co_varnames
+        symdict = {}
+        for n, v in f.__globals__.items():
+            if n not in varnames:
+                symdict[n] = v
+        # handle free variables
+        freevars = f.__code__.co_freevars
+        if freevars:
+            closure = (c.cell_contents for c in f.__closure__)
+            symdict.update(zip(freevars, closure))
+        self.symdict = symdict
+
+    @property
+    def funcobj(self):
+        return self.genfunc
 
     @property
     def waiter(self):
@@ -54,7 +71,7 @@ class _Instantiator(object):
 
     def _waiter(self):
         return _inferWaiter
-    
+
     @property
     def ast(self):
         return _makeAST(self.gen.gi_frame)
