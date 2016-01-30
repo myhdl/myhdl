@@ -90,6 +90,11 @@ Waveform tracing
       This attribute is used to set the directory to which VCD files are written. By
       default, the current working directory is used.
 
+   .. attribute:: filename
+
+      This attribute is used to set the filename to which VCD files are written. By
+      default, the name attribbute is used.
+
    .. attribute:: timescale
 
       This attribute is used to set the timescale corresponding to unit steps,
