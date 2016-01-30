@@ -151,8 +151,8 @@ class _ToVerilogConvertor(object):
         genlist = _analyzeGens(arglist, h.absnames)
         siglist, memlist = _analyzeSigs(h.hierarchy)
         _annotateTypes(genlist)
-        top_inst = h.hierarchy[0]
-        intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
+        
+        intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         doc = _makeDoc(inspect.getdoc(func))
 
@@ -1570,6 +1570,3 @@ def _annotateTypes(genlist):
             continue
         v = _AnnotateTypesVisitor(tree)
         v.visit(tree)
-
-
-

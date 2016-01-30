@@ -1222,7 +1222,7 @@ def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
 
-def _analyzeTopFunc(top_inst, func, *args, **kwargs):
+def _analyzeTopFunc(func, *args, **kwargs):
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)

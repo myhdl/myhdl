@@ -170,8 +170,7 @@ class _ToVHDLConvertor(object):
         _annotateTypes(genlist)
 
         ### infer interface
-        top_inst = h.hierarchy[0]
-        intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
+        intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         # sanity checks on interface
         for portname in intf.argnames:
@@ -476,13 +475,13 @@ def _convertGens(genlist, siglist, memlist, vfile):
                 if w <= 31:
                     pre, suf = "to_signed(", ", %s)" % w
                 else:
-                    pre, suf = "signed'(", ")" 
+                    pre, suf = "signed'(", ")"
                     c = '"%s"' % bin(c, w)
             else:
                 if w <= 31:
                     pre, suf = "to_unsigned(", ", %s)" % w
                 else:
-                    pre, suf = "unsigned'(", ")" 
+                    pre, suf = "unsigned'(", ")"
                     c = '"%s"' % bin(c, w)
         else:
             raise ToVHDLError("Unexpected type for constant signal", s._name)
@@ -1093,7 +1092,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(';')
 
     def visit_IfExp(self, node):
-        # propagate the node's vhd attribute  
+        # propagate the node's vhd attribute
         node.body.vhd = node.orelse.vhd = node.vhd
         self.write('tern_op(')
         self.write('cond => ')
@@ -1310,7 +1309,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(node.vhd, vhd_int):
                     s = self.IntRepr(obj)
                 elif isinstance(node.vhd, vhd_boolean):
-                    s = "%s" % bool(obj) 
+                    s = "%s" % bool(obj)
                 elif isinstance(node.vhd, vhd_std_logic):
                     s = "'%s'" % int(obj)
                 elif isinstance(node.vhd, vhd_unsigned):
@@ -2257,10 +2256,3 @@ def _annotateTypes(genlist):
             continue
         v = _AnnotateTypesVisitor(tree)
         v.visit(tree)
-
-
-
-
-
-
-
