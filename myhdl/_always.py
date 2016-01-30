@@ -95,12 +95,7 @@ class _Always(_Instantiator):
                 W = _SignalTupleWaiter
             elif bt is _WaiterList:
                 W = _EdgeTupleWaiter
-
         return W
-
-    @property
-    def ast(self):
-        return _makeAST(self.func)
 
     def genfunc(self):
         senslist = self.senslist

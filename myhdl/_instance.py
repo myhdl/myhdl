@@ -74,4 +74,4 @@ class _Instantiator(object):
 
     @property
     def ast(self):
-        return _makeAST(self.gen.gi_frame)
+        return _makeAST(self.funcobj)
