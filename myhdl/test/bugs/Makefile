@@ -1,4 +1,4 @@
-all: vlog vcom 
+all: ghdl iverilog 
 
 
 vlog:
@@ -19,3 +19,6 @@ cver:
 
 clean:
 	- rm *.o *.out *.v *.vhd *.pyc *~ *.vcd* *.log *_ghdl
+
+gitclean:
+	git clean -dfx

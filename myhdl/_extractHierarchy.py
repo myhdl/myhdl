@@ -25,7 +25,6 @@ from __future__ import absolute_import
 
 import sys
 import inspect
-from inspect import currentframe, getframeinfo, getouterframes
 import re
 import string
 from types import GeneratorType
