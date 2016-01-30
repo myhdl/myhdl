@@ -93,7 +93,7 @@ class _TraceSignalsClass(object):
 
             if self.filename is None:
                 filename = self.name
-            else
+            else:
                 filename = self.filename
 
             h = _HierExtr(name, dut, *args, **kwargs)
