@@ -49,16 +49,14 @@ _error.InconsistentToplevel = "Inconsistent top level %s for %s - should be 1"
 
 
 class _Instance(object):
-    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name', 'func', 'argdict']
-    def __init__(self, level, obj, subs, sigdict, memdict, func, argdict):
+    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name']
+    def __init__(self, level, obj, subs, sigdict, memdict):
         self.level = level
         self.obj = obj
         self.subs = subs
         self.sigdict = sigdict
         self.memdict = memdict
-        self.func = func
-        self.argdict = argdict
-
+        self.name = None
 
 _memInfoMap = {}
 
@@ -307,11 +305,6 @@ class _HierExtr(object):
                 if isGenSeq and arg:
                     sigdict = {}
                     memdict = {}
-                    argdict = {}
-                    if func:
-                        arglist = inspect.getargspec(func).args
-                    else:
-                        arglist = []
                     symdict = frame.f_globals.copy()
                     symdict.update(frame.f_locals)
                     cellvars = []
@@ -345,9 +338,6 @@ class _HierExtr(object):
                             memdict[n] = m
                             if n in cellvars:
                                 m._used = True
-                        # save any other variable in argdict
-                        if (n in arglist) and (n not in sigdict) and (n not in memdict):
-                            argdict[n] = v
 
                     subs = []
                     for n, sub in frame.f_locals.items():
@@ -355,8 +345,7 @@ class _HierExtr(object):
                             if elt is sub:
                                 subs.append((n, sub))
 
-
-                    inst = _Instance(self.level, arg, subs, sigdict, memdict, func, argdict)
+                    inst = _Instance(self.level, arg, subs, sigdict, memdict)
                     self.hierarchy.append(inst)
 
                 self.level -= 1
