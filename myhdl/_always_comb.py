@@ -32,8 +32,6 @@ from myhdl._util import _isGenFunc, _dedent
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
 from myhdl._instance import _Instantiator
 from myhdl._always import _Always
-from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._visitors import _SigNameVisitor
 
 class _error:
     pass
@@ -91,20 +89,11 @@ class _AlwaysComb(_Always):
         senslist = []
         super(_AlwaysComb, self).__init__(func, senslist)
 
-        tree = self.ast
-        # print ast.dump(tree)
-        v = _AttrRefTransformer(self)
-        v.visit(tree)
-        v = _SigNameVisitor(self.symdict)
-        v.visit(tree)
-        self.inputs = v.inputs
-        self.outputs = v.outputs
-
-        inouts = v.inouts | self.inputs.intersection(self.outputs)
+        inouts = self.inouts | self.inputs.intersection(self.outputs)
         if inouts:
             raise AlwaysCombError(_error.SignalAsInout % inouts)
 
-        if v.embedded_func:
+        if self.embedded_func:
             raise AlwaysCombError(_error.EmbeddedFunction)
 
         for n in self.inputs:

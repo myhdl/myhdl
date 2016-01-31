@@ -26,6 +26,8 @@ from types import FunctionType
 from myhdl import InstanceError
 from myhdl._util import _isGenFunc, _makeAST
 from myhdl._Waiter import _inferWaiter
+from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._visitors import _SigNameVisitor
 
 class _error:
     pass
@@ -60,6 +62,17 @@ class _Instantiator(object):
             closure = (c.cell_contents for c in f.__closure__)
             symdict.update(zip(freevars, closure))
         self.symdict = symdict
+
+        tree = self.ast
+        # print ast.dump(tree)
+        v = _AttrRefTransformer(self)
+        v.visit(tree)
+        v = _SigNameVisitor(self.symdict)
+        v.visit(tree)
+        self.inputs = v.inputs
+        self.outputs = v.outputs
+        self.inouts = v.inouts
+        self.embedded_func = v.embedded_func
 
     @property
     def funcobj(self):

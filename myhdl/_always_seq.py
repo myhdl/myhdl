@@ -32,8 +32,6 @@ from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
 from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._always import _Always
-from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._visitors import _SigNameVisitor
 
 # evacuate this later
 AlwaysSeqError = AlwaysError
@@ -101,23 +99,15 @@ class _AlwaysSeq(_Always):
 
         super(_AlwaysSeq, self).__init__(func, senslist)
 
-        # now infer outputs to be reset
-        tree = self.ast
-        # print ast.dump(tree)
-        v = _AttrRefTransformer(self)
-        v.visit(tree)
-        v = _SigNameVisitor(self.symdict)
-        v.visit(tree)
-
-        if v.inouts:
+        if self.inouts:
             raise AlwaysSeqError(_error.SigAugAssign, v.inouts)
 
-        if v.embedded_func:
+        if self.embedded_func:
             raise AlwaysSeqError(_error.EmbeddedFunction)
 
         sigregs = self.sigregs = []
         varregs = self.varregs = []
-        for n in v.outputs:
+        for n in self.outputs:
             reg = self.symdict[n]
             if isinstance(reg, _Signal):
                 sigregs.append(reg)

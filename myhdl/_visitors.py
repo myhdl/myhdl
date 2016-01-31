@@ -1,6 +1,6 @@
 import ast
 
-from myhdl import intbv
+from myhdl._intbv import intbv
 from myhdl._Signal import _Signal, _isListOfSigs
 
 
