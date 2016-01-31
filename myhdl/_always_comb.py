@@ -99,14 +99,14 @@ class _AlwaysComb(_Always):
         v.visit(tree)
         v = _SigNameVisitor(self.symdict)
         v.visit(tree)
-        self.inputs = v.results['input']
-        self.outputs = v.results['output']
+        self.inputs = v.inputs
+        self.outputs = v.outputs
 
-        inouts = v.results['inout'] | self.inputs.intersection(self.outputs)
+        inouts = v.inouts | self.inputs.intersection(self.outputs)
         if inouts:
             raise AlwaysCombError(_error.SignalAsInout % inouts)
 
-        if v.results['embedded_func']:
+        if v.embedded_func:
             raise AlwaysCombError(_error.EmbeddedFunction)
 
         for n in self.inputs:
@@ -127,7 +127,3 @@ class _AlwaysComb(_Always):
         while 1:
             func()
             yield senslist
-
-
-
-

@@ -8,12 +8,10 @@ class _SigNameVisitor(ast.NodeVisitor):
     def __init__(self, symdict):
         self.toplevel = 1
         self.symdict = symdict
-        self.results = {
-            'input': set(),
-            'output': set(),
-            'inout': set(),
-            'embedded_func': set()
-        }
+        self.inputs = set()
+        self.outputs = set()
+        self.inouts = set()
+        self.embedded_func = None
         self.context = 'input'
 
     def visit_Module(self, node):
@@ -26,7 +24,7 @@ class _SigNameVisitor(ast.NodeVisitor):
             for n in node.body:
                 self.visit(n)
         else:
-            self.results['embedded_func'] = node.name
+            self.embedded_func = node.name
 
     def visit_If(self, node):
         if not node.orelse:
@@ -41,8 +39,12 @@ class _SigNameVisitor(ast.NodeVisitor):
             return
         s = self.symdict[id]
         if isinstance(s, (_Signal, intbv)) or _isListOfSigs(s):
-            if self.context in ('input', 'output', 'inout'):
-                self.results[self.context].add(id)
+            if self.context == 'input':
+                self.inputs.add(id)
+            elif self.context == 'output':
+                self.outputs.add(id)
+            elif self.context == 'inout':
+                self.inouts.add(id)
             else:
                 print(self.context)
                 raise AssertionError("bug in always_comb")

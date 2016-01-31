@@ -111,15 +111,15 @@ class _AlwaysSeq(_Always):
         v = _SigNameVisitor(self.symdict)
         v.visit(tree)
 
-        if v.results['inout']:
-            raise AlwaysSeqError(_error.SigAugAssign, v.results['inout'])
+        if v.inouts:
+            raise AlwaysSeqError(_error.SigAugAssign, v.inouts)
 
-        if v.results['embedded_func']:
+        if v.embedded_func:
             raise AlwaysSeqError(_error.EmbeddedFunction)
 
         sigregs = self.sigregs = []
         varregs = self.varregs = []
-        for n in v.results['output']:
+        for n in v.outputs:
             reg = self.symdict[n]
             if isinstance(reg, _Signal):
                 sigregs.append(reg)
