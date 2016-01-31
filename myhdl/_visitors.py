@@ -47,7 +47,7 @@ class _SigNameVisitor(ast.NodeVisitor):
                 self.inouts.add(id)
             else:
                 print(self.context)
-                raise AssertionError("bug in always_comb")
+                raise AssertionError("bug in _SigNameVisitor")
 
     def visit_Assign(self, node):
         self.context = 'output'
