@@ -17,8 +17,6 @@ class _SigNameVisitor(ast.NodeVisitor):
         self.context = 'input'
 
     def visit_Module(self, node):
-        inputs = self.results['input']
-        outputs = self.results['output']
         for n in node.body:
             self.visit(n)
 
@@ -68,12 +66,12 @@ class _SigNameVisitor(ast.NodeVisitor):
         else:
             self.generic_visit(node)
 
-    def visit_Subscript(self, node, access='input'):
+    def visit_Subscript(self, node):
         self.visit(node.value)
         self.context = 'input'
         self.visit(node.slice)
 
-    def visit_AugAssign(self, node, access='input'):
+    def visit_AugAssign(self, node):
         self.context = 'inout'
         self.visit(node.target)
         self.context = 'input'
