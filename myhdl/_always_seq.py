@@ -102,9 +102,7 @@ class _AlwaysSeq(_Always):
         super(_AlwaysSeq, self).__init__(func, senslist)
 
         # now infer outputs to be reset
-        s = inspect.getsource(func)
-        s = _dedent(s)
-        tree = ast.parse(s)
+        tree = self.ast
         # print ast.dump(tree)
         v = _AttrRefTransformer(self)
         v.visit(tree)

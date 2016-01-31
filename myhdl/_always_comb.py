@@ -91,9 +91,7 @@ class _AlwaysComb(_Always):
         senslist = []
         super(_AlwaysComb, self).__init__(func, senslist)
 
-        s = inspect.getsource(func)
-        s = _dedent(s)
-        tree = ast.parse(s)
+        tree = self.ast
         # print ast.dump(tree)
         v = _AttrRefTransformer(self)
         v.visit(tree)
