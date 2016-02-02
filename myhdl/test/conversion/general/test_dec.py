@@ -11,6 +11,7 @@ from myhdl.conversion import verify
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 
+@module
 def decRef(count, enable, clock, reset, n):
     """ Decrementer with enable.
     
@@ -35,6 +36,7 @@ def decRef(count, enable, clock, reset, n):
     return logic
                     
                 
+@module
 def dec(count, enable, clock, reset, n):
     """ Decrementer with enable.
     
@@ -59,6 +61,7 @@ def dec(count, enable, clock, reset, n):
     return decProcess
 
 
+@module
 def decFunc(count, enable, clock, reset, n):
 
     def decFuncFunc(cnt):
@@ -80,6 +83,7 @@ def decFunc(count, enable, clock, reset, n):
     return decFuncGen
 
 
+@module
 def decTask(count, enable, clock, reset, n):
     
     def decTaskFunc(cnt, enable, reset, n):
@@ -105,6 +109,7 @@ def decTask(count, enable, clock, reset, n):
     return decTaskGen
 
 
+@module
 def decTaskFreeVar(count, enable, clock, reset, n):
     
     def decTaskFunc():
@@ -127,7 +132,7 @@ def decTaskFreeVar(count, enable, clock, reset, n):
     return decTaskGen
 
 
-
+@module
 def DecBench(dec):
     
     m = 8
@@ -179,16 +184,16 @@ def DecBench(dec):
 
 
 def testDecRef():
-    assert verify(DecBench, decRef) == 0
+    assert verify(DecBench(decRef)) == 0
     
 def testDec():
-    assert verify(DecBench, dec) == 0
+    assert verify(DecBench(dec)) == 0
     
 def testDecFunc():
-    assert verify(DecBench, decFunc) == 0
+    assert verify(DecBench(decFunc)) == 0
     
 def testDecTask():
-    assert verify(DecBench, decTask) == 0
+    assert verify(DecBench(decTask)) == 0
 
     
     

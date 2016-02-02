@@ -12,7 +12,7 @@ import myhdl
 from myhdl._Simulation import Simulation
 from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
-from myhdl._module import _ModuleInstance
+from myhdl._module import _Module, _ModuleInstance
 
 _version = myhdl.__version__.replace('.','')
 # strip 'dev' for version
@@ -138,6 +138,8 @@ class  _VerificationClass(object):
             else:
                 inst = toVerilog(func)
         else:
+            if isinstance(func, _Module):
+                raise TypeError("Module %s: conversion should on an instance" % func.__name__)
             if hdl == "VHDL":
                 inst = toVHDL(func, *args, **kwargs)
             else:
