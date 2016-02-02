@@ -9,6 +9,7 @@ D = 256
 
 ROM = tuple([randrange(D) for i in range(D)])
 
+@module
 def rom1(dout, addr, clk):
 
     @instance
@@ -19,6 +20,7 @@ def rom1(dout, addr, clk):
 
     return rdLogic
 
+@module
 def rom2(dout, addr, clk):
     
     theROM = ROM
@@ -31,7 +33,7 @@ def rom2(dout, addr, clk):
 
     return rdLogic
 
-
+@module
 def rom3(dout, addr, clk):
 
 
@@ -45,7 +47,7 @@ def rom3(dout, addr, clk):
 
     return rdLogic
 
-
+@module
 def rom4(dout, addr, clk):
 
     @always_comb
@@ -55,7 +57,7 @@ def rom4(dout, addr, clk):
     return read
 
       
-
+@module
 def RomBench(rom):
 
     dout = Signal(intbv(0)[8:])
@@ -86,16 +88,16 @@ def RomBench(rom):
     return clkgen, stimulus, rom_inst
 
 def test1():
-    assert conversion.verify(RomBench, rom1) == 0
+    assert conversion.verify(RomBench(rom1)) == 0
     
 def test2():
-    assert conversion.verify(RomBench, rom2) == 0
+    assert conversion.verify(RomBench(rom2)) == 0
     
 def test3():
-    assert conversion.verify(RomBench, rom3) == 0
+    assert conversion.verify(RomBench(rom3)) == 0
     
 def test4():
-    assert conversion.verify(RomBench, rom4) == 0
+    assert conversion.verify(RomBench(rom4)) == 0
 
         
         

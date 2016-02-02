@@ -31,8 +31,8 @@ class _SigNameVisitor(ast.NodeVisitor):
     def visit_If(self, node):
         if not node.orelse:
             if isinstance(node.test, ast.Name) and \
-               node.test.id == '__debug__':
-                return  # skip
+                node.test.id == '__debug__':
+                return # skip
         self.generic_visit(node)
 
     def visit_Name(self, node):
@@ -47,6 +47,8 @@ class _SigNameVisitor(ast.NodeVisitor):
                 self.outputs.add(n)
             elif self.context == 'inout':
                 self.inouts.add(n)
+            elif self.context == 'pass':
+                pass
             else:
                 print(self.context)
                 raise AssertionError("bug in _SigNameVisitor")
@@ -92,4 +94,6 @@ class _SigNameVisitor(ast.NodeVisitor):
         pass # skip
 
     def visit_Print(self, node):
-        pass # skip
+        self.context = 'pass'
+        self.generic_visit(node)
+        self.context == 'input'
