@@ -139,7 +139,7 @@ class  _VerificationClass(object):
                 inst = toVerilog(func)
         else:
             if isinstance(func, _Module):
-                raise TypeError("Module %s: conversion should on an instance" % func.__name__)
+                raise TypeError("Module %s: conversion should be on an instance" % func.__name__)
             if hdl == "VHDL":
                 inst = toVHDL(func, *args, **kwargs)
             else:
