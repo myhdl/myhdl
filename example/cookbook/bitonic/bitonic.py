@@ -1,3 +1,5 @@
+import subprocess
+
 from myhdl import *
 from myhdl.conversion import analyze
 
@@ -71,12 +73,15 @@ def Array8Sorter(a0, a1, a2, a3, a4, a5, a6, a7,
 def Array8Sorter_v(a0, a1, a2, a3, a4, a5, a6, a7,
                    z0, z1, z2, z3, z4, z5, z6, z7):
     
+    analyze.simulator = 'iverilog'
     toVerilog(Array8Sorter, a0, a1, a2, a3, a4, a5, a6, a7,
                             z0, z1, z2, z3, z4, z5, z6, z7)
     analyze(Array8Sorter, a0, a1, a2, a3, a4, a5, a6, a7,
                          z0, z1, z2, z3, z4, z5, z6, z7)
-    cmd = "cver -q +loadvpi=../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap " + \
-          "Array8Sorter.v tb_Array8Sorter.v"
+    # cmd = "cver -q +loadvpi=../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap " + \
+    #      "Array8Sorter.v tb_Array8Sorter.v"
+    subprocess.call("iverilog -o Array8Sorter.o Array8Sorter.v tb_Array8Sorter.v", shell=True)
+    cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi Array8Sorter.o"
     return Cosimulation(cmd, **locals())
 
 

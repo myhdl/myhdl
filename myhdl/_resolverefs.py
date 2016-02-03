@@ -44,12 +44,16 @@ class _AttrRefTransformer(ast.NodeTransformer):
         if node.attr in reserved:
             return node
 
-        #Don't handle subscripts for now.
+        # Don't handle subscripts for now.
         if not isinstance(node.value, ast.Name):
             return node
 
+        # Don't handle locals
+        if node.value.id not in self.data.symdict:
+            return node
+
         obj = self.data.symdict[node.value.id]
-        #Don't handle enums and functions, handle signals as long as it is a new attribute
+        # Don't handle enums and functions, handle signals as long as it is a new attribute
         if isinstance(obj, (EnumType, FunctionType)):
             return node
         elif isinstance(obj, SignalType):
