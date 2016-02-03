@@ -52,7 +52,7 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
 from myhdl._Signal import _Signal
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
-from myhdl._module import _ModuleInstance
+from myhdl._module import _Module, _ModuleInstance
 from myhdl._getHierarchy import _getHierarchy
 
 _converting = 0
@@ -143,6 +143,8 @@ class _ToVerilogConvertor(object):
             finally:
                 _converting = 0
         else:
+            if isinstance(func, _Module):
+                raise TypeError("Module %s: conversion should be on an instance" % func.__name__)
             try:
                 h = _HierExtr(name, func, *args, **kwargs)
             finally:

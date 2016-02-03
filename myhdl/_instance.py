@@ -51,7 +51,6 @@ def _getCallInfo():
     modctxt = False
     f_locals = inspect.stack()[3][0].f_locals
     if 'self' in f_locals:
-        print f_locals['self'].__class__
         modctxt = isinstance(f_locals['self'], _module._ModuleInstance)
     return modname, modctxt
 

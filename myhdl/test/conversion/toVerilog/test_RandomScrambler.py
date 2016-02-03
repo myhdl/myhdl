@@ -16,6 +16,7 @@ N = 8
 M = 2 ** N
 DEPTH = 5
         
+@module
 def XorGate(z, a, b, c):
     @instance
     def logic():
@@ -30,7 +31,7 @@ def randOthers(i, n):
     random.shuffle(l)
     return l[0], l[1]
 
-
+@module
 def RandomScramblerModule(ol, il, stage=0):
     """ Recursive hierarchy of random xor gates.
 
@@ -58,7 +59,7 @@ def RandomScramblerModule(ol, il, stage=0):
             i1[i] = XorGate(ol[i], il[i], il[j], il[k])
         return i1
     
-
+@module
 def RandomScrambler(o7, o6, o5, o4, o3, o2, o1, o0,
                     i7, i6, i5, i4, i3, i2, i1, i0):
     sl1 = [i7, i6, i5, i4, i3, i2, i1, i0]
@@ -119,10 +120,10 @@ class TestRandomScrambler(TestCase):
 
             
     def test(self):
-        rs = toVerilog(RandomScrambler, 
+        rs = toVerilog(RandomScrambler( 
                        o7, o6, o5, o4, o3, o2, o1, o0,
                        i7, i6, i5, i4, i3, i2, i1, i0
-                       )
+                       ))
         # time.sleep(1)
         rs_v = RandomScrambler_v(RandomScrambler.__name__,
                                  v7, v6, v5, v4, v3, v2, v1, v0,

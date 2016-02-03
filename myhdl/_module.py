@@ -77,9 +77,6 @@ class _ModuleInstance(object):
             if isinstance(inst, _Instantiator):
                 self.sigdict.update(inst.sigdict)
                 losdict.update(inst.losdict)
-            else:
-                # reset instantiation counter
-                self.mod.count = 0
         # compatibility patches from _extractHierarchy
         for s in self.sigdict.values():
             s._markUsed()

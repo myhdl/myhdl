@@ -89,9 +89,9 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         if delta > -1: # same or higher level
             prefixes = prefixes[:curlevel-1]
         # skip processing and prefixing in context without signals
-        if not (sigdict or memdict):
-            prefixes.append("")
-            continue
+        #if not (sigdict or memdict):
+        #    prefixes.append("")
+        #    continue
         prefixes.append(name)
         for n, s in sigdict.items():
             if s._name is not None:
