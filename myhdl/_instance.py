@@ -40,7 +40,7 @@ def _getCallInfo():
 
     For hierarchy extraction, instantator decorators should only be used
     within a module context. This function is hack to get info to check
-    that. It uses theframe stack:
+    that. It uses the frame stack:
     0: this function
     1: the instantiator decorator
     2: the module function that defines instances
@@ -86,6 +86,7 @@ class _Instantiator(object):
             symdict.update(zip(freevars, closure))
         self.symdict = symdict
 
+        print modname, genfunc.__name__
         tree = self.ast
         # print ast.dump(tree)
         v = _AttrRefTransformer(self)
