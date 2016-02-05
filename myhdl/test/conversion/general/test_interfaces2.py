@@ -11,6 +11,7 @@ class Intf(object):
         self.y = Signal(intbv(2,min=-2211,max=2211))
         self.z = Signal(intbv(3,min=-3311,max=3311))
 
+@module
 def m_modify(clock,reset,a):
 
     intfa = Intf()
@@ -29,6 +30,7 @@ def m_modify(clock,reset,a):
 
     return rtl_inc,rtl_add
 
+@module
 def m_test_intf(clock,reset,a,b,c):
 
     intfa = Intf()
@@ -59,6 +61,7 @@ def m_test_intf(clock,reset,a,b,c):
     return gen_mod,rtl_inc,rtl_combine
 
 
+@module
 def name_conflict_after_replace(clock, reset, a, a_x):
     a_x_0 = [Signal(intbv(0)[len(a_x):]) for i in range(8)]
 
@@ -75,9 +78,9 @@ def test_name_conflict_after_replace():
     reset = ResetSignal(0, active=0, async=False)
     a = Intf()
     a_x = Signal(intbv(0)[len(a.x):])
-    assert conversion.analyze(name_conflict_after_replace, clock, reset, a, a_x) == 0
+    assert conversion.analyze(name_conflict_after_replace(clock, reset, a, a_x)) == 0
 
-
+@module
 def c_testbench():
     clock = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=False)
@@ -113,10 +116,10 @@ def test_name_conflicts_analyze():
     clock = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=False)
     a,b,c = (Intf(),Intf(),Intf(),)
-    analyze(m_test_intf,clock,reset,a,b,c)
+    analyze(m_test_intf(clock,reset,a,b,c))
 
 def test_name_conflicts_verify():
-    assert verify(c_testbench) == 0
+    assert verify(c_testbench()) == 0
 
 if __name__ == '__main__':
     verify.simulator = analyze.simulator = sys.argv[1]

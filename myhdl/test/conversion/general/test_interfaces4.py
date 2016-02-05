@@ -30,7 +30,7 @@ class Intf2(object):
         self.sig3 = Signal(modbv(0)[8:])
         self.intf = Intf1()
 
-
+@module
 def mod1(clock, reset, intf1, intf2):
     
     sig1 = Signal(bool(0))
@@ -51,6 +51,7 @@ def mod1(clock, reset, intf1, intf2):
     return proc
 
 
+@module
 def mod2(clock, reset, intf1, intf2):
     @always_seq(clock.posedge, reset)
     def proc():
@@ -67,6 +68,7 @@ def mod2(clock, reset, intf1, intf2):
     return proc
 
 
+@module
 def m_top(clock, reset, sdi, sdo):
     
     intf1 = Intf1()
@@ -86,6 +88,7 @@ def m_top(clock, reset, sdi, sdo):
     return g1, g2, assigns
 
 
+@module
 def c_testbench_one():
     """ yet another interface test.
     This test is used to expose a particular bug that was discovered
@@ -144,16 +147,16 @@ def test_one_analyze():
     reset = ResetSignal(0, active=1, async=False)
     sdi = Signal(bool(0))
     sdo = Signal(bool(0))
-    analyze(m_top, clock, reset, sdi, sdo)
+    analyze(m_top(clock, reset, sdi, sdo))
 
 
 def test_one_verify():
-    assert verify(c_testbench_one) == 0
+    assert verify(c_testbench_one()) == 0
 
 
 def test_conversion():
-    toVerilog(c_testbench_one)
-    toVHDL(c_testbench_one)
+    toVerilog(c_testbench_one())
+    toVHDL(c_testbench_one())
 
 
 if __name__ == '__main__':
