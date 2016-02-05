@@ -52,6 +52,8 @@ class _Module(object):
 class _ModuleInstance(object):
 
     def __init__(self, mod, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
         self.mod = mod
         self.sigdict = {}
         self.memdict = {}
@@ -59,7 +61,7 @@ class _ModuleInstance(object):
         self.subs = _flatten(mod.modfunc(*args, **kwargs))
         self.verifyMod()
         self.updateMod()
-        self.inferInterface(*args, **kwargs)
+        # self.inferInterface(*args, **kwargs)
         self.name = self.__name__ = mod.__name__ + '_' + str(mod.count)
 
     def verifyMod(self):
@@ -85,8 +87,8 @@ class _ModuleInstance(object):
             self.memdict[n] = m
             m._used = True
 
-    def inferInterface(self, *args, **kwargs):
+    def inferInterface(self):
         from myhdl.conversion._analyze import _analyzeTopFunc
-        intf = _analyzeTopFunc(self.mod.modfunc, *args, **kwargs)
+        intf = _analyzeTopFunc(self.mod.modfunc, *self.args, **self.kwargs)
         self.argnames = intf.argnames
         self.argdict = intf.argdict

@@ -185,7 +185,9 @@ class _ToVHDLConvertor(object):
 
         ### infer interface
         if isinstance(func, _ModuleInstance):
-            intf = func # already inferred
+            # infer interface after signals have been analyzed
+            func.inferInterface()
+            intf = func
         else:
             intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name

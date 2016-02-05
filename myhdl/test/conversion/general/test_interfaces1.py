@@ -12,6 +12,7 @@ class MyIntf(object):
         self.x = Signal(intbv(2,min=0,max=16))
         self.y = Signal(intbv(3,min=0,max=18))
 
+@module
 def m_one_level(clock,reset,ia,ib):
 
     @always_seq(clock.posedge,reset=reset)
@@ -21,6 +22,7 @@ def m_one_level(clock,reset,ia,ib):
 
     return rtl
 
+@module
 def m_two_level(clock,reset,ia,ib):
 
     ic,ie = (MyIntf(),MyIntf(),)
@@ -32,6 +34,7 @@ def m_two_level(clock,reset,ia,ib):
 
     return g_one, rtl
 
+@module
 def c_testbench_one():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
@@ -63,6 +66,7 @@ def c_testbench_one():
 
     return tb_dut, tb_clk, tb_stim
 
+@module
 def c_testbench_two():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
@@ -99,20 +103,20 @@ def test_one_level_analyze():
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
     ib = MyIntf()
-    analyze(m_one_level,clock,reset,ia,ib)
+    analyze(m_one_level(clock,reset,ia,ib))
 
 def test_one_level_verify():
-    assert verify(c_testbench_one) == 0
+    assert verify(c_testbench_one()) == 0
 
 def test_two_level_analyze():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
     ib = MyIntf()
-    analyze(m_two_level,clock,reset,ia,ib)
+    analyze(m_two_level(clock,reset,ia,ib))
 
 def test_two_level_verify():
-    assert verify(c_testbench_two) == 0
+    assert verify(c_testbench_two()) == 0
 
 
 if __name__ == '__main__':

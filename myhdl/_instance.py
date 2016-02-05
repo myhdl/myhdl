@@ -86,7 +86,7 @@ class _Instantiator(object):
             symdict.update(zip(freevars, closure))
         self.symdict = symdict
 
-        print modname, genfunc.__name__
+        # print modname, genfunc.__name__
         tree = self.ast
         # print ast.dump(tree)
         v = _AttrRefTransformer(self)
