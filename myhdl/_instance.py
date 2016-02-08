@@ -36,9 +36,10 @@ _error.NrOfArgs = "decorated generator function should not have arguments"
 _error.ArgType = "decorated object should be a generator function"
 
 class _CallInfo(object):
-    def __init__(self, name, modctxt):
+    def __init__(self, name, modctxt, symdict):
         self.name = name
         self.modctxt = modctxt
+        self.symdict = symdict
 
 
 def _getCallInfo():
@@ -54,11 +55,14 @@ def _getCallInfo():
     """
     from myhdl import _module
     name = inspect.stack()[2][3]
+    frame = inspect.stack()[2][0]
+    symdict = dict(frame.f_globals)
+    symdict.update(frame.f_locals)
     modctxt = False
     f_locals = inspect.stack()[3][0].f_locals
     if 'self' in f_locals:
         modctxt = isinstance(f_locals['self'], _module._ModuleInstance)
-    return _CallInfo(name, modctxt)
+    return _CallInfo(name, modctxt, symdict)
 
 
 def instance(genfunc):
@@ -82,14 +86,9 @@ class _Instantiator(object):
         f = self.funcobj
         varnames = f.__code__.co_varnames
         symdict = {}
-        for n, v in f.__globals__.items():
+        for n, v in callinfo.symdict.items():
             if n not in varnames:
                 symdict[n] = v
-        # handle free variables
-        freevars = f.__code__.co_freevars
-        if freevars:
-            closure = (c.cell_contents for c in f.__closure__)
-            symdict.update(zip(freevars, closure))
         self.symdict = symdict
 
         # print modname, genfunc.__name__

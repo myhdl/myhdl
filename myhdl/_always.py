@@ -39,7 +39,7 @@ _error.ArgType = "decorated object should be a classic (non-generator) function"
 _error.NrOfArgs = "decorated function should not have arguments"
 _error.DecNrOfArgs = "decorator should have arguments"
 
-def _getSigdict(sigs):
+def _getSigdict(sigs, symdict):
     """Lookup signals in caller namespace and return sigdict
 
     Lookup signals in then namespace of a caller. This is used to add
@@ -49,9 +49,6 @@ def _getSigdict(sigs):
     2: the module function that defines instances
     """
 
-    frame = inspect.stack()[2][0]
-    symdict = dict(frame.f_globals)
-    symdict.update(frame.f_locals)
     sigdict = {}
     for n, v in symdict.items():
         for s in sigs:
@@ -73,7 +70,7 @@ def always(*args):
             sigargs.append(arg.sig)
         elif not isinstance(arg, delay):
             raise AlwaysError(_error.DecArgType)
-    sigdict = _getSigdict(sigargs)
+    sigdict = _getSigdict(sigargs, callinfo.symdict)
     def _always_decorator(func):
         if not isinstance(func, FunctionType):
             raise AlwaysError(_error.ArgType)

@@ -71,7 +71,7 @@ def always_seq(edge, reset):
         reset._read = True
         reset._used = True
         sigargs.append(reset)
-    sigdict = _getSigdict(sigargs)
+    sigdict = _getSigdict(sigargs, callinfo.symdict)
 
     def _always_seq_decorator(func):
         if not isinstance(func, FunctionType):
