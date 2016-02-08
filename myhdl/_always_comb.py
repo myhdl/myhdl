@@ -43,22 +43,22 @@ _error.EmbeddedFunction = "embedded functions in always_comb function argument n
 _error.EmptySensitivityList= "sensitivity list is empty"
 
 def always_comb(func):
-    modname, modctxt = _getCallInfo()
+    callinfo = _getCallInfo()
     if not isinstance( func, FunctionType):
         raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
         raise AlwaysCombError(_error.ArgType)
     if func.__code__.co_argcount > 0:
         raise AlwaysCombError(_error.NrOfArgs)
-    c = _AlwaysComb(func, modname=modname, modctxt=modctxt)
+    c = _AlwaysComb(func, callinfo=callinfo)
     return c
 
 
 class _AlwaysComb(_Always):
 
-    def __init__(self, func, modname, modctxt):
+    def __init__(self, func, callinfo):
         senslist = []
-        super(_AlwaysComb, self).__init__(func, senslist, modname=modname, modctxt=modctxt)
+        super(_AlwaysComb, self).__init__(func, senslist, callinfo=callinfo)
 
         inouts = self.inouts | self.inputs.intersection(self.outputs)
         if inouts:

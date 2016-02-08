@@ -60,7 +60,7 @@ def _getSigdict(sigs):
     return sigdict
 
 def always(*args):
-    modname, modctxt = _getCallInfo()
+    callinfo = _getCallInfo()
     sigargs = []
     for arg in args:
         if isinstance(arg, _Signal):
@@ -81,16 +81,16 @@ def always(*args):
             raise AlwaysError(_error.ArgType)
         if func.__code__.co_argcount > 0:
             raise AlwaysError(_error.NrOfArgs)
-        return _Always(func, args, modname=modname, modctxt=modctxt, sigdict=sigdict)
+        return _Always(func, args, callinfo=callinfo, sigdict=sigdict)
     return _always_decorator
 
 
 class _Always(_Instantiator):
 
-    def __init__(self, func, senslist, modname, modctxt, sigdict=None):
+    def __init__(self, func, senslist, callinfo, sigdict=None):
         self.func = func
         self.senslist = tuple(senslist)
-        super(_Always, self).__init__(self.genfunc, modname=modname, modctxt=modctxt)
+        super(_Always, self).__init__(self.genfunc, callinfo=callinfo)
         # update sigdict with decorator signal arguments
         if sigdict is not None:
             self.sigdict.update(sigdict)

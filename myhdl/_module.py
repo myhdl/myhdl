@@ -34,6 +34,31 @@ class _error:
 _error.ArgType = "A module should return module or instantiator objects"
 _error.InstanceError = "%s: submodule %s should be encapsulated in a module decorator"
 
+class _CallInfo(object):
+    def __init__(self, name, modctxt):
+        self.name = name
+        self.modctxt = modctxt
+
+def _getCallInfo():
+    """Get info on the caller of a module instance.
+
+    For hierarchy extraction, a module instance should only be used
+    within a module context. This function gets info from the caller
+    to be able to check that. It uses the frame stack:
+    0: this function
+    1: module instance constructor
+    2: the _Module class __call__()
+    3: the function that defines instances
+    4: the caller of the module function, e.g. a ModuleInstance.
+    """
+    name = inspect.stack()[3][3]
+    modctxt = False
+    f_locals = inspect.stack()[4][0].f_locals
+    if 'self' in f_locals:
+        modctxt = isinstance(f_locals['self'], _ModuleInstance)
+    return _CallInfo(name, modctxt)
+
+
 def module(modfunc):
     return _Module(modfunc)
 
@@ -55,6 +80,10 @@ class _ModuleInstance(object):
         self.args = args
         self.kwargs = kwargs
         self.mod = mod
+        callinfo = _getCallInfo()
+        self.modctxt = callinfo.modctxt
+        # this is the name of the instance caller
+        self.callername = callinfo.name
         self.sigdict = {}
         self.memdict = {}
         # flatten, but keep ModuleInstance objects
@@ -69,9 +98,8 @@ class _ModuleInstance(object):
             # print (inst.name, type(inst))
             if not isinstance(inst, (_ModuleInstance, _Instantiator)):
                 raise ModuleError(_error.ArgType)
-            if isinstance(inst, _Instantiator):
-                if not inst.modctxt:
-                    raise ModuleError(_error.InstanceError % (self.mod.name, inst.modname))
+            if not inst.modctxt:
+                raise ModuleError(_error.InstanceError % (self.mod.name, inst.callername))
 
     def updateMod(self):
         losdict = {}

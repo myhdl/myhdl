@@ -35,41 +35,47 @@ class _error:
 _error.NrOfArgs = "decorated generator function should not have arguments"
 _error.ArgType = "decorated object should be a generator function"
 
-def _getCallInfo():
-    """Get info of the callers of e.g. an instantiator decorator.
+class _CallInfo(object):
+    def __init__(self, name, modctxt):
+        self.name = name
+        self.modctxt = modctxt
 
-    For hierarchy extraction, instantator decorators should only be used
-    within a module context. This function is hack to get info to check
-    that. It uses the frame stack:
+
+def _getCallInfo():
+    """Get info on the caller of an instantiator decorator.
+
+    For hierarchy extraction, instantiator decorators should only be used
+    within a module context. This function is gets info about the caller
+    to be able to check that that. It uses the frame stack:
     0: this function
     1: the instantiator decorator
     2: the module function that defines instances
-    3: the caller of the module function, e.g. the ModuleInstance class.
+    3: the caller of the module function, e.g. the ModuleInstance.
     """
     from myhdl import _module
-    modname = inspect.stack()[2][3]
+    name = inspect.stack()[2][3]
     modctxt = False
     f_locals = inspect.stack()[3][0].f_locals
     if 'self' in f_locals:
         modctxt = isinstance(f_locals['self'], _module._ModuleInstance)
-    return modname, modctxt
+    return _CallInfo(name, modctxt)
 
 
 def instance(genfunc):
-    modname, modctxt = _getCallInfo()
+    callinfo = _getCallInfo()
     if not isinstance(genfunc, FunctionType):
         raise InstanceError(_error.ArgType)
     if not _isGenFunc(genfunc):
         raise InstanceError(_error.ArgType)
     if genfunc.__code__.co_argcount > 0:
         raise InstanceError(_error.NrOfArgs)
-    return _Instantiator(genfunc, modname=modname, modctxt=modctxt)
+    return _Instantiator(genfunc, callinfo=callinfo)
 
 class _Instantiator(object):
 
-    def __init__(self, genfunc, modname, modctxt):
-        self.modname = modname
-        self.modctxt = modctxt
+    def __init__(self, genfunc, callinfo):
+        self.callername = callinfo.name
+        self.modctxt = callinfo.modctxt
         self.genfunc = genfunc
         self.gen = genfunc()
         # infer symdict

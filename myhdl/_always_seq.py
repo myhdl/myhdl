@@ -58,7 +58,7 @@ class ResetSignal(_Signal):
         self.async = async
 
 def always_seq(edge, reset):
-    modname, modctxt = _getCallInfo()
+    callinfo = _getCallInfo()
     sigargs = []
     if not isinstance(edge, _WaiterList):
         raise AlwaysSeqError(_error.EdgeType)
@@ -80,13 +80,13 @@ def always_seq(edge, reset):
             raise AlwaysSeqError(_error.ArgType)
         if func.__code__.co_argcount > 0:
             raise AlwaysSeqError(_error.NrOfArgs)
-        return _AlwaysSeq(func, edge, reset, modname=modname, modctxt=modctxt, sigdict=sigdict)
+        return _AlwaysSeq(func, edge, reset, callinfo=callinfo, sigdict=sigdict)
     return _always_seq_decorator
 
 
 class _AlwaysSeq(_Always):
 
-    def __init__(self, func, edge, reset, modname, modctxt, sigdict):
+    def __init__(self, func, edge, reset, callinfo, sigdict):
         senslist = [edge]
         self.reset = reset
         if reset is not None:
@@ -102,7 +102,7 @@ class _AlwaysSeq(_Always):
             self.genfunc = self.genfunc_no_reset
 
         super(_AlwaysSeq, self).__init__(
-            func, senslist, modname=modname, modctxt=modctxt, sigdict=sigdict)
+            func, senslist, callinfo=callinfo, sigdict=sigdict)
 
         if self.inouts:
             raise AlwaysSeqError(_error.SigAugAssign, v.inouts)
