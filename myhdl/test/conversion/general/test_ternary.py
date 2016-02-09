@@ -5,6 +5,7 @@ import unittest
 
 from myhdl import *
 
+@module
 def ternary1(dout, clk, rst):
 
     @always(clk.posedge, rst.negedge)
@@ -17,6 +18,7 @@ def ternary1(dout, clk, rst):
     return logic
 
 
+@module
 def ternary2(dout, clk, rst):
 
     dout_d = Signal(intbv(0)[len(dout):])
@@ -34,6 +36,7 @@ def ternary2(dout, clk, rst):
 
     return logic, comb
 
+@module
 def TernaryBench(ternary):
 
     dout = Signal(intbv(0)[8:])
@@ -68,9 +71,9 @@ def TernaryBench(ternary):
 # uncomment when we have a VHDL-2008 compliant simulator
 def test_ternary1():
     toVHDL.name = 'ternary1'
-    assert conversion.verify(TernaryBench, ternary1) == 0
+    assert conversion.verify(TernaryBench(ternary1)) == 0
 
 def test_ternary2():
     toVHDL.name = 'ternary2'
-    assert conversion.verify(TernaryBench, ternary2) == 0
+    assert conversion.verify(TernaryBench(ternary2)) == 0
 
