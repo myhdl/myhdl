@@ -4,6 +4,7 @@ from random import randrange
 from myhdl import *
 
 
+@module
 def NumassBench():
 
     p = Signal(intbv(1)[8:])
@@ -50,4 +51,4 @@ def NumassBench():
 
 
 def test_numass():
-    assert conversion.verify(NumassBench) == 0
+    assert conversion.verify(NumassBench()) == 0
