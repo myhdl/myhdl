@@ -5,6 +5,7 @@ from myhdl.conversion._misc import _error
 from myhdl.conversion import verify
 
 
+@module
 def sigAugmAssignUnsupported(z, a):
     @always(a)
     def logic():
@@ -15,12 +16,13 @@ def test_SigAugmAssignUnsupported():
     z = Signal(intbv(0)[8:])
     a = Signal(intbv(0)[8:])
     try:
-        verify(sigAugmAssignUnsupported, z, a)
+        verify(sigAugmAssignUnsupported(z, a))
     except ConversionError as e:
         assert e.kind == _error.NotSupported
     else:
         assert False
         
+@module
 def modbvRange(z, a, b):
     @always(a, b)
     def logic():
@@ -34,12 +36,13 @@ def test_modbvRange():
     a = Signal(intbv(0)[4:])
     b = Signal(intbv(0)[4:])
     try:
-        verify(modbvRange, z, a, b)
+        verify(modbvRange(z, a, b))
     except ConversionError as e:
         assert e.kind == _error.ModbvRange
     else:
         assert False
         
+@module
 def modbvSigRange(z, a, b):
     @always(a, b)
     def logic():
@@ -51,7 +54,7 @@ def test_modbvSigRange():
     a = Signal(intbv(0)[4:])
     b = Signal(intbv(0)[4:])
     try:
-        verify(modbvSigRange, z, a, b)
+        verify(modbvSigRange(z, a, b))
     except ConversionError as e:
         assert e.kind == _error.ModbvRange
     else:
