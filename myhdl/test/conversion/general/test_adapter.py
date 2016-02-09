@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from myhdl import *
 
+@module
 def adapter(o_err, i_err, o_spec, i_spec):
 
     nomatch = Signal(bool(0))
@@ -34,6 +35,7 @@ def adapter(o_err, i_err, o_spec, i_spec):
     return assign
 
 
+@module
 def bench_adapter(conv=False):
     o_spec = ('c', 'a', 'other', 'nomatch')
     i_spec = { 'a' : 1, 'b' : 2, 'c' : 0, 'd' : 3, 'e' : 4, 'f' : 5, }
@@ -42,7 +44,7 @@ def bench_adapter(conv=False):
     i_err = Signal(intbv(0)[6:])
     
     if conv:
-        dut = conv(adapter, o_err, i_err, o_spec, i_spec)
+        dut = conv(adapter(o_err, i_err, o_spec, i_spec))
     else:
         dut = adapter(o_err, i_err, o_spec, i_spec)
 
@@ -61,7 +63,7 @@ def bench_adapter(conv=False):
     return dut, stimulus
 
 def test_adapter():
-    assert conversion.verify(bench_adapter) == 0
+    assert conversion.verify(bench_adapter()) == 0
 
 
 bench_adapter(toVerilog)
