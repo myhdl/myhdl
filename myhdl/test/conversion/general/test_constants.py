@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from myhdl import *
 
+@module
 def constants(v, u, x, y, z, a):
 
     b = Signal(bool(0))
@@ -24,5 +25,5 @@ u = Signal(intbv(0)[8:])
 v = Signal(intbv(0, min=-3, max=9))
 
 def test_constants():
-    assert conversion.analyze(constants, v, u, x, y, z, a) == 0 
+    assert conversion.analyze(constants(v, u, x, y, z, a)) == 0 
         
