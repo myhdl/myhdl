@@ -43,23 +43,25 @@ class _CallInfo(object):
 
 
 def _getCallInfo():
-    """Get info on the caller of an instantiator decorator.
+    """Get info on the caller of an Instantiator.
 
-    For hierarchy extraction, instantiator decorators should only be used
-    within a module context. This function is gets info about the caller
-    to be able to check that that. It uses the frame stack:
+    An Instantiator should be used in a module context.
+    This function gets the required info about the caller.
+    It uses the frame stack:
     0: this function
     1: the instantiator decorator
     2: the module function that defines instances
     3: the caller of the module function, e.g. the ModuleInstance.
     """
     from myhdl import _module
-    name = inspect.stack()[2][3]
-    frame = inspect.stack()[2][0]
+    funcrec = inspect.stack()[2]
+    name = funcrec[3]
+    frame = funcrec[0]
     symdict = dict(frame.f_globals)
     symdict.update(frame.f_locals)
     modctxt = False
-    f_locals = inspect.stack()[3][0].f_locals
+    callerrec = inspect.stack()[3]
+    f_locals = callerrec[0].f_locals
     if 'self' in f_locals:
         modctxt = isinstance(f_locals['self'], _module._ModuleInstance)
     return _CallInfo(name, modctxt, symdict)
@@ -78,6 +80,7 @@ def instance(genfunc):
 class _Instantiator(object):
 
     def __init__(self, genfunc, callinfo):
+        self.callinfo = callinfo
         self.callername = callinfo.name
         self.modctxt = callinfo.modctxt
         self.genfunc = genfunc

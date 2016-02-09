@@ -27,6 +27,7 @@ from myhdl import ModuleError
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
 from myhdl._extractHierarchy import _MemInfo, _makeMemInfo
+from myhdl._Signal import _Signal, _isListOfSigs
 
 
 class _error:
@@ -35,28 +36,35 @@ _error.ArgType = "A module should return module or instantiator objects"
 _error.InstanceError = "%s: submodule %s should be encapsulated in a module decorator"
 
 class _CallInfo(object):
-    def __init__(self, name, modctxt):
+    def __init__(self, name, modctxt, symdict):
         self.name = name
         self.modctxt = modctxt
+        self.symdict = symdict
 
 def _getCallInfo():
-    """Get info on the caller of a module instance.
+    """Get info on the caller of a ModuleInstance.
 
-    For hierarchy extraction, a module instance should only be used
-    within a module context. This function gets info from the caller
-    to be able to check that. It uses the frame stack:
+    A ModuleInstance should be used in a module context.
+    This function gets the required info from the caller
+    It uses the frame stack:
     0: this function
     1: module instance constructor
     2: the _Module class __call__()
     3: the function that defines instances
     4: the caller of the module function, e.g. a ModuleInstance.
     """
-    name = inspect.stack()[3][3]
+
+    funcrec = inspect.stack()[3]
+    name = funcrec[3]
+    frame = funcrec[0]
+    symdict = dict(frame.f_globals)
+    symdict.update(frame.f_locals)
     modctxt = False
-    f_locals = inspect.stack()[4][0].f_locals
+    callerrec = inspect.stack()[4]
+    f_locals = callerrec[0].f_locals
     if 'self' in f_locals:
         modctxt = isinstance(f_locals['self'], _ModuleInstance)
-    return _CallInfo(name, modctxt)
+    return _CallInfo(name, modctxt, symdict)
 
 
 def module(modfunc):
@@ -81,19 +89,20 @@ class _ModuleInstance(object):
         self.kwargs = kwargs
         self.mod = mod
         callinfo = _getCallInfo()
+        self.callinfo = callinfo
         self.modctxt = callinfo.modctxt
-        # this is the name of the instance caller
         self.callername = callinfo.name
+        self.symdict = None
         self.sigdict = {}
         self.memdict = {}
         # flatten, but keep ModuleInstance objects
         self.subs = _flatten(mod.modfunc(*args, **kwargs))
-        self.verifyMod()
-        self.updateMod()
+        self.verify()
+        self.update()
         # self.inferInterface(*args, **kwargs)
         self.name = self.__name__ = mod.__name__ + '_' + str(mod.count)
 
-    def verifyMod(self):
+    def verify(self):
         for inst in self.subs:
             # print (inst.name, type(inst))
             if not isinstance(inst, (_ModuleInstance, _Instantiator)):
@@ -101,19 +110,35 @@ class _ModuleInstance(object):
             if not inst.modctxt:
                 raise ModuleError(_error.InstanceError % (self.mod.name, inst.callername))
 
-    def updateMod(self):
-        losdict = {}
+    def update(self):
+        # dicts to keep track of objects used in Instantiator objects
+        usedsigdict = {}
+        usedlosdict = {}
         for inst in self.subs:
+            # the symdict of a module instance is defined by
+            # the call context of its instantations
+            if self.symdict is None:
+                self.symdict = inst.callinfo.symdict
             if isinstance(inst, _Instantiator):
-                self.sigdict.update(inst.sigdict)
-                losdict.update(inst.losdict)
-        # compatibility patches from _extractHierarchy
-        for s in self.sigdict.values():
-            s._markUsed()
-        for n, l in losdict.items():
-            m = _makeMemInfo(l)
-            self.memdict[n] = m
-            m._used = True
+                usedsigdict.update(inst.sigdict)
+                usedlosdict.update(inst.losdict)
+        # Special case: due to attribute reference transformation, the
+        # sigdict and losdict from Instantiator objects may contain new
+        # references. Therefore, update the symdict with them.
+        # To be revisited.
+        self.symdict.update(usedsigdict)
+        self.symdict.update(usedlosdict)
+        # Infer sigdict and memdict, with compatibility patches from _extractHierarchy
+        for n, v in self.symdict.items():
+            if isinstance(v, _Signal):
+                self.sigdict[n] = v
+                if n in usedsigdict:
+                    v._markUsed()
+            if _isListOfSigs(v):
+                m = _makeMemInfo(v)
+                self.memdict[n] = m
+                if n in usedlosdict:
+                    m._used = True
 
     def inferInterface(self):
         from myhdl.conversion._analyze import _analyzeTopFunc
