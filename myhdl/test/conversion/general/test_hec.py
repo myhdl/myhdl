@@ -57,6 +57,7 @@ def calculateHecTask(hec, header):
     h ^= COSET
     hec[:] = h
 
+@module
 def HecCalculatorPlain(hec, header):
     """ Hec calculation module.
 
@@ -110,7 +111,6 @@ def HecCalculatorTask2(hec, header):
         calculateHecTask(header=header, hec=h)
         hec.next = h
 
-         
         
 def HecCalculator_v(name, hec, header):
     return setupCosimulation(**locals())
@@ -125,7 +125,7 @@ headers = [ 0x00000000,
 headers.extend([randrange(2**32-1) for i in range(10)])
 headers = tuple(headers)
 
-
+@module
 def HecBench(HecCalculator):
 
     hec = Signal(intbv(0)[8:])
@@ -160,4 +160,4 @@ def HecBench(HecCalculator):
 ##     Simulation(sim).run()
 
 def testPlain():
-    assert verify(HecBench, HecCalculatorPlain) == 0
+    assert verify(HecBench(HecCalculatorPlain)) == 0
