@@ -67,7 +67,11 @@ def _flatten(*args):
     arglist = []
     for arg in args:
         if isinstance(arg, _ModuleInstance):
-            arg = arg.subs
+            if arg.verilog_code is not None:
+                arglist.append(arg.verilog_code)
+                continue
+            else:
+                arg = arg.subs
         if id(arg) in _userCodeMap['verilog']:
             arglist.append(_userCodeMap['verilog'][id(arg)])
         elif isinstance(arg, (list, tuple, set)):

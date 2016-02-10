@@ -17,6 +17,7 @@ from myhdl.conversion._misc import _error
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+@module
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -38,21 +39,23 @@ def incRef(count, enable, clock, reset, n):
     return logic
 
 
+@module
 def incGen(count, enable, clock, reset, n):
-    """ Generator with __verilog__ is not permitted """
+    """ Generator with verilog_code is not permitted """
     @instance
     def logic():
-        __verilog__ = "Template string"
+        incGen.verilog_code = "Template string"
         while 1:
-                yield clock.posedge, reset.negedge
-                if reset == ACTIVE_LOW:
-                    count.next = 0
-                else:
-                    if enable:
-                        count.next = (count + 1) % n
+            yield clock.posedge, reset.negedge
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
     return logic
 
                                         
+@module
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -74,15 +77,15 @@ def inc(count, enable, clock, reset, n):
 
     count.driven = "reg"
 
-    __verilog__ = \
+    inc.verilog_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
+always @(posedge $clock, negedge $reset) begin
     if (reset == 0) begin
-        %(count)s <= 0;
+        $count <= 0;
     end
     else begin
         if (enable) begin
-            %(count)s <= (%(count)s + 1) %% %(n)s;
+            $count <= ($count + 1) % $n;
         end
     end
 end
@@ -91,6 +94,7 @@ end
     return incProcess
 
 
+@module
 def incErr(count, enable, clock, reset, n):
     
     @always(clock.posedge, reset.negedge)
@@ -105,15 +109,15 @@ def incErr(count, enable, clock, reset, n):
 
     count.driven = "reg"
 
-    __verilog__ = \
+    incErr.verilog_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
+always @(posedge $clock, negedge $reset) begin
     if (reset == 0) begin
-        %(count)s <= 0;
+        $count <= 0;
     end
     else begin
         if (enable) begin
-            %(count)s <= (%(countq)s + 1) %% %(n)s;
+            $count <= ($countq + 1) % $n;
         end
     end
 end
@@ -123,6 +127,7 @@ end
 
 
 
+@module
 def inc_comb(nextCount, count, n):
 
     @always_comb
@@ -133,17 +138,20 @@ def inc_comb(nextCount, count, n):
 
     nextCount.driven = "wire"
 
-    __verilog__ =\
+    inc_comb.verilog_code =\
 """
-assign %(nextCount)s = (%(count)s + 1) %% %(n)s;
+assign $nextCount = ($count + 1) % $n;
 """
 
     return logic
 
+@module
 def inc_seq(count, nextCount, enable, clock, reset):
 
     @always(clock.posedge, reset.negedge)
     def logic():
+        # make it fail in conversion
+        import types
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -152,22 +160,22 @@ def inc_seq(count, nextCount, enable, clock, reset):
 
     count.driven = "reg"
 
-    __verilog__ = \
+    inc_seq.verilog_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
+always @(posedge $clock, negedge $reset) begin
     if (reset == 0) begin
-        %(count)s <= 0;
+        $count <= 0;
     end
     else begin
         if (enable) begin
-            %(count)s <= %(nextCount)s;
+            $count <= $nextCount;
         end
     end
 end
 """
-    # return nothing - cannot be simulated
-    return []
+    return logic 
 
+@module
 def inc2(count, enable, clock, reset, n):
     
     nextCount = Signal(intbv(0, min=0, max=n))
@@ -178,6 +186,7 @@ def inc2(count, enable, clock, reset, n):
     return comb, seq
 
 
+@module
 def inc3(count, enable, clock, reset, n):
     inc2_inst = inc2(count, enable, clock, reset, n)
     return inc2_inst
@@ -233,7 +242,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
 
         inc_inst_ref = incRef(count, enable, clock, reset, n=n)
-        inc_inst = toVerilog(incVer, count, enable, clock, reset, n=n)
+        inc_inst = toVerilog(incVer(count, enable, clock, reset, n=n))
         # inc_inst = inc(count, enable, clock, reset, n=n)
         inc_inst_v = inc_v(incVer.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
@@ -271,7 +280,7 @@ class TestInc(TestCase):
         enable = Signal(bool(0))
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
-            inc_inst = toVerilog(incGen, count_v, enable, clock, reset, n=n)
+            inc_inst = toVerilog(incGen(count_v, enable, clock, reset, n=n))
         except ConversionError as e:
             self.assertEqual(e.kind, _error.NotSupported)
         else:
@@ -284,7 +293,7 @@ class TestInc(TestCase):
         enable = Signal(bool(0))
         clock, reset = [Signal(bool()) for i in range(2)]
         try:
-            inc_inst = toVerilog(incErr, count_v, enable, clock, reset, n=n)
+            inc_inst = toVerilog(incErr(count_v, enable, clock, reset, n=n))
         except ConversionError as e:
             pass
         else:

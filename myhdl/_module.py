@@ -26,7 +26,8 @@ import inspect
 from myhdl import ModuleError
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
-from myhdl._extractHierarchy import _MemInfo, _makeMemInfo
+from myhdl._extractHierarchy import (_MemInfo, _makeMemInfo,
+    _UserVerilogCode, _UserVhdlCode)
 from myhdl._Signal import _Signal, _isListOfSigs
 
 
@@ -75,6 +76,8 @@ class _Module(object):
     def __init__(self, modfunc):
         self.modfunc = modfunc
         self.__name__ = self.name = modfunc.__name__
+        self.sourcefile = inspect.getsourcefile(modfunc)
+        self.sourceline = inspect.getsourcelines(modfunc)[0]
         self.count = 0
 
     def __call__(self, *args, **kwargs):
@@ -101,6 +104,13 @@ class _ModuleInstance(object):
         self.update()
         # self.inferInterface(*args, **kwargs)
         self.name = self.__name__ = mod.__name__ + '_' + str(mod.count)
+        self.verilog_code = self.vhdl_code = None
+        if hasattr(mod, 'verilog_code'):
+            self.verilog_code = _UserVerilogCode(mod.verilog_code, self.symdict, mod.name,
+                                                 mod.modfunc, mod.sourcefile, mod.sourceline)
+        if hasattr(mod, 'vhdl_code'):
+            self.vhdl_code = _UserVhdlCode(mod.vhdl_code, self.symdict, mod.name,
+                                           mod.modfunc, mod.sourcefile, mod.sourceline)
 
     def verify(self):
         for inst in self.subs:
@@ -122,6 +132,8 @@ class _ModuleInstance(object):
             if isinstance(inst, _Instantiator):
                 usedsigdict.update(inst.sigdict)
                 usedlosdict.update(inst.losdict)
+        if self.symdict is None:
+            self.symdict = {}
         # Special case: due to attribute reference transformation, the
         # sigdict and losdict from Instantiator objects may contain new
         # references. Therefore, update the symdict with them.

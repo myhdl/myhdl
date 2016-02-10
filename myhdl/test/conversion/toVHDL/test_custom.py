@@ -14,6 +14,7 @@ from myhdl.conversion._misc import _error
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+@module
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -35,11 +36,12 @@ def incRef(count, enable, clock, reset, n):
     return logic
 
 
+@module
 def incGen(count, enable, clock, reset, n):
-    """ Generator with __vhdl__ is not permitted """
+    """ Generator with vhdl_code is not permitted """
     @instance
     def logic():
-        __vhdl__ = "Template string"
+        incGen.vhdl_code = "Template string"
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -50,6 +52,7 @@ def incGen(count, enable, clock, reset, n):
     return logic
 
                                         
+@module
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -71,14 +74,14 @@ def inc(count, enable, clock, reset, n):
 
     count.driven = "reg"
 
-    __vhdl__ = \
+    inc.vhdl_code = \
 """
-process (%(clock)s, %(reset)s) begin
-    if (%(reset)s = '0') then
-        %(count)s <= (others => '0');
-    elsif rising_edge(%(clock)s) then
-        if (%(enable)s = '1') then
-            %(count)s <= (%(count)s + 1) mod %(n)s;
+process ($clock, $reset) begin
+    if ($reset = '0') then
+        $count <= (others => '0');
+    elsif rising_edge($clock) then
+        if ($enable = '1') then
+            $count <= ($count + 1) mod $n;
         end if;
     end if;
 end process;
@@ -87,6 +90,8 @@ end process;
     return incProcess
 
 
+
+@module
 def incErr(count, enable, clock, reset, n):
     
     @always(clock.posedge, reset.negedge)
@@ -101,15 +106,15 @@ def incErr(count, enable, clock, reset, n):
 
     count.driven = "reg"
 
-    __vhdl__ = \
+    incErr.vhdl_code = \
 """
-always @(posedge %(clock)s, negedge %(reset)s) begin
-    if (%(reset)s == 0) begin
-        %(count)s <= 0;
+always @(posedge $clock, negedge $reset) begin
+    if ($reset == 0) begin
+        $count <= 0;
     end
     else begin
-        if (%(enable)s) begin
-            %(count)s <= (%(countq)s + 1) %% %(n)s;
+        if ($enable) begin
+            $count <= ($countq + 1) %% $n;
         end
     end
 end
@@ -119,6 +124,7 @@ end
 
 
 
+@module
 def inc_comb(nextCount, count, n):
 
     @always_comb
@@ -129,17 +135,20 @@ def inc_comb(nextCount, count, n):
 
     nextCount.driven = "wire"
 
-    __vhdl__ =\
+    inc_comb.vhdl_code =\
 """
-%(nextCount)s <= (%(count)s + 1) mod %(n)s;
+$nextCount <= ($count + 1) mod $n;
 """
 
     return logic
 
+@module
 def inc_seq(count, nextCount, enable, clock, reset):
 
     @always(clock.posedge, reset.negedge)
     def logic():
+        # make if fail in conversion
+        import types
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
@@ -148,14 +157,14 @@ def inc_seq(count, nextCount, enable, clock, reset):
 
     count.driven = True
 
-    __vhdl__ = \
+    inc_seq.vhdl_code = \
 """
-process (%(clock)s, %(reset)s) begin
-    if (%(reset)s = '0') then
-        %(count)s <= (others => '0');
-    elsif rising_edge(%(clock)s) then
-        if (%(enable)s = '1') then
-            %(count)s <= %(nextCount)s;
+process ($clock, $reset) begin
+    if ($reset = '0') then
+        $count <= (others => '0');
+    elsif rising_edge($clock) then
+        if ($enable = '1') then
+            $count <= $nextCount;
         end if;
     end if;
 end process;
@@ -163,6 +172,7 @@ end process;
     
     return logic
 
+@module
 def inc2(count, enable, clock, reset, n):
     
     nextCount = Signal(intbv(0, min=0, max=n))
@@ -173,11 +183,13 @@ def inc2(count, enable, clock, reset, n):
     return comb, seq
 
 
+@module
 def inc3(count, enable, clock, reset, n):
     inc2_inst = inc2(count, enable, clock, reset, n)
     return inc2_inst
 
 
+@module
 def clockGen(clock):
     @instance
     def logic():
@@ -191,6 +203,7 @@ NRTESTS = 1000
 
 ENABLES = tuple([min(1, randrange(5)) for i in range(NRTESTS)])
 
+@module
 def stimulus(enable, clock, reset):
     @instance
     def logic():
@@ -209,6 +222,7 @@ def stimulus(enable, clock, reset):
     return logic
 
 
+@module
 def check(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -226,7 +240,7 @@ def check(count, enable, clock, reset, n):
             print(count)
     return logic
 
-
+@module
 def customBench(inc):
 
     m = 8
@@ -246,20 +260,20 @@ def customBench(inc):
 
 
 def testIncRef():
-    assert conversion.verify(customBench, incRef) == 0
+    assert conversion.verify(customBench(incRef)) == 0
 
 def testInc():
-    assert conversion.verify(customBench, inc) == 0
+    assert conversion.verify(customBench(inc)) == 0
     
 def testInc2():
-    assert conversion.verify(customBench, inc2) == 0
+    assert conversion.verify(customBench(inc2)) == 0
     
 def testInc3():
-    assert conversion.verify(customBench, inc3) == 0
+    assert conversion.verify(customBench(inc3)) == 0
 
 def testIncGen():
     try:
-        assert conversion.verify(customBench, incGen) == 0
+        assert conversion.verify(customBench(incGen)) == 0
     except ConversionError as e:
         pass
     else:
@@ -267,7 +281,7 @@ def testIncGen():
         
 def testIncErr():
     try:
-        assert conversion.verify(customBench, incErr) == 0
+        assert conversion.verify(customBench(incErr)) == 0
     except ConversionError as e:
         pass
     else:

@@ -73,7 +73,11 @@ def _flatten(*args):
     arglist = []
     for arg in args:
         if isinstance(arg, _ModuleInstance):
-            arg = arg.subs
+            if arg.vhdl_code is not None:
+                arglist.append(arg.vhdl_code)
+                continue
+            else:
+                arg = arg.subs
         if id(arg) in _userCodeMap['vhdl']:
             arglist.append(_userCodeMap['vhdl'][id(arg)])
         elif isinstance(arg, (list, tuple, set)):
