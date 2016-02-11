@@ -5,6 +5,7 @@ import os
 import tempfile
 import subprocess
 import difflib
+import warnings
 
 from collections import namedtuple
 
@@ -116,7 +117,11 @@ class  _VerificationClass(object):
         elif isinstance(func, _ModuleInstance):
             name = func.mod.__name__
         else:
-            name = func.__name__
+            warnings.warn("Deprecated use of analyze()/verify(): use a ModuleInstance argument", stacklevel=2)
+            try:
+                name = func.__name__
+            except:
+                raise TypeError(str(type(func)))
 
         vals = {}
         vals['topname'] = name
