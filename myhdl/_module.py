@@ -54,14 +54,14 @@ def _getCallInfo():
     3: the function that defines instances
     4: the caller of the module function, e.g. a ModuleInstance.
     """
-
-    funcrec = inspect.stack()[3]
+    stack = inspect.stack()
+    funcrec = stack[3]
     name = funcrec[3]
     frame = funcrec[0]
     symdict = dict(frame.f_globals)
     symdict.update(frame.f_locals)
     modctxt = False
-    callerrec = inspect.stack()[4]
+    callerrec = stack[4]
     f_locals = callerrec[0].f_locals
     if 'self' in f_locals:
         modctxt = isinstance(f_locals['self'], _ModuleInstance)
@@ -85,6 +85,17 @@ class _Module(object):
         self.count += 1
         return modinst
 
+    # This is the way to make the module decorator work on methods
+    # Turn it into a descriptor, used when accessed as an attribute
+    # In that case, the object is bound to the call method
+    # like done automatically for classic bound methods
+    # http://stackoverflow.com/a/3296318/574895
+    def __get__(self, obj, objtype):
+        """Support instance methods."""
+        import functools
+        return functools.partial(self.__call__, obj)
+
+
 class _ModuleInstance(object):
 
     def __init__(self, mod, *args, **kwargs):
@@ -102,7 +113,6 @@ class _ModuleInstance(object):
         self.subs = _flatten(mod.modfunc(*args, **kwargs))
         self.verify()
         self.update()
-        # self.inferInterface(*args, **kwargs)
         self.name = self.__name__ = mod.__name__ + '_' + str(mod.count)
         self.verilog_code = self.vhdl_code = None
         if hasattr(mod, 'verilog_code'):

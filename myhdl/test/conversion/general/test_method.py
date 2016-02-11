@@ -7,6 +7,7 @@ class HdlObj(object):
     def __init__(self):
         pass
 
+    @module
     def method_func(self, clk, srst, x, y):
         z = Signal(intbv(0, min=y.min, max=y.max))
         ifx = self._mfunc(x, z)
@@ -19,12 +20,14 @@ class HdlObj(object):
 
         return hdl, ifx
 
+    @module
     def _mfunc(self, x, y):
         @always_comb
         def _hdl():
             y.next = x + 1
         return _hdl
 
+@module
 def _func(x,y):
     @always_comb
     def _hdl():
@@ -35,6 +38,7 @@ class HdlObjObj(object):
     def __init__(self):
         pass
     
+    @module
     def method_func(self, clk, srst, x, y):
         z1 = Signal(intbv(0, min=y.min, max=y.max))
         z2 = Signal(intbv(0, min=y.min, max=y.max))
@@ -55,6 +59,7 @@ class HdlObjAttrSimple(object):
     def __init__(self):
         self.AConstant = 3
 
+    @module
     def method_func(self, clk, srst, x, y):
         
         # limitation for class method conversion, the object attributes
@@ -78,6 +83,7 @@ class HdlObjAttr(object):
         self.z = Signal(intbv(0, min=y.min, max=y.max))
         self.hobj = HdlObj()
         
+    @module
     def method_func(self):
         ifx = self.hobj._mfunc(self.x, self.z)
         @always(self.clk.posedge)
@@ -89,6 +95,7 @@ class HdlObjAttr(object):
 
         return hdl, ifx
 
+@module
 def ObjBench(hObj):
 
     clk = Signal(False)
@@ -145,13 +152,13 @@ def ObjBench(hObj):
 
 
 def test_hdlobj():
-    assert verify(ObjBench, HdlObj) == 0
+    assert verify(ObjBench(HdlObj)) == 0
     
 def test_hdlobjobj():
-    assert verify(ObjBench, HdlObjObj) == 0
+    assert verify(ObjBench(HdlObjObj)) == 0
 
 def test_hdlobjattrsimple():
-    assert verify(ObjBench, HdlObjAttrSimple) == 0
+    assert verify(ObjBench(HdlObjAttrSimple)) == 0
     
 #def test_hdlobjattr():
 #    # object attributes currently not supported, these 
