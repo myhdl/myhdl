@@ -9,6 +9,7 @@ class HdlObj(object):
     def __init__(self):
         pass
 
+    @module
     def method_func(self, clk, srst, x, y):
         z = Signal(intbv(0, min=y.min, max=y.max))
         ifx = self._mfunc(x, z)
@@ -21,12 +22,14 @@ class HdlObj(object):
 
         return hdl, ifx
 
+    @module
     def _mfunc(self, x, y):
         @always_comb
         def _hdl():
             y.next = x + 1
         return _hdl
 
+@module
 def _func(x,y):
     @always_comb
     def _hdl():
@@ -37,6 +40,7 @@ class HdlObjObj(object):
     def __init__(self):
         pass
     
+    @module
     def method_func(self, clk, srst, x, y):
         z1 = Signal(intbv(0, min=y.min, max=y.max))
         z2 = Signal(intbv(0, min=y.min, max=y.max))
@@ -57,6 +61,7 @@ class HdlObjAttrSimple(object):
     def __init__(self):
         self.Constant = 3
 
+    @module
     def method_func(self, clk, srst, x, y):
         
         # limitation for class method conversion, the object attributes
@@ -76,6 +81,7 @@ class HdlObjNotSelf(object):
     def __init__(this):
         pass
 
+    @module
     def method_func(this, clk, srst, x, y):
 
         @always(clk.posedge)
@@ -94,7 +100,7 @@ def test_hdlobj():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObj()
-    analyze(hdlobj_inst.method_func, clk, srst, x, y)
+    analyze(hdlobj_inst.method_func(clk, srst, x, y))
 
 def test_hdlobjobj():
     clk = Signal(False)
@@ -102,7 +108,7 @@ def test_hdlobjobj():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjObj()
-    analyze(hdlobj_inst.method_func, clk, srst, x, y)
+    analyze(hdlobj_inst.method_func(clk, srst, x, y))
 
 def test_hdlobjattrsimple():
     clk = Signal(False)
@@ -110,7 +116,7 @@ def test_hdlobjattrsimple():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjAttrSimple()
-    analyze(hdlobj_inst.method_func, clk, x, srst, y)
+    analyze(hdlobj_inst.method_func(clk, x, srst, y))
 
 
 def test_hdlobjnotself():
@@ -119,12 +125,7 @@ def test_hdlobjnotself():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjNotSelf()
-    try:
-        analyze(hdlobj_inst.method_func, clk, x, srst, y)
-    except ConversionError as e:
-        assert e.kind == _error.NotSupported
-    else:
-        assert False
+    analyze(hdlobj_inst.method_func(clk, x, srst, y))
 
 
 
