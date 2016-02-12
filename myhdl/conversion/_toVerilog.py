@@ -147,6 +147,7 @@ class _ToVerilogConvertor(object):
             finally:
                 _converting = 0
         else:
+            warnings.warn("\n    toVerilog(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
             if isinstance(func, _Module):
                 raise TypeError("Module %s: conversion should be on an instance" % func.__name__)
             try:

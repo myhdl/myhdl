@@ -117,7 +117,7 @@ class  _VerificationClass(object):
         elif isinstance(func, _ModuleInstance):
             name = func.mod.__name__
         else:
-            warnings.warn("Deprecated use of analyze()/verify(): use a ModuleInstance argument", stacklevel=2)
+            warnings.warn("\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
             try:
                 name = func.__name__
             except:

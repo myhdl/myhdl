@@ -109,10 +109,10 @@ class ToVHDLWarning(ConversionWarning):
     pass
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
 
-def showwarning(message, category, filename, lineno, *args):
-    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
+#def showwarning(message, category, filename, lineno, *args):
+#    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
 
-warnings.showwarning = showwarning
+#warnings.showwarning = showwarning
 
 
 from ._bin import bin
@@ -176,5 +176,3 @@ __all__ = ["bin",
            "conversion",
            "Tristate"
            ]
-
-
