@@ -35,9 +35,12 @@ from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
+from myhdl._module import _Module, _ModuleInstance
+from myhdl._getHierarchy import _getHierarchy
 
 _tracing = 0
 _profileFunc = None
+vcdpath = ''
 
 class _error:
     pass
@@ -61,17 +64,27 @@ class _TraceSignalsClass(object):
         self.tracelists = True
 
     def __call__(self, dut, *args, **kwargs):
-        global _tracing
-        if _tracing:
-            return dut(*args, **kwargs) # skip
-        else:
-            # clean start
-            sys.setprofile(None)
+        global _tracing, vcdpath
+        if isinstance(dut, _ModuleInstance):
+            # now we go bottom-up: so clean up and start over
+            # TODO: consider a warning for the overruled module
+            if _simulator._tracing:
+                _simulator._tracing = 0
+                _simulator._tf.close()
+                os.remove(vcdpath)
+        else: # deprecated
+            if _tracing:
+                return dut(*args, **kwargs) # skip
+            else:
+                # clean start
+                sys.setprofile(None)
+
         from myhdl.conversion import _toVerilog
         if _toVerilog._converting:
             raise TraceSignalsError("Cannot use traceSignals while converting to Verilog")
-        if not callable(dut):
-            raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
+        if not isinstance(dut, _ModuleInstance):
+            if not callable(dut):
+                raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
         if _simulator._tracing:
             raise TraceSignalsError(_error.MultipleTraces)
 
@@ -79,6 +92,8 @@ class _TraceSignalsClass(object):
         try:
             if self.name is None:
                 name = dut.__name__
+                if isinstance(dut, _ModuleInstance):
+                    name = dut.mod.__name__
             else:
                 name = str(self.name)
             if name is None:
@@ -89,7 +104,14 @@ class _TraceSignalsClass(object):
             else:
                 directory = self.directory
 
-            h = _HierExtr(name, dut, *args, **kwargs)
+            if isinstance(dut, _Module):
+                raise TypeError("Module %s: conversion should be on an instance" % dut.__name__)
+
+            if isinstance(dut, _ModuleInstance):
+                h = _getHierarchy(name, dut)
+            else:
+                h = _HierExtr(name, dut, *args, **kwargs)
+
             vcdpath = os.path.join(directory, name + ".vcd")
             if path.exists(vcdpath):
                 backup = vcdpath + '.' + str(path.getmtime(vcdpath))
