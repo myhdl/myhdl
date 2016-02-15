@@ -54,10 +54,10 @@ def _getCallInfo():
     3: the function that defines instances
     4: the caller of the module function, e.g. a ModuleInstance.
 
-    There is a complication when the decorator is used in on a method.
+    There is a complication when the decorator is used on a method.
     In this case, it is used as a descriptor, and there is an additional
     stack level due to the __get__ method. The current hack is to check
-    whether we are still in this Python module at level 3, and increment
+    whether we are still in this module at level 3, and increment
     all the subsequent levels.
     """
 
@@ -117,6 +117,7 @@ class _ModuleInstance(object):
         self.args = args
         self.kwargs = kwargs
         self.mod = mod
+        self.__doc__ = mod.modfunc.__doc__
         callinfo = _getCallInfo()
         self.callinfo = callinfo
         self.modctxt = callinfo.modctxt

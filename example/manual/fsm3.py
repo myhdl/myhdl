@@ -9,6 +9,7 @@ ACTIVE_LOW = bool(0)
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 
+@module
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.
@@ -62,8 +63,8 @@ def main():
     reset_n = Signal(bool(1))
     state = Signal(t_State.SEARCH)
 
-    toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
-    toVHDL(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
+    toVerilog(FramerCtrl(SOF, state, syncFlag, clk, reset_n))
+    toVHDL(FramerCtrl(SOF, state, syncFlag, clk, reset_n))
 
 
 if __name__ == '__main__':
