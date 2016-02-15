@@ -30,6 +30,7 @@ import time
 import os
 path = os.path
 import shutil
+import warnings
 
 from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
@@ -110,6 +111,7 @@ class _TraceSignalsClass(object):
             if isinstance(dut, _ModuleInstance):
                 h = _getHierarchy(name, dut)
             else:
+                warnings.warn("\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
                 h = _HierExtr(name, dut, *args, **kwargs)
 
             vcdpath = os.path.join(directory, name + ".vcd")

@@ -4,6 +4,7 @@ ACTIVE_LOW = 0
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
 
+@module
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.
@@ -53,6 +54,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     return FSM
 
 
+@module
 def testbench():
 
     SOF = Signal(bool(0))
@@ -83,7 +85,7 @@ def testbench():
 
 
 def main():
-    tb_fsm = traceSignals(testbench)
+    tb_fsm = traceSignals(testbench())
     sim = Simulation(tb_fsm)
     sim.run()
 
