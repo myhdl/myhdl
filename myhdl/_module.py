@@ -20,9 +20,9 @@
 """ Module with the @module decorator function. """
 from __future__ import absolute_import
 
-import functools
 import inspect
 
+import myhdl
 from myhdl import ModuleError
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
@@ -53,15 +53,27 @@ def _getCallInfo():
     2: the _Module class __call__()
     3: the function that defines instances
     4: the caller of the module function, e.g. a ModuleInstance.
+
+    There is a complication when the decorator is used in on a method.
+    In this case, it is used as a descriptor, and there is an additional
+    stack level due to the __get__ method. The current hack is to check
+    whether we are still in this Python module at level 3, and increment
+    all the subsequent levels.
     """
+
     stack = inspect.stack()
-    funcrec = stack[3]
+    # check whether the decorator is used as a descriptor
+    if (inspect.getmodule(stack[3][0]) is myhdl._module):
+        funcrec = stack[4]
+        callerrec = stack[5]
+    else:
+        funcrec = stack[3]
+        callerrec = stack[4]
     name = funcrec[3]
     frame = funcrec[0]
     symdict = dict(frame.f_globals)
     symdict.update(frame.f_locals)
     modctxt = False
-    callerrec = stack[4]
     f_locals = callerrec[0].f_locals
     if 'self' in f_locals:
         modctxt = isinstance(f_locals['self'], _ModuleInstance)
@@ -90,10 +102,13 @@ class _Module(object):
     # In that case, the object is bound to the call method
     # like done automatically for classic bound methods
     # http://stackoverflow.com/a/3296318/574895
+    # Avoid functools to have identical behavior between
+    # CPython and PyPy
     def __get__(self, obj, objtype):
         """Support instance methods."""
-        import functools
-        return functools.partial(self.__call__, obj)
+        def f(*args, **kwargs):
+            return self.__call__(obj, *args, **kwargs)
+        return f
 
 
 class _ModuleInstance(object):
