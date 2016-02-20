@@ -62,21 +62,26 @@ def _getCallInfo():
     """
 
     stack = inspect.stack()
+    # caller may be undefined if instantiation from a Python module
+    callerrec = None
     # check whether the decorator is used as a descriptor
     if (inspect.getmodule(stack[3][0]) is myhdl._module):
         funcrec = stack[4]
-        callerrec = stack[5]
+        if len(stack) > 5:
+            callerrec = stack[5]
     else:
         funcrec = stack[3]
-        callerrec = stack[4]
+        if len(stack) > 4:
+            callerrec = stack[4]
     name = funcrec[3]
     frame = funcrec[0]
     symdict = dict(frame.f_globals)
     symdict.update(frame.f_locals)
     modctxt = False
-    f_locals = callerrec[0].f_locals
-    if 'self' in f_locals:
-        modctxt = isinstance(f_locals['self'], _ModuleInstance)
+    if callerrec is not None:
+        f_locals = callerrec[0].f_locals
+        if 'self' in f_locals:
+            modctxt = isinstance(f_locals['self'], _ModuleInstance)
     return _CallInfo(name, modctxt, symdict)
 
 
@@ -152,7 +157,7 @@ class _ModuleInstance(object):
         usedlosdict = {}
         for inst in self.subs:
             # the symdict of a module instance is defined by
-            # the call context of its instantations
+            # the call context of its instantiations
             if self.symdict is None:
                 self.symdict = inst.callinfo.symdict
             if isinstance(inst, _Instantiator):
