@@ -45,6 +45,7 @@ class _error:
 _error.ArgType = "Inappriopriate argument type"
 _error.MultipleCosim = "Only a single cosimulator argument allowed"
 _error.DuplicatedArg = "Duplicated argument"
+_error.MultipleSim = "Only a single Simulation instance is allowed"
             
 class Simulation(object):
 
@@ -54,7 +55,7 @@ class Simulation(object):
     run -- run a simulation for some duration
 
     """
-    _run_call_static = 0
+    _no_of_instances = 0
 
     def __init__(self, *args):
         """ Construct a simulation object.
@@ -64,9 +65,12 @@ class Simulation(object):
 
         """
         _simulator._time = 0
-        self._run_call = 0
         arglist = _flatten(*args)
         self._waiters, self._cosim = _makeWaiters(arglist)
+        if Simulation._no_of_instances>0:
+            Simulation._no_of_instances = 0
+            raise SimulationError(_error.MultipleSim)
+        Simulation._no_of_instances += 1
         if not self._cosim and _simulator._cosim:
             warn("Cosimulation not registered as Simulation argument")
         self._finished = False
@@ -87,8 +91,7 @@ class Simulation(object):
         # clean up for potential new run with same signals
         for s in _signals:
             s._clear()
-        self._run_call = 0
-        Simulation._run_call_static = 0
+        Simulation._no_of_instances = 0
         self._finished = True
 
     def quit(self):
@@ -111,10 +114,6 @@ class Simulation(object):
         # From this point it will propagate to the caller, that can catch it.
         if self._finished:
             raise StopSimulation("Simulation has already finished")
-        if Simulation._run_call_static > self._run_call:
-            raise StopSimulation("Previous Simulation is still running")
-        Simulation._run_call_static += 1
-        self._run_call += 1
         waiters = self._waiters
         maxTime = None
         if duration:

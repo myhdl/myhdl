@@ -1,5 +1,5 @@
 import pytest
-from myhdl import Simulation, always, delay, Signal, intbv, StopSimulation
+from myhdl import Simulation, always, delay, Signal, intbv, StopSimulation, SimulationError
 
 
 def clk_driver(clk, period=20):
@@ -15,9 +15,8 @@ def issue_104_quit_method():
     sim.run(500)
     sim.quit()
     return sim._finished
-sim2 = None
+    
 def issue_104_multiple_instance():
-    global sim2
     clk = Signal(intbv(1))
     sim = Simulation(clk_driver(clk))
     sim.run(1000)
@@ -28,7 +27,8 @@ def test_issue_104():
 
     assert issue_104_quit_method() == True
 
-    with pytest.raises(StopSimulation) as excinfo:
+    with pytest.raises(SimulationError) as excinfo:
         issue_104_multiple_instance()
-    assert 'Previous Simulation is still running' in str(excinfo.value)
-    sim2.quit()
+    assert 'Only a single Simulation instance is allowed' in str(excinfo.value)
+
+
