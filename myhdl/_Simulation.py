@@ -67,8 +67,7 @@ class Simulation(object):
         _simulator._time = 0
         arglist = _flatten(*args)
         self._waiters, self._cosim = _makeWaiters(arglist)
-        if Simulation._no_of_instances>0:
-            Simulation._no_of_instances = 0
+        if Simulation._no_of_instances > 0:
             raise SimulationError(_error.MultipleSim)
         Simulation._no_of_instances += 1
         if not self._cosim and _simulator._cosim:
