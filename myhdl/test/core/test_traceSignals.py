@@ -155,12 +155,16 @@ class TestTraceSigs:
         assert not path.exists(psub)
 
     def testTristateTrace(self, vcd_dir):
-        Simulation(topTristate()).run(100, quiet=QUIET)
+        sim = Simulation(topTristate())
+        sim.run(100, quiet=QUIET)
+        sim.quit()
 
     def testBackupOutputFile(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
         dut = traceSignals(fun)
-        Simulation(dut).run(1000, quiet=QUIET)
+        sim = Simulation(dut)
+        sim.run(1000, quiet=QUIET)
+        sim.quit()
         _simulator._tf.close()
         _simulator._tracing = 0
         size = path.getsize(p)
