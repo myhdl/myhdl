@@ -8,9 +8,9 @@ def test():
   @instance
   def tbstim():
     yield delay(10)
-    print("{:<8d} ".format(now()))
+    print("{0:<8d} ".format(now()))
     yield delay(1000)
-    print("{:<8d} ".format(now()))
+    print("{0:<8d} ".format(now()))
     for _ in range(10):
       yield delay(1000)
 
