@@ -1,3 +1,4 @@
+from __future__ import print_function
 import pytest
 from myhdl import Simulation, delay, SimulationError, instance, now
 from myhdl._Simulation import _error
