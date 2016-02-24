@@ -1,6 +1,7 @@
 import pytest
-from myhdl import Simulation, always, delay, Signal, intbv, StopSimulation, SimulationError, instance, now
-
+from myhdl import Simulation, delay, SimulationError, instance, now
+from myhdl._Simulation import _error
+from helpers import raises_kind
 
 def test():
   @instance
@@ -29,13 +30,13 @@ def issue_104_multiple_instance():
 
     # try and create a second, third, forth simulation instance
     for ii in range(4):
-        with pytest.raises(SimulationError) as excinfo:
+        with raises_kind(SimulationError, _error.MultipleSim):
               another_sim = Simulation(test())
-        assert 'Only a single Simulation instance is allowed' in str(excinfo.value)
     # generating more sims should have failed
     sim1.run(1000)
+    sim1.quit()
 
 def test_issue_104():
+
     assert issue_104_quit_method() == True
     issue_104_multiple_instance()
-
