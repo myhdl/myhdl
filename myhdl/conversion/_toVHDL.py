@@ -101,7 +101,7 @@ class _ToVHDLConvertor(object):
                  "use_clauses",
                  "architecture",
                  "std_logic_ports",
-                 "disable_initial_value"
+                 "no_initial_value"
                  )
 
     def __init__(self):
@@ -115,7 +115,7 @@ class _ToVHDLConvertor(object):
         self.use_clauses = None
         self.architecture = "MyHDL"
         self.std_logic_ports = False
-        self.disable_initial_value = True
+        self.no_initial_value = True
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -384,7 +384,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
             sig_vhdl_obj = inferVhdlObj(s)
 
-            if toVHDL.disable_initial_value:
+            if toVHDL.no_initial_value:
                 val_str = ""
             else:
                 

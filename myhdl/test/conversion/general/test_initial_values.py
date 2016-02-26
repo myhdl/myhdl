@@ -60,14 +60,14 @@ def initial_value_bench(initial_val, change_input_signal):
     return clkgen, output_driver, compare_output
 
 def runner(initial_val, change_input_signal=False):
-    pre_disable_initial_value = toVerilog.disable_initial_value
+    pre_no_initial_value = toVerilog.no_initial_value
 
-    toVerilog.disable_initial_value = False
+    toVerilog.no_initial_value = False
     
     assert conversion.verify(
         initial_value_bench, initial_val, change_input_signal) == 0
     
-    toVerilog.disable_initial_value = pre_disable_initial_value
+    toVerilog.no_initial_value = pre_no_initial_value
 
 
 def test_unsigned():
