@@ -60,15 +60,17 @@ def initial_value_bench(initial_val, change_input_signal):
     return clkgen, output_driver, compare_output
 
 def runner(initial_val, change_input_signal=False):
-    pre_no_initial_value = toVerilog.no_initial_value
+    pre_toVerilog_no_initial_value = toVerilog.no_initial_value
+    pre_toVHDL_no_initial_value = toVerilog.no_initial_value
 
     toVerilog.no_initial_value = False
-    
+    toVHDL.no_initial_value = False
+
     assert conversion.verify(
         initial_value_bench, initial_val, change_input_signal) == 0
     
-    toVerilog.no_initial_value = pre_no_initial_value
-
+    toVerilog.no_initial_value = pre_toVerilog_no_initial_value
+    toVHDL.no_initial_value = pre_toVHDL_no_initial_value
 
 def test_unsigned():
     '''The correct initial value should be used for unsigned type signal.
