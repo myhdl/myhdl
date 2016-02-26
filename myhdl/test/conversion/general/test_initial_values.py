@@ -55,7 +55,7 @@ def initial_value_bench(initial_val, change_input_signal):
             else:
                 assert output_signal == update_val
 
-        print int(output_signal)
+        print(int(output_signal))
 
     return clkgen, output_driver, compare_output
 
