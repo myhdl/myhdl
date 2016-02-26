@@ -85,6 +85,9 @@ def enum(*names, **kwargs):
 
         __str__ = __repr__
 
+        def __int__(self):
+            return int(self._val, 2)
+
         def __hex__(self):
             return hex(int(self._val, 2))
 

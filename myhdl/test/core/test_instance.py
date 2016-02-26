@@ -20,61 +20,38 @@
 """ Run the unit tests for instance """
 from __future__ import absolute_import
 
+from myhdl import (InstanceError, Signal, Simulation, StopSimulation, delay,
+                   instances, intbv, now)
+from myhdl._instance import _error, instance
+from helpers import raises_kind
 
-import random
-from random import randrange
 # random.seed(3) # random, but deterministic
-
-import unittest
-from unittest import TestCase
-import inspect
-
-from myhdl import Signal, Simulation, instances, InstanceError, \
-                  intbv, delay, StopSimulation, now
-
-from myhdl._instance import instance, _error
-
 
 
 QUIET=1
+
 
 def g():
     pass
 
 x = Signal(0)
 
-class InstanceCompilationTest(TestCase):
-    
+
+class TestInstanceCompilation:
 
     def testArgIsFunction(self):
         h = 5
-        try:
+        with raises_kind(InstanceError, _error.ArgType):
             instance(h)
-        except InstanceError as e:
-            self.assertEqual(e.kind, _error.ArgType)
-        else:
-            self.fail()
-    
+
     def testArgIsGeneratorFunction(self):
-        try:
+        with raises_kind(InstanceError, _error.ArgType):
             @instance
             def h():
                 return None
-        except InstanceError as e:
-            self.assertEqual(e.kind, _error.ArgType)
-        else:
-            self.fail()
 
     def testArgHasNoArgs(self):
-        try:
+        with raises_kind(InstanceError, _error.NrOfArgs):
             @instance
             def h(n):
                 yield n
-        except InstanceError as e:
-            self.assertEqual(e.kind, _error.NrOfArgs)
-        else:
-            self.fail()
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -50,7 +50,7 @@ from myhdl.conversion._misc import (_error, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
 from myhdl._Signal import _Signal
-
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
 _converting = 0
 _profileFunc = None
@@ -153,8 +153,8 @@ class _ToVerilogConvertor(object):
         genlist = _analyzeGens(arglist, h.absnames)
         siglist, memlist = _analyzeSigs(h.hierarchy)
         _annotateTypes(genlist)
-        top_inst = h.hierarchy[0]
-        intf = _analyzeTopFunc(top_inst, func, *args, **kwargs)
+        
+        intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         doc = _makeDoc(inspect.getdoc(func))
 
@@ -255,11 +255,15 @@ def _writeModuleHeader(f, intf, doc):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if s._read:
-                warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                              category=ToVerilogWarning
-                              )
-            print("output %s%s%s;" % (p, r, portname), file=f)
+            if s._read :
+                if not isinstance(s, _TristateSignal):
+                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                                  category=ToVerilogWarning
+                                  )
+            if isinstance(s, _TristateSignal):
+                print("inout %s%s%s;" % (p, r, portname), file=f)
+            else:
+                print("output %s%s%s;" % (p, r, portname), file=f)
             if s._driven == 'reg':
                 print("reg %s%s%s;" % (p, r, portname), file=f)
             else:
@@ -283,7 +287,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if not s._read:
+            if not s._read and not isinstance(s, _TristateDriver):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVerilogWarning
                               )
@@ -331,7 +335,9 @@ def _writeSigDecls(f, intf, siglist, memlist):
             c = int(s.val)
         else:
             raise ToVerilogError("Unexpected type for constant signal", s._name)
-        print("assign %s = %s;" % (s._name, c), file=f)
+        c_len = s._nrbits
+        c_str = "%s"%c
+        print("assign %s = %s'd%s;" % (s._name, c_len,  c_str), file=f)
     print(file=f)
     # shadow signal assignments
     for s in siglist:
@@ -1032,7 +1038,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif n in self.tree.symdict:
             obj = self.tree.symdict[n]
             if isinstance(obj, bool):
-                s = "%s" % int(obj)
+                s = "1'b%s" % int(obj)
             elif isinstance(obj, integer_types):
                 s = self.IntRepr(obj)
             elif isinstance(obj, _Signal):
@@ -1573,6 +1579,3 @@ def _annotateTypes(genlist):
             continue
         v = _AnnotateTypesVisitor(tree)
         v.visit(tree)
-
-
-

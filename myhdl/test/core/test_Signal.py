@@ -20,28 +20,26 @@
 """ Run the unit tests for Signal """
 from __future__ import absolute_import
 
-
+import copy
 import operator
 import random
-from random import randrange
-random.seed(1) # random, but deterministic
 import sys
-maxint = sys.maxsize
-import types
-import copy
+from random import randrange
 
-import unittest
-from unittest import TestCase
+import pytest
 
-from myhdl._simulator import _siglist
-from myhdl import intbv, Signal
+from myhdl import Signal, intbv
 from myhdl._compat import long
+from myhdl._simulator import _siglist
 
-        
-class SigTest(TestCase):
+random.seed(1)  # random, but deterministic
+maxint = sys.maxsize
 
-    def setUp(self):
-        self.vals   = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]  
+
+class TestSig:
+
+    def setup_method(self, method):
+        self.vals   = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]
         self.nexts  = [0, 1, 1, 0, 1, 0, 4, 5, intbv(1), intbv(0), intbv(0)]
         self.vals  += [intbv(0), intbv(1), intbv(0), intbv(1), 2           ]
         self.nexts += [intbv(0), intbv(1), 1       , 0       , intbv(3)    ]
@@ -50,65 +48,48 @@ class SigTest(TestCase):
         self.vals  += [bool(0), bool(1), bool(0), bool(1), bool(0), bool(1)]
         self.nexts += [bool(0), bool(1), bool(1), bool(0), 1      , 0      ]
         self.sigs = [Signal(i) for i in self.vals]
-        
+
         self.incompatibleVals  = [ [3, 4], (1, 2),  3 , intbv(0), [1]      ]
         self.incompatibleNexts = [ 4     , 3     , "3", (0)     , intbv(1) ]
         self.incompatibleSigs = [Signal(i) for i in self.incompatibleVals]
-        
+
         self.eventWaiters = [object() for i in range(3)]
         self.posedgeWaiters = [object() for i in range(5)]
         self.negedgeWaiters = [object() for i in range(7)]
 
-        
     def testValAttrReadOnly(self):
         """ val attribute should not be writable"""
         s1 = Signal(1)
-        try:
+        with pytest.raises(AttributeError):
             s1.val = 1
-        except AttributeError:
-            pass
-        else:
-            self.fail()
 
     def testDrivenAttrValue(self):
         """ driven attribute only accepts value 'reg' or 'wire' """
         s1 = Signal(1)
-        try:
+        with pytest.raises(ValueError):
             s1.driven = "signal"
-        except ValueError:
-            pass
-        else:
-            self.fail()
-        
+
     def testPosedgeAttrReadOnly(self):
         """ posedge attribute should not be writable"""
         s1 = Signal(1)
-        try:
+        with pytest.raises(AttributeError):
             s1.posedge = 1
-        except AttributeError:
-            pass
-        else:
-            self.fail()
-            
+
     def testNegedgeAttrReadOnly(self):
         """ negedge attribute should not be writable"""
         s1 = Signal(1)
-        try:
+        with pytest.raises(AttributeError):
             s1.negedge = 1
-        except AttributeError:
-            pass
-        else:
-            self.fail()
 
     def testInitDefault(self):
         """ initial value is None by default """
         s1 = Signal()
-        self.assertEqual(s1, None)
+        assert s1 == None
 
     def testInitialization(self):
         """ initial val and next should be equal """
         for s in self.sigs:
-            self.assertEqual(s.val, s.next)
+            assert s.val == s.next
 
     def testUpdate(self):
         """ _update() should assign next into val """
@@ -116,38 +97,35 @@ class SigTest(TestCase):
             cur = copy.copy(s.val)
             s.next = n
             # assigning to next should not change current value ...
-            self.assertTrue(s.val == cur)
+            assert s.val == cur
             s._update()
-            self.assertTrue(s.val == n)
+            assert s.val == n
 
     def testNextType(self):
         """ sig.next = n should fail on access if type(n) incompatible """
         i = 0
         for s in (self.sigs + self.incompatibleSigs):
             for n in (self.vals + self.incompatibleVals):
-                self.assertTrue(isinstance(s.val, s._type))
+                assert isinstance(s.val, s._type)
                 if isinstance(s.val, (int, long, intbv)):
                     t = (int, long, intbv)
                 else:
                     t = s._type
                 if not isinstance(n, t):
                     i += 1
-                    try:
+                    with pytest.raises((TypeError, ValueError)):
                         oldval = s.val
                         s.next = n
-                    except (TypeError, ValueError):
-                        pass
-                    else:
-                        self.fail()
-        self.assertTrue(i >= len(self.incompatibleSigs), "Nothing tested %s" %i)
+
+        assert i >= len(self.incompatibleSigs), "Nothing tested %s" %i
 
     def testAfterUpdate(self):
         """ updated val and next should be equal but not identical """
         for s, n in zip(self.sigs, self.nexts):
             s.next = n
             s._update()
-            self.assertEqual(s.val, s.next)
-            
+            assert s.val == s.next
+
     def testModify(self):
         """ Modifying mutable next should be on a copy """
         for s in self.sigs:
@@ -163,8 +141,8 @@ class SigTest(TestCase):
             elif type(s.val) is dict:
                 s.next[3] = 5
             else:
-                s.next # plain read access
-            self.assertTrue(s.val is not s.next, repr(s.val))
+                s.next  # plain read access
+            assert s.val is not s.next, repr(s.val)
 
     def testUpdatePosedge(self):
         """ update on posedge should return event and posedge waiters """
@@ -177,11 +155,11 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters + self.posedgeWaiters
-        self.assertEqual(set(waiters), set(expected))
-        self.assertEqual(s1._eventWaiters, [])
-        self.assertEqual(s1._posedgeWaiters, [])
-        self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
-            
+        assert set(waiters) == set(expected)
+        assert s1._eventWaiters == []
+        assert s1._posedgeWaiters == []
+        assert s1._negedgeWaiters == self.negedgeWaiters
+
     def testUpdateNegedge(self):
         """ update on negedge should return event and negedge waiters """
         s1 = Signal(1)
@@ -193,10 +171,10 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters + self.negedgeWaiters
-        self.assertEqual(set(waiters), set(expected))
-        self.assertEqual(s1._eventWaiters, [])
-        self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
-        self.assertEqual(s1._negedgeWaiters, [])
+        assert set(waiters) == set(expected)
+        assert s1._eventWaiters == []
+        assert s1._posedgeWaiters == self.posedgeWaiters
+        assert s1._negedgeWaiters == []
 
     def testUpdateEvent(self):
         """ update on non-edge event should return event waiters """
@@ -209,11 +187,11 @@ class SigTest(TestCase):
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
         expected = self.eventWaiters
-        self.assertEqual(set(waiters), set(expected))
-        self.assertEqual(s1._eventWaiters, [])
-        self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
-        self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
-        
+        assert set(waiters) == set(expected)
+        assert s1._eventWaiters == []
+        assert s1._posedgeWaiters == self.posedgeWaiters
+        assert s1._negedgeWaiters == self.negedgeWaiters
+
     def testUpdateNoEvent(self):
         """ update without value change should not return event waiters """
         s1 = Signal(1)
@@ -224,28 +202,28 @@ class SigTest(TestCase):
         s1._posedgeWaiters = self.posedgeWaiters[:]
         s1._negedgeWaiters = self.negedgeWaiters[:]
         waiters = s1._update()
-        self.assertEqual(waiters, [])
-        self.assertEqual(s1._eventWaiters, self.eventWaiters)
-        self.assertEqual(s1._posedgeWaiters, self.posedgeWaiters)
-        self.assertEqual(s1._negedgeWaiters, self.negedgeWaiters)
-    
+        assert waiters == []
+        assert s1._eventWaiters == self.eventWaiters
+        assert s1._posedgeWaiters == self.posedgeWaiters
+        assert s1._negedgeWaiters == self.negedgeWaiters
+
     def testNextAccess(self):
         """ each next attribute access puts a sig in a global siglist """
         del _siglist[:]
         s = [None] * 4
         for i in range(len(s)):
             s[i] = Signal(i)
-        s[1].next # read access
+        s[1].next  # read access
         s[2].next = 1
         s[2].next
         s[3].next = 0
         s[3].next = 1
         s[3].next = 3
         for i in range(len(s)):
-            self.assertEqual(_siglist.count(s[i]), i)
-            
-    
-class TestSignalAsNum(TestCase):
+            assert _siglist.count(s[i]) == i
+
+
+class TestSignalAsNum:
 
     def seqSetup(self, imin, imax, jmin=0, jmax=None):
         seqi = [imin, imin,   12, 34]
@@ -279,7 +257,7 @@ class TestSignalAsNum(TestCase):
             seqj.append(j)
         self.seqi = seqi
         self.seqj = seqj
-        
+
     def binaryCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
@@ -289,12 +267,12 @@ class TestSignalAsNum(TestCase):
             r1 = op(bi, j)
             r2 = op(long(i), bj)
             r3 = op(bi, bj)
-            self.assertEqual(type(r1), type(ref))
-            self.assertEqual(type(r2), type(ref))
-            self.assertEqual(type(r3), type(ref))
-            self.assertEqual(r1, ref)
-            self.assertEqual(r2, ref)
-            self.assertEqual(r3, ref)
+            assert type(r1) == type(ref)
+            assert type(r2) == type(ref)
+            assert type(r3) == type(ref)
+            assert r1 == ref
+            assert r2 == ref
+            assert r3 == ref
 
     def augmentedAssignCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
@@ -303,41 +281,35 @@ class TestSignalAsNum(TestCase):
             ref = long(i)
             ref = op(ref, j)
             r1 = bi1 = Signal(i)
-            try:
+            with pytest.raises(TypeError):
                 r1 = op(r1, j)
-            except TypeError:
-                pass
-            else:
-                self.fail()
+
             r2 = long(i)
             r2 = op(r2, bj)
             r3 = bi3 = Signal(i)
-            try:
+            with pytest.raises(TypeError):
                 r3 = op(r3, bj)
-            except TypeError:
-                pass
-            else:
-                self.fail()
-            self.assertEqual(r2, ref)
-            
+
+            assert r2 == ref
+
     def unaryCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
         for i in self.seqi:
             bi = Signal(i)
             ref = op(i)
             r1 = op(bi)
-            self.assertEqual(type(r1), type(ref))
-            self.assertEqual(r1, ref)
-            
+            assert type(r1) == type(ref)
+            assert r1 == ref
+
     def conversionCheck(self, op, imin=0, imax=None):
         self.seqSetup(imin=imin, imax=imax)
         for i in self.seqi:
             bi = Signal(i)
             ref = op(i)
             r1 = op(bi)
-            self.assertEqual(type(r1), type(ref))
-            self.assertEqual(r1, ref)
-            
+            assert type(r1) == type(ref)
+            assert r1 == ref
+
     def comparisonCheck(self, op, imin=0, imax=None, jmin=0, jmax=None):
         self.seqSetup(imin=imin, imax=imax, jmin=jmin, jmax=jmax)
         for i, j in zip(self.seqi, self.seqj):
@@ -347,9 +319,9 @@ class TestSignalAsNum(TestCase):
             r1 = op(bi, j)
             r2 = op(i, bj)
             r3 = op(bi, bj)
-            self.assertEqual(r1, ref)
-            self.assertEqual(r2, ref)
-            self.assertEqual(r3, ref)
+            assert r1 == ref
+            assert r2 == ref
+            assert r3 == ref
 
     def testAdd(self):
         self.binaryCheck(operator.add)
@@ -358,7 +330,7 @@ class TestSignalAsNum(TestCase):
         self.binaryCheck(operator.sub)
 
     def testMul(self):
-        self.binaryCheck(operator.mul, imax=maxint) # XXX doesn't work for long i???
+        self.binaryCheck(operator.mul, imax=maxint)  # XXX doesn't work for long i???
 
     def testFloorDiv(self):
         self.binaryCheck(operator.floordiv, jmin=1)
@@ -391,7 +363,7 @@ class TestSignalAsNum(TestCase):
         self.augmentedAssignCheck(operator.isub)
 
     def testIMul(self):
-        self.augmentedAssignCheck(operator.imul, imax=maxint) #XXX doesn't work for long i???
+        self.augmentedAssignCheck(operator.imul, imax=maxint)  # XXX doesn't work for long i???
 
     def testIFloorDiv(self):
         self.augmentedAssignCheck(operator.ifloordiv, jmin=1)
@@ -419,7 +391,7 @@ class TestSignalAsNum(TestCase):
 
     def testNeg(self):
         self.unaryCheck(operator.neg)
-        
+
     def testNeg(self):
         self.unaryCheck(operator.pos)
 
@@ -431,31 +403,36 @@ class TestSignalAsNum(TestCase):
 
     def testInt(self):
         self.conversionCheck(int, imax=maxint)
-        
+
     def testLong(self):
         self.conversionCheck(long)
-        
+
     def testFloat(self):
         self.conversionCheck(float)
 
     # XXX __complex__ seems redundant ??? (complex() works as such?)
-  
+
     def testOct(self):
         self.conversionCheck(oct)
-        
+
     def testHex(self):
         self.conversionCheck(hex)
 
     def testLt(self):
         self.comparisonCheck(operator.lt)
+
     def testLe(self):
         self.comparisonCheck(operator.le)
+
     def testGt(self):
         self.comparisonCheck(operator.gt)
+
     def testGe(self):
         self.comparisonCheck(operator.ge)
+
     def testEq(self):
         self.comparisonCheck(operator.eq)
+
     def testNe(self):
         self.comparisonCheck(operator.ne)
 
@@ -466,6 +443,7 @@ def getItem(s, i):
     si = len(exts)-1-i
     return exts[si]
 
+
 def getSlice(s, i, j):
     ext = '0' * (i-len(s)+1)
     exts = ext + s
@@ -474,8 +452,7 @@ def getSlice(s, i, j):
     return exts[si:sj]
 
 
-
-class TestSignalIntBvIndexing(TestCase):
+class TestSignalIntBvIndexing:
 
     def seqsSetup(self):
         seqs = ["0", "1", "000", "111", "010001", "110010010", "011010001110010"]
@@ -499,10 +476,10 @@ class TestSignalIntBvIndexing(TestCase):
                 ref = long(getItem(s, i), 2)
                 res = sbv[i]
                 resi = sbvi[i]
-                self.assertEqual(res, ref)
-                self.assertEqual(type(res), bool)
-                self.assertEqual(resi, ref^1)
-                self.assertEqual(type(resi), bool)
+                assert res == ref
+                assert type(res) == bool
+                assert resi == ref^1
+                assert type(resi) == bool
 
     def testGetSlice(self):
         self.seqsSetup()
@@ -516,88 +493,74 @@ class TestSignalIntBvIndexing(TestCase):
                         res = sbv[i:j]
                         resi = sbvi[i:j]
                     except ValueError:
-                        self.assertTrue(i<=j)
+                        assert i<=j
                         continue
                     ref = long(getSlice(s, i, j), 2)
-                    self.assertEqual(res, ref)
-                    self.assertEqual(type(res), intbv)
+                    assert res == ref
+                    assert type(res) == intbv
                     mask = (2**(i-j))-1
-                    self.assertEqual(resi, ref ^ mask)
-                    self.assertEqual(type(resi), intbv)
+                    assert resi == ref ^ mask
+                    assert type(resi) == intbv
 
     def testSetItem(self):
         sbv = Signal(intbv(5))
-        try:
+        with pytest.raises(TypeError):
             sbv[1] = 1
-        except TypeError:
-            pass
-        else:
-            self.fail()
-            
+
     def testSetSlice(self):
         sbv = Signal(intbv(5))
-        try:
+        with pytest.raises(TypeError):
             sbv[1:0] = 1
-        except TypeError:
-            pass
-        else:
-            self.fail()
 
 
-class TestSignalNrBits(TestCase):
+class TestSignalNrBits:
 
     def testBool(self):
-        if type(bool) is not type : # bool not a type in 2.2
+        if type(bool) is not type :  # bool not a type in 2.2
             return
         s = Signal(bool())
-        self.assertEqual(s._nrbits, 1)
+        assert s._nrbits == 1
 
     def testIntbvSlice(self):
         for n in range(1, 40):
             for m in range(0, n):
                 s = Signal(intbv()[n:m])
-                self.assertEqual(s._nrbits, n-m)
+                assert s._nrbits == n-m
 
     def testIntbvBounds(self):
         for n in range(1, 40):
             s = Signal(intbv(min=-(2**n)))
-            self.assertEqual(s._nrbits, 0)
+            assert s._nrbits == 0
             s = Signal(intbv(max=2**n))
-            self.assertEqual(s._nrbits, 0)
+            assert s._nrbits == 0
             s = Signal(intbv(min=0, max=2**n))
-            self.assertEqual(s._nrbits, n)
+            assert s._nrbits == n
             s = Signal(intbv(1, min=1, max=2**n))
-            self.assertEqual(s._nrbits, n)
+            assert s._nrbits == n
             s = Signal(intbv(min=0, max=2**n+1))
-            self.assertEqual(s._nrbits, n+1)
+            assert s._nrbits == n+1
             s = Signal(intbv(min=-(2**n), max=2**n-1))
-            self.assertEqual(s._nrbits, n+1)
+            assert s._nrbits == n+1
             s = Signal(intbv(min=-(2**n), max=1))
-            self.assertEqual(s._nrbits, n+1)
+            assert s._nrbits == n+1
             s = Signal(intbv(min=-(2**n)-1, max=2**n-1))
-            self.assertEqual(s._nrbits, n+2)
-            
+            assert s._nrbits == n+2
 
-class TestSignalBoolBounds(TestCase):
-    
+
+class TestSignalBoolBounds:
+
     def testSignalBoolBounds(self):
-        if type(bool) is not type: # bool not a type in 2.2
+        if type(bool) is not type:  # bool not a type in 2.2
             return
         s = Signal(bool())
         s.next = 1
         s.next = 0
         for v in (-1, -8, 2, 5):
-            try:
+            with pytest.raises(ValueError):
                 s.next = v
-                #s._update()
-                #s.val
-            except ValueError:
-                pass
-            else:
-                self.fail()
 
-                
-class TestSignalIntbvBounds(TestCase):
+
+class TestSignalIntbvBounds:
 
     def testSliceAssign(self):
         s = Signal(intbv(min=-24, max=34))
@@ -605,28 +568,15 @@ class TestSignalIntbvBounds(TestCase):
             for k in (6, 9, 10):
                 s.next[:] = 0
                 s.next[k:] = i
-                self.assertEqual(s.next, i)
+                assert s.next == i
         for i in (-25, -128, 34, 35, 229):
             for k in (0, 9, 10):
-                try:
+                with pytest.raises(ValueError):
                     s.next[k:] = i
-                    # s._update()
-                except ValueError:
-                    pass
-                else:
-                    self.fail()
+
         s = Signal(intbv(5)[8:])
         for v in (0, 2**8-1, 100):
             s.next[:] = v
         for v in (-1, 2**8, -10, 1000):
-            try:
+            with pytest.raises(ValueError):
                 s.next[:] = v
-                # s._update()
-            except ValueError:
-                pass
-            else:
-                self.fail()
-            
-
-if __name__ == "__main__":
-    unittest.main()

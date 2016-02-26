@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from myhdl import *
 from myhdl.conversion import analyze
 
@@ -27,5 +28,5 @@ clk = Signal(bool(0))
 
 def test_issue_18():
     toVHDL.std_logic_ports = True
-    analyze(issue_18, dout, din, addr, we, clk) == 0
+    assert analyze(issue_18, dout, din, addr, we, clk) == 0
 

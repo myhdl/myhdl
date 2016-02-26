@@ -34,7 +34,6 @@ from collections import defaultdict
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
-from myhdl._cell_deref import _cell_deref
 from myhdl._always_comb import _AlwaysComb
 from myhdl._always_seq import _AlwaysSeq
 from myhdl._always import _Always
@@ -52,9 +51,6 @@ myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
 
 _enumTypeSet = set()
-_constDict = {}
-_extConstDict = {}
-
 
 def _makeName(n, prefixes, namedict):
     # trim empty prefixes
@@ -145,14 +141,14 @@ def _analyzeGens(top, absnames):
             tree = g
         elif isinstance(g, (_AlwaysComb, _AlwaysSeq, _Always)):
             f = g.func
-            tree = _makeAST(f)
+            tree = g.ast
             tree.symdict = f.__globals__.copy()
             tree.callstack = []
             # handle free variables
             tree.nonlocaldict = {}
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
-                    obj = _cell_deref(c)
+                    obj = c.cell_contents
                     tree.symdict[n] = obj
                     # currently, only intbv as automatic nonlocals (until Python 3.0)
                     if isinstance(obj, intbv):
@@ -171,7 +167,7 @@ def _analyzeGens(top, absnames):
             v.visit(tree)
         else: # @instance
             f = g.gen.gi_frame
-            tree = _makeAST(f)
+            tree = g.ast
             tree.symdict = f.f_globals.copy()
             tree.symdict.update(f.f_locals)
             tree.nonlocaldict = {}
@@ -248,6 +244,12 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         self.raiseError(node, _error.NotSupported, "list")
     def visitSliceObj(self, node):
         self.raiseError(node, _error.NotSupported, "slice object")
+
+    # All try blocks from python 3.3+
+    def visit_Try(self, node):
+        self.raiseError(node, _error.NotSupported, "try statement")
+
+    # Legacy try blocks
     def visit_TryExcept(self, node):
         self.raiseError(node, _error.NotSupported, "try-except statement")
     def visit_TryFinally(self, node):
@@ -261,11 +263,19 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
 
     def visit_Call(self, node):
-        if node.starargs:
+        # ast.Call signature changed in python 3.5
+        # http://greentreesnakes.readthedocs.org/en/latest/nodes.html#Call
+        if sys.version_info >= (3, 5):
+            starargs = any(isinstance(arg, ast.Starred) for arg in node.args)
+            kwargs = any(kw.arg is None for kw in node.keywords)
+        else:
+            starargs = node.starargs is not None
+            kwargs = node.kwargs is not None
+
+        if starargs:
             self.raiseError(node, _error.NotSupported, "extra positional arguments")
-        if node.kwargs:
+        if kwargs:
             self.raiseError(node, _error.NotSupported, "extra named arguments")
-        # f = eval(_unparse(node.node), self.tree.symdict)
         self.generic_visit(node)
 
     def visit_Compare(self, node):
@@ -517,12 +527,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(obj, modbv):
                 if not obj._hasFullRange():
                     self.raiseError(node, _error.ModbvRange, n)
-            ws = getattr(obj, 'lenStr', False)
-            ext = getattr(obj, 'external', False)
-            if ws and ws in self.tree.symdict:
-                _constDict[ws] = self.tree.symdict[ws]
-                if ext:
-                    _extConstDict[ws] = self.tree.symdict[ws]
             if n in self.tree.vardict:
                 curObj = self.tree.vardict[n]
                 if isinstance(obj, type(curObj)):
@@ -601,7 +605,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             # handle free variables
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
-                    obj = _cell_deref(c)
+                    obj = c.cell_contents
                     if not  isinstance(obj, (integer_types, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
                     tree.symdict[n] = obj
@@ -817,12 +821,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 if sig._type is bool:
                     node.edge = sig.posedge
-                ws = getattr(sig._val, 'lenStr', False)
-                ext = getattr(sig._val, 'external', False)
-                if ws and ws in self.tree.symdict:
-                    _constDict[ws] = self.tree.symdict[ws]
-                    if ext:
-                        _extConstDict[ws] = self.tree.symdict[ws]
             if self.access == _access.INPUT:
                 self.tree.inputs.add(n)
             elif self.access == _access.OUTPUT:
@@ -859,27 +857,11 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 else:
                     assert False, "unexpected mem access %s %s" % (n, self.access)
                 self.tree.hasLos = True
-                ws = getattr(m.elObj._val, 'lenStr', False)
-                ext = getattr(m.elObj._val, 'external', False)
-                if ws and ws in self.tree.symdict:
-                    _constDict[ws] = self.tree.symdict[ws]
-                    if ext:
-                        _extConstDict[ws] = self.tree.symdict[ws]
             elif isinstance(node.obj, int):
                 node.value = node.obj
-                # put VHDL compliant integer constants in global dict
-                if n not in _constDict and abs(node.obj) < 2**31:
-                    _constDict[n] = node.obj
             if n in self.tree.nonlocaldict:
                 # hack: put nonlocal intbv's in the vardict
                 self.tree.vardict[n] = v = node.obj
-                # typedef string for nonlocal intbv's
-                ws = getattr(v, 'lenStr', False)
-                ext = getattr(v, 'external', False)
-                if ws and ws in self.tree.symdict:
-                    _constDict[ws] = self.tree.symdict[ws]
-                    if ext:
-                        _extConstDict[ws] = self.tree.symdict[ws]
         elif n in builtins.__dict__:
             node.obj = builtins.__dict__[n]
         else:
@@ -1240,7 +1222,7 @@ def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
 
-def _analyzeTopFunc(top_inst, func, *args, **kwargs):
+def _analyzeTopFunc(func, *args, **kwargs):
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)

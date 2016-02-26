@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2011 Jan Decaluwe
+#  Copyright (C) 2003-2015 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -172,8 +172,12 @@ class ConcatSignal(_ShadowSignal):
                 else:
                     w = len(a)
                 lo = hi - w
-                if a in sigargs:
-                    newval[hi:lo] = a
+                # note: 'a in sigargs' is equivalence check, not identity
+                if isinstance(a, _Signal):
+                    if isinstance(a._val, intbv):
+                        newval[hi:lo] = a[w:]
+                    else:
+                        newval[hi:lo] = a
                 hi = lo
             set_next(self, newval)
             yield sigargs

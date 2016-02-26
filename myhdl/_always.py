@@ -24,7 +24,7 @@ from __future__ import absolute_import
 from types import FunctionType
 
 from myhdl import AlwaysError
-from myhdl._util import _isGenFunc
+from myhdl._util import _isGenFunc, _makeAST
 from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
@@ -58,28 +58,31 @@ def always(*args):
             raise AlwaysError(_error.NrOfArgs)
         return _Always(func, args)
     return _always_decorator
-        
+
 
 class _Always(_Instantiator):
 
-    def __init__(self, func, args):
+    def __init__(self, func, senslist):
         self.func = func
-        self.senslist = tuple(args)
-        self.gen = self.genfunc()
-        
+        self.senslist = tuple(senslist)
+        super(_Always, self).__init__(self.genfunc)
+
+    @property
+    def funcobj(self):
+        return self.func
+
+    def _waiter(self):
         # infer appropriate waiter class
         # first infer base type of arguments
         for t in (_Signal, _WaiterList, delay):
-            if isinstance(args[0], t):
+            if isinstance(self.senslist[0], t):
                 bt = t
-        for arg in args[1:]:
-            if not isinstance(arg, bt):
+        for s in self.senslist[1:]:
+            if not isinstance(s, bt):
                 bt = None
                 break
         # now set waiter class
-
         W = _Waiter
-        
         if bt is delay:
             W = _DelayWaiter
         elif len(self.senslist) == 1:
@@ -92,9 +95,7 @@ class _Always(_Instantiator):
                 W = _SignalTupleWaiter
             elif bt is _WaiterList:
                 W = _EdgeTupleWaiter
-
-        self.waiter = W(self.gen)
-            
+        return W
 
     def genfunc(self):
         senslist = self.senslist
@@ -104,4 +105,3 @@ class _Always(_Instantiator):
         while 1:
             yield senslist
             func()
- 

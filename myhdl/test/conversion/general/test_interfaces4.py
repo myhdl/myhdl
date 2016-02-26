@@ -2,16 +2,10 @@ from __future__ import absolute_import
 
 import sys
 
-import pytest
-
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 from myhdl.conversion import analyze, verify
-
-from myhdl import *
-
-from myhdl.test.conversion.conftest import bug
 
 from myhdl import *
 
@@ -110,9 +104,13 @@ def c_testbench_one():
         while True:
             yield delay(3)
             clock.next = not clock
-        
-    expected = (False, False, False, True, True, True,
-                False, True, False, True)
+     
+    # there is an issue when using bools with varialbes and
+    # VHDL conversion, this might be an expected limitation?
+    #expected = (False, False, False, True, True, True,
+    #            False, True, False, True)
+    expected = (0, 0, 0, 1, 1, 1, 0, 1, 0, 1)
+
     ra = reset.active    
     @instance
     def tbstim():
@@ -141,7 +139,6 @@ def test_one_testbench():
     Simulation(c_testbench_one()).run()
 
 
-@bug('82')
 def test_one_analyze():
     clock = Signal(bool(0))
     reset = ResetSignal(0, active=1, async=False)
@@ -150,11 +147,10 @@ def test_one_analyze():
     analyze(m_top, clock, reset, sdi, sdo)
 
 
-@bug('82')
 def test_one_verify():
     assert verify(c_testbench_one) == 0
 
-@bug('82')
+
 def test_conversion():
     toVerilog(c_testbench_one)
     toVHDL(c_testbench_one)

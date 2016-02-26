@@ -163,24 +163,24 @@ def binaryBench(Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ## ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-            print LeftShift
+            print(LeftShift)
             # print Modulo
-            print Mul
+            print(Mul)
                 # self.assertEqual(Pow, Pow_v)
-            print RightShift
-            print Sub
-            print Sum
-            print Sum1
-            print Sum2
-            print Sum3
-            print int(EQ)
-            print int(NE)
-            print int(LT)
-            print int(GT)
-            print int(LE)
-            print int(GE)
-            print int(BoolAnd)
-            print int(BoolOr)
+            print(RightShift)
+            print(Sub)
+            print(Sum)
+            print(Sum1)
+            print(Sum2)
+            print(Sum3)
+            print(int(EQ))
+            print(int(NE))
+            print(int(LT))
+            print(int(GT))
+            print(int(LE))
+            print(int(GE))
+            print(int(BoolAnd))
+            print(int(BoolOr))
 
     return binops, stimulus, check
     
@@ -255,9 +255,9 @@ def unaryBench( m):
             yield arg
             yield delay(1)
             # print BoolNot
-            print Invert
+            print(Invert)
             # print UnaryAdd
-            print UnarySub
+            print(UnarySub)
 
                              
     return unaryops, stimulus, check
@@ -399,12 +399,12 @@ def augmBench( Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-            print LeftShift
+            print(LeftShift)
 ##                 self.assertEqual(Modulo, Modulo_v)
-            print Mul
-            print RightShift
-            print Sub
-            print Sum
+            print(Mul)
+            print(RightShift)
+            print(Sub)
+            print(Sum)
 
     return augmops,  stimulus, check
     
@@ -488,8 +488,8 @@ def expressionsBench():
         while 1:
             yield clk.posedge
             yield delay(1)
-            print int(a)
-            print int(b)
+            print(int(a))
+            print(int(b))
 
     @instance
     def clkgen():

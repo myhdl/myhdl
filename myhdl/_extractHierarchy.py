@@ -25,7 +25,6 @@ from __future__ import absolute_import
 
 import sys
 import inspect
-from inspect import currentframe, getframeinfo, getouterframes
 import re
 import string
 from types import GeneratorType
@@ -36,6 +35,7 @@ from myhdl._Signal import _Signal, _isListOfSigs
 from myhdl._util import _isGenFunc, _flatten, _genfunc
 from myhdl._misc import _isGenSeq
 from myhdl._resolverefs import _resolveRefs
+from myhdl._getcellvars import _getCellVars
 
 
 _profileFunc = None
@@ -48,18 +48,14 @@ _error.InconsistentToplevel = "Inconsistent top level %s for %s - should be 1"
 
 
 class _Instance(object):
-    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name', 'func', 'argdict', 'objdict']
-    def __init__(self, level, obj, subs, sigdict, memdict, func, argdict, objdict=None):
+    __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name']
+    def __init__(self, level, obj, subs, sigdict, memdict):
         self.level = level
         self.obj = obj
         self.subs = subs
         self.sigdict = sigdict
         self.memdict = memdict
-        self.func = func
-        self.argdict = argdict
-        if objdict:
-            self.objdict = objdict
-
+        self.name = None
 
 _memInfoMap = {}
 
@@ -308,17 +304,11 @@ class _HierExtr(object):
                 if isGenSeq and arg:
                     sigdict = {}
                     memdict = {}
-                    argdict = {}
-                    if func:
-                        arglist = inspect.getargspec(func).args
-                    else:
-                        arglist = []
                     symdict = frame.f_globals.copy()
                     symdict.update(frame.f_locals)
                     cellvars = []
-                    cellvars.extend(frame.f_code.co_cellvars)
 
-                    #All nested functions will be in co_consts
+                    # All nested functions will be in co_consts
                     if func:
                         local_gens = []
                         consts = func.__code__.co_consts
@@ -327,6 +317,8 @@ class _HierExtr(object):
                             if genfunc.__code__ in consts:
                                 local_gens.append(item)
                         if local_gens:
+                            cellvarlist = _getCellVars(symdict, local_gens)
+                            cellvars.extend(cellvarlist)
                             objlist = _resolveRefs(symdict, local_gens)
                             cellvars.extend(objlist)
                     #for dict in (frame.f_globals, frame.f_locals):
@@ -345,9 +337,6 @@ class _HierExtr(object):
                             memdict[n] = m
                             if n in cellvars:
                                 m._used = True
-                        # save any other variable in argdict
-                        if (n in arglist) and (n not in sigdict) and (n not in memdict):
-                            argdict[n] = v
 
                     subs = []
                     for n, sub in frame.f_locals.items():
@@ -355,8 +344,7 @@ class _HierExtr(object):
                             if elt is sub:
                                 subs.append((n, sub))
 
-
-                    inst = _Instance(self.level, arg, subs, sigdict, memdict, func, argdict)
+                    inst = _Instance(self.level, arg, subs, sigdict, memdict)
                     self.hierarchy.append(inst)
 
                 self.level -= 1

@@ -28,12 +28,10 @@ import ast
 
 from myhdl import AlwaysError, intbv
 from myhdl._util import _isGenFunc, _dedent
-from myhdl._cell_deref import _cell_deref
 from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
 from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
-from myhdl._instance import _Instantiator
-from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._always import _Always
 
 # evacuate this later
 AlwaysSeqError = AlwaysError
@@ -82,13 +80,13 @@ def always_seq(edge, reset):
     return _always_seq_decorator
 
 
-class _AlwaysSeq(_Instantiator):
+class _AlwaysSeq(_Always):
 
     def __init__(self, func, edge, reset):
-        self.func = func
-        self.senslist = senslist = [edge]
+        senslist = [edge]
         self.reset = reset
         if reset is not None:
+            self.genfunc = self.genfunc_reset
             active = self.reset.active
             async = self.reset.async
             if async:
@@ -96,44 +94,20 @@ class _AlwaysSeq(_Instantiator):
                     senslist.append(reset.posedge)
                 else:
                     senslist.append(reset.negedge)
-            self.gen = self.genfunc()
         else:
-            self.gen = self.genfunc_no_reset()
-        if len(self.senslist) == 1:
-            W = _EdgeWaiter
-        else:
-            W = _EdgeTupleWaiter
-        self.waiter = W(self.gen)
+            self.genfunc = self.genfunc_no_reset
 
-        # find symdict
-        # similar to always_comb, but in class constructor
-        varnames = func.__code__.co_varnames
-        symdict = {}
-        for n, v in func.__globals__.items():
-            if n not in varnames:
-                symdict[n] = v
-        # handle free variables
-        if func.__code__.co_freevars:
-            for n, c in zip(func.__code__.co_freevars, func.__closure__):
-                try:
-                    obj = _cell_deref(c)
-                    symdict[n] = obj
-                except NameError:
-                    raise NameError(n)
-        self.symdict = symdict
+        super(_AlwaysSeq, self).__init__(func, senslist)
 
-        # now infer outputs to be reset
-        s = inspect.getsource(func)
-        s = _dedent(s)
-        tree = ast.parse(s)
-        # print ast.dump(tree)
-        v = _AttrRefTransformer(self)
-        v.visit(tree)
-        v = _SigNameVisitor(self.symdict)
-        v.visit(tree)
+        if self.inouts:
+            raise AlwaysSeqError(_error.SigAugAssign, v.inouts)
+
+        if self.embedded_func:
+            raise AlwaysSeqError(_error.EmbeddedFunction)
+
         sigregs = self.sigregs = []
         varregs = self.varregs = []
-        for n in v.outputs:
+        for n in self.outputs:
             reg = self.symdict[n]
             if isinstance(reg, _Signal):
                 sigregs.append(reg)
@@ -143,7 +117,6 @@ class _AlwaysSeq(_Instantiator):
                 assert _isListOfSigs(reg)
                 for e in reg:
                     sigregs.append(e)
-
 
     def reset_sigs(self):
         for s in self.sigregs:
@@ -155,7 +128,7 @@ class _AlwaysSeq(_Instantiator):
             n, reg, init = v
             reg._val = init
 
-    def genfunc(self):
+    def genfunc_reset(self):
         senslist = self.senslist
         if len(senslist) == 1:
             senslist = senslist[0]
@@ -178,88 +151,3 @@ class _AlwaysSeq(_Instantiator):
         while 1:
             yield senslist
             func()
-
-
-# similar to always_comb, calls for refactoring
-# note: make a difference between augmented assign and inout signals
-
-INPUT, OUTPUT, INOUT = range(3)
-
-class _SigNameVisitor(ast.NodeVisitor):
-    def __init__(self, symdict):
-        self.inputs = set()
-        self.outputs = set()
-        self.toplevel = 1
-        self.symdict = symdict
-        self.context = INPUT
-
-    def visit_Module(self, node):
-
-        for n in node.body:
-            self.visit(n)
-
-    def visit_FunctionDef(self, node):
-        if self.toplevel:
-            self.toplevel = 0 # skip embedded functions
-            for n in node.body:
-                self.visit(n)
-        else:
-            raise AlwaysSeqError(_error.EmbeddedFunction)
-
-    def visit_If(self, node):
-        if not node.orelse:
-            if isinstance(node.test, ast.Name) and \
-               node.test.id == '__debug__':
-                return # skip
-        self.generic_visit(node)
-
-    def visit_Name(self, node):
-        id = node.id
-        if id not in self.symdict:
-            return
-        s = self.symdict[id]
-        if isinstance(s, (_Signal, intbv)) or _isListOfSigs(s):
-            if self.context == INPUT:
-                self.inputs.add(id)
-            elif self.context == OUTPUT:
-                self.outputs.add(id)
-            elif self.context == INOUT:
-                raise AlwaysSeqError(_error.SigAugAssign, id)
-            else:
-                raise AssertionError("bug in always_seq")
-
-    def visit_Assign(self, node):
-        self.context = OUTPUT
-        for n in node.targets:
-            self.visit(n)
-        self.context = INPUT
-        self.visit(node.value)
-
-    def visit_Attribute(self, node):
-        self.visit(node.value)
-
-    def visit_Subscript(self, node, access=INPUT):
-        self.visit(node.value)
-        self.context = INPUT
-        self.visit(node.slice)
-
-    def visit_AugAssign(self, node, access=INPUT):
-        self.context = INOUT
-        self.visit(node.target)
-        self.context = INPUT
-        self.visit(node.value)
-
-    def visit_ClassDef(self, node):
-        pass # skip
-
-    def visit_Exec(self, node):
-        pass # skip
-
-    def visit_Print(self, node):
-        pass # skip
-
-
-
-
-
-

@@ -8,7 +8,7 @@ from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 b = c = 2
 

@@ -26,7 +26,6 @@ from __future__ import print_function
 
 
 import sys
-from inspect import currentframe, getouterframes
 import time
 import os
 path = os.path
@@ -50,12 +49,14 @@ _error.MultipleTraces = "Cannot trace multiple instances simultaneously"
 class _TraceSignalsClass(object):
 
     __slot__ = ("name",
+                "directory",
                 "timescale",
                 "tracelists"
                 )
 
     def __init__(self):
         self.name = None
+        self.directory = None
         self.timescale = "1ns"
         self.tracelists = True
 
@@ -82,8 +83,14 @@ class _TraceSignalsClass(object):
                 name = str(self.name)
             if name is None:
                 raise TraceSignalsError(_error.TopLevelName)
+
+            if self.directory is None:
+                directory = ''
+            else:
+                directory = self.directory
+
             h = _HierExtr(name, dut, *args, **kwargs)
-            vcdpath = name + ".vcd"
+            vcdpath = os.path.join(directory, name + ".vcd")
             if path.exists(vcdpath):
                 backup = vcdpath + '.' + str(path.getmtime(vcdpath))
                 shutil.copyfile(vcdpath, backup)
@@ -111,7 +118,7 @@ def _genNameCode():
     while 1:
         yield _namecode(n)
         n += 1
-        
+
 def _namecode(n):
     q, r = divmod(n, _mod)
     code = _codechars[r]
@@ -175,10 +182,11 @@ def _writeVcdSigs(f, hierarchy, tracelists):
             else:
                 print("$var real 1 %s %s $end" % (s._code, n), file=f)
         # Memory dump by Frederik Teichert, http://teichert-ing.de, date: 2011.03.28
-        # The Value Change Dump standard doesn't support multidimensional arrays so 
+        # The Value Change Dump standard doesn't support multidimensional arrays so
         # all memories are flattened and renamed.
         if tracelists:
             for n in memdict.keys():
+                print("$scope module {} $end" .format(n), file=f)
                 memindex = 0
                 for s in memdict[n].mem:
                     sval = _getSval(s)
@@ -197,6 +205,7 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                     else:
                         print("$var real 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
                     memindex += 1
+                print("$upscope $end", file=f)
     for i in range(curlevel):
         print("$upscope $end", file=f)
     print(file=f)
@@ -205,16 +214,3 @@ def _writeVcdSigs(f, hierarchy, tracelists):
     for s in siglist:
         s._printVcd() # initial value
     print("$end", file=f)
-            
-            
-        
-        
-
-
-    
-    
-
-            
-        
-    
-    

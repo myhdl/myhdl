@@ -20,16 +20,12 @@
 """ Run the unit tests for Signal """
 from __future__ import absolute_import
 
-
 import random
-from random import randrange
-random.seed(1) # random, but deterministic
-from types import GeneratorType
-
-import unittest
-from unittest import TestCase
 
 from myhdl import instance, instances
+
+random.seed(1)  # random, but deterministic
+
 
 def A(n):
     @instance
@@ -37,11 +33,13 @@ def A(n):
         yield None
     return logic
 
+
 def B(n):
     @instance
     def logic():
         yield None
     return logic
+
 
 def C(n):
     A_1 = A(1)
@@ -51,7 +49,8 @@ def C(n):
 
 g = 3
 
-class InstancesTest(TestCase):
+
+class TestInstances:
 
     def testInstances(self):
 
@@ -70,10 +69,6 @@ class InstancesTest(TestCase):
         i = instances()
         # can't just construct an expected list;
         # that would become part of the instances also!
-        self.assertEqual(len(i), 4)
+        assert len(i) == 4
         for e in (D_1, A_1, B_1, C_1):
-            self.assertTrue(e in i)
-
-
-if __name__ == "__main__":
-    unittest.main()
+            assert e in i

@@ -1,0 +1,587 @@
+.. currentmodule:: myhdl
+
+.. _new05:
+
+=======================
+What's new in MyHDL 0.5 
+=======================
+
+:Author: Jan Decaluwe
+
+Modeling
+========
+
+Creating generators with decorators
+-----------------------------------
+
+Introduction
+~~~~~~~~~~~~
+
+Python 2.4 introduced a new feature called *decorators*. A decorator consists
+of special syntax in front of a function declaration. It refers to a decorator
+function. The decorator function automatically transforms the declared function
+into some other callable object.
+
+MyHDL 0.5 defines decorators that can be used to create ready-to-run generators
+from local functions. The use of decorators results in clearer, more explicit
+code.
+
+The ``@instance`` decorator 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``@instance`` decorator is the most general decorator in MyHDL.
+
+In earlier versions of MyHDL, local generator functions are typically used as
+follows:
+
+::
+
+    def top(...):
+        ...
+        def gen_func():
+            <generator body>
+        ...
+        inst = gen_func()
+        ...
+        return inst, ...
+
+Note that the generator function :func:`gen_func()` is intended to be called
+exactly once, and that its name is not necessary anymore afterwards. In MyHDL
+0.5, this can be rewritten as follows, using the ``@instance`` decorator:
+
+::
+
+    def top(...):
+        ...
+        @instance
+        def inst():
+            <generator body>
+        ...
+        return inst, ...
+
+
+Behind the curtains, the ``@instance`` decorator automatically creates a
+generator by calling the generator function, and by reusing its name. Note that
+it is placed immediately in front of the corresponding generator function,
+resulting in clearer code.
+
+The ``@always`` decorator
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``@always`` decorator is a specialized decorator that targets a very
+popular coding pattern. It is used as follows:
+
+::
+
+    def top(...):
+        ...
+        @always(event1, event2, ...)
+        def inst()
+            <body>
+        ...
+        return inst, ...
+
+The meaning of this code is that the decorated function is executed whenever
+one of the events occurs. The argument list of the decorator corresponds to the
+sensitivity list. Appropriate events are edge specifiers, signals, and delay
+objects. The decorated function is a classic function instead of a generator
+function. 
+
+Behind the curtains, the ``always`` decorator creates an enclosing ``while
+True`` loop automatically, and inserts a ``yield`` statement with the
+sensitivity list.
+
+The ``@always_comb`` decorator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``@always_comb`` decorator is used to describe combinatorial logic. It is
+nothing else than the :func:`always_comb` function from earlier MyHDL versions
+used as a decorator:
+
+:: 
+
+    def top(...):
+        ...
+        @always_comb
+        def comb_inst():
+            <combinatorial body>
+        ...
+        return comb_inst, ...
+
+The ``@always_comb`` decorator infers the inputs of the combinatorial logic and
+the corresponding sensitivity list automatically.
+
+More information
+~~~~~~~~~~~~~~~~
+
+For more information about the background and the design decisions regarding
+MyHDL decorators, see `mep-100`_.
+
+Recommended style changes
+-------------------------
+
+Decorator usage
+~~~~~~~~~~~~~~~
+
+The use of decorators has clear advantages in terms of code clarity. Therefore,
+it is recommended that all local generators be created using decorators.
+
+Edge specifiers
+~~~~~~~~~~~~~~~
+
+Signal edges are typically specified using the :func:`posedge()` and
+:func:`negedge()` functions in MyHDL. However, these functions are simply
+wrappers around attributes with the same name. The design decision to use
+functions have been reviewed and found questionable. In fact, using the
+attributes directly instead has significant advantages, listed in order of
+increasing significance:
+
+  * one character less to type
+  * more object-oriented style
+  * less symbols in the ``myhdl`` namespace
+  * no brackets, which is better for clarity
+  * no function call overhead 
+
+From MyHDL 0.5 on, it is therefore recommended to use the edge specifier
+attributes. For example:
+
+::
+
+    clk.posedge # instead of posedge(clk)
+    rst.negedge # instead of negedge(clk)
+
+Deprecated features
+-------------------
+
+Edge specifier functions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Functions :func:`posedge()` and :func:`negedge()` are deprecated. As discussed
+before, it is recommended to use the signal attributes with the same name
+instead.
+
+In MyHDL 0.5, the functions will be removed from all documentation and
+examples. They will be removed from MyHDL in a future version.
+
+processes() function
+~~~~~~~~~~~~~~~~~~~~
+
+Function :func:`processes()` is deprecated. It looks up local generator functions and
+calls them to create generators. When MyHDL 0.5 decorators are used as
+recommended, this functionality becomes superfluous as it is part of the
+decorator functionality.
+
+On the other hand, the companion function :func:`instances()` continues to be
+relevant and useful. It merely looks up instances in a local namespace. Having
+a single lookup function will also improve usability.
+
+In MyHDL 0.5, the :func:`processes()` function will be removed from all documentation
+and examples. It will be removed from MyHDL in a future version. 
+
+Backwards incompatible changes
+------------------------------
+
+Default initial value of an intbv instance 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It has always been possible to construct an :class:`intbv` instance without
+explicit initial value:
+
+::
+
+    m = intbv()
+
+Prior to MyHDL 0.4, the default initial value was ``0``. In MyHDL 0.5, this has
+been changed to ``None``. This is a first step towards support for ``X`` and
+``Z`` functionality as found in other HDLs. This may be occasionally useful :-)
+For example, it may be meaningful to initialize memory locations to ``None`` to
+make sure that they will not be read before they have been initialized. If
+``None`` is supported, it seems also logical to make it the default initial
+value, to be interpreted as "No value".
+
+**Warning**: if you have calls like the above in your code, it will probably
+fail with MyHDL 0.5, as many integer-like operations are not supported with
+`None` values.
+
+**Workaround**: change your existing code by using ``0`` as an explicit initial
+value, like so::
+
+    m = intbv(0)
+
+Python version
+--------------
+
+Because of the usage of new features such as decorators, MyHDL 0.5 requires
+upgrading to Python 2.4 or higher.
+
+Verilog conversion 
+==================
+
+Decorator support
+-----------------
+
+The Verilog convertor was enhanced to support the proposed decorators.
+
+Mapping a list of signals to a RAM memory 
+-----------------------------------------
+
+Certain synthesis tools can map Verilog memories to memory structures. For
+example, this is supported by the Xilinx toolset. To support this interesting
+feature, the Verilog convertor now maps lists of signals in MyHDL to Verilog
+memories.
+
+The following MyHDL example is a ram model that uses a list of signals to model
+the internal memory.
+
+:: 
+
+    def RAM(dout, din, addr, we, clk, depth=128):
+        """  Ram model """
+        
+        mem = [Signal(intbv(0)[8:]) for i in range(depth)]
+    
+        @always(clk.posedge)
+        def write():
+            if we:
+                mem[int(addr)].next = din
+                    
+        @always_comb
+        def read():
+            dout.next = mem[int(addr)]
+            
+        return write, read
+
+With the appropriate signal definitions for the interface ports, it is mapped
+by :func:`toVerilog` to the following Verilog code. Note how the list of signals
+``mem`` is mapped to a Verilog memory.
+
+::
+
+    module RAM (
+        dout,
+        din,
+        addr,
+        we,
+        clk
+    );
+    
+    output [7:0] dout;
+    wire [7:0] dout;
+    input [7:0] din;
+    input [6:0] addr;
+    input we;
+    input clk;
+    
+    reg [7:0] mem [0:128-1];
+    
+    always @(posedge clk) begin: _RAM_write
+        if (we) begin
+            mem[addr] <= din;
+        end
+    end
+    
+    assign dout = mem[addr];
+    
+    endmodule
+
+Lists of signals can also be used in MyHDL to elegantly describe iterative
+hierarchical structures. (See the MyHDL manual.) However, there is an important
+difference: such signals will have a name at some level of the hierarchy, while
+in the case described above, the individual signals are anonymous. The
+:func:`toVerilog` convertor detects which case we are in. In the first case,
+the individual signals will still be declared in the Verilog output, using the
+highest-level hierarchical name. It is only in the second case that the list of
+signals is declared as a Verilog memory.
+
+
+Mapping combinatorial logic to assign statements 
+------------------------------------------------
+
+When possible, combinatorial logic is now converted to Verilog assign
+statements. There are two conditions for this to happen. First, the logic has
+to be explicitly described as a combinatorial function using the
+``@always_comb`` decorator. Secondly, the function has to be simple enough so
+that a mapping to assign statements is possible: only signal assignments are
+permitted.  Otherwise, a Verilog always block is used as previously.
+
+See the RAM model of the previous section for an example.
+
+This was done because certain synthesis tools require assign statements to
+recognize code templates.
+
+Mapping a tuple of integers to a ROM memory
+--------------------------------------------
+
+Some synthesis tools, such as the Xilinx tool, can infer a ROM memory from a
+case statement. :func:`toVerilog` has been enhanced to do the expansion into a
+case statement automatically, based on a higher level description. The rom
+access is described in a single line, by indexing into a tuple of integers. The
+tuple can be described manually, but also by programmatical means. Note that a
+tuple is used instead of a list to stress the read-only character of the
+memory.
+
+The following example illustrates this functionality.
+
+::
+
+    def rom(dout, addr, CONTENT):
+                                                                                    
+        @always_comb
+        def read():
+            dout.next = CONTENT[int(addr)]
+                                                                                    
+        return read
+                                                                                    
+    dout = Signal(intbv(0)[8:])
+    addr = Signal(intbv(0)[4:])
+    CONTENT = (17, 134, 52, 9)
+                                                                                    
+    toVerilog(rom, dout, addr, CONTENT)
+    
+The output Verilog code is as follows:
+
+:: 
+
+    module rom (
+        dout,
+        addr
+    );
+                                                                                    
+    output [7:0] dout;
+    reg [7:0] dout;
+    input [3:0] addr;
+                                                                           
+    always @(addr) begin: _rom_read
+        // synthesis parallel_case full_case
+        case (addr)
+            0: dout <= 17;
+            1: dout <= 134;
+            2: dout <= 52;
+            default: dout <= 9;
+        endcase
+    end
+                                                                                    
+    endmodule
+
+Support for signed arithmetic
+-----------------------------
+
+Getting signed representations right in Verilog is tricky. One issue is that a
+signed representation is treated as a special case, and unsigned as the rule.
+For example, whenever one of the operands in an expression is unsigned, all
+others are also treated like unsigned. While this is understandable from a
+historical perspective (for backwards compatibility reasons) it is the opposite
+from what one expects from a high-level point of view, when working with
+negative numbers. The basic problem is that a Verilog user has to deal with
+representation explicitly in all cases, even for abstract integer operations.
+It would be much better to leave representational issues to a tool.
+
+MyHDL doesn't make the distinction between signed and unsigned. The
+:class:`intbv` class can handle any kind of integer, including negative ones.
+If required, you can access the 2's complement representation of an
+:class:`intbv` object, but for integer operations such a counting, there is no
+need to worry about this.
+
+Of course, the Verilog convertor has to deal with the representation carefully.
+MyHDL 0.4 avoided the issue by simply prohibiting :class:`intbv` objects with
+negative values. MyHDL 0.5 adds support for negative values and uses the signed
+Verilog representation to accomplish this.
+
+The problematic cases are those when signed and unsigned representations are
+mixed in Verilog expressions. The convertor avoids this by making sure that
+signed arithmetic is used whenever one of the operands is signed. Note that
+this is exactly the opposite of the Verilog default. More specifically, the
+convertor may convert an unsigned operand by adding a sign bit and casting to a
+signed interpretation, using the Verilog ``$signed`` function. Operands that
+are treated like this are positive :class:`intbv` objects, slices and
+subscripts of :class:`intbv` objects, and :class:`bool` objects.
+
+Integer constants are treated as a special case. Unsized integer numbers were
+always treated as signed numbers in Verilog. However, as their representation
+is minimally 32 bits wide, they usually don't give problems when mixed with
+unsigned numbers. Therefore, integer constants don't cause signed casting of
+other operands in the same expression: users would actually find it surprizing
+if they did.
+
+Support for user-defined Verilog code
+-------------------------------------
+
+Introduction
+~~~~~~~~~~~~
+
+In order to provide a path to implementation, MyHDL code can be converted to
+Verilog. However, in some cases the conversion may fail or the result may not
+be acceptable. For example:
+
+* conversion will fail if the MyHDL code doesn't follow the rules of the convertible subset
+* a user may want to explicitly instantiate an existing Verilog module, instead of converting the corresponding MyHDL code
+* it may be necessary to include technology-dependent modules in the Verilog output
+
+As a conclusion, MyHDL users need a method to include user-defined Verilog code
+during the conversion process.
+
+Solution
+~~~~~~~~
+
+MyHDL 0.5 defines a hook that is understood by ``toVerilog`` but ignored by the
+MyHDL simulator. The hook is called ``__verilog__``. Its operation can be
+understood as a special return value. When a MyHDL function defines
+``__verilog__``, the Verilog converter will use its value instead of the
+regular return value.
+
+The value of ``__verilog__`` should be a format string that uses keys in its
+format specifiers. The keys refer to the variable names in the context of the
+string.
+
+Example::
+
+    def inc_comb(nextCount, count, n):
+    
+        @always_comb
+        def logic():
+            nextCount.next = (count + 1) % n
+    
+        __verilog__ = \
+    """
+    assign %(nextCount)s = (%(count)s + 1) %% %(n)s;
+    """
+        nextCount.driven = "wire"
+    
+        return logic
+
+In this example, conversion of the ``inc_comb`` function is bypassed and the
+user-defined Verilog code is inserted instead. Note that the user-defined code
+refers to signals and parameters in the MyHDL context by using format
+specifiers. During conversion, the appropriate hierarchical names and parameter
+values will be filled in. Note also that the format specifier indicator `%`
+needs to be escaped (by doubling it) if it is required in the user-defined
+code.
+
+There is one more issue that needs user attention. Normally, the Verilog
+convertor infers inputs, internal signals, and outputs. It also detects
+undriven and multiple driven signals. To do this, it assumes that signals are
+not driven by default. It then processes the code to find out which signals are
+driven from where. However, it cannot do this for user-defined code. Without
+additional help, this will result in warnings or errors during the inference
+process, or in compilation errors from invalid Verilog code. The user should
+solve this by setting the ``driven`` attribute for signals that are driven from
+the user-defined code. In the example code above, note the following
+assignment::
+
+    nextCount.driven = "wire"
+
+This specifies that the ``nextCount`` signal is driven as a Verilog wire from
+this module. The allowed values of the ``driven`` attribute are ``"wire"`` and
+``"reg"``. The value specifies how the user-defined Verilog code drives the
+signal in Verilog. To decide which value to use, consider how the signal should
+be declared in Verilog after the user-defined code is inserted.
+
+Limitations
+~~~~~~~~~~~
+
+It is not possible to use the ``__verilog__`` hook in a generator function -
+it should be in a classic function. This is because in MyHDL those functions
+are completely run (elaborated) before the conversion starts, while generator
+functions are not.
+
+More info
+~~~~~~~~~
+
+For more information about the background and the design decisions regarding
+user-defined Verilog code, see `mep-101`_.
+
+Backwards incompatible changes
+------------------------------
+
+Verilog conversion output filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A Verilog conversion is performed with a call that looks as follows::
+
+    instance_name = toVerilog(func, ...)
+
+In MyHDL 0.4, the Verilog output filename was called ``instance_name.v``. In
+MyHDL 0.5, the default output filename is ``func_name.v``, where ``func_name``
+is the name of the function, available as the ``func.func_name`` attribute.
+
+This was done for the following reasons. The MyHDL 0.4 was overly clever and
+therefore complicated. It involves frame handling and parsing the source file
+for the assignment pattern. Besides being too clever, it also had awkward
+limitations. For example, it was not possible to construct a dynamic name for
+the instance, which is very un-Pythonic behavior.
+
+Both the implementation complexity and the limitations are gone with the new
+behavior: the name of the top-level function argument is simply used. In
+addition, it is now possible to specify a user-defined name for the instance as
+follows::
+
+     toVerilog.name = "my_name"
+     toVerilog(func, ....)
+
+To support this feature, it was necessary to make toVerilog an instance of a
+class with a call interface.
+
+**Warning**: When existing converting code is re-run, the Verilog output
+filename will be different than in 0.4.
+
+Simulation
+==========
+
+Performance optimizations
+-------------------------
+
+To improve the simulation performance of MyHDL, we mainly put our trust in
+Python development itself. There are good reasons to be optimistic.
+
+What MyHDL itself can do is to minimize the overhead of the simulation loop. In
+MyHDL 0.5, a first step was taken in  this respect. 
+
+MyHDL supports a number of "trigger objects". These are the objects that can
+occur in ``yield`` statements, for example :class:`delay`, ``posedge``,
+:class:`Signal`, and generator objects. Each of these are handled differently
+and so the simulation loop has to account for the object type. Prior to MyHDL
+0.5, this type check was explicitly done for each occurence of a ``yield``
+statement during simulation. As many generators will loop endlessly, it is
+clear that the same things will be checked over and over again, resulting in an
+important overhead.
+
+In MyHDL 0.5, all generators are predigested. Certain trigger object patterns
+that tend to occur often are given specialized simulation handlers, so that
+continuously performing the same type check is avoided. More specifically, they
+consist of generators that only contain ``yield`` statements with a specific
+argument. Currently, 5 different kinds of generators are recognized and
+accelerated, corresponding to the following ``yield`` statement arguments:
+
+    * a :class:`delay` object
+    * a :class:`Signal` object
+    * a tuple of :class:`Signal` objects
+    * a ``posedge`` or ``negedge`` object
+    * a tuple of ``posedge`` and/or ``negedge`` objects
+
+Backwards incompatible changes 
+------------------------------
+
+Waveform tracing output filename 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Waveform tracing is initiated by a call that looks as follows::
+
+    instance_name = traceSignals(func, ...)
+
+In MyHDL 0.4, the output filename was called `instance_name.vcd`. In MyHDL 0.5,
+the default output filename is `func_name.vcd`, where `func_name` is the name
+of the function, available as the `func.func_name` attribute.
+
+This was done for the same reasons as in the similar case for `toVerilog`, as
+described earlier.
+
+A user-defined name for the output file can be specified as follows::
+
+     traceSignals.name = "my_name"
+     inst = traceSignals(func, ....)
+
+**Warning**: When existing converting code is re-run, the vcd output filename
+will be different than in 0.4.
+
+.. _mep-100: http://dev.myhdl.org/meps/mep-100.html
+.. _mep-101: http://dev.myhdl.org/meps/mep-101.html

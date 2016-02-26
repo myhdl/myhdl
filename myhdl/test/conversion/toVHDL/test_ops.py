@@ -145,27 +145,27 @@ def binaryBench(m, n):
             yield left, right
             yield delay(1)
 
-            print Bitand
-            print Bitor
-            print Bitxor
-            print FloorDiv
-            print LeftShift
+            print(Bitand)
+            print(Bitor)
+            print(Bitxor)
+            print(FloorDiv)
+            print(LeftShift)
 
             # print Pow, Pow_v
 
-            print Modulo
-            print RightShift
-            print Mul
-            print Sub
-            print Sum
-            print int(EQ)
-            print int(NE)
-            print int(LT)
-            print int(GT)
-            print int(LE)
-            print int(GE)
-            print int(Booland)
-            print int(Boolor)
+            print(Modulo)
+            print(RightShift)
+            print(Mul)
+            print(Sub)
+            print(Sum)
+            print(int(EQ))
+            print(int(NE))
+            print(int(LT))
+            print(int(GT))
+            print(int(LE))
+            print(int(GE))
+            print(int(Booland))
+            print(int(Boolor))
 
     return binops, stimulus, check
 
@@ -253,11 +253,11 @@ def multiBench(m, n, p):
             yield argm, argn, argp
             yield delay(1)
 
-            print Bitand
-            print Bitor
-            print Bitxor
-            print int(Booland)
-            print int(Boolor)
+            print(Bitand)
+            print(Bitor)
+            print(Bitxor)
+            print(int(Booland))
+            print(int(Boolor))
 
     return multiops, stimulus, check
 
@@ -315,8 +315,8 @@ def unaryBench(m):
         while 1:
             yield arg
             yield delay(1)
-            print int(Not_kw)
-            print Invert
+            print(int(Not_kw))
+            print(Invert)
             # check unary operator support in vhdl
             # print UnaryAdd
             # print UnarySub
@@ -449,16 +449,16 @@ def augmBench(m, n):
         while True:
             yield left, right
             yield delay(1)
-            print Bitand
-            print Bitor
-            print Bitxor
-            print Sub
-            print Sum
-            print FloorDiv
-            print LeftShift
-            print Modulo
-            print Mul
-            print RightShift
+            print(Bitand)
+            print(Bitor)
+            print(Bitxor)
+            print(Sub)
+            print(Sum)
+            print(FloorDiv)
+            print(LeftShift)
+            print(Modulo)
+            print(Mul)
+            print(RightShift)
             
     return augmops, stimulus, check
 

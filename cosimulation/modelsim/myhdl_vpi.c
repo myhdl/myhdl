@@ -125,7 +125,7 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
   while ((reg_handle = vpi_scan(reg_iter)) != NULL) {
     if (vpi_get(vpiType, reg_handle) != vpiReg) {
       vpi_printf("ERROR: $from_myhdl argument %s should be a reg\n",
-		 vpi_get_str(vpiName, reg_handle));
+                vpi_get_str(vpiName, reg_handle));
       vpi_control(vpiFinish, 1);  /* abort simulation */
       return(0);
     }
@@ -137,7 +137,7 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data)
   }
   //vpi_free_object(reg_iter);
 
-  n = write(wpipe, buf, strlen(buf));  
+  n = write(wpipe, buf, strlen(buf));
 
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
     vpi_printf("Info: MyHDL simulator down\n");
@@ -274,12 +274,12 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
 
   if (start_flag) {
     start_flag = 0;
-    n = write(wpipe, "START", 5);  
+    n = write(wpipe, "START", 5);
     // vpi_printf("INFO: RO cb at start-up\n");
     if ((n = read(rpipe, buf, MAXLINE)) == 0) {
       vpi_printf("ABORT from RO cb at start-up\n");
       vpi_control(vpiFinish, 1);  /* abort simulation */
-    }  
+    }
     assert(n > 0);
   }
 
@@ -311,7 +311,7 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data)
     vpi_free_object(net_handle);  // done with this one
   }
   //vpi_free_object(net_iter);
-  
+
   n = write(wpipe, buf, strlen(buf));
   if ((n = read(rpipe, buf, MAXLINE)) == 0) {
     // vpi_printf("ABORT from RO cb\n");
@@ -463,7 +463,6 @@ static PLI_INT32 change_callback(p_cb_data cb_data)
 }
 
 
-
 void myhdl_register()
 {
   s_vpi_systf_data tf_data;
@@ -498,9 +497,9 @@ void vpi_compat_bootstrap(void)
 {
  int i;
 
- for (i = 0;; i++) 
+ for (i = 0;; i++)
   {
-   if (vlog_startup_routines[i] == NULL) break; 
+   if (vlog_startup_routines[i] == NULL) break;
    vlog_startup_routines[i]();
   }
 }

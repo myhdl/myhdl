@@ -29,7 +29,6 @@ negedge -- callable to model a falling edge on a signal in a yield statement
 from __future__ import absolute_import
 from __future__ import print_function
 
-from inspect import currentframe, getouterframes
 from copy import copy, deepcopy
 import operator
 
@@ -43,7 +42,7 @@ from myhdl._bin import bin
 
 _schedule = _futureEvents.append
 
-   
+
 def _isListOfSigs(obj):
     """ Check if obj is a non-empty list of signals. """
     if isinstance(obj, list) and len(obj) > 0:
@@ -53,8 +52,8 @@ def _isListOfSigs(obj):
         return True
     else:
         return False
-     
-       
+
+
 class _WaiterList(list):
 
     def purge(self):
@@ -69,7 +68,7 @@ class _PosedgeWaiterList(_WaiterList):
         return "posedge %s" % self.sig._name
     def _toVHDL(self):
         return "rising_edge(%s)" % self.sig._name
-    
+
 class _NegedgeWaiterList(_WaiterList):
     def __init__(self, sig):
         self.sig = sig
@@ -96,7 +95,7 @@ def Signal(val=None, delay=None):
         return _DelayedSignal(val, delay)
     else:
         return _Signal(val)
-    
+
 class _Signal(object):
 
     """ _Signal class.
@@ -109,8 +108,8 @@ class _Signal(object):
 
     __slots__ = ('_next', '_val', '_min', '_max', '_type', '_init',
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
-                 '_code', '_tracing', '_nrbits', '_checkVal', 
-                 '_setNextVal', '_copyVal2Next', '_printVcd', 
+                 '_code', '_tracing', '_nrbits', '_checkVal',
+                 '_setNextVal', '_copyVal2Next', '_printVcd',
                  '_driven' ,'_read', '_name', '_used', '_inList',
                  '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
                  '_numeric'
@@ -121,7 +120,7 @@ class _Signal(object):
         """ Construct a signal.
 
         val -- initial value
-        
+
         """
         self._init = deepcopy(val)
         self._val = deepcopy(val)
@@ -177,7 +176,7 @@ class _Signal(object):
         self._numeric = True
         for s in self._slicesigs:
             s._clear()
-        
+
     def _update(self):
         val, next = self._val, self._next
         if val != next:
@@ -227,12 +226,12 @@ class _Signal(object):
     @property
     def posedge(self):
         return self._posedgeWaiters
-                       
+
     # support for the 'negedge' attribute
     @property
     def negedge(self):
         return self._negedgeWaiters
-    
+
     # support for the 'min' and 'max' attribute
     @property
     def max(self):
@@ -252,7 +251,7 @@ class _Signal(object):
         if not val  in ("reg", "wire", True):
             raise ValueError('Expected value "reg", "wire", or True, got "%s"' % val)
         self._driven = val
-    
+
     # support for the 'read' attribute
     @property
     def read(self):
@@ -297,17 +296,17 @@ class _Signal(object):
     def _setNextNonmutable(self, val):
         if not isinstance(val, self._type):
             raise TypeError("Expected %s, got %s" % (self._type, type(val)))
-        self._next = val    
-        
+        self._next = val
+
     def _setNextMutable(self, val):
         if not isinstance(val, self._type):
             raise TypeError("Expected %s, got %s" % (self._type, type(val)))
-        self._next = deepcopy(val)         
+        self._next = deepcopy(val)
 
     # vcd print methods
     def _printVcdStr(self):
         print("s%s %s" % (str(self._val), self._code), file=sim._tf)
-        
+
     def _printVcdHex(self):
         if self._val is None:
             print("sz %s" % self._code, file=sim._tf)
@@ -334,11 +333,11 @@ class _Signal(object):
 
 
     ### operators for which delegation to current value is appropriate ###
-        
+
     def __hash__(self):
         raise TypeError("Signals are unhashable")
-        
-    
+
+
     def __bool__(self):
         return bool(self._val)
 
@@ -353,7 +352,7 @@ class _Signal(object):
 
     def __getitem__(self, key):
         return self._val[key]
-        
+
     # integer-like methods
 
     def __add__(self, other):
@@ -363,7 +362,7 @@ class _Signal(object):
             return self._val + other
     def __radd__(self, other):
         return other + self._val
-    
+
     def __sub__(self, other):
         if isinstance(other, _Signal):
             return self._val - other._val
@@ -387,7 +386,7 @@ class _Signal(object):
             return self._val / other
     def __rtruediv__(self, other):
         return other / self._val
-    
+
     def __floordiv__(self, other):
         if isinstance(other, _Signal):
             return self._val // other._val
@@ -395,7 +394,7 @@ class _Signal(object):
             return self._val // other
     def __rfloordiv__(self, other):
         return other //  self._val
-    
+
     def __mod__(self, other):
         if isinstance(other, _Signal):
             return self._val % other._val
@@ -405,7 +404,7 @@ class _Signal(object):
         return other % self._val
 
     # XXX divmod
-    
+
     def __pow__(self, other):
         if isinstance(other, _Signal):
             return self._val ** other._val
@@ -421,7 +420,7 @@ class _Signal(object):
             return self._val << other
     def __rlshift__(self, other):
         return other << self._val
-            
+
     def __rshift__(self, other):
         if isinstance(other, _Signal):
             return self._val >> other._val
@@ -429,7 +428,7 @@ class _Signal(object):
             return self._val >> other
     def __rrshift__(self, other):
         return other >> self._val
-           
+
     def __and__(self, other):
         if isinstance(other, _Signal):
             return self._val & other._val
@@ -445,7 +444,7 @@ class _Signal(object):
             return self._val | other
     def __ror__(self, other):
         return other | self._val
-    
+
     def __xor__(self, other):
         if isinstance(other, _Signal):
             return self._val ^ other._val
@@ -453,7 +452,7 @@ class _Signal(object):
             return self._val ^ other
     def __rxor__(self, other):
         return other ^ self._val
-    
+
     def __neg__(self):
         return -self._val
 
@@ -465,33 +464,33 @@ class _Signal(object):
 
     def __invert__(self):
         return ~self._val
-        
+
     # conversions
-    
+
     def __int__(self):
         return int(self._val)
-        
+
     def __long__(self):
         return long(self._val)
 
     def __float__(self):
         return float(self._val)
-    
+
     def __oct__(self):
         return oct(self._val)
-    
+
     def __hex__(self):
         return hex(self._val)
-    
+
     def __index__(self):
         return int(self._val)
 
 
     # comparisons
     def __eq__(self, other):
-        return self.val == other 
+        return self.val == other
     def __ne__(self, other):
-        return self.val != other 
+        return self.val != other
     def __lt__(self, other):
         return self.val < other
     def __le__(self, other):
@@ -506,7 +505,7 @@ class _Signal(object):
     def __getattr__(self, attr):
         return getattr(self._val, attr)
 
-    # representation 
+    # representation
     def __str__(self):
         if self._name:
             return self._name
@@ -556,7 +555,7 @@ class _Signal(object):
 
 
 class _DelayedSignal(_Signal):
-    
+
     __slots__ = ('_nextZ', '_delay', '_timeStamp',
                 )
 
@@ -594,7 +593,7 @@ class _DelayedSignal(_Signal):
             self._val = copy(next)
             if self._tracing:
                 self._printVcd()
-            return waiters            
+            return waiters
         else:
             return []
 
@@ -607,7 +606,7 @@ class _DelayedSignal(_Signal):
     def delay(self, delay):
         self._delay = delay
 
-        
+
 class _SignalWrap(object):
     def __init__(self, sig, next, timeStamp):
         self.sig = sig

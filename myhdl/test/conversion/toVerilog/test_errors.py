@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from __future__ import print_function
 import os
 path = os.path
 import unittest
@@ -154,7 +155,8 @@ def recursion2(count, enable, clock, reset, n):
     return logic
 
 def h1(n):
-    return None
+    pass
+    # return None
 
 def functionNoReturnVal(count, enable, clock, reset, n):
     @instance
@@ -186,34 +188,6 @@ def taskReturnVal(count, enable, clock, reset, n):
                     count.next = count + 1
     return logic
 
-
-def printnlToFile(count, enable, clock, reset, n):
-    @instance
-    def logic():
-        cnt = intbv(0)[8:]
-        while 1:
-            yield clock.posedge, reset.negedge
-            if reset == ACTIVE_LOW:
-                count.next = 0
-            else:
-                if enable:
-                    print >> f, count
-                    count.next = count + 1
-    return logic
-
-def printToFile(count, enable, clock, reset, n):
-    @instance
-    def logic():
-        cnt = intbv(0)[8:]
-        while 1:
-            yield clock.posedge, reset.negedge
-            if reset == ACTIVE_LOW:
-                count.next = 0
-            else:
-                if enable:
-                    print >> f, count,
-                    count.next = count + 1
-    return logic
 
 def listComp1(count, enable, clock, reset, n):
     @instance
@@ -451,22 +425,6 @@ class TestErr(TestCase):
         else:
             self.fail()
 
-    def testPrintnlToFile(self):
-        try:
-            self.bench(printnlToFile)
-        except ConversionError as e:
-            self.assertEqual(e.kind, _error.NotSupported)
-        else:
-            self.fail()
-
-    def testPrintToFile(self):
-        try:
-            self.bench(printToFile)
-        except ConversionError as e:
-            self.assertEqual(e.kind, _error.NotSupported)
-        else:
-            self.fail()
-            
     def testListComp1(self):
         try:
             self.bench(listComp1)
@@ -556,4 +514,3 @@ if __name__ == '__main__':
                 
 
         
-
