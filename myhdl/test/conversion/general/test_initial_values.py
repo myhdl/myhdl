@@ -31,8 +31,6 @@ def initial_value_bench(initial_val, change_input_signal):
 
     @instance
     def clkgen():
-        clk.next = 1
-
         for n in range(N):
             yield delay(10)
             clk.next = not clk
@@ -43,7 +41,7 @@ def initial_value_bench(initial_val, change_input_signal):
     def output_driver():
         output_signal.next = input_signal
 
-    @always(clk)
+    @always(clk.posedge)
     def compare_output():
 
         input_signal.next = update_val
