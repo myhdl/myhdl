@@ -2,6 +2,50 @@ from __future__ import absolute_import
 from random import randrange
 
 from myhdl import *
+import myhdl
+
+def _output_writer(signal, clock):
+
+    @always(clock.posedge)
+    def _python_output_writer():
+        print(myhdl.bin(signal, len(signal)))
+
+    if len(signal) == 1:
+        vhdl_signal_write_str = (
+            'write(L, std_logic($signal));')
+    else:
+        vhdl_signal_write_str = (
+            'write(L, std_logic_vector($signal));')
+
+    verilog_signal_write_str = (
+        '$$write(\"%b\", $signal);')
+    
+    _output_writer.verilog_code = '''
+always @(posedge clk) begin: INITIAL_VALUE_BENCH_COMPARE_OUTPUT
+    input_signal <= 0;
+    
+    %s
+    $$write("\\n");
+end
+''' % (verilog_signal_write_str,)
+
+    _output_writer.vhdl_code = '''
+INITIAL_VALUE_BENCH_COMPARE_OUTPUT: process (clk) is
+    use IEEE.std_logic_textio.all;
+    
+    variable L: line;
+begin
+    if rising_edge(clk) then
+        
+        %s
+        writeline(output, L);
+    end if;
+end process INITIAL_VALUE_BENCH_COMPARE_OUTPUT;
+''' % (vhdl_signal_write_str,)
+
+    signal.read = True
+
+    return _python_output_writer
 
 def initial_value_bench(initial_val, change_input_signal):
 
@@ -31,6 +75,8 @@ def initial_value_bench(initial_val, change_input_signal):
 
     @instance
     def clkgen():
+
+        clk.next = 0
         for n in range(N):
             yield delay(10)
             clk.next = not clk
@@ -42,7 +88,7 @@ def initial_value_bench(initial_val, change_input_signal):
         output_signal.next = input_signal
 
     @always(clk.posedge)
-    def compare_output():
+    def drive_and_check():
 
         input_signal.next = update_val
 
@@ -53,9 +99,9 @@ def initial_value_bench(initial_val, change_input_signal):
             else:
                 assert output_signal == update_val
 
-        print(int(output_signal))
+    output_writer = _output_writer(output_signal, clk)
 
-    return clkgen, output_driver, compare_output
+    return clkgen, output_driver, drive_and_check, output_writer
 
 def runner(initial_val, change_input_signal=False):
     pre_toVerilog_no_initial_value = toVerilog.no_initial_value
@@ -92,8 +138,16 @@ def test_signed():
 
     runner(initial_val)
 
+def test_modbv():
+    '''The correct initial value should be used for modbv type signal.
+    '''
+    
+    initial_val = modbv(randrange(0, 2**10))[10:]
+
+    runner(initial_val)
+
 def test_long_signals():
-    '''The correct initial value should work with wide bitwidths.
+    '''The correct initial value should work with wide bitwidths (i.e. >32)
     '''
     min_val = -(2**71)
     max_val = 2**71 - 1
@@ -120,4 +174,5 @@ def test_init_user():
         randrange(min_val, max_val), min=min_val, max=max_val)
 
     runner(initial_val, change_input_signal=True)
+
 
