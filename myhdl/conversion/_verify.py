@@ -22,7 +22,7 @@ _simulators = {}
 sim = namedtuple('sim', 'name hdl analyze elaborate simulate skiplines skipchars ignore')
 
 
-def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, 
+def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None,
                       skiplines=None, skipchars=None, ignore=None):
     if not isinstance(name, str) or (name.strip() == ""):
         raise ValueError("Invalid simulator name")
@@ -41,8 +41,8 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
 registerSimulator(
     name="ghdl",
     hdl="VHDL",
-    analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-    elaborate="ghdl -e --workdir=work -o %(unitname)s %(topname)s",
+    analyze="ghdl -a --std=08 --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+    elaborate="ghdl -e --std=08 --workdir=work %(unitname)s",
     simulate="ghdl -r --workdir=work %(unitname)s"
     )
 
@@ -96,7 +96,7 @@ class  _VerificationClass(object):
     __slots__ = ("simulator", "_analyzeOnly")
 
     def __init__(self, analyzeOnly=False):
-        self.simulator = None 
+        self.simulator = None
         self._analyzeOnly = analyzeOnly
 
 
@@ -178,7 +178,7 @@ class  _VerificationClass(object):
             if ret != 0:
                 print("Elaboration failed", file=sys.stderr)
                 return ret
-            
+
         g = tempfile.TemporaryFile(mode='w+t')
         #print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
