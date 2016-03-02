@@ -654,10 +654,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.shiftOp(node)
         elif isinstance(node.op, (ast.BitAnd, ast.BitOr, ast.BitXor)):
             self.BitOp(node)
-        elif isinstance(node.op, ast.Mod) and (self.context == _context.PRINT):
-            self.visit(node.left)
-            self.write(", ")
-            self.visit(node.right)
         else:
             self.BinOp(node)
 
@@ -1362,9 +1358,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif isinstance(a.vhdOri, vhd_enum):
                         a.vhd = vhd_string()
                 self.write("write(L, ")
-                self.context = _context.PRINT
                 self.visit(a)
-                self.context = None
                 if s.justified == 'LEFT':
                     self.write(", justified=>LEFT")
                 if s.width:
