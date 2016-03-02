@@ -578,10 +578,14 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = int(0) # XXX
         elif f is bool:
             node.obj = bool()
-        elif f in _flatten(integer_types, ord):
+        elif f in _flatten(integer_types):
             node.obj = int(-1)
 ##         elif f in (posedge , negedge):
 ##             node.obj = _EdgeDetector()
+        elif f is ord:
+            node.obj = int(-1)
+            if not (isinstance(node.args[0], ast.Str) and (len(node.args[0].s) == 1)):
+                self.raiseError(node, _error.NotSupported, "ord: expect string argument with length 1")
         elif f is delay:
             node.obj = delay(0)
         ### suprize: identity comparison on unbound methods doesn't work in python 2.5??
@@ -915,6 +919,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                         s = s[m.end():]
                         continue
                     self.raiseError(node, _error.UnsupportedFormatString, "%s" % s)
+            elif isinstance(n, ast.Str):
+                f.append(n.s)
             else:
                 f.append(defaultConvSpec)
                 a.append(n)

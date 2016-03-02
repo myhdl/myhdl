@@ -151,7 +151,7 @@ class _ToVerilogConvertor(object):
         genlist = _analyzeGens(arglist, h.absnames)
         siglist, memlist = _analyzeSigs(h.hierarchy)
         _annotateTypes(genlist)
-        
+
         intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         doc = _makeDoc(inspect.getdoc(func))
@@ -750,11 +750,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         elif f is ord:
             opening, closing = '', ''
-            if isinstance(node.args[0], ast.Str):
-                if len(node.args[0].s) > 1:
-                    self.raiseError(node, _error.UnsupportedType, "Strings with length > 1")
-                else:
-                    node.args[0].s = str(ord(node.args[0].s))
+            node.args[0].s = str(ord(node.args[0].s))
         elif f in integer_types:
             opening, closing = '', ''
             # convert number argument to integer
