@@ -602,9 +602,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     pre, suf = "", "(0)"
                 else:
                     pre, suf = "stdl(", ")"
-        elif isinstance(vhd, vhd_string):
-            if isinstance(ori, vhd_enum):
-                pre, suf = "%s'image(" % ori._type._name, ")"
+        # elif isinstance(vhd, vhd_string):
+        #     if isinstance(ori, vhd_enum):
+        #         pre, suf = "%s'image(" % ori._type._name, ")"
 
         return pre, suf
 
@@ -654,10 +654,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.shiftOp(node)
         elif isinstance(node.op, (ast.BitAnd, ast.BitOr, ast.BitXor)):
             self.BitOp(node)
-        elif isinstance(node.op, ast.Mod) and (self.context == _context.PRINT):
-            self.visit(node.left)
-            self.write(", ")
-            self.visit(node.right)
         else:
             self.BinOp(node)
 
@@ -953,11 +949,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         elif f is ord:
             opening, closing = '', ''
-            if isinstance(node.args[0], ast.Str):
-                if len(node.args[0].s) > 1:
-                    self.raiseError(node, _error.UnsupportedType, "Strings with length > 1" )
-                else:
-                    node.args[0].s = ord(node.args[0].s)
+            v = ord(node.args[0].s)
+            node.args[0].s = v
+            self.write(v)
+            return
         elif f in integer_types:
             opening, closing = '', ''
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
@@ -1361,15 +1356,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                         a.vhd = vhd_boolean()
                     elif isinstance(a.vhdOri, vhd_enum):
                         a.vhd = vhd_string()
-                self.write("write(L, ")
-                self.context = _context.PRINT
+                self.write("write(L, to_string(")
                 self.visit(a)
-                self.context = None
-                if s.justified == 'LEFT':
-                    self.write(", justified=>LEFT")
-                if s.width:
-                    self.write(", field=>%s" % s.width)
-                self.write(")")
+                self.write("))")
                 self.write(';')
             self.writeline()
         self.write("writeline(output, L);")
