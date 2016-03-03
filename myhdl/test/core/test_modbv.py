@@ -75,6 +75,7 @@ class TestModbvWrap:
         with pytest.raises(ValueError):
             x[:] += 15
 
+
 class TestModBvSlice:
 
     def BuildTestSeqs(self):
@@ -106,6 +107,7 @@ class TestModBvSlice:
                 assert type(resv) == bool 
                 assert res == chk
                 assert resv == chk^1
+                
 
     def testGetSlice(self):
         self.BuildTestSeqs()
@@ -115,17 +117,16 @@ class TestModBvSlice:
             cti=modbv(~i)
             leni=len(bin(i))
             for n in (range(leni)):
-                s=randrange(leni)
-                f=randrange(leni)
-                if f>s :
-                    chkt = (i >> s) & (2**(f-s) -1)
-                    chk = modbv(chkt)
+                s=randrange(-leni,leni)
+                f=randrange(-leni,leni)
                 try:
                     val=ti[f:s]
                 except ValueError:
-                    assert f<=s
+                    assert (f<=s) | (s<=0)
                 else:
-                    assert val == chk
+                    chkt = (i >> s) & (2**(f-s) -1)
+                    assert val == chkt
+                    assert (val.max,val.min) == (2**(f-s),0)
 
     def testGetSliceOpen(self):
         self.BuildTestSeqs()
@@ -143,10 +144,41 @@ class TestModBvSlice:
                 vals,cvals = ti[:s],cti[:s]
                 valf,cvalf = ti[f:],cti[f:]
                 assert vals+cvals == -1
-                #assert valf+cvalf == -1
+                
+                #assert valf+cvalf == -1   ---test fails- why???
                 assert vals == modbv(chks)
                 assert valf == modbv(chkf)
+
+    def testSetSlice(self):
+        self.BuildTestSeqs()
+        self.seqi.extend(self.seqj)
+        #Test the bit slice setting wrap around behaviour
+        for i in range(1,len(self.seqi)):
+            lenp=len(bin(self.seqi[i-1]))
+            ti = modbv(self.seqi[i-1])[lenp:]
+            maxp = 2**lenp
+            vali = self.seqi[i]
+            s=randrange(lenp-1)
+            f=randrange(s,lenp)
+            valp = self.seqi[i-1]
+            maxval = (1 << (f-s))-1
+            try:
+                ti[f:s] = vali
+            except ValueError:
+                assert maxval < vali
+            else:
+                bitmask = (((2**f - 1) >> s) << s )
+                valp = valp - (valp & bitmask)
+                valp = (valp + ((vali << s) % maxp)) % maxp
+                assert valp == ti
+
+        
+                 
                 
+                
+                
+                
+        
 
 
 	
