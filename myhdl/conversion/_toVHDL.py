@@ -1354,8 +1354,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                         a.vhd = vhd_int()
                     elif isinstance(a.vhdOri, vhd_std_logic):
                         a.vhd = vhd_boolean()
-                    elif isinstance(a.vhdOri, vhd_enum):
-                        a.vhd = vhd_string()
                 self.write("write(L, to_string(")
                 self.visit(a)
                 self.write("))")
