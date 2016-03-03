@@ -41,6 +41,14 @@ A :class:`Simulation` object has the following method:
    Run the simulation forever (by default) or for a specified duration.
 
 
+.. method:: Simulation.quit()
+
+   Quit the simulation after it has run for a specified duration. The method should
+   be called (the simulation instance must be quit) before another simulation
+   instance is created. The method is called by default when the simulation is run
+   forever.
+
+
 .. _ref-simsupport:
 
 Simulation support functions

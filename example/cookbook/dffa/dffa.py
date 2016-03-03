@@ -44,6 +44,7 @@ def simulate(timesteps):
     tb = traceSignals(test_dffa)
     sim = Simulation(tb)
     sim.run(timesteps)
+    sim.quit()
 
 simulate(20000)
 
