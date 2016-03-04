@@ -199,7 +199,7 @@ class  _VerificationClass(object):
         glines = [line[skipchars:] for line in glines]
         flinesNorm = [line.lower() for line in flines]
         glinesNorm = [line.lower() for line in glines]
-        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile=hdlsim.name, tofile=hdl)
+        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile='MyHDL', tofile=hdlsim.name)
 
         MyHDLLog = "MyHDL.log"
         HDLLog = hdlsim.name + ".log"
