@@ -1061,7 +1061,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 a = node.args[argnr]
                 argnr += 1
                 obj = a.obj
-                fs = "%0d"
+                if s.conv is int or isinstance(obj, int):
+                    fs = "%0d"
+                else:
+                    fs = "%h"
                 self.context =_context.PRINT
                 if isinstance(obj, str):
                     self.write('$write(')
@@ -1092,6 +1095,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.writeline()
                     self.write("endcase")
                 else:
+                    print (type(obj), type(a))
                     self.write('$write("%s", ' % fs)
                     self.visit(a)
                     self.write(');')

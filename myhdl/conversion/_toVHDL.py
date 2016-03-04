@@ -1347,14 +1347,19 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 a = node.args[argnr]
                 argnr += 1
+                to_string = "to_string"
                 if s.conv is int:
                     a.vhd = vhd_int()
                 else:
                     if isinstance(a.vhdOri, vhd_vector):
-                        a.vhd = vhd_int()
+                        to_string = "to_hstring"
+                        # to_hstring correctly does sign extension
+                        # however, Verilog doesn not: therefore, interprete
+                        # print values as unsigned...
+                        a.vhd = vhd_unsigned(a.vhd.size)
                     elif isinstance(a.vhdOri, vhd_std_logic):
                         a.vhd = vhd_boolean()
-                self.write("write(L, to_string(")
+                self.write("write(L, %s(" % to_string)
                 self.visit(a)
                 self.write("))")
                 self.write(';')
@@ -1987,7 +1992,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Attribute(self, node):
         self.generic_visit(node)
-        node.vhd = copy(node.value.vhd)
+        node.vhd = inferVhdlObj(node.obj)
         node.vhdOri = copy(node.vhd)
 
     def visit_Assert(self, node):
@@ -2036,6 +2041,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_nat()
         elif f == intbv.signed: # note equality comparison
             # this comes from a getattr
+            # node.vhd = vhd_int()
             node.vhd = vhd_signed(fn.value.vhd.size)
         elif hasattr(node, 'tree'):
             v = _AnnotateTypesVisitor(node.tree)

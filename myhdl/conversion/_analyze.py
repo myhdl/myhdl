@@ -469,6 +469,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.tree.kind = _kind.TASK
         # self.access = _access.OUTPUT
         self.visit(node.value)
+        node.obj = node.value.obj
         # self.access = _access.INPUT
 
     def getAttr(self, node):
@@ -480,6 +481,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 raise AssertionError("attribute target: %s" % n)
         obj = node.value.obj
         if isinstance(obj, _Signal):
+            print ('analyze', node.value.id)
             if node.attr == 'posedge':
                 node.obj = obj.posedge
             elif node.attr == 'negedge':
@@ -590,7 +592,12 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = delay(0)
         ### suprize: identity comparison on unbound methods doesn't work in python 2.5??
         elif f == intbv.signed:
-            node.obj = int(-1)
+            obj = node.func.value.obj
+            if len(obj):
+                M = 2 ** (len(obj)-1)
+                node.obj = intbv(-1, min=-M, max=M)
+            else:
+                node.obj = intbv(-1)
         elif f in myhdlObjects:
             pass
         elif f in builtinObjects:
