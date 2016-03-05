@@ -4,6 +4,7 @@
 *.out
 *.coverage
 build/
+.cache
 
 # Python
 *.py[cod]
