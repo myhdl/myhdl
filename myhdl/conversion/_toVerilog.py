@@ -181,6 +181,7 @@ class _ToVerilogConvertor(object):
             intf = func
         else:
             intf = _analyzeTopFunc(func, *args, **kwargs)
+
         intf.name = name
 
         doc = _makeDoc(inspect.getdoc(func))
@@ -779,11 +780,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         elif f is ord:
             opening, closing = '', ''
-            if isinstance(node.args[0], ast.Str):
-                if len(node.args[0].s) > 1:
-                    self.raiseError(node, _error.UnsupportedType, "Strings with length > 1")
-                else:
-                    node.args[0].s = str(ord(node.args[0].s))
+            node.args[0].s = str(ord(node.args[0].s))
         elif f in integer_types:
             opening, closing = '', ''
             # convert number argument to integer
@@ -1094,7 +1091,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 a = node.args[argnr]
                 argnr += 1
                 obj = a.obj
-                fs = "%0d"
+                if s.conv is int or isinstance(obj, int):
+                    fs = "%0d"
+                else:
+                    fs = "%h"
                 self.context =_context.PRINT
                 if isinstance(obj, str):
                     self.write('$write(')
@@ -1125,6 +1125,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.writeline()
                     self.write("endcase")
                 else:
+                    print (type(obj), type(a))
                     self.write('$write("%s", ' % fs)
                     self.visit(a)
                     self.write(');')

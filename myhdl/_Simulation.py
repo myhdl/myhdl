@@ -58,7 +58,7 @@ def _flatten(*args):
             arglist.append(arg)
     return arglist
 
-
+_error.MultipleSim = "Only a single Simulation instance is allowed"
 
 class Simulation(object):
 
@@ -68,6 +68,7 @@ class Simulation(object):
     run -- run a simulation for some duration
 
     """
+    _no_of_instances = 0
 
     def __init__(self, *args):
         """ Construct a simulation object.
@@ -79,6 +80,9 @@ class Simulation(object):
         _simulator._time = 0
         arglist = _flatten(*args)
         self._waiters, self._cosim = _makeWaiters(arglist)
+        if Simulation._no_of_instances > 0:
+            raise SimulationError(_error.MultipleSim)
+        Simulation._no_of_instances += 1
         if not self._cosim and _simulator._cosim:
             warn("Cosimulation not registered as Simulation argument")
         self._finished = False
@@ -99,8 +103,11 @@ class Simulation(object):
         # clean up for potential new run with same signals
         for s in _signals:
             s._clear()
+        Simulation._no_of_instances = 0
         self._finished = True
 
+    def quit(self):
+        self._finalize()
 
     def runc(self, duration=0, quiet=0):
         simrunc.run(sim=self, duration=duration, quiet=quiet)

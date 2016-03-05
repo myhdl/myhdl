@@ -33,6 +33,7 @@ def simulate(timesteps):
     tb = traceSignals(test_latch)
     sim = Simulation(tb)
     sim.run(timesteps)
+    sim.quit()
 
 simulate(20000)
 

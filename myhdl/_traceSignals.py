@@ -54,6 +54,7 @@ class _TraceSignalsClass(object):
 
     __slot__ = ("name",
                 "directory",
+                "filename",
                 "timescale",
                 "tracelists"
                 )
@@ -61,6 +62,7 @@ class _TraceSignalsClass(object):
     def __init__(self):
         self.name = None
         self.directory = None
+        self.filename = None
         self.timescale = "1ns"
         self.tracelists = True
 
@@ -114,7 +116,13 @@ class _TraceSignalsClass(object):
                 warnings.warn("\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
                 h = _HierExtr(name, dut, *args, **kwargs)
 
-            vcdpath = os.path.join(directory, name + ".vcd")
+            if self.filename is None:
+                filename = name
+            else:
+                filename = str(self.filename)
+
+            vcdpath = os.path.join(directory, filename + ".vcd")
+
             if path.exists(vcdpath):
                 backup = vcdpath + '.' + str(path.getmtime(vcdpath))
                 shutil.copyfile(vcdpath, backup)

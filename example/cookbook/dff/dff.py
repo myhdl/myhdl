@@ -33,6 +33,7 @@ def simulate(timesteps):
     tb = traceSignals(test_dff)
     sim = Simulation(tb)
     sim.run(timesteps)
+    sim.quit()
 
 simulate(2000)
 
