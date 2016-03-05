@@ -2,6 +2,7 @@
 *~
 *.swp
 *.out
+*.coverage
 build/
 
 # Python
