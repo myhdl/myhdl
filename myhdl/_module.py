@@ -132,8 +132,8 @@ class _ModuleInstance(object):
         self.memdict = {}
         # flatten, but keep ModuleInstance objects
         self.subs = _flatten(mod.modfunc(*args, **kwargs))
-        self.verify()
-        self.update()
+        self._verifySubs()
+        self._updateNamespaces()
         self.name = self.__name__ = mod.__name__ + '_' + str(mod.count)
         self.verilog_code = self.vhdl_code = None
         if hasattr(mod, 'verilog_code'):
@@ -143,7 +143,7 @@ class _ModuleInstance(object):
             self.vhdl_code = _UserVhdlCode(mod.vhdl_code, self.symdict, mod.name,
                                            mod.modfunc, mod.sourcefile, mod.sourceline)
 
-    def verify(self):
+    def _verifySubs(self):
         for inst in self.subs:
             # print (inst.name, type(inst))
             if not isinstance(inst, (_ModuleInstance, _Instantiator)):
@@ -151,7 +151,7 @@ class _ModuleInstance(object):
             if not inst.modctxt:
                 raise ModuleError(_error.InstanceError % (self.mod.name, inst.callername))
 
-    def update(self):
+    def _updateNamespaces(self):
         # dicts to keep track of objects used in Instantiator objects
         usedsigdict = {}
         usedlosdict = {}
@@ -183,7 +183,7 @@ class _ModuleInstance(object):
                 if n in usedlosdict:
                     m._used = True
 
-    def inferInterface(self):
+    def _inferInterface(self):
         from myhdl.conversion._analyze import _analyzeTopFunc
         intf = _analyzeTopFunc(self.mod.modfunc, *self.args, **self.kwargs)
         self.argnames = intf.argnames

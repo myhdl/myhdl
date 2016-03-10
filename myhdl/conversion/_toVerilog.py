@@ -178,7 +178,7 @@ class _ToVerilogConvertor(object):
         ### infer interface
         if isinstance(func, _ModuleInstance):
             # infer interface after signals have been analyzed
-            func.inferInterface()
+            func._inferInterface()
             intf = func
         else:
             intf = _analyzeTopFunc(func, *args, **kwargs)
