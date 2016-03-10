@@ -188,3 +188,6 @@ class _ModuleInstance(object):
         intf = _analyzeTopFunc(self.mod.modfunc, *self.args, **self.kwargs)
         self.argnames = intf.argnames
         self.argdict = intf.argdict
+
+    def verify(self):
+        return myhdl.conversion.verify(self)

@@ -3,8 +3,7 @@ import os
 path = os.path
 
 import myhdl
-from myhdl import *
-from myhdl.conversion import verify
+from myhdl import Signal, intbv, delay, instance, always_comb
 
 @myhdl.module
 def bin2gray2(B, G, width):
@@ -65,12 +64,11 @@ def bin2grayBench(width, bin2gray):
             #print bin(G_v, width)
             print("%d" % G)
 
-
     return stimulus, bin2gray_inst
 
 
 def test1():
-     assert verify(bin2grayBench(width=8, bin2gray=bin2gray)) == 0
+     assert bin2grayBench(width=8, bin2gray=bin2gray).verify() == 0
 
 def test2():
-    assert verify(bin2grayBench(width=8, bin2gray=bin2gray2)) == 0
+    assert bin2grayBench(width=8, bin2gray=bin2gray2).verify() == 0
