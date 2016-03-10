@@ -3,13 +3,14 @@ import os
 path = os.path
 from random import randrange
 
+import myhdl
 from myhdl import *
 
 D = 256
 
 ROM = tuple([randrange(D) for i in range(D)])
 
-@module
+@myhdl.module
 def rom1(dout, addr, clk):
 
     @instance
@@ -20,7 +21,7 @@ def rom1(dout, addr, clk):
 
     return rdLogic
 
-@module
+@myhdl.module
 def rom2(dout, addr, clk):
     
     theROM = ROM
@@ -33,7 +34,7 @@ def rom2(dout, addr, clk):
 
     return rdLogic
 
-@module
+@myhdl.module
 def rom3(dout, addr, clk):
 
 
@@ -47,7 +48,7 @@ def rom3(dout, addr, clk):
 
     return rdLogic
 
-@module
+@myhdl.module
 def rom4(dout, addr, clk):
 
     @always_comb
@@ -57,7 +58,7 @@ def rom4(dout, addr, clk):
     return read
 
       
-@module
+@myhdl.module
 def RomBench(rom):
 
     dout = Signal(intbv(0)[8:])

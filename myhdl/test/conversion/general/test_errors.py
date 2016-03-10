@@ -1,11 +1,12 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 from myhdl.conversion import verify
 
 
-@module
+@myhdl.module
 def sigAugmAssignUnsupported(z, a):
     @always(a)
     def logic():
@@ -22,7 +23,7 @@ def test_SigAugmAssignUnsupported():
     else:
         assert False
         
-@module
+@myhdl.module
 def modbvRange(z, a, b):
     @always(a, b)
     def logic():
@@ -42,7 +43,7 @@ def test_modbvRange():
     else:
         assert False
         
-@module
+@myhdl.module
 def modbvSigRange(z, a, b):
     @always(a, b)
     def logic():

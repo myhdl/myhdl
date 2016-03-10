@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 def dffa(q, d, clk, rst):

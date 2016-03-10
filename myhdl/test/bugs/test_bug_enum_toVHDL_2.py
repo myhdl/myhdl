@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 
 t_state = enum('WAIT_POSEDGE', 'WAIT_NEGEDGE', encoding='one_hot')

@@ -1,5 +1,6 @@
 import os
 
+import myhdl
 from myhdl import *
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -8,7 +9,7 @@ import myhdl
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
 
-@module
+@myhdl.module
 def simple_dir_model(din, dout, clk):
     """ Simple convertible model """
 

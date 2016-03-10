@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 def inc_comb(nextCount, count, n):

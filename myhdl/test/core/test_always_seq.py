@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 from myhdl import Signal
 from myhdl._always_seq import AlwaysSeqError, _error, always_seq

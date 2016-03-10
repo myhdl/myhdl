@@ -4,6 +4,7 @@ path = os.path
 import unittest
 from unittest import TestCase
 
+import myhdl
 from myhdl import *
 
 from .util import setupCosimulation

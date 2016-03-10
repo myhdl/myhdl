@@ -6,13 +6,14 @@ import random
 from random import randrange
 random.seed(2)
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
 
 ACTIVE_LOW, INACTIVE_HIGH = bool(0), bool(1)
 
-@module
+@myhdl.module
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -33,7 +34,7 @@ def incRef(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return logic
                 
-@module
+@myhdl.module
 def inc(count, enable, clock, reset, n):
     
     """ Incrementer with enable.
@@ -56,7 +57,7 @@ def inc(count, enable, clock, reset, n):
                 
     return incProcess
 
-@module
+@myhdl.module
 def inc2(count, enable, clock, reset, n):
     
     @always(clock.posedge, reset.negedge)
@@ -72,7 +73,7 @@ def inc2(count, enable, clock, reset, n):
     return incProcess
 
 
-@module
+@myhdl.module
 def incFunc(count, enable, clock, reset, n):
     def incFuncFunc(cnt, enable):
         count_next = intbv(0, min=0, max=n)
@@ -91,7 +92,7 @@ def incFunc(count, enable, clock, reset, n):
     return incFuncGen
     
 
-@module
+@myhdl.module
 def incTask(count, enable, clock, reset, n):
     
     def incTaskFunc(cnt, enable, reset, n):
@@ -114,7 +115,7 @@ def incTask(count, enable, clock, reset, n):
     return incTaskGen
 
 
-@module
+@myhdl.module
 def incTaskFreeVar(count, enable, clock, reset, n):
     
     def incTaskFunc():
@@ -132,7 +133,7 @@ def incTaskFreeVar(count, enable, clock, reset, n):
     return incTaskGen
 
 
-@module
+@myhdl.module
 def IncBench(inc):
 
     NR_CYCLES = 201

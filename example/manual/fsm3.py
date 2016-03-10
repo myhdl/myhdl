@@ -1,6 +1,7 @@
 import os
 path = os.path
 
+import myhdl
 from myhdl import *
 
 # SEARCH, CONFIRM, SYNC = range(3)
@@ -9,7 +10,7 @@ ACTIVE_LOW = bool(0)
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 
-@module
+@myhdl.module
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.

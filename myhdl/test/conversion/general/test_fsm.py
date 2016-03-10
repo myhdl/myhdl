@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import os
 path = os.path
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -12,7 +13,7 @@ t_State_b = enum('SEARCH', 'CONFIRM', 'SYNC')
 t_State_oh = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 t_State_oc = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_cold")
 
-@module
+@myhdl.module
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
     
     """ Framing control FSM.
@@ -56,7 +57,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
             
     return FSM
 
-@module
+@myhdl.module
 def FSMBench(FramerCtrl, t_State):
 
     SOF = Signal(bool(0))

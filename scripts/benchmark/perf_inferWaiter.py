@@ -25,6 +25,7 @@ import random
 from random import randrange
 random.seed(1) # random, but deterministic
 
+import myhdl
 from myhdl import *
 from myhdl._Waiter import _SignalWaiter,_SignalTupleWaiter, _DelayWaiter, \
                           _EdgeWaiter, _EdgeTupleWaiter, _Waiter

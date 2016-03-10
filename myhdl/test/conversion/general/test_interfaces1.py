@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import sys
 
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -12,7 +13,7 @@ class MyIntf(object):
         self.x = Signal(intbv(2,min=0,max=16))
         self.y = Signal(intbv(3,min=0,max=18))
 
-@module
+@myhdl.module
 def m_one_level(clock,reset,ia,ib):
 
     @always_seq(clock.posedge,reset=reset)
@@ -22,7 +23,7 @@ def m_one_level(clock,reset,ia,ib):
 
     return rtl
 
-@module
+@myhdl.module
 def m_two_level(clock,reset,ia,ib):
 
     ic,ie = (MyIntf(),MyIntf(),)
@@ -34,7 +35,7 @@ def m_two_level(clock,reset,ia,ib):
 
     return g_one, rtl
 
-@module
+@myhdl.module
 def c_testbench_one():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
@@ -66,7 +67,7 @@ def c_testbench_one():
 
     return tb_dut, tb_clk, tb_stim
 
-@module
+@myhdl.module
 def c_testbench_two():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)

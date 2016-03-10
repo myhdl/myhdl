@@ -39,6 +39,7 @@ from copy import copy
 import string
 
 import myhdl
+import myhdl
 from myhdl import *
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,

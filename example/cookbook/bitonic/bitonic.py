@@ -1,11 +1,12 @@
 import subprocess
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import analyze
 
 DESCENDING, ASCENDING = False, True
 
-@module
+@myhdl.module
 def comp(a1, a2, z1, z2, dir):
 
     @always_comb
@@ -19,7 +20,7 @@ def comp(a1, a2, z1, z2, dir):
     return logic
 
 
-@module
+@myhdl.module
 def feedthru(a, z):
 
     @always_comb
@@ -29,7 +30,7 @@ def feedthru(a, z):
     return logic
 
 
-@module
+@myhdl.module
 def bitonicMerge(a, z, dir):
 
     n = len(a)
@@ -48,7 +49,7 @@ def bitonicMerge(a, z, dir):
         return feedthru(a[0], z[0])
 
 
-@module
+@myhdl.module
 def bitonicSort(a, z, dir):
 
     n = len(a)
@@ -67,7 +68,7 @@ def bitonicSort(a, z, dir):
     else:
         return feedthru(a[0], z[0])
 
-@module
+@myhdl.module
 def Array8Sorter(a0, a1, a2, a3, a4, a5, a6, a7,
                  z0, z1, z2, z3, z4, z5, z6, z7):
 

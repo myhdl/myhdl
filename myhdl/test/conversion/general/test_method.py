@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import sys
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -7,7 +8,7 @@ class HdlObj(object):
     def __init__(self):
         pass
 
-    @module
+    @myhdl.module
     def method_func(self, clk, srst, x, y):
         z = Signal(intbv(0, min=y.min, max=y.max))
         ifx = self._mfunc(x, z)
@@ -20,14 +21,14 @@ class HdlObj(object):
 
         return hdl, ifx
 
-    @module
+    @myhdl.module
     def _mfunc(self, x, y):
         @always_comb
         def _hdl():
             y.next = x + 1
         return _hdl
 
-@module
+@myhdl.module
 def _func(x,y):
     @always_comb
     def _hdl():
@@ -38,7 +39,7 @@ class HdlObjObj(object):
     def __init__(self):
         pass
     
-    @module
+    @myhdl.module
     def method_func(self, clk, srst, x, y):
         z1 = Signal(intbv(0, min=y.min, max=y.max))
         z2 = Signal(intbv(0, min=y.min, max=y.max))
@@ -59,7 +60,7 @@ class HdlObjAttrSimple(object):
     def __init__(self):
         self.AConstant = 3
 
-    @module
+    @myhdl.module
     def method_func(self, clk, srst, x, y):
         
         # limitation for class method conversion, the object attributes
@@ -83,7 +84,7 @@ class HdlObjAttr(object):
         self.z = Signal(intbv(0, min=y.min, max=y.max))
         self.hobj = HdlObj()
         
-    @module
+    @myhdl.module
     def method_func(self):
         ifx = self.hobj._mfunc(self.x, self.z)
         @always(self.clk.posedge)
@@ -95,7 +96,7 @@ class HdlObjAttr(object):
 
         return hdl, ifx
 
-@module
+@myhdl.module
 def ObjBench(hObj):
 
     clk = Signal(False)

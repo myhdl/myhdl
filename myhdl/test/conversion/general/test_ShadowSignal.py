@@ -1,7 +1,8 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 
-@module
+@myhdl.module
 def bench_SliceSignal():
 
     s = Signal(intbv(0)[8:])
@@ -29,7 +30,7 @@ def test_SliceSignal():
     assert conversion.verify(bench_SliceSignal()) == 0
 
 
-@module
+@myhdl.module
 def bench_ConcatSignal():
 
     a = Signal(intbv(0)[5:])
@@ -61,7 +62,7 @@ def bench_ConcatSignal():
 def test_ConcatSignal():
     assert conversion.verify(bench_ConcatSignal()) == 0
 
-@module
+@myhdl.module
 def bench_ConcatSignalWithConsts():
 
     a = Signal(intbv(0)[5:])
@@ -104,7 +105,7 @@ def test_ConcatSignalWithConsts():
     assert conversion.verify(bench_ConcatSignalWithConsts()) == 0
 
 
-@module
+@myhdl.module
 def bench_TristateSignal():
     s = TristateSignal(intbv(0)[8:])
     a = s.driver()
@@ -140,7 +141,7 @@ def test_TristateSignal():
     assert conversion.verify(bench_TristateSignal()) == 0
 
 
-@module
+@myhdl.module
 def permute(x, a, mapping):
 
     p = [a(m) for m in mapping]
@@ -154,7 +155,7 @@ def permute(x, a, mapping):
     return assign
 
 
-@module
+@myhdl.module
 def bench_permute(conv=False):
 
     x = Signal(intbv(0)[3:])

@@ -1,5 +1,6 @@
 from random import randrange
 import seven_segment
+import myhdl
 from myhdl import *
 from bcd2led import bcd2led
 

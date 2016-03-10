@@ -2,10 +2,11 @@ from __future__ import absolute_import
 import os
 path = os.path
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
-@module
+@myhdl.module
 def bin2gray2(B, G, width):
     """ Gray encoder.
 
@@ -23,7 +24,7 @@ def bin2gray2(B, G, width):
                 G.next[i] = Bext[i+1] ^ Bext[i]
     return logic
 
-@module
+@myhdl.module
 def bin2gray(B, G, width):
 
     """ Gray encoder.
@@ -44,7 +45,7 @@ def bin2gray(B, G, width):
     return logic
 
 
-@module
+@myhdl.module
 def bin2grayBench(width, bin2gray):
 
     B = Signal(intbv(0)[width:])

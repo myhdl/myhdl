@@ -1,5 +1,6 @@
 from __future__ import generators
 
+import myhdl
 from myhdl import *
 
 def trigger(event):

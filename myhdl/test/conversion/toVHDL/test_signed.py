@@ -4,6 +4,7 @@ path = os.path
 import random
 from random import randrange
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 

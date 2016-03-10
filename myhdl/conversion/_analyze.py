@@ -32,6 +32,7 @@ from itertools import chain
 from collections import defaultdict
 
 import myhdl
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._always_comb import _AlwaysComb

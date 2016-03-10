@@ -27,6 +27,7 @@ import inspect
 import ast
 
 import myhdl
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._util import _flatten

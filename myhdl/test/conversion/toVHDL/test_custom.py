@@ -6,6 +6,7 @@ import random
 from random import randrange
 random.seed(2)
 
+import myhdl
 from myhdl import *
 
 from myhdl import ConversionError
@@ -14,7 +15,7 @@ from myhdl.conversion._misc import _error
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-@module
+@myhdl.module
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -36,7 +37,7 @@ def incRef(count, enable, clock, reset, n):
     return logic
 
 
-@module
+@myhdl.module
 def incGen(count, enable, clock, reset, n):
     """ Generator with vhdl_code is not permitted """
     @instance
@@ -52,7 +53,7 @@ def incGen(count, enable, clock, reset, n):
     return logic
 
                                         
-@module
+@myhdl.module
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -91,7 +92,7 @@ end process;
 
 
 
-@module
+@myhdl.module
 def incErr(count, enable, clock, reset, n):
     
     @always(clock.posedge, reset.negedge)
@@ -124,7 +125,7 @@ end
 
 
 
-@module
+@myhdl.module
 def inc_comb(nextCount, count, n):
 
     @always_comb
@@ -142,7 +143,7 @@ $nextCount <= ($count + 1) mod $n;
 
     return logic
 
-@module
+@myhdl.module
 def inc_seq(count, nextCount, enable, clock, reset):
 
     @always(clock.posedge, reset.negedge)
@@ -172,7 +173,7 @@ end process;
     
     return logic
 
-@module
+@myhdl.module
 def inc2(count, enable, clock, reset, n):
     
     nextCount = Signal(intbv(0, min=0, max=n))
@@ -183,13 +184,13 @@ def inc2(count, enable, clock, reset, n):
     return comb, seq
 
 
-@module
+@myhdl.module
 def inc3(count, enable, clock, reset, n):
     inc2_inst = inc2(count, enable, clock, reset, n)
     return inc2_inst
 
 
-@module
+@myhdl.module
 def clockGen(clock):
     @instance
     def logic():
@@ -203,7 +204,7 @@ NRTESTS = 1000
 
 ENABLES = tuple([min(1, randrange(5)) for i in range(NRTESTS)])
 
-@module
+@myhdl.module
 def stimulus(enable, clock, reset):
     @instance
     def logic():
@@ -222,7 +223,7 @@ def stimulus(enable, clock, reset):
     return logic
 
 
-@module
+@myhdl.module
 def check(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -240,7 +241,7 @@ def check(count, enable, clock, reset, n):
             print(count)
     return logic
 
-@module
+@myhdl.module
 def customBench(inc):
 
     m = 8

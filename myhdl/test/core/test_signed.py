@@ -23,6 +23,7 @@ from __future__ import absolute_import
 
 from random import randrange
 
+import myhdl
 from myhdl import *
 
 

@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 from myhdl.conversion import analyze
 

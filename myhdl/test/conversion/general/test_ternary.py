@@ -3,9 +3,10 @@ import os
 path = os.path
 import unittest
 
+import myhdl
 from myhdl import *
 
-@module
+@myhdl.module
 def ternary1(dout, clk, rst):
 
     @always(clk.posedge, rst.negedge)
@@ -18,7 +19,7 @@ def ternary1(dout, clk, rst):
     return logic
 
 
-@module
+@myhdl.module
 def ternary2(dout, clk, rst):
 
     dout_d = Signal(intbv(0)[len(dout):])
@@ -36,7 +37,7 @@ def ternary2(dout, clk, rst):
 
     return logic, comb
 
-@module
+@myhdl.module
 def TernaryBench(ternary):
 
     dout = Signal(intbv(0)[8:])

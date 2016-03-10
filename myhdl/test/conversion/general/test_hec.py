@@ -3,6 +3,7 @@ import os
 path = os.path
 from random import randrange
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -57,7 +58,7 @@ def calculateHecTask(hec, header):
     h ^= COSET
     hec[:] = h
 
-@module
+@myhdl.module
 def HecCalculatorPlain(hec, header):
     """ Hec calculation module.
 
@@ -125,7 +126,7 @@ headers = [ 0x00000000,
 headers.extend([randrange(2**32-1) for i in range(10)])
 headers = tuple(headers)
 
-@module
+@myhdl.module
 def HecBench(HecCalculator):
 
     hec = Signal(intbv(0)[8:])

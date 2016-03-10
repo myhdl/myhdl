@@ -1,7 +1,8 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 
-@module
+@myhdl.module
 def adapter(o_err, i_err, o_spec, i_spec):
 
     nomatch = Signal(bool(0))
@@ -35,14 +36,14 @@ def adapter(o_err, i_err, o_spec, i_spec):
     return assign
 
 
-@module
+@myhdl.module
 def bench_adapter(conv=False):
     o_spec = ('c', 'a', 'other', 'nomatch')
     i_spec = { 'a' : 1, 'b' : 2, 'c' : 0, 'd' : 3, 'e' : 4, 'f' : 5, }
 
     o_err = Signal(intbv(0)[4:])
     i_err = Signal(intbv(0)[6:])
-    
+
     if conv:
         dut = conv(adapter(o_err, i_err, o_spec, i_spec))
     else:

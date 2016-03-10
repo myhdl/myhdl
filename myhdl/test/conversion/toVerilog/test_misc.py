@@ -4,6 +4,7 @@ import os
 path = os.path
 from random import randrange
 
+import myhdl
 from myhdl import *
 
 from .util import setupCosimulation

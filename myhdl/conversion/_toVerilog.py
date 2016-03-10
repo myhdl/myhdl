@@ -38,6 +38,7 @@ from myhdl._compat import StringIO
 import warnings
 
 import myhdl
+import myhdl
 from myhdl import *
 from myhdl._compat import integer_types, class_types, PY2
 from myhdl import ToVerilogError, ToVerilogWarning

@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 from TimeCount import TimeCount

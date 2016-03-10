@@ -3,9 +3,10 @@ import os
 path = os.path
 import unittest
 
+import myhdl
 from myhdl import *
 
-@module
+@myhdl.module
 def ram1(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """
 
@@ -21,7 +22,7 @@ def ram1(dout, din, addr, we, clk, depth=128):
             dout.next = mem[int(addr)]
     return logic
 
-@module
+@myhdl.module
 def ram_clocked(dout, din, addr, we, clk, depth=128):
     """ Ram model """
     
@@ -37,7 +38,7 @@ def ram_clocked(dout, din, addr, we, clk, depth=128):
             
     return access
 
-@module
+@myhdl.module
 def ram_deco1(dout, din, addr, we, clk, depth=128):
     """  Ram model """
     
@@ -57,7 +58,7 @@ def ram_deco1(dout, din, addr, we, clk, depth=128):
     return write, read
 
 
-@module
+@myhdl.module
 def ram_deco2(dout, din, addr, we, clk, depth=128):
     """  Ram model """
     
@@ -75,7 +76,7 @@ def ram_deco2(dout, din, addr, we, clk, depth=128):
     return write, read
 
 
-@module
+@myhdl.module
 def ram2(dout, din, addr, we, clk, depth=128):
         
     memL = [Signal(intbv()[len(dout):]) for i in range(depth)]
@@ -96,7 +97,7 @@ def ram2(dout, din, addr, we, clk, depth=128):
     return wrLogic, rdLogic
 
 
-@module
+@myhdl.module
 def RamBench(ram, depth=128):
 
     dout = Signal(intbv(0)[8:])
