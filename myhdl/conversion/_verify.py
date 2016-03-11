@@ -22,7 +22,7 @@ _simulators = {}
 sim = namedtuple('sim', 'name hdl analyze elaborate simulate skiplines skipchars ignore')
 
 
-def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, 
+def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None,
                       skiplines=None, skipchars=None, ignore=None):
     if not isinstance(name, str) or (name.strip() == ""):
         raise ValueError("Invalid simulator name")
@@ -41,8 +41,8 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
 registerSimulator(
     name="ghdl",
     hdl="VHDL",
-    analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-    elaborate="ghdl -e --workdir=work -o %(unitname)s %(topname)s",
+    analyze="ghdl -a --std=08 --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+    elaborate="ghdl -e --std=08 --workdir=work %(unitname)s",
     simulate="ghdl -r --workdir=work %(unitname)s"
     )
 
@@ -90,13 +90,21 @@ registerSimulator(
     skiplines=3
     )
 
+registerSimulator(
+    name="verilator",
+    hdl="Verilog",
+    analyze="verilator --lint-only -Wno-fatal +1364-2005ext+v %(topname)s.v",
+    elaborate='echo "ELABORATION"',
+    simulate="./obj_dir/V%(topname)s"
+    )
+
 
 class  _VerificationClass(object):
 
     __slots__ = ("simulator", "_analyzeOnly")
 
     def __init__(self, analyzeOnly=False):
-        self.simulator = "GHDL"
+        self.simulator = None
         self._analyzeOnly = analyzeOnly
 
 
@@ -175,10 +183,36 @@ class  _VerificationClass(object):
         if elaborate is not None:
             #print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
+            if hdlsim.name == "verilator":
+                main_cpp= "main.cpp"
+                main_cpp_string='    #include %s.h"\n\
+                                      #include "verilated.h"\n\
+                                      vluint64_t main_time = 0;       // Current simulation time \n\
+                                      double sc_time_stamp () {       // Called by $time in Verilog\n\
+                                            return main_time;           // converts to double, to match\n\
+                                            // what SystemC does\n\
+                                                              }\n\
+                                      int main(int argc, char **argv, char **env) {\n\
+                                      Verilated::commandArgs(argc, argv);\n\
+                                      %s* top = new %s;\n\
+                                      while (!Verilated::gotFinish()) {\n\
+                                      if (main_time > 10) {\n\
+                                       top->final();  \n\
+                                       delete top;\n\
+                                       exit(0);\n\
+                                      }\n\
+                                      top->eval();\n\
+                                      main_time++;}\n\
+                                      }'%('"V'+vals["topname"],'V'+vals["topname"],'V'+vals["topname"])
+                main_cpp_open=open(main_cpp, 'w')
+                main_cpp_open.writelines(main_cpp_string)
+                main_cpp_open.close()
+                subprocess.call("verilator --cc -Wno-fatal +1364-2005ext+v %s.v --exe main.cpp"%vals["topname"], shell=True)
+                subprocess.call("make -f %s.mk --directory=obj_dir"%('V'+vals["topname"]),shell=True)
             if ret != 0:
                 print("Elaboration failed", file=sys.stderr)
                 return ret
-            
+
         g = tempfile.TemporaryFile(mode='w+t')
         #print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
@@ -199,7 +233,7 @@ class  _VerificationClass(object):
         glines = [line[skipchars:] for line in glines]
         flinesNorm = [line.lower() for line in flines]
         glinesNorm = [line.lower() for line in glines]
-        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile=hdlsim.name, tofile=hdl)
+        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile='MyHDL', tofile=hdlsim.name)
 
         MyHDLLog = "MyHDL.log"
         HDLLog = hdlsim.name + ".log"
