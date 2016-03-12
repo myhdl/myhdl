@@ -10,7 +10,7 @@ from myhdl.conversion import verify, analyze
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
-@myhdl.module
+@block
 def ForLoopError1(a, out):
     @instance
     def logic():
@@ -23,7 +23,7 @@ def ForLoopError1(a, out):
             out.next = var
     return logic
         
-@myhdl.module
+@block
 def ForLoopError2(a, out):
     @instance
     def logic():
@@ -36,7 +36,7 @@ def ForLoopError2(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def ForLoop1(a, out):
     @instance
     def logic():
@@ -49,7 +49,7 @@ def ForLoop1(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def ForLoop2(a, out):
     @instance
     def logic():
@@ -62,7 +62,7 @@ def ForLoop2(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def ForLoop3(a, out):
     @instance
     def logic():
@@ -75,7 +75,7 @@ def ForLoop3(a, out):
             out.next = var
     return logic
         
-@myhdl.module
+@block
 def ForLoop4(a, out):
     @instance
     def logic():
@@ -88,7 +88,7 @@ def ForLoop4(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def ForLoop5(a, out):
     @instance
     def logic():
@@ -101,7 +101,7 @@ def ForLoop5(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def ForLoop6(a, out):
     @instance
     def logic():
@@ -114,7 +114,7 @@ def ForLoop6(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def ForContinueLoop(a, out):
     @instance
     def logic():
@@ -128,7 +128,7 @@ def ForContinueLoop(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def ForBreakLoop(a, out):
     @instance
     def logic():
@@ -141,7 +141,7 @@ def ForBreakLoop(a, out):
                     break
     return logic
 
-@myhdl.module
+@block
 def ForBreakContinueLoop(a, out):
     @instance
     def logic():
@@ -155,7 +155,7 @@ def ForBreakContinueLoop(a, out):
                 break
     return logic
 
-@myhdl.module
+@block
 def NestedForLoop1(a, out):
     @instance
     def logic():
@@ -173,7 +173,7 @@ def NestedForLoop1(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def NestedForLoop2(a, out):
     @instance
     def logic():
@@ -200,7 +200,7 @@ def ReturnFromFunction(a):
             return i
     return 0
 
-@myhdl.module
+@block
 def FunctionCall(a, out):
     @instance
     def logic():
@@ -219,7 +219,7 @@ def ReturnFromTask(a, out):
             return
     out[:] = 23 # to notice it
 
-@myhdl.module
+@block
 def TaskCall(a, out):
     @instance
     def logic():
@@ -230,7 +230,7 @@ def TaskCall(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def WhileLoop(a, out):
     @instance
     def logic():
@@ -245,7 +245,7 @@ def WhileLoop(a, out):
             out.next = var
     return logic
 
-@myhdl.module
+@block
 def WhileContinueLoop(a, out):
     @instance
     def logic():
@@ -262,7 +262,7 @@ def WhileContinueLoop(a, out):
             out.next = var
     return logic
         
-@myhdl.module
+@block
 def WhileBreakLoop(a, out):
     @instance
     def logic():
@@ -278,7 +278,7 @@ def WhileBreakLoop(a, out):
                 i -= 1
     return logic
     
-@myhdl.module
+@block
 def WhileBreakContinueLoop(a, out):
     @instance
     def logic():
@@ -295,7 +295,7 @@ def WhileBreakContinueLoop(a, out):
                 break
     return logic
     
-@myhdl.module
+@block
 def LoopBench(LoopTest):
 
     a = Signal(intbv(-1)[16:])

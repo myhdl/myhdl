@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import myhdl
 from myhdl import *
 
-@myhdl.module
+@block
 def constants(v, u, x, y, z, a):
 
     b = Signal(bool(0))

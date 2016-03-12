@@ -2,10 +2,9 @@ from __future__ import absolute_import
 import os
 path = os.path
 
-import myhdl
-from myhdl import Signal, intbv, delay, instance, always_comb
+from myhdl import block, Signal, intbv, delay, instance, always_comb
 
-@myhdl.module
+@block
 def bin2gray2(B, G, width):
     """ Gray encoder.
 
@@ -23,7 +22,7 @@ def bin2gray2(B, G, width):
                 G.next[i] = Bext[i+1] ^ Bext[i]
     return logic
 
-@myhdl.module
+@block
 def bin2gray(B, G, width):
 
     """ Gray encoder.
@@ -44,7 +43,7 @@ def bin2gray(B, G, width):
     return logic
 
 
-@myhdl.module
+@block
 def bin2grayBench(width, bin2gray):
 
     B = Signal(intbv(0)[width:])

@@ -10,7 +10,7 @@ D = 256
 
 ROM = tuple([randrange(D) for i in range(D)])
 
-@myhdl.module
+@block
 def rom1(dout, addr, clk):
 
     @instance
@@ -21,7 +21,7 @@ def rom1(dout, addr, clk):
 
     return rdLogic
 
-@myhdl.module
+@block
 def rom2(dout, addr, clk):
     
     theROM = ROM
@@ -34,7 +34,7 @@ def rom2(dout, addr, clk):
 
     return rdLogic
 
-@myhdl.module
+@block
 def rom3(dout, addr, clk):
 
 
@@ -48,7 +48,7 @@ def rom3(dout, addr, clk):
 
     return rdLogic
 
-@myhdl.module
+@block
 def rom4(dout, addr, clk):
 
     @always_comb
@@ -58,7 +58,7 @@ def rom4(dout, addr, clk):
     return read
 
       
-@myhdl.module
+@block
 def RomBench(rom):
 
     dout = Signal(intbv(0)[8:])

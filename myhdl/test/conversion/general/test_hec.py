@@ -58,7 +58,7 @@ def calculateHecTask(hec, header):
     h ^= COSET
     hec[:] = h
 
-@myhdl.module
+@block
 def HecCalculatorPlain(hec, header):
     """ Hec calculation module.
 
@@ -126,7 +126,7 @@ headers = [ 0x00000000,
 headers.extend([randrange(2**32-1) for i in range(10)])
 headers = tuple(headers)
 
-@myhdl.module
+@block
 def HecBench(HecCalculator):
 
     hec = Signal(intbv(0)[8:])

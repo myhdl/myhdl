@@ -44,14 +44,14 @@ class IntfWithConstant2:
         self.more_constants = IntfWithConstant1()
 
 
-@myhdl.module
+@block
 def m_assign(y, x):
     @always_comb
     def assign():
         y.next = x
     return assign
 
-@myhdl.module
+@block
 def m_top_assign(x,y,z):
     """
     This module does not test top-level interfaces,
@@ -65,14 +65,14 @@ def m_top_assign(x,y,z):
 
     return ga1, ga2, gm1
 
-@myhdl.module
+@block
 def m_assign_intf(x, y):
     @always_comb
     def rtl():
         x.x.next = y.y
     return rtl
 
-@myhdl.module
+@block
 def c_testbench_one():
     x,y,z = [Signal(intbv(0, min=-8, max=8))
              for _ in range(3)]
@@ -87,7 +87,7 @@ def c_testbench_one():
         
     return tb_dut, tb_stim
         
-@myhdl.module
+@block
 def m_top_multi_comb(x,y,z):
     """
     This module does not test top-level interfaces,
@@ -100,14 +100,14 @@ def m_top_multi_comb(x,y,z):
     gm = m_multi_comb(*intf)
     return gm
 
-@myhdl.module
+@block
 def m_multi_comb(x, y, z):
     @always_comb
     def rtl():
         x.x.next = y.y + z.z.z
     return rtl
 
-@myhdl.module
+@block
 def c_testbench_two():
     x,y,z = [Signal(intbv(0, min=-8, max=8))
              for _ in range(3)]
@@ -123,7 +123,7 @@ def c_testbench_two():
     return tb_dut, tb_stim
     
 
-@myhdl.module
+@block
 def m_top_const(clock, reset, x, y, intf):
 
     @always_seq(clock.posedge, reset=reset)
@@ -138,7 +138,7 @@ def m_top_const(clock, reset, x, y, intf):
 
     return rtl1, rtl2
 
-@myhdl.module
+@block
 def c_testbench_three():
     """
     this will test the use of constants in an inteface

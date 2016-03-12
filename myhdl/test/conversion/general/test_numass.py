@@ -5,7 +5,7 @@ import myhdl
 from myhdl import *
 
 
-@myhdl.module
+@block
 def NumassBench():
 
     p = Signal(intbv(1)[8:])

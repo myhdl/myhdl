@@ -10,7 +10,7 @@ ACTIVE_LOW = bool(0)
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 
-@myhdl.module
+@block
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.

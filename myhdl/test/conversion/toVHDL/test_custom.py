@@ -15,7 +15,7 @@ from myhdl.conversion._misc import _error
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-@myhdl.module
+@block
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -37,7 +37,7 @@ def incRef(count, enable, clock, reset, n):
     return logic
 
 
-@myhdl.module
+@block
 def incGen(count, enable, clock, reset, n):
     """ Generator with vhdl_code is not permitted """
     @instance
@@ -53,7 +53,7 @@ def incGen(count, enable, clock, reset, n):
     return logic
 
                                         
-@myhdl.module
+@block
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -92,7 +92,7 @@ end process;
 
 
 
-@myhdl.module
+@block
 def incErr(count, enable, clock, reset, n):
     
     @always(clock.posedge, reset.negedge)
@@ -125,7 +125,7 @@ end
 
 
 
-@myhdl.module
+@block
 def inc_comb(nextCount, count, n):
 
     @always_comb
@@ -143,7 +143,7 @@ $nextCount <= ($count + 1) mod $n;
 
     return logic
 
-@myhdl.module
+@block
 def inc_seq(count, nextCount, enable, clock, reset):
 
     @always(clock.posedge, reset.negedge)
@@ -173,7 +173,7 @@ end process;
     
     return logic
 
-@myhdl.module
+@block
 def inc2(count, enable, clock, reset, n):
     
     nextCount = Signal(intbv(0, min=0, max=n))
@@ -184,13 +184,13 @@ def inc2(count, enable, clock, reset, n):
     return comb, seq
 
 
-@myhdl.module
+@block
 def inc3(count, enable, clock, reset, n):
     inc2_inst = inc2(count, enable, clock, reset, n)
     return inc2_inst
 
 
-@myhdl.module
+@block
 def clockGen(clock):
     @instance
     def logic():
@@ -204,7 +204,7 @@ NRTESTS = 1000
 
 ENABLES = tuple([min(1, randrange(5)) for i in range(NRTESTS)])
 
-@myhdl.module
+@block
 def stimulus(enable, clock, reset):
     @instance
     def logic():
@@ -223,7 +223,7 @@ def stimulus(enable, clock, reset):
     return logic
 
 
-@myhdl.module
+@block
 def check(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -241,7 +241,7 @@ def check(count, enable, clock, reset, n):
             print(count)
     return logic
 
-@myhdl.module
+@block
 def customBench(inc):
 
     m = 8

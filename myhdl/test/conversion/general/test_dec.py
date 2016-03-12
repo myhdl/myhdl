@@ -12,7 +12,7 @@ from myhdl.conversion import verify
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
 
-@myhdl.module
+@block
 def decRef(count, enable, clock, reset, n):
     """ Decrementer with enable.
     
@@ -37,7 +37,7 @@ def decRef(count, enable, clock, reset, n):
     return logic
                     
                 
-@myhdl.module
+@block
 def dec(count, enable, clock, reset, n):
     """ Decrementer with enable.
     
@@ -62,7 +62,7 @@ def dec(count, enable, clock, reset, n):
     return decProcess
 
 
-@myhdl.module
+@block
 def decFunc(count, enable, clock, reset, n):
 
     def decFuncFunc(cnt):
@@ -84,7 +84,7 @@ def decFunc(count, enable, clock, reset, n):
     return decFuncGen
 
 
-@myhdl.module
+@block
 def decTask(count, enable, clock, reset, n):
     
     def decTaskFunc(cnt, enable, reset, n):
@@ -110,7 +110,7 @@ def decTask(count, enable, clock, reset, n):
     return decTaskGen
 
 
-@myhdl.module
+@block
 def decTaskFreeVar(count, enable, clock, reset, n):
     
     def decTaskFunc():
@@ -133,7 +133,7 @@ def decTaskFreeVar(count, enable, clock, reset, n):
     return decTaskGen
 
 
-@myhdl.module
+@block
 def DecBench(dec):
     
     m = 8

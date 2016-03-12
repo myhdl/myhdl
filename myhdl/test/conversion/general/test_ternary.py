@@ -6,7 +6,7 @@ import unittest
 import myhdl
 from myhdl import *
 
-@myhdl.module
+@block
 def ternary1(dout, clk, rst):
 
     @always(clk.posedge, rst.negedge)
@@ -19,7 +19,7 @@ def ternary1(dout, clk, rst):
     return logic
 
 
-@myhdl.module
+@block
 def ternary2(dout, clk, rst):
 
     dout_d = Signal(intbv(0)[len(dout):])
@@ -37,7 +37,7 @@ def ternary2(dout, clk, rst):
 
     return logic, comb
 
-@myhdl.module
+@block
 def TernaryBench(ternary):
 
     dout = Signal(intbv(0)[8:])

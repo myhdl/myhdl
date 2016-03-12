@@ -45,15 +45,15 @@ class _CallInfo(object):
 def _getCallInfo():
     """Get info on the caller of an Instantiator.
 
-    An Instantiator should be used in a module context.
+    An Instantiator should be used in a block context.
     This function gets the required info about the caller.
     It uses the frame stack:
     0: this function
     1: the instantiator decorator
-    2: the module function that defines instances
-    3: the caller of the module function, e.g. the ModuleInstance.
+    2: the block function that defines instances
+    3: the caller of the block function, e.g. the BlockInstance.
     """
-    from myhdl import _module
+    from myhdl import _block
     funcrec = inspect.stack()[2]
     name = funcrec[3]
     frame = funcrec[0]
@@ -63,7 +63,7 @@ def _getCallInfo():
     callerrec = inspect.stack()[3]
     f_locals = callerrec[0].f_locals
     if 'self' in f_locals:
-        modctxt = isinstance(f_locals['self'], _module._ModuleInstance)
+        modctxt = isinstance(f_locals['self'], _block._BlockInstance)
     return _CallInfo(name, modctxt, symdict)
 
 

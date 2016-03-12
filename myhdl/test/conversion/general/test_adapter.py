@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import myhdl
 from myhdl import *
 
-@myhdl.module
+@block
 def adapter(o_err, i_err, o_spec, i_spec):
 
     nomatch = Signal(bool(0))
@@ -36,7 +36,7 @@ def adapter(o_err, i_err, o_spec, i_spec):
     return assign
 
 
-@myhdl.module
+@block
 def bench_adapter(conv=False):
     o_spec = ('c', 'a', 'other', 'nomatch')
     i_spec = { 'a' : 1, 'b' : 2, 'c' : 0, 'd' : 3, 'e' : 4, 'f' : 5, }

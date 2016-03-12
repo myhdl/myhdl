@@ -56,7 +56,7 @@ from myhdl._util import  _flatten
 from myhdl._compat import integer_types, class_types, StringIO
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
-from myhdl._module import _ModuleInstance
+from myhdl._block import _BlockInstance
 from myhdl._getHierarchy import _getHierarchy
 
 _version = myhdl.__version__.replace('.','')
@@ -73,7 +73,7 @@ def _checkArgs(arglist):
 def _flatten(*args):
     arglist = []
     for arg in args:
-        if isinstance(arg, _ModuleInstance):
+        if isinstance(arg, _BlockInstance):
             if arg.vhdl_code is not None:
                 arglist.append(arg.vhdl_code)
                 continue
@@ -134,19 +134,19 @@ class _ToVHDLConvertor(object):
         from myhdl import _traceSignals
         if _traceSignals._tracing:
             raise ToVHDLError("Cannot use toVHDL while tracing signals")
-        if not isinstance(func, _ModuleInstance):
+        if not isinstance(func, _BlockInstance):
             if not callable(func):
                 raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
 
         _converting = 1
         if self.name is None:
             name = func.__name__
-            if isinstance(func, _ModuleInstance):
+            if isinstance(func, _BlockInstance):
                 name = func.mod.__name__
         else:
             name = str(self.name)
 
-        if isinstance(func, _ModuleInstance):
+        if isinstance(func, _BlockInstance):
             try:
                 h = _getHierarchy(name, func)
             finally:
@@ -190,7 +190,7 @@ class _ToVHDLConvertor(object):
         _annotateTypes(genlist)
 
         ### infer interface
-        if isinstance(func, _ModuleInstance):
+        if isinstance(func, _BlockInstance):
             # infer interface after signals have been analyzed
             func._inferInterface()
             intf = func

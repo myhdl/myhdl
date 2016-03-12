@@ -17,7 +17,7 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl traceSignals module.
+""" myhdl traceSignals block.
 
 """
 from __future__ import absolute_import
@@ -36,7 +36,7 @@ from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
-from myhdl._module import _Module, _ModuleInstance
+from myhdl._block import _Block, _BlockInstance
 from myhdl._getHierarchy import _getHierarchy
 
 _tracing = 0
@@ -68,9 +68,9 @@ class _TraceSignalsClass(object):
 
     def __call__(self, dut, *args, **kwargs):
         global _tracing, vcdpath
-        if isinstance(dut, _ModuleInstance):
+        if isinstance(dut, _BlockInstance):
             # now we go bottom-up: so clean up and start over
-            # TODO: consider a warning for the overruled module
+            # TODO: consider a warning for the overruled block
             if _simulator._tracing:
                 _simulator._tracing = 0
                 _simulator._tf.close()
@@ -85,7 +85,7 @@ class _TraceSignalsClass(object):
         from myhdl.conversion import _toVerilog
         if _toVerilog._converting:
             raise TraceSignalsError("Cannot use traceSignals while converting to Verilog")
-        if not isinstance(dut, _ModuleInstance):
+        if not isinstance(dut, _BlockInstance):
             if not callable(dut):
                 raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
         if _simulator._tracing:
@@ -95,7 +95,7 @@ class _TraceSignalsClass(object):
         try:
             if self.name is None:
                 name = dut.__name__
-                if isinstance(dut, _ModuleInstance):
+                if isinstance(dut, _BlockInstance):
                     name = dut.mod.__name__
             else:
                 name = str(self.name)
@@ -107,10 +107,10 @@ class _TraceSignalsClass(object):
             else:
                 directory = self.directory
 
-            if isinstance(dut, _Module):
-                raise TypeError("Module %s: conversion should be on an instance" % dut.__name__)
+            if isinstance(dut, _Block):
+                raise TypeError("Block %s: conversion should be on an instance" % dut.__name__)
 
-            if isinstance(dut, _ModuleInstance):
+            if isinstance(dut, _BlockInstance):
                 h = _getHierarchy(name, dut)
             else:
                 warnings.warn("\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)

@@ -5,7 +5,7 @@ ACTIVE_LOW = 0
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
 
-@myhdl.module
+@block
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.
@@ -55,7 +55,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     return FSM
 
 
-@myhdl.module
+@block
 def testbench():
 
     SOF = Signal(bool(0))

@@ -10,7 +10,7 @@ class HdlObj(object):
     def __init__(self):
         pass
 
-    @myhdl.module
+    @block
     def method_func(self, clk, srst, x, y):
         z = Signal(intbv(0, min=y.min, max=y.max))
         ifx = self._mfunc(x, z)
@@ -23,14 +23,14 @@ class HdlObj(object):
 
         return hdl, ifx
 
-    @myhdl.module
+    @block
     def _mfunc(self, x, y):
         @always_comb
         def _hdl():
             y.next = x + 1
         return _hdl
 
-@myhdl.module
+@block
 def _func(x,y):
     @always_comb
     def _hdl():
@@ -40,15 +40,15 @@ def _func(x,y):
 class HdlObjObj(object):
     def __init__(self):
         pass
-    
-    @myhdl.module
+
+    @block
     def method_func(self, clk, srst, x, y):
         z1 = Signal(intbv(0, min=y.min, max=y.max))
         z2 = Signal(intbv(0, min=y.min, max=y.max))
         hobj = HdlObj()
         ifx1 = hobj._mfunc(x, z1)
         ifx2 = _func(x, z2)
-        
+
         @always(clk.posedge)
         def hdl():
             if srst:
@@ -56,15 +56,15 @@ class HdlObjObj(object):
             else:
                 y.next = x + z1 + (z1 - z2)
 
-        return hdl, ifx1, ifx2    
+        return hdl, ifx1, ifx2
 
 class HdlObjAttrSimple(object):
     def __init__(self):
         self.Constant = 3
 
-    @myhdl.module
+    @block
     def method_func(self, clk, srst, x, y):
-        
+
         # limitation for class method conversion, the object attributes
         # can only be used/accessed during elaboration.
         Constant = int(self.Constant)
@@ -73,7 +73,7 @@ class HdlObjAttrSimple(object):
             if srst:
                 y.next = 0
             else:
-                y.next = x + (x+1) + Constant - 3 
+                y.next = x + (x+1) + Constant - 3
 
         return hdl
 
@@ -82,7 +82,7 @@ class HdlObjNotSelf(object):
     def __init__(this):
         pass
 
-    @myhdl.module
+    @block
     def method_func(this, clk, srst, x, y):
 
         @always(clk.posedge)
@@ -127,6 +127,3 @@ def test_hdlobjnotself():
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjNotSelf()
     analyze(hdlobj_inst.method_func(clk, x, srst, y))
-
-
-

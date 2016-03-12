@@ -9,7 +9,7 @@ import myhdl
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
 
-@myhdl.module
+@block
 def simple_dir_model(din, dout, clk):
     """ Simple convertible model """
 

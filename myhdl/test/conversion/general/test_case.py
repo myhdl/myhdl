@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import myhdl
 from myhdl import *
 
-@myhdl.module
+@block
 def map_case4(z, a):
 
     @always_comb
@@ -18,7 +18,7 @@ def map_case4(z, a):
 
     return logic
 
-@myhdl.module
+@block
 def map_case2(z, a):
 
     @always_comb
@@ -31,7 +31,7 @@ def map_case2(z, a):
 
     return logic
 
-@myhdl.module
+@block
 def map_case3(z, a):
 
     @always_comb
@@ -45,7 +45,7 @@ def map_case3(z, a):
 
     return logic
 
-@myhdl.module
+@block
 def map_case4_full(z, a):
 
     @always_comb
@@ -62,7 +62,7 @@ def map_case4_full(z, a):
     return logic
 
 
-@myhdl.module
+@block
 def bench_case(map_case, N):
 
     a = Signal(intbv(0)[2:])
@@ -91,4 +91,3 @@ def test_case3():
 
 def test_case4_full():
     assert conversion.verify(bench_case( map_case4_full, 4)) == 0
-

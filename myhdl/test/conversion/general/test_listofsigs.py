@@ -10,7 +10,7 @@ M= 2**N
 
 ### A first case that already worked with 5.0 list of signal constraints ###
 
-@myhdl.module
+@block
 def intbv2list():
     """Conversion between intbv and list of boolean signals."""
     
@@ -47,7 +47,7 @@ def test_intbv2list():
     
 ### A number of cases with relaxed constraints, for various decorator types ###
 
-@myhdl.module
+@block
 def inv1(z, a):
     @always(a)
     def logic():
@@ -55,7 +55,7 @@ def inv1(z, a):
     return logic
 
 
-@myhdl.module
+@block
 def inv2(z, a):
     @always_comb
     def logic():
@@ -63,7 +63,7 @@ def inv2(z, a):
     return logic
 
 
-@myhdl.module
+@block
 def inv3(z, a):
     @instance
     def logic():
@@ -72,7 +72,7 @@ def inv3(z, a):
             z.next = not a
     return logic
 
-@myhdl.module
+@block
 def inv4(z, a):
     @instance
     def logic():
@@ -83,7 +83,7 @@ def inv4(z, a):
     return logic
 
 
-@myhdl.module
+@block
 def case1(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
@@ -104,7 +104,7 @@ def case1(z, a, inv):
     return extract, inst, assemble
 
 
-@myhdl.module
+@block
 def case2(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
@@ -125,7 +125,7 @@ def case2(z, a, inv):
     return extract, inst, assemble
 
 
-@myhdl.module
+@block
 def case3(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
@@ -150,7 +150,7 @@ def case3(z, a, inv):
     return extract, inst, assemble
 
 
-@myhdl.module
+@block
 def case4(z, a, inv):
     b = [Signal(bool(1)) for i in range(len(a))]
     c = [Signal(bool(0)) for i in range(len(a))]
@@ -181,7 +181,7 @@ def case4(z, a, inv):
 
 
 
-@myhdl.module
+@block
 def processlist(case, inv):
     """Extract list from intbv, do some processing, reassemble."""
     
@@ -223,7 +223,7 @@ def test_processlist44():
 
 
 # signed and unsigned
-@myhdl.module
+@block
 def unsigned():
     z = Signal(intbv(0)[8:])
     a = [Signal(intbv(0)[8:]) for i in range(3)]
@@ -246,7 +246,7 @@ def test_unsigned():
     conversion.verify(unsigned())
         
 
-@myhdl.module
+@block
 def signed():
     z = Signal(intbv(0, min=-10, max=34))
     a = [Signal(intbv(0, min=-5, max=17)) for i in range(3)]
@@ -269,7 +269,7 @@ def test_signed():
     conversion.verify(signed())
         
 
-@myhdl.module
+@block
 def mixed():
     z = Signal(intbv(0, min=0, max=34))
     a = [Signal(intbv(0, min=-11, max=17)) for i in range(3)]
@@ -297,7 +297,7 @@ def test_mixed():
 
 # port in list
 
-@myhdl.module
+@block
 def portInList(z, a, b):
 
     m = [a, b]
@@ -322,7 +322,7 @@ def test_portInList():
     
 # signal in multiple lists
 
-@myhdl.module
+@block
 def sigInMultipleLists():
 
     z, a, b = [Signal(intbv(0)[8:]) for i in range(3)]
@@ -347,7 +347,7 @@ def test_sigInMultipleLists():
 
 # list of signals as port
        
-@myhdl.module
+@block
 def my_register(clk, inp, outp):
     @always(clk.posedge)
     def my_register_impl():

@@ -34,7 +34,7 @@ from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _printExcInfo
 from myhdl._instance import _Instantiator
-from myhdl._module import _ModuleInstance
+from myhdl._block import _BlockInstance
 from myhdl._ShadowSignal import _ShadowSignal
 
 schedule = _futureEvents.append
@@ -45,11 +45,11 @@ _error.ArgType = "Inappriopriate argument type"
 _error.MultipleCosim = "Only a single cosimulator argument allowed"
 _error.DuplicatedArg = "Duplicated argument"
 
-# flatten Module objects out
+# flatten Block objects out
 def _flatten(*args):
     arglist = []
     for arg in args:
-        if isinstance(arg, _ModuleInstance):
+        if isinstance(arg, _BlockInstance):
             arg = arg.subs
         if isinstance(arg, (list, tuple, set)):
             for item in arg:

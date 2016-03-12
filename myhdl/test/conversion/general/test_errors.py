@@ -6,7 +6,7 @@ from myhdl.conversion._misc import _error
 from myhdl.conversion import verify
 
 
-@myhdl.module
+@block
 def sigAugmAssignUnsupported(z, a):
     @always(a)
     def logic():
@@ -22,8 +22,8 @@ def test_SigAugmAssignUnsupported():
         assert e.kind == _error.NotSupported
     else:
         assert False
-        
-@myhdl.module
+
+@block
 def modbvRange(z, a, b):
     @always(a, b)
     def logic():
@@ -42,8 +42,8 @@ def test_modbvRange():
         assert e.kind == _error.ModbvRange
     else:
         assert False
-        
-@myhdl.module
+
+@block
 def modbvSigRange(z, a, b):
     @always(a, b)
     def logic():
@@ -60,8 +60,3 @@ def test_modbvSigRange():
         assert e.kind == _error.ModbvRange
     else:
         assert False
-        
-
-
-
-

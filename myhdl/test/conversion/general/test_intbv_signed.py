@@ -24,7 +24,7 @@ from __future__ import absolute_import
 import myhdl
 from myhdl import *
 
-@myhdl.module
+@block
 def PlainIntbv():
     '''Test a plain intbv instance with .signed() 
 
@@ -198,7 +198,7 @@ def PlainIntbv():
 
 
 
-@myhdl.module
+@block
 def SlicedSigned():
     '''Test a slice with .signed()
 
@@ -225,7 +225,7 @@ def SlicedSigned():
     return logic
 
 
-@myhdl.module
+@block
 def SignedConcat():
     '''Test the .signed() function with the concatenate function'''
 

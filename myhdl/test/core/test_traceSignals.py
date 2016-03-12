@@ -25,8 +25,7 @@ import random
 
 import pytest
 
-import myhdl
-from myhdl import Signal, Simulation, _simulator, delay, instance, intbv
+from myhdl import block, Signal, Simulation, _simulator, delay, instance, intbv
 from myhdl._traceSignals import TraceSignalsError, _error, traceSignals
 from helpers import raises_kind
 
@@ -36,7 +35,7 @@ path = os.path
 
 QUIET=1
 
-@myhdl.module
+@block
 def gen(clk):
     @instance
     def logic():
@@ -45,37 +44,37 @@ def gen(clk):
             clk.next = not clk
     return logic
 
-@myhdl.module
+@block
 def fun():
     clk = Signal(bool(0))
     inst = gen(clk)
     return inst
 
-@myhdl.module
+@block
 def dummy():
     clk = Signal(bool(0))
     inst = gen(clk)
     return 1
 
-@myhdl.module
+@block
 def top():
     inst = traceSignals(fun())
     return inst
 
-@myhdl.module
+@block
 def top2():
     inst = [{} for i in range(4)]
     j = 3
     inst[j-2]['key'] = traceSignals(fun())
     return inst
 
-@myhdl.module
+@block
 def top3():
     inst_1 = traceSignals(fun())
     inst_2 = traceSignals(fun())
     return inst_1, inst_2
 
-@myhdl.module
+@block
 def genTristate(clk, x, y, z):
     xd = x.driver()
     yd = y.driver()
@@ -100,7 +99,7 @@ def genTristate(clk, x, y, z):
                 yd.next = zd.next = 0
     return ckgen,logic
 
-@myhdl.module
+@block
 def tristate():
     from myhdl import TristateSignal
     clk = Signal(bool(0))
@@ -111,7 +110,7 @@ def tristate():
     inst = genTristate(clk, x, y, z)
     return inst
 
-@myhdl.module
+@block
 def topTristate():
     inst = traceSignals(tristate())
     return inst
