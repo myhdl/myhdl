@@ -84,6 +84,8 @@ class InstanceError(Error):
     pass
 class ModuleError(Error):
     pass
+class ModuleInstanceError(Error):
+    pass
 class CosimulationError(Error):
     pass
 class ExtractHierarchyError(Error):

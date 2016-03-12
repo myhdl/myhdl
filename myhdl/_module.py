@@ -191,3 +191,11 @@ class _ModuleInstance(object):
 
     def verify(self):
         return myhdl.conversion.verify(self)
+
+    def convert(self, hdl='Verilog'):
+        if hdl == 'VHDL':
+            return myhdl.conversion._toVHDL.toVHDL(self)
+        elif hdl == 'Verilog':
+            return myhdl.conversion._toVerilog.toVerilog(self)
+        else:
+            raise ModuleInstanceError('unknown hdl %s' % hdl)
