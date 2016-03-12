@@ -67,7 +67,7 @@ def bin2grayBench(width, bin2gray):
 
 
 def test1():
-     assert bin2grayBench(width=8, bin2gray=bin2gray).verify() == 0
+     assert bin2grayBench(width=8, bin2gray=bin2gray).verifyConversion() == 0
 
 def test2():
-    assert bin2grayBench(width=8, bin2gray=bin2gray2).verify() == 0
+    assert bin2grayBench(width=8, bin2gray=bin2gray2).verifyConversion() == 0

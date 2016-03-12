@@ -4,7 +4,6 @@ path = os.path
 
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify
 
 # SEARCH, CONFIRM, SYNC = range(3)
 ACTIVE_LOW = bool(0)
@@ -15,7 +14,7 @@ t_State_oc = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_cold")
 
 @block
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
-    
+
     """ Framing control FSM.
 
     SOF -- start-of-frame output bit
@@ -23,9 +22,9 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
     syncFlag -- sync pattern found indication input
     clk -- clock input
     reset_n -- active low reset
-    
+
     """
-    
+
     index = Signal(intbv(0)[8:]) # position in frame
 
     @always(clk.posedge, reset_n.negedge)
@@ -54,7 +53,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
                 SOF.next = (index == FRAME_SIZE-1)
             else:
                 raise ValueError("Undefined state")
-            
+
     return FSM
 
 @block
@@ -111,5 +110,4 @@ def FSMBench(FramerCtrl, t_State):
 
 
 def test():
-    assert verify(FSMBench(FramerCtrl, t_State_b)) == 0
-
+    assert FSMBench(FramerCtrl, t_State_b).verifyConversion() == 0

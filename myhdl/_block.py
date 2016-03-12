@@ -189,8 +189,13 @@ class _BlockInstance(object):
         self.argnames = intf.argnames
         self.argdict = intf.argdict
 
-    def verify(self):
+    # Public methods
+
+    def verifyConversion(self):
         return myhdl.conversion.verify(self)
+
+    def analyzeConversion(self):
+        return myhdl.conversion.analyze(self)
 
     def convert(self, hdl='Verilog'):
         if hdl == 'VHDL':
