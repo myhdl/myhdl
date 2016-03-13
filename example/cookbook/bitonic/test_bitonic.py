@@ -5,6 +5,7 @@ from myhdl import *
 
 from bitonic import Array8Sorter, Array8Sorter_v
 
+@block
 def bench():
 
     n = 8
@@ -31,8 +32,7 @@ def bench():
 
 
 def test_bench():
-    sim = Simulation(bench())
-    sim.run()
+    bench().run()
 
 if __name__ == '__main__':
     test_bench()

@@ -23,7 +23,7 @@ from __future__ import absolute_import
 import inspect
 
 import myhdl
-from myhdl import BlockError, BlockInstanceError
+from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
 from myhdl._extractHierarchy import (_MemInfo, _makeMemInfo,
@@ -136,6 +136,7 @@ class _BlockInstance(object):
         self._updateNamespaces()
         self.name = self.__name__ = mod.__name__ + '_' + str(mod.count)
         self.verilog_code = self.vhdl_code = None
+        self.sim = None
         if hasattr(mod, 'verilog_code'):
             self.verilog_code = _UserVerilogCode(mod.verilog_code, self.symdict, mod.name,
                                                  mod.modfunc, mod.sourcefile, mod.sourceline)
@@ -146,10 +147,11 @@ class _BlockInstance(object):
     def _verifySubs(self):
         for inst in self.subs:
             # print (inst.name, type(inst))
-            if not isinstance(inst, (_BlockInstance, _Instantiator)):
+            if not isinstance(inst, (_BlockInstance, _Instantiator, Cosimulation)):
                 raise BlockError(_error.ArgType)
-            if not inst.modctxt:
-                raise BlockError(_error.InstanceError % (self.mod.name, inst.callername))
+            if isinstance(inst, (_BlockInstance, _Instantiator)):
+                if not inst.modctxt:
+                    raise BlockError(_error.InstanceError % (self.mod.name, inst.callername))
 
     def _updateNamespaces(self):
         # dicts to keep track of objects used in Instantiator objects
@@ -158,6 +160,8 @@ class _BlockInstance(object):
         for inst in self.subs:
             # the symdict of a block instance is defined by
             # the call context of its instantiations
+            if isinstance(inst, Cosimulation):
+                continue # ignore
             if self.symdict is None:
                 self.symdict = inst.callinfo.symdict
             if isinstance(inst, _Instantiator):
@@ -190,6 +194,7 @@ class _BlockInstance(object):
         self.argdict = intf.argdict
 
     # Public methods
+    # The puropse now is to define the API, optimizations later
 
     def verifyConversion(self):
         return myhdl.conversion.verify(self)
@@ -204,3 +209,8 @@ class _BlockInstance(object):
             return myhdl.conversion._toVerilog.toVerilog(self)
         else:
             raise BlockInstanceError('unknown hdl %s' % hdl)
+
+    def run(self, duration=None, quiet=0):
+        if self.sim is None:
+            self.sim = myhdl._Simulation.Simulation(self)
+        self.sim.run(duration, quiet)
