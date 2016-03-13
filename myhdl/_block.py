@@ -198,9 +198,9 @@ class _BlockInstance(object):
         return myhdl.conversion.analyze(self)
 
     def convert(self, hdl='Verilog'):
-        if hdl == 'VHDL':
+        if hdl.lower() == 'vhdl':
             return myhdl.conversion._toVHDL.toVHDL(self)
-        elif hdl == 'Verilog':
+        elif hdl.lower() == 'verilog':
             return myhdl.conversion._toVerilog.toVerilog(self)
         else:
             raise BlockInstanceError('unknown hdl %s' % hdl)
