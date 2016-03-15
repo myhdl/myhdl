@@ -202,13 +202,40 @@ class _BlockInstance(object):
     def analyzeConversion(self):
         return myhdl.conversion.analyze(self)
 
-    def convert(self, hdl='Verilog'):
+    def convert(self, hdl='Verilog', **kwargs):
+        """Converts this BlockInstance to another HDL
+
+        Args:
+            hdl (Optional[str]): Target HDL. Defaults to Verilog
+            path (Optional[str]): Destination folder. Defaults to current 
+                working dir.
+            name (Optional[str]): Module and output file name. Defaults to
+                `self.mod.__name__`
+            trace(Optional[bool]): Verilog only. Whether the testbench should 
+                dump all signal waveforms. Defaults to False.
+            tb (Optional[bool]): Verilog only. Specifies whether a testbench 
+                should be created. Defaults to True.
+            timescale(Optional[str]): Verilog only. Defaults to '1ns/10ps'
+        """
         if hdl.lower() == 'vhdl':
-            return myhdl.conversion._toVHDL.toVHDL(self)
+            converter = myhdl.conversion._toVHDL.toVHDL
         elif hdl.lower() == 'verilog':
-            return myhdl.conversion._toVerilog.toVerilog(self)
+            converter = myhdl.conversion._toVerilog.toVerilog
         else:
             raise BlockInstanceError('unknown hdl %s' % hdl)
+
+        conv_attrs = {
+            'name': self.mod.__name__,
+        }
+        conv_attrs['directory'] = kwargs.pop('path', '')
+        if hdl.lower() == 'verilog':
+            conv_attrs['no_testbench'] = not kwargs.pop('tb', True)
+            conv_attrs['timescale'] = kwargs.pop('timescale', '1ns/10ps')
+            conv_attrs['trace'] = kwargs.pop('trace', False)
+        conv_attrs.update(kwargs)
+        for k, v in conv_attrs.items():
+            setattr(converter, k, v)
+        return converter(self)
 
     def run(self, duration=None, quiet=0):
         if self.sim is None:
