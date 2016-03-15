@@ -225,9 +225,9 @@ class _BlockInstance(object):
         else:
             raise BlockInstanceError('unknown hdl %s' % hdl)
 
-        conv_attrs = {
-            'name': self.mod.__name__,
-        }
+        conv_attrs = {}
+        if 'name' in kwargs:
+            conv_attrs['name'] = kwargs.pop('name')
         conv_attrs['directory'] = kwargs.pop('path', '')
         if hdl.lower() == 'verilog':
             conv_attrs['no_testbench'] = not kwargs.pop('tb', True)
