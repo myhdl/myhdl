@@ -109,10 +109,6 @@ class Simulation(object):
     def quit(self):
         self._finalize()
 
-    def runc(self, duration=0, quiet=0):
-        simrunc.run(sim=self, duration=duration, quiet=quiet)
-
-
     def run(self, duration=None, quiet=0):
 
         """ Run the simulation for some duration.
