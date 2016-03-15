@@ -18,6 +18,12 @@ run_test() {
 }
 
 foundError=0
+
+if [ "$CI_TARGET" == "ghdl" ]; then
+  ./scripts/install_ghdl.sh
+  export PATH=$PATH:$PWD/ghdl-0.33/bin/
+fi
+
 echo -e "Running $CI_TARGET tests\n"
 
 CI_TARGET=${CI_TARGET:-core}
