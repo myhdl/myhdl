@@ -14,32 +14,13 @@ A basic MyHDL simulation
 We will introduce MyHDL with a classic ``Hello World`` style example. All
 example code can be found in the distribution directory under
 :file:`example/manual/`.  Here are the contents of a MyHDL simulation script
-called :file:`hello1.py`::
+called :file:`hello1.py`:
 
-   from myhdl import Signal, delay, always, now, Simulation
+.. include-example:: hello1.py
 
-   def HelloWorld():
+When we run this simulation, we get the following output:
 
-       interval = delay(10)
-
-       @always(interval)
-       def sayHello():
-           print "%s Hello World!" % now()
-
-       return sayHello
-
-
-   inst = HelloWorld()
-   sim = Simulation(inst)
-   sim.run(30)
-
-When we run this simulation, we get the following output::
-
-   % python hello1.py
-   10 Hello World!
-   20 Hello World!
-   30 Hello World!
-   _SuspendSimulation: Simulated 30 timesteps
+.. run-example:: hello1.py
 
 The first line of the script imports a number of objects from the ``myhdl``
 package. In Python we can only use identifiers that are literally defined in the
