@@ -26,4 +26,4 @@ u = Signal(intbv(0)[8:])
 v = Signal(intbv(0, min=-3, max=9))
 
 def test_constants():
-    assert constants(v, u, x, y, z, a).analyzeConversion() == 0 
+    assert constants(v, u, x, y, z, a).analyze_convert() == 0 

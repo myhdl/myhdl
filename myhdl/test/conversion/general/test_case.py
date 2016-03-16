@@ -81,13 +81,13 @@ def bench_case(map_case, N):
 
 
 def test_case4():
-    assert bench_case(map_case4, 4).verifyConversion() == 0
+    assert bench_case(map_case4, 4).verify_convert() == 0
 
 def test_case2():
-    assert bench_case(map_case2, 2).verifyConversion() == 0
+    assert bench_case(map_case2, 2).verify_convert() == 0
 
 def test_case3():
-    assert bench_case(map_case3, 3).verifyConversion() == 0
+    assert bench_case(map_case3, 3).verify_convert() == 0
 
 def test_case4_full():
-    assert bench_case(map_case4_full, 4).verifyConversion() == 0
+    assert bench_case(map_case4_full, 4).verify_convert() == 0

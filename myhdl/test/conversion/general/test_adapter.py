@@ -64,7 +64,7 @@ def bench_adapter(hdl=None):
     return dut, stimulus
 
 def test_adapter():
-    assert bench_adapter().verifyConversion() == 0
+    assert bench_adapter().verify_convert() == 0
 
 
 bench_adapter('Verilog')

@@ -100,7 +100,7 @@ def test_hdlobj():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObj()
-    hdlobj_inst.method_func(clk, srst, x, y).analyzeConversion()
+    hdlobj_inst.method_func(clk, srst, x, y).analyze_convert()
 
 def test_hdlobjobj():
     clk = Signal(False)
@@ -108,7 +108,7 @@ def test_hdlobjobj():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjObj()
-    hdlobj_inst.method_func(clk, srst, x, y).analyzeConversion()
+    hdlobj_inst.method_func(clk, srst, x, y).analyze_convert()
 
 def test_hdlobjattrsimple():
     clk = Signal(False)
@@ -116,7 +116,7 @@ def test_hdlobjattrsimple():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjAttrSimple()
-    hdlobj_inst.method_func(clk, x, srst, y).analyzeConversion()
+    hdlobj_inst.method_func(clk, x, srst, y).analyze_convert()
 
 def test_hdlobjnotself():
     clk = Signal(False)
@@ -124,4 +124,4 @@ def test_hdlobjnotself():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjNotSelf()
-    hdlobj_inst.method_func(clk, x, srst, y).analyzeConversion()
+    hdlobj_inst.method_func(clk, x, srst, y).analyze_convert()

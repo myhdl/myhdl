@@ -197,10 +197,10 @@ class _BlockInstance(object):
     # Public methods
     # The puropse now is to define the API, optimizations later
 
-    def verifyConversion(self):
+    def verify_convert(self):
         return myhdl.conversion.verify(self)
 
-    def analyzeConversion(self):
+    def analyze_convert(self):
         return myhdl.conversion.analyze(self)
 
     def convert(self, hdl='Verilog', **kwargs):
@@ -208,13 +208,13 @@ class _BlockInstance(object):
 
         Args:
             hdl (Optional[str]): Target HDL. Defaults to Verilog
-            path (Optional[str]): Destination folder. Defaults to current 
+            path (Optional[str]): Destination folder. Defaults to current
                 working dir.
             name (Optional[str]): Module and output file name. Defaults to
                 `self.mod.__name__`
-            trace(Optional[bool]): Verilog only. Whether the testbench should 
+            trace(Optional[bool]): Verilog only. Whether the testbench should
                 dump all signal waveforms. Defaults to False.
-            tb (Optional[bool]): Verilog only. Specifies whether a testbench 
+            tb (Optional[bool]): Verilog only. Specifies whether a testbench
                 should be created. Defaults to True.
             timescale(Optional[str]): Verilog only. Defaults to '1ns/10ps'
         """

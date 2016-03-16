@@ -110,4 +110,4 @@ def FSMBench(FramerCtrl, t_State):
 
 
 def test():
-    assert FSMBench(FramerCtrl, t_State_b).verifyConversion() == 0
+    assert FSMBench(FramerCtrl, t_State_b).verify_convert() == 0
