@@ -218,16 +218,16 @@ class FramerCtrlTest(TestCase):
     def testRef(self):
         for t_State in (t_State_b, t_State_oc, t_State_oh):
             tb_fsm = self.bench(FramerCtrl_ref, t_State)
-            tb_fsm.run()
+            tb_fsm.run_sim()
 
     def testAlt(self):
         for t_State in (t_State_b, t_State_oc, t_State_oh):
             tb_fsm = self.bench(FramerCtrl_alt, t_State)
-            tb_fsm.run()
+            tb_fsm.run_sim()
 
     def testDoc(self):
         tb_fsm = self.bench(FramerCtrl, t_State_oh)
-        tb_fsm.run()
+        tb_fsm.run_sim()
 
 
 if __name__ == '__main__':

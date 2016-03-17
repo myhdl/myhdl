@@ -143,7 +143,7 @@ class _BlockInstance(object):
         if hasattr(mod, 'vhdl_code'):
             self.vhdl_code = _UserVhdlCode(mod.vhdl_code, self.symdict, mod.name,
                                            mod.modfunc, mod.sourcefile, mod.sourceline)
-        self._conf_sim = {'trace': False}
+        self._config_sim = {'trace': False}
 
     def _verifySubs(self):
         for inst in self.subs:
@@ -238,13 +238,13 @@ class _BlockInstance(object):
             setattr(converter, k, v)
         return converter(self)
 
-    def conf_sim(self, trace=False):
-        self._conf_sim['trace'] = trace
+    def config_sim(self, trace=False):
+        self._config_sim['trace'] = trace
 
-    def run(self, duration=None, quiet=0):
+    def run_sim(self, duration=None, quiet=0):
         if self.sim is None:
             sim = self
-            if self._conf_sim['trace']:
+            if self._config_sim['trace']:
                 sim = myhdl.traceSignals(self)
             self.sim = myhdl._Simulation.Simulation(sim)
         self.sim.run(duration, quiet)
