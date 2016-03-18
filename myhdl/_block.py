@@ -248,3 +248,7 @@ class _BlockInstance(object):
                 sim = myhdl.traceSignals(self)
             self.sim = myhdl._Simulation.Simulation(sim)
         self.sim.run(duration, quiet)
+
+    def quit_sim(self):
+        if self.sim is not None:
+            self.sim.quit()

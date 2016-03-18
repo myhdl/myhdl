@@ -86,9 +86,10 @@ def testbench():
 
 
 def main():
-    tb_fsm = traceSignals(testbench())
-    sim = Simulation(tb_fsm)
-    sim.run()
+    tb = testbench()
+    tb.config_sim(trace=True)
+    tb.run_sim()
+
 
 if __name__ == '__main__':
     main()
