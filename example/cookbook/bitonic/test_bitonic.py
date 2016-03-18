@@ -32,7 +32,7 @@ def bench():
 
 
 def test_bench():
-    bench().run()
+    bench().run_sim()
 
 if __name__ == '__main__':
     test_bench()
