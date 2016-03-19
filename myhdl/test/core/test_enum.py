@@ -62,6 +62,7 @@ class TestEnum:
         e = copy.deepcopy(t_State.SEARCH)
         assert e == t_State.SEARCH
         assert e != t_State.CONFIRM
+
 ## Adding test coverage for encoding in enum
 
     t_State = enum("SEARCH", "CONFIRM", "SYNC",'one_hot')
