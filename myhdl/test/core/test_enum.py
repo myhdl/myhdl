@@ -85,3 +85,4 @@ class TestEnum:
         assert l == len(t_State)
 	g = len(t_Homograph)
         assert g == len(t_Homograph)
+
