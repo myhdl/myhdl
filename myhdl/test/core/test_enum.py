@@ -83,6 +83,5 @@ class TestEnum:
     def testEnumLength(self):
         l = len(t_State)
         assert l == len(t_State)
-	g = len(t_Homograph)
-        assert g == len(t_Homograph)
+
 
