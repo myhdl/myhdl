@@ -65,40 +65,17 @@ class TestEnum:
 
 ## Adding test coverage for encoding in enum
 
-    t_State = enum("SEARCH", "CONFIRM", "SYNC",'one_hot')
-    t_Homograph = enum("SEARCH", "CONFIRM", "SYNC",'one_hot')
-
-    def testHomographone_hot(self):
-        assert t_State is not t_Homograph
-
-    def testHomographLiteralone_hot(self):
-        assert t_State.SEARCH is not t_Homograph.SEARCH
-
-    def testItemCopyone_hot(self):
-        e = copy.deepcopy(t_State.SEARCH)
+    def testItemNotDeepCopy(self):
+        e = copy.copy(t_State.SEARCH)
         assert e == t_State.SEARCH
         assert e != t_State.CONFIRM
-    def testItemone_hot(self):
-        assert 0b001 == t_State.SEARCH
-        assert 0b010 == t_State.CONFIRM
-        assert 0b100 == t_State.SYNC
 
-    t_State = enum("SEARCH", "CONFIRM", "SYNC",'one_cold')
-    t_Homograph = enum("SEARCH", "CONFIRM", "SYNC",'one_cold')
-
-   
-    def testHomographone_cold(self):
-        assert t_State is not t_Homograph
-
-    def testHomographLiteralone_cold(self):
-        assert t_State.SEARCH is not t_Homograph.SEARCH
-
-    def testItemCopyone_cold(self):
-        e = copy.deepcopy(t_State.SEARCH)
-        assert e == t_State.SEARCH
-        assert e != t_State.CONFIRM
-    def testItemone_cold(self):
-        assert 0b110 == t_State.SEARCH
-        assert 0b101 == t_State.CONFIRM
-        assert 0b011 == t_State.SYNC
-
+    def testWrongEncoding(self):
+        def logic1(encoding):
+            t_State = enum("SEARCH", "CONFIRM", "SYNC",encoding=encoding)
+            with pytest.raises(ValueError):
+            	logic1(encoding)
+        
+    def testNotStringtype(self):
+        with pytest.raises(TypeError):
+            t_State = enum("SEARCH", 1, "SYNC")
