@@ -73,7 +73,7 @@ def _getCallInfo():
     if callerrec is not None:
         f_locals = callerrec[0].f_locals
         if 'self' in f_locals:
-            modctxt = isinstance(f_locals['self'], _BlockInstance)
+            modctxt = isinstance(f_locals['self'], _Block)
     return _CallInfo(name, modctxt, symdict)
 
 def block(func):
@@ -82,12 +82,11 @@ def block(func):
     @wraps(func)
     def deco(*args, **kwargs):
         deco.calls += 1
-        return _BlockInstance(func, deco, srcfile, srcline,
-                              *args, **kwargs)
+        return _Block(func, deco, srcfile, srcline, *args, **kwargs)
     deco.calls = 0
     return deco
 
-class _BlockInstance(object):
+class _Block(object):
 
     def __init__(self, func, deco, srcfile, srcline, *args, **kwargs):
         calls = deco.calls
@@ -119,9 +118,9 @@ class _BlockInstance(object):
 
     def _verifySubs(self):
         for inst in self.subs:
-            if not isinstance(inst, (_BlockInstance, _Instantiator, Cosimulation)):
+            if not isinstance(inst, (_Block, _Instantiator, Cosimulation)):
                 raise BlockError(_error.ArgType)
-            if isinstance(inst, (_BlockInstance, _Instantiator)):
+            if isinstance(inst, (_Block, _Instantiator)):
                 if not inst.modctxt:
                     raise BlockError(_error.InstanceError % (self.mod.name, inst.callername))
 

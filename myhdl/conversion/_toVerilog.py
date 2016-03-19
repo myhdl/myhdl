@@ -53,7 +53,7 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
 from myhdl._Signal import _Signal
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
-from myhdl._block import _BlockInstance
+from myhdl._block import _Block
 from myhdl._getHierarchy import _getHierarchy
 
 _converting = 0
@@ -67,7 +67,7 @@ def _checkArgs(arglist):
 def _flatten(*args):
     arglist = []
     for arg in args:
-        if isinstance(arg, _BlockInstance):
+        if isinstance(arg, _Block):
             if arg.verilog_code is not None:
                 arglist.append(arg.verilog_code)
                 continue
@@ -130,27 +130,25 @@ class _ToVerilogConvertor(object):
         from myhdl import _traceSignals
         if _traceSignals._tracing:
             raise ToVerilogError("Cannot use toVerilog while tracing signals")
-        if not isinstance(func, _BlockInstance):
+        if not isinstance(func, _Block):
             if not callable(func):
                 raise ToVerilogError(_error.FirstArgType, "got %s" % type(func))
 
         _converting = 1
         if self.name is None:
             name = func.__name__
-            if isinstance(func, _BlockInstance):
+            if isinstance(func, _Block):
                 name = func.func.__name__
         else:
             name = str(self.name)
 
-        if isinstance(func, _BlockInstance):
+        if isinstance(func, _Block):
             try:
                 h = _getHierarchy(name, func)
             finally:
                 _converting = 0
         else:
             warnings.warn("\n    toVerilog(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
-            #if isinstance(func, _Block):
-            #    raise TypeError("Block %s: conversion should be on an instance" % func.__name__)
             try:
                 h = _HierExtr(name, func, *args, **kwargs)
             finally:
@@ -176,7 +174,7 @@ class _ToVerilogConvertor(object):
         _annotateTypes(genlist)
 
         ### infer interface
-        if isinstance(func, _BlockInstance):
+        if isinstance(func, _Block):
             # infer interface after signals have been analyzed
             func._inferInterface()
             intf = func

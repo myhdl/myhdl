@@ -63,7 +63,7 @@ def _getCallInfo():
     callerrec = inspect.stack()[3]
     f_locals = callerrec[0].f_locals
     if 'self' in f_locals:
-        modctxt = isinstance(f_locals['self'], _block._BlockInstance)
+        modctxt = isinstance(f_locals['self'], _block._Block)
     return _CallInfo(name, modctxt, symdict)
 
 

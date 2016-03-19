@@ -34,7 +34,7 @@ from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
 from myhdl._util import _printExcInfo
 from myhdl._instance import _Instantiator
-from myhdl._block import _BlockInstance
+from myhdl._block import _Block
 from myhdl._ShadowSignal import _ShadowSignal
 
 schedule = _futureEvents.append
@@ -49,7 +49,7 @@ _error.DuplicatedArg = "Duplicated argument"
 def _flatten(*args):
     arglist = []
     for arg in args:
-        if isinstance(arg, _BlockInstance):
+        if isinstance(arg, _Block):
             arg = arg.subs
         if isinstance(arg, (list, tuple, set)):
             for item in arg:

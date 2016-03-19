@@ -25,7 +25,7 @@ from __future__ import absolute_import
 
 from myhdl._extractHierarchy import _Instance
 from myhdl._instance import _Instantiator
-from myhdl._block import _BlockInstance
+from myhdl._block import _Block
 
 class _Hierarchy(object):
     def __init__(self, name, modinst):
@@ -59,5 +59,5 @@ def _getHierarchyHelper(level, modinst, hierarchy):
     inst = _Instance(level, modinst, subs, modinst.sigdict, modinst.memdict)
     hierarchy.append(inst)
     for inst in modinst.subs:
-        if isinstance(inst, _BlockInstance):
+        if isinstance(inst, _Block):
             _getHierarchyHelper(level+1, inst, hierarchy)

@@ -36,7 +36,7 @@ from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
-from myhdl._block import _BlockInstance
+from myhdl._block import _Block
 from myhdl._getHierarchy import _getHierarchy
 
 _tracing = 0
@@ -68,7 +68,7 @@ class _TraceSignalsClass(object):
 
     def __call__(self, dut, *args, **kwargs):
         global _tracing, vcdpath
-        if isinstance(dut, _BlockInstance):
+        if isinstance(dut, _Block):
             # now we go bottom-up: so clean up and start over
             # TODO: consider a warning for the overruled block
             if _simulator._tracing:
@@ -85,7 +85,7 @@ class _TraceSignalsClass(object):
         from myhdl.conversion import _toVerilog
         if _toVerilog._converting:
             raise TraceSignalsError("Cannot use traceSignals while converting to Verilog")
-        if not isinstance(dut, _BlockInstance):
+        if not isinstance(dut, _Block):
             if not callable(dut):
                 raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
         if _simulator._tracing:
@@ -95,7 +95,7 @@ class _TraceSignalsClass(object):
         try:
             if self.name is None:
                 name = dut.__name__
-                if isinstance(dut, _BlockInstance):
+                if isinstance(dut, _Block):
                     name = dut.func.__name__
             else:
                 name = str(self.name)
@@ -107,10 +107,7 @@ class _TraceSignalsClass(object):
             else:
                 directory = self.directory
 
-            #if isinstance(dut, _Block):
-            #    raise TypeError("Block %s: conversion should be on an instance" % dut.__name__)
-
-            if isinstance(dut, _BlockInstance):
+            if isinstance(dut, _Block):
                 h = _getHierarchy(name, dut)
             else:
                 warnings.warn("\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
