@@ -32,7 +32,7 @@ random.seed(1)  # random, but deterministic
 
 t_State = enum("SEARCH", "CONFIRM", "SYNC")
 t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
-
+t_incomplete = enum("SEARCH", "CONFIRM")
 
 class TestEnum:
 
@@ -64,7 +64,7 @@ class TestEnum:
         assert e != t_State.CONFIRM
 
 ## Adding test coverage for encoding in enum
-
+ 
     def testItemNotDeepCopy(self):
         e = copy.copy(t_State.SEARCH)
         assert e == t_State.SEARCH
@@ -79,3 +79,9 @@ class TestEnum:
     def testNotStringtype(self):
         with pytest.raises(TypeError):
             t_State = enum("SEARCH", 1, "SYNC")
+
+    def testEnumLength(self):
+        l = len(t_State)
+        assert l == len(t_State)
+	g = len(t_Homograph)
+        assert g == len(t_Homograph)
