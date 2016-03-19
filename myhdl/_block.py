@@ -22,6 +22,8 @@ from __future__ import absolute_import
 
 import inspect
 
+from functools import wraps
+
 import myhdl
 from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
@@ -50,29 +52,19 @@ def _getCallInfo():
     It uses the frame stack:
     0: this function
     1: block instance constructor
-    2: the _Block class __call__()
+    2: the decorator function call
     3: the function that defines instances
     4: the caller of the block function, e.g. a BlockInstance.
 
-    There is a complication when the decorator is used on a method.
-    In this case, it is used as a descriptor, and there is an additional
-    stack level due to the __get__ method. The current hack is to check
-    whether we are still in this block at level 3, and increment
-    all the subsequent levels.
     """
 
     stack = inspect.stack()
     # caller may be undefined if instantiation from a Python module
     callerrec = None
-    # check whether the decorator is used as a descriptor
-    if (inspect.getmodule(stack[3][0]) is myhdl._block):
-        funcrec = stack[4]
-        if len(stack) > 5:
-            callerrec = stack[5]
-    else:
-        funcrec = stack[3]
-        if len(stack) > 4:
-            callerrec = stack[4]
+    funcrec = stack[3]
+    if len(stack) > 4:
+        callerrec = stack[4]
+
     name = funcrec[3]
     frame = funcrec[0]
     symdict = dict(frame.f_globals)
@@ -84,45 +76,25 @@ def _getCallInfo():
             modctxt = isinstance(f_locals['self'], _BlockInstance)
     return _CallInfo(name, modctxt, symdict)
 
-
-def block(modfunc):
-    return _Block(modfunc)
-
-class _Block(object):
-
-    def __init__(self, modfunc):
-        self.modfunc = modfunc
-        self.__name__ = self.name = modfunc.__name__
-        self.sourcefile = inspect.getsourcefile(modfunc)
-        self.sourceline = inspect.getsourcelines(modfunc)[0]
-        self.count = 0
-
-    def __call__(self, *args, **kwargs):
-        modinst = _BlockInstance(self, *args, **kwargs)
-        self.count += 1
-        return modinst
-
-    # This is the way to make the block decorator work on methods
-    # Turn it into a descriptor, used when accessed as an attribute
-    # In that case, the object is bound to the call method
-    # like done automatically for classic bound methods
-    # http://stackoverflow.com/a/3296318/574895
-    # Avoid functools to have identical behavior between
-    # CPython and PyPy
-    def __get__(self, obj, objtype):
-        """Support instance methods."""
-        def f(*args, **kwargs):
-            return self.__call__(obj, *args, **kwargs)
-        return f
-
+def block(func):
+    srcfile = inspect.getsourcefile(func)
+    srcline = inspect.getsourcelines(func)[0]
+    @wraps(func)
+    def deco(*args, **kwargs):
+        deco.calls += 1
+        return _BlockInstance(func, deco, srcfile, srcline,
+                              *args, **kwargs)
+    deco.calls = 0
+    return deco
 
 class _BlockInstance(object):
 
-    def __init__(self, mod, *args, **kwargs):
+    def __init__(self, func, deco, srcfile, srcline, *args, **kwargs):
+        calls = deco.calls
+        self.func = func
         self.args = args
         self.kwargs = kwargs
-        self.mod = mod
-        self.__doc__ = mod.modfunc.__doc__
+        self.__doc__ = func.__doc__
         callinfo = _getCallInfo()
         self.callinfo = callinfo
         self.modctxt = callinfo.modctxt
@@ -131,23 +103,22 @@ class _BlockInstance(object):
         self.sigdict = {}
         self.memdict = {}
         # flatten, but keep BlockInstance objects
-        self.subs = _flatten(mod.modfunc(*args, **kwargs))
+        self.subs = _flatten(func(*args, **kwargs))
         self._verifySubs()
         self._updateNamespaces()
-        self.name = self.__name__ = mod.__name__ + '_' + str(mod.count)
+        self.name = self.__name__ = func.__name__ + '_' + str(calls-1)
         self.verilog_code = self.vhdl_code = None
         self.sim = None
-        if hasattr(mod, 'verilog_code'):
-            self.verilog_code = _UserVerilogCode(mod.verilog_code, self.symdict, mod.name,
-                                                 mod.modfunc, mod.sourcefile, mod.sourceline)
-        if hasattr(mod, 'vhdl_code'):
-            self.vhdl_code = _UserVhdlCode(mod.vhdl_code, self.symdict, mod.name,
-                                           mod.modfunc, mod.sourcefile, mod.sourceline)
+        if hasattr(deco, 'verilog_code'):
+            self.verilog_code = _UserVerilogCode(deco.verilog_code, self.symdict, func.__name__,
+                                                 func, srcfile, srcline)
+        if hasattr(deco, 'vhdl_code'):
+            self.vhdl_code = _UserVhdlCode(deco.vhdl_code, self.symdict, func.__name__,
+                                           func, srcfile, srcline)
         self._config_sim = {'trace': False}
 
     def _verifySubs(self):
         for inst in self.subs:
-            # print (inst.name, type(inst))
             if not isinstance(inst, (_BlockInstance, _Instantiator, Cosimulation)):
                 raise BlockError(_error.ArgType)
             if isinstance(inst, (_BlockInstance, _Instantiator)):
@@ -190,7 +161,7 @@ class _BlockInstance(object):
 
     def _inferInterface(self):
         from myhdl.conversion._analyze import _analyzeTopFunc
-        intf = _analyzeTopFunc(self.mod.modfunc, *self.args, **self.kwargs)
+        intf = _analyzeTopFunc(self.func, *self.args, **self.kwargs)
         self.argnames = intf.argnames
         self.argdict = intf.argdict
 

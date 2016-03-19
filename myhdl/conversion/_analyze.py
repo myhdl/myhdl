@@ -482,7 +482,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 raise AssertionError("attribute target: %s" % n)
         obj = node.value.obj
         if isinstance(obj, _Signal):
-            print ('analyze', node.value.id)
             if node.attr == 'posedge':
                 node.obj = obj.posedge
             elif node.attr == 'negedge':

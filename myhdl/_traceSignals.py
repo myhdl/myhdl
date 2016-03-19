@@ -36,7 +36,7 @@ from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
-from myhdl._block import _Block, _BlockInstance
+from myhdl._block import _BlockInstance
 from myhdl._getHierarchy import _getHierarchy
 
 _tracing = 0
@@ -96,7 +96,7 @@ class _TraceSignalsClass(object):
             if self.name is None:
                 name = dut.__name__
                 if isinstance(dut, _BlockInstance):
-                    name = dut.mod.__name__
+                    name = dut.func.__name__
             else:
                 name = str(self.name)
             if name is None:
@@ -107,8 +107,8 @@ class _TraceSignalsClass(object):
             else:
                 directory = self.directory
 
-            if isinstance(dut, _Block):
-                raise TypeError("Block %s: conversion should be on an instance" % dut.__name__)
+            #if isinstance(dut, _Block):
+            #    raise TypeError("Block %s: conversion should be on an instance" % dut.__name__)
 
             if isinstance(dut, _BlockInstance):
                 h = _getHierarchy(name, dut)

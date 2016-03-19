@@ -142,7 +142,7 @@ class _ToVHDLConvertor(object):
         if self.name is None:
             name = func.__name__
             if isinstance(func, _BlockInstance):
-                name = func.mod.__name__
+                name = func.func.__name__
         else:
             name = str(self.name)
 

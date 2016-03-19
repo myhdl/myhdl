@@ -13,7 +13,7 @@ import myhdl
 from myhdl._Simulation import Simulation
 from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
-from myhdl._block import _Block, _BlockInstance
+from myhdl._block import _BlockInstance
 
 _version = myhdl.__version__.replace('.','')
 # strip 'dev' for version
@@ -115,7 +115,7 @@ class  _VerificationClass(object):
         elif hdl == 'VHDL' and toVHDL.name is not None:
             name = toVHDL.name
         elif isinstance(func, _BlockInstance):
-            name = func.mod.__name__
+            name = func.func.__name__
         else:
             warnings.warn("\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
             try:
@@ -143,8 +143,8 @@ class  _VerificationClass(object):
             else:
                 inst = func.convert(hdl='Verilog')
         else:
-            if isinstance(func, _Block):
-                raise TypeError("Block %s: conversion should be on an instance" % func.__name__)
+            #if isinstance(func, _Block):
+            #    raise TypeError("Block %s: conversion should be on an instance" % func.__name__)
             if hdl == "VHDL":
                 inst = toVHDL(func, *args, **kwargs)
             else:

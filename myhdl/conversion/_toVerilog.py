@@ -53,7 +53,7 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
 from myhdl._Signal import _Signal
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
-from myhdl._block import _Block, _BlockInstance
+from myhdl._block import _BlockInstance
 from myhdl._getHierarchy import _getHierarchy
 
 _converting = 0
@@ -138,7 +138,7 @@ class _ToVerilogConvertor(object):
         if self.name is None:
             name = func.__name__
             if isinstance(func, _BlockInstance):
-                name = func.mod.__name__
+                name = func.func.__name__
         else:
             name = str(self.name)
 
@@ -149,8 +149,8 @@ class _ToVerilogConvertor(object):
                 _converting = 0
         else:
             warnings.warn("\n    toVerilog(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
-            if isinstance(func, _Block):
-                raise TypeError("Block %s: conversion should be on an instance" % func.__name__)
+            #if isinstance(func, _Block):
+            #    raise TypeError("Block %s: conversion should be on an instance" % func.__name__)
             try:
                 h = _HierExtr(name, func, *args, **kwargs)
             finally:
