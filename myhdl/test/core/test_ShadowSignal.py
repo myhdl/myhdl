@@ -149,6 +149,7 @@ def bench_TristateSignal():
     a = s.driver()
     b = s.driver()
     c = s.driver()
+    d = s.driver()
 
     @instance
     def check():
@@ -165,8 +166,9 @@ def bench_TristateSignal():
         yield delay(10)
         assert s == c
         c.next = None
+        d.next = 0
         yield delay(10)
-        assert s == None
+        assert s == d
 
     return check
 
