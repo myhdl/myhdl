@@ -6,7 +6,7 @@ def HelloWorld():
     
     @always(interval)
     def sayHello():
-        print "%s Hello World!" % now()
+        print("%s Hello World!" % now())
 
     return sayHello
 
