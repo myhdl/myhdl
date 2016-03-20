@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 
 from .util import verilogCompile
@@ -9,6 +10,7 @@ from .util import verilogCompile
 #############################
 
 width = 8
+
 
 def add(x,a,b) :
     def logic() :
@@ -90,6 +92,7 @@ test()
 
 from .test_fsm import FramerCtrl
 
+@block
 def mid(SOF, clk, reset_n):
     t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
     syncFlag = Signal(bool(0))
@@ -100,6 +103,7 @@ def mid(SOF, clk, reset_n):
     return fsm_1
 
 
+@block
 def top(SOF, clk, reset_n):
     mid_1 = mid(SOF, clk, reset_n)
     return mid_1
@@ -110,7 +114,7 @@ def test():
     reset_n = Signal(bool(1))
     SOF = Signal(bool(0))
    
-    toVerilog(top, SOF, clk, reset_n)
+    top(SOF, clk, reset_n).convert()
     verilogCompile(top.__name__)
 
 test()

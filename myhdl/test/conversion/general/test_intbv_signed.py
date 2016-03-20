@@ -21,9 +21,10 @@
 """ Run the intbv.signed() unit tests. """
 from __future__ import absolute_import
 
+import myhdl
 from myhdl import *
 
-
+@block
 def PlainIntbv():
     '''Test a plain intbv instance with .signed() 
 
@@ -197,6 +198,7 @@ def PlainIntbv():
 
 
 
+@block
 def SlicedSigned():
     '''Test a slice with .signed()
 
@@ -223,6 +225,7 @@ def SlicedSigned():
     return logic
 
 
+@block
 def SignedConcat():
     '''Test the .signed() function with the concatenate function'''
 
@@ -247,11 +250,11 @@ def SignedConcat():
     return logic
 
 def test_PlainIntbv():
-    assert conversion.verify(PlainIntbv) == 0
+    assert conversion.verify(PlainIntbv()) == 0
     
 def test_SlicedSigned():
-    assert conversion.verify(SlicedSigned) == 0
+    assert conversion.verify(SlicedSigned()) == 0
     
 def test_SignedConcat():
-    assert conversion.verify(SignedConcat) == 0
+    assert conversion.verify(SignedConcat()) == 0
     

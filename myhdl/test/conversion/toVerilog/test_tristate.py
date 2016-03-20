@@ -2,6 +2,7 @@ import os
 path = os.path
 import unittest
 
+import myhdl
 from myhdl import *
 from .util import setupCosimulation
 

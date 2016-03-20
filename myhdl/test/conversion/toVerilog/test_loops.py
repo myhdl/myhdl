@@ -5,6 +5,7 @@ import unittest
 from random import randrange
 
 
+import myhdl
 from myhdl import *
 
 from .util import setupCosimulation

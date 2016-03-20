@@ -32,11 +32,10 @@ from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
-from myhdl._util import _flatten, _printExcInfo
+from myhdl._util import _printExcInfo
 from myhdl._instance import _Instantiator
+from myhdl._block import _Block
 from myhdl._ShadowSignal import _ShadowSignal
-
-
 
 schedule = _futureEvents.append
 
@@ -45,8 +44,22 @@ class _error:
 _error.ArgType = "Inappriopriate argument type"
 _error.MultipleCosim = "Only a single cosimulator argument allowed"
 _error.DuplicatedArg = "Duplicated argument"
+
+# flatten Block objects out
+def _flatten(*args):
+    arglist = []
+    for arg in args:
+        if isinstance(arg, _Block):
+            arg = arg.subs
+        if isinstance(arg, (list, tuple, set)):
+            for item in arg:
+                arglist.extend(_flatten(item))
+        else:
+            arglist.append(arg)
+    return arglist
+
 _error.MultipleSim = "Only a single Simulation instance is allowed"
-            
+
 class Simulation(object):
 
     """ Simulation class.
@@ -95,10 +108,6 @@ class Simulation(object):
 
     def quit(self):
         self._finalize()
-
-    def runc(self, duration=0, quiet=0):
-        simrunc.run(sim=self, duration=duration, quiet=quiet)
-
 
     def run(self, duration=None, quiet=0):
 
@@ -239,4 +248,3 @@ def _makeWaiters(arglist):
         if hasattr(sig, '_waiter'):
             waiters.append(sig._waiter)
     return waiters, cosim
-

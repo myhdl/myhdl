@@ -3,8 +3,10 @@ import os
 path = os.path
 import unittest
 
+import myhdl
 from myhdl import *
 
+@block
 def ram1(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """
 
@@ -19,8 +21,8 @@ def ram1(dout, din, addr, we, clk, depth=128):
                 mem[int(addr)][:] = din
             dout.next = mem[int(addr)]
     return logic
-        
 
+@block
 def ram_clocked(dout, din, addr, we, clk, depth=128):
     """ Ram model """
     
@@ -36,6 +38,7 @@ def ram_clocked(dout, din, addr, we, clk, depth=128):
             
     return access
 
+@block
 def ram_deco1(dout, din, addr, we, clk, depth=128):
     """  Ram model """
     
@@ -54,6 +57,8 @@ def ram_deco1(dout, din, addr, we, clk, depth=128):
         
     return write, read
 
+
+@block
 def ram_deco2(dout, din, addr, we, clk, depth=128):
     """  Ram model """
     
@@ -71,6 +76,7 @@ def ram_deco2(dout, din, addr, we, clk, depth=128):
     return write, read
 
 
+@block
 def ram2(dout, din, addr, we, clk, depth=128):
         
     memL = [Signal(intbv()[len(dout):]) for i in range(depth)]
@@ -91,7 +97,7 @@ def ram2(dout, din, addr, we, clk, depth=128):
     return wrLogic, rdLogic
 
 
-
+@block
 def RamBench(ram, depth=128):
 
     dout = Signal(intbv(0)[8:])
@@ -130,19 +136,17 @@ def RamBench(ram, depth=128):
     return clkgen, stimulus, mem_inst
 
 
-
-
 def testram_deco1():
-    assert conversion.verify(RamBench, ram_deco1) == 0
+    assert conversion.verify(RamBench(ram_deco1)) == 0
 
 def testram_deco2():
-    assert conversion.verify(RamBench, ram_deco2) == 0
+    assert conversion.verify(RamBench(ram_deco2)) == 0
 
 def testram_clocked():
-    assert conversion.verify(RamBench, ram_clocked) == 0
+    assert conversion.verify(RamBench(ram_clocked)) == 0
     
 def test2():
-    assert conversion.verify(RamBench, ram2) == 0
+    assert conversion.verify(RamBench(ram2)) == 0
     
 def test1():
-    assert conversion.verify(RamBench, ram1) == 0
+    assert conversion.verify(RamBench(ram1)) == 0

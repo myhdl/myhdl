@@ -32,6 +32,7 @@ from itertools import chain
 from collections import defaultdict
 
 import myhdl
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._always_comb import _AlwaysComb
@@ -89,9 +90,9 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         if delta > -1: # same or higher level
             prefixes = prefixes[:curlevel-1]
         # skip processing and prefixing in context without signals
-        if not (sigdict or memdict):
-            prefixes.append("")
-            continue
+        #if not (sigdict or memdict):
+        #    prefixes.append("")
+        #    continue
         prefixes.append(name)
         for n, s in sigdict.items():
             if s._name is not None:
@@ -481,7 +482,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 raise AssertionError("attribute target: %s" % n)
         obj = node.value.obj
         if isinstance(obj, _Signal):
-            print ('analyze', node.value.id)
             if node.attr == 'posedge':
                 node.obj = obj.posedge
             elif node.attr == 'negedge':

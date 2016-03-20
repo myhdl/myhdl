@@ -4,6 +4,7 @@ path = os.path
 import unittest
 from unittest import TestCase
 
+import myhdl
 from myhdl import *
 
 from .util import setupCosimulation
@@ -15,8 +16,9 @@ t_State_b = enum('SEARCH', 'CONFIRM', 'SYNC')
 t_State_oh = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 t_State_oc = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_cold")
 
+@block
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
-    
+
     """ Framing control FSM.
 
     SOF -- start-of-frame output bit
@@ -24,9 +26,9 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
     syncFlag -- sync pattern found indication input
     clk -- clock input
     reset_n -- active low reset
-    
+
     """
-    
+
     index = Signal(intbv(0)[8:]) # position in frame
 
     @always(clk.posedge, reset_n.negedge)
@@ -55,12 +57,12 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
                 SOF.next = (index == FRAME_SIZE-1)
             else:
                 raise ValueError("Undefined state")
-            
+
     return FSM
 
-
+@block
 def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
-    
+
     """ Framing control FSM.
 
     SOF -- start-of-frame output bit
@@ -68,9 +70,9 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
     syncFlag -- sync pattern found indication input
     clk -- clock input
     reset_n -- active low reset
-    
+
     """
-    
+
 
     @instance
     def FSM():
@@ -108,9 +110,9 @@ def FramerCtrl_alt(SOF, state, syncFlag, clk, reset_n, t_State):
 
     return FSM
 
-
+@block
 def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
-    
+
     """ Framing control FSM.
 
     SOF -- start-of-frame output bit
@@ -118,9 +120,9 @@ def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
     syncFlag -- sync pattern found indication input
     clk -- clock input
     reset_n -- active low reset
-    
+
     """
-    
+
     @instance
     def logic():
         index = intbv(0, min=0, max=8) # position in frame
@@ -154,14 +156,14 @@ def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
     return logic
 
 
-
-
+@block
 def FramerCtrl_v(name, SOF, state, syncFlag, clk, reset_n):
     return setupCosimulation(**locals())
-    
+
 
 class FramerCtrlTest(TestCase):
-    
+
+    @block
     def bench(self, FramerCtrl, t_State):
 
         SOF = Signal(bool(0))
@@ -173,10 +175,11 @@ class FramerCtrlTest(TestCase):
         state_v = Signal(intbv(0)[8:])
 
         framerctrl_ref_inst = FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State)
-        framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n, t_State)
+        framerctrl_inst = FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State).convert()
         framerctrl_v_inst = FramerCtrl_v(FramerCtrl.__name__,
                                          SOF_v, state_v, syncFlag, clk, reset_n)
 
+        @instance
         def clkgen():
             reset_n.next = 1
             yield delay(10)
@@ -188,6 +191,7 @@ class FramerCtrlTest(TestCase):
                 yield delay(10)
                 clk.next = not clk
 
+        @instance
         def stimulus():
             for i in range(3):
                 yield clk.posedge
@@ -199,6 +203,7 @@ class FramerCtrlTest(TestCase):
                     yield clk.posedge
             raise StopSimulation
 
+        @instance
         def check():
             while 1:
                 yield clk.negedge
@@ -207,25 +212,23 @@ class FramerCtrlTest(TestCase):
                 # print "MyHDL: %s %s" % (SOF, hex(state))
                 # print "Verilog: %s %s" % (SOF_v, hex(state_v))
 
-        return framerctrl_ref_inst, framerctrl_v_inst, clkgen(), stimulus(), check()
-    
+        return framerctrl_ref_inst, framerctrl_v_inst, clkgen, stimulus, check
+
 
     def testRef(self):
         for t_State in (t_State_b, t_State_oc, t_State_oh):
             tb_fsm = self.bench(FramerCtrl_ref, t_State)
-            sim = Simulation(tb_fsm)
-            sim.run()
-        
+            tb_fsm.run_sim()
+
     def testAlt(self):
         for t_State in (t_State_b, t_State_oc, t_State_oh):
             tb_fsm = self.bench(FramerCtrl_alt, t_State)
-            sim = Simulation(tb_fsm)
-            sim.run()
-            
+            tb_fsm.run_sim()
+
     def testDoc(self):
         tb_fsm = self.bench(FramerCtrl, t_State_oh)
-        sim = Simulation(tb_fsm)
-        sim.run()
+        tb_fsm.run_sim()
+
 
 if __name__ == '__main__':
     unittest.main()

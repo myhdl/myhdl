@@ -1,5 +1,6 @@
 import traceback
 
+import myhdl
 from myhdl import *
 
 

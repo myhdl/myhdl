@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 def latch(q, d, g):

@@ -27,6 +27,7 @@ import inspect
 import ast
 
 import myhdl
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._util import _flatten
@@ -55,7 +56,7 @@ class _error(object):
     ReturnNrBitsMismatch = "Returned nr of bits mismatch"
     ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
     ReturnTypeInfer = "Can't infer return type"
-    ShadowingSignal = "Port is shadowed by internal signal"
+    ShadowingSignal = "Port is not used or shadowed by internal signal"
     ShadowingVar = "Variable has same name as a hierarchical Signal"
     FreeVarTypeError = "Free variable should be a Signal or an int"
     ExtraArguments = "Extra positional or named arguments are not supported"
@@ -78,7 +79,7 @@ class _error(object):
 
 class _access(object):
     INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
-    
+
 class _kind(object):
     NORMAL, DECLARATION, ALWAYS, INITIAL, ALWAYS_DECO, \
     ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_SEQ, \
@@ -88,9 +89,9 @@ class _kind(object):
 class _context(object):
     BOOLEAN, YIELD, PRINT, SIGNED, UNKNOWN = range(5)
 
-    
+
 class _ConversionMixin(object):
-    
+
 #     def getLineNo(self, node):
 #         lineno = node.lineno
 #         if lineno is None:
@@ -106,12 +107,12 @@ class _ConversionMixin(object):
         if isinstance(node, (ast.stmt, ast.expr)):
             lineno = node.lineno
         return lineno
-    
+
     def getObj(self, node):
         if hasattr(node, 'obj'):
             return node.obj
         return None
-    
+
     def getTarget(self, node):
         if hasattr(node, 'target'):
             return node.target
@@ -141,7 +142,7 @@ class _ConversionMixin(object):
         val = eval(c, self.tree.symdict, self.tree.vardict)
         # val = eval(_unparse(node), self.tree.symdict, self.tree.vardict)
         return val
-    
+
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
@@ -161,14 +162,14 @@ class _ConversionMixin(object):
         for n in nodes:
             self.visit(n)
 
-            
+
 
 def _LabelGenerator():
     i = 1
     while 1:
         yield "MYHDL%s" % i
         i += 1
-        
+
 _genLabel = _LabelGenerator()
 
 class _Label(object):
@@ -204,7 +205,7 @@ def _isConstant(tree, symdict):
     return True
 
 class _namesVisitor(ast.NodeVisitor):
-    
+
     def __init__(self):
         self.names = []
 

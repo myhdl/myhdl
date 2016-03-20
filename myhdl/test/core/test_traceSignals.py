@@ -25,7 +25,7 @@ import random
 
 import pytest
 
-from myhdl import Signal, Simulation, _simulator, delay, instance, intbv
+from myhdl import block, Signal, Simulation, _simulator, delay, instance, intbv
 from myhdl._traceSignals import TraceSignalsError, _error, traceSignals
 from helpers import raises_kind
 
@@ -35,7 +35,7 @@ path = os.path
 
 QUIET=1
 
-
+@block
 def gen(clk):
     @instance
     def logic():
@@ -44,37 +44,37 @@ def gen(clk):
             clk.next = not clk
     return logic
 
-
+@block
 def fun():
     clk = Signal(bool(0))
     inst = gen(clk)
     return inst
 
-
+@block
 def dummy():
     clk = Signal(bool(0))
     inst = gen(clk)
     return 1
 
-
+@block
 def top():
-    inst = traceSignals(fun)
+    inst = traceSignals(fun())
     return inst
 
-
+@block
 def top2():
     inst = [{} for i in range(4)]
     j = 3
-    inst[j-2]['key'] = traceSignals(fun)
+    inst[j-2]['key'] = traceSignals(fun())
     return inst
 
-
+@block
 def top3():
-    inst_1 = traceSignals(fun)
-    inst_2 = traceSignals(fun)
+    inst_1 = traceSignals(fun())
+    inst_2 = traceSignals(fun())
     return inst_1, inst_2
 
-
+@block
 def genTristate(clk, x, y, z):
     xd = x.driver()
     yd = y.driver()
@@ -99,7 +99,7 @@ def genTristate(clk, x, y, z):
                 yd.next = zd.next = 0
     return ckgen,logic
 
-
+@block
 def tristate():
     from myhdl import TristateSignal
     clk = Signal(bool(0))
@@ -110,9 +110,9 @@ def tristate():
     inst = genTristate(clk, x, y, z)
     return inst
 
-
+@block
 def topTristate():
-    inst = traceSignals(tristate)
+    inst = traceSignals(tristate())
     return inst
 
 
@@ -127,20 +127,23 @@ def vcd_dir(tmpdir):
 
 class TestTraceSigs:
 
-    def testMultipleTraces(self, vcd_dir):
-        with raises_kind(TraceSignalsError, _error.MultipleTraces):
-            dut = top3()
+    # TODO: multiple trace handling is different now has the
+    # calls go bottom-up. To be revisited.
+    # def testMultipleTraces(self, vcd_dir):
+    #     with raises_kind(TraceSignalsError, _error.MultipleTraces):
+    #         dut = top3()
 
     def testArgType1(self, vcd_dir):
         with raises_kind(TraceSignalsError, _error.ArgType):
             dut = traceSignals([1, 2])
 
-    def testReturnVal(self, vcd_dir):
-        from myhdl import ExtractHierarchyError
-        from myhdl._extractHierarchy import _error
-        kind = _error.InconsistentToplevel % (2, "dummy")
-        with raises_kind(ExtractHierarchyError, kind):
-            dut = traceSignals(dummy)
+    # this test is no longer relevant
+    # def testReturnVal(self, vcd_dir):
+    #     from myhdl import ExtractHierarchyError
+    #     from myhdl._extractHierarchy import _error
+    #     kind = _error.InconsistentToplevel % (2, "dummy")
+    #     with raises_kind(ExtractHierarchyError, kind):
+    #         dut = traceSignals(dummy())
 
     def testHierarchicalTrace1(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
@@ -150,7 +153,7 @@ class TestTraceSigs:
     def testHierarchicalTrace2(self, vcd_dir):
         pdut = "%s.vcd" % top.__name__
         psub = "%s.vcd" % fun.__name__
-        dut = traceSignals(top)
+        dut = traceSignals(top())
         assert path.exists(pdut)
         assert not path.exists(psub)
 
@@ -161,16 +164,18 @@ class TestTraceSigs:
 
     def testBackupOutputFile(self, vcd_dir):
         p = "%s.vcd" % fun.__name__
-        dut = traceSignals(fun)
+
+        dut = traceSignals(fun())
         sim = Simulation(dut)
         sim.run(1000, quiet=QUIET)
         sim.quit()
+
         _simulator._tf.close()
         _simulator._tracing = 0
         size = path.getsize(p)
         pbak = p + '.' + str(path.getmtime(p))
         assert not path.exists(pbak)
-        dut = traceSignals(fun)
+        dut = traceSignals(fun())
         _simulator._tf.close()
         _simulator._tracing = 0
         assert path.exists(p)
@@ -185,7 +190,10 @@ class TestTraceSigs:
         psub = "%s.vcd" % fun.__name__
         pdutd = path.join(traceSignals.directory, "%s.vcd" % top.__name__)
         psubd = path.join(traceSignals.directory, "%s.vcd" % fun.__name__)
-        dut = traceSignals(top)
+        dut = traceSignals(top())
+        _simulator._tf.close()
+        _simulator._tracing = 0
+        traceSignals.directory = None
         assert not path.exists(pdut)
         assert not path.exists(psub)
         assert path.exists(pdutd)

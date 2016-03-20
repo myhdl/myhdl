@@ -17,7 +17,7 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl traceSignals module.
+""" myhdl traceSignals block.
 
 """
 from __future__ import absolute_import
@@ -30,14 +30,18 @@ import time
 import os
 path = os.path
 import shutil
+import warnings
 
 from myhdl import _simulator, __version__, EnumItemType
 from myhdl._extractHierarchy import _HierExtr
 from myhdl import TraceSignalsError
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
+from myhdl._block import _Block
+from myhdl._getHierarchy import _getHierarchy
 
 _tracing = 0
 _profileFunc = None
+vcdpath = ''
 
 class _error:
     pass
@@ -63,17 +67,27 @@ class _TraceSignalsClass(object):
         self.tracelists = True
 
     def __call__(self, dut, *args, **kwargs):
-        global _tracing
-        if _tracing:
-            return dut(*args, **kwargs) # skip
-        else:
-            # clean start
-            sys.setprofile(None)
+        global _tracing, vcdpath
+        if isinstance(dut, _Block):
+            # now we go bottom-up: so clean up and start over
+            # TODO: consider a warning for the overruled block
+            if _simulator._tracing:
+                _simulator._tracing = 0
+                _simulator._tf.close()
+                os.remove(vcdpath)
+        else: # deprecated
+            if _tracing:
+                return dut(*args, **kwargs) # skip
+            else:
+                # clean start
+                sys.setprofile(None)
+
         from myhdl.conversion import _toVerilog
         if _toVerilog._converting:
             raise TraceSignalsError("Cannot use traceSignals while converting to Verilog")
-        if not callable(dut):
-            raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
+        if not isinstance(dut, _Block):
+            if not callable(dut):
+                raise TraceSignalsError(_error.ArgType, "got %s" % type(dut))
         if _simulator._tracing:
             raise TraceSignalsError(_error.MultipleTraces)
 
@@ -81,6 +95,8 @@ class _TraceSignalsClass(object):
         try:
             if self.name is None:
                 name = dut.__name__
+                if isinstance(dut, _Block):
+                    name = dut.func.__name__
             else:
                 name = str(self.name)
             if name is None:
@@ -91,13 +107,19 @@ class _TraceSignalsClass(object):
             else:
                 directory = self.directory
 
+            if isinstance(dut, _Block):
+                h = _getHierarchy(name, dut)
+            else:
+                warnings.warn("\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+                h = _HierExtr(name, dut, *args, **kwargs)
+
             if self.filename is None:
                 filename = name
             else:
                 filename = str(self.filename)
 
-            h = _HierExtr(name, dut, *args, **kwargs)
             vcdpath = os.path.join(directory, filename + ".vcd")
+
             if path.exists(vcdpath):
                 backup = vcdpath + '.' + str(path.getmtime(vcdpath))
                 shutil.copyfile(vcdpath, backup)

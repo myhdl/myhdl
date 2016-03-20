@@ -1,4 +1,5 @@
 from random import randrange
+import myhdl
 from myhdl import *
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1

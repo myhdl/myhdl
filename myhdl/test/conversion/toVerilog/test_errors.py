@@ -8,6 +8,7 @@ import random
 from random import randrange
 random.seed(2)
 
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error

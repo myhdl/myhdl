@@ -82,6 +82,10 @@ class AlwaysCombError(Error):
     pass
 class InstanceError(Error):
     pass
+class BlockError(Error):
+    pass
+class BlockInstanceError(Error):
+    pass
 class CosimulationError(Error):
     pass
 class ExtractHierarchyError(Error):
@@ -107,10 +111,10 @@ class ToVHDLWarning(ConversionWarning):
     pass
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
 
-def showwarning(message, category, filename, lineno, *args):
-    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
+#def showwarning(message, category, filename, lineno, *args):
+#    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
 
-warnings.showwarning = showwarning
+#warnings.showwarning = showwarning
 
 
 from ._bin import bin
@@ -130,6 +134,7 @@ from ._always_comb import always_comb
 from ._always_seq import always_seq, ResetSignal
 from ._always import always
 from ._instance import instance
+from ._block import block
 from ._enum import enum, EnumType, EnumItemType
 from ._traceSignals import traceSignals
 
@@ -159,6 +164,7 @@ __all__ = ["bin",
            "Simulation",
            "instances",
            "instance",
+           "block",
            "always_comb",
            "always_seq",
            "ResetSignal",
@@ -172,5 +178,3 @@ __all__ = ["bin",
            "conversion",
            "Tristate"
            ]
-
-

@@ -5,6 +5,7 @@ import os
 import tempfile
 import subprocess
 import difflib
+import warnings
 
 from collections import namedtuple
 
@@ -12,6 +13,7 @@ import myhdl
 from myhdl._Simulation import Simulation
 from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
+from myhdl._block import _Block
 
 _version = myhdl.__version__.replace('.','')
 # strip 'dev' for version
@@ -112,8 +114,14 @@ class  _VerificationClass(object):
             name = toVerilog.name
         elif hdl == 'VHDL' and toVHDL.name is not None:
             name = toVHDL.name
+        elif isinstance(func, _Block):
+            name = func.func.__name__
         else:
-            name = func.__name__
+            warnings.warn("\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+            try:
+                name = func.__name__
+            except:
+                raise TypeError(str(type(func)))
 
         vals = {}
         vals['topname'] = name
@@ -129,10 +137,16 @@ class  _VerificationClass(object):
         skipchars = hdlsim.skipchars
         ignore = hdlsim.ignore
 
-        if hdl == "VHDL":
-            inst = toVHDL(func, *args, **kwargs)
+        if isinstance(func, _Block):
+            if hdl == "VHDL":
+                inst = func.convert(hdl='VHDL')
+            else:
+                inst = func.convert(hdl='Verilog')
         else:
-            inst = toVerilog(func, *args, **kwargs)
+            if hdl == "VHDL":
+                inst = toVHDL(func, *args, **kwargs)
+            else:
+                inst = toVerilog(func, *args, **kwargs)
 
         if hdl == "VHDL":
             if not os.path.exists("work"):

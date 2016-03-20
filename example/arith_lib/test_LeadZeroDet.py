@@ -1,6 +1,7 @@
 import unittest
 from unittest import TestCase
 
+import myhdl
 from myhdl import *
 
 from arith_utils import BEHAVIOR, STRUCTURE

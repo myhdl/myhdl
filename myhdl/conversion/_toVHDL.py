@@ -39,6 +39,7 @@ from copy import copy
 import string
 
 import myhdl
+import myhdl
 from myhdl import *
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
@@ -55,6 +56,8 @@ from myhdl._util import  _flatten
 from myhdl._compat import integer_types, class_types, StringIO
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
+from myhdl._block import _Block
+from myhdl._getHierarchy import _getHierarchy
 
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
@@ -70,6 +73,12 @@ def _checkArgs(arglist):
 def _flatten(*args):
     arglist = []
     for arg in args:
+        if isinstance(arg, _Block):
+            if arg.vhdl_code is not None:
+                arglist.append(arg.vhdl_code)
+                continue
+            else:
+                arg = arg.subs
         if id(arg) in _userCodeMap['vhdl']:
             arglist.append(_userCodeMap['vhdl'][id(arg)])
         elif isinstance(arg, (list, tuple, set)):
@@ -125,18 +134,29 @@ class _ToVHDLConvertor(object):
         from myhdl import _traceSignals
         if _traceSignals._tracing:
             raise ToVHDLError("Cannot use toVHDL while tracing signals")
-        if not callable(func):
-            raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
+        if not isinstance(func, _Block):
+            if not callable(func):
+                raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
 
         _converting = 1
         if self.name is None:
             name = func.__name__
+            if isinstance(func, _Block):
+                name = func.func.__name__
         else:
             name = str(self.name)
-        try:
-            h = _HierExtr(name, func, *args, **kwargs)
-        finally:
-            _converting = 0
+
+        if isinstance(func, _Block):
+            try:
+                h = _getHierarchy(name, func)
+            finally:
+                _converting = 0
+        else:
+            warnings.warn("\n    toVHDL(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+            try:
+                h = _HierExtr(name, func, *args, **kwargs)
+            finally:
+                _converting = 0
 
         if self.directory is None:
             directory = ''
@@ -170,7 +190,12 @@ class _ToVHDLConvertor(object):
         _annotateTypes(genlist)
 
         ### infer interface
-        intf = _analyzeTopFunc(func, *args, **kwargs)
+        if isinstance(func, _Block):
+            # infer interface after signals have been analyzed
+            func._inferInterface()
+            intf = func
+        else:
+            intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
         # sanity checks on interface
         for portname in intf.argnames:

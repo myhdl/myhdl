@@ -1,5 +1,6 @@
 from math import atan, sqrt, ceil, floor, pi
 
+import myhdl
 from myhdl import *
 
 t_State = enum("WAITING", "CALCULATING")

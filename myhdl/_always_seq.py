@@ -31,7 +31,8 @@ from myhdl._util import _isGenFunc, _dedent
 from myhdl._delay import delay
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
 from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
-from myhdl._always import _Always
+from myhdl._always import _Always, _getSigdict
+from myhdl._instance import _getCallInfo
 
 # evacuate this later
 AlwaysSeqError = AlwaysError
@@ -56,18 +57,21 @@ class ResetSignal(_Signal):
         self.active = bool(active)
         self.async = async
 
-
-
 def always_seq(edge, reset):
+    callinfo = _getCallInfo()
+    sigargs = []
     if not isinstance(edge, _WaiterList):
         raise AlwaysSeqError(_error.EdgeType)
     edge.sig._read = True
     edge.sig._used = True
+    sigargs.append(edge.sig)
     if reset is not None:
         if not isinstance(reset, ResetSignal):
             raise AlwaysSeqError(_error.ResetType)
         reset._read = True
         reset._used = True
+        sigargs.append(reset)
+    sigdict = _getSigdict(sigargs, callinfo.symdict)
 
     def _always_seq_decorator(func):
         if not isinstance(func, FunctionType):
@@ -76,13 +80,13 @@ def always_seq(edge, reset):
             raise AlwaysSeqError(_error.ArgType)
         if func.__code__.co_argcount > 0:
             raise AlwaysSeqError(_error.NrOfArgs)
-        return _AlwaysSeq(func, edge, reset)
+        return _AlwaysSeq(func, edge, reset, callinfo=callinfo, sigdict=sigdict)
     return _always_seq_decorator
 
 
 class _AlwaysSeq(_Always):
 
-    def __init__(self, func, edge, reset):
+    def __init__(self, func, edge, reset, callinfo, sigdict):
         senslist = [edge]
         self.reset = reset
         if reset is not None:
@@ -97,7 +101,8 @@ class _AlwaysSeq(_Always):
         else:
             self.genfunc = self.genfunc_no_reset
 
-        super(_AlwaysSeq, self).__init__(func, senslist)
+        super(_AlwaysSeq, self).__init__(
+            func, senslist, callinfo=callinfo, sigdict=sigdict)
 
         if self.inouts:
             raise AlwaysSeqError(_error.SigAugAssign, v.inouts)
