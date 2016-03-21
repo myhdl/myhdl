@@ -23,14 +23,13 @@ hardware concurrency. Generators are best described as resumable
 functions.  MyHDL generators are similar to always blocks in Verilog
 and processes in VHDL.
 
-A hardware module is modeled as a function that returns
-generators. This approach makes it straightforward to support features
-such as arbitrary hierarchy, named port association, arrays of
-instances, and conditional instantiation.  Furthermore, MyHDL provides
-classes that implement traditional hardware description concepts. It
-provides a signal class to support communication between generators, a
-class to support bit oriented operations, and a class for enumeration
-types.
+A hardware module (called a *block* in MyHDL terminology) is modeled as a
+function that returns generators. This approach makes it straightforward to
+support features such as arbitrary hierarchy, named port association, arrays of
+instances, and conditional instantiation.  Furthermore, MyHDL provides classes
+that implement traditional hardware description concepts. It provides a signal
+class to support communication between generators, a class to support bit
+oriented operations, and a class for enumeration types.
 
 *Simulation and Verification*
 
