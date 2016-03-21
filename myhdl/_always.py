@@ -41,7 +41,7 @@ _error.NrOfArgs = "decorated function should not have arguments"
 _error.DecNrOfArgs = "decorator should have arguments"
 
 
-def _getSigdict(sigs, symdict):
+def _get_sigdict(sigs, symdict):
     """Lookup signals in caller namespace and return sigdict
 
     Lookup signals in then namespace of a caller. This is used to add
@@ -73,7 +73,7 @@ def always(*args):
             sigargs.append(arg.sig)
         elif not isinstance(arg, delay):
             raise AlwaysError(_error.DecArgType)
-    sigdict = _getSigdict(sigargs, callinfo.symdict)
+    sigdict = _get_sigdict(sigargs, callinfo.symdict)
 
     def _always_decorator(func):
         if not isinstance(func, FunctionType):
@@ -111,20 +111,20 @@ class _Always(_Instantiator):
                 bt = None
                 break
         # now set waiter class
-        W = _Waiter
+        w = _Waiter
         if bt is delay:
-            W = _DelayWaiter
+            w = _DelayWaiter
         elif len(self.senslist) == 1:
             if bt is _Signal:
-                W = _SignalWaiter
+                w = _SignalWaiter
             elif bt is _WaiterList:
-                W = _EdgeWaiter
+                w = _EdgeWaiter
         else:
             if bt is _Signal:
-                W = _SignalTupleWaiter
+                w = _SignalTupleWaiter
             elif bt is _WaiterList:
-                W = _EdgeTupleWaiter
-        return W
+                w = _EdgeTupleWaiter
+        return w
 
     def genfunc(self):
         senslist = self.senslist

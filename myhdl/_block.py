@@ -28,7 +28,7 @@ import myhdl
 from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
-from myhdl._extractHierarchy import (_MemInfo, _makeMemInfo,
+from myhdl._extractHierarchy import (_makeMemInfo,
                                      _UserVerilogCode, _UserVhdlCode)
 from myhdl._Signal import _Signal, _isListOfSigs
 
@@ -128,7 +128,7 @@ class _Block(object):
                 raise BlockError(_error.ArgType)
             if isinstance(inst, (_Block, _Instantiator)):
                 if not inst.modctxt:
-                    raise BlockError(_error.InstanceError % (self.mod.name, inst.callername))
+                    raise BlockError(_error.InstanceError % (self.name, inst.callername))
 
     def _updateNamespaces(self):
         # dicts to keep track of objects used in Instantiator objects

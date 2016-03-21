@@ -26,7 +26,7 @@ from types import FunctionType
 from myhdl import AlwaysError, intbv
 from myhdl._util import _isGenFunc
 from myhdl._Signal import _Signal, _WaiterList, _isListOfSigs
-from myhdl._always import _Always, _getSigdict
+from myhdl._always import _Always, _get_sigdict
 from myhdl._instance import _getCallInfo
 
 # evacuate this later
@@ -70,7 +70,7 @@ def always_seq(edge, reset):
         reset._read = True
         reset._used = True
         sigargs.append(reset)
-    sigdict = _getSigdict(sigargs, callinfo.symdict)
+    sigdict = _get_sigdict(sigargs, callinfo.symdict)
 
     def _always_seq_decorator(func):
         if not isinstance(func, FunctionType):
@@ -104,7 +104,7 @@ class _AlwaysSeq(_Always):
             func, senslist, callinfo=callinfo, sigdict=sigdict)
 
         if self.inouts:
-            raise AlwaysSeqError(_error.SigAugAssign, v.inouts)
+            raise AlwaysSeqError(_error.SigAugAssign, self.inouts)
 
         if self.embedded_func:
             raise AlwaysSeqError(_error.EmbeddedFunction)
@@ -129,7 +129,7 @@ class _AlwaysSeq(_Always):
     def reset_vars(self):
         for v in self.varregs:
             # only intbv's for now
-            n, reg, init = v
+            _, reg, init = v
             reg._val = init
 
     def genfunc_reset(self):

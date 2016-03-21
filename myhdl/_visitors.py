@@ -1,3 +1,5 @@
+#pylint: disable=invalid-name
+
 import ast
 
 from myhdl._intbv import intbv
