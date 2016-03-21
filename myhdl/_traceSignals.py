@@ -75,9 +75,9 @@ class _TraceSignalsClass(object):
                 _simulator._tracing = 0
                 _simulator._tf.close()
                 os.remove(vcdpath)
-        else: # deprecated
+        else:  # deprecated
             if _tracing:
-                return dut(*args, **kwargs) # skip
+                return dut(*args, **kwargs)  # skip
             else:
                 # clean start
                 sys.setprofile(None)
@@ -241,5 +241,5 @@ def _writeVcdSigs(f, hierarchy, tracelists):
     print("$enddefinitions $end", file=f)
     print("$dumpvars", file=f)
     for s in siglist:
-        s._printVcd() # initial value
+        s._printVcd()  # initial value
     print("$end", file=f)

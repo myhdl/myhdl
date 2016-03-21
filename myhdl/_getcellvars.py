@@ -19,7 +19,7 @@ def _getCellVars(symdict, arg):
 class _GetCellVars(ast.NodeVisitor):
     def __init__(self, data):
         self.data = data
-        self.data.objset = set() 
+        self.data.objset = set()
 
     def visit_Name(self, node):
 

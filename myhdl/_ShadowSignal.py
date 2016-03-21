@@ -56,7 +56,7 @@ class _SliceSignal(_ShadowSignal):
     __slots__ = ('_sig', '_left', '_right')
 
     def __init__(self, sig, left, right=None):
-        ### XXX error checks
+        # XXX error checks
         if right is None:
             _ShadowSignal.__init__(self, sig[left])
         else:
@@ -151,7 +151,7 @@ class ConcatSignal(_ShadowSignal):
                 raise TypeError("ConcatSignal: inappropriate argument type: %s" \
                                 % type(a))
             nrbits += w
-            val = val << w | v & (long(1) << w)-1
+            val = val << w | v & (long(1) << w) - 1
         self._initval = val
         ini = intbv(val)[nrbits:]
         _ShadowSignal.__init__(self, ini)
@@ -204,7 +204,7 @@ class ConcatSignal(_ShadowSignal):
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
-                    if a._type == bool: # isinstance(a._type , bool): <- doesn't work
+                    if a._type == bool:  # isinstance(a._type , bool): <- doesn't work
                         lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
                     else:
                         lines.append("%s(%s) <= %s(0);" % (self._name, lo, a._name))
@@ -214,7 +214,7 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal):
                     lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo],w)))
+                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -240,7 +240,7 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal):
                     lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo],w)))
+                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -269,13 +269,13 @@ def TristateSignal(val):
 
 class _TristateSignal(_ShadowSignal):
 
-    __slots__ = ('_drivers', '_orival' )
+    __slots__ = ('_drivers', '_orival')
 
     def __init__(self, val):
         self._drivers = []
         # construct normally to set type / size info right
         _ShadowSignal.__init__(self, val)
-        self._orival = deepcopy(val) # keep for drivers
+        self._orival = deepcopy(val)  # keep for drivers
         # reset signal values to None
         self._next = self._val = self._init = None
         self._waiter = _SignalTupleWaiter(self._resolve())

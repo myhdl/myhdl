@@ -81,8 +81,8 @@ def _makeMemInfo(mem):
 def _isMem(mem):
     return id(mem) in _memInfoMap
 
-_userCodeMap = {'verilog' : {},
-                'vhdl' : {}
+_userCodeMap = {'verilog': {},
+                'vhdl': {}
                }
 
 class _UserCode(object):
@@ -97,7 +97,7 @@ class _UserCode(object):
 
     def __str__(self):
         try:
-            code =  self._interpolate()
+            code = self._interpolate()
         except:
             type, value, tb = sys.exc_info()
             info = "in file %s, function %s starting on line %s:\n    " % \
@@ -162,12 +162,12 @@ class _UserVhdlInstance(_UserVhdlCode):
 
 def _addUserCode(specs, arg, funcname, func, frame):
     classMap = {
-                '__verilog__' : _UserVerilogCodeDepr,
-                '__vhdl__' :_UserVhdlCodeDepr,
-                'verilog_code' : _UserVerilogCode,
-                'vhdl_code' :_UserVhdlCode,
-                'verilog_instance' : _UserVerilogInstance,
-                'vhdl_instance' :_UserVhdlInstance,
+                '__verilog__': _UserVerilogCodeDepr,
+                '__vhdl__': _UserVhdlCodeDepr,
+                'verilog_code': _UserVerilogCode,
+                'vhdl_code': _UserVhdlCode,
+                'verilog_instance': _UserVerilogInstance,
+                'vhdl_instance': _UserVhdlInstance,
 
                }
     namespace = frame.f_globals.copy()
@@ -256,7 +256,7 @@ class _HierExtr(object):
                 absnames[id(so)] = "%s_%s" % (tn, sn)
                 if isinstance(so, (tuple, list)):
                     for i, soi in enumerate(so):
-                        sni =  "%s_%s" % (sn, i)
+                        sni = "%s_%s" % (sn, i)
                         names[id(soi)] = sni
                         absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
 
@@ -267,7 +267,7 @@ class _HierExtr(object):
             funcname = frame.f_code.co_name
             # skip certain functions
             if funcname in self.skipNames:
-                self.skip +=1
+                self.skip += 1
             if not self.skip:
                 self.level += 1
 
@@ -319,13 +319,13 @@ class _HierExtr(object):
                             cellvars.extend(cellvarlist)
                             objlist = _resolveRefs(symdict, local_gens)
                             cellvars.extend(objlist)
-                    #for dict in (frame.f_globals, frame.f_locals):
+                    # for dict in (frame.f_globals, frame.f_locals):
                     for n, v in symdict.items():
                         # extract signals and memories
                         # also keep track of whether they are used in generators
                         # only include objects that are used in generators
-##                             if not n in cellvars:
-##                                 continue
+# if not n in cellvars:
+# continue
                         if isinstance(v, _Signal):
                             sigdict[n] = v
                             if n in cellvars:

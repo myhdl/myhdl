@@ -111,7 +111,7 @@ class _Signal(object):
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                  '_code', '_tracing', '_nrbits', '_checkVal',
                  '_setNextVal', '_copyVal2Next', '_printVcd',
-                 '_driven' ,'_read', '_name', '_used', '_inList',
+                 '_driven', '_read', '_name', '_used', '_inList',
                  '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
                  '_numeric'
                 )
@@ -249,7 +249,7 @@ class _Signal(object):
 
     @driven.setter
     def driven(self, val):
-        if not val  in ("reg", "wire", True):
+        if not val in ("reg", "wire", True):
             raise ValueError('Expected value "reg", "wire", or True, got "%s"' % val)
         self._driven = val
 
@@ -322,7 +322,7 @@ class _Signal(object):
 
     def _printVcdVec(self):
         if self._val is None:
-            print("b%s %s" % ('z'*self._nrbits, self._code), file=sim._tf)
+            print("b%s %s" % ('z' * self._nrbits, self._code), file=sim._tf)
         else:
             print("b%s %s" % (bin(self._val, self._nrbits), self._code), file=sim._tf)
 
@@ -394,7 +394,7 @@ class _Signal(object):
         else:
             return self._val // other
     def __rfloordiv__(self, other):
-        return other //  self._val
+        return other // self._val
 
     def __mod__(self, other):
         if isinstance(other, _Signal):

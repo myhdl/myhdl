@@ -42,19 +42,19 @@ class modbv(intbv):
     def __getitem__(self, key):
         if isinstance(key, slice):
             i, j = key.start, key.stop
-            if j is None: # default
+            if j is None:  # default
                 j = 0
             j = int(j)
             if j < 0:
                 raise ValueError("modbv[i:j] requires j >= 0\n" \
                       "            j == %s" % j)
-            if i is None: # default
+            if i is None:  # default
                 return modbv(self._val >> j)
             i = int(i)
             if i <= j:
                 raise ValueError("modbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j))
-            res = modbv((self._val & (long(1) << i)-1) >> j, _nrbits=i-j)
+            res = modbv((self._val & (long(1) << i) - 1) >> j, _nrbits=i - j)
             return res
         else:
             i = int(key)

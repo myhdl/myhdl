@@ -15,9 +15,9 @@ from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
 from myhdl._block import _Block
 
-_version = myhdl.__version__.replace('.','')
+_version = myhdl.__version__.replace('.', '')
 # strip 'dev' for version
-_version = _version.replace('dev','')
+_version = _version.replace('dev', '')
 
 _simulators = {}
 
@@ -93,7 +93,7 @@ registerSimulator(
     )
 
 
-class  _VerificationClass(object):
+class _VerificationClass(object):
 
     __slots__ = ("simulator", "_analyzeOnly")
 
@@ -106,7 +106,7 @@ class  _VerificationClass(object):
 
         if not self.simulator:
             raise ValueError("No simulator specified")
-        if  self.simulator not in _simulators:
+        if self.simulator not in _simulators:
             raise ValueError("Simulator %s is not registered" % self.simulator)
         hdlsim = _simulators[self.simulator]
         hdl = hdlsim.hdl
@@ -161,7 +161,7 @@ class  _VerificationClass(object):
                 except:
                     pass
 
-        #print(analyze)
+        # print(analyze)
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
             print("Analysis failed", file=sys.stderr)
@@ -187,14 +187,14 @@ class  _VerificationClass(object):
 
 
         if elaborate is not None:
-            #print(elaborate)
+            # print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
             if ret != 0:
                 print("Elaboration failed", file=sys.stderr)
                 return ret
 
         g = tempfile.TemporaryFile(mode='w+t')
-        #print(simulate)
+        # print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
     #    if ret != 0:
     #        print "Simulation run failed"

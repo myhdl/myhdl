@@ -213,7 +213,7 @@ class Simulation(object):
                     tracefile.flush()
                 # if the exception came from a yield, make sure we can resume
                 if exc and e is exc[0]:
-                    pass # don't finalize
+                    pass  # don't finalize
                 else:
                     self._finalize()
                 # now reraise the exepction

@@ -20,8 +20,8 @@ from __future__ import absolute_import
 
 import myhdl
 
-_version = myhdl.__version__.replace('.','')
-_shortversion = _version.replace('dev','')
+_version = myhdl.__version__.replace('.', '')
+_shortversion = _version.replace('dev', '')
 
 _package = """\
 library ieee;

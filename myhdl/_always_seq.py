@@ -25,7 +25,7 @@ from types import FunctionType
 
 from myhdl import AlwaysError, intbv
 from myhdl._util import _isGenFunc
-from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
+from myhdl._Signal import _Signal, _WaiterList, _isListOfSigs
 from myhdl._always import _Always, _getSigdict
 from myhdl._instance import _getCallInfo
 

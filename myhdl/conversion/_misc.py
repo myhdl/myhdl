@@ -141,7 +141,7 @@ class _ConversionMixin(object):
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
-              (self.tree.sourcefile, self.tree.lineoffset+lineno)
+              (self.tree.sourcefile, self.tree.lineoffset + lineno)
         raise ConversionError(kind, msg, info)
 
     def require(self, node, test, msg=""):

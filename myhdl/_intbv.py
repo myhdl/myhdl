@@ -38,12 +38,12 @@ class intbv(object):
             self._max = max
             if max is not None and min is not None:
                 if min >= 0:
-                    _nrbits = len(bin(max-1))
+                    _nrbits = len(bin(max - 1))
                 elif max <= 1:
                     _nrbits = len(bin(min))
                 else:
                     # make sure there is a leading zero bit in positive numbers
-                    _nrbits = builtins.max(len(bin(max-1))+1, len(bin(min)))
+                    _nrbits = builtins.max(len(bin(max - 1)) + 1, len(bin(min)))
         if isinstance(val, integer_types):
             self._val = val
         elif isinstance(val, string_types):
@@ -85,7 +85,7 @@ class intbv(object):
             return False
         if min not in (0, -max):
             return False
-        return max & max-1 == 0
+        return max & max - 1 == 0
 
 
     # hash
@@ -111,7 +111,7 @@ class intbv(object):
     def __iter__(self):
         if not self._nrbits:
             raise TypeError("Cannot iterate over unsized intbv")
-        return iter([self[i] for i in range(self._nrbits-1, -1, -1)])
+        return iter([self[i] for i in range(self._nrbits - 1, -1, -1)])
 
     # logical testing
     def __bool__(self):
@@ -128,19 +128,19 @@ class intbv(object):
     def __getitem__(self, key):
         if isinstance(key, slice):
             i, j = key.start, key.stop
-            if j is None: # default
+            if j is None:  # default
                 j = 0
             j = int(j)
             if j < 0:
                 raise ValueError("intbv[i:j] requires j >= 0\n" \
                       "            j == %s" % j)
-            if i is None: # default
+            if i is None:  # default
                 return intbv(self._val >> j)
             i = int(i)
             if i <= j:
                 raise ValueError("intbv[i:j] requires i > j\n" \
                       "            i, j == %s, %s" % (i, j))
-            res = intbv((self._val & (long(1) << i)-1) >> j, _nrbits=i-j)
+            res = intbv((self._val & (long(1) << i) - 1) >> j, _nrbits=i - j)
             return res
         else:
             i = int(key)
@@ -154,13 +154,13 @@ class intbv(object):
         val = int(val)
         if isinstance(key, slice):
             i, j = key.start, key.stop
-            if j is None: # default
+            if j is None:  # default
                 j = 0
             j = int(j)
             if j < 0:
                 raise ValueError("intbv[i:j] = v requires j >= 0\n" \
                       "            j == %s" % j)
-            if i is None: # default
+            if i is None:  # default
                 q = self._val % (long(1) << j)
                 self._val = val * (long(1) << j) + q
                 self._handleBounds()
@@ -169,11 +169,11 @@ class intbv(object):
             if i <= j:
                 raise ValueError("intbv[i:j] = v requires i > j\n" \
                       "            i, j, v == %s, %s, %s" % (i, j, val))
-            lim = (long(1) << (i-j))
+            lim = (long(1) << (i - j))
             if val >= lim or val < -lim:
                 raise ValueError("intbv[i:j] = v abs(v) too large\n" \
                       "            i, j, v == %s, %s, %s" % (i, j, val))
-            mask = (lim-1) << j
+            mask = (lim - 1) << j
             self._val &= ~mask
             self._val |= (val << j)
             self._handleBounds()
@@ -231,7 +231,7 @@ class intbv(object):
         else:
             return self._val // other
     def __rfloordiv__(self, other):
-        return other //  self._val
+        return other // self._val
 
     def __mod__(self, other):
         if isinstance(other, intbv):
@@ -400,7 +400,7 @@ class intbv(object):
 
     def __invert__(self):
         if self._nrbits and self._min >= 0:
-            return intbv(~self._val & (long(1) << self._nrbits)-1)
+            return intbv(~self._val & (long(1) << self._nrbits) - 1)
         else:
             return intbv(~self._val)
 
@@ -467,7 +467,7 @@ class intbv(object):
             # align with Verilog $display I don't do that
             if v < 0:
                 v = 2**nrbits + v
-            w = (nrbits-1) // 4 + 1
+            w = (nrbits - 1) // 4 + 1
             return "{:0{w}x}".format(v, w=w)
         else:
             return "{:x}".format(v)
@@ -517,22 +517,22 @@ class intbv(object):
         if self.min is not None and self.min >= 0 and self._nrbits:
 
             # get 2's complement value of bits
-            msb = self._nrbits-1
+            msb = self._nrbits - 1
 
             sign = ((self._val >> msb) & 0x1) > 0
 
             # mask off the bits msb-1:lsb, they are always positive
-            mask = (1<<msb) - 1
+            mask = (1 << msb) - 1
             retVal = self._val & mask
             # if sign bit is set, subtract the value of the sign bit
             if sign:
-                retVal -= 1<<msb
+                retVal -= 1 << msb
 
-        else: # value is returned just as is
+        else:  # value is returned just as is
             retVal = self._val
 
         if self._nrbits:
-            M = 2**(self._nrbits-1)
+            M = 2**(self._nrbits - 1)
             return intbv(retVal, min=-M, max=M)
         else:
             return intbv(retVal)

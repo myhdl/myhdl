@@ -105,7 +105,7 @@ class _Block(object):
         self.subs = _flatten(func(*args, **kwargs))
         self._verifySubs()
         self._updateNamespaces()
-        self.name = self.__name__ = func.__name__ + '_' + str(calls-1)
+        self.name = self.__name__ = func.__name__ + '_' + str(calls - 1)
         self.verilog_code = self.vhdl_code = None
         self.sim = None
         if hasattr(deco, 'verilog_code'):
@@ -132,7 +132,7 @@ class _Block(object):
             # the symdict of a block instance is defined by
             # the call context of its instantiations
             if isinstance(inst, Cosimulation):
-                continue # ignore
+                continue  # ignore
             if self.symdict is None:
                 self.symdict = inst.callinfo.symdict
             if isinstance(inst, _Instantiator):

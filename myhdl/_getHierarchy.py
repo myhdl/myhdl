@@ -59,4 +59,4 @@ def _getHierarchyHelper(level, modinst, hierarchy):
     hierarchy.append(inst)
     for inst in modinst.subs:
         if isinstance(inst, _Block):
-            _getHierarchyHelper(level+1, inst, hierarchy)
+            _getHierarchyHelper(level + 1, inst, hierarchy)

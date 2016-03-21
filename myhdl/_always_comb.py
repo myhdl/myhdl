@@ -35,11 +35,11 @@ _error.NrOfArgs = "always_comb argument should be a function without arguments"
 _error.Scope = "always_comb argument should be a local function"
 _error.SignalAsInout = "signal (%s) used as inout in always_comb function argument"
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
-_error.EmptySensitivityList= "sensitivity list is empty"
+_error.EmptySensitivityList = "sensitivity list is empty"
 
 def always_comb(func):
     callinfo = _getCallInfo()
-    if not isinstance( func, FunctionType):
+    if not isinstance(func, FunctionType):
         raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
         raise AlwaysCombError(_error.ArgType)

@@ -123,7 +123,7 @@ class _ToVerilogConvertor(object):
     def __call__(self, func, *args, **kwargs):
         global _converting
         if _converting:
-            return func(*args, **kwargs) # skip
+            return func(*args, **kwargs)  # skip
         else:
             # clean start
             sys.setprofile(None)
@@ -173,7 +173,7 @@ class _ToVerilogConvertor(object):
         siglist, memlist = _analyzeSigs(h.hierarchy)
         _annotateTypes(genlist)
 
-        ### infer interface
+        # infer interface
         if isinstance(func, _Block):
             # infer interface after signals have been analyzed
             func._inferInterface()
@@ -282,7 +282,7 @@ def _writeModuleHeader(f, intf, doc):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if s._read :
+            if s._read:
                 if not isinstance(s, _TristateSignal):
                     warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
                                   category=ToVerilogWarning
@@ -358,8 +358,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
         else:
             raise ToVerilogError("Unexpected type for constant signal", s._name)
         c_len = s._nrbits
-        c_str = "%s"%c
-        print("assign %s = %s'd%s;" % (s._name, c_len,  c_str), file=f)
+        c_str = "%s" % c
+        print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
     print(file=f)
     # shadow signal assignments
     for s in siglist:
@@ -415,7 +415,7 @@ def _getRangeString(s):
         return ''
     elif s._nrbits is not None:
         nrbits = s._nrbits
-        return "[%s:0] " % (nrbits-1)
+        return "[%s:0] " % (nrbits - 1)
     else:
         raise AssertionError
 
@@ -443,7 +443,7 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertAlwaysDecoVisitor
         elif tree.kind == _kind.ALWAYS_SEQ:
             Visitor = _ConvertAlwaysSeqVisitor
-        else: # ALWAYS_COMB
+        else:  # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(tree, blockBuf, funcBuf)
         v.visit(tree)
@@ -452,30 +452,30 @@ def _convertGens(genlist, vfile):
 
 
 opmap = {
-    ast.Add      : '+',
-    ast.Sub      : '-',
-    ast.Mult     : '*',
-    ast.Div      : '/',
-    ast.Mod      : '%',
-    ast.Pow      : '**',
-    ast.LShift   : '<<',
-    ast.RShift   : '>>>',
-    ast.BitOr    : '|',
-    ast.BitAnd   : '&',
-    ast.BitXor   : '^',
-    ast.FloorDiv : '/',
-    ast.Invert   : '~',
-    ast.Not      : '!',
-    ast.UAdd     : '+',
-    ast.USub     : '-',
-    ast.Eq       : '==',
-    ast.Gt       : '>',
-    ast.GtE      : '>=',
-    ast.Lt       : '<',
-    ast.LtE      : '<=',
-    ast.NotEq    : '!=',
-    ast.And      : '&&',
-    ast.Or       : '||',
+    ast.Add: '+',
+    ast.Sub: '-',
+    ast.Mult: '*',
+    ast.Div: '/',
+    ast.Mod: '%',
+    ast.Pow: '**',
+    ast.LShift: '<<',
+    ast.RShift: '>>>',
+    ast.BitOr: '|',
+    ast.BitAnd: '&',
+    ast.BitXor: '^',
+    ast.FloorDiv: '/',
+    ast.Invert: '~',
+    ast.Not: '!',
+    ast.UAdd: '+',
+    ast.USub: '-',
+    ast.Eq: '==',
+    ast.Gt: '>',
+    ast.GtE: '>=',
+    ast.Lt: '<',
+    ast.LtE: '<=',
+    ast.NotEq: '!=',
+    ast.And: '&&',
+    ast.Or: '||',
 }
 
 nameconstant_map = {
@@ -501,7 +501,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
-              (self.tree.sourcefile, self.tree.lineoffset+lineno)
+              (self.tree.sourcefile, self.tree.lineoffset + lineno)
         raise ToVerilogError(kind, msg, info)
 
     def write(self, arg):
@@ -534,11 +534,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             radix = "'h"
             num = hex(p)[2:].rstrip('L')
         if p >= 2**30:
-            size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
+            size = int(math.ceil(math.log(p + 1, 2))) + 1  # sign bit!
 #            if not radix:
 #                radix = "'d"
         r = "%s%s%s" % (size, radix, num)
-        if n < 0: # add brackets and sign on negative numbers
+        if n < 0:  # add brackets and sign on negative numbers
             r = "(-%s)" % r
         return r
 
@@ -603,7 +603,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(", ")
             self.visit(node.right)
         else:
-            if isinstance(node.op,  ast.RShift):
+            if isinstance(node.op, ast.RShift):
                 # Additional cast to signed of the full expression
                 # this is apparently required by cver - not sure if it
                 # is actually required by standard Verilog.
@@ -711,7 +711,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.indent()
             for i, n in enumerate(rom):
                 self.writeline()
-                if i == len(rom)-1:
+                if i == len(rom) - 1:
                     self.write("default: ")
                 else:
                     self.write("%s: " % i)
@@ -722,7 +722,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 else:
                     self.write(' = ')
                 s = self.IntRepr(n)
-                self.write("%s;" %s)
+                self.write("%s;" % s)
             self.dedent()
             self.writeline()
             self.write("endcase")
@@ -788,7 +788,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f in (intbv, modbv):
             self.visit(node.args[0])
             return
-        elif f == intbv.signed: # note equality comparison
+        elif f == intbv.signed:  # note equality comparison
             # comes from a getattr
             opening, closing = '', ''
             if not fn.value.signed:
@@ -894,10 +894,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 start, stop, step = args[0], args[1], None
             else:
                 start, stop, step = args
-        else: # downrange
+        else:  # downrange
             cmp = '>='
             op = '-'
-            oneoff ='-1'
+            oneoff = '-1'
             if len(args) == 1:
                 start, stop, step = args[0], None, None
             elif len(args) == 2:
@@ -1022,7 +1022,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(stmt)
 
     def visit_ListComp(self, node):
-        pass # do nothing
+        pass  # do nothing
 
     def visit_NameConstant(self, node):
         self.write(nameconstant_map[node.obj])
@@ -1094,7 +1094,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     fs = "%0d"
                 else:
                     fs = "%h"
-                self.context =_context.PRINT
+                self.context = _context.PRINT
                 if isinstance(obj, str):
                     self.write('$write(')
                     self.visit(a)
@@ -1534,7 +1534,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         self.generic_visit(node)
         f = self.getObj(node.func)
         node.signed = False
-        ### suprize: identity comparison on unbound methods doesn't work in python 2.5??
+        # suprize: identity comparison on unbound methods doesn't work in python 2.5??
         if f == intbv.signed:
             node.signed = True
         elif hasattr(node, 'tree'):
@@ -1544,7 +1544,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_Compare(self, node):
         node.signed = False
-        #for n in ast.iter_child_nodes(node):
+        # for n in ast.iter_child_nodes(node):
         for n in [node.left] + node.comparators:
             self.visit(n)
             if n.signed:

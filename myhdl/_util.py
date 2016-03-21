@@ -78,7 +78,7 @@ def _makeAST(f):
     s = _dedent(s)
     tree = ast.parse(s)
     tree.sourcefile = inspect.getsourcefile(f)
-    tree.lineoffset = inspect.getsourcelines(f)[1]-1
+    tree.lineoffset = inspect.getsourcelines(f)[1] - 1
     return tree
 
 

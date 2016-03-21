@@ -32,7 +32,7 @@ class _SigNameVisitor(ast.NodeVisitor):
         if not node.orelse:
             if isinstance(node.test, ast.Name) and \
                 node.test.id == '__debug__':
-                return # skip
+                return  # skip
         self.generic_visit(node)
 
     def visit_Name(self, node):
@@ -88,10 +88,10 @@ class _SigNameVisitor(ast.NodeVisitor):
         self.visit(node.value)
 
     def visit_ClassDef(self, node):
-        pass # skip
+        pass  # skip
 
     def visit_Exec(self, node):
-        pass # skip
+        pass  # skip
 
     def visit_Print(self, node):
         self.context = 'pass'
