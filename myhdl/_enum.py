@@ -27,22 +27,27 @@ from myhdl._bin import bin
 from myhdl._Signal import _Signal
 from myhdl._compat import string_types
 
+
 class EnumType(object):
+
     def __init__(self):
         raise TypeError("class EnumType is only intended for type checking on subclasses")
 
+
 class EnumItemType(object):
+
     def __init__(self):
         raise TypeError("class EnumItemType is only intended for type checking on subclasses")
 
 supported_encodings = ("binary", "one_hot", "one_cold")
+
 
 def enum(*names, **kwargs):
 
     # args = args
     encoding = kwargs.get('encoding', None)
     if encoding is not None and encoding not in supported_encodings:
-        raise ValueError("Unsupported enum encoding: %s\n    Supported encodings: %s" % \
+        raise ValueError("Unsupported enum encoding: %s\n    Supported encodings: %s" %
                          (encoding, supported_encodings))
     if encoding in ("one_hot", "one_cold"):
         nrbits = len(names)
@@ -130,8 +135,8 @@ def enum(*names, **kwargs):
                 raise TypeError("Type mismatch in enum item comparison")
             return self is not other
 
-
     class Enum(EnumType):
+
         def __init__(self, names, codedict, nrbits, encoding):
             self.__dict__['_names'] = names
             self.__dict__['_nrbits'] = nrbits
@@ -171,8 +176,3 @@ def enum(*names, **kwargs):
             return str
 
     return Enum(names, codedict, nrbits, encoding)
-
-
-
-
-

@@ -55,11 +55,12 @@ builtinObjects = builtins.__dict__.values()
 
 _enumTypeSet = set()
 
+
 def _makeName(n, prefixes, namedict):
     # trim empty prefixes
     prefixes = [p for p in prefixes if p]
     if len(prefixes) > 1:
-#        name = '_' + '_'.join(prefixes[1:]) + '_' + n
+        #        name = '_' + '_'.join(prefixes[1:]) + '_' + n
         name = '_'.join(prefixes[1:]) + '_' + n
     else:
         name = n
@@ -134,7 +135,6 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
                 raise ConversionError(_error.InconsistentBitWidth, s._name)
 
     return siglist, memlist
-
 
 
 def _analyzeGens(top, absnames):
@@ -238,13 +238,15 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_ListComp(self, node):
         if len(node.generators) > 1:
-            self.raiseError(node, _error.NotSupported, "multiple for statements in list comprehension")
+            self.raiseError(node, _error.NotSupported,
+                            "multiple for statements in list comprehension")
         if node.generators[0].ifs:
             self.raiseError(node, _error.NotSupported, "if statement in list comprehension")
         self.generic_visit(node)
 
     def visit_List(self, node):
         self.raiseError(node, _error.NotSupported, "list")
+
     def visitSliceObj(self, node):
         self.raiseError(node, _error.NotSupported, "slice object")
 
@@ -255,9 +257,9 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
     # Legacy try blocks
     def visit_TryExcept(self, node):
         self.raiseError(node, _error.NotSupported, "try-except statement")
+
     def visit_TryFinally(self, node):
         self.raiseError(node, _error.NotSupported, "try-finally statement")
-
 
     def visit_Assign(self, node):
         if len(node.targets) > 1:
@@ -297,7 +299,7 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         # put official docstrings aside for separate processing
         node.doc = None
         if node.body and isinstance(node.body[0], ast.Expr) and \
-            isinstance(node.body[0].value, ast.Str):
+                isinstance(node.body[0].value, ast.Str):
             node.doc = node.body[0].value.s
             node.body = node.body[1:]
         self.visitList(node.body)
@@ -306,8 +308,8 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         """ Flatten if-then-else as in compiler package."""
         if node:
             if len(node) == 1 and \
-                isinstance(node[0], ast.If) and \
-                node[0].body[0].col_offset == co:  # ugly hack to detect separate else clause
+                    isinstance(node[0], ast.If) and \
+                    node[0].body[0].col_offset == co:  # ugly hack to detect separate else clause
                 elifnode = node[0]
                 tests.append((elifnode.test, elifnode.body))
                 self.flattenIf(elifnode.orelse, tests, else_, co)
@@ -331,7 +333,6 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         node.tests = tests
         node.else_ = else_
 
-
     def visit_Print(self, node):
         if node.dest is not None:
             self.raiseError(node, _error.NotSupported, "printing to a file with >> syntax")
@@ -339,13 +340,11 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
             self.raiseError(node, _error.NotSupported, "printing without newline")
 
 
-
-
-
 def getNrBits(obj):
     if hasattr(obj, '_nrbits'):
         return obj._nrbits
     return None
+
 
 def hasType(obj, theType):
     if isinstance(obj, theType):
@@ -357,16 +356,18 @@ def hasType(obj, theType):
 
 
 class ReferenceStack(list):
+
     def push(self):
         self.append(set())
+
     def add(self, item):
         self[-1].add(item)
+
     def __contains__(self, item):
         for s in self:
             if item in s:
                 return True
         return False
-
 
 
 class _Ram(object):
@@ -375,13 +376,16 @@ class _Ram(object):
 
 class _Rom(object):
     __slots__ = ['rom']
+
     def __init__(self, rom):
         self.rom = rom
 
 re_str = re.compile(r"[^%]+")
 re_ConvSpec = re.compile(r"%(?P<justified>[-]?)(?P<width>[0-9]*)(?P<conv>[sd])")
 
+
 class ConvSpec(object):
+
     def __init__(self, **kwargs):
         self.justified = "RIGHT"
         self.width = 0
@@ -394,6 +398,7 @@ class ConvSpec(object):
             self.conv = int
 
 defaultConvSpec = ConvSpec(**re_ConvSpec.match(r"%s").groupdict())
+
 
 def _getNritems(obj):
     """Return the number of items in an objects' type"""
@@ -439,7 +444,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(n)
         for n in node.values:
             if not hasType(n.obj, bool):
-                self.raiseError(node, _error.NotSupported, "non-boolean argument in logical operator")
+                self.raiseError(node, _error.NotSupported,
+                                "non-boolean argument in logical operator")
         node.obj = bool()
 
     def visit_UnaryOp(self, node):
@@ -589,7 +595,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is ord:
             node.obj = int(-1)
             if not (isinstance(node.args[0], ast.Str) and (len(node.args[0].s) == 1)):
-                self.raiseError(node, _error.NotSupported, "ord: expect string argument with length 1")
+                self.raiseError(node, _error.NotSupported,
+                                "ord: expect string argument with length 1")
         elif f is delay:
             node.obj = delay(0)
         # suprize: identity comparison on unbound methods doesn't work in python 2.5??
@@ -807,8 +814,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 node.obj = obj
         else:
             if n in ("__verilog__", "__vhdl__"):
-                    self.raiseError(node, _error.NotSupported,
-                                    "%s in generator function" % n)
+                self.raiseError(node, _error.NotSupported,
+                                "%s in generator function" % n)
             if n in self.globalRefs:
                 self.raiseError(node, _error.UnboundLocal, n)
             self.refStack.add(n)
@@ -1042,7 +1049,6 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             if isinstance(v, _Signal):
                 self.tree.sigdict[n] = v
 
-
     def visit_FunctionDef(self, node):
         self.refStack.push()
         for n in node.body:
@@ -1058,7 +1064,6 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
                 self.tree.kind = _kind.INITIAL
         self.refStack.pop()
 
-
     def visit_Module(self, node):
         self.generic_visit(node)
         for n in self.tree.outputs:
@@ -1070,7 +1075,6 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             s = self.tree.sigdict[n]
             s._markRead()
 
-
     def visit_Return(self, node):
         # value should be None
         if node.value is None:
@@ -1081,14 +1085,11 @@ class _AnalyzeBlockVisitor(_AnalyzeVisitor):
             self.raiseError(node, _error.NotSupported, "return value other than None")
 
 
-
-
 class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
 
     def __init__(self, tree, senslist):
         _AnalyzeBlockVisitor.__init__(self, tree)
         self.tree.senslist = senslist
-
 
     def visit_FunctionDef(self, node):
         self.refStack.push()
@@ -1112,9 +1113,6 @@ class _AnalyzeAlwaysCombVisitor(_AnalyzeBlockVisitor):
             self.tree.kind = _kind.ALWAYS_COMB
         self.refStack.pop()
 
-
-
-
     def visit_Module(self, node):
         _AnalyzeBlockVisitor.visit_Module(self, node)
         if self.tree.kind == _kind.SIMPLE_ALWAYS_COMB:
@@ -1135,7 +1133,6 @@ class _AnalyzeAlwaysSeqVisitor(_AnalyzeBlockVisitor):
         self.tree.sigregs = sigregs
         self.tree.varregs = varregs
 
-
     def visit_FunctionDef(self, node):
         self.refStack.push()
         for n in node.body:
@@ -1150,14 +1147,12 @@ class _AnalyzeAlwaysDecoVisitor(_AnalyzeBlockVisitor):
         _AnalyzeBlockVisitor.__init__(self, tree)
         self.tree.senslist = senslist
 
-
     def visit_FunctionDef(self, node):
         self.refStack.push()
         for n in node.body:
             self.visit(n)
         self.tree.kind = _kind.ALWAYS_DECO
         self.refStack.pop()
-
 
 
 class _AnalyzeFuncVisitor(_AnalyzeVisitor):
@@ -1168,7 +1163,6 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
         self.keywords = keywords
         self.tree.hasReturn = False
         self.tree.returnObj = None
-
 
     def visit_FunctionDef(self, node):
         self.refStack.push()
@@ -1198,8 +1192,6 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             if self.tree.returnObj is None:
                 self.raiseError(node, _error.NotSupported,
                                 "pure function without return value")
-
-
 
     def visit_Return(self, node):
         self.kind = _kind.DECLARATION
@@ -1233,6 +1225,8 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
 
 ismethod = inspect.ismethod
 # inspect doc is wrong: ismethod checks both bound and unbound methods
+
+
 def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
@@ -1263,6 +1257,7 @@ def _analyzeTopFunc(func, *args, **kwargs):
                 v.argnames.append(signame)
 
     return v
+
 
 class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
 

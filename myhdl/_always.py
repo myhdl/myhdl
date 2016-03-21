@@ -29,8 +29,9 @@ from myhdl._delay import delay
 from myhdl._Signal import _Signal
 from myhdl._Signal import _WaiterList
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
-                          _DelayWaiter, _EdgeWaiter, _EdgeTupleWaiter
+    _DelayWaiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._instance import _Instantiator, _getCallInfo
+
 
 class _error:
     pass
@@ -38,6 +39,7 @@ _error.DecArgType = "decorator argument should be a Signal, edge, or delay"
 _error.ArgType = "decorated object should be a classic (non-generator) function"
 _error.NrOfArgs = "decorated function should not have arguments"
 _error.DecNrOfArgs = "decorator should have arguments"
+
 
 def _getSigdict(sigs, symdict):
     """Lookup signals in caller namespace and return sigdict
@@ -56,6 +58,7 @@ def _getSigdict(sigs, symdict):
                 sigdict[n] = s
     return sigdict
 
+
 def always(*args):
     callinfo = _getCallInfo()
     sigargs = []
@@ -71,6 +74,7 @@ def always(*args):
         elif not isinstance(arg, delay):
             raise AlwaysError(_error.DecArgType)
     sigdict = _getSigdict(sigargs, callinfo.symdict)
+
     def _always_decorator(func):
         if not isinstance(func, FunctionType):
             raise AlwaysError(_error.ArgType)

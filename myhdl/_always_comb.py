@@ -28,6 +28,7 @@ from myhdl._util import _isGenFunc
 from myhdl._instance import _getCallInfo
 from myhdl._always import _Always
 
+
 class _error:
     pass
 _error.ArgType = "always_comb argument should be a classic function"
@@ -36,6 +37,7 @@ _error.Scope = "always_comb argument should be a local function"
 _error.SignalAsInout = "signal (%s) used as inout in always_comb function argument"
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
 _error.EmptySensitivityList = "sensitivity list is empty"
+
 
 def always_comb(func):
     callinfo = _getCallInfo()

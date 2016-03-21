@@ -29,7 +29,7 @@ from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
 from myhdl._extractHierarchy import (_MemInfo, _makeMemInfo,
-    _UserVerilogCode, _UserVhdlCode)
+                                     _UserVerilogCode, _UserVhdlCode)
 from myhdl._Signal import _Signal, _isListOfSigs
 
 
@@ -38,11 +38,14 @@ class _error:
 _error.ArgType = "A block should return block or instantiator objects"
 _error.InstanceError = "%s: subblock %s should be encapsulated in a block decorator"
 
+
 class _CallInfo(object):
+
     def __init__(self, name, modctxt, symdict):
         self.name = name
         self.modctxt = modctxt
         self.symdict = symdict
+
 
 def _getCallInfo():
     """Get info on the caller of a BlockInstance.
@@ -76,15 +79,18 @@ def _getCallInfo():
             modctxt = isinstance(f_locals['self'], _Block)
     return _CallInfo(name, modctxt, symdict)
 
+
 def block(func):
     srcfile = inspect.getsourcefile(func)
     srcline = inspect.getsourcelines(func)[0]
+
     @wraps(func)
     def deco(*args, **kwargs):
         deco.calls += 1
         return _Block(func, deco, srcfile, srcline, *args, **kwargs)
     deco.calls = 0
     return deco
+
 
 class _Block(object):
 

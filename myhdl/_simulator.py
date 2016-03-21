@@ -25,8 +25,6 @@ now -- function that returns the current simulation time
 """
 
 
-
-
 _signals = []
 _siglist = []
 _futureEvents = []
@@ -34,6 +32,7 @@ _time = 0
 _cosim = 0
 _tracing = 0
 _tf = None
+
 
 def now():
     """ Return the current simulation time """

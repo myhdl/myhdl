@@ -32,6 +32,7 @@ from myhdl._instance import _getCallInfo
 # evacuate this later
 AlwaysSeqError = AlwaysError
 
+
 class _error:
     pass
 _error.EdgeType = "first argument should be an edge"
@@ -41,7 +42,9 @@ _error.NrOfArgs = "decorated function should not have arguments"
 _error.SigAugAssign = "signal assignment does not support augmented assignment"
 _error.EmbeddedFunction = "embedded functions in always_seq function not supported"
 
+
 class ResetSignal(_Signal):
+
     def __init__(self, val, active, async):
         """ Construct a ResetSignal.
 
@@ -51,6 +54,7 @@ class ResetSignal(_Signal):
         _Signal.__init__(self, bool(val))
         self.active = bool(active)
         self.async = async
+
 
 def always_seq(edge, reset):
     callinfo = _getCallInfo()

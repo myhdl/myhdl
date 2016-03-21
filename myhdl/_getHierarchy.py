@@ -26,7 +26,9 @@ from __future__ import absolute_import
 from myhdl._extractHierarchy import _Instance
 from myhdl._block import _Block
 
+
 class _Hierarchy(object):
+
     def __init__(self, name, modinst):
         self.top = modinst
         self.hierarchy = hierarchy = []
@@ -49,9 +51,11 @@ class _Hierarchy(object):
         # print (names)
         # print(absnames)
 
+
 def _getHierarchy(name, modinst):
-        h = _Hierarchy(name, modinst)
-        return h
+    h = _Hierarchy(name, modinst)
+    return h
+
 
 def _getHierarchyHelper(level, modinst, hierarchy):
     subs = [(s.name, s) for s in modinst.subs]

@@ -59,50 +59,82 @@ class StopSimulation(Exception):
     """ Basic exception to stop a Simulation """
     pass
 
+
 class _SuspendSimulation(Exception):
     """ Basic exception to suspend a Simulation """
     pass
 
+
 class Error(Exception):
+
     def __init__(self, kind, msg="", info=""):
         self.kind = kind
         self.msg = msg
         self.info = info
+
     def __str__(self):
         s = "%s%s" % (self.info, self.kind)
         if self.msg:
             s += ": %s" % self.msg
         return s
 
+
 class AlwaysError(Error):
     pass
+
+
 class AlwaysCombError(Error):
     pass
+
+
 class InstanceError(Error):
     pass
+
+
 class BlockError(Error):
     pass
+
+
 class BlockInstanceError(Error):
     pass
+
+
 class CosimulationError(Error):
     pass
+
+
 class ExtractHierarchyError(Error):
     pass
+
+
 class SimulationError(Error):
     pass
+
+
 class TraceSignalsError(Error):
     pass
+
+
 class ConversionError(Error):
     pass
+
+
 class ToVerilogError(ConversionError):
     pass
+
+
 class ToVHDLError(ConversionError):
     pass
 
+
 class ConversionWarning(UserWarning):
     pass
+
+
 class ToVerilogWarning(ConversionWarning):
     pass
+
+
 class ToVHDLWarning(ConversionWarning):
     pass
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)

@@ -28,11 +28,10 @@ class join(object):
         """ Construct join object
 
         *args -- list of trigger object arguments.
-        
+
         """
 
         self._args = args
 
     def _generator(self):
         yield join(*self._args)
-

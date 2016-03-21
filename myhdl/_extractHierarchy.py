@@ -38,6 +38,7 @@ from myhdl._getcellvars import _getCellVars
 
 _profileFunc = None
 
+
 class _error:
     pass
 _error.NoInstances = "No instances found"
@@ -47,6 +48,7 @@ _error.InconsistentToplevel = "Inconsistent top level %s for %s - should be 1"
 
 class _Instance(object):
     __slots__ = ['level', 'obj', 'subs', 'sigdict', 'memdict', 'name']
+
     def __init__(self, level, obj, subs, sigdict, memdict):
         self.level = level
         self.obj = obj
@@ -57,8 +59,10 @@ class _Instance(object):
 
 _memInfoMap = {}
 
+
 class _MemInfo(object):
     __slots__ = ['mem', 'name', 'elObj', 'depth', '_used', '_driven', '_read']
+
     def __init__(self, mem):
         self.mem = mem
         self.name = None
@@ -72,21 +76,25 @@ class _MemInfo(object):
 def _getMemInfo(mem):
     return _memInfoMap[id(mem)]
 
+
 def _makeMemInfo(mem):
     key = id(mem)
     if key not in _memInfoMap:
         _memInfoMap[key] = _MemInfo(mem)
     return _memInfoMap[key]
 
+
 def _isMem(mem):
     return id(mem) in _memInfoMap
 
 _userCodeMap = {'verilog': {},
                 'vhdl': {}
-               }
+                }
+
 
 class _UserCode(object):
     __slots__ = ['code', 'namespace', 'funcname', 'func', 'sourcefile', 'sourceline']
+
     def __init__(self, code, namespace, funcname, func, sourcefile, sourceline):
         self.code = code
         self.namespace = namespace
@@ -110,26 +118,35 @@ class _UserCode(object):
     def _interpolate(self):
         return string.Template(self.code).substitute(self.namespace)
 
+
 class _UserCodeDepr(_UserCode):
+
     def _interpolate(self):
         return self.code % self.namespace
 
+
 class _UserVerilogCode(_UserCode):
+
     def raiseError(self, msg, info):
         raise ToVerilogError("Error in user defined Verilog code", msg, info)
 
+
 class _UserVhdlCode(_UserCode):
+
     def raiseError(self, msg, info):
         raise ToVHDLError("Error in user defined VHDL code", msg, info)
 
+
 class _UserVerilogCodeDepr(_UserVerilogCode, _UserCodeDepr):
     pass
+
 
 class _UserVhdlCodeDepr(_UserVhdlCode, _UserCodeDepr):
     pass
 
 
 class _UserVerilogInstance(_UserVerilogCode):
+
     def __str__(self):
         args = inspect.getargspec(self.func)[0]
         s = "%s %s(" % (self.funcname, self.code)
@@ -143,7 +160,9 @@ class _UserVerilogInstance(_UserVerilogCode):
         s += "\n);\n\n"
         return s
 
+
 class _UserVhdlInstance(_UserVhdlCode):
+
     def __str__(self):
         args = inspect.getargspec(self.func)[0]
         s = "%s: entity work.%s(MyHDL)\n" % (self.code, self.funcname)
@@ -159,17 +178,16 @@ class _UserVhdlInstance(_UserVhdlCode):
         return s
 
 
-
 def _addUserCode(specs, arg, funcname, func, frame):
     classMap = {
-                '__verilog__': _UserVerilogCodeDepr,
-                '__vhdl__': _UserVhdlCodeDepr,
-                'verilog_code': _UserVerilogCode,
-                'vhdl_code': _UserVhdlCode,
-                'verilog_instance': _UserVerilogInstance,
-                'vhdl_instance': _UserVhdlInstance,
+        '__verilog__': _UserVerilogCodeDepr,
+        '__vhdl__': _UserVhdlCodeDepr,
+        'verilog_code': _UserVerilogCode,
+        'vhdl_code': _UserVhdlCode,
+        'verilog_instance': _UserVerilogInstance,
+        'vhdl_instance': _UserVhdlInstance,
 
-               }
+    }
     namespace = frame.f_globals.copy()
     namespace.update(frame.f_locals)
     sourcefile = inspect.getsourcefile(frame)
@@ -189,7 +207,8 @@ def _addUserCode(specs, arg, funcname, func, frame):
         if spec:
             assert id(arg) not in _userCodeMap[hdl]
             code = specs[spec]
-            _userCodeMap[hdl][id(arg)] = classMap[spec](code, namespace, funcname, func, sourcefile, sourceline)
+            _userCodeMap[hdl][id(arg)] = classMap[spec](
+                code, namespace, funcname, func, sourcefile, sourceline)
 
 
 class _CallFuncVisitor(object):
@@ -207,7 +226,6 @@ class _CallFuncVisitor(object):
         self.lineno = node.lineno
 
 
-
 class _HierExtr(object):
 
     def __init__(self, name, dut, *args, **kwargs):
@@ -216,10 +234,10 @@ class _HierExtr(object):
         _memInfoMap.clear()
         for hdl in _userCodeMap:
             _userCodeMap[hdl].clear()
-        self.skipNames = ('always_comb', 'instance', \
-                          'always_seq', '_always_seq_decorator', \
-                          'always', '_always_decorator', \
-                          'instances', \
+        self.skipNames = ('always_comb', 'instance',
+                          'always_seq', '_always_seq_decorator',
+                          'always', '_always_decorator',
+                          'instances',
                           'processes', 'posedge', 'negedge')
         self.skip = 0
         self.hierarchy = hierarchy = []
@@ -259,7 +277,6 @@ class _HierExtr(object):
                         sni = "%s_%s" % (sn, i)
                         names[id(soi)] = sni
                         absnames[id(soi)] = "%s_%s_%s" % (tn, sn, i)
-
 
     def extractor(self, frame, event, arg):
         if event == "call":
@@ -324,8 +341,8 @@ class _HierExtr(object):
                         # extract signals and memories
                         # also keep track of whether they are used in generators
                         # only include objects that are used in generators
-# if not n in cellvars:
-# continue
+                        # if not n in cellvars:
+                        # continue
                         if isinstance(v, _Signal):
                             sigdict[n] = v
                             if n in cellvars:

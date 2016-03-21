@@ -39,6 +39,7 @@ from myhdl._block import _Block
 
 schedule = _futureEvents.append
 
+
 class _error:
     pass
 _error.ArgType = "Inappriopriate argument type"
@@ -46,6 +47,8 @@ _error.MultipleCosim = "Only a single cosimulator argument allowed"
 _error.DuplicatedArg = "Duplicated argument"
 
 # flatten Block objects out
+
+
 def _flatten(*args):
     arglist = []
     for arg in args:
@@ -59,6 +62,7 @@ def _flatten(*args):
     return arglist
 
 _error.MultipleSim = "Only a single Simulation instance is allowed"
+
 
 class Simulation(object):
 
@@ -89,7 +93,6 @@ class Simulation(object):
         del _futureEvents[:]
         del _siglist[:]
 
-
     def _finalize(self):
         cosim = self._cosim
         if cosim:
@@ -110,7 +113,6 @@ class Simulation(object):
         self._finalize()
 
     def run(self, duration=None, quiet=0):
-
         """ Run the simulation for some duration.
 
         duration -- specified simulation duration (default: forever)

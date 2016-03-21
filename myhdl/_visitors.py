@@ -5,6 +5,7 @@ from myhdl._Signal import _Signal, _isListOfSigs
 
 
 class _SigNameVisitor(ast.NodeVisitor):
+
     def __init__(self, symdict):
         self.toplevel = 1
         self.symdict = symdict
@@ -31,7 +32,7 @@ class _SigNameVisitor(ast.NodeVisitor):
     def visit_If(self, node):
         if not node.orelse:
             if isinstance(node.test, ast.Name) and \
-                node.test.id == '__debug__':
+                    node.test.id == '__debug__':
                 return  # skip
         self.generic_visit(node)
 

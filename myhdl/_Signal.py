@@ -63,18 +63,25 @@ class _WaiterList(list):
 
 
 class _PosedgeWaiterList(_WaiterList):
+
     def __init__(self, sig):
         self.sig = sig
+
     def _toVerilog(self):
         return "posedge %s" % self.sig._name
+
     def _toVHDL(self):
         return "rising_edge(%s)" % self.sig._name
 
+
 class _NegedgeWaiterList(_WaiterList):
+
     def __init__(self, sig):
         self.sig = sig
+
     def _toVerilog(self):
         return "negedge %s" % self.sig._name
+
     def _toVHDL(self):
         return "falling_edge(%s)" % self.sig._name
 
@@ -83,11 +90,14 @@ def posedge(sig):
     """ Return a posedge trigger object """
     return sig.posedge
 
+
 def negedge(sig):
     """ Return a negedge trigger object """
     return sig.negedge
 
 # signal factory function
+
+
 def Signal(val=None, delay=None):
     """ Return a new _Signal (default or delay 0) or DelayedSignal """
     if delay is not None:
@@ -96,6 +106,7 @@ def Signal(val=None, delay=None):
         return _DelayedSignal(val, delay)
     else:
         return _Signal(val)
+
 
 class _Signal(object):
 
@@ -114,8 +125,7 @@ class _Signal(object):
                  '_driven', '_read', '_name', '_used', '_inList',
                  '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
                  '_numeric'
-                )
-
+                 )
 
     def __init__(self, val=None):
         """ Construct a signal.
@@ -211,8 +221,8 @@ class _Signal(object):
     # support for the 'next' attribute
     @property
     def next(self):
-#        if self._next is self._val:
-#            self._next = deepcopy(self._val)
+        #        if self._next is self._val:
+        #            self._next = deepcopy(self._val)
         _siglist.append(self)
         return self._next
 
@@ -332,12 +342,10 @@ class _Signal(object):
         self._slicesigs.append(s)
         return s
 
-
     ### operators for which delegation to current value is appropriate ###
 
     def __hash__(self):
         raise TypeError("Signals are unhashable")
-
 
     def __bool__(self):
         return bool(self._val)
@@ -361,6 +369,7 @@ class _Signal(object):
             return self._val + other._val
         else:
             return self._val + other
+
     def __radd__(self, other):
         return other + self._val
 
@@ -369,6 +378,7 @@ class _Signal(object):
             return self._val - other._val
         else:
             return self._val - other
+
     def __rsub__(self, other):
         return other - self._val
 
@@ -377,6 +387,7 @@ class _Signal(object):
             return self._val * other._val
         else:
             return self._val * other
+
     def __rmul__(self, other):
         return other * self._val
 
@@ -385,6 +396,7 @@ class _Signal(object):
             return self._val / other._val
         else:
             return self._val / other
+
     def __rtruediv__(self, other):
         return other / self._val
 
@@ -393,6 +405,7 @@ class _Signal(object):
             return self._val // other._val
         else:
             return self._val // other
+
     def __rfloordiv__(self, other):
         return other // self._val
 
@@ -401,6 +414,7 @@ class _Signal(object):
             return self._val % other._val
         else:
             return self._val % other
+
     def __rmod__(self, other):
         return other % self._val
 
@@ -411,6 +425,7 @@ class _Signal(object):
             return self._val ** other._val
         else:
             return self._val ** other
+
     def __rpow__(self, other):
         return other ** self._val
 
@@ -419,6 +434,7 @@ class _Signal(object):
             return self._val << other._val
         else:
             return self._val << other
+
     def __rlshift__(self, other):
         return other << self._val
 
@@ -427,6 +443,7 @@ class _Signal(object):
             return self._val >> other._val
         else:
             return self._val >> other
+
     def __rrshift__(self, other):
         return other >> self._val
 
@@ -435,6 +452,7 @@ class _Signal(object):
             return self._val & other._val
         else:
             return self._val & other
+
     def __rand__(self, other):
         return other & self._val
 
@@ -443,6 +461,7 @@ class _Signal(object):
             return self._val | other._val
         else:
             return self._val | other
+
     def __ror__(self, other):
         return other | self._val
 
@@ -451,6 +470,7 @@ class _Signal(object):
             return self._val ^ other._val
         else:
             return self._val ^ other
+
     def __rxor__(self, other):
         return other ^ self._val
 
@@ -486,21 +506,24 @@ class _Signal(object):
     def __index__(self):
         return int(self._val)
 
-
     # comparisons
     def __eq__(self, other):
         return self.val == other
+
     def __ne__(self, other):
         return self.val != other
+
     def __lt__(self, other):
         return self.val < other
+
     def __le__(self, other):
         return self.val <= other
+
     def __gt__(self, other):
         return self.val > other
+
     def __ge__(self, other):
         return self.val >= other
-
 
     # method lookup delegation
     def __getattr__(self, attr):
@@ -527,11 +550,9 @@ class _Signal(object):
     __ior__ = __iand__ = __ixor__ = __irshift__ = __ilshift__ = _augm
     __itruediv__ = __ifloordiv__ = _augm
 
-
     # index and slice assignment not supported
     def __setitem__(self, key, val):
         raise TypeError("Signal object doesn't support item/slice assignment")
-
 
     # continues assignment support
     def assign(self, sig):
@@ -558,7 +579,7 @@ class _Signal(object):
 class _DelayedSignal(_Signal):
 
     __slots__ = ('_nextZ', '_delay', '_timeStamp',
-                )
+                 )
 
     def __init__(self, val=None, delay=1):
         """ Construct a new DelayedSignal.
@@ -609,10 +630,12 @@ class _DelayedSignal(_Signal):
 
 
 class _SignalWrap(object):
+
     def __init__(self, sig, next, timeStamp):
         self.sig = sig
         self.next = next
         self.timeStamp = timeStamp
+
     def apply(self):
         return self.sig._apply(self.next, self.timeStamp)
 

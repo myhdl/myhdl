@@ -32,6 +32,7 @@ import inspect
 from myhdl._Cosimulation import Cosimulation
 from myhdl._instance import _Instantiator
 
+
 def _isGenSeq(obj):
     if isinstance(obj, (Cosimulation, _Instantiator)):
         return True
@@ -50,9 +51,10 @@ def instances():
     d = inspect.getouterframes(f)[1][0].f_locals
     l = []
     for v in d.values():
-      if _isGenSeq(v):
-         l.append(v)
+        if _isGenSeq(v):
+            l.append(v)
     return l
+
 
 def downrange(start, stop=0, step=1):
     """ Return a downward range. """

@@ -48,7 +48,6 @@ class Cosimulation(object):
     """ Cosimulation class. """
 
     def __init__(self, exe="", **kwargs):
-
         """ Construct a cosimulation object. """
 
         if _simulator._cosim:

@@ -4,10 +4,12 @@ import warnings
 from myhdl._Signal import _Signal, _DelayedSignal
 from myhdl._simulator import _siglist
 
+
 class BusContentionWarning(UserWarning):
     pass
 
 warnings.filterwarnings('always', r".*", BusContentionWarning)
+
 
 def Tristate(val, delay=None):
     """ Return a new Tristate(default or delay 0) or DelayedTristate """
@@ -56,13 +58,13 @@ class _TristateDriver(_Signal):
 
     @_Signal.next.setter
     def next(self, val):
-         if isinstance(val, _Signal):
+        if isinstance(val, _Signal):
             val = val._val
-         if val is None:
-             self._next = None
-         else:
-             self._setNextVal(val)
-         _siglist.append(self._bus)
+        if val is None:
+            self._next = None
+        else:
+            self._setNextVal(val)
+        _siglist.append(self._bus)
 
 
 class _DelayedTristate(_DelayedSignal, _Tristate):

@@ -50,7 +50,6 @@ class _ShadowSignal(_Signal):
         raise AttributeError("ShadowSignals are readonly")
 
 
-
 class _SliceSignal(_ShadowSignal):
 
     __slots__ = ('_sig', '_left', '_right')
@@ -104,7 +103,6 @@ class _SliceSignal(_ShadowSignal):
         self._used = True
         self._sig._used = True
 
-
     def toVerilog(self):
         if self._right is None:
             return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
@@ -116,7 +114,6 @@ class _SliceSignal(_ShadowSignal):
             return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
         else:
             return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
-
 
 
 class ConcatSignal(_ShadowSignal):
@@ -148,7 +145,7 @@ class ConcatSignal(_ShadowSignal):
                 w = len(a)
                 v = long(a, 2)
             else:
-                raise TypeError("ConcatSignal: inappropriate argument type: %s" \
+                raise TypeError("ConcatSignal: inappropriate argument type: %s"
                                 % type(a))
             nrbits += w
             val = val << w | v & (long(1) << w) - 1
@@ -209,12 +206,13 @@ class ConcatSignal(_ShadowSignal):
                     else:
                         lines.append("%s(%s) <= %s(0);" % (self._name, lo, a._name))
                 else:
-                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
+                    lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal):
                     lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append('%s(%s-1 downto %s) <= "%s";' % (self._name, hi, lo, bin(ini[hi:lo], w)))
+                    lines.append('%s(%s-1 downto %s) <= "%s";' %
+                                 (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -240,7 +238,8 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal):
                     lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" % (self._name, hi, lo, bin(ini[hi:lo], w)))
+                    lines.append("assign %s[%s-1:%s] = 'b%s;" %
+                                 (self._name, hi, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -301,7 +300,6 @@ class _TristateSignal(_ShadowSignal):
             self._next = res
             _siglist.append(self)
 
-
     def toVerilog(self):
         lines = []
         for d in self._drivers:
@@ -315,7 +313,6 @@ class _TristateSignal(_ShadowSignal):
             if d._driven:
                 lines.append("%s <= %s;" % (self._name, d._name))
         return "\n".join(lines)
-
 
 
 class _TristateDriver(_Signal):

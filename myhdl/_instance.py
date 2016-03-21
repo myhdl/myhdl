@@ -30,12 +30,15 @@ from myhdl._Waiter import _inferWaiter
 from myhdl._resolverefs import _AttrRefTransformer
 from myhdl._visitors import _SigNameVisitor
 
+
 class _error:
     pass
 _error.NrOfArgs = "decorated generator function should not have arguments"
 _error.ArgType = "decorated object should be a generator function"
 
+
 class _CallInfo(object):
+
     def __init__(self, name, modctxt, symdict):
         self.name = name
         self.modctxt = modctxt
@@ -76,6 +79,7 @@ def instance(genfunc):
     if genfunc.__code__.co_argcount > 0:
         raise InstanceError(_error.NrOfArgs)
     return _Instantiator(genfunc, callinfo=callinfo)
+
 
 class _Instantiator(object):
 

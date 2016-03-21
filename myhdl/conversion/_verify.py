@@ -46,7 +46,7 @@ registerSimulator(
     analyze="ghdl -a --std=08 --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
     elaborate="ghdl -e --std=08 --workdir=work %(unitname)s",
     simulate="ghdl -r --workdir=work %(unitname)s"
-    )
+)
 
 registerSimulator(
     name="nvc",
@@ -54,7 +54,7 @@ registerSimulator(
     analyze="nvc --work=work_nvc -a pck_myhdl_%(version)s.vhd %(topname)s.vhd",
     elaborate="nvc --work=work_nvc -e %(topname)s",
     simulate="nvc --work=work_nvc -r %(topname)s"
-    )
+)
 
 registerSimulator(
     name="vlog",
@@ -64,7 +64,7 @@ registerSimulator(
     skiplines=6,
     skipchars=2,
     ignore=("# **", "# //", "# run -all")
-    )
+)
 
 registerSimulator(
     name="vcom",
@@ -74,7 +74,7 @@ registerSimulator(
     skiplines=6,
     skipchars=2,
     ignore=("# **", "# //", "#    Time:", "# run -all")
-    )
+)
 
 
 registerSimulator(
@@ -82,7 +82,7 @@ registerSimulator(
     hdl="Verilog",
     analyze="iverilog -o %(topname)s.o %(topname)s.v",
     simulate="vvp %(topname)s.o"
-    )
+)
 
 registerSimulator(
     name="cver",
@@ -90,7 +90,7 @@ registerSimulator(
     analyze="cver -c -q %(topname)s.v",
     simulate="cver -q %(topname)s.v",
     skiplines=3
-    )
+)
 
 
 class _VerificationClass(object):
@@ -100,7 +100,6 @@ class _VerificationClass(object):
     def __init__(self, analyzeOnly=False):
         self.simulator = None
         self._analyzeOnly = analyzeOnly
-
 
     def __call__(self, func, *args, **kwargs):
 
@@ -117,7 +116,8 @@ class _VerificationClass(object):
         elif isinstance(func, _Block):
             name = func.func.__name__
         else:
-            warnings.warn("\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+            warnings.warn(
+                "\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
             try:
                 name = func.__name__
             except:
@@ -184,7 +184,6 @@ class _VerificationClass(object):
         if not flines:
             print("No MyHDL simulation output - nothing to verify", file=sys.stderr)
             return 1
-
 
         if elaborate is not None:
             # print(elaborate)

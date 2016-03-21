@@ -227,7 +227,6 @@ def _inferWaiter(gen):
     return _Waiter(gen)
 
 
-
 class _YieldVisitor(ast.NodeVisitor):
 
     def __init__(self, root):
@@ -286,7 +285,5 @@ class _YieldVisitor(ast.NodeVisitor):
             node.kind = _kind.EDGE
 
 
-
 # avoid problems with recursive imports
 from myhdl._instance import _Instantiator
-

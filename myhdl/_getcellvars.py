@@ -7,6 +7,7 @@ from myhdl._util import _flatten
 class Data():
     pass
 
+
 def _getCellVars(symdict, arg):
     gens = _flatten(arg)
     data = Data()
@@ -16,7 +17,9 @@ def _getCellVars(symdict, arg):
         v.visit(gen.ast)
     return list(data.objset)
 
+
 class _GetCellVars(ast.NodeVisitor):
+
     def __init__(self, data):
         self.data = data
         self.data.objset = set()

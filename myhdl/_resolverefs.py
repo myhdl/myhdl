@@ -24,6 +24,7 @@ def _resolveRefs(symdict, arg):
 # TODO: Refactor this into two separate nodetransformers, since _resolveRefs
 # needs only the names, not the objects
 
+
 def _suffixer(name, used_names):
     suffixed_names = (name + '_renamed{0}'.format(i) for i in itertools.count())
     new_names = itertools.chain([name], suffixed_names)
@@ -31,6 +32,7 @@ def _suffixer(name, used_names):
 
 
 class _AttrRefTransformer(ast.NodeTransformer):
+
     def __init__(self, data):
         self.data = data
         self.data.objlist = []

@@ -24,7 +24,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 
-
 import sys
 import time
 import os
@@ -42,6 +41,7 @@ from myhdl._getHierarchy import _getHierarchy
 _tracing = 0
 _profileFunc = None
 vcdpath = ''
+
 
 class _error:
     pass
@@ -110,7 +110,8 @@ class _TraceSignalsClass(object):
             if isinstance(dut, _Block):
                 h = _getHierarchy(name, dut)
             else:
-                warnings.warn("\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+                warnings.warn(
+                    "\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
                 h = _HierExtr(name, dut, *args, **kwargs)
 
             if self.filename is None:
@@ -142,11 +143,13 @@ for i in range(33, 127):
     _codechars += chr(i)
 _mod = len(_codechars)
 
+
 def _genNameCode():
     n = 0
     while 1:
         yield _namecode(n)
         n += 1
+
 
 def _namecode(n):
     q, r = divmod(n, _mod)
@@ -155,6 +158,7 @@ def _namecode(n):
         q, r = divmod(q, _mod)
         code = _codechars[r] + code
     return code
+
 
 def _writeVcdHeader(f, timescale):
     print("$date", file=f)
@@ -168,6 +172,7 @@ def _writeVcdHeader(f, timescale):
     print("$end", file=f)
     print(file=f)
 
+
 def _getSval(s):
     if isinstance(s, _TristateSignal):
         sval = s._orival
@@ -176,6 +181,7 @@ def _getSval(s):
     else:
         sval = s._val
     return sval
+
 
 def _writeVcdSigs(f, hierarchy, tracelists):
     curlevel = 0
