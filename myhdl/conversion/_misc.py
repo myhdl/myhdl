@@ -23,14 +23,9 @@
 from __future__ import absolute_import
 
 
-import inspect
 import ast
 
-import myhdl
-import myhdl
-from myhdl import *
 from myhdl import ConversionError
-from myhdl._util import _flatten
 from myhdl._compat import PY2
 
 class _error(object):

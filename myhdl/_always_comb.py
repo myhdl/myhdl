@@ -20,16 +20,11 @@
 """ Module with the always_comb function. """
 from __future__ import absolute_import
 
-import sys
-import inspect
 from types import FunctionType
-import re
-import ast
 
 from myhdl import AlwaysCombError
 from myhdl._Signal import _Signal, _isListOfSigs
-from myhdl._util import _isGenFunc, _dedent
-from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
+from myhdl._util import _isGenFunc
 from myhdl._instance import _getCallInfo
 from myhdl._always import _Always
 

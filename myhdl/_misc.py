@@ -27,7 +27,6 @@ downrange -- function that returns a downward range
 from __future__ import absolute_import
 
 
-import sys
 import inspect
 
 from myhdl._Cosimulation import Cosimulation

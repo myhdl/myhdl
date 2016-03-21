@@ -1,11 +1,7 @@
 from __future__ import absolute_import
 import ast
-import itertools
-from types import FunctionType
 
 from myhdl._util import _flatten
-from myhdl._enum import EnumType
-from myhdl._Signal import SignalType
 
 
 class Data():

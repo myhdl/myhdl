@@ -22,12 +22,12 @@ from __future__ import absolute_import
 
 
 from types import FunctionType
-import inspect
 
 from myhdl import AlwaysError
-from myhdl._util import _isGenFunc, _makeAST
+from myhdl._util import _isGenFunc
 from myhdl._delay import delay
-from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
+from myhdl._Signal import _Signal
+from myhdl._Signal import _WaiterList
 from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter, \
                           _DelayWaiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._instance import _Instantiator, _getCallInfo

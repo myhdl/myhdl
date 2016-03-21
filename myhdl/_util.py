@@ -25,7 +25,6 @@ from __future__ import print_function
 
 import ast
 import sys
-import os
 import inspect
 
 from tokenize import generate_tokens, untokenize, INDENT

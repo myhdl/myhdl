@@ -26,10 +26,10 @@ import inspect
 # import compiler
 # from compiler import ast as astNode
 from types import FunctionType, MethodType
+import sys
 import re
 import ast
 from itertools import chain
-from collections import defaultdict
 
 import myhdl
 import myhdl
@@ -44,7 +44,9 @@ from myhdl.conversion._misc import (_error, _access, _kind,
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
-from myhdl._util import _isTupleOfInts, _dedent, _flatten, _makeAST
+from myhdl._util import _flatten
+from myhdl._util import _isTupleOfInts
+from myhdl._util import _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
 from myhdl._compat import builtins, integer_types, PY2
 

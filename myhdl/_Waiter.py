@@ -25,7 +25,6 @@ from types import GeneratorType
 
 import ast
 import inspect
-import re
 
 
 from myhdl._util import _dedent
@@ -33,8 +32,7 @@ from myhdl._delay import delay
 from myhdl._join import join
 from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl import _simulator
-from myhdl._simulator import _siglist, _futureEvents
-from myhdl._enum import enum
+from myhdl._simulator import _futureEvents
 
 
 schedule = _futureEvents.append

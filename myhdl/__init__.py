@@ -21,7 +21,7 @@
 
 This module provides the following myhdl objects:
 Simulation -- simulation class
-StopStimulation -- exception that stops a simulation
+StopSimulation -- exception that stops a simulation
 now -- function that returns the current time
 Signal -- factory function to model hardware signals
 SignalType -- Signal base class
@@ -54,8 +54,6 @@ from __future__ import print_function
 
 __version__ = "1.0dev"
 
-import sys
-import warnings
 
 class StopSimulation(Exception):
     """ Basic exception to stop a Simulation """
@@ -91,8 +89,6 @@ class CosimulationError(Error):
 class ExtractHierarchyError(Error):
     pass
 class SimulationError(Error):
-    pass
-class ToVerilogError(Error):
     pass
 class TraceSignalsError(Error):
     pass

@@ -24,7 +24,6 @@
 from __future__ import absolute_import
 
 from myhdl._extractHierarchy import _Instance
-from myhdl._instance import _Instantiator
 from myhdl._block import _Block
 
 class _Hierarchy(object):

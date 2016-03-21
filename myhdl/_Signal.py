@@ -30,11 +30,12 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 from copy import copy, deepcopy
-import operator
 
 from myhdl._compat import integer_types, long
 from myhdl import _simulator as sim
-from myhdl._simulator import _signals, _siglist, _futureEvents, now
+from myhdl._simulator import _futureEvents
+from myhdl._simulator import _siglist
+from myhdl._simulator import _signals
 from myhdl._intbv import intbv
 from myhdl._bin import bin
 

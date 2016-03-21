@@ -25,14 +25,12 @@ from __future__ import absolute_import
 
 import sys
 import inspect
-import re
 import string
-from types import GeneratorType
-import linecache
 
 from myhdl import ExtractHierarchyError, ToVerilogError, ToVHDLError
 from myhdl._Signal import _Signal, _isListOfSigs
-from myhdl._util import _isGenFunc, _flatten, _genfunc
+from myhdl._util import _flatten
+from myhdl._util import _genfunc
 from myhdl._misc import _isGenSeq
 from myhdl._resolverefs import _resolveRefs
 from myhdl._getcellvars import _getCellVars

@@ -21,16 +21,11 @@
 from __future__ import absolute_import
 
 
-import sys
-import inspect
 from types import FunctionType
-import ast
 
 from myhdl import AlwaysError, intbv
-from myhdl._util import _isGenFunc, _dedent
-from myhdl._delay import delay
+from myhdl._util import _isGenFunc
 from myhdl._Signal import _Signal, _WaiterList,_isListOfSigs
-from myhdl._Waiter import _Waiter, _EdgeWaiter, _EdgeTupleWaiter
 from myhdl._always import _Always, _getSigdict
 from myhdl._instance import _getCallInfo
 

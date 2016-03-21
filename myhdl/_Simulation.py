@@ -22,7 +22,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 
-import sys
 import os
 from operator import itemgetter
 from warnings import warn
@@ -31,11 +30,12 @@ from types import GeneratorType
 from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._simulator import _signals, _siglist, _futureEvents
-from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
+from myhdl._Waiter import _Waiter
+from myhdl._Waiter import _inferWaiter
+from myhdl._Waiter import _SignalTupleWaiter
 from myhdl._util import _printExcInfo
 from myhdl._instance import _Instantiator
 from myhdl._block import _Block
-from myhdl._ShadowSignal import _ShadowSignal
 
 schedule = _futureEvents.append
 

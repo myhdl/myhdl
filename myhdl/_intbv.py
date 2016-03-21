@@ -20,7 +20,6 @@
 """ Module with the intbv class """
 from __future__ import absolute_import, division
 
-import operator
 
 from myhdl._compat import long, integer_types, string_types, builtins
 from myhdl._bin import bin
