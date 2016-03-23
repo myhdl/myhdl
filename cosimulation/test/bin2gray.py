@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 def bin2gray(B, G, width):

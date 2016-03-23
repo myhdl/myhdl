@@ -17,6 +17,8 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+# pylint: disable=redefined-builtin
+
 """ module with the concat function.
 
 """
@@ -26,7 +28,6 @@ from myhdl._compat import integer_types
 from myhdl._intbv import intbv
 from myhdl._Signal import _Signal
 from myhdl._compat import long
-
 
 
 def concat(base, *args):
@@ -50,7 +51,7 @@ def concat(base, *args):
         basewidth = len(base)
         val = long(base, 2)
     else:
-        raise TypeError("concat: inappropriate first argument type: %s" \
+        raise TypeError("concat: inappropriate first argument type: %s"
                         % type(base))
 
     width = 0
@@ -71,15 +72,14 @@ def concat(base, *args):
             w = len(arg)
             v = long(arg, 2)
         else:
-            raise TypeError("concat: inappropriate argument type: %s" \
+            raise TypeError("concat: inappropriate argument type: %s"
                             % type(arg))
         if not w:
-            raise TypeError("concat: arg on pos %d should have length" % (i+1))
+            raise TypeError("concat: arg on pos %d should have length" % (i + 1))
         width += w
-        val = val << w | v & (long(1) << w)-1
- 
+        val = val << w | v & (long(1) << w) - 1
+
     if basewidth:
         return intbv(val, _nrbits=basewidth + width)
     else:
         return intbv(val)
-

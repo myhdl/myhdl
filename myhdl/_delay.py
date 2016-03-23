@@ -24,10 +24,11 @@ from myhdl._compat import integer_types
 
 _errmsg = "arg of delay constructor should be a natural integeer"
 
+
 class delay(object):
 
     """ Class to model delay in yield statements. """
-    
+
     def __init__(self, val):
         """ Return a delay instance.
 

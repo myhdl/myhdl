@@ -1,6 +1,7 @@
 import sys
 import traceback
 
+import myhdl
 from myhdl import *
 
 class Error(Exception):

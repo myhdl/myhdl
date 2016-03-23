@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import os
 path = os.path
 
+import myhdl
 from myhdl import *
 
 

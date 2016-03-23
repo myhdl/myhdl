@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 def latch(q, d, g):
@@ -33,6 +34,7 @@ def simulate(timesteps):
     tb = traceSignals(test_latch)
     sim = Simulation(tb)
     sim.run(timesteps)
+    sim.quit()
 
 simulate(20000)
 

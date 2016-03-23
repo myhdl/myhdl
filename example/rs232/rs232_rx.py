@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 from rs232_util import sec, parity, ParityError, StopBitError

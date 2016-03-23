@@ -6,6 +6,7 @@ import random
 from random import randrange
 random.seed(2)
 
+import myhdl
 from myhdl import *
 
 from myhdl import ConversionError

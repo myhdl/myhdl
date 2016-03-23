@@ -22,7 +22,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 
-import sys
 import os
 from operator import itemgetter
 from warnings import warn
@@ -31,21 +30,40 @@ from types import GeneratorType
 from myhdl import Cosimulation, StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._simulator import _signals, _siglist, _futureEvents
-from myhdl._Waiter import _Waiter, _inferWaiter, _SignalWaiter,_SignalTupleWaiter
-from myhdl._util import _flatten, _printExcInfo
+from myhdl._Waiter import _Waiter
+from myhdl._Waiter import _inferWaiter
+from myhdl._Waiter import _SignalTupleWaiter
+from myhdl._util import _printExcInfo
 from myhdl._instance import _Instantiator
-from myhdl._ShadowSignal import _ShadowSignal
-
-
+from myhdl._block import _Block
 
 schedule = _futureEvents.append
+
 
 class _error:
     pass
 _error.ArgType = "Inappriopriate argument type"
 _error.MultipleCosim = "Only a single cosimulator argument allowed"
 _error.DuplicatedArg = "Duplicated argument"
-            
+
+# flatten Block objects out
+
+
+def _flatten(*args):
+    arglist = []
+    for arg in args:
+        if isinstance(arg, _Block):
+            arg = arg.subs
+        if isinstance(arg, (list, tuple, set)):
+            for item in arg:
+                arglist.extend(_flatten(item))
+        else:
+            arglist.append(arg)
+    return arglist
+
+_error.MultipleSim = "Only a single Simulation instance is allowed"
+
+
 class Simulation(object):
 
     """ Simulation class.
@@ -54,6 +72,7 @@ class Simulation(object):
     run -- run a simulation for some duration
 
     """
+    _no_of_instances = 0
 
     def __init__(self, *args):
         """ Construct a simulation object.
@@ -65,13 +84,15 @@ class Simulation(object):
         _simulator._time = 0
         arglist = _flatten(*args)
         self._waiters, self._cosim = _makeWaiters(arglist)
+        if Simulation._no_of_instances > 0:
+            raise SimulationError(_error.MultipleSim)
+        Simulation._no_of_instances += 1
         if not self._cosim and _simulator._cosim:
             warn("Cosimulation not registered as Simulation argument")
         self._finished = False
         del _futureEvents[:]
         del _siglist[:]
-        
-        
+
     def _finalize(self):
         cosim = self._cosim
         if cosim:
@@ -85,15 +106,13 @@ class Simulation(object):
         # clean up for potential new run with same signals
         for s in _signals:
             s._clear()
+        Simulation._no_of_instances = 0
         self._finished = True
-            
-        
-    def runc(self, duration=0, quiet=0):
-        simrunc.run(sim=self, duration=duration, quiet=quiet)
 
+    def quit(self):
+        self._finalize()
 
     def run(self, duration=None, quiet=0):
-
         """ Run the simulation for some duration.
 
         duration -- specified simulation duration (default: forever)
@@ -196,12 +215,12 @@ class Simulation(object):
                     tracefile.flush()
                 # if the exception came from a yield, make sure we can resume
                 if exc and e is exc[0]:
-                    pass # don't finalize
+                    pass  # don't finalize
                 else:
                     self._finalize()
                 # now reraise the exepction
                 raise
-                
+
 
 def _makeWaiters(arglist):
     waiters = []
@@ -231,4 +250,3 @@ def _makeWaiters(arglist):
         if hasattr(sig, '_waiter'):
             waiters.append(sig._waiter)
     return waiters, cosim
-        

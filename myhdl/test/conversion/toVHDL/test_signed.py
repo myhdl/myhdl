@@ -4,6 +4,7 @@ path = os.path
 import random
 from random import randrange
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -42,6 +43,7 @@ def binaryOps(
     ##         if right != 0:
     ##             FloorDiv.next = left // right
             # Keep left shifts smaller than 2** 31 for VHDL's to_integer
+            LeftShift.next = 0
             if left < 256 and right < 22 and right >= 0:
                 LeftShift.next = left << right
     ##         if right != 0:
@@ -308,6 +310,7 @@ def augmOps(
     ##             var[:] = left
     ##             var //= right
     ##             FloorDiv.next = var
+            LeftShift.next = 0
             if left < 256 and right < 22 and right >= 0:
                 var2[:] = left
                 var2 <<= right
@@ -321,6 +324,7 @@ def augmOps(
             Mul.next = var
 
             var[:] = left
+            RightShift.next = 0
             if right >= 0:
                 var >>= right
                 RightShift.next = var

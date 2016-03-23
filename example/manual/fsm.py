@@ -1,9 +1,11 @@
+import myhdl
 from myhdl import *
 
 ACTIVE_LOW = 0
 FRAME_SIZE = 8
 t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
 
+@block
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     
     """ Framing control FSM.
@@ -53,6 +55,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
     return FSM
 
 
+@block
 def testbench():
 
     SOF = Signal(bool(0))
@@ -83,9 +86,10 @@ def testbench():
 
 
 def main():
-    tb_fsm = traceSignals(testbench)
-    sim = Simulation(tb_fsm)
-    sim.run()
+    tb = testbench()
+    tb.config_sim(trace=True)
+    tb.run_sim()
+
 
 if __name__ == '__main__':
     main()

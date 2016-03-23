@@ -5,6 +5,7 @@ import random
 from random import randrange
 random.seed(2)
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -39,11 +40,14 @@ def binaryOps(
             Bitand.next = left & right
             Bitor.next = left | right
             Bitxor.next = left ^ right
+            FloorDiv.next = 0
             if right != 0:
                 FloorDiv.next = left // right
     ##         if left < 256 and right < 40:
+            LeftShift.next = 0
             if left < 256 and right < 26: # fails in ghdl for > 26
                 LeftShift.next = left << right
+            Modulo.next = 0 
             if right != 0:
                 Modulo.next = left % right
             Mul.next = left * right
@@ -52,6 +56,7 @@ def binaryOps(
             #    Pow.next = left ** right
     ##         Pow.next = 0
             RightShift.next = left >> right
+            Sub.next = 0
             if left >= right:
                 Sub.next = left - right
             Sum.next = left + right
@@ -358,10 +363,12 @@ def augmOps(  Bitand,
             var[:] = left
             var ^= left
             Bitxor.next = var
+            FloorDiv.next = 0
             if right != 0:
                 var[:] = left
                 var //= right
                 FloorDiv.next = var
+            Sub.next = 0
             if left >= right:
                 var[:] = left
                 var -= right
@@ -369,10 +376,12 @@ def augmOps(  Bitand,
             var[:] = left
             var += right
             Sum.next = var
+            LeftShift.next = 0
             if left < 256 and right < 26:
                 var2[:] = left
                 var2 <<= right
                 LeftShift.next = var2
+            Modulo.next = 0
             if right != 0:
                 var[:] = left
                 var %= right

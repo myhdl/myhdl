@@ -1,3 +1,5 @@
+#pylint: disable=all
+
 import sys
 import types
 

@@ -1,5 +1,6 @@
 import os
 
+import myhdl
 from myhdl import *
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -8,6 +9,7 @@ import myhdl
 _version = myhdl.__version__.replace('.','')
 _shortversion = _version.replace('dev','')
 
+@block
 def simple_dir_model(din, dout, clk):
     """ Simple convertible model """
 
@@ -32,7 +34,7 @@ def test_toVHDL_set_dir():
 
     try:
         toVHDL.directory = tmp_dir
-        toVHDL(simple_dir_model, din, dout, clock)
+        toVHDL(simple_dir_model(din, dout, clock))
 
         assert os.path.exists(os.path.join(tmp_dir, 'simple_dir_model.vhd'))
 
@@ -54,7 +56,7 @@ def test_toVHDL_myhdl_package_set_dir():
 
     try:
         toVHDL.directory = tmp_dir
-        toVHDL(simple_dir_model, din, dout, clock)
+        toVHDL(simple_dir_model(din, dout, clock))
 
         assert os.path.exists(
             os.path.join(tmp_dir, "pck_myhdl_%s.vhd" % _shortversion))
@@ -82,7 +84,7 @@ def test_toVerilog_set_dir():
 
     try:
         toVerilog.directory = tmp_dir
-        toVerilog(simple_dir_model, din, dout, clock)
+        toVerilog(simple_dir_model(din, dout, clock))
 
         assert os.path.exists(os.path.join(tmp_dir, 'simple_dir_model.v'))
 
@@ -110,7 +112,7 @@ def test_toVerilog_testbench_set_dir():
 
     try:
         toVerilog.directory = tmp_dir
-        toVerilog(simple_dir_model, din, dout, clock)
+        toVerilog(simple_dir_model(din, dout, clock))
 
         assert os.path.exists(os.path.join(tmp_dir, 'tb_simple_dir_model.v'))
 

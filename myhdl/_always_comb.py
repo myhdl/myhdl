@@ -20,18 +20,14 @@
 """ Module with the always_comb function. """
 from __future__ import absolute_import
 
-import sys
-import inspect
 from types import FunctionType
-import re
-import ast
 
 from myhdl import AlwaysCombError
 from myhdl._Signal import _Signal, _isListOfSigs
-from myhdl._util import _isGenFunc, _dedent
-from myhdl._Waiter import _Waiter, _SignalWaiter, _SignalTupleWaiter
-from myhdl._instance import _Instantiator
+from myhdl._util import _isGenFunc
+from myhdl._instance import _getCallInfo
 from myhdl._always import _Always
+
 
 class _error:
     pass
@@ -40,54 +36,26 @@ _error.NrOfArgs = "always_comb argument should be a function without arguments"
 _error.Scope = "always_comb argument should be a local function"
 _error.SignalAsInout = "signal (%s) used as inout in always_comb function argument"
 _error.EmbeddedFunction = "embedded functions in always_comb function argument not supported"
-_error.EmptySensitivityList= "sensitivity list is empty"
+_error.EmptySensitivityList = "sensitivity list is empty"
+
 
 def always_comb(func):
-    if not isinstance( func, FunctionType):
+    callinfo = _getCallInfo()
+    if not isinstance(func, FunctionType):
         raise AlwaysCombError(_error.ArgType)
     if _isGenFunc(func):
         raise AlwaysCombError(_error.ArgType)
     if func.__code__.co_argcount > 0:
         raise AlwaysCombError(_error.NrOfArgs)
-    c = _AlwaysComb(func)
+    c = _AlwaysComb(func, callinfo=callinfo)
     return c
 
 
-# class _AlwaysComb(_Instantiator):
 class _AlwaysComb(_Always):
 
-#     def __init__(self, func, symdict):
-#         self.func = func
-#         self.symdict = symdict
-#         s = inspect.getsource(func)
-#         # remove decorators
-#         s = re.sub(r"@.*", "", s)
-#         s = s.lstrip()
-#         tree = compiler.parse(s)
-#         v = _SigNameVisitor(symdict)
-#         compiler.walk(tree, v)
-#         self.inputs = v.inputs
-#         self.outputs = v.outputs
-#         senslist = []
-#         for n in self.inputs:
-#             s = self.symdict[n]
-#             if isinstance(s, Signal):
-#                 senslist.append(s)
-#             else: # list of sigs
-#                 senslist.extend(s)
-#         self.senslist = tuple(senslist)
-#         self.gen = self.genfunc()
-#         if len(self.senslist) == 0:
-#             raise AlwaysCombError(_error.EmptySensitivityList)
-#         if len(self.senslist) == 1:
-#             W = _SignalWaiter
-#         else:
-#             W = _SignalTupleWaiter
-#         self.waiter = W(self.gen)
-
-    def __init__(self, func):
+    def __init__(self, func, callinfo):
         senslist = []
-        super(_AlwaysComb, self).__init__(func, senslist)
+        super(_AlwaysComb, self).__init__(func, senslist, callinfo=callinfo)
 
         inouts = self.inouts | self.inputs.intersection(self.outputs)
         if inouts:

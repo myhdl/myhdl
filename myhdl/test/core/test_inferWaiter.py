@@ -24,6 +24,7 @@ import random
 from random import randrange
 from types import GeneratorType
 
+import myhdl
 from myhdl import *
 from myhdl._Waiter import (_DelayWaiter, _EdgeTupleWaiter, _EdgeWaiter,
                            _inferWaiter, _SignalTupleWaiter, _SignalWaiter,

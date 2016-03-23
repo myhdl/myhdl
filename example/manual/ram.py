@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 def ram(dout, din, addr, we, clk, depth=128):

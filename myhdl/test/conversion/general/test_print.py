@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -27,25 +28,25 @@ def PrintBench():
         print("%d %d" % (i1, i2))
         print(si1)
         print(si2)
-        
+
         yield delay(10)
         print("This is a test")
-        
+
         yield delay(10)
         print(int(b))
         print(int(sb))
-        
+
         yield delay(10)
         print("i1 is %s" % i1)
-        
+
         yield delay(10)
         print("i1 is %s, i2 is %s" % (i1, i2))
         print("i1 %s i2 %s b %s si1 %s si2 %s" % (i1, i2, b, si1, si2))
         print("i1 %d i2 %d b %d si1 %d si2 %d" % (i1, i2, b, si1, si2))
         print(b)
         #print "%% %s" % i1
-        
-        yield delay(10)       
+
+        yield delay(10)
         print(state)
         print("the state is %s" % state)
         print("the state is %s" % (state,))
@@ -68,6 +69,47 @@ def PrintBench():
 def testPrint():
     assert conversion.verify(PrintBench) == 0
 
+def PrintLongVectorsBench():
+    N84 = 84
+    M84 = 2**N84-1
+    N85 = 85
+    M85 = 2**N85-1
+    N86 = 86
+    M86 = 2**N86-1
+    N87 = 87
+    M87 = 2**N87-1
+
+    si1 = Signal(intbv(0)[N87:])
+    si2 = Signal(intbv(0, min=-M85, max=M86))
+
+    @instance
+    def logic():
+        i1 = intbv(0)[N85:]
+        i2 = intbv(0, min=-M86, max=M85)
+        si1.next = 0
+        si2.next = 0
+        yield delay(10)
+        print("%s %s %s %s" % (i1, i2, si1, si2))
+        i1[:] = M84
+        i2[:] = -1
+        si1.next = M85
+        si2.next = -1
+        yield delay(10)
+        print("%s %s %s %s" % (i1, i2, si1, si2))
+        i1[:] = 596854
+        i2[:] = -4954502
+        si1.next = 232434
+        si2.next = -3434355
+        yield delay(10)
+        print("%s %s %s %s" % (i1, i2, si1, si2))
+
+    return logic
+
+def testPrintLongVectors():
+    assert conversion.verify(PrintLongVectorsBench) == 0
+
+def testPrint():
+    assert conversion.verify(PrintBench) == 0
 
 # format string errors and unsupported features
 
@@ -86,7 +128,7 @@ def testPrintError1():
         assert e.kind == _error.UnsupportedFormatString
     else:
         assert False
-        
+
 def PrintError2():
      @instance
      def logic():
@@ -102,7 +144,7 @@ def testPrintError2():
         assert e.kind == _error.FormatString
     else:
         assert False
-       
+
 def PrintError3():
      @instance
      def logic():
@@ -119,7 +161,7 @@ def testPrintError3():
         assert e.kind == _error.FormatString
     else:
         assert False
-       
+
 def PrintError4():
      @instance
      def logic():
@@ -135,7 +177,7 @@ def testPrintError4():
         assert e.kind == _error.UnsupportedFormatString
     else:
         assert False
-        
+
 def PrintError5():
      @instance
      def logic():

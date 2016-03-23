@@ -1,6 +1,8 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 
+@block
 def bench_SliceSignal():
 
     s = Signal(intbv(0)[8:])
@@ -25,9 +27,10 @@ def bench_SliceSignal():
 
 
 def test_SliceSignal():
-    assert conversion.verify(bench_SliceSignal) == 0
+    assert conversion.verify(bench_SliceSignal()) == 0
 
 
+@block
 def bench_ConcatSignal():
 
     a = Signal(intbv(0)[5:])
@@ -57,8 +60,9 @@ def bench_ConcatSignal():
     return check
 
 def test_ConcatSignal():
-    assert conversion.verify(bench_ConcatSignal) == 0
+    assert conversion.verify(bench_ConcatSignal()) == 0
 
+@block
 def bench_ConcatSignalWithConsts():
 
     a = Signal(intbv(0)[5:])
@@ -98,9 +102,10 @@ def bench_ConcatSignalWithConsts():
 
 
 def test_ConcatSignalWithConsts():
-    assert conversion.verify(bench_ConcatSignalWithConsts) == 0
+    assert conversion.verify(bench_ConcatSignalWithConsts()) == 0
 
 
+@block
 def bench_TristateSignal():
     s = TristateSignal(intbv(0)[8:])
     a = s.driver()
@@ -133,10 +138,10 @@ def bench_TristateSignal():
 
 
 def test_TristateSignal():
-    assert conversion.verify(bench_TristateSignal) == 0
+    assert conversion.verify(bench_TristateSignal()) == 0
 
 
-
+@block
 def permute(x, a, mapping):
 
     p = [a(m) for m in mapping]
@@ -150,7 +155,7 @@ def permute(x, a, mapping):
     return assign
 
 
-
+@block
 def bench_permute(conv=False):
 
     x = Signal(intbv(0)[3:])
@@ -158,7 +163,7 @@ def bench_permute(conv=False):
     mapping = (0, 2, 1)
 
     if conv:
-        dut = conv(permute, x, a, mapping)
+        dut = conv(permute(x, a, mapping))
     else:
         dut = permute(x, a, mapping)
 
@@ -176,7 +181,7 @@ def bench_permute(conv=False):
     return dut, stimulus
 
 def test_permute():
-    assert conversion.verify(bench_permute) == 0
+    assert conversion.verify(bench_permute()) == 0
 
 bench_permute(toVHDL)
 bench_permute(toVerilog)

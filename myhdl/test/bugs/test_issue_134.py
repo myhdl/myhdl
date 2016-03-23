@@ -5,6 +5,7 @@ function is called multiple times, this causes name collisions """
 
 from __future__ import absolute_import
 import pytest
+import myhdl
 from myhdl import *
 from myhdl.conversion import analyze
 

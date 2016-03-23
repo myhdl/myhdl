@@ -23,16 +23,15 @@
 class join(object):
 
     """ Join trigger objects to form a single trigger object. """
-    
+
     def __init__(self, *args):
         """ Construct join object
 
         *args -- list of trigger object arguments.
-        
-        """        
-        
+
+        """
+
         self._args = args
-        
+
     def _generator(self):
         yield join(*self._args)
-        

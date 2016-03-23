@@ -21,16 +21,18 @@ def _resolveRefs(symdict, arg):
         v.visit(gen.ast)
     return data.objlist
 
-#TODO: Refactor this into two separate nodetransformers, since _resolveRefs
-#needs only the names, not the objects
+# TODO: Refactor this into two separate nodetransformers, since _resolveRefs
+# needs only the names, not the objects
+
 
 def _suffixer(name, used_names):
-    suffixed_names = (name+'_renamed{0}'.format(i) for i in itertools.count())
+    suffixed_names = (name + '_renamed{0}'.format(i) for i in itertools.count())
     new_names = itertools.chain([name], suffixed_names)
     return next(s for s in new_names if s not in used_names)
 
 
 class _AttrRefTransformer(ast.NodeTransformer):
+
     def __init__(self, data):
         self.data = data
         self.data.objlist = []
@@ -40,7 +42,8 @@ class _AttrRefTransformer(ast.NodeTransformer):
     def visit_Attribute(self, node):
         self.generic_visit(node)
 
-        reserved = ('next',  'posedge',  'negedge',  'max',  'min',  'val',  'signed')
+        reserved = ('next', 'posedge', 'negedge', 'max', 'min', 'val', 'signed',
+                    'verilog_code', 'vhdl_code')
         if node.attr in reserved:
             return node
 

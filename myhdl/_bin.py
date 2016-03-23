@@ -53,5 +53,4 @@ def bin(num, width=0):
         if num < 0:
             pad = '1'
         return (width - len(s)) * pad + s
-    return s 
-
+    return s

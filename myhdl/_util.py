@@ -25,7 +25,6 @@ from __future__ import print_function
 
 import ast
 import sys
-import os
 import inspect
 
 from tokenize import generate_tokens, untokenize, INDENT
@@ -79,7 +78,7 @@ def _makeAST(f):
     s = _dedent(s)
     tree = ast.parse(s)
     tree.sourcefile = inspect.getsourcefile(f)
-    tree.lineoffset = inspect.getsourcelines(f)[1]-1
+    tree.lineoffset = inspect.getsourcelines(f)[1] - 1
     return tree
 
 

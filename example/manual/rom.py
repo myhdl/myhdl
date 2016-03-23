@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 CONTENT = (17, 134, 52, 9)

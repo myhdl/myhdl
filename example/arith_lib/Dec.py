@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 from arith_utils import BEHAVIOR
 from PrefixAnd import PrefixAnd

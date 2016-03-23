@@ -5,6 +5,7 @@ import os
 import tempfile
 import subprocess
 import difflib
+import warnings
 
 from collections import namedtuple
 
@@ -12,17 +13,18 @@ import myhdl
 from myhdl._Simulation import Simulation
 from myhdl.conversion._toVHDL import toVHDL
 from myhdl.conversion._toVerilog import toVerilog
+from myhdl._block import _Block
 
-_version = myhdl.__version__.replace('.','')
+_version = myhdl.__version__.replace('.', '')
 # strip 'dev' for version
-_version = _version.replace('dev','')
+_version = _version.replace('dev', '')
 
 _simulators = {}
 
 sim = namedtuple('sim', 'name hdl analyze elaborate simulate skiplines skipchars ignore')
 
 
-def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None, 
+def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulate=None,
                       skiplines=None, skipchars=None, ignore=None):
     if not isinstance(name, str) or (name.strip() == ""):
         raise ValueError("Invalid simulator name")
@@ -41,10 +43,10 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
 registerSimulator(
     name="ghdl",
     hdl="VHDL",
-    analyze="ghdl -a --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
-    elaborate="ghdl -e --workdir=work -o %(unitname)s %(topname)s",
+    analyze="ghdl -a --std=08 --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+    elaborate="ghdl -e --std=08 --workdir=work %(unitname)s",
     simulate="ghdl -r --workdir=work %(unitname)s"
-    )
+)
 
 registerSimulator(
     name="nvc",
@@ -52,7 +54,7 @@ registerSimulator(
     analyze="nvc --work=work_nvc -a pck_myhdl_%(version)s.vhd %(topname)s.vhd",
     elaborate="nvc --work=work_nvc -e %(topname)s",
     simulate="nvc --work=work_nvc -r %(topname)s"
-    )
+)
 
 registerSimulator(
     name="vlog",
@@ -62,7 +64,7 @@ registerSimulator(
     skiplines=6,
     skipchars=2,
     ignore=("# **", "# //", "# run -all")
-    )
+)
 
 registerSimulator(
     name="vcom",
@@ -72,7 +74,7 @@ registerSimulator(
     skiplines=6,
     skipchars=2,
     ignore=("# **", "# //", "#    Time:", "# run -all")
-    )
+)
 
 
 registerSimulator(
@@ -80,7 +82,7 @@ registerSimulator(
     hdl="Verilog",
     analyze="iverilog -o %(topname)s.o %(topname)s.v",
     simulate="vvp %(topname)s.o"
-    )
+)
 
 registerSimulator(
     name="cver",
@@ -88,23 +90,22 @@ registerSimulator(
     analyze="cver -c -q %(topname)s.v",
     simulate="cver -q %(topname)s.v",
     skiplines=3
-    )
+)
 
 
-class  _VerificationClass(object):
+class _VerificationClass(object):
 
     __slots__ = ("simulator", "_analyzeOnly")
 
     def __init__(self, analyzeOnly=False):
-        self.simulator = None 
+        self.simulator = None
         self._analyzeOnly = analyzeOnly
-
 
     def __call__(self, func, *args, **kwargs):
 
         if not self.simulator:
             raise ValueError("No simulator specified")
-        if  self.simulator not in _simulators:
+        if self.simulator not in _simulators:
             raise ValueError("Simulator %s is not registered" % self.simulator)
         hdlsim = _simulators[self.simulator]
         hdl = hdlsim.hdl
@@ -112,8 +113,15 @@ class  _VerificationClass(object):
             name = toVerilog.name
         elif hdl == 'VHDL' and toVHDL.name is not None:
             name = toVHDL.name
+        elif isinstance(func, _Block):
+            name = func.func.__name__
         else:
-            name = func.__name__
+            warnings.warn(
+                "\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+            try:
+                name = func.__name__
+            except:
+                raise TypeError(str(type(func)))
 
         vals = {}
         vals['topname'] = name
@@ -129,10 +137,16 @@ class  _VerificationClass(object):
         skipchars = hdlsim.skipchars
         ignore = hdlsim.ignore
 
-        if hdl == "VHDL":
-            inst = toVHDL(func, *args, **kwargs)
+        if isinstance(func, _Block):
+            if hdl == "VHDL":
+                inst = func.convert(hdl='VHDL')
+            else:
+                inst = func.convert(hdl='Verilog')
         else:
-            inst = toVerilog(func, *args, **kwargs)
+            if hdl == "VHDL":
+                inst = toVHDL(func, *args, **kwargs)
+            else:
+                inst = toVerilog(func, *args, **kwargs)
 
         if hdl == "VHDL":
             if not os.path.exists("work"):
@@ -147,7 +161,7 @@ class  _VerificationClass(object):
                 except:
                     pass
 
-        #print(analyze)
+        # print(analyze)
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
             print("Analysis failed", file=sys.stderr)
@@ -171,16 +185,15 @@ class  _VerificationClass(object):
             print("No MyHDL simulation output - nothing to verify", file=sys.stderr)
             return 1
 
-
         if elaborate is not None:
-            #print(elaborate)
+            # print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
             if ret != 0:
                 print("Elaboration failed", file=sys.stderr)
                 return ret
-            
+
         g = tempfile.TemporaryFile(mode='w+t')
-        #print(simulate)
+        # print(simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
     #    if ret != 0:
     #        print "Simulation run failed"
@@ -199,7 +212,7 @@ class  _VerificationClass(object):
         glines = [line[skipchars:] for line in glines]
         flinesNorm = [line.lower() for line in flines]
         glinesNorm = [line.lower() for line in glines]
-        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile=hdlsim.name, tofile=hdl)
+        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile='MyHDL', tofile=hdlsim.name)
 
         MyHDLLog = "MyHDL.log"
         HDLLog = hdlsim.name + ".log"

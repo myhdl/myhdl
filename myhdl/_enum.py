@@ -27,28 +27,33 @@ from myhdl._bin import bin
 from myhdl._Signal import _Signal
 from myhdl._compat import string_types
 
+
 class EnumType(object):
+
     def __init__(self):
         raise TypeError("class EnumType is only intended for type checking on subclasses")
 
+
 class EnumItemType(object):
+
     def __init__(self):
         raise TypeError("class EnumItemType is only intended for type checking on subclasses")
 
 supported_encodings = ("binary", "one_hot", "one_cold")
+
 
 def enum(*names, **kwargs):
 
     # args = args
     encoding = kwargs.get('encoding', None)
     if encoding is not None and encoding not in supported_encodings:
-        raise ValueError("Unsupported enum encoding: %s\n    Supported encodings: %s" % \
+        raise ValueError("Unsupported enum encoding: %s\n    Supported encodings: %s" %
                          (encoding, supported_encodings))
     if encoding in ("one_hot", "one_cold"):
         nrbits = len(names)
-    else: # binary as default
-        nrbits = len(bin(len(names)-1))
-    
+    else:  # binary as default
+        nrbits = len(bin(len(names) - 1))
+
     codedict = {}
     i = 0
     for name in names:
@@ -57,16 +62,16 @@ def enum(*names, **kwargs):
         if name in codedict:
             raise ValueError("enum literals should be unique")
         if encoding == "one_hot":
-            code = bin(1<<i, nrbits)
+            code = bin(1 << i, nrbits)
         elif encoding == "one_cold":
-            code = bin(~(1<<i), nrbits)
-        else: # binary as default
+            code = bin(~(1 << i), nrbits)
+        else:  # binary as default
             code = bin(i, nrbits)
         if len(code) > nrbits:
             code = code[-nrbits:]
         codedict[name] = code
         i += 1
-       
+
     class EnumItem(EnumItemType):
 
         def __init__(self, index, name, val, type):
@@ -113,7 +118,7 @@ def enum(*names, **kwargs):
 
         def _notImplementedCompare(self, other):
             raise NotImplementedError
-        
+
         __le__ = __ge__ = __lt__ = __gt__ = _notImplementedCompare
 
         def __eq__(self, other):
@@ -130,8 +135,8 @@ def enum(*names, **kwargs):
                 raise TypeError("Type mismatch in enum item comparison")
             return self is not other
 
-
     class Enum(EnumType):
+
         def __init__(self, names, codedict, nrbits, encoding):
             self.__dict__['_names'] = names
             self.__dict__['_nrbits'] = nrbits
@@ -161,9 +166,9 @@ def enum(*names, **kwargs):
         _toVHDL = __str__
 
         def _toVHDL(self):
-            typename =  self.__dict__['_name']
+            typename = self.__dict__['_name']
             str = "type %s is (\n    " % typename
-            str += ",\n    ".join(self._names)         
+            str += ",\n    ".join(self._names)
             str += "\n);"
             if self._encoding is not None:
                 codes = " ".join([self._codedict[name] for name in self._names])
@@ -171,8 +176,3 @@ def enum(*names, **kwargs):
             return str
 
     return Enum(names, codedict, nrbits, encoding)
-
-
-
-    
-        

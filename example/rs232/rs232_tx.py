@@ -1,5 +1,6 @@
 import operator
 
+import myhdl
 from myhdl import *
 
 from rs232_util import reduceXor, sec, ODD, EVEN, MARK, SPACE
