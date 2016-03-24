@@ -4,49 +4,6 @@ from random import randrange
 from myhdl import *
 import myhdl
 
-def _output_writer(signal, clock):
-
-    @always(clock.posedge)
-    def _python_output_writer():
-        print(myhdl.bin(signal, len(signal)))
-
-    if len(signal) == 1:
-        vhdl_signal_write_str = (
-            'write(L, std_logic($signal));')
-    else:
-        vhdl_signal_write_str = (
-            'write(L, std_logic_vector($signal));')
-
-    verilog_signal_write_str = (
-        '$$write(\"%b\", $signal);')
-    
-    _output_writer.verilog_code = '''
-always @(posedge clk) begin: INITIAL_VALUE_BENCH_COMPARE_OUTPUT
-    input_signal <= 0;
-    
-    %s
-    $$write("\\n");
-end
-''' % (verilog_signal_write_str,)
-
-    _output_writer.vhdl_code = '''
-INITIAL_VALUE_BENCH_COMPARE_OUTPUT: process (clk) is
-    use IEEE.std_logic_textio.all;
-    
-    variable L: line;
-begin
-    if rising_edge(clk) then
-        
-        %s
-        writeline(output, L);
-    end if;
-end process INITIAL_VALUE_BENCH_COMPARE_OUTPUT;
-''' % (vhdl_signal_write_str,)
-
-    signal.read = True
-
-    return _python_output_writer
-
 def initial_value_bench(initial_val, change_input_signal):
 
     clk = Signal(bool(0))
@@ -99,7 +56,9 @@ def initial_value_bench(initial_val, change_input_signal):
             else:
                 assert output_signal == update_val
 
-    output_writer = _output_writer(output_signal, clk)
+    @always(clk.posedge)
+    def output_writer():
+        print(output_signal)
 
     return clkgen, output_driver, drive_and_check, output_writer
 
@@ -159,7 +118,7 @@ def test_long_signals():
 def test_bool_signals():
     '''The correct initial value should be used for a boolean type signal
     '''
-    initial_val = True
+    initial_val = intbv(0, min=0, max=1)
 
     runner(initial_val)
 
