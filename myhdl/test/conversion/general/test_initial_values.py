@@ -63,17 +63,17 @@ def initial_value_bench(initial_val, change_input_signal):
     return clkgen, output_driver, drive_and_check, output_writer
 
 def runner(initial_val, change_input_signal=False):
-    pre_toVerilog_no_initial_value = toVerilog.no_initial_value
-    pre_toVHDL_no_initial_value = toVerilog.no_initial_value
+    pre_toVerilog_no_initial_values = toVerilog.no_initial_values
+    pre_toVHDL_no_initial_values = toVerilog.no_initial_values
 
-    toVerilog.no_initial_value = False
-    toVHDL.no_initial_value = False
+    toVerilog.no_initial_values = False
+    toVHDL.no_initial_values = False
 
     assert conversion.verify(
         initial_value_bench, initial_val, change_input_signal) == 0
     
-    toVerilog.no_initial_value = pre_toVerilog_no_initial_value
-    toVHDL.no_initial_value = pre_toVHDL_no_initial_value
+    toVerilog.no_initial_values = pre_toVerilog_no_initial_values
+    toVHDL.no_initial_values = pre_toVHDL_no_initial_values
 
 def test_unsigned():
     '''The correct initial value should be used for unsigned type signal.
@@ -133,5 +133,9 @@ def test_init_user():
         randrange(min_val, max_val), min=min_val, max=max_val)
 
     runner(initial_val, change_input_signal=True)
+
+
+if __name__ == "__main__":
+    test_long_signals()
 
 

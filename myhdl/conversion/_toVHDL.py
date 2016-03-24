@@ -113,7 +113,7 @@ class _ToVHDLConvertor(object):
                  "use_clauses",
                  "architecture",
                  "std_logic_ports",
-                 "no_initial_value"
+                 "no_initial_values"
                  )
 
     def __init__(self):
@@ -127,7 +127,7 @@ class _ToVHDLConvertor(object):
         self.use_clauses = None
         self.architecture = "MyHDL"
         self.std_logic_ports = False
-        self.no_initial_value = True
+        self.no_initial_values = True
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -416,17 +416,19 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
             sig_vhdl_obj = inferVhdlObj(s)
 
-            if toVHDL.no_initial_value:
+            if toVHDL.no_initial_values:
                 val_str = ""
             else:
-                
+
                 if isinstance(sig_vhdl_obj, vhd_std_logic):
+                    # Single bit
                     val_str = " := '%s'" % int(s._init)
                 elif isinstance(sig_vhdl_obj, vhd_int):
                     val_str = " := %s" % s._init
                 else:
-                    val_str = ' := "%s"' % bin(s._init, sig_vhdl_obj.size)
-            
+                    val_str = ' := %dX"%s"' % (
+                        sig_vhdl_obj.size, str(s._init))
+
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
         elif s._read:

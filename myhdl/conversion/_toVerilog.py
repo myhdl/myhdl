@@ -108,7 +108,7 @@ class _ToVerilogConvertor(object):
                  "no_testbench",
                  "portmap",
                  "trace",
-                 "no_initial_value"
+                 "no_initial_values"
                  )
 
     def __init__(self):
@@ -122,7 +122,7 @@ class _ToVerilogConvertor(object):
         self.no_myhdl_header = False
         self.no_testbench = False
         self.trace = False
-        self.no_initial_value = True
+        self.no_initial_values = True
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -331,7 +331,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
             # the following line implements initial value assignments
             # don't initial value "wire", inital assignment to a wire
             # equates to a continuous assignment [reference]
-            if toVerilog.no_initial_value or k == 'wire':
+            if toVerilog.no_initial_values or k == 'wire':
                 print("%s %s%s%s;" % (k, p, r, s._name), file=f)
             else:
                 print("%s %s%s%s = %s;" % 
