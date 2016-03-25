@@ -32,16 +32,16 @@ class _nameCheck():
 
     #Function which compares current parsed signal/entity to all keywords to
     #ensure reserved words are not being used for the wrong purpose
-    def _nameValid(keyword):
-        for i in _nameCheck._vhdl_keywords:
-            if keyword == _nameCheck._vhdl_keywords[i]:
-                warnings.warn("VHDL keyword used: %s" % keyword, category=ToVHDLWarning)
-        for i in _nameCheck._usedNames:
-            if keyword.lower() == _nameCheck._usedNames[i]:
-                warnings.warn("Previously used name being reused: %s" % keyword, category=ToVHDLWarning)
-        _nameCheck._usedNames.append(keyword).lower
-        if keyword[0] == '_':
-            warnings.warn("VHDL variable names cannot contain '_': %s" % keyword, category=ToVHDLWarning)
-        for i in keyword:
-            if keyword[i] == '-':
-                warnings.warn("VHDL variable names cannot contain '-': %s" % keyword, category=ToVHDLWarning)
+    def _nameValid(name):
+        for keyword in _nameCheck._vhdl_keywords:
+            if name == _nameCheck._vhdl_keywords[keyword]:
+                warnings.warn("VHDL keyword used: %s" % name, category=ToVHDLWarning)
+        for saved_name in _nameCheck._usedNames:
+            if name.lower() == _nameCheck._usedNames[saved_name]:
+                warnings.warn("Previously used name being reused: %s" % name, category=ToVHDLWarning)
+        _nameCheck._usedNames.append(name).lower
+        if name[0] == '_':
+            warnings.warn("VHDL variable names cannot contain '_': %s" % name, category=ToVHDLWarning)
+        for pos in name:
+            if name[pos] == '-':
+                warnings.warn("VHDL variable names cannot contain '-': %s" % name, category=ToVHDLWarning)
