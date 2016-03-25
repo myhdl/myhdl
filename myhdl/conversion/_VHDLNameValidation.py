@@ -1,13 +1,11 @@
 import warnings
 from myhdl import ToVHDLWarning
 
-#Save all words which would generate errors in VHDL here
-#TODO: Make appropriate calls to raise warnings in _toVHDL.py
-
-#A list of all reserved words within VHDL which should not be used for
-#anything other than their own specific purpose
-
 class _nameCheck():
+    'Saves all reserved words in VHDL and variable names used in a MyHDL circuit to check for any name collisions'
+
+    #A list of all reserved words within VHDL which should not be used for
+    #anything other than their own specific purpose
     _vhdl_keywords = ["abs", "access", "after", "alias", "all",
                   "and", "architecture", "array", "assert",
                   "attribute", "begin", "block", "body", "buffer",
