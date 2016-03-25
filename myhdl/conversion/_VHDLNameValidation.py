@@ -7,7 +7,7 @@ from myhdl import ToVHDLWarning
 #A list of all reserved words within VHDL which should not be used for
 #anything other than their own specific purpose
 
-class NameValidation:
+class _nameCheck():
     _vhdl_keywords = ["abs", "access", "after", "alias", "all",
                   "and", "architecture", "array", "assert",
                   "attribute", "begin", "block", "body", "buffer",
@@ -35,13 +35,13 @@ class NameValidation:
     #Function which compares current parsed signal/entity to all keywords to
     #ensure reserved words are not being used for the wrong purpose
     def _nameValid(keyword):
-        for i in NameValidation._vhdl_keywords:
-            if keyword == NameValidation._vhdl_keywords[i]:
+        for i in _nameCheck._vhdl_keywords:
+            if keyword == _nameCheck._vhdl_keywords[i]:
                 warnings.warn("VHDL keyword used: %s" % keyword, category=ToVHDLWarning)
-        for i in NameValidation._usedNames:
-            if keyword.lower() == NameValidation._usedNames[i]:
+        for i in _nameCheck._usedNames:
+            if keyword.lower() == _nameCheck._usedNames[i]:
                 warnings.warn("Previously used name being reused: %s" % keyword, category=ToVHDLWarning)
-        NameValidation._usedNames.append(keyword).lower
+        _nameCheck._usedNames.append(keyword).lower
         if keyword[0] == '_':
             warnings.warn("VHDL variable names cannot contain '_': %s" % keyword, category=ToVHDLWarning)
         for i in keyword:
