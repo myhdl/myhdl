@@ -35,7 +35,7 @@ from myhdl._Signal import _Signal, _isListOfSigs
 
 class _error:
     pass
-_error.ArgType = "A block should return block or instantiator objects"
+_error.ArgType = "%s: A block should return block or instantiator objects"
 _error.InstanceError = "%s: subblock %s should be encapsulated in a block decorator"
 
 
@@ -126,7 +126,7 @@ class _Block(object):
     def _verifySubs(self):
         for inst in self.subs:
             if not isinstance(inst, (_Block, _Instantiator, Cosimulation)):
-                raise BlockError(_error.ArgType)
+                raise BlockError(_error.ArgType % (self.name,))
             if isinstance(inst, (_Block, _Instantiator)):
                 if not inst.modctxt:
                     raise BlockError(_error.InstanceError % (self.name, inst.callername))
