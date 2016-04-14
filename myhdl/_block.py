@@ -107,11 +107,12 @@ class _Block(object):
         self.symdict = None
         self.sigdict = {}
         self.memdict = {}
+        self.name = self.__name__ = func.__name__ + '_' + str(calls - 1)
+
         # flatten, but keep BlockInstance objects
         self.subs = _flatten(func(*args, **kwargs))
         self._verifySubs()
         self._updateNamespaces()
-        self.name = self.__name__ = func.__name__ + '_' + str(calls - 1)
         self.verilog_code = self.vhdl_code = None
         self.sim = None
         if hasattr(deco, 'verilog_code'):
