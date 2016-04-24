@@ -1146,6 +1146,9 @@ class _AnalyzeAlwaysDecoVisitor(_AnalyzeBlockVisitor):
     def __init__(self, tree, senslist):
         _AnalyzeBlockVisitor.__init__(self, tree)
         self.tree.senslist = senslist
+        for arg in senslist:
+            if isinstance(arg, delay):
+                self.raiseError(_error.NotSupported, "delay argument in @always decorator")
 
     def visit_FunctionDef(self, node):
         self.refStack.push()
