@@ -4,9 +4,9 @@ echo > stats.dat
 
 pypy convert.py
 
-ghdl -a pck_myhdl_08dev.vhd
-vlib work
-vcom pck_myhdl_08dev.vhd
+ghdl -a --std=08 pck_myhdl_10.vhd
+# vlib work
+# vcom pck_myhdl_08dev.vhd
 
 tests="
 timer
@@ -39,24 +39,21 @@ echo >> stats.dat
 
 echo ghdl >> stats.dat
 echo ---- >> stats.dat
-ghdl -a test_$test.vhd 
-ghdl -e test_$test
+ghdl -a --std=08 test_$test.vhd
+ghdl -e --std=08 test_$test
 /usr/bin/time -o stats.dat -a -p ghdl -r test_$test > ${test}_ghdl.out
 echo >> stats.dat
 
-echo vlog >> stats.dat
-echo ---- >> stats.dat
-vlog test_$test.v 
-/usr/bin/time -o stats.dat -a -p vsim -c -do run.do test_$test > ${test}_vlog.out
-echo >> stats.dat
-
-echo vcom >> stats.dat
-echo ---- >> stats.dat
-vcom test_$test.vhd 
-/usr/bin/time -o stats.dat -a -p vsim -c -do run.do test_$test > ${test}_vcom.out
-echo >> stats.dat
+# echo vlog >> stats.dat
+# echo ---- >> stats.dat
+# vlog test_$test.v
+# /usr/bin/time -o stats.dat -a -p vsim -c -do run.do test_$test > ${test}_vlog.out
+# echo >> stats.dat
+#
+# echo vcom >> stats.dat
+# echo ---- >> stats.dat
+# vcom test_$test.vhd
+# /usr/bin/time -o stats.dat -a -p vsim -c -do run.do test_$test > ${test}_vcom.out
+# echo >> stats.dat
 
 done
-
-
-
