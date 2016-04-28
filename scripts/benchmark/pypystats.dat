@@ -3,7 +3,39 @@ Test: timer
 =====
 pypy
 ----
-Command exited with non-zero status 1
-real 32.51
-user 29.72
-sys 0.10
+real 36.20
+user 36.15
+sys 0.02
+
+Test: lfsr24
+=====
+pypy
+----
+real 39.08
+user 39.00
+sys 0.04
+
+Test: randgen
+=====
+pypy
+----
+real 21.34
+user 21.28
+sys 0.04
+
+Test: longdiv
+=====
+pypy
+----
+real 28.94
+user 28.88
+sys 0.04
+
+Test: findmax
+=====
+pypy
+----
+real 18.89
+user 18.85
+sys 0.02
+

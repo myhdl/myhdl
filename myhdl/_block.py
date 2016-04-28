@@ -22,7 +22,8 @@ from __future__ import absolute_import
 
 import inspect
 
-from functools import wraps
+#from functools import wraps
+import functools
 
 import myhdl
 from myhdl import BlockError, BlockInstanceError, Cosimulation
@@ -35,7 +36,7 @@ from myhdl._Signal import _Signal, _isListOfSigs
 
 class _error:
     pass
-_error.ArgType = "A block should return block or instantiator objects"
+_error.ArgType = "%s: A block should return block or instantiator objects"
 _error.InstanceError = "%s: subblock %s should be encapsulated in a block decorator"
 
 
@@ -80,16 +81,55 @@ def _getCallInfo():
     return _CallInfo(name, modctxt, symdict)
 
 
-def block(func):
-    srcfile = inspect.getsourcefile(func)
-    srcline = inspect.getsourcelines(func)[0]
+class _bound_function_wrapper(object): 
+    
+    def __init__(self, bound_func, srcfile, srcline):
 
-    @wraps(func)
-    def deco(*args, **kwargs):
-        deco.calls += 1
-        return _Block(func, deco, srcfile, srcline, *args, **kwargs)
-    deco.calls = 0
-    return deco
+        self.srcfile = srcfile
+        self.srcline = srcline
+
+        self.bound_func = bound_func
+        functools.update_wrapper(self, bound_func)
+
+        self.calls = 0
+
+    def __call__(self, *args, **kwargs):
+        self.calls += 1
+        return _Block(self.bound_func, self, self.srcfile, 
+                      self.srcline, *args, **kwargs)
+
+class block(object):
+    def __init__(self, func):
+        self.srcfile = inspect.getsourcefile(func)
+        self.srcline = inspect.getsourcelines(func)[0]
+        
+        self.func = func
+        functools.update_wrapper(self, func)
+
+        self.calls = 0        
+
+    def __get__(self, instance, owner):
+
+        bound_func = self.func.__get__(instance, owner)
+        return _bound_function_wrapper(bound_func, self.srcfile, self.srcline)
+
+    def __call__(self, *args, **kwargs):
+        
+        self.calls += 1
+        return _Block(self.func, self, self.srcfile, 
+                      self.srcline, *args, **kwargs)
+
+#def block(func):
+#    srcfile = inspect.getsourcefile(func)
+#    srcline = inspect.getsourcelines(func)[0]
+#
+#    print(func, type(func))
+#    @wraps(func)
+#    def deco(*args, **kwargs):
+#        deco.calls += 1
+#        return _Block(func, deco, srcfile, srcline, *args, **kwargs)
+#    deco.calls = 0
+#    return deco
 
 
 class _Block(object):
@@ -107,11 +147,12 @@ class _Block(object):
         self.symdict = None
         self.sigdict = {}
         self.memdict = {}
+        self.name = self.__name__ = func.__name__ + '_' + str(calls - 1)
+
         # flatten, but keep BlockInstance objects
         self.subs = _flatten(func(*args, **kwargs))
         self._verifySubs()
         self._updateNamespaces()
-        self.name = self.__name__ = func.__name__ + '_' + str(calls - 1)
         self.verilog_code = self.vhdl_code = None
         self.sim = None
         if hasattr(deco, 'verilog_code'):
@@ -125,7 +166,7 @@ class _Block(object):
     def _verifySubs(self):
         for inst in self.subs:
             if not isinstance(inst, (_Block, _Instantiator, Cosimulation)):
-                raise BlockError(_error.ArgType)
+                raise BlockError(_error.ArgType % (self.name,))
             if isinstance(inst, (_Block, _Instantiator)):
                 if not inst.modctxt:
                     raise BlockError(_error.InstanceError % (self.name, inst.callername))

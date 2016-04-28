@@ -124,4 +124,9 @@ def test_hdlobjnotself():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjNotSelf()
-    hdlobj_inst.method_func(clk, x, srst, y).analyze_convert()
+    try:
+        hdlobj_inst.method_func(clk, x, srst, y).analyze_convert()
+    except ConversionError as e:
+        assert e.kind == _error.NotSupported
+    else:
+        assert False

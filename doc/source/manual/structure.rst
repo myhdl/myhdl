@@ -18,13 +18,16 @@ sequence of instances, or a generator. Hierarchy is modeled by defining
 instances in a higher-level function, and returning them.  The following is a
 schematic example of the basic case. ::
 
+   from myhdl import block
+
+   @block
    def top(...):
        ...
        instance_1 = module_1(...)
        instance_2 = module_2(...)
        ...
        instance_n = module_n(...)
-       ... 
+       ...
        return instance_1, instance_2, ... , instance_n
 
 Note that MyHDL uses conventional procedural techniques for modeling structure.
@@ -41,8 +44,11 @@ Conditional instantiation
 To model conditional instantiation, we can select the returned instance under
 parameter control. For example::
 
+   from myhdl import block
+
    SLOW, MEDIUM, FAST = range(3)
 
+   @block
    def top(..., speed=SLOW):
        ...
        def slowAndSmall():
@@ -70,6 +76,9 @@ Python lists are easy to create. We can use them to model lists of instances.
 Suppose we have a top module that instantiates a single ``channel`` submodule,
 as follows::
 
+   from myhdl import block, Signal
+
+   @block
    def top(...):
 
        din = Signal(0)
@@ -79,11 +88,14 @@ as follows::
 
        channel_inst = channel(dout, din, clk, reset)
 
-       return channel_inst 
+       return channel_inst
 
 If we wanted to support an arbitrary number of channels, we can use lists of
 signals and a list of instances, as follows::
 
+   from myhdl import block, Signal
+
+   @block
    def top(..., n=8):
 
        din = [Signal(0) for i in range(n)]
@@ -113,7 +125,7 @@ In MyHDL, you can address such cases by a concept called
 shadow signals. A shadow signal is constructed out of
 other signals and follows their value changes automatically.
 For example, a :class:`_SliceSignal` follows the value of
-an index or a slice from another signal.  Likewise, 
+an index or a slice from another signal.  Likewise,
 A :class:`ConcatSignal` follows the
 values of a number of signals as a concatenation.
 
@@ -137,7 +149,7 @@ Such a module is typically based on bit vectors because
 they are easy to process in RTL code. In MyHDL, a bit vector
 is modeled using the :class:`intbv` type.
 
-We need a way to "connect" the list of signals to the 
+We need a way to "connect" the list of signals to the
 bit vector and vice versa. Of course, we can do this with explicit
 code, but shadow signals can do this automatically. For
 example, we can construct a ``request_vector`` as a
@@ -178,8 +190,9 @@ may be convenient to assemble  the list of instances automatically. For this
 purpose, MyHDL  provides the function :func:`instances`. Using the first example
 in this section, it is used as follows::
 
-   from myhdl import instances
+   from myhdl import block, instances
 
+   @block
    def top(...):
        ...
        instance_1 = module_1(...)
@@ -192,5 +205,3 @@ in this section, it is used as follows::
 Function :func:`instances` uses introspection to inspect the type of the local
 variables defined by the calling function. All variables that comply with the
 definition of an instance are assembled in a list, and that list is returned.
-
-
