@@ -4,6 +4,7 @@ from random import randrange
 from myhdl import *
 import myhdl
 
+@block
 def initial_value_bench(initial_val, change_input_signal):
 
     clk = Signal(bool(0))
@@ -63,17 +64,17 @@ def initial_value_bench(initial_val, change_input_signal):
     return clkgen, output_driver, drive_and_check, output_writer
 
 def runner(initial_val, change_input_signal=False):
-    pre_toVerilog_no_initial_values = toVerilog.no_initial_values
-    pre_toVHDL_no_initial_values = toVerilog.no_initial_values
+    pre_toVerilog_initial_values = toVerilog.initial_values
+    pre_toVHDL_initial_values = toVerilog.initial_values
 
-    toVerilog.no_initial_values = False
-    toVHDL.no_initial_values = False
+    toVerilog.initial_values = True
+    toVHDL.initial_values = True
 
     assert conversion.verify(
-        initial_value_bench, initial_val, change_input_signal) == 0
+        initial_value_bench(initial_val, change_input_signal)) == 0
     
-    toVerilog.no_initial_values = pre_toVerilog_no_initial_values
-    toVHDL.no_initial_values = pre_toVHDL_no_initial_values
+    toVerilog.initial_values = pre_toVerilog_initial_values
+    toVHDL.initial_values = pre_toVHDL_initial_values
 
 def test_unsigned():
     '''The correct initial value should be used for unsigned type signal.
