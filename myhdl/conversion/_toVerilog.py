@@ -360,9 +360,23 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(m.elObj)
         p = _getSignString(m.elObj)
         k = 'wire'
+        initial_assignments = None
         if m._driven:
             k = m._driven
-        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
+
+            if toVerilog.initial_values:
+                val_assignments = '\n'.join(
+                    ['    %s[%d] <= %s;' % (m.name, n, _intRepr(each._init)) 
+                     for n, each in enumerate(m.mem)])
+                initial_assignments = (
+                    'initial begin\n' + val_assignments + '\nend')
+
+        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth),
+              file=f)
+
+        if initial_assignments is not None:
+            print(initial_assignments, file=f)
+
     print(file=f)
     for s in constwires:
         if s._type in (bool, intbv):

@@ -454,8 +454,20 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
+
+        if not toVHDL.initial_values:
+            val_str = ""
+        else:
+            sig_vhdl_objs = [inferVhdlObj(each) for each in m.mem]
+            
+            _val_str = ',\n    '.join(
+                ['%dX"%s"' % (obj.size, str(each._init)) for 
+                 obj, each in zip(sig_vhdl_objs, m.mem)])
+
+            val_str = ' := (\n    ' + _val_str + ')'
+
         print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
-        print("signal %s: %s;" % (m.name, t), file=f)
+        print("signal %s: %s%s;" % (m.name, t, val_str), file=f)
     print(file=f)
 
 
