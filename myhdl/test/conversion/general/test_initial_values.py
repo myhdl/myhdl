@@ -162,7 +162,6 @@ def initial_value_list_bench(initial_vals, change_input_signal):
 
     output_writer = canonical_list_writer(output_signal_list, clk)
 
-    print output_writer.verilog_code
     return clkgen, output_driver, drive_and_check, output_writer
 
 def runner(initial_val, change_input_signal=False):
