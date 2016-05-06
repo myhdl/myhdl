@@ -467,11 +467,16 @@ def _writeSigDecls(f, intf, siglist, memlist):
         else:
             sig_vhdl_objs = [inferVhdlObj(each) for each in m.mem]
             
-            _val_str = ',\n    '.join(
-                ['%dX"%s"' % (obj.size, str(each._init)) for 
-                 obj, each in zip(sig_vhdl_objs, m.mem)])
+            if all([each._init == m.mem[0]._init for each in m.mem]):
+                val_str = (
+                    ' := (others => %dX"%s")' % 
+                    (sig_vhdl_objs[0].size, str(m.mem[0]._init)))
+            else:
+                _val_str = ',\n    '.join(
+                    ['%dX"%s"' % (obj.size, str(each._init)) for 
+                     obj, each in zip(sig_vhdl_objs, m.mem)])
 
-            val_str = ' := (\n    ' + _val_str + ')'
+                val_str = ' := (\n    ' + _val_str + ')'
 
         print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
         print("signal %s: %s%s;" % (m.name, t, val_str), file=f)

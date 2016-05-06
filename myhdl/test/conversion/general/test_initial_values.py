@@ -288,16 +288,26 @@ def test_unsigned_list():
 
     runner(initial_vals, tb=initial_value_list_bench)
 
+    # All the same case
+    initial_vals = [
+        intbv(randrange(min_val, max_val), min=min_val, max=max_val)] * 10
+    runner(initial_vals, tb=initial_value_list_bench)
 
 def test_signed_list():
     '''The correct initial value should be used for signed type signal lists
     '''
     min_val = -12
     max_val = 4
-    
+
     initial_vals = [intbv(
         randrange(min_val, max_val), min=min_val, max=max_val)
         for each in range(10)]
+
+    runner(initial_vals, tb=initial_value_list_bench)
+
+    # All the same case    
+    initial_vals = [intbv(
+        randrange(min_val, max_val), min=min_val, max=max_val)] * 10
 
     runner(initial_vals, tb=initial_value_list_bench)
 
@@ -309,6 +319,11 @@ def test_modbv_list():
         modbv(randrange(0, 2**10))[10:] for each in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
+
+    # All the same case    
+    initial_vals = [modbv(randrange(0, 2**10))[10:]] * 10
+    runner(initial_vals, tb=initial_value_list_bench)
+
 
 def test_long_signals_list():
     '''The correct initial value should work with wide bitwidths (i.e. >32) 
@@ -322,11 +337,18 @@ def test_long_signals_list():
 
     runner(initial_vals, tb=initial_value_list_bench)
 
+    # All the same case
+    initial_vals = [intbv(2**65-50, min=min_val, max=max_val)] * 10
+    runner(initial_vals, tb=initial_value_list_bench)
+
 def test_bool_signals_list():
     '''The correct initial value should be used for a boolean type signal lists
     '''
     initial_vals = [intbv(0, min=0, max=2) for each in range(10)]
 
+    runner(initial_vals, tb=initial_value_list_bench)
+
+    initial_vals = [intbv(0, min=0, max=2)] * 10
     runner(initial_vals, tb=initial_value_list_bench)
 
 

@@ -27,6 +27,7 @@ from __future__ import print_function
 import sys
 import math
 import os
+import textwrap
 
 import inspect
 from datetime import datetime
@@ -369,11 +370,30 @@ def _writeSigDecls(f, intf, siglist, memlist):
             k = m._driven
 
             if toVerilog.initial_values:
-                val_assignments = '\n'.join(
-                    ['    %s[%d] <= %s;' % (m.name, n, _intRepr(each._init)) 
-                     for n, each in enumerate(m.mem)])
-                initial_assignments = (
-                    'initial begin\n' + val_assignments + '\nend')
+                if all([each._init == m.mem[0]._init for each in m.mem]):
+
+                    initialize_block_name = ('INITIALIZE_' + m.name).upper()
+                    _initial_assignments = (
+                        '''
+                        initial begin: %s
+                            integer i;
+                            for(i=0; i<%d; i=i+1) begin
+                                %s[i] = %s;
+                            end
+                        end
+                        ''' % (initialize_block_name, len(m.mem), m.name, 
+                               _intRepr(m.mem[0]._init)))
+
+                    initial_assignments = (
+                        textwrap.dedent(_initial_assignments))
+
+                else:
+                    val_assignments = '\n'.join(
+                        ['    %s[%d] <= %s;' % 
+                         (m.name, n, _intRepr(each._init)) 
+                         for n, each in enumerate(m.mem)])
+                    initial_assignments = (
+                        'initial begin\n' + val_assignments + '\nend')
 
         print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth),
               file=f)
