@@ -425,9 +425,16 @@ def _writeSigDecls(f, intf, siglist, memlist):
                     val_str = " := '%s'" % int(s._init)
                 elif isinstance(sig_vhdl_obj, vhd_int):
                     val_str = " := %s" % s._init
-                else:
+                elif isinstance(sig_vhdl_obj, (vhd_signed, vhd_unsigned)):
                     val_str = ' := %dX"%s"' % (
                         sig_vhdl_obj.size, str(s._init))
+
+                elif isinstance(sig_vhdl_obj, vhd_enum):
+                    val_str = ' := %s' % (s._init,)
+
+                else:
+                    # default to no initial value
+                    val_str = ''
 
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
@@ -1419,6 +1426,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 a = node.args[argnr]
                 argnr += 1
                 to_string = "to_string"
+                print(s)
                 if s.conv is int:
                     a.vhd = vhd_int()
                 else:

@@ -5,12 +5,61 @@ from myhdl import *
 import myhdl
 
 @block
-def initial_value_bench(initial_val, change_input_signal):
+def initial_value_enum_bench(initial_val, **kwargs):
+    clk = Signal(bool(0))
+    sig = Signal(initial_val)
+    states = kwargs['states']
+    N = 20
+
+    if initial_val in (states.a, states.c):
+        valid_states = (states.a, states.c)
+
+    else:
+        valid_states = (states.b, states.d)
+
+    @instance
+    def clkgen():
+
+        clk.next = 0
+        for n in range(N):
+            yield delay(10)
+            clk.next = not clk
+
+        raise StopSimulation()
+
+    @always(clk.posedge)
+    def state_walker():
+        if sig == states.a:
+            sig.next = states.c
+            print('a')
+        elif sig == states.c:
+            sig.next = states.a
+            print('c')
+        elif sig == states.b:
+            sig.next = states.d
+            print('b')
+        elif sig == states.d:
+            sig.next = states.b
+            print('d')
+
+        if __debug__:
+            assert sig in valid_states
+
+    return state_walker, clkgen
+
+@block
+def initial_value_bench(initial_val, **kwargs):
 
     clk = Signal(bool(0))
 
     input_signal = Signal(initial_val)
     
+    if 'change_input_signal' in kwargs.keys():
+
+        change_input_signal = kwargs['change_input_signal']
+    else:
+        change_input_signal = False
+
     if change_input_signal:
         # Make sure it doesn't overflow when changing
         if initial_val > 0:
@@ -21,6 +70,7 @@ def initial_value_bench(initial_val, change_input_signal):
     if isinstance(initial_val, bool):
         output_signal = Signal(not initial_val)
         update_val = not initial_val
+
     else:
         output_signal = Signal(
             intbv(0, min=initial_val.min, max=initial_val.max))
@@ -98,20 +148,11 @@ end process INITIAL_VALUE_BENCH_OUTPUT_WRITER;
 
 
 @block
-def initial_value_list_bench(initial_vals, change_input_signal):
+def initial_value_list_bench(initial_vals, **kwargs):
     clk = Signal(bool(0))
 
     input_signal_list = [Signal(initial_val) for initial_val in initial_vals]
     
-    if change_input_signal:
-
-        for each_signal, initial_val in zip(input_signal_list, initial_vals):
-            # Make sure it doesn't overflow when changing
-            if initial_val > 0:
-                each_signal.val[:] = initial_val - 1
-            else:
-                each_signal.val[:] = initial_val + 1
-
     if len(initial_vals[0]) == 1:
         output_signal_list = [
             Signal(intbv(not initial_val, min=0, max=2)) for 
@@ -164,7 +205,7 @@ def initial_value_list_bench(initial_vals, change_input_signal):
 
     return clkgen, output_driver, drive_and_check, output_writer
 
-def runner(initial_val, change_input_signal=False):
+def runner(initial_val, tb=initial_value_bench, **kwargs):
     pre_toVerilog_initial_values = toVerilog.initial_values
     pre_toVHDL_initial_values = toVHDL.initial_values
 
@@ -172,28 +213,8 @@ def runner(initial_val, change_input_signal=False):
     toVHDL.initial_values = True
 
     try:
-        assert conversion.verify(
-            initial_value_bench(initial_val, change_input_signal)) == 0
+        assert conversion.verify(tb(initial_val, **kwargs)) == 0
     
-    finally:
-        toVerilog.initial_values = pre_toVerilog_initial_values
-        toVHDL.initial_values = pre_toVHDL_initial_values
-
-def list_runner(initial_vals, change_input_signal=False):
-    pre_toVerilog_initial_values = toVerilog.initial_values
-    pre_toVHDL_initial_values = toVHDL.initial_values
-
-    toVerilog.initial_values = True
-    toVHDL.initial_values = True
-
-    try:
-        #foo = initial_value_list_bench(initial_vals, change_input_signal)
-        #foo.convert()
-        assert conversion.verify(
-            initial_value_list_bench(initial_vals, change_input_signal)) == 0
-        #foo = initial_value_list_bench(initial_vals, change_input_signal)
-        #foo.convert()
-
     finally:
         toVerilog.initial_values = pre_toVerilog_initial_values
         toVHDL.initial_values = pre_toVHDL_initial_values
@@ -229,6 +250,16 @@ def test_modbv():
 
     runner(initial_val)
 
+def test_enum():
+    '''The correct initial value should be used for enum type signals.
+    '''
+    states = enum('a', 'b', 'c', 'd')
+    val1 = states.c
+    val2 = states.b
+
+    runner(val1, tb=initial_value_enum_bench, states=states)
+    runner(val2, tb=initial_value_enum_bench, states=states)
+
 def test_long_signals():
     '''The correct initial value should work with wide bitwidths (i.e. >32)
     '''
@@ -255,7 +286,7 @@ def test_unsigned_list():
         randrange(min_val, max_val), min=min_val, max=max_val) 
         for each in range(10)]
 
-    list_runner(initial_vals)
+    runner(initial_vals, tb=initial_value_list_bench)
 
 
 def test_signed_list():
@@ -268,7 +299,7 @@ def test_signed_list():
         randrange(min_val, max_val), min=min_val, max=max_val)
         for each in range(10)]
 
-    list_runner(initial_vals)
+    runner(initial_vals, tb=initial_value_list_bench)
 
 def test_modbv_list():
     '''The correct initial value should be used for modbv type signal lists
@@ -277,7 +308,7 @@ def test_modbv_list():
     initial_vals = [
         modbv(randrange(0, 2**10))[10:] for each in range(10)]
 
-    list_runner(initial_vals)
+    runner(initial_vals, tb=initial_value_list_bench)
 
 def test_long_signals_list():
     '''The correct initial value should work with wide bitwidths (i.e. >32) 
@@ -289,14 +320,14 @@ def test_long_signals_list():
         randrange(min_val, max_val), min=min_val, max=max_val) 
         for each in range(10)]
 
-    list_runner(initial_vals)
+    runner(initial_vals, tb=initial_value_list_bench)
 
 def test_bool_signals_list():
     '''The correct initial value should be used for a boolean type signal lists
     '''
     initial_vals = [intbv(0, min=0, max=2) for each in range(10)]
 
-    list_runner(initial_vals)
+    runner(initial_vals, tb=initial_value_list_bench)
 
 
 def test_init_used():

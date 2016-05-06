@@ -334,8 +334,12 @@ def _writeSigDecls(f, intf, siglist, memlist):
             if not toVerilog.initial_values or k == 'wire':
                 print("%s %s%s%s;" % (k, p, r, s._name), file=f)
             else:
-                print("%s %s%s%s = %s;" % 
-                      (k, p, r, s._name, _intRepr(s._init)), file=f)
+                if isinstance(s._init, myhdl._enum.EnumItemType):
+                    print("%s %s%s%s = %s;" % 
+                          (k, p, r, s._name, s._init._toVerilog()), file=f)
+                else:
+                    print("%s %s%s%s = %s;" % 
+                          (k, p, r, s._name, _intRepr(s._init)), file=f)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
