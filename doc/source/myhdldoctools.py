@@ -22,7 +22,7 @@ class RunExample(Directive):
         env = document.settings.env
         _ , wd = env.relfn2path(example_dir)
         prog = self.arguments[0]
-        out = subprocess.check_output(['python', '-u', prog], cwd=wd, 
+        out = subprocess.check_output(['python3', '-u', prog], cwd=wd, 
                                       stderr=subprocess.STDOUT,
                                       universal_newlines=True)
         out = '$ python {}\n{}'.format(prog, out)
