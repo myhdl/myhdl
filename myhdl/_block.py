@@ -81,8 +81,8 @@ def _getCallInfo():
     return _CallInfo(name, modctxt, symdict)
 
 
-class _bound_function_wrapper(object): 
-    
+class _bound_function_wrapper(object):
+
     def __init__(self, bound_func, srcfile, srcline):
 
         self.srcfile = srcfile
@@ -95,18 +95,18 @@ class _bound_function_wrapper(object):
 
     def __call__(self, *args, **kwargs):
         self.calls += 1
-        return _Block(self.bound_func, self, self.srcfile, 
+        return _Block(self.bound_func, self, self.srcfile,
                       self.srcline, *args, **kwargs)
 
 class block(object):
     def __init__(self, func):
         self.srcfile = inspect.getsourcefile(func)
         self.srcline = inspect.getsourcelines(func)[0]
-        
+
         self.func = func
         functools.update_wrapper(self, func)
 
-        self.calls = 0        
+        self.calls = 0
 
     def __get__(self, instance, owner):
 
@@ -114,9 +114,9 @@ class block(object):
         return _bound_function_wrapper(bound_func, self.srcfile, self.srcline)
 
     def __call__(self, *args, **kwargs):
-        
+
         self.calls += 1
-        return _Block(self.func, self, self.srcfile, 
+        return _Block(self.func, self, self.srcfile,
                       self.srcline, *args, **kwargs)
 
 #def block(func):
@@ -231,8 +231,8 @@ class _Block(object):
                 `self.mod.__name__`
             trace(Optional[bool]): Verilog only. Whether the testbench should
                 dump all signal waveforms. Defaults to False.
-            tb (Optional[bool]): Verilog only. Specifies whether a testbench
-                should be created. Defaults to True.
+            testbench (Optional[bool]): Verilog only. Specifies whether a
+                testbench should be created. Defaults to True.
             timescale(Optional[str]): Verilog only. Defaults to '1ns/10ps'
         """
         if hdl.lower() == 'vhdl':
@@ -247,7 +247,7 @@ class _Block(object):
             conv_attrs['name'] = kwargs.pop('name')
         conv_attrs['directory'] = kwargs.pop('path', '')
         if hdl.lower() == 'verilog':
-            conv_attrs['no_testbench'] = not kwargs.pop('tb', True)
+            conv_attrs['no_testbench'] = not kwargs.pop('testbench', True)
             conv_attrs['timescale'] = kwargs.pop('timescale', '1ns/10ps')
             conv_attrs['trace'] = kwargs.pop('trace', False)
         conv_attrs.update(kwargs)
