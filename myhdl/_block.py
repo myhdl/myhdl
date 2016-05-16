@@ -26,6 +26,7 @@ import inspect
 import functools
 
 import myhdl
+from myhdl._compat import PY2
 from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
@@ -66,8 +67,15 @@ def _getCallInfo():
     # caller may be undefined if instantiation from a Python module
     callerrec = None
     funcrec = stack[3]
+    name = funcrec[3]
     if len(stack) > 4:
         callerrec = stack[4]
+    # special case for list comprehension's extra scope in PY3
+    if name == '<listcomp>':
+        if not PY2:
+            funcrec = stack[4]
+            if len(stack) > 5:
+                callerrec = stack[5]
 
     name = funcrec[3]
     frame = funcrec[0]
