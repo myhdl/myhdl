@@ -265,12 +265,14 @@ class _Block(object):
 
     def config_sim(self, trace=False):
         self._config_sim['trace'] = trace
+        if trace:
+            myhdl.traceSignals(self)
 
     def run_sim(self, duration=None, quiet=0):
         if self.sim is None:
             sim = self
-            if self._config_sim['trace']:
-                sim = myhdl.traceSignals(self)
+            #if self._config_sim['trace']:
+            #    sim = myhdl.traceSignals(self)
             self.sim = myhdl._Simulation.Simulation(sim)
         self.sim.run(duration, quiet)
 

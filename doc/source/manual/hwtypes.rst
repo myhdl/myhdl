@@ -264,7 +264,7 @@ Inspecting the object now shows::
   5
 
 Note that the *max* attribute is 32, as with 5 bits it is possible to represent
-the range 0 .. 31.  Creating an :class:`intbv` this way is convenient but has
+the range 0 .. 31.  Creating an :class:`intbv` in this way is convenient but has
 the disadvantage that only positive value ranges between 0 and a power of 2 can
 be specified.
 
