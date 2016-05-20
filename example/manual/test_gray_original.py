@@ -3,16 +3,9 @@ import unittest
 from myhdl import Simulation, Signal, delay, intbv, bin
 
 from bin2gray import bin2gray
+from next_gray_code import nextLn
 
 MAX_WIDTH = 11
-
-def nextLn(Ln):
-    """ Return Gray code Ln+1, given Ln. """
-    Ln0 = ['0' + codeword for codeword in Ln]
-    Ln1 = ['1' + codeword for codeword in Ln]
-    Ln1.reverse()
-    return Ln0 + Ln1
-
 
 class TestOriginalGrayCode(unittest.TestCase):
 
@@ -41,4 +34,4 @@ class TestOriginalGrayCode(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=2)
