@@ -41,22 +41,9 @@ from the previous chapters. Suppose that we want to synthesize it and write it
 in Verilog for that purpose. Clearly we would like to reuse our unit test
 verification environment.
 
-To start, let's recall how the Gray encoder in MyHDL looks like::
+To start, let's recall how the Gray encoder in MyHDL looks like:
 
-   def bin2gray(B, G, width):
-       """ Gray encoder.
-
-       B -- input intbv signal, binary encoded
-       G -- output intbv signal, gray encoded
-       width -- bit width
-       """
-
-       @always_comb
-       def logic():
-           for i in range(width):
-               G.next[i] = B[i+1] ^ B[i]
-
-       return logic
+.. include-example:: bin2gray.py
 
 To show the co-simulation flow, we don't need the Verilog implementation yet,
 but only the interface.  Our Gray encoder in Verilog would have the following
@@ -65,7 +52,7 @@ interface::
    module bin2gray(B, G);
 
       parameter width = 8;
-      input [width-1:0]  B;     
+      input [width-1:0]  B;
       output [width-1:0] G;
       ....
 
@@ -135,11 +122,14 @@ simulator, this is done as follows::
 
    from myhdl import Cosimulation
 
-   cmd = "iverilog -o bin2gray -Dwidth=%s bin2gray.v dut_bin2gray.v"
+   cmd = "iverilog -o bin2gray.o -Dwidth=%s " + \
+         "../../test/verilog/bin2gray.v " + \
+         "../../test/verilog/dut_bin2gray.v "
 
-   def bin2gray(B, G, width):
+   def bin2gray(B, G):
+       width = len(B)
        os.system(cmd % width)
-       return Cosimulation("vvp -m ./myhdl.vpi bin2gray", B=B, G=G)
+       return Cosimulation("vvp -m ../myhdl.vpi bin2gray.o", B=B, G=G)
 
 After the executable command argument, the ``Cosimulation`` constructor takes an
 arbitrary number of keyword arguments. Those arguments make the link between
@@ -154,36 +144,30 @@ definition to the existing unit test.
 
 Let's try it on the Verilog design::
 
-   module bin2gray(B, G);
+  module bin2gray(B, G);
 
-      parameter width = 8;
-      input [width-1:0]  B;
-      output [width-1:0] G;
-      reg [width-1:0] G;
-      integer i;
-      wire [width:0] extB;
+     parameter width = 8;
+     input [width-1:0]  B;
+     output [width-1:0] G;
 
-      assign extB = {1'b0, B}; // zero-extend input
+     assign G = (B >> 1) ^ B;
 
-      always @(extB) begin
-         for (i=0; i < width; i=i+1)
-           G[i] <= extB[i+1] ^ extB[i];
-      end
+  endmodule // bin2gray
 
-   endmodule
+When we run our unit tests, we get::
 
-When we run our unit test, we get::
-
-   % python test_bin2gray.py 
-   Check that only one bit changes in successive codewords ... ok
-   Check that all codewords occur exactly once ... ok
-   Check that the code is an original Gray code ... ok
+   % python test_gray.py
+   testSingleBitChange (test_gray_properties.TestGrayCodeProperties)
+   Check that only one bit changes in successive codewords. ... ok
+   testUniqueCodeWords (test_gray_properties.TestGrayCodeProperties)
+   Check that all codewords occur exactly once. ... ok
+   testOriginalGrayCode (test_gray_original.TestOriginalGrayCode)
+   Check that the code is an original Gray code. ... ok
 
    ----------------------------------------------------------------------
-   Ran 3 tests in 2.729s
+   Ran 3 tests in 0.706s
 
    OK
-
 
 .. _cosim-restr:
 

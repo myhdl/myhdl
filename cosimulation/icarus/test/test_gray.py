@@ -22,12 +22,11 @@
 
 import sys
 
-sys.path.append("../../test")
 sys.path.append("../../../example/manual")
 
-import test_gray_properties, test_gray_original, test_inc, test_dff
+import test_gray_properties, test_gray_original
 
-modules = (test_gray_properties, test_gray_original, test_inc, test_dff )
+modules = (test_gray_properties, test_gray_original)
 
 import unittest
 

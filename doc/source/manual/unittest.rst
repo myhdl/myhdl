@@ -19,12 +19,12 @@ to hardware design.
 
 .. index:: single: extreme programming
 
-One software design approach that gets a lot of attention recently is *Extreme
-Programming* (XP). It is a fascinating set of techniques and guidelines that
-often seems to go against the conventional wisdom. On other occasions, XP just
-seems to emphasize the common sense, which doesn't always coincide with common
-practice. For example, XP stresses the importance of normal workweeks, if we are
-to have the fresh mind needed for good software development.
+One software design approach that deserves attention is *Extreme Programming*
+(XP). It is a fascinating set of techniques and guidelines that often seems to
+go against the conventional wisdom. On other occasions, XP just seems to
+emphasize the common sense, which doesn't always coincide with common practice.
+For example, XP stresses the importance of normal workweeks, if we are to have
+the fresh mind needed for good software development.
 
 .. %
 
@@ -32,7 +32,6 @@ It is not my intention nor qualification to present a tutorial on Extreme
 Programming. Instead, in this section I will highlight one XP concept which I
 think is very relevant to hardware design: the importance and methodology of
 unit testing.
-
 
 .. _unittest-why:
 
@@ -140,7 +139,7 @@ the tests, we don't need an implementation of the Gray encoder, but we do need
 the interface of the design. We can specify this by a dummy implementation, as
 follows:
 
-.. include-example: bin2gray_dummy.py
+.. include-example:: bin2gray_dummy.py
 
 For the first requirement, we will test all  consecutive input numbers, and
 compare the current output with the previous one For each input, we check that
