@@ -125,7 +125,6 @@ asynchronous reset.
 
 .. include-example:: inc.py
 
-
 For the test bench, we will use an independent clock generator, stimulus
 generator, and monitor. After applying enough stimulus patterns, we can raise
 the :func:`StopSimulation()` exception to stop the simulation run. The test bench for

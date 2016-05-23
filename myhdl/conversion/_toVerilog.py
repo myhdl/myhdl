@@ -338,7 +338,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           )
             constwires.append(s)
             print("wire %s%s;" % (r, s._name), file=f)
-    print(file=f)
+    # print(file=f)
     for m in memlist:
         if not m._used:
             continue
@@ -356,7 +356,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if m._driven:
             k = m._driven
         print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
-    print(file=f)
+    # print(file=f)
     for s in constwires:
         if s._type in (bool, intbv):
             c = int(s.val)
@@ -365,7 +365,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         c_len = s._nrbits
         c_str = "%s" % c
         print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
-    print(file=f)
+    # print(file=f)
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVerilog') and s._driven:
@@ -1359,6 +1359,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = '1' if init else '0'
     elif tipe is intbv:
+        init = int(init) # int representation
         v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)
