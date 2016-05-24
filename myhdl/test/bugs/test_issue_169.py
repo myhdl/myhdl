@@ -12,9 +12,11 @@ class Test1:
     
         @instance
         def func():
-            while True:
+            i = 0
+            while i <= 100:
                 yield delay(10)
                 self.clock.next = not self.clock
+                i = i + 1
 
         return func
 
@@ -28,9 +30,11 @@ class Test2:
     
         @instance
         def func():
-            while True:
+            i = 0
+            while i <= 100:
                 yield delay(10)
                 self.clock.next = not self.clock
+                i = i + 1
 
         return func
 
@@ -48,8 +52,8 @@ def test_bench():
 
 @pytest.mark.xfail
 def test_issue_169():
-    test_inst = testbench()
-    assert test_inst.verify_convert() == 0
+    test_inst = test_bench()
+    assert test_inst.verify_convert() == True
     
 if __name__ == '__main__':
     test_issue_169()
