@@ -32,9 +32,9 @@ import inspect
 from myhdl._Cosimulation import Cosimulation
 from myhdl._instance import _Instantiator
 
-
 def _isGenSeq(obj):
-    if isinstance(obj, (Cosimulation, _Instantiator)):
+    from myhdl._block import _Block
+    if isinstance(obj, (Cosimulation, _Instantiator, _Block)):
         return True
     if not isinstance(obj, (list, tuple, set)):
         return False

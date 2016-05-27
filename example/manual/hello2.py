@@ -11,7 +11,7 @@ def HelloWorld():
 
     @always(clk.posedge)
     def say_hello():
-        print "%s Hello World!" % now()
+        print("%s Hello World!" % now())
 
     return drive_clk, say_hello
 

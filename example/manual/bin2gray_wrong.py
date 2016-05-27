@@ -2,6 +2,7 @@ from myhdl import block, always_comb
 
 @block
 def bin2gray(B, G):
+    # INCORRECT IMPLEMENTATION
     """ Gray encoder.
 
     B -- binary input 
@@ -10,7 +11,6 @@ def bin2gray(B, G):
 
     @always_comb
     def logic():
-        G.next = (B>>1) ^ B
+        G.next = B[0]
 
     return logic
-

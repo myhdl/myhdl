@@ -29,14 +29,13 @@ representation for bitwise operations. However, unlike :class:`int`, it is
 a mutable type. This means that its value can be changed after object
 creation, through methods and operators such as slice assignment.
 
-:class:`intbv` supports the same operators as :class:`int` for arithmetic.
-In addition, it provides a number of features to make it
-suitable for hardware design. First, the range of allowed values can
-be constrained. This makes it possible to check the value at run time
-during simulation. Moreover, back end tools can determine the smallest
-possible bit width for representing the object.
-Secondly, it supports bit level operations by providing an indexing
-and slicing interface.
+:class:`intbv` supports the same operators as :class:`int` for arithmetic. In
+addition, it provides a number of features to make it suitable for hardware
+design. First, the range of allowed values can be constrained. This makes it
+possible to check the value at run time during simulation. Moreover, back end
+tools can determine the smallest possible bit width for representing the object.
+Secondly, it supports bit level operations by providing an indexing and slicing
+interface.
 
 :class:`intbv` objects are constructed in general as follows::
 
@@ -46,12 +45,12 @@ and slicing interface.
 the value. Following the Python conventions, *min* is inclusive, and
 *max* is exclusive. Therefore, the allowed value range is *min* .. *max*-1.
 
-Let's us look at some examples. First, an unconstrained :class:`intbv`
-object is created as follows:
+Let's look at some examples. An unconstrained :class:`intbv` object is created
+as follows::
 
   >>> a = intbv(24)
-  
-.. index::  
+
+.. index::
     single: intbv; min
     single: intbv; max
     single: intbv; bit width
@@ -60,12 +59,14 @@ After object creation, *min* and *max* are available as attributes for
 inspection. Also, the standard Python function :func:`len` can be used
 to determine the bit width. If we inspect the previously created
 object, we get::
-  
-  >>> print a.min
+
+  >>> a
+  intbv(24)
+  >>> print(a.min)
   None
-  >>> print a.max
+  >>> print(a.max)
   None
-  >>> print len(a)
+  >>> len(a)
   0
 
 As the instantiation was unconstrained, the *min* and *max* attributes
@@ -76,9 +77,10 @@ A constrained :class:`intbv` object is created as follows:
 
   >>> a = intbv(24, min=0, max=25)
 
-
 Inspecting the object now gives::
 
+  >>> a
+  intbv(24)
   >>> a.min
   0
   >>> a.max
@@ -89,54 +91,20 @@ Inspecting the object now gives::
 We see that the allowed value range is 0 .. 24,  and that 5 bits are
 required to represent the object.
 
-Sometimes hardware engineers prefer to constrain an object by defining
-its bit width directly, instead of the range of allowed values.
-The following example shows how to do that::
+The *min* and *max* bound attributes enable fine-grained control and error
+checking of the value range. In particular, the bound values do not have to be
+symmetric or powers of 2. In all cases, the bit width is set appropriately to
+represent the values in the range. For example::
 
-  >>> a = intbv(24)[5:]
-
-What actually happens here is that first an unconstrained :class:`intbv`
-is created, which is then sliced. Slicing an :class:`intbv` returns a new
-:class:`intbv` with the constraints set up appropriately. 
-Inspecting the object now shows::
-
-  >>> a.min
-  0
-  >>> a.max
-  32
+  >>> a = intbv(6, min=0, max=7)
+  >>> len(a)
+  3
+  >>> a = intbv(6, min=-3, max=7)
+  >>> len(a)
+  4
+  >>> a = intbv(6, min=-13, max=7)
   >>> len(a)
   5
-
-
-Note that the *max* attribute is 32, as with 5 bits it is possible to represent
-the range 0 .. 31.  Creating an :class:`intbv` this way has the disadvantage
-that only positive value ranges can be specified. Slicing is described in more
-detail in :ref:`hwtypes-slicing`.
-
-To summarize, there are two ways to constrain an :class:`intbv` object: by
-defining its bit width, or by defining its value range. The bit
-width method is more traditional in hardware design. However, there
-are two reasons to use the range method instead: to represent
-negative values as observed above, and for fine-grained control over the
-value range.
-
-Fine-grained control over the value range permits better error
-checking, as there is no need for the *min* and *max* bounds
-to be symmetric or powers of 2. In all cases, the bit width
-is set appropriately to represent all values in 
-the range. For example::
-
-
-    >>> a = intbv(6, min=0, max=7)
-    >>> len(a)
-    3
-    >>> a = intbv(6, min=-3, max=7)
-    >>> len(a)
-    4
-    >>> a = intbv(6, min=-13, max=7)
-    >>> len(a)
-    5
-
 
 .. _hwtypes-indexing:
 
@@ -145,135 +113,102 @@ Bit indexing
 
 .. index:: single: bit indexing
 
-As an example, we will consider the design of a Gray encoder. The following code
-is a Gray encoder modeled in MyHDL::
+A common requirement in hardware design is access to the individual bits. The
+:class:`intbv` class implements an indexing interface that provides access to
+the bits of the underlying two's complement representation. The following
+illustrates bit index read access::
 
-   from myhdl import Signal, delay, Simulation, always_comb, instance, intbv, bin
+  >>> from myhdl import bin
+  >>> a = intbv(24)
+  >>> bin(a)
+  '11000'
+  >>> int(a[0])
+  0
+  >>> int(a[3])
+  1
+  >>> b = intbv(-23)
+  >>> bin(b)
+  '101001'
+  >>> int(b[0])
+  1
+  >>> int(b[3])
+  1
+  >>> int(b[4])
+  0
 
-   def bin2gray(B, G, width):
-       """ Gray encoder.
+We use the :func:`bin` function provide by MyHDL because it shows the two's
+complement representation for negative values, unlike Python's builtin with the
+same name. Note that lower indices correspond to less significant bits. The
+following code illustrates bit index assignment::
 
-       B -- input intbv signal, binary encoded
-       G -- output intbv signal, gray encoded
-       width -- bit width
-       """
-
-       @always_comb
-       def logic():
-           for i in range(width):
-               G.next[i] = B[i+1] ^ B[i]
-
-       return logic
-
-This code introduces a few new concepts. The string in triple quotes at the
-start of the function is a :dfn:`doc string`. This is standard Python practice
-for structured documentation of code.
-
-.. index::
-   single: decorator; always_comb
-   single: wait; for a signal value change
-   single: combinatorial logic
-
-Furthermore, we introduce a third decorator: :func:`always_comb`.  It is used
-with a classic function and specifies that the  resulting generator should wait
-for a value change on any input signal. This is typically used to describe
-combinatorial logic. The :func:`always_comb` decorator automatically infers
-which signals are used as inputs.
-
-Finally, the code contains bit indexing operations and an exclusive-or operator
-as required for a Gray encoder. By convention, the lsb of an :class:`intbv`
-object has index ``0``.
-
-To verify the Gray encoder, we write a test bench that prints input and output
-for all possible input values::
-
-   def testBench(width):
-
-       B = Signal(intbv(0))
-       G = Signal(intbv(0))
-
-       dut = bin2gray(B, G, width)
-
-       @instance
-       def stimulus():
-           for i in range(2**width):
-               B.next = intbv(i)
-               yield delay(10)
-               print "B: " + bin(B, width) + "| G: " + bin(G, width)
-
-       return dut, stimulus
-
-We use the conversion function :func:`bin` to get a binary string representation of
-the signal values. This function is exported by the :mod:`myhdl` package and
-supplements the standard Python :func:`hex` and :func:`oct` conversion functions.
-
-As a demonstration, we set up a simulation for a small width::
-
-   sim = Simulation(testBench(width=3))
-   sim.run()
-
-The simulation produces the following output::
-
-   % python bin2gray.py
-   B: 000 | G: 000
-   B: 001 | G: 001
-   B: 010 | G: 011
-   B: 011 | G: 010
-   B: 100 | G: 110
-   B: 101 | G: 111
-   B: 110 | G: 101
-   B: 111 | G: 100
-   StopSimulation: No more events
-
+  >>> bin(a)
+  '11000'
+  >>> a[3] = 0
+  >>> bin(a)
+  '10000'
+  >>> a
+  intbv(16)
+  >>> b
+  intbv(-23)
+  >>> bin(b)
+  '101001'
+  >>> b[3] = 0
+  >>> bin(b)
+  '100001'
+  >>> b
+  intbv(-31)
 
 .. _hwtypes-slicing:
 
 Bit slicing
 ===========
 
-.. index:: 
+.. index::
    single: bit slicing
-   single: concat(); example usage
 
-For a change, we will use a traditional function as an example to illustrate
-slicing.  The following function calculates the HEC byte of an ATM header. ::
+The :class:`intbv` type also supports bit slicing, for both read access
+assignment. For example::
 
-   from myhdl import intbv, concat
+   >>> a = intbv(24)
+   >>> bin(a)
+   '11000'
+   >>> a[4:1]
+   intbv(4)
+   >>> bin(a[4:1])
+   '100'
+   >>> a[4:1] = 0b001
+   >>> bin(a)
+   '10010'
+   >>> a
+   intbv(18)
 
-   COSET = 0x55
+In accordance with the most common hardware convention, and unlike standard
+Python, slicing ranges are downward.  As in standard Python, the slicing range
+is half-open: the highest index bit is not included. Unlike standard Python
+however, this index corresponds to the *leftmost* item.
 
-   def calculateHec(header):
-       """ Return hec for an ATM header, represented as an intbv.
+Both indices can be omitted from the slice.  If the rightmost index is omitted,
+it is ``0`` by default. If the leftmost index is omitted, the meaning is to
+access "all" higher order bits. For example::
 
-       The hec polynomial is 1 + x + x**2 + x**8.
-       """
-       hec = intbv(0)
-       for bit in header[32:]:
-           hec[8:] = concat(hec[7:2],
-                            bit ^ hec[1] ^ hec[7],
-                            bit ^ hec[0] ^ hec[7],
-                            bit ^ hec[7]
-                           )
-       return hec ^ COSET
-
-The code shows how slicing access and assignment is supported on the
-:class:`intbv` data type. In accordance with the most common hardware
-convention, and unlike standard Python, slicing ranges are downward. The code
-also demonstrates concatenation of :class:`intbv` objects.
-
-As in standard Python, the slicing range is half-open: the highest index bit is
-not included. Unlike standard Python however, this index corresponds to the
-*leftmost* item. Both indices can be omitted from the slice. If the leftmost
-index is omitted, the meaning is to access "all" higher order bits.  If the
-rightmost index is omitted, it is ``0`` by default.
+  >>> bin(a)
+  '11000'
+  >>> bin(a[4:])
+  '1000'
+  >>> a[4:] = '0001'
+  >>> bin(a)
+  '10001'
+  >>> a[:] = 0b10101
+  >>> bin(a)
+  '10101'
 
 The half-openness of a slice may seem awkward at first, but it helps to avoid
-one-off count issues in practice. For example, the slice ``hex[8:]`` has exactly
-``8`` bits. Likewise, the slice ``hex[7:2]`` has ``7-2=5`` bits. You can think
+one-off count issues in practice. For example, the slice ``a[8:]`` has exactly
+``8`` bits. Likewise, the slice ``a[7:2]`` has ``7-2=5`` bits. You can think
 about it as follows: for a slice ``[i:j]``, only bits below index ``i`` are
 included, and the bit with index ``j`` is the last bit included.
 
-When an :class:`intbv` object is sliced, a new :class:`intbv` object is returned. 
+When an :class:`intbv` object is sliced, a new :class:`intbv` object is returned.
 This new :class:`intbv` object is always positive, and the value bounds are
 set up in accordance with the bit width specified by the slice. For example::
 
@@ -281,7 +216,7 @@ set up in accordance with the bit width specified by the slice. For example::
     >>> len(a)
     4
     >>> b = a[4:]
-    >>> b     
+    >>> b
     intbv(6L)
     >>> len(b)
     4
@@ -295,8 +230,8 @@ The returned object has the same value and bit width, but its value
 range consists of all positive values that can be represented by
 the bit width.
 
-The object returned by a slice is positive, even when the
-original object is negative::
+The object returned by a slice is positive, even when the original object is
+negative::
 
     >>> a = intbv(-3)
     >>> bin(a, width=5)
@@ -307,8 +242,31 @@ original object is negative::
     >>> bin(b)
     '11101'
 
-The bit pattern of the two objects is identical within the bit width,
-but their values have opposite sign.
+In this example, the bit pattern of the two objects is identical within the bit
+width, but their values have opposite sign.
+
+Sometimes hardware engineers prefer to constrain an object by defining its bit
+width directly, instead of the range of allowed values. Using the slicing
+properties of the :class:`intbv` class one can do that as follows::
+
+  >>> a = intbv(24)[5:]
+
+What actually happens here is that first an unconstrained :class:`intbv`
+is created, which is then sliced. Slicing an :class:`intbv` returns a new
+:class:`intbv` with the constraints set up appropriately.
+Inspecting the object now shows::
+
+  >>> a.min
+  0
+  >>> a.max
+  32
+  >>> len(a)
+  5
+
+Note that the *max* attribute is 32, as with 5 bits it is possible to represent
+the range 0 .. 31.  Creating an :class:`intbv` in this way is convenient but has
+the disadvantage that only positive value ranges between 0 and a power of 2 can
+be specified.
 
 .. _hwtypes-modbv:
 
@@ -363,7 +321,7 @@ In a typical case when ``min==0``, this reduces to::
 Unsigned and signed representation
 ==================================
 
-.. index:: 
+.. index::
     single: intbv; intbv.signed
 
 :class:`intbv` is designed to be as high level as possible. The underlying
@@ -402,7 +360,7 @@ bit width.  For this purpose, :class:`intbv` provides the
     >>> bin(b, width=4)
     '1100'
 
-:meth:`intbv.signed` extends the msb bit into the higher-order bits of the 
+:meth:`intbv.signed` extends the msb bit into the higher-order bits of the
 underlying object value, and returns the result as an integer.
 Naturally, for a "signed" the return value will always be identical
 to the original value, as it has the sign bit already.
@@ -420,5 +378,3 @@ the data bus and convert them as follows::
 
  real.next = data_bus[8:4].signed()
  imag.next = data_bus[4:].signed()
-
-

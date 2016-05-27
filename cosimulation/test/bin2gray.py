@@ -1,5 +1,4 @@
-import myhdl
-from myhdl import *
+from myhdl import always_comb
 
 def bin2gray(B, G, width):
     """ Gray encoder.
@@ -15,5 +14,3 @@ def bin2gray(B, G, width):
             G.next[i] = B[i+1] ^ B[i]
 
     return logic
-
-
