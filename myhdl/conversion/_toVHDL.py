@@ -1431,7 +1431,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 a = node.args[argnr]
                 argnr += 1
                 to_string = "to_string"
-                print(s)
                 if s.conv is int:
                     a.vhd = vhd_int()
                 else:
