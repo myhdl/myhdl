@@ -1,5 +1,7 @@
 import warnings
-from myhdl import ToVHDLWarning
+from myhdl import *
+from myhdl.conversion import analyze
+import pytest
 
 class _nameCheck():
     'Saves all reserved words in VHDL and variable names used in a MyHDL circuit to check for any name collisions'
@@ -34,14 +36,14 @@ class _nameCheck():
     #ensure reserved words are not being used for the wrong purpose
     def _nameValid(name):
         for keyword in _nameCheck._vhdl_keywords:
-            if name == _nameCheck._vhdl_keywords[keyword]:
+            if name == keyword:
                 warnings.warn("VHDL keyword used: %s" % name, category=ToVHDLWarning)
         for saved_name in _nameCheck._usedNames:
-            if name.lower() == _nameCheck._usedNames[saved_name]:
+            if name.lower() == saved_name:
                 warnings.warn("Previously used name being reused: %s" % name, category=ToVHDLWarning)
         _nameCheck._usedNames.append(name).lower
         if name[0] == '_':
             warnings.warn("VHDL variable names cannot contain '_': %s" % name, category=ToVHDLWarning)
-        for pos in name:
-            if name[pos] == '-':
+        for char in name:
+            if char == '-':
                 warnings.warn("VHDL variable names cannot contain '-': %s" % name, category=ToVHDLWarning)
