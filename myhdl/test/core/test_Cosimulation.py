@@ -28,7 +28,6 @@ import sys
 if sys.platform == "win32":
     import msvcrt
 
-
 from myhdl import Signal
 from myhdl._compat import to_bytes
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
@@ -68,7 +67,6 @@ def wtrf():
         wt = msvcrt.open_osfhandle(int(os.environ['MYHDL_TO_PIPE']), os.O_APPEND | os.O_TEXT)
         rf = msvcrt.open_osfhandle(int(os.environ['MYHDL_FROM_PIPE']), os.O_RDONLY | os.O_TEXT)
 
-    print 'wt {}, rf {}'.format(wt, rf)   
     return wt, rf
 
 
@@ -89,7 +87,6 @@ class TestCosimulation:
     @staticmethod
     def cosimNotUnique():
         wt, rf = wtrf()
-
         os.write(wt, b"TO 00 a 1")
         os.read(rf, MAXLINE)
         os.write(wt, b"FROM 00 d 1")
