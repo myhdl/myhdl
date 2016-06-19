@@ -113,6 +113,7 @@ class _ToVHDLConvertor(object):
                  "use_clauses",
                  "architecture",
                  "std_logic_ports",
+                 "initial_values"
                  )
 
     def __init__(self):
@@ -126,6 +127,7 @@ class _ToVHDLConvertor(object):
         self.use_clauses = None
         self.architecture = "MyHDL"
         self.std_logic_ports = False
+        self.initial_values = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -411,8 +413,31 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               category=ToVHDLWarning
                               )
             # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print("signal %s: %s%s;" % (s._name, p, r), file=f)
+
+            sig_vhdl_obj = inferVhdlObj(s)
+
+            if not toVHDL.initial_values:
+                val_str = ""
+            else:
+
+                if isinstance(sig_vhdl_obj, vhd_std_logic):
+                    # Single bit
+                    val_str = " := '%s'" % int(s._init)
+                elif isinstance(sig_vhdl_obj, vhd_int):
+                    val_str = " := %s" % s._init
+                elif isinstance(sig_vhdl_obj, (vhd_signed, vhd_unsigned)):
+                    val_str = ' := %dX"%s"' % (
+                        sig_vhdl_obj.size, str(s._init))
+
+                elif isinstance(sig_vhdl_obj, vhd_enum):
+                    val_str = ' := %s' % (s._init,)
+
+                else:
+                    # default to no initial value
+                    val_str = ''
+
+            print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
+
         elif s._read:
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
@@ -436,8 +461,25 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
+
+        if not toVHDL.initial_values:
+            val_str = ""
+        else:
+            sig_vhdl_objs = [inferVhdlObj(each) for each in m.mem]
+            
+            if all([each._init == m.mem[0]._init for each in m.mem]):
+                val_str = (
+                    ' := (others => %dX"%s")' % 
+                    (sig_vhdl_objs[0].size, str(m.mem[0]._init)))
+            else:
+                _val_str = ',\n    '.join(
+                    ['%dX"%s"' % (obj.size, str(each._init)) for 
+                     obj, each in zip(sig_vhdl_objs, m.mem)])
+
+                val_str = ' := (\n    ' + _val_str + ')'
+
         print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
-        print("signal %s: %s;" % (m.name, t), file=f)
+        print("signal %s: %s%s;" % (m.name, t, val_str), file=f)
     print(file=f)
 
 
