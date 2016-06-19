@@ -1235,29 +1235,37 @@ def isboundmethod(m):
 
 
 def _analyzeTopFunc(func, *args, **kwargs):
+    def expandinterface(v, name, obj):
+        ''' a local function to drill down to the last interface '''
+        for attr, attrobj in vars(obj).items():
+                if isinstance(attrobj, _Signal):
+                    signame = name + '_' + attr
+                    attrobj._name = signame
+                    v.argdict[signame] = attrobj
+                    v.argnames.append(signame)
+                elif isinstance(attrobj, myhdl.EnumType):
+                    # to get test/conversion/general/test_fsm.py pass
+                    # as that test supplies an 'enum' as an argument
+                    pass
+                elif hasattr(attrobj, '__dict__'):
+                        # can assume is yet another interface ...
+                    expandinterface(v, name + '_' + attr, attrobj)
+
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)
 
+    # collect the interface objects
     objs = []
     for name, obj in v.fullargdict.items():
         if not isinstance(obj, _Signal):
             objs.append((name, obj))
 
-    # create ports for any signal in the top instance if it was buried in an
-    # object passed as in argument
-    # TODO: This will not work for nested objects in the top level
+    # now expand the interface objects, if any
     for name, obj in objs:
-        if not hasattr(obj, '__dict__'):
-            continue
-        for attr, attrobj in vars(obj).items():
-            if isinstance(attrobj, _Signal):
-                signame = attrobj._name
-                if not signame:
-                    signame = name + '_' + attr
-                    attrobj._name = signame
-                v.argdict[signame] = attrobj
-                v.argnames.append(signame)
+        if hasattr(obj, '__dict__'):
+            # must be an interface object (probably ...?)
+            expandinterface( v, name, obj )
 
     return v
 
