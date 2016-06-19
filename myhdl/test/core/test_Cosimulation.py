@@ -25,6 +25,9 @@ import os
 import random
 import sys
 
+if sys.platform == "win32":
+    import msvcrt
+
 from myhdl import Signal
 from myhdl._compat import to_bytes
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
@@ -56,6 +59,17 @@ allSigs = fromSigs.copy()
 allSigs.update(toSigs)
 
 
+def wtrf():
+    if sys.platform != "win32":
+        wt = int(os.environ['MYHDL_TO_PIPE'])
+        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    else:
+        wt = msvcrt.open_osfhandle(int(os.environ['MYHDL_TO_PIPE']), os.O_APPEND | os.O_TEXT)
+        rf = msvcrt.open_osfhandle(int(os.environ['MYHDL_FROM_PIPE']), os.O_RDONLY | os.O_TEXT)
+
+    return wt, rf
+
+
 class TestCosimulation:
 
     def setup_method(self, method):
@@ -72,8 +86,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimNotUnique():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         os.write(wt, b"TO 00 a 1")
         os.read(rf, MAXLINE)
         os.write(wt, b"FROM 00 d 1")
@@ -88,8 +101,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimFromSignals():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
@@ -109,8 +121,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimToSignals():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
@@ -130,8 +141,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimFromToSignals():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
@@ -151,8 +161,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimTimeZero():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "TO 01 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
@@ -164,8 +173,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimNoComm():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         os.write(wt, b"FROM 0000")
         os.read(rf, MAXLINE)
         os.write(wt, b"TO 0000")
@@ -179,8 +187,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimFromSignalsDupl():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
@@ -193,8 +200,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimToSignalsDupl():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
@@ -209,8 +215,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimFromSignalVals():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
@@ -240,8 +245,7 @@ class TestCosimulation:
 
     @staticmethod
     def cosimToSignalVals():
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
