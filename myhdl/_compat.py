@@ -1,4 +1,7 @@
-#pylint: disable=all
+''' 
+
+
+'''
 
 import sys
 import types
@@ -43,11 +46,14 @@ else:
         # (hg.python.org/releasing/3.4/file/8671f89107c8/Modules/posixmodule.c#l11130)
         if sys.platform == "win32":
             import msvcrt
-            import ctypes.windll.kernel32 as kernel32
+#             import ctypes.windll.kernel32 as kernel32
+            import ctypes
+            windll = ctypes.LibraryLoader(ctypes.WinDLL)
+            SetHandleInformation = windll.kernel32.SetHandleInformation
 
             HANDLE_FLAG_INHERIT = 1
 
-            if kernel32.SetHandleInformation(msvcrt.get_osfhandle(fd),
+            if SetHandleInformation(msvcrt.get_osfhandle(fd),
                                              HANDLE_FLAG_INHERIT,
                                              1 if inheritable else 0) == 0:
                 raise IOError("Failed on HANDLE_FLAG_INHERIT")
