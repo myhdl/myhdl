@@ -8,7 +8,6 @@ def gray_inc_reg(graycnt, enable, clock, reset, width):
     graycnt_comb = Signal(modbv(0)[width:])
     
     gray_inc_0 = gray_inc(graycnt_comb, enable, clock, reset, width)
-    gray_inc_0.name = "gray_inc_0"
 
     @always_seq(clock.posedge, reset=reset)
     def reg_0():
