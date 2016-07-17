@@ -76,7 +76,10 @@ def _dedent(s):
 def _makeAST(f):
     s = inspect.getsource(f)
     s = _dedent(s)
-    tree = ast.parse(s)
+    # use compile instead of ast.parse so that additional flags can be passed
+    flags = ast.PyCF_ONLY_AST
+    tree = compile(s, filename='<unknown>', mode='exec', flags=flags)
+    # tree = ast.parse(s)
     tree.sourcefile = inspect.getsourcefile(f)
     tree.lineoffset = inspect.getsourcelines(f)[1] - 1
     return tree
