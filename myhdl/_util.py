@@ -23,6 +23,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import __future__
 import ast
 import sys
 import inspect
@@ -74,11 +75,22 @@ def _dedent(s):
 
 
 def _makeAST(f):
+    # Need to look at the flags used to compile the original function f and
+    # pass these same flags to the compile() function. This ensures that
+    # syntax-changing __future__ imports like print_function work correctly.
+    orig_f_co_flags = f.__code__.co_flags
+    # co_flags can contain various internal flags that we can't pass to
+    # compile(), so strip them out here
+    valid_flags = 0
+    for future_feature in __future__.all_feature_names:
+        feature = getattr(__future__, future_feature)
+        valid_flags |= feature.compiler_flag
     s = inspect.getsource(f)
     s = _dedent(s)
     # use compile instead of ast.parse so that additional flags can be passed
-    flags = ast.PyCF_ONLY_AST
-    tree = compile(s, filename='<unknown>', mode='exec', flags=flags)
+    flags = ast.PyCF_ONLY_AST | (orig_f_co_flags & valid_flags)
+    tree = compile(s, filename='<unknown>', mode='exec',
+        flags=flags, dont_inherit=True)
     # tree = ast.parse(s)
     tree.sourcefile = inspect.getsourcefile(f)
     tree.lineoffset = inspect.getsourcelines(f)[1] - 1
