@@ -112,11 +112,12 @@ class Simulation(object):
     def quit(self):
         self._finalize()
 
-    def run(self, duration=None, quiet=0):
+    def run(self, duration=None, quiet=0, iter_limit=1000):
         """ Run the simulation for some duration.
 
         duration -- specified simulation duration (default: forever)
         quiet -- don't print StopSimulation messages (default: off)
+        iter_limit -- step limit for not advancing time; used to detect combinatorial loops (default: 1000)
 
         """
 
@@ -132,7 +133,8 @@ class Simulation(object):
             maxTime = _simulator._time + duration
             schedule((maxTime, stop))
         cosim = self._cosim
-        t = _simulator._time
+        last_t = t = _simulator._time
+        same_t_count = 0
         actives = {}
         tracing = _simulator._tracing
         tracefile = _simulator._tf
@@ -143,6 +145,15 @@ class Simulation(object):
 
         while 1:
             try:
+
+                if last_t == t:
+                    same_t_count += 1
+                    if same_t_count > iter_limit:
+                        raise StopSimulation("Iteration limit exceeded")
+                else:
+                    last_t = t
+                    # Needed to prevent off-by-one
+                    same_t_count = 1
 
                 for s in _siglist:
                     _extend(s._update())
