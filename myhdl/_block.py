@@ -31,7 +31,8 @@ from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
 from myhdl._extractHierarchy import (_makeMemInfo,
-                                     _UserVerilogCode, _UserVhdlCode)
+                                     _UserVerilogCode, _UserVhdlCode,
+                                     _UserVerilogInstance, _UserVhdlInstance)
 from myhdl._Signal import _Signal, _isListOfSigs
 
 
@@ -166,6 +167,12 @@ class _Block(object):
         if hasattr(deco, 'vhdl_code'):
             self.vhdl_code = _UserVhdlCode(deco.vhdl_code, self.symdict, func.__name__,
                                            func, srcfile, srcline)
+        if hasattr(deco, 'verilog_instance'):
+            self.verilog_code = _UserVerilogInstance(deco.vhdl_instance, self.symdict, func.__name__,
+                                                     func, srcfile, srcline)
+        if hasattr(deco, 'vhdl_instance'):
+            self.vhdl_code = _UserVhdlInstance(deco.vhdl_instance, self.symdict, func.__name__,
+                                               func, srcfile, srcline)
         self._config_sim = {'trace': False}
 
     def _verifySubs(self):
