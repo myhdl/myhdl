@@ -18,7 +18,7 @@ ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 @block
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
-    
+
     count -- output
     enable -- control input, increment when 1
     clock -- clock input
@@ -52,11 +52,11 @@ def incGen(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return logic
 
-                                        
+
 @block
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
-    
+
     count -- output
     enable -- control input, increment when 1
     clock -- clock input
@@ -87,14 +87,14 @@ process ($clock, $reset) begin
     end if;
 end process;
 """
-                
+
     return incProcess
 
 
 
 @block
 def incErr(count, enable, clock, reset, n):
-    
+
     @always(clock.posedge, reset.negedge)
     def incProcess():
         # make it fail in conversion
@@ -120,7 +120,7 @@ always @(posedge $clock, negedge $reset) begin
     end
 end
 """
-                
+
     return incProcess
 
 
@@ -170,12 +170,12 @@ process ($clock, $reset) begin
     end if;
 end process;
 """
-    
+
     return logic
 
 @block
 def inc2(count, enable, clock, reset, n):
-    
+
     nextCount = Signal(intbv(0, min=0, max=n))
 
     comb = inc_comb(nextCount, count, n)
@@ -188,6 +188,44 @@ def inc2(count, enable, clock, reset, n):
 def inc3(count, enable, clock, reset, n):
     inc2_inst = inc2(count, enable, clock, reset, n)
     return inc2_inst
+
+class ClassIncrementer(object):
+    @block
+    def inc(self, count, enable, clock, reset, n):
+        """ Incrementer with enable.
+
+        count -- output
+        enable -- control input, increment when 1
+        clock -- clock input
+        reset -- asynchronous reset input
+        n -- counter max value
+        """
+        @always(clock.posedge, reset.negedge)
+        def incProcess():
+            # make it fail in conversion
+            import types
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+
+        count.driven = "reg"
+
+        self.inc.vhdl_code = \
+    """
+    process ($clock, $reset) begin
+        if ($reset = '0') then
+            $count <= (others => '0');
+        elsif rising_edge($clock) then
+            if ($enable = '1') then
+                $count <= ($count + 1) mod $n;
+            end if;
+        end if;
+    end process;
+    """
+
+        return incProcess
 
 
 @block
@@ -265,10 +303,10 @@ def testIncRef():
 
 def testInc():
     assert conversion.verify(customBench(inc)) == 0
-    
+
 def testInc2():
     assert conversion.verify(customBench(inc2)) == 0
-    
+
 def testInc3():
     assert conversion.verify(customBench(inc3)) == 0
 
@@ -279,7 +317,7 @@ def testIncGen():
         pass
     else:
         assert False
-        
+
 def testIncErr():
     try:
         assert conversion.verify(customBench(incErr)) == 0
@@ -288,16 +326,18 @@ def testIncErr():
     else:
         assert False
 
+def testMethodInc():
+    incrementer = ClassIncrementer()
+    assert conversion.verify(customBench(incrementer.inc)) == 0
 
 
 
-    
-
-    
-        
 
 
-                
 
-        
+
+
+
+
+
 

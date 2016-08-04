@@ -106,6 +106,7 @@ class _bound_function_wrapper(object):
                       self.srcline, *args, **kwargs)
 
 class block(object):
+
     def __init__(self, func):
         self.srcfile = inspect.getsourcefile(func)
         self.srcline = inspect.getsourcelines(func)[0]
@@ -115,14 +116,26 @@ class block(object):
         # register the block
         myhdl._simulator._blocks.append(self)
 
+        self.bound_functions = {}
+
     def __get__(self, instance, owner):
-        bound_func = self.func.__get__(instance, owner)
-        return _bound_function_wrapper(bound_func, self.srcfile, self.srcline)
+        bound_key = (id(instance), id(owner))
+
+        if bound_key not in self.bound_functions:
+            bound_func = self.func.__get__(instance, owner)
+            function_wrapper = _bound_function_wrapper(
+                bound_func, self.srcfile, self.srcline)
+            self.bound_functions[bound_key] = function_wrapper
+        else:
+            function_wrapper = self.bound_functions[bound_key]
+
+        return function_wrapper
 
     def __call__(self, *args, **kwargs):
         self.calls += 1
         return _Block(self.func, self, self.srcfile,
                       self.srcline, *args, **kwargs)
+
 
 #def block(func):
 #    srcfile = inspect.getsourcefile(func)

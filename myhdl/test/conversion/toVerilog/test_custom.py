@@ -21,7 +21,7 @@ ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 @block
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
-    
+
     count -- output
     enable -- control input, increment when 1
     clock -- clock input
@@ -55,11 +55,11 @@ def incGen(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return logic
 
-                                        
+
 @block
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
-    
+
     count -- output
     enable -- control input, increment when 1
     clock -- clock input
@@ -91,13 +91,13 @@ always @(posedge $clock, negedge $reset) begin
     end
 end
 """
-                
+
     return incProcess
 
 
 @block
 def incErr(count, enable, clock, reset, n):
-    
+
     @always(clock.posedge, reset.negedge)
     def incProcess():
         # make it fail in conversion
@@ -123,7 +123,7 @@ always @(posedge $clock, negedge $reset) begin
     end
 end
 """
-                
+
     return incProcess
 
 
@@ -174,11 +174,11 @@ always @(posedge $clock, negedge $reset) begin
     end
 end
 """
-    return logic 
+    return logic
 
 @block
 def inc2(count, enable, clock, reset, n):
-    
+
     nextCount = Signal(intbv(0, min=0, max=n))
 
     comb = inc_comb(nextCount, count, n)
@@ -192,8 +192,46 @@ def inc3(count, enable, clock, reset, n):
     inc2_inst = inc2(count, enable, clock, reset, n)
     return inc2_inst
 
+class ClassIncrementer(object):
+    @block
+    def inc(self, count, enable, clock, reset, n):
+        """ Incrementer with enable.
 
-      
+        count -- output
+        enable -- control input, increment when 1
+        clock -- clock input
+        reset -- asynchronous reset input
+        n -- counter max value
+        """
+        @always(clock.posedge, reset.negedge)
+        def incProcess():
+            # make it fail in conversion
+            import types
+            if reset == ACTIVE_LOW:
+                count.next = 0
+            else:
+                if enable:
+                    count.next = (count + 1) % n
+
+        count.driven = "reg"
+
+        self.inc.verilog_code = \
+    """
+    always @(posedge $clock, negedge $reset) begin
+        if (reset == 0) begin
+            $count <= 0;
+        end
+        else begin
+            if (enable) begin
+                $count <= ($count + 1) % $n;
+            end
+        end
+    end
+    """
+
+        return incProcess
+
+
 def inc_v(name, count, enable, clock, reset):
     return setupCosimulation(**locals())
 
@@ -203,7 +241,7 @@ class TestInc(TestCase):
         while 1:
             yield delay(10)
             clock.next = not clock
-    
+
     def stimulus(self, enable, clock, reset):
         reset.next = INACTIVE_HIGH
         yield clock.negedge
@@ -231,12 +269,12 @@ class TestInc(TestCase):
             # print "%d count %s expect %s count_v %s" % (now(), count, expect, count_v)
             self.assertEqual(count, expect)
             self.assertEqual(count, count_v)
-                
+
     def bench(self, incRef, incVer):
 
         m = 8
         n = 2 ** m
- 
+
         count = Signal(intbv(0)[m:])
         count_v = Signal(intbv(0)[m:])
         enable = Signal(bool(0))
@@ -257,11 +295,11 @@ class TestInc(TestCase):
         """ Check increment operation """
         sim = self.bench(incRef, incRef)
         sim.run(quiet=1)
-        
+
     def testIncRefInc(self):
         sim = self.bench(incRef, inc)
         sim.run(quiet=1)
-        
+
     def testIncInc(self):
         sim = self.bench(inc, inc)
         sim.run(quiet=1)
@@ -300,23 +338,28 @@ class TestInc(TestCase):
         else:
             self.fail()
 
-          
-   
-        
+    def testMethodIncInc(self):
+        incrementer = ClassIncrementer()
+        sim = self.bench(incRef, incrementer.inc)
+        sim.run(quiet=1)
+
+
+
+
 if __name__ == '__main__':
     unittest.main()
 
 
-            
-            
-
-    
-
-    
-        
 
 
-                
 
-        
+
+
+
+
+
+
+
+
+
 
