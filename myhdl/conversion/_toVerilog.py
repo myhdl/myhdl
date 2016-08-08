@@ -1431,8 +1431,9 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
             self.write("if (%s == %s) begin" % (reset, int(reset.active)))
             self.indent()
             for s in sigregs:
-                self.writeline()
-                self.write("%s <= %s;" % (s, _convertInitVal(s, s._init)))
+                if not isinstance(s, _TristateSignal) and not isinstance(s, _TristateDriver):
+                    self.writeline()
+                    self.write("%s <= %s;" % (s, _convertInitVal(s, s._init)))
             for v in varregs:
                 n, reg, init = v
                 self.writeline()
