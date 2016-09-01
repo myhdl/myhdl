@@ -1,6 +1,6 @@
 import warnings
 from myhdl import *
-from myhdl.conversion import analyze
+from myhdl.conversion import _analyze
 import pytest
 
 class _nameCheck():
