@@ -55,7 +55,7 @@ from myhdl.conversion._toVHDLPackage import _package
 from myhdl._util import _flatten
 from myhdl._compat import integer_types, class_types, StringIO
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
-from myhdl.conversion._VHDLNameValidation import _nameCheck
+import myhdl.conversion._VHDLNameValidation 
 
 
 from myhdl._block import _Block
