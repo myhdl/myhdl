@@ -1,5 +1,6 @@
 import warnings
 from myhdl import *
+from myhdl import ToVHDLWarning
 from myhdl.conversion import _analyze
 import pytest
 
@@ -34,13 +35,13 @@ _usedNames = [];
 def _nameValid(name):
     for keyword in _vhdl_keywords:
         if name == keyword:
-            warnings.warn("VHDL keyword used: %s" % name, category=ToVHDLWarning)
+            warnings.warn("VHDL keyword used: %s" % (name), category=ToVHDLWarning)
     for saved_name in _usedNames:
         if name.lower() == saved_name:
-            warnings.warn("Previously used name being reused: %s" % name, category=ToVHDLWarning)
-    _usedNames.append(name).lower
+            warnings.warn("Previously used name being reused: %s" % (name), category=ToVHDLWarning)
+    _usedNames.append(name.lower())
     if name[0] == '_':
-        warnings.warn("VHDL variable names cannot contain '_': %s" % name, category=ToVHDLWarning)
+        warnings.warn("VHDL variable names cannot contain '_': %s" % (name), category=ToVHDLWarning)
     for char in name:
         if char == '-':
-            warnings.warn("VHDL variable names cannot contain '-': %s" % name, category=ToVHDLWarning)
+            warnings.warn("VHDL variable names cannot contain '-': %s" % (name), category=ToVHDLWarning)
