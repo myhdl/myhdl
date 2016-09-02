@@ -354,7 +354,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             if convertPort:
                 pt = "std_logic_vector"
              # Check if VHDL keyword or reused name
-            _nameCheck._nameValid(s)
+            _VHDLNameValidation._nameValid(s)
             if s._driven:
                 if s._read:
                     if not isinstance(s, _TristateSignal):
@@ -419,7 +419,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print("signal %s: %s%s;" % (s._name, p, r), file=f)
         elif s._read:
             # Check if VHDL keyword or reused name
-            _nameCheck._nameValid(s)
+            _VHDLNameValidation._nameValid(s)
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
             # changed to a warning and a continuous assignment to a wire
@@ -440,7 +440,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if not m._driven and not m._read:
             continue
         # Check if VHDL keyword or reused name
-        _nameCheck._nameValid(m)
+        _VHDLNameValidation._nameValid(m)
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
