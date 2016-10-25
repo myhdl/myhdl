@@ -17,6 +17,9 @@ env:
   - CI_TARGET=iverilog
   - CI_TARGET=ghdl
 
+before_script:
+  - ./scripts/ci_deps.sh
+
 script: ./scripts/ci.sh
 
 notifications:
