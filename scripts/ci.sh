@@ -19,7 +19,10 @@ run_test() {
 
 foundError=0
 
-if [ "$CI_TARGET" == "ghdl" ]; then
+if [ "$CI_TARGET" == "iverilog" ]; then
+  sudo apt-get -qq update
+  sudo apt-get install iverilog
+elif [ "$CI_TARGET" == "ghdl" ]; then
   ./scripts/install_ghdl.sh
   export PATH=$PATH:$PWD/ghdl-0.33/bin/
 fi

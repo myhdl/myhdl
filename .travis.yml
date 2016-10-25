@@ -9,20 +9,6 @@ python:
   - "3.4"
   - "3.5"
 
-# binary install as per travis instructions
-# used to install latest version of ghdl
-# before_script:
-#   - ./scripts/install_ghdl.sh
-#   - export PATH=$PATH:$PWD/ghdl-0.33/bin/
-
-addons:
-  apt:
-    # sources:
-    #  - pgavin-ghdl
-    packages:
-      - iverilog
-    #  - ghdl
-
 install:
   - pip install .
 
