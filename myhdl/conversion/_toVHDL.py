@@ -466,14 +466,20 @@ def _writeSigDecls(f, intf, siglist, memlist):
             val_str = ""
         else:
             sig_vhdl_objs = [inferVhdlObj(each) for each in m.mem]
-            
+
             if all([each._init == m.mem[0]._init for each in m.mem]):
-                val_str = (
-                    ' := (others => %dX"%s")' % 
-                    (sig_vhdl_objs[0].size, str(m.mem[0]._init)))
+
+                if isinstance(m.mem[0]._init, bool):
+                    val_str = (
+                        ' := (others => \'%s\')' % str(int(m.mem[0]._init)))
+
+                else:
+                    val_str = (
+                        ' := (others => %dX"%s")' %
+                        (sig_vhdl_objs[0].size, str(m.mem[0]._init)))
             else:
                 _val_str = ',\n    '.join(
-                    ['%dX"%s"' % (obj.size, str(each._init)) for 
+                    ['%dX"%s"' % (obj.size, str(each._init)) for
                      obj, each in zip(sig_vhdl_objs, m.mem)])
 
                 val_str = ' := (\n    ' + _val_str + ')'
