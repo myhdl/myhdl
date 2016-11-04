@@ -393,7 +393,7 @@ def _writeTypeDefs(f):
     sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
         f.write("%s\n" % t._toVHDL())
-    f.write("\n")
+    # f.write("\n"
 
 constwires = []
 
@@ -637,9 +637,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def writeDoc(self, node):
         assert hasattr(node, 'doc')
-        doc = _makeDoc(node.doc, self.ind)
-        self.write(doc)
-        self.writeline()
+        if node.doc is not None:
+            doc = _makeDoc(node.doc, self.ind)
+            self.write(doc)
+            self.writeline()
 
     def IntRepr(self, obj):
         if obj >= 0:
@@ -1793,6 +1794,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = "'1'" if init else "'0'"
     elif tipe is intbv:
+        init = int(init) # int representation
         vhd_tipe = 'unsigned'
         if reg._min is not None and reg._min < 0:
             vhd_tipe = 'signed'

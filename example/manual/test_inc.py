@@ -1,6 +1,6 @@
 import random
-from myhdl import block, always, instance, Signal, modbv, \
-                  ResetSignal, delay, StopSimulation
+from myhdl import block, always, instance, Signal, \
+    ResetSignal, modbv, delay, StopSimulation
 from inc import inc
 
 random.seed(1)

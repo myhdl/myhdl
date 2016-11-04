@@ -39,7 +39,6 @@ from myhdl._compat import StringIO
 import warnings
 
 import myhdl
-import myhdl
 from myhdl import *
 from myhdl._compat import integer_types, class_types, PY2
 from myhdl import ToVerilogError, ToVerilogWarning
@@ -336,10 +335,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 print("%s %s%s%s;" % (k, p, r, s._name), file=f)
             else:
                 if isinstance(s._init, myhdl._enum.EnumItemType):
-                    print("%s %s%s%s = %s;" % 
+                    print("%s %s%s%s = %s;" %
                           (k, p, r, s._name, s._init._toVerilog()), file=f)
                 else:
-                    print("%s %s%s%s = %s;" % 
+                    print("%s %s%s%s = %s;" %
                           (k, p, r, s._name, _intRepr(s._init)), file=f)
         elif s._read:
             # the original exception
@@ -350,7 +349,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           )
             constwires.append(s)
             print("wire %s%s;" % (r, s._name), file=f)
-    print(file=f)
+    # print(file=f)
     for m in memlist:
         if not m._used:
             continue
@@ -381,7 +380,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                                 %s[i] = %s;
                             end
                         end
-                        ''' % (initialize_block_name, len(m.mem), m.name, 
+                        ''' % (initialize_block_name, len(m.mem), m.name,
                                _intRepr(m.mem[0]._init)))
 
                     initial_assignments = (
@@ -389,8 +388,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
                 else:
                     val_assignments = '\n'.join(
-                        ['    %s[%d] <= %s;' % 
-                         (m.name, n, _intRepr(each._init)) 
+                        ['    %s[%d] <= %s;' %
+                         (m.name, n, _intRepr(each._init))
                          for n, each in enumerate(m.mem)])
                     initial_assignments = (
                         'initial begin\n' + val_assignments + '\nend')
@@ -410,7 +409,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         c_len = s._nrbits
         c_str = "%s" % c
         print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
-    print(file=f)
+    # print(file=f)
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVerilog') and s._driven:
@@ -1406,6 +1405,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = '1' if init else '0'
     elif tipe is intbv:
+        init = int(init) # int representation
         v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)

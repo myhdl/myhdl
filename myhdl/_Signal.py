@@ -137,8 +137,8 @@ class _Signal(object):
         self._val = deepcopy(val)
         self._next = deepcopy(val)
         self._min = self._max = None
-        self._name = self._read = self._driven = None
-        self._used = False
+        self._name = self._driven = None
+        self._read = self._used = False
         self._inList = False
         self._nrbits = 0
         self._numeric = True
@@ -183,7 +183,8 @@ class _Signal(object):
         del self._negedgeWaiters[:]
         self._val = deepcopy(self._init)
         self._next = deepcopy(self._init)
-        self._name = self._read = self._driven = None
+        self._name = self._driven = None
+        self._read = False # dont clear self._used
         self._numeric = True
         for s in self._slicesigs:
             s._clear()

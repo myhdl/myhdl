@@ -26,6 +26,7 @@ now -- function that returns the current simulation time
 
 
 _signals = []
+_blocks = []
 _siglist = []
 _futureEvents = []
 _time = 0

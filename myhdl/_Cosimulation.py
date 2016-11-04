@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 import sys
 import os
-import shlex
+#import shlex
 import subprocess
 
 from myhdl._intbv import intbv
@@ -91,7 +91,9 @@ class Cosimulation(object):
             env['MYHDL_FROM_PIPE'] = str(msvcrt.get_osfhandle(rf))
 
         if isinstance(exe, string_types):
-            exe = shlex.split(exe)
+#             exe = shlex.split(exe)
+            exe = exe.split(' ')
+
 
         try:
             sp = subprocess.Popen(exe, env=env, close_fds=False)

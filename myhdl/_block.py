@@ -92,14 +92,13 @@ def _getCallInfo():
 class _bound_function_wrapper(object):
 
     def __init__(self, bound_func, srcfile, srcline):
-
         self.srcfile = srcfile
         self.srcline = srcline
-
         self.bound_func = bound_func
         functools.update_wrapper(self, bound_func)
-
         self.calls = 0
+        # register the block
+        myhdl._simulator._blocks.append(self)
 
     def __call__(self, *args, **kwargs):
         self.calls += 1
@@ -110,19 +109,17 @@ class block(object):
     def __init__(self, func):
         self.srcfile = inspect.getsourcefile(func)
         self.srcline = inspect.getsourcelines(func)[0]
-
         self.func = func
         functools.update_wrapper(self, func)
-
         self.calls = 0
+        # register the block
+        myhdl._simulator._blocks.append(self)
 
     def __get__(self, instance, owner):
-
         bound_func = self.func.__get__(instance, owner)
         return _bound_function_wrapper(bound_func, self.srcfile, self.srcline)
 
     def __call__(self, *args, **kwargs):
-
         self.calls += 1
         return _Block(self.func, self, self.srcfile,
                       self.srcline, *args, **kwargs)
@@ -155,7 +152,7 @@ class _Block(object):
         self.symdict = None
         self.sigdict = {}
         self.memdict = {}
-        self.name = self.__name__ = func.__name__ + '_' + str(calls - 1)
+        self.name = self.__name__ = func.__name__ + '_' + str(calls)
 
         # flatten, but keep BlockInstance objects
         self.subs = _flatten(func(*args, **kwargs))
@@ -222,10 +219,22 @@ class _Block(object):
     # Public methods
     # The puropse now is to define the API, optimizations later
 
+    def  _clear(self):
+        """ Clear a number of 'global' attributes.
+        This is a workaround function for cleaning up before converts.
+        """
+        # workaround: elaborate again for the side effect on signal attibutes
+        self.func(*self.args, **self.kwargs)
+        # reset number of calls in all blocks
+        for b in myhdl._simulator._blocks:
+            b.calls = 0
+
     def verify_convert(self):
+        self._clear()
         return myhdl.conversion.verify(self)
 
     def analyze_convert(self):
+        self._clear()
         return myhdl.conversion.analyze(self)
 
     def convert(self, hdl='Verilog', **kwargs):
@@ -243,6 +252,9 @@ class _Block(object):
                 testbench should be created. Defaults to True.
             timescale(Optional[str]): Verilog only. Defaults to '1ns/10ps'
         """
+
+        self._clear()
+
         if hdl.lower() == 'vhdl':
             converter = myhdl.conversion._toVHDL.toVHDL
         elif hdl.lower() == 'verilog':
