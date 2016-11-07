@@ -275,9 +275,11 @@ class _Block(object):
             setattr(converter, k, v)
         return converter(self)
 
-    def config_sim(self, trace=False):
+    def config_sim(self, trace=False, **kwargs) :
         self._config_sim['trace'] = trace
         if trace:
+            for k, v in kwargs.items() :
+                setattr(myhdl.traceSignals, k, v)
             myhdl.traceSignals(self)
 
     def run_sim(self, duration=None, quiet=0):
