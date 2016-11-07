@@ -112,7 +112,7 @@ class Simulation(object):
     def quit(self):
         self._finalize()
 
-    def run(self, duration=None, quiet=0):
+    def run(self, duration=None, quiet=0, progress_callback=None, progress_precision=0):
         """ Run the simulation for some duration.
 
         duration -- specified simulation duration (default: forever)
@@ -140,9 +140,16 @@ class Simulation(object):
         _pop = waiters.pop
         _append = waiters.append
         _extend = waiters.extend
+        self.progress = 0
+        progress_precision = 10**progress_precision
 
         while 1:
             try:
+                if progress_callback :
+                    progress = 100*progress_precision * t // maxTime
+                    if self.progress != progress :
+                         self.progress = progress
+                         progress_callback(progress/progress_precision)
 
                 for s in _siglist:
                     _extend(s._update())

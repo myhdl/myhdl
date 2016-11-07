@@ -282,13 +282,13 @@ class _Block(object):
                 setattr(myhdl.traceSignals, k, v)
             myhdl.traceSignals(self)
 
-    def run_sim(self, duration=None, quiet=0):
+    def run_sim(self, duration=None, quiet=0, progress_callback=None, progress_precision=0):
         if self.sim is None:
             sim = self
             #if self._config_sim['trace']:
             #    sim = myhdl.traceSignals(self)
             self.sim = myhdl._Simulation.Simulation(sim)
-        self.sim.run(duration, quiet)
+        self.sim.run(duration, quiet, progress_callback, progress_precision)
 
     def quit_sim(self):
         if self.sim is not None:
