@@ -39,3 +39,11 @@ def bug(issue_no, hdl='all'):
     else:
         sims = [k for k, v in _simulators.items() if v.hdl.lower() == hdl]
     return xfail(verify.simulator in sims, reason='issue '+issue_no)
+
+def pytest_pyfunc_call(pyfuncitem):
+    if 'verify_convert' in pyfuncitem.keywords:
+        funcargs = pyfuncitem.funcargs
+        testargs = {}
+        for arg in pyfuncitem._fixtureinfo.argnames:
+            testargs[arg] = funcargs[arg]
+        pyfuncitem.obj(**testargs).verify_convert()
