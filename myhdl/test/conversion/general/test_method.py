@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import sys
+import pytest
 import myhdl
 from myhdl import *
 from myhdl.conversion import verify
@@ -96,8 +97,10 @@ class HdlObjAttr(object):
 
         return hdl, ifx
 
+@pytest.mark.parametrize('hObj', [HdlObj, HdlObjObj, HdlObjAttrSimple])
+@pytest.mark.verify_convert
 @block
-def ObjBench(hObj):
+def test_Obj(hObj):
 
     clk = Signal(False)
     srst = Signal(False)
@@ -150,16 +153,6 @@ def ObjBench(hObj):
         raise StopSimulation
 
     return hdl_inst, tb_clkgen, tb_stimulus
-
-
-def test_hdlobj():
-    assert verify(ObjBench(HdlObj)) == 0
-    
-def test_hdlobjobj():
-    assert verify(ObjBench(HdlObjObj)) == 0
-
-def test_hdlobjattrsimple():
-    assert verify(ObjBench(HdlObjAttrSimple)) == 0
     
 #def test_hdlobjattr():
 #    # object attributes currently not supported, these 

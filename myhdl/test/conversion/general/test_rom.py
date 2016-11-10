@@ -3,6 +3,8 @@ import os
 path = os.path
 from random import randrange
 
+import pytest
+
 import myhdl
 from myhdl import *
 
@@ -58,6 +60,8 @@ def rom4(dout, addr, clk):
     return read
 
       
+@pytest.mark.parametrize('rom', [rom1, rom2, rom3, rom4])
+@pytest.mark.verify_convert
 @block
 def RomBench(rom):
 
@@ -87,20 +91,3 @@ def RomBench(rom):
             clk.next = not clk
 
     return clkgen, stimulus, rom_inst
-
-def test1():
-    assert conversion.verify(RomBench(rom1)) == 0
-    
-def test2():
-    assert conversion.verify(RomBench(rom2)) == 0
-    
-def test3():
-    assert conversion.verify(RomBench(rom3)) == 0
-    
-def test4():
-    assert conversion.verify(RomBench(rom4)) == 0
-
-        
-        
-    
-

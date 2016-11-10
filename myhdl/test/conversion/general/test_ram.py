@@ -3,6 +3,8 @@ import os
 path = os.path
 import unittest
 
+import pytest
+
 import myhdl
 from myhdl import *
 
@@ -97,6 +99,8 @@ def ram2(dout, din, addr, we, clk, depth=128):
     return wrLogic, rdLogic
 
 
+@pytest.mark.parametrize('ram', [ram_deco1, ram_deco2, ram_clocked, ram2, ram1])
+@pytest.mark.verify_convert
 @block
 def RamBench(ram, depth=128):
 
@@ -134,19 +138,3 @@ def RamBench(ram, depth=128):
             clk.next = not clk
 
     return clkgen, stimulus, mem_inst
-
-
-def testram_deco1():
-    assert conversion.verify(RamBench(ram_deco1)) == 0
-
-def testram_deco2():
-    assert conversion.verify(RamBench(ram_deco2)) == 0
-
-def testram_clocked():
-    assert conversion.verify(RamBench(ram_clocked)) == 0
-    
-def test2():
-    assert conversion.verify(RamBench(ram2)) == 0
-    
-def test1():
-    assert conversion.verify(RamBench(ram1)) == 0

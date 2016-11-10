@@ -1,12 +1,15 @@
 from __future__ import absolute_import
 from random import randrange
 
+import pytest
+
 import myhdl
 from myhdl import *
 
 
+@pytest.mark.verify_convert
 @block
-def NumassBench():
+def test_numass():
 
     p = Signal(intbv(1)[8:])
     q = Signal(intbv(1)[40:])
@@ -49,7 +52,3 @@ def NumassBench():
         print("%d %d %d %d %d %d" % (p, q[40:20], q[20:0], r ,s[41:20], s[20:0]))
 
     return check
-
-
-def test_numass():
-    assert conversion.verify(NumassBench()) == 0

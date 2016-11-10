@@ -1,9 +1,11 @@
 from __future__ import absolute_import
+import pytest
 import myhdl
 from myhdl import *
 
+@pytest.mark.verify_convert
 @block
-def bench_SliceSignal():
+def test_SliceSignal():
 
     s = Signal(intbv(0)[8:])
     a, b, c = s(7), s(5), s(0)
@@ -26,12 +28,9 @@ def bench_SliceSignal():
     return check
 
 
-def test_SliceSignal():
-    assert conversion.verify(bench_SliceSignal()) == 0
-
-
+@pytest.mark.verify_convert
 @block
-def bench_ConcatSignal():
+def test_ConcatSignal():
 
     a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
@@ -59,11 +58,10 @@ def bench_ConcatSignal():
 
     return check
 
-def test_ConcatSignal():
-    assert conversion.verify(bench_ConcatSignal()) == 0
 
+@pytest.mark.verify_convert
 @block
-def bench_ConcatSignalWithConsts():
+def test_ConcatSignalWithConsts():
 
     a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
@@ -101,12 +99,9 @@ def bench_ConcatSignalWithConsts():
     return check
 
 
-def test_ConcatSignalWithConsts():
-    assert conversion.verify(bench_ConcatSignalWithConsts()) == 0
-
-
+@pytest.mark.verify_convert
 @block
-def bench_TristateSignal():
+def test_TristateSignal():
     s = TristateSignal(intbv(0)[8:])
     a = s.driver()
     b = s.driver()
@@ -137,10 +132,6 @@ def bench_TristateSignal():
     return check
 
 
-def test_TristateSignal():
-    assert conversion.verify(bench_TristateSignal()) == 0
-
-
 @block
 def permute(x, a, mapping):
 
@@ -155,8 +146,9 @@ def permute(x, a, mapping):
     return assign
 
 
+@pytest.mark.verify_convert
 @block
-def bench_permute(conv=False):
+def test_permute(conv=False):
 
     x = Signal(intbv(0)[3:])
     a = Signal(intbv(0)[3:])
@@ -179,9 +171,3 @@ def bench_permute(conv=False):
         raise StopSimulation()
 
     return dut, stimulus
-
-def test_permute():
-    assert conversion.verify(bench_permute()) == 0
-
-bench_permute(toVHDL)
-bench_permute(toVerilog)

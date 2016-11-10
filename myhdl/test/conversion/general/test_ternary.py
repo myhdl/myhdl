@@ -3,6 +3,8 @@ import os
 path = os.path
 import unittest
 
+import pytest
+
 import myhdl
 from myhdl import *
 
@@ -37,6 +39,8 @@ def ternary2(dout, clk, rst):
 
     return logic, comb
 
+@pytest.mark.parametrize('ternary', [ternary1, ternary2])
+@pytest.mark.verify_convert
 @block
 def TernaryBench(ternary):
 
@@ -66,15 +70,3 @@ def TernaryBench(ternary):
         raise StopSimulation()
 
     return stimulus, ternary_inst
-
-
-
-# uncomment when we have a VHDL-2008 compliant simulator
-def test_ternary1():
-    toVHDL.name = 'ternary1'
-    assert conversion.verify(TernaryBench(ternary1)) == 0
-
-def test_ternary2():
-    toVHDL.name = 'ternary2'
-    assert conversion.verify(TernaryBench(ternary2)) == 0
-

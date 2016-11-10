@@ -2,11 +2,15 @@ from __future__ import absolute_import
 import os
 path = os.path
 
+import pytest
+
 import myhdl
 from myhdl import *
 
 
-def NonlocalBench():
+@pytest.mark.verify_convert
+@block
+def test_nonlocal():
 
     ALL_ONES = 2**7-1
     ONE = 1
@@ -57,9 +61,3 @@ def NonlocalBench():
         raise StopSimulation()
         
     return scrambler, clkgen, stimulus
-
-
-
-def test_nonlocal():
-    assert conversion.verify(NonlocalBench) == 0
-

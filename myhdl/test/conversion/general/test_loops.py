@@ -3,6 +3,7 @@ import os
 path = os.path
 from random import randrange
 
+import pytest
 
 import myhdl
 from myhdl import *
@@ -295,8 +296,15 @@ def WhileBreakContinueLoop(a, out):
                 break
     return logic
     
+# for loop 3 and 6 can't work in vhdl
+loops = [ForLoop1, ForLoop2, ForLoop4, ForLoop5, ForContinueLoop, ForBreakLoop,
+      ForBreakContinueLoop, NestedForLoop1, NestedForLoop2, FunctionCall,
+      WhileLoop, WhileContinueLoop, WhileBreakLoop, WhileBreakContinueLoop]
+
+@pytest.mark.parametrize('LoopTest', loops)
+@pytest.mark.verify_convert
 @block
-def LoopBench(LoopTest):
+def test_loop(LoopTest):
 
     a = Signal(intbv(-1)[16:])
     z = Signal(intbv(0)[16:])
@@ -316,7 +324,7 @@ def LoopBench(LoopTest):
 
 def testForLoopError1():
     try:
-        analyze(LoopBench(ForLoopError1))
+        analyze(test_loop(ForLoopError1))
     except ConversionError as e:
         assert e.kind == _error.Requirement
     else:
@@ -324,53 +332,18 @@ def testForLoopError1():
     
 def testForLoopError2():
     try:
-        analyze(LoopBench(ForLoopError2))
+        analyze(test_loop(ForLoopError2))
     except ConversionError as e:
         assert e.kind == _error.Requirement
     else:
         assert False
 
-def testForLoop1():
-    assert verify(LoopBench(ForLoop1)) == 0
-def testForLoop2():
-    assert verify(LoopBench(ForLoop2)) == 0
-def testForLoop4():
-    assert verify(LoopBench(ForLoop4)) == 0
-def testForLoop5():
-    assert verify(LoopBench(ForLoop5)) == 0
-
 # for loop 3 and 6 can't work in vhdl
+lc = [ForLoop1, ForLoop2, ForLoop4, ForLoop5, ForContinueLoop, ForBreakLoop,
+      ForBreakContinueLoop, NestedForLoop1, NestedForLoop2, FunctionCall,
+      WhileLoop, WhileContinueLoop, WhileBreakLoop, WhileBreakContinueLoop]
 
-def testForContinueLoop():
-  assert verify(LoopBench(ForContinueLoop)) == 0
-
-def testForBreakLoop():
-   assert verify(LoopBench(ForBreakLoop)) == 0
-
-def testForBreakContinueLoop():
-   assert verify(LoopBench(ForBreakContinueLoop))== 0
-
-def testNestedForLoop1():
-   assert verify(LoopBench(NestedForLoop1)) == 0
-
-def testNestedForLoop2():
-   assert verify(LoopBench(NestedForLoop2)) == 0
-
-def testWhileLoop():
-    assert verify(LoopBench(FunctionCall)) == 0
 
 ## def testTaskCall(self):
 ##     sim = self.bench(TaskCall)
 ##     Simulation(sim).run()
-
-def testWhileLoop():
-    assert verify(LoopBench(WhileLoop)) == 0
-
-def testWhileContinueLoop():
-    assert verify(LoopBench(WhileContinueLoop)) == 0
-
-def testWhileBreakLoop():
-    assert verify(LoopBench(WhileBreakLoop)) == 0
-
-def testWhileBreakContinueLoop():
-    assert verify(LoopBench(WhileBreakContinueLoop)) == 0

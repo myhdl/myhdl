@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import sys
 
+import pytest
+
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
@@ -90,8 +92,9 @@ def m_top(clock, reset, sdi, sdo):
     return g1, g2, assigns
 
 
+@pytest.mark.verify_convert
 @block
-def c_testbench_one():
+def test_top():
     """ yet another interface test.
     This test is used to expose a particular bug that was discovered
     during the development of interface conversion.  The structure
@@ -134,32 +137,6 @@ def c_testbench_one():
         raise StopSimulation
 
     return tbclk, tbstim, tbdut
-
-
-def test_one_testbench():
-    clock = Signal(bool(0))
-    reset = ResetSignal(0, active=1, async=False)
-    sdi = Signal(bool(0))
-    sdo = Signal(bool(0))
-    Simulation(c_testbench_one()).run()
-
-
-def test_one_analyze():
-    clock = Signal(bool(0))
-    reset = ResetSignal(0, active=1, async=False)
-    sdi = Signal(bool(0))
-    sdo = Signal(bool(0))
-    analyze(m_top(clock, reset, sdi, sdo))
-
-
-def test_one_verify():
-    assert verify(c_testbench_one()) == 0
-
-
-def test_conversion():
-    toVerilog(c_testbench_one())
-    toVHDL(c_testbench_one())
-
 
 if __name__ == '__main__':
     print(sys.argv[1])

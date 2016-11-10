@@ -5,6 +5,8 @@ import random
 from random import randrange
 random.seed(2)
 
+import pytest
+
 import myhdl
 from myhdl import *
 
@@ -131,8 +133,10 @@ def decTaskFreeVar(count, enable, clock, reset, n):
     return decTaskGen
 
 
+@pytest.mark.parametrize('dec', [dec, decRef, decFunc, decFunc])
+@pytest.mark.verify_convert
 @block
-def DecBench(dec):
+def test_dec(dec):
 
     m = 8
     n = 2 ** (m-1)
@@ -179,41 +183,3 @@ def DecBench(dec):
     dec_inst = dec(count, enable, clock, reset, n=n)
 
     return dec_inst, clockGen, stimulus, check
-
-
-def testDecRef():
-    assert DecBench(decRef).verify_convert() == 0
-
-def testDec():
-    assert DecBench(dec).verify_convert() == 0
-
-def testDecFunc():
-    assert DecBench(decFunc).verify_convert() == 0
-
-def testDecTask():
-    assert DecBench(decTask).verify_convert() == 0
-
-
-## def testDecTaskFreeVar():
-##     assert verify(DecBench, decTaskFreeVar) == 0
-
-##     def testDecRef(self):
-##         sim = self.bench(decRef)
-##         sim.run(quiet=1)
-
-##     def testDec(self):
-##         sim = self.bench(dec)
-##         sim.run(quiet=1)
-
-##     def testDecFunc(self):
-##         sim = self.bench(decFunc)
-##         sim.run(quiet=1)
-
-## signed inout in task doesn't work yet in Icarus
-##     def testDecTask(self):
-##         sim = self.bench(decTask)
-##         sim.run(quiet=1)
-
-##     def testDecTaskFreeVar(self):
-##         sim = self.bench(decTaskFreeVar)
-##         sim.run(quiet=1)

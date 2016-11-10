@@ -3,6 +3,8 @@ import os
 path = os.path
 from random import randrange
 
+import pytest
+
 import myhdl
 from myhdl import *
 
@@ -125,8 +127,10 @@ headers = [ 0x00000000,
 headers.extend([randrange(2**32-1) for i in range(10)])
 headers = tuple(headers)
 
+@pytest.mark.parametrize('HecCalculator', [HecCalculatorPlain])
+@pytest.mark.verify_convert
 @block
-def HecBench(HecCalculator):
+def test_hec(HecCalculator):
 
     hec = Signal(intbv(0)[8:])
     hec_v = Signal(intbv(0)[8:])
@@ -158,6 +162,3 @@ def HecBench(HecCalculator):
 ## def testTask2(self):
 ##     sim = self.bench(HecCalculatorTask2)
 ##     Simulation(sim).run()
-
-def testPlain():
-    assert HecBench(HecCalculatorPlain).verify_convert() == 0

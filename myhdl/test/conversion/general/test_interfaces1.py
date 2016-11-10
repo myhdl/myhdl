@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import sys
 
+import pytest
+
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
@@ -35,8 +37,9 @@ def m_two_level(clock,reset,ia,ib):
 
     return g_one, rtl
 
+@pytest.mark.verify_convert
 @block
-def c_testbench_one():
+def test_one_level():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
@@ -67,8 +70,9 @@ def c_testbench_one():
 
     return tb_dut, tb_clk, tb_stim
 
+@pytest.mark.verify_convert
 @block
-def c_testbench_two():
+def test_two_level():
     clock = Signal(bool(0))
     reset = ResetSignal(0,active=0,async=True)
     ia = MyIntf()
@@ -98,27 +102,6 @@ def c_testbench_two():
         raise StopSimulation
 
     return tb_dut, tb_clk, tb_stim
-
-def test_one_level_analyze():
-    clock = Signal(bool(0))
-    reset = ResetSignal(0,active=0,async=True)
-    ia = MyIntf()
-    ib = MyIntf()
-    analyze(m_one_level(clock,reset,ia,ib))
-
-def test_one_level_verify():
-    assert verify(c_testbench_one()) == 0
-
-def test_two_level_analyze():
-    clock = Signal(bool(0))
-    reset = ResetSignal(0,active=0,async=True)
-    ia = MyIntf()
-    ib = MyIntf()
-    analyze(m_two_level(clock,reset,ia,ib))
-
-def test_two_level_verify():
-    assert verify(c_testbench_two()) == 0
-
 
 if __name__ == '__main__':
     print(sys.argv[1])

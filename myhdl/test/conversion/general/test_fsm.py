@@ -2,6 +2,8 @@ from __future__ import absolute_import
 import os
 path = os.path
 
+import pytest
+
 import myhdl
 from myhdl import *
 
@@ -56,8 +58,10 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
 
     return FSM
 
+
+@pytest.mark.verify_convert
 @block
-def FSMBench(FramerCtrl, t_State):
+def test_fsmFSMBench(FramerCtrl=FramerCtrl, t_State=t_State_b):
 
     SOF = Signal(bool(0))
     SOF_v = Signal(bool(0))
@@ -107,7 +111,3 @@ def FSMBench(FramerCtrl, t_State):
             # print state
 
     return framerctrl_inst,  clkgen, stimulus, check
-
-
-def test():
-    assert FSMBench(FramerCtrl, t_State_b).verify_convert() == 0

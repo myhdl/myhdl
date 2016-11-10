@@ -6,6 +6,8 @@ import random
 from random import randrange
 random.seed(2)
 
+import pytest
+
 import myhdl
 from myhdl import *
 from myhdl.conversion import verify
@@ -133,8 +135,10 @@ def incTaskFreeVar(count, enable, clock, reset, n):
     return incTaskGen
 
 
+@pytest.mark.parametrize('inc', [inc, inc2, incRef, incTask, incFunc])
+@pytest.mark.verify_convert
 @block
-def IncBench(inc):
+def test_inc(inc):
 
     NR_CYCLES = 201
       
@@ -168,21 +172,3 @@ def IncBench(inc):
             print(count)
 
     return inc_inst, clockgen, monitor
-
-
-def test_incReg():  
-    assert verify(IncBench(incRef)) == 0
-    
-def test_inc():  
-    assert verify(IncBench(inc)) == 0
-    
-def test_inc2():  
-    assert verify(IncBench(inc2)) == 0
-    
-def testIncTask():
-    assert verify(IncBench(incTask)) == 0
-    
-def testIncFunc():
-    assert verify(IncBench(incFunc)) == 0
-    
-

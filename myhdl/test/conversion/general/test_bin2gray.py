@@ -2,6 +2,8 @@ from __future__ import absolute_import
 import os
 path = os.path
 
+import pytest
+
 from myhdl import block, Signal, intbv, delay, instance, always_comb
 
 @block
@@ -43,8 +45,13 @@ def bin2gray(B, G, width):
     return logic
 
 
+@pytest.mark.parametrize('width, bin2gray', [
+    (8, bin2gray),
+    (8, bin2gray2)
+])
+@pytest.mark.verify_convert
 @block
-def bin2grayBench(width, bin2gray):
+def test_bin2gray(width, bin2gray):
 
     B = Signal(intbv(0)[width:])
     G = Signal(intbv(0)[width:])
@@ -64,10 +71,3 @@ def bin2grayBench(width, bin2gray):
             print("%d" % G)
 
     return stimulus, bin2gray_inst
-
-
-def test1():
-     assert bin2grayBench(width=8, bin2gray=bin2gray).verify_convert() == 0
-
-def test2():
-    assert bin2grayBench(width=8, bin2gray=bin2gray2).verify_convert() == 0

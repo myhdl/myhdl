@@ -21,11 +21,14 @@
 """ Run the intbv.signed() unit tests. """
 from __future__ import absolute_import
 
+import pytest
+
 import myhdl
 from myhdl import *
 
+@pytest.mark.verify_convert
 @block
-def PlainIntbv():
+def test_PlainIntbv():
     '''Test a plain intbv instance with .signed() 
 
     ----+----+----+----+----+----+----+----
@@ -198,8 +201,9 @@ def PlainIntbv():
 
 
 
+@pytest.mark.verify_convert
 @block
-def SlicedSigned():
+def test_SlicedSigned():
     '''Test a slice with .signed()
 
     This test can actually be simplified, as a slice will always have
@@ -225,8 +229,9 @@ def SlicedSigned():
     return logic
 
 
+@pytest.mark.verify_convert
 @block
-def SignedConcat():
+def test_SignedConcat():
     '''Test the .signed() function with the concatenate function'''
 
     @instance
@@ -248,13 +253,3 @@ def SignedConcat():
         assert concat(b, True, True).signed() == -9
         
     return logic
-
-def test_PlainIntbv():
-    assert conversion.verify(PlainIntbv()) == 0
-    
-def test_SlicedSigned():
-    assert conversion.verify(SlicedSigned()) == 0
-    
-def test_SignedConcat():
-    assert conversion.verify(SignedConcat()) == 0
-    

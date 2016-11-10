@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import pytest
 import myhdl
 from myhdl import *
 
@@ -62,8 +63,15 @@ def map_case4_full(z, a):
     return logic
 
 
+@pytest.mark.parametrize('map_case, N', [
+    (map_case4, 4),
+    (map_case2, 2),
+    (map_case3, 3),
+    (map_case4_full, 4)
+])
+@pytest.mark.verify_convert
 @block
-def bench_case(map_case, N):
+def test_case(map_case, N):
 
     a = Signal(intbv(0)[2:])
     z = Signal(intbv(0)[2:])
@@ -78,16 +86,3 @@ def bench_case(map_case, N):
             print(z)
 
     return stimulus, inst
-
-
-def test_case4():
-    assert bench_case(map_case4, 4).verify_convert() == 0
-
-def test_case2():
-    assert bench_case(map_case2, 2).verify_convert() == 0
-
-def test_case3():
-    assert bench_case(map_case3, 3).verify_convert() == 0
-
-def test_case4_full():
-    assert bench_case(map_case4_full, 4).verify_convert() == 0

@@ -72,8 +72,9 @@ def m_assign_intf(x, y):
         x.x.next = y.y
     return rtl
 
+@pytest.mark.verify_convert
 @block
-def c_testbench_one():
+def test_top_assign():
     x,y,z = [Signal(intbv(0, min=-8, max=8))
              for _ in range(3)]
 
@@ -107,8 +108,9 @@ def m_multi_comb(x, y, z):
         x.x.next = y.y + z.z.z
     return rtl
 
+@pytest.mark.verify_convert
 @block
-def c_testbench_two():
+def test_multi_comb():
     x,y,z = [Signal(intbv(0, min=-8, max=8))
              for _ in range(3)]
     tb_dut = m_top_multi_comb(x,y,z)
@@ -138,8 +140,9 @@ def m_top_const(clock, reset, x, y, intf):
 
     return rtl1, rtl2
 
+@pytest.mark.verify_convert
 @block
-def c_testbench_three():
+def test_top_const():
     """
     this will test the use of constants in an inteface
     as well as top-level interface conversion.
@@ -173,58 +176,3 @@ def c_testbench_three():
         raise StopSimulation
 
     return tbdut, tbclk, tbstim
-
-def test_one_analyze():
-    x,y,z = [Signal(intbv(0, min=-8, max=8))
-             for _ in range(3)]
-    # fool name check in convertor 
-    # to be reviewed
-    x._name = 'x'
-    y._name = 'y'
-    z._name = 'z'
-    analyze(m_top_assign(x, y, z))
-
-def test_one_verify():
-    assert verify(c_testbench_one()) == 0
-
-def test_two_analyze():
-    x,y,z = [Signal(intbv(0, min=-8, max=8))
-             for _ in range(3)]
-    # fool name check in convertor 
-    # to be reviewed
-    x._name = 'x'
-    y._name = 'y'
-    z._name = 'z'
-    analyze(m_top_multi_comb(x, y, z))
-
-def test_two_verify():
-    assert verify(c_testbench_two()) == 0
-
-def test_three_analyze():
-    clock = Signal(bool(0))
-    reset = ResetSignal(0, active=0, async=True)
-    x = Signal(intbv(3, min=-5000, max=5000))
-    y = Signal(intbv(4, min=-200, max=200))
-    intf = IntfWithConstant2()
-    analyze(m_top_const(clock, reset, x, y, intf))
-
-def test_three_verify():
-    assert verify(c_testbench_three()) == 0
-
-
-if __name__ == '__main__':
-    print(sys.argv[1])
-    verify.simulator = analyze.simulator = sys.argv[1]
-    print("*** verify myhdl simulation")    
-    Simulation(c_testbench_one()).run()
-    Simulation(c_testbench_two()).run()
-    Simulation(c_testbench_three()).run()
-    print("*** myhdl simulation ok")    
-    print("")
-
-    print("*** myhdl verify conversion")    
-    print(verify(c_testbench_one))
-    print(verify(c_testbench_two))  
-    print(verify(c_testbench_three))  
-    print("*** myhdl conversion ok")      
-    print("")

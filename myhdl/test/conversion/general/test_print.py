@@ -1,4 +1,7 @@
 from __future__ import absolute_import
+
+import pytest
+
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
@@ -6,7 +9,9 @@ from myhdl.conversion._misc import _error
 
 t_State = enum("START", "RUN", "STOP")
 
-def PrintBench():
+@pytest.mark.verify_convert
+@block
+def test_print():
     si1 = Signal(intbv(0)[8:])
     si2 = Signal(intbv(0, min=-10, max=12))
     sb = Signal(bool(0))
@@ -66,10 +71,10 @@ def PrintBench():
 
     return logic
 
-def testPrint():
-    assert conversion.verify(PrintBench) == 0
 
-def PrintLongVectorsBench():
+@pytest.mark.verify_convert
+@block
+def test_print_long_vectors():
     N84 = 84
     M84 = 2**N84-1
     N85 = 85
@@ -104,12 +109,6 @@ def PrintLongVectorsBench():
         print("%s %s %s %s" % (i1, i2, si1, si2))
 
     return logic
-
-def testPrintLongVectors():
-    assert conversion.verify(PrintLongVectorsBench) == 0
-
-def testPrint():
-    assert conversion.verify(PrintBench) == 0
 
 # format string errors and unsupported features
 

@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import sys
 
+import pytest
+
 import myhdl
 from myhdl import *
 from myhdl.conversion import analyze,verify
@@ -81,8 +83,9 @@ def test_name_conflict_after_replace():
     a_x = Signal(intbv(0)[len(a.x):])
     assert conversion.analyze(name_conflict_after_replace(clock, reset, a, a_x)) == 0
 
+@pytest.mark.verify_convert
 @block
-def c_testbench():
+def test_name_conflicts():
     clock = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=False)
     a,b,c = (Intf(),Intf(),Intf(),)
@@ -113,14 +116,6 @@ def c_testbench():
 
     return tb_dut,tb_clk,tb_stim
 
-def test_name_conflicts_analyze():
-    clock = Signal(bool(0))
-    reset = ResetSignal(0, active=0, async=False)
-    a,b,c = (Intf(),Intf(),Intf(),)
-    analyze(m_test_intf(clock,reset,a,b,c))
-
-def test_name_conflicts_verify():
-    assert verify(c_testbench()) == 0
 
 if __name__ == '__main__':
     verify.simulator = analyze.simulator = sys.argv[1]

@@ -9,6 +9,8 @@ from random import randrange
 random.seed(2)
 import time
 
+import pytest
+
 import myhdl
 from myhdl import *
 from myhdl.conversion import verify
@@ -72,8 +74,9 @@ o7, o6, o5, o4, o3, o2, o1, o0 = [Signal(bool()) for i in range(N)]
 i7, i6, i5, i4, i3, i2, i1, i0 = [Signal(bool()) for i in range(N)]
 v7, v6, v5, v4, v3, v2, v1, v0 = [Signal(bool()) for i in range(N)]
 
+@pytest.mark.verify_convert
 @block
-def randscramblerBench():
+def test_randscramber():
 
     @instance
     def stimulus():
@@ -108,6 +111,3 @@ def randscramblerBench():
     )
 
     return rs, stimulus
-
-def test_randscramber():
-    assert conversion.verify(randscramblerBench()) == 0

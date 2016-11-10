@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import pytest
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
@@ -10,8 +11,9 @@ M= 2**N
 
 ### A first case that already worked with 5.0 list of signal constraints ###
 
+@pytest.mark.verify_convert
 @block
-def intbv2list():
+def test_intbv2list():
     """Conversion between intbv and list of boolean signals."""
     
     a = Signal(intbv(0)[N:])
@@ -39,11 +41,6 @@ def intbv2list():
 
     return extract, assemble, stimulus
 
-# test
-
-def test_intbv2list():
-    assert conversion.verify(intbv2list()) == 0
-            
     
 ### A number of cases with relaxed constraints, for various decorator types ###
 
@@ -177,12 +174,16 @@ def case4(z, a, inv):
     return extract, inst, assemble
 
 
-
-
-
-
+@pytest.mark.parametrize('case, inv', [
+    (case1, inv1),
+    (case1, inv2),
+    (case2, inv2),
+    (case3, inv3),
+    (case4, inv4)
+])
+@pytest.mark.verify_convert
 @block
-def processlist(case, inv):
+def test_processlist(case, inv):
     """Extract list from intbv, do some processing, reassemble."""
     
     a = Signal(intbv(1)[N:])
@@ -203,28 +204,10 @@ def processlist(case, inv):
     return case_inst, stimulus
 
 
-# functional tests
-    
-def test_processlist11():
-    assert conversion.verify(processlist(case1, inv1)) == 0
-    
-def test_processlist12():
-    assert conversion.verify(processlist(case1, inv2))== 0
-    
-def test_processlist22():
-    assert conversion.verify(processlist(case2, inv2))== 0
-    
-def test_processlist33():
-    assert conversion.verify(processlist(case3, inv3))== 0
-
-def test_processlist44():
-    assert conversion.verify(processlist(case4, inv4))== 0
-
-
-
 # signed and unsigned
+@pytest.mark.verify_convert
 @block
-def unsigned():
+def test_unsigned():
     z = Signal(intbv(0)[8:])
     a = [Signal(intbv(0)[8:]) for i in range(3)]
 
@@ -240,14 +223,11 @@ def unsigned():
         print(z)
 
     return logic, stimulus
-
-
-def test_unsigned():
-    conversion.verify(unsigned())
         
 
+@pytest.mark.verify_convert
 @block
-def signed():
+def test_signed():
     z = Signal(intbv(0, min=-10, max=34))
     a = [Signal(intbv(0, min=-5, max=17)) for i in range(3)]
 
@@ -265,12 +245,9 @@ def signed():
     return logic, stimulus
 
 
-def test_signed():
-    conversion.verify(signed())
-        
-
+@pytest.mark.verify_convert
 @block
-def mixed():
+def test_mixed():
     z = Signal(intbv(0, min=0, max=34))
     a = [Signal(intbv(0, min=-11, max=17)) for i in range(3)]
     b = [Signal(intbv(0)[5:]) for i in range(3)]
@@ -287,10 +264,6 @@ def mixed():
         print(z)
 
     return logic, stimulus
-
-
-def test_mixed():
-    conversion.verify(mixed())
         
 
 ### error tests
@@ -366,7 +339,3 @@ def test_listAsPort():
         assert e.kind == _error.ListAsPort
     else:
         assert False
-
-
-
-    

@@ -1,4 +1,6 @@
 from __future__ import absolute_import
+import pytest
+
 import myhdl
 from myhdl import *
 
@@ -36,8 +38,9 @@ def adapter(o_err, i_err, o_spec, i_spec):
     return assign
 
 
+@pytest.mark.verify_convert
 @block
-def bench_adapter(hdl=None):
+def test_adapter(hdl=None):
     o_spec = ('c', 'a', 'other', 'nomatch')
     i_spec = { 'a' : 1, 'b' : 2, 'c' : 0, 'd' : 3, 'e' : 4, 'f' : 5, }
 
@@ -62,10 +65,3 @@ def bench_adapter(hdl=None):
             print(o_err)
 
     return dut, stimulus
-
-def test_adapter():
-    assert bench_adapter().verify_convert() == 0
-
-
-bench_adapter('Verilog')
-bench_adapter('VHDL')
