@@ -121,12 +121,9 @@ def PrintError1():
      return logic
 
 def testPrintError1():
-    try:
+    with pytest.raises(ConversionError) as e:
         conversion.verify(PrintError1)
-    except ConversionError as e:
-        assert e.kind == _error.UnsupportedFormatString
-    else:
-        assert False
+    assert e.value.kind == _error.UnsupportedFormatString
 
 def PrintError2():
      @instance
@@ -137,12 +134,9 @@ def PrintError2():
      return logic
 
 def testPrintError2():
-    try:
+    with pytest.raises(ConversionError) as e:
         conversion.verify(PrintError2)
-    except ConversionError as e:
-        assert e.kind == _error.FormatString
-    else:
-        assert False
+    assert e.value.kind == _error.FormatString
 
 def PrintError3():
      @instance
@@ -154,12 +148,9 @@ def PrintError3():
      return logic
 
 def testPrintError3():
-    try:
+    with pytest.raises(ConversionError) as e:
         conversion.verify(PrintError3)
-    except ConversionError as e:
-        assert e.kind == _error.FormatString
-    else:
-        assert False
+    assert e.value.kind == _error.FormatString
 
 def PrintError4():
      @instance
@@ -170,12 +161,9 @@ def PrintError4():
      return logic
 
 def testPrintError4():
-    try:
+    with pytest.raises(ConversionError) as e:
         conversion.verify(PrintError4)
-    except ConversionError as e:
-        assert e.kind == _error.UnsupportedFormatString
-    else:
-        assert False
+    assert e.value.kind == _error.UnsupportedFormatString
 
 def PrintError5():
      @instance
@@ -186,9 +174,6 @@ def PrintError5():
      return logic
 
 def testPrintError5():
-    try:
+    with pytest.raises(ConversionError) as e:
         conversion.verify(PrintError5)
-    except ConversionError as e:
-        assert e.kind == _error.UnsupportedFormatString
-    else:
-        assert False
+    assert e.value.kind == _error.UnsupportedFormatString

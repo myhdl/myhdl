@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 import sys
+import pytest
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
@@ -124,9 +125,6 @@ def test_hdlobjnotself():
     x = Signal(intbv(0, min=0, max=16))
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjNotSelf()
-    try:
+    with pytest.raises(ConversionError) as e:
         hdlobj_inst.method_func(clk, x, srst, y).analyze_convert()
-    except ConversionError as e:
-        assert e.kind == _error.NotSupported
-    else:
-        assert False
+    assert e.value.kind == _error.NotSupported

@@ -323,20 +323,14 @@ def test_loop(LoopTest):
 
 
 def testForLoopError1():
-    try:
-        analyze(test_loop(ForLoopError1))
-    except ConversionError as e:
-        assert e.kind == _error.Requirement
-    else:
-        assert False
+    with pytest.raises(ConversionError) as e:
+        test_loop(ForLoopError1).analyze_convert()
+    assert e.value.kind == _error.Requirement
     
 def testForLoopError2():
-    try:
+    with pytest.raises(ConversionError) as e:
         analyze(test_loop(ForLoopError2))
-    except ConversionError as e:
-        assert e.kind == _error.Requirement
-    else:
-        assert False
+    assert e.value.kind == _error.Requirement
 
 # for loop 3 and 6 can't work in vhdl
 lc = [ForLoop1, ForLoop2, ForLoop4, ForLoop5, ForContinueLoop, ForBreakLoop,

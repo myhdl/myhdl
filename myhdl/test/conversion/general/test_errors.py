@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import pytest
 import myhdl
 from myhdl import *
 from myhdl import ConversionError
@@ -16,12 +17,10 @@ def sigAugmAssignUnsupported(z, a):
 def test_SigAugmAssignUnsupported():
     z = Signal(intbv(0)[8:])
     a = Signal(intbv(0)[8:])
-    try:
-        verify(sigAugmAssignUnsupported(z, a))
-    except ConversionError as e:
-        assert e.kind == _error.NotSupported
-    else:
-        assert False
+    with pytest.raises(ConversionError) as e:
+        sigAugmAssignUnsupported(z, a).verify_convert()
+    assert e.value.kind == _error.NotSupported
+
 
 @block
 def modbvRange(z, a, b):
@@ -36,12 +35,9 @@ def test_modbvRange():
     z = Signal(intbv(0)[8:])
     a = Signal(intbv(0)[4:])
     b = Signal(intbv(0)[4:])
-    try:
-        verify(modbvRange(z, a, b))
-    except ConversionError as e:
-        assert e.kind == _error.ModbvRange
-    else:
-        assert False
+    with pytest.raises(ConversionError) as e:
+        modbvRange(z, a, b).verify_convert()
+    assert e.value.kind == _error.ModbvRange
 
 @block
 def modbvSigRange(z, a, b):
@@ -54,9 +50,7 @@ def test_modbvSigRange():
     z = Signal(modbv(0, min=0, max=42))
     a = Signal(intbv(0)[4:])
     b = Signal(intbv(0)[4:])
-    try:
-        verify(modbvSigRange(z, a, b))
-    except ConversionError as e:
-        assert e.kind == _error.ModbvRange
-    else:
-        assert False
+
+    with pytest.raises(ConversionError) as e:
+        modbvSigRange(z, a, b).verify_convert()
+    assert e.value.kind == _error.ModbvRange

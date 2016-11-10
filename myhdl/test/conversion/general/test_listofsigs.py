@@ -285,12 +285,9 @@ def portInList(z, a, b):
 def test_portInList():
     z, a, b = [Signal(intbv(0)[8:]) for i in range(3)]
 
-    try:
-        inst = conversion.analyze(portInList(z, a, b))
-    except ConversionError as e:
-        assert e.kind == _error.PortInList
-    else:
-        assert False
+    with pytest.raises(ConversionError) as e:
+        portInList(z, a, b).analyze_convert()
+    assert e.value.kind == _error.PortInList
        
     
 # signal in multiple lists
@@ -311,12 +308,9 @@ def sigInMultipleLists():
 
 def test_sigInMultipleLists():
 
-    try:
-        inst = conversion.analyze(sigInMultipleLists())
-    except ConversionError as e:
-        assert e.kind == _error.SignalInMultipleLists
-    else:
-        assert False
+    with pytest.raises(ConversionError) as e:
+        sigInMultipleLists().analyze_convert()
+    assert e.value.kind == _error.SignalInMultipleLists
 
 # list of signals as port
        
@@ -333,9 +327,6 @@ def test_listAsPort():
     clk = Signal(False)
     inp = [Signal(intbv(0)[8:0]) for index in range(count)]
     outp = [Signal(intbv(0)[8:0]) for index in range(count)]
-    try:
+    with pytest.raises(ConversionError) as e:
         inst = conversion.analyze(my_register(clk, inp, outp))
-    except ConversionError as e:
-        assert e.kind == _error.ListAsPort
-    else:
-        assert False
+    assert e.value.kind == _error.ListAsPort
