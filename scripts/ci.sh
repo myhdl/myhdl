@@ -18,6 +18,7 @@ run_test() {
 }
 
 foundError=0
+
 echo -e "Running $CI_TARGET tests\n"
 
 CI_TARGET=${CI_TARGET:-core}
