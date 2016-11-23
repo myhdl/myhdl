@@ -233,6 +233,14 @@ def initial_value_bool_list_bench(initial_vals, **kwargs):
     return clkgen, output_driver, drive_and_check, output_writer
 
 @block
+def assign_output(input_signal, output_signal):
+    @always_comb
+    def assignment():
+        output_signal.next = input_signal
+
+    return assignment
+
+@block
 def initial_value_list_bench(initial_vals, **kwargs):
     clk = Signal(bool(0))
 
@@ -267,10 +275,14 @@ def initial_value_list_bench(initial_vals, **kwargs):
 
         raise StopSimulation()
 
-    @always_comb
-    def output_driver():
-        for i in range(signal_list_length):
-            output_signal_list[i].next = input_signal_list[i]
+    # We assign each of the output drivers independently.
+    # This forces the output to be a wire (where appropriate) so we can
+    # check this type is handled properly too.
+    output_drivers = []
+    for input_signal, output_signal in zip(
+        input_signal_list, output_signal_list):
+
+        output_drivers.append(assign_output(input_signal, output_signal))
 
     @always(clk.posedge)
     def drive_and_check():
@@ -289,7 +301,7 @@ def initial_value_list_bench(initial_vals, **kwargs):
 
     output_writer = canonical_list_writer(output_signal_list, clk)
 
-    return clkgen, output_driver, drive_and_check, output_writer
+    return clkgen, output_drivers, drive_and_check, output_writer
 
 def runner(initial_val, tb=initial_value_bench, **kwargs):
     pre_toVerilog_initial_values = toVerilog.initial_values
