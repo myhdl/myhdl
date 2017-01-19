@@ -53,7 +53,7 @@ def initial_value_bench(initial_val, **kwargs):
     clk = Signal(bool(0))
 
     input_signal = Signal(initial_val)
-    
+
     if 'change_input_signal' in kwargs.keys():
 
         change_input_signal = kwargs['change_input_signal']
@@ -90,7 +90,7 @@ def initial_value_bench(initial_val, **kwargs):
             clk.next = not clk
 
         raise StopSimulation()
-            
+
     @always_comb
     def output_driver():
         output_signal.next = input_signal
@@ -122,7 +122,7 @@ def canonical_list_writer(output_signal_list, clk):
     def list_writer():
         for i in range(signal_list_length):
             print(str(output_signal_list[i]._val))
-            
+
     canonical_list_writer.verilog_code = '''
 always @(posedge $clk) begin: INITIAL_VALUE_LIST_BENCH_CANONICAL_LIST_WRITER_0_LIST_WRITER
     integer i;
@@ -152,10 +152,10 @@ def initial_value_list_bench(initial_vals, **kwargs):
     clk = Signal(bool(0))
 
     input_signal_list = [Signal(initial_val) for initial_val in initial_vals]
-    
+
     if len(initial_vals[0]) == 1:
         output_signal_list = [
-            Signal(intbv(not initial_val, min=0, max=2)) for 
+            Signal(intbv(not initial_val, min=0, max=2)) for
             initial_val in initial_vals]
         update_val = int(not initial_vals[0])
     else:
@@ -180,7 +180,7 @@ def initial_value_list_bench(initial_vals, **kwargs):
             clk.next = not clk
 
         raise StopSimulation()
-            
+
     @always_comb
     def output_driver():
         for i in range(signal_list_length):
@@ -214,7 +214,7 @@ def runner(initial_val, tb=initial_value_bench, **kwargs):
 
     try:
         assert conversion.verify(tb(initial_val, **kwargs)) == 0
-    
+
     finally:
         toVerilog.initial_values = pre_toVerilog_initial_values
         toVHDL.initial_values = pre_toVHDL_initial_values
@@ -236,7 +236,7 @@ def test_signed():
     '''
     min_val = -12
     max_val = 4
-    
+
     initial_val = intbv(
         randrange(min_val, max_val), min=min_val, max=max_val)
 
@@ -245,7 +245,7 @@ def test_signed():
 def test_modbv():
     '''The correct initial value should be used for modbv type signal.
     '''
-    
+
     initial_val = modbv(randrange(0, 2**10))[10:]
 
     runner(initial_val)
@@ -283,7 +283,7 @@ def test_unsigned_list():
     min_val = 0
     max_val = 34
     initial_vals = [intbv(
-        randrange(min_val, max_val), min=min_val, max=max_val) 
+        randrange(min_val, max_val), min=min_val, max=max_val)
         for each in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
@@ -305,7 +305,7 @@ def test_signed_list():
 
     runner(initial_vals, tb=initial_value_list_bench)
 
-    # All the same case    
+    # All the same case
     initial_vals = [intbv(
         randrange(min_val, max_val), min=min_val, max=max_val)] * 10
 
@@ -314,25 +314,25 @@ def test_signed_list():
 def test_modbv_list():
     '''The correct initial value should be used for modbv type signal lists
     '''
-    
+
     initial_vals = [
         modbv(randrange(0, 2**10))[10:] for each in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
 
-    # All the same case    
+    # All the same case
     initial_vals = [modbv(randrange(0, 2**10))[10:]] * 10
     runner(initial_vals, tb=initial_value_list_bench)
 
 
 def test_long_signals_list():
-    '''The correct initial value should work with wide bitwidths (i.e. >32) 
+    '''The correct initial value should work with wide bitwidths (i.e. >32)
     signal lists
     '''
     min_val = -(2**71)
     max_val = 2**71 - 1
     initial_vals = [intbv(
-        randrange(min_val, max_val), min=min_val, max=max_val) 
+        randrange(min_val, max_val), min=min_val, max=max_val)
         for each in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
@@ -365,7 +365,7 @@ def test_init_used():
     runner(initial_val, change_input_signal=True)
 
 #def test_init_used_list():
-#    '''It should be the _init attribute of each element in the list 
+#    '''It should be the _init attribute of each element in the list
 #    that is used for initialisation
 #
 #    It should not be the current value, which should be ignored.
@@ -373,7 +373,7 @@ def test_init_used():
 #    min_val = -34
 #    max_val = 15
 #    initial_val = [intbv(
-#        randrange(min_val, max_val), min=min_val, max=max_val) 
+#        randrange(min_val, max_val), min=min_val, max=max_val)
 #        for each in range(10)]
 #
 #    list_runner(initial_val, change_input_signal=True)

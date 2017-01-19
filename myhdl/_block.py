@@ -18,7 +18,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Block with the @block decorator function. """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import inspect
 
@@ -34,6 +34,7 @@ from myhdl._extractHierarchy import (_makeMemInfo,
                                      _UserVerilogCode, _UserVhdlCode)
 from myhdl._Signal import _Signal, _isListOfSigs
 
+from weakref import WeakValueDictionary, WeakKeyDictionary
 
 class _error:
     pass
@@ -100,10 +101,14 @@ class _bound_function_wrapper(object):
         # register the block
         myhdl._simulator._blocks.append(self)
 
+        self.name = None
+
     def __call__(self, *args, **kwargs):
         self.calls += 1
         return _Block(self.bound_func, self, self.srcfile,
                       self.srcline, *args, **kwargs)
+
+_name_dict = WeakKeyDictionary()
 
 class block(object):
 
@@ -113,10 +118,12 @@ class block(object):
         self.func = func
         functools.update_wrapper(self, func)
         self.calls = 0
+        self.name = None
+
         # register the block
         myhdl._simulator._blocks.append(self)
 
-        self.bound_functions = {}
+        self.bound_functions = WeakValueDictionary()
 
     def __get__(self, instance, owner):
         bound_key = (id(instance), id(owner))
@@ -128,32 +135,34 @@ class block(object):
             self.bound_functions[bound_key] = function_wrapper
         else:
             function_wrapper = self.bound_functions[bound_key]
+            bound_func = self.bound_functions[bound_key]
+
+        proposed_name = owner.__name__ + '_' + self.func.__name__ + '0'
+        n = 1
+        while proposed_name in _name_dict.values():
+            proposed_name = owner.__name__ + '_' + self.func.__name__ + str(n)
+            n += 1
+
+        function_wrapper.name = proposed_name
+        _name_dict[bound_func] = function_wrapper.name
 
         return function_wrapper
 
     def __call__(self, *args, **kwargs):
         self.calls += 1
+        _name_dict[self.func] = self.func.__name__ + str(self.calls)
+
+        self.name = _name_dict[self.func]
+
         return _Block(self.func, self, self.srcfile,
                       self.srcline, *args, **kwargs)
-
-
-#def block(func):
-#    srcfile = inspect.getsourcefile(func)
-#    srcline = inspect.getsourcelines(func)[0]
-#
-#    print(func, type(func))
-#    @wraps(func)
-#    def deco(*args, **kwargs):
-#        deco.calls += 1
-#        return _Block(func, deco, srcfile, srcline, *args, **kwargs)
-#    deco.calls = 0
-#    return deco
 
 
 class _Block(object):
 
     def __init__(self, func, deco, srcfile, srcline, *args, **kwargs):
         calls = deco.calls
+
         self.func = func
         self.args = args
         self.kwargs = kwargs
@@ -165,7 +174,7 @@ class _Block(object):
         self.symdict = None
         self.sigdict = {}
         self.memdict = {}
-        self.name = self.__name__ = func.__name__ + '_' + str(calls)
+        self.name = self.__name__ = deco.name
 
         # flatten, but keep BlockInstance objects
         self.subs = _flatten(func(*args, **kwargs))
