@@ -148,6 +148,7 @@ class ToVHDLWarning(ConversionWarning):
 from ._bin import bin
 from ._concat import concat
 from ._intbv import intbv
+from ._fixbv import fixbv
 from ._modbv import modbv
 from ._join import join
 from ._Signal import posedge, negedge, Signal, SignalType
@@ -176,6 +177,7 @@ from ._tristate import Tristate
 __all__ = ["bin",
            "concat",
            "intbv",
+           "fixbv",
            "modbv",
            "join",
            "posedge",
