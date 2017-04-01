@@ -1,6 +1,7 @@
 from random import randrange
-from myhdl import *
+from myhdl import Signal, intbv, always_comb
 from myhdl.conversion import analyze
+import pytest
 
 list_of_neg = []
 
@@ -24,6 +25,7 @@ def issue_171(a, b):
     return foo
 
 
+@pytest.mark.xfail
 def test_issue_171():
 
     a, b = [Signal(bool(0)) for _ in range(2)]
