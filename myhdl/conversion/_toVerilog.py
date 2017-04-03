@@ -406,9 +406,10 @@ def _writeSigDecls(f, intf, siglist, memlist):
             c = int(s.val)
         else:
             raise ToVerilogError("Unexpected type for constant signal", s._name)
+        c_sign = '-' if c < 0 else ''
         c_len = s._nrbits
-        c_str = "%s" % c
-        print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
+        c_str = "%s" % abs(c)
+        print("assign %s = %s%s'd%s;" % (s._name, c_sign, c_len, c_str), file=f)
     # print(file=f)
     # shadow signal assignments
     for s in siglist:
