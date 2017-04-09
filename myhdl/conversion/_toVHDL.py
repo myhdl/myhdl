@@ -468,7 +468,6 @@ def _writeSigDecls(f, intf, siglist, memlist):
             sig_vhdl_objs = [inferVhdlObj(each) for each in m.mem]
 
             if all([each._init == m.mem[0]._init for each in m.mem]):
-
                 if isinstance(m.mem[0]._init, bool):
                     val_str = (
                         ' := (others => \'%s\')' % str(int(m.mem[0]._init)))
@@ -650,7 +649,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         return s
 
     def BitRepr(self, item, var):
-        return '"%s"' % bin(item, len(var))
+        if isinstance(var._val, bool):
+            return '\'%s\'' % bin(item, len(var))
+        else:
+            return '"%s"' % bin(item, len(var))
 
     def inferCast(self, vhd, ori):
         pre, suf = "", ""

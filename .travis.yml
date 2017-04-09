@@ -1,5 +1,6 @@
 # http://docs.travis-ci.com/user/workers/container-based-infrastructure/
-sudo: false
+sudo: required
+dist: trusty
 
 language: python
 python:
@@ -7,20 +8,7 @@ python:
   - "pypy"
   - "3.4"
   - "3.5"
-
-# binary install as per travis instructions
-# used to install latest version of ghdl
-before_script:
-  - ./scripts/install_ghdl.sh
-  - export PATH=$PATH:$PWD/ghdl-0.33/bin/
-
-addons:
-  apt:
-    # sources:
-    #  - pgavin-ghdl
-    packages:
-      - iverilog
-    #  - ghdl
+  - "3.6"
 
 install:
   - pip install .
@@ -30,16 +18,8 @@ env:
   - CI_TARGET=iverilog
   - CI_TARGET=ghdl
 
-# matrix:
-#  allow_failures:
-#    - python: "3.4"
-#      env: CI_TARGET=iverilog
-#    - python: "3.4"
-#      env: CI_TARGET=ghdl
-#    - python: "3.5"
-#      env: CI_TARGET=iverilog
-#    - python: "3.5"
-#      env: CI_TARGET=ghdl
+before_script:
+  - ./scripts/ci_deps.sh
 
 script: ./scripts/ci.sh
 
