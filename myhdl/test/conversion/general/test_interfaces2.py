@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import sys
 
+import pytest
+
 import myhdl
 from myhdl import *
 from myhdl.conversion import analyze,verify
@@ -73,7 +75,7 @@ def name_conflict_after_replace(clock, reset, a, a_x):
 
     return logic
 
-
+@pytest.mark.xfail
 def test_name_conflict_after_replace():
     clock = Signal(False)
     reset = ResetSignal(0, active=0, async=False)
