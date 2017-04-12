@@ -92,6 +92,14 @@ registerSimulator(
     skiplines=3
 )
 
+registerSimulator(
+    name="verilator",
+    hdl="Verilog",
+    analyze="verilator --lint-only -Wno-fatal +1364-2005ext+v %(topname)s.v",
+    elaborate='echo "ELABORATION"',
+    simulate="./obj_dir/V%(topname)s"
+    )
+
 
 class _VerificationClass(object):
 
@@ -188,6 +196,32 @@ class _VerificationClass(object):
         if elaborate is not None:
             # print(elaborate)
             ret = subprocess.call(elaborate, shell=True)
+            if hdlsim.name == "verilator":
+                main_cpp= "main.cpp"
+                main_cpp_string='    #include %s.h"\n\
+                                      #include "verilated.h"\n\
+                                      vluint64_t main_time = 0;       // Current simulation time \n\
+                                      double sc_time_stamp () {       // Called by $time in Verilog\n\
+                                            return main_time;           // converts to double, to match\n\
+                                            // what SystemC does\n\
+                                                              }\n\
+                                      int main(int argc, char **argv, char **env) {\n\
+                                      Verilated::commandArgs(argc, argv);\n\
+                                      %s* top = new %s;\n\
+                                      while (!Verilated::gotFinish()) {\n\
+                                      if (main_time > 10) {\n\
+                                       top->final();  \n\
+                                       delete top;\n\
+                                       exit(0);\n\
+                                      }\n\
+                                      top->eval();\n\
+                                      main_time++;}\n\
+                                      }'%('"V'+vals["topname"],'V'+vals["topname"],'V'+vals["topname"])
+                main_cpp_open=open(main_cpp, 'w')
+                main_cpp_open.writelines(main_cpp_string)
+                main_cpp_open.close()
+                subprocess.call("verilator --cc -Wno-fatal +1364-2005ext+v %s.v --exe main.cpp"%vals["topname"], shell=True)
+                subprocess.call("make -f %s.mk --directory=obj_dir"%('V'+vals["topname"]),shell=True)
             if ret != 0:
                 print("Elaboration failed", file=sys.stderr)
                 return ret
