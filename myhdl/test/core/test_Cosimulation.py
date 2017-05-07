@@ -79,21 +79,6 @@ class TestCosimulation:
         with raises_kind(CosimulationError, _error.OSError):
             Cosimulation('bla -x 45')
 
-    def testNotUnique(self):
-        cosim1 = Cosimulation(exe + "cosimNotUnique", **allSigs)
-        with raises_kind(CosimulationError, _error.MultipleCosim):
-            Cosimulation(exe + "cosimNotUnique", **allSigs)
-
-    @staticmethod
-    def cosimNotUnique():
-        wt, rf = wtrf()
-        os.write(wt, b"TO 00 a 1")
-        os.read(rf, MAXLINE)
-        os.write(wt, b"FROM 00 d 1")
-        os.read(rf, MAXLINE)
-        os.write(wt, b"START")
-        os.read(rf, MAXLINE)
-
     def testFromSignals(self):
         cosim = Cosimulation(exe + "cosimFromSignals", **allSigs)
         assert cosim._fromSignames == fromSignames

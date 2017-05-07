@@ -368,7 +368,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if m._driven:
             k = m._driven
 
-            if toVerilog.initial_values:
+            if toVerilog.initial_values and not k == 'wire':
                 if all([each._init == m.mem[0]._init for each in m.mem]):
 
                     initialize_block_name = ('INITIALIZE_' + m.name).upper()
