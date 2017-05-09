@@ -34,7 +34,7 @@ from datetime import datetime
 import ast
 import string
 
-from types import GeneratorType
+from types import GeneratorType, MemberDescriptorType
 from myhdl._compat import StringIO
 import warnings
 
@@ -1532,6 +1532,8 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 
 
 def _maybeNegative(obj):
+    if isinstance(obj, (type, MemberDescriptorType)):
+        return False
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
         return True
     if isinstance(obj, integer_types) and obj < 0:
