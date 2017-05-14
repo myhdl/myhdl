@@ -145,7 +145,7 @@ class Simulation(object):
 
         while 1:
             try:
-                if progress_callback :
+                if progress_callback:
                     progress = 100*progress_precision * t // maxTime
                     if self.progress != progress :
                          self.progress = progress
