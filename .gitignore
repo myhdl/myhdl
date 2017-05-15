@@ -36,3 +36,6 @@ myhdl/**/*.vhd
 
 # PyCharm
 .idea/
+
+# Dolphin (KDE file manager)
+.directory
