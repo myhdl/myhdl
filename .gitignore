@@ -33,3 +33,9 @@ work_vcom/
 # Test artifacts
 myhdl/**/*.v
 myhdl/**/*.vhd
+
+# PyCharm
+.idea/
+
+# Dolphin (KDE file manager)
+.directory
