@@ -19,6 +19,7 @@
 
 """ Module with the fixbv class """
 from __future__ import print_function, absolute_import
+import sys
 
 import math
 from myhdl._intbv import intbv
@@ -115,13 +116,19 @@ class fixbv(modbv):
             #min,max,res = self._calc_min_max_res(val)
             self._val = None
             return
+        
+        # Integer compatibility with Python 3.x
+        if sys.version_info >= (3, 0):
+            isnumerical = isinstance(max, (int, float))
+        else:
+            isnumerical = isinstance(max, (int, long, float))
 
         # validate the range and resolution
         if max < 1 or abs(min) < 1:
             raise ValueError("Maximum and Minimum has to be 1 or greater")
-        if max == None or not isinstance(max, (int, long, float)):
+        if max == None or not isnumerical:
             raise ValueError("Maximum needs to be an integer, max=%s" % (str(max)))
-        if min == None or not isinstance(min, (int, long, float)):
+        if min == None or not isnumerical:
             raise ValueError("Minimum has to be provided, min=%s" % (str(min)))
         if res == None or res > 1:
             raise ValueError("Resolution has to be provided, res=%s" % (str(res)))
