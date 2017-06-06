@@ -19,10 +19,11 @@
 
 """ Module with the fixbv resize function """
 
+from __future__ import absolute_import
 
 import math
-from _fixbv import fixbv
-from _fixbv import FixedPointFormat
+from myhdl._fixbv import fixbv
+from myhdl._fixbv import FixedPointFormat
 
                   # round    :
 ROUND_MODES = (   # towards  :

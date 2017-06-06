@@ -18,11 +18,12 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the fixbv class """
+from __future__ import print_function, absolute_import
 
 import math
-from _intbv import intbv
-from _modbv import modbv
-from _Signal import _Signal
+from myhdl._intbv import intbv
+from myhdl._modbv import modbv
+from myhdl._Signal import _Signal
 
 
 class FixedPointFormat(object):
@@ -61,7 +62,7 @@ class FixedPointFormat(object):
             elif k == 2:
                 self._fwl = v
             else:
-                raise AssertionError, "Invalid index %d %s" % (key, type(key))
+                raise AssertionError("Invalid index %d %s" % (key, type(key)))
 
     def __eq__(self, other):
         cmp = True
@@ -434,8 +435,8 @@ class fixbv(modbv):
                 else:
                     fnbits = int(abs(math.floor(math.log(frac, 2)))) + 1
             except :
-                print "Fractional %s Integer %s" % (frac, integer)
-                print "Unexpected error:", sys.exc_info()[0]
+                print("Fractional %s Integer %s" % (frac, integer))
+                print("Unexpected error:", sys.exc_info()[0])
                 raise
             
         fnbits = 1 if fnbits == 0 else fnbits
