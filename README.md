@@ -1,4 +1,4 @@
-MyHDL 1.0dev 
+MyHDL 1.0dev (fixbv extension)
 ============
 
 [![Join the chat at https://gitter.im/jandecaluwe/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -35,6 +35,8 @@ What's new
 To find out what's new in this release, please read:
 
    - http://docs.myhdl.org/en/stable/whatsnew/0.9.html
+   
+ This repository has an additional type: fixbv, a 'fixed-point bit-vector' that is very suitable for digital signal processing. See doc and example directories 
 
 Installation
 ------------
