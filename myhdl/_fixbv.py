@@ -129,11 +129,13 @@ class fixbv(modbv):
         if max < 1 or abs(min) < 1:
             raise ValueError("Maximum and Minimum has to be 1 or greater")
         if max == None or not max_is_numerical:
-            raise ValueError("Maximum needs to be an integer, max=%s" % (str(max)))
+            raise ValueError("Maximum has to be provided, max=%s" % (str(max)))
         if min == None or not min_is_numerical:
             raise ValueError("Minimum has to be provided, min=%s" % (str(min)))
-        if res == None or res > 1:
+        if res == None:
             raise ValueError("Resolution has to be provided, res=%s" % (str(res)))
+        else if res > 1:
+            raise ValueError("Resolution must be less than 1, res=%s" % (str(res)))
         
         # calculate the integer and fractional widths
         ival = abs(min) if abs(min) > max else max
