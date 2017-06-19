@@ -25,6 +25,7 @@ import math
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
 from myhdl._Signal import _Signal
+from myhdl._compat import integer_types
 
 
 class FixedPointFormat(object):
@@ -117,20 +118,12 @@ class fixbv(modbv):
             self._val = None
             return
         
-        # Integer compatibility with Python 3.x
-        if sys.version_info >= (3, 0):
-            max_is_numerical = isinstance(max, (int, float))
-            min_is_numerical = isinstance(min, (int, float))
-        else:
-            max_is_numerical = isinstance(max, (int, long, float))
-            min_is_numerical = isinstance(min, (int, long, float))
-
         # validate the range and resolution
         if max < 1 or abs(min) < 1:
             raise ValueError("Maximum and Minimum has to be 1 or greater")
-        if max == None or not max_is_numerical:
+        if max == None or not isinstance(max, (*integer_types, float)):
             raise ValueError("Maximum has to be provided, max=%s" % (str(max)))
-        if min == None or not min_is_numerical:
+        if min == None or not isinstance(min, (*integer_types, float)):
             raise ValueError("Minimum has to be provided, min=%s" % (str(min)))
         if res == None:
             raise ValueError("Resolution has to be provided, res=%s" % (str(res)))
