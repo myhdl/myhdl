@@ -302,8 +302,9 @@ class fixbv(modbv):
         return retval
 
     def __pow__(self, other):
-        # other really needs to be only an int?, there should be.
         # @todo: a better way to do this, add __pow__ to FixedPointFormat?
+        if not isinstance(other, integer_types):
+            raise TypeError("other must be integer type not %s" % (type(other)))
         if other < 2:
             iW = self._W
         else:
