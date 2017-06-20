@@ -121,9 +121,9 @@ class fixbv(modbv):
         # validate the range and resolution
         if max < 1 or abs(min) < 1:
             raise ValueError("Maximum and Minimum has to be 1 or greater")
-        if max is None or not isinstance(max, (*integer_types, float)):
+        if max is None or not isinstance(max, integer_types + (float,)):
             raise ValueError("Maximum has to be provided, max=%s" % (str(max)))
-        if min is None or not isinstance(min, (*integer_types, float)):
+        if min is None or not isinstance(min, integer_types + (float,)):
             raise ValueError("Minimum has to be provided, min=%s" % (str(min)))
         if res is None:
             raise ValueError("Resolution has to be provided, res=%s" % (str(res)))
