@@ -303,6 +303,7 @@ class fixbv(modbv):
 
     def __pow__(self, other):
         # @todo: a better way to do this, add __pow__ to FixedPointFormat?
+        # TODO: Deal with the case if other < 0 or other == 0
         if not isinstance(other, integer_types):
             raise TypeError("other must be integer type not %s" % (type(other)))
         if other < 2:
