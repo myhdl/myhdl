@@ -106,8 +106,10 @@ class FixedPointFormat(object):
         
 class fixbv(modbv):
 
-    def __init__(self, val, min=None, max=None, res=None):
-                 #round_mode = 'floor', overflow_mode = 'saturate'):
+    def __init__(self, val, min=None, max=None, res=None,
+                 round_mode=None, overflow_mode=None):
+        # TODO: Implement code related to round_mode and overflow_mode
+        
         format = None
         val = float(val)
         self._ifval = val   # save the initial value
@@ -159,6 +161,17 @@ class fixbv(modbv):
 
         # make sure things were setup ok
         self._handleBounds()
+        
+        # round mode and overflow mode
+        if round_mode is None:
+            self._round_mode = 'floor'
+        else:
+            self._round_mode = round_mode
+        
+        if overflow_mode is None:
+            self._overflow_mode = 'saturate'
+        else:
+            self._overflow_mode = overflow_mode
 
 
     def _handleBounds(self):
