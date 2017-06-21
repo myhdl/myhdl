@@ -129,8 +129,8 @@ class fixbv(modbv):
             raise ValueError("Minimum has to be provided, min=%s" % (str(min)))
         if res is None:
             raise ValueError("Resolution has to be provided, res=%s" % (str(res)))
-        elif res > 1:
-            raise ValueError("Resolution must be less than 1, res=%s" % (str(res)))
+        elif res <= 0 or res > 1:
+            raise ValueError("Resolution must be in range (0, 1], res=%s" % (str(res)))
         
         # calculate the integer and fractional widths
         ival = abs(min) if abs(min) > max else max
