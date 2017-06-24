@@ -30,7 +30,6 @@ _blocks = []
 _siglist = []
 _futureEvents = []
 _time = 0
-_cosim = 0
 _tracing = 0
 _tf = None
 
