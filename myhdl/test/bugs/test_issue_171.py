@@ -1,5 +1,5 @@
 from random import randrange
-from myhdl import Signal, intbv, always_comb
+from myhdl import block, Signal, intbv, always_comb
 from myhdl.conversion import analyze
 import pytest
 
