@@ -31,8 +31,6 @@ def test_issue_171():
 
     a, b = [Signal(bool(0)) for _ in range(2)]
     instance = issue_171(a, b)
-    instance.convert(hdl='verilog')
-    analyze.simulator = 'iverilog'
     assert issue_171(a, b).analyze_convert == 0
 
 if __name__ == '__main__':
