@@ -255,6 +255,17 @@ def test_math():
     assert float(z) == 42.875
     z[:] = x**3
     assert float(z) == 42.875
+    
+    # Point alignment
+    x = fixbv(2.25, min=-4, max=4, res=2**-5)
+    y = fixbv(1.5, min=-2, max=2, res=2**-8)
+    z = fixbv(0)[12, 4, 7]
+    z[:] = x + y
+    assert float(z) == 3.75
+    z[:] = x - y
+    assert float(z) == 0.75
+    z[:] = x * y
+    assert float(z) == 3.375
 
 def m_add(x, y, z):
 
