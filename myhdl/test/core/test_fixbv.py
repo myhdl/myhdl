@@ -298,6 +298,33 @@ def test_module_add():
 
     Simulation(_test()).run()
 
+def m_align(x, y, z):
+    
+    @always_comb
+    def rtl():
+        z.next = x * y + x
+
+    return rtl
+
+def test_module_align():
+    x = Signal(fixbv(0.125, min=-32, max=32, res=1/2**8))
+    y = Signal(fixbv(0.25, min=-128, max=128, res=1/2**32))
+    z = Signal(fixbv(0, min=-16, max=16, res=1/2**16))
+
+    def _test():
+        tbdut = m_align(x, y, z)
+
+        @instance
+        def tbstim():
+            print(x,y,z)
+            yield delay(10)
+            print(x,y,z)
+            
+
+        return tbdut, tbstim
+
+    Simulation(_test()).run()
+
 def m_more(w, x, y, z):
     
     @always_comb
