@@ -24,7 +24,7 @@ import sys
 import math
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
-from myhdl._Signal import _Signal
+#from myhdl._Signal import _Signal
 from myhdl._compat import integer_types
 
 
@@ -234,8 +234,11 @@ class fixbv(modbv):
 
     def __setitem__(self, key, val):
         if isinstance(val, fixbv):
-            assert self._W._fwl == val._W._fwl
-            v = val._val
+            assert key == slice(None, None, None)
+            if self._W._fwl < val._W._fwl:
+                v = (val._val >> (val._W._fwl - self._W._fwl))
+            else:
+                v = (val._val << (self._W._fwl - val._W._fwl))
         else:
             v = val
         # @todo: convert negative keys to the correct bit index
@@ -276,14 +279,24 @@ class fixbv(modbv):
         #if isinstance(other, _Signal):
         #    other = other._val
         if isinstance(other, fixbv):
-            assert self._W._fwl == other._W._fwl, \
-                "Add: points not aligned %s and %s" % (repr(self), repr(other))
+            #assert self._W._fwl == other._W._fwl, \
+            #    "Add: points not aligned %s and %s" % (repr(self), repr(other))
             iW = self._W + other._W
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__radd__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
 
         retval = fixbv(0)[iW[:]]
-        retval._val = self._val + other._val
+        
+        if self._W._fwl < other._W._fwl:
+            a = (self._val << (other._W._fwl - self._W._fwl))
+            b = other._val
+        else:
+            a = self._val
+            b = (other._val << (self._W._fwl - other._W._fwl))
+        
+        retval._val = a + b
         retval._handleBounds()
         return retval
 
@@ -291,14 +304,24 @@ class fixbv(modbv):
         #if isinstance(other, _Signal):
         #    other = other._val
         if isinstance(other, fixbv):
-            assert self._W._fwl == other._W._fwl, \
-                "Sub: points not aligned %s and %s" % (repr(self), repr(other))
+            #assert self._W._fwl == other._W._fwl, \
+            #    "Sub: points not aligned %s and %s" % (repr(self), repr(other))
             iW = self._W + other._W
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__rsub__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
 
         retval = fixbv(0)[iW[:]]
-        retval._val = self._val - other._val
+        
+        if self._W._fwl < other._W._fwl:
+            a = (self._val << (other._W._fwl - self._W._fwl))
+            b = other._val
+        else:
+            a = self._val
+            b = (other._val << (self._W._fwl - other._W._fwl))
+            
+        retval._val = a - b
         retval._handleBounds()
         return retval
 
@@ -308,7 +331,10 @@ class fixbv(modbv):
         if isinstance(other, fixbv):
             iW = self._W * other._W
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__rmul__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
+
         retval = fixbv(0)[iW[:]]
         retval._val = self._val * other._val
         retval._handleBounds()
@@ -332,68 +358,80 @@ class fixbv(modbv):
 
     # all comparisons must be on aligned types
     def __eq__(self, other):
-        if isinstance(other, _Signal):
-            other = other._val
+        #if isinstance(other, _Signal):
+        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "eq: points not aligned %s and %s" % (repr(self), repr(other))
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__eq__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val == other._val
 
     def __ne__(self, other):
-        if isinstance(other, _Signal):
-            other = other._val
+        #if isinstance(other, _Signal):
+        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "ne: points not aligned %s and %s" % (repr(self), repr(other))
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__ne__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val != other._val
 
     def __gt__(self, other):
-        if isinstance(other, _Signal):
-            other = other._val
+        #if isinstance(other, _Signal):
+        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "gt: points not aligned %s and %s" % (repr(self), repr(other))
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__le__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val > other._val
 
     def __ge__(self, other):
-        if isinstance(other, _Signal):
-            other = other._val
+        #if isinstance(other, _Signal):
+        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "ge: points not aligned %s and %s" % (repr(self), repr(other))
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__lt__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val >= other._val
 
     def __lt__(self, other):
-        if isinstance(other, _Signal):
-            other = other._val
+        #if isinstance(other, _Signal):
+        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "lt: points not aligned %s and %s" % (repr(self), repr(other))
         else:
-            raise TypeError("other must be fixbv not %s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__ge__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val < other._val
 
     def __le__(self, other):
-        if isinstance(other, _Signal):
-            other = other._val
+        #if isinstance(other, _Signal):
+        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "le: points not aligned %s and %s" % (repr(self), repr(other))
         else:
-            raise TypeError("other must be fixbv no t%s" % (type(other)))
+            # Solve the case if `type(other) is Signal`
+            return other.__gt__(self)    # TODO: Write test for it
+            #raise TypeError("other must be fixbv no t%s" % (type(other)))
 
         return self._val <= other._val
     

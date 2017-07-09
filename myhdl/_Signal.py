@@ -37,6 +37,7 @@ from myhdl._simulator import _futureEvents
 from myhdl._simulator import _siglist
 from myhdl._simulator import _signals
 from myhdl._intbv import intbv
+from myhdl._fixbv import fixbv
 from myhdl._bin import bin
 
 # from myhdl._enum import EnumItemType
@@ -124,7 +125,7 @@ class _Signal(object):
                  '_setNextVal', '_copyVal2Next', '_printVcd',
                  '_driven', '_read', '_name', '_used', '_inList',
                  '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
-                 '_numeric'
+                 '_numeric', '_W'
                  )
 
     def __init__(self, val=None):
@@ -151,6 +152,16 @@ class _Signal(object):
         elif isinstance(val, integer_types):
             self._type = integer_types
             self._setNextVal = self._setNextInt
+        elif isinstance(val, fixbv):
+            self._type = fixbv
+            if val._val is None:
+                raise ValueError("fixbv has not been initialized correctly")
+            self._W = val._W
+            self._setNextVal = self._setNextFixbv
+            if self._nrbits:
+                self._printVcd = self._printVcdVec
+            else:
+                self._printVcd = self._printVcdHex
         elif isinstance(val, intbv):
             self._type = intbv
             self._min = val._min
@@ -297,6 +308,19 @@ class _Signal(object):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next = val
 
+    def _setNextFixbv(self, val):
+        if not isinstance(val, fixbv):
+            raise TypeError("Expected fixbv, got %s" % type(val))
+        sfwl = self._next._W[2]
+        vfwl = val._W[2]
+        if sfwl < vfwl:
+            val = (val._val >> (vfwl - sfwl))
+        else:
+            val = (val._val << (sfwl - vfwl))
+            
+        self._next._val = val
+        self._next._handleBounds()
+        
     def _setNextIntbv(self, val):
         if isinstance(val, intbv):
             val = val._val
@@ -509,22 +533,40 @@ class _Signal(object):
 
     # comparisons
     def __eq__(self, other):
-        return self.val == other
+        if isinstance(other, _Signal):
+            return self._val == other._val
+        else:
+            return self._val == other
 
     def __ne__(self, other):
-        return self.val != other
+        if isinstance(other, _Signal):
+            return self._val != other._val
+        else:
+            return self._val != other
 
     def __lt__(self, other):
-        return self.val < other
+        if isinstance(other, _Signal):
+            return self._val < other._val
+        else:
+            return self._val < other
 
     def __le__(self, other):
-        return self.val <= other
+        if isinstance(other, _Signal):
+            return self._val <= other._val
+        else:
+            return self._val <= other
 
     def __gt__(self, other):
-        return self.val > other
+        if isinstance(other, _Signal):
+            return self._val > other._val
+        else:
+            return self._val > other
 
     def __ge__(self, other):
-        return self.val >= other
+        if isinstance(other, _Signal):
+            return self._val >= other._val
+        else:
+            return self._val >= other
 
     # method lookup delegation
     def __getattr__(self, attr):
