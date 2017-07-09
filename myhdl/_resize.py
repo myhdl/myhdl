@@ -144,7 +144,7 @@ def resize(val, fmt, round_mode='convergent', overflow_mode='saturate'):
     if isinstance(fmt, fixbv):
         fmt = fmt.format
     elif isinstance(fmt, FixedPointFormat):
-        fmt = tupel(fmt[:])
+        fmt = tuple(fmt[:])
     elif isinstance(fmt, tuple):
         fmt = fmt
     else:
