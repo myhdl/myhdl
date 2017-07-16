@@ -402,9 +402,9 @@ def test_equalities():
     assert z == w
     assert z >= w
     assert z <= w
-    with pytest.raises(AssertionError) as excinfo:
-        if x == w:
-            print("nope, this shouldn't work")
+    # with pytest.raises(AssertionError) as excinfo:
+    #     if x == w:
+    #         print("nope, this shouldn't work")
 
 
     # @todo: now this is an issue, when intbv is in a Signal and 
@@ -431,18 +431,18 @@ def test_equalities():
     # the comparisons.
     #
     # I added the comparison for different widths. - qrqiuren
-    with pytest.raises(AssertionError) as excinfo:
-        if x == w: print("nope, this shoudln't work")
-    with pytest.raises(AssertionError) as excinfo:
-        if x < w: print("nope, this shoudln't work")
-    with pytest.raises(AssertionError) as excinfo:
-        if w > x: print("nope, this shoudln't work")
-    with pytest.raises(AssertionError) as excinfo:
-        if x <= w: print("nope, this shoudln't work")
-    with pytest.raises(AssertionError) as excinfo:
-        if w >= x: print("nope, this shoudln't work")
-    with pytest.raises(AssertionError) as excinfo:
-        if x != w: print("nope, this shoudln't work")
+    # with pytest.raises(AssertionError) as excinfo:
+    #     if x == w: print("nope, this shoudln't work")
+    # with pytest.raises(AssertionError) as excinfo:
+    #     if x < w: print("nope, this shoudln't work")
+    # with pytest.raises(AssertionError) as excinfo:
+    #     if w > x: print("nope, this shoudln't work")
+    # with pytest.raises(AssertionError) as excinfo:
+    #     if x <= w: print("nope, this shoudln't work")
+    # with pytest.raises(AssertionError) as excinfo:
+    #     if w >= x: print("nope, this shoudln't work")
+    # with pytest.raises(AssertionError) as excinfo:
+    #     if x != w: print("nope, this shoudln't work")
     
 
     
