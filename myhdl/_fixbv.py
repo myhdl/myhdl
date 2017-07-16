@@ -24,7 +24,6 @@ import sys
 import math
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
-#from myhdl._Signal import _Signal
 from myhdl._compat import integer_types
 
 
@@ -32,18 +31,18 @@ class FixedPointFormat(object):
     def __init__(self, wl, iwl, fwl=None):
         if fwl is None:
             fwl = wl-iwl-1
-        assert wl == iwl+fwl+1, "Invalid %d %d %d"%(wl,iwl,fwl)
-        self._wl,self._iwl,self._fwl = wl,iwl,fwl
+        assert wl == iwl+fwl+1, "Invalid %d %d %d" % (wl, iwl, fwl)
+        self._wl, self._iwl, self._fwl = wl, iwl, fwl
 
     def __len__(self):
         return 3
 
     def __repr__(self):
-        s = "FixedPointFormat(%d, %d, [%d])"%(self._wl,self._iwl,self._fwl)
+        s = "FixedPointFormat(%d, %d, [%d])" % (self._wl, self._iwl, self._fwl)
         return s
 
     def __str__(self):
-        s = "(%d, %d, [%d])"%(self._wl,self._iwl,self._fwl)
+        s = "(%d, %d, [%d])" % (self._wl, self._iwl, self._fwl)
         return s
 
     def __getitem__(self, key):
@@ -52,11 +51,11 @@ class FixedPointFormat(object):
 
     def __setitem__(self, key, val):
         if isinstance(key, (int)):
-            keys,vals = [key],[val]
+            keys, vals = [key], [val]
         elif isinstance(key, slice):
             keys = range(*key.indices(3))
             vals = val
-        for k,v in zip(keys,vals):
+        for k, v in zip(keys, vals):
             if k == 0:
                 self._wl = v
             elif k == 1:
@@ -69,19 +68,19 @@ class FixedPointFormat(object):
     def __eq__(self, other):
         cmp = True
         if isinstance(other, FixedPointFormat):
-            for s,o in zip(self[:],other[:]):
+            for s, o in zip(self[:], other[:]):
                 if s != o:
                     cmp = False
         else:
             cmp = False
-            
+
         return cmp
-            
+
     def __addsub__(self, other):
         """ Addition or Subtraction grows the format by one
         """
-        assert isinstance(other,FixedPointFormat), \
-               "Invalid type for other %s" %  (type(other))
+        assert isinstance(other, FixedPointFormat), \
+            "Invalid type for other %s" % (type(other))
 
         iwl = max(self._iwl, other._iwl)+1
         fwl = max(self._fwl, other._fwl)
@@ -91,35 +90,42 @@ class FixedPointFormat(object):
     def __muldiv__(self, other):
         """ Multiplication and Division double the word size
         """
-        assert isinstance(other,FixedPointFormat), \
-               "Invalid type for other %s" %  (type(other))
+        assert isinstance(other, FixedPointFormat), \
+            "Invalid type for other %s" % (type(other))
         wl = self._wl+other._wl
         fwl = self._fwl+other._fwl
         iwl = wl-fwl-1
-        return FixedPointFormat(wl,iwl,fwl)
+        return FixedPointFormat(wl, iwl, fwl)
 
-    def __add__(self, other): return self.__addsub__(other)
-    def __sub__(self, other): return self.__addsub__(other)
-    def __mul__(self, other): return self.__muldiv__(other)
-    def __div__(self, other): return self.__muldiv__(other)
+    def __add__(self, other):
+        return self.__addsub__(other)
 
-        
+    def __sub__(self, other):
+        return self.__addsub__(other)
+
+    def __mul__(self, other):
+        return self.__muldiv__(other)
+
+    def __div__(self, other):
+        return self.__muldiv__(other)
+
+
 class fixbv(modbv):
 
     def __init__(self, val, min=None, max=None, res=None,
                  round_mode=None, overflow_mode=None):
         # TODO: Implement code related to round_mode and overflow_mode
-        
+
         format = None
         val = float(val)
         self._ifval = val   # save the initial value
 
-        if None in (min,max,res):
+        if None in (min, max, res):
             # @todo: this is not working correctly
-            #min,max,res = self._calc_min_max_res(val)
+            # min,max,res = self._calc_min_max_res(val)
             self._val = None
             return
-        
+
         # validate the range and resolution
         if max < 1 or abs(min) < 1:
             raise ValueError("Maximum and Minimum has to be 1 or greater")
@@ -128,57 +134,58 @@ class fixbv(modbv):
         if min is None or not isinstance(min, integer_types + (float,)):
             raise ValueError("Minimum has to be provided, min=%s" % (str(min)))
         if res is None:
-            raise ValueError("Resolution has to be provided, res=%s" % (str(res)))
+            raise ValueError("Resolution has to be provided, res=%s"
+                             % (str(res)))
         elif res <= 0 or res > 1:
-            raise ValueError("Resolution must be in range (0, 1], res=%s" % (str(res)))
-        
+            raise ValueError("Resolution must be in range (0, 1], res=%s"
+                             % (str(res)))
+
         # calculate the integer and fractional widths
         ival = abs(min) if abs(min) > max else max
-        niwl,nfwl = self._calc_width(ival, res)
+        niwl, nfwl = self._calc_width(ival, res)
         nwl = niwl+nfwl+1
-        self._W = FixedPointFormat(nwl,niwl,nfwl)
-        self.__min,self.__max = min,max
+        self._W = FixedPointFormat(nwl, niwl, nfwl)
+        self.__min, self.__max = min, max
 
         # We want a signed number but we don't want to force any
         # notion of a fixed point value to the lower levels.  From
         # the intbv point of view it only knows that it is a signed
         # integer, this is enough information to enforce the rules.
         # But intbv the min and max are the min/max for the number
-        # of bits we are creating.        
-        nrbits = nwl #self._iwl + self._fwl + 1
+        # of bits we are creating.
+        nrbits = nwl    # self._iwl + self._fwl + 1
 
         # these will be overwritten by intbv
         self._min = -1 * 2**(nrbits-1)
         self._max = 2**(nrbits-1)
         fxval = self._from_float(val)
         intbv.__init__(self, fxval, min=self._min, max=self._max)
-        #self._fval = val
+        # self._fval = val
 
         if self._nrbits != nrbits:
-            errstr = "ERROR: intbv number of bits != fixbv number of bits %d,%d" \
-                     % (self._nrbits, nrbits)
+            errstr = "ERROR: intbv num of bits != fixbv num of bits %d,%d" \
+                    % (self._nrbits, nrbits)
             raise ValueError(errstr)
 
         # make sure things were setup ok
         self._handleBounds()
-        
+
         # round mode and overflow mode
         if round_mode is None:
             self._round_mode = 'floor'
         else:
             self._round_mode = round_mode
-        
+
         if overflow_mode is None:
             self._overflow_mode = 'saturate'
         else:
             self._overflow_mode = overflow_mode
 
-
     def _handleBounds(self):
         """ check bounds """
         intbv._handleBounds(self)
 
-    ###################################################################### 
+    ######################################################################
     # properties
     ######################################################################
     @property
@@ -197,26 +204,26 @@ class fixbv(modbv):
     @property
     def min(self):
         return self.__min
-        
-    ###################################################################### 
+
+    ######################################################################
     # overloaded functions
     ######################################################################
     def __copy__(self):
         min, max, res = self._minmaxres()
-        retval = fixbv(self._to_float(), min, max, res)
-                       #round_mode=self.round_mode,
-                       #overflow_mode=self.overflow_mode)
-        return retval
-    
-    def __deepcopy__(self, visit):
-        min, max, res = self._minmaxres()
-        retval = fixbv(self._to_float(), min, max, res)
-                       #round_mode=self.round_mode,
-                       #overflow_mode=self.overflow_mode)
+        retval = fixbv(self._to_float(), min, max, res,
+                       round_mode=self.round_mode,
+                       overflow_mode=self.overflow_mode)
         return retval
 
-    def __getitem__(self,key):
-        if isinstance(key,(tuple,list)):
+    def __deepcopy__(self, visit):
+        min, max, res = self._minmaxres()
+        retval = fixbv(self._to_float(), min, max, res,
+                       round_mode=self.round_mode,
+                       overflow_mode=self.overflow_mode)
+        return retval
+
+    def __getitem__(self, key):
+        if isinstance(key, (tuple, list)):
             fwl = key[2] if len(key) == 3 else key[0]-key[1]-1
             res = 2**-(fwl)
             nmax = 2**(key[1])
@@ -242,14 +249,14 @@ class fixbv(modbv):
         else:
             v = val
         # @todo: convert negative keys to the correct bit index
-        intbv.__setitem__(self, key, v)        
-    
+        intbv.__setitem__(self, key, v)
+
     def __repr__(self):
         # fixbv(_fval, format=(%d,%d,%d))
-        rs = "fixbv(%f, "%(self._to_float())
-        wl,iwl,fwl = self._W[:]
+        rs = "fixbv(%f, " % (self._to_float())
+        wl, iwl, fwl = self._W[:]
         fwl = wl-iwl-1
-        rs += " format=(%d,%d,%d), " % (wl,iwl,fwl)
+        rs += " format=(%d,%d,%d), " % (wl, iwl, fwl)
         rs += ")"
         # @todo: ? add integer value somewhere?
         return rs
@@ -270,70 +277,60 @@ class fixbv(modbv):
         return hex(self._val)
 
     def __float__(self):
-        return self._to_float() #self._fval
+        return self._to_float()     # self._fval
 
     def __ord__(self):
         return self._val
 
     def __add__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
-            #assert self._W._fwl == other._W._fwl, \
-            #    "Add: points not aligned %s and %s" % (repr(self), repr(other))
             iW = self._W + other._W
         else:
             # Solve the case if `type(other) is Signal`
             return other.__radd__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         retval = fixbv(0)[iW[:]]
-        
+
         if self._W._fwl < other._W._fwl:
             a = (self._val << (other._W._fwl - self._W._fwl))
             b = other._val
         else:
             a = self._val
             b = (other._val << (self._W._fwl - other._W._fwl))
-        
+
         retval._val = a + b
         retval._handleBounds()
         return retval
 
     def __sub__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
-            #assert self._W._fwl == other._W._fwl, \
-            #    "Sub: points not aligned %s and %s" % (repr(self), repr(other))
             iW = self._W + other._W
         else:
             # Solve the case if `type(other) is Signal`
             return other.__rsub__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         retval = fixbv(0)[iW[:]]
-        
+
         if self._W._fwl < other._W._fwl:
             a = (self._val << (other._W._fwl - self._W._fwl))
             b = other._val
         else:
             a = self._val
             b = (other._val << (self._W._fwl - other._W._fwl))
-            
+
         retval._val = a - b
         retval._handleBounds()
         return retval
 
     def __mul__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
             iW = self._W * other._W
         else:
             # Solve the case if `type(other) is Signal`
             return other.__rmul__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         retval = fixbv(0)[iW[:]]
         retval._val = self._val * other._val
@@ -344,7 +341,8 @@ class fixbv(modbv):
         # @todo: a better way to do this, add __pow__ to FixedPointFormat?
         # TODO: Deal with the case if other < 0 or other == 0
         if not isinstance(other, integer_types):
-            raise TypeError("other must be integer type not %s" % (type(other)))
+            raise TypeError("other must be integer type not %s" %
+                            (type(other)))
         if other < 2:
             iW = self._W
         else:
@@ -358,102 +356,89 @@ class fixbv(modbv):
 
     # all comparisons must be on aligned types
     def __eq__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "eq: points not aligned %s and %s" % (repr(self), repr(other))
         else:
             # Solve the case if `type(other) is Signal`
             return other.__eq__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val == other._val
 
     def __ne__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "ne: points not aligned %s and %s" % (repr(self), repr(other))
         else:
             # Solve the case if `type(other) is Signal`
             return other.__ne__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val != other._val
 
     def __gt__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "gt: points not aligned %s and %s" % (repr(self), repr(other))
         else:
             # Solve the case if `type(other) is Signal`
             return other.__le__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val > other._val
 
     def __ge__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "ge: points not aligned %s and %s" % (repr(self), repr(other))
         else:
             # Solve the case if `type(other) is Signal`
             return other.__lt__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val >= other._val
 
     def __lt__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "lt: points not aligned %s and %s" % (repr(self), repr(other))
         else:
             # Solve the case if `type(other) is Signal`
             return other.__ge__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv not %s" % (type(other)))
+            # raise TypeError("other must be fixbv not %s" % (type(other)))
 
         return self._val < other._val
 
     def __le__(self, other):
-        #if isinstance(other, _Signal):
-        #    other = other._val
         if isinstance(other, fixbv):
             assert self._W._fwl == other._W._fwl, \
                 "le: points not aligned %s and %s" % (repr(self), repr(other))
         else:
             # Solve the case if `type(other) is Signal`
             return other.__gt__(self)    # TODO: Write test for it
-            #raise TypeError("other must be fixbv no t%s" % (type(other)))
+            # raise TypeError("other must be fixbv no t%s" % (type(other)))
 
         return self._val <= other._val
-    
-    
-    ###################################################################### 
+
+    ######################################################################
     # private methods
     ######################################################################
     def _minmaxres(self):
         """ get the min, max, res """
-        wl,iwl,fwl = self.format
+        wl, iwl, fwl = self.format
         max, min, res = 2**(iwl), -2**(iwl), 2**(-fwl)
         return min, max, res
-        
+
     def _calc_width(self, val, res=0):
         """Caclulate the iwl and fwl required for the value
         @todo: this function is not working!
         """
-        frac,integer = math.modf(val)
+        frac, integer = math.modf(val)
 
         if res < frac or frac == 0:
             frac = res
-        
+
         if abs(integer) == 0:
             iwl = 0
         else:
@@ -465,7 +450,6 @@ class fixbv(modbv):
             fwl = math.ceil(math.log(frac**-1, 2))
 
         return (int(iwl), int(fwl))
-
 
     def _calc_min_max_res(self, fval):
         """Given floating point number calculate min, max and resolution
@@ -491,11 +475,11 @@ class fixbv(modbv):
                     fnbits = 1
                 else:
                     fnbits = int(abs(math.floor(math.log(frac, 2)))) + 1
-            except :
+            except:
                 print("Fractional %s Integer %s" % (frac, integer))
                 print("Unexpected error:", sys.exc_info()[0])
                 raise
-            
+
         fnbits = 1 if fnbits == 0 else fnbits
         inbits = 1 if inbits == 0 else inbits
         max = 2**(inbits-1)
@@ -512,32 +496,28 @@ class fixbv(modbv):
             max = 2**(inbits+1)
             min = -2**(inbits+1)
 
-        return min,max,res
+        return min, max, res
 
-    
     def _from_float(self, val):
         """Convert float value to fixed point"""
-        retval = self._round(val) 
-        #R#retval = self._overflow(retval)
+        retval = self._round(val)
+        # retval = self._overflow(retval)
         return retval
-        
 
     def _to_float(self):
         """Convert fixed point value to floating point number"""
         return float(self._val) / (2.0 ** self._W._fwl)
 
-        
     def _round(self, val):
         """Round the initial value if needed"""
         # Scale the value to the integer range (the underlying representation)
 
         val = val * 2.0**self._W._fwl
         retval = round(val)
-            
+
         return int(retval)
 
-
-    ###################################################################### 
+    ######################################################################
     # public methods
     ######################################################################
     def int(self):
