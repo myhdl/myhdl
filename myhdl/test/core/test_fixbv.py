@@ -397,6 +397,11 @@ def test_equalities():
     assert z < x
     assert x > z
     assert x != z
+    assert x > w
+    assert y >= w
+    assert z == w
+    assert z >= w
+    assert z <= w
     with pytest.raises(AssertionError) as excinfo:
         if x == w:
             print("nope, this shouldn't work")
@@ -416,9 +421,16 @@ def test_equalities():
     assert z < x
     assert x > z
     assert x != z
+    assert x > w
+    assert y >= w
+    assert z == w
+    assert z >= w
+    assert z <= w
     # none of the following should work because 'x' and 'w' are
     # different types.  They need to be the same widths before 
     # the comparisons.
+    #
+    # I added the comparison for different widths. - qrqiuren
     with pytest.raises(AssertionError) as excinfo:
         if x == w: print("nope, this shoudln't work")
     with pytest.raises(AssertionError) as excinfo:
