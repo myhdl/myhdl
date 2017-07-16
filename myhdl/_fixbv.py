@@ -109,6 +109,7 @@ class FixedPointFormat(object):
     def __div__(self, other):
         return self.__muldiv__(other)
 
+
 # TODO: write a common function to handle point alignment
 # TODO: deal with sign bits after point alignment
 class fixbv(modbv):
