@@ -175,11 +175,13 @@ class fixbv(modbv):
         if round_mode is None:
             self._round_mode = 'floor'
         else:
+            raise NotImplementedError("round_mode unsupported!")
             self._round_mode = round_mode
 
         if overflow_mode is None:
             self._overflow_mode = 'saturate'
         else:
+            raise NotImplementedError("overflow_mode unsupported!")
             self._overflow_mode = overflow_mode
 
     def _handleBounds(self):
