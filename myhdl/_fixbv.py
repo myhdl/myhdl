@@ -212,15 +212,15 @@ class fixbv(modbv):
     def __copy__(self):
         min, max, res = self._minmaxres()
         retval = fixbv(self._to_float(), min, max, res,
-                       round_mode=self.round_mode,
-                       overflow_mode=self.overflow_mode)
+                       round_mode=self._round_mode,
+                       overflow_mode=self._overflow_mode)
         return retval
 
     def __deepcopy__(self, visit):
         min, max, res = self._minmaxres()
         retval = fixbv(self._to_float(), min, max, res,
-                       round_mode=self.round_mode,
-                       overflow_mode=self.overflow_mode)
+                       round_mode=self._round_mode,
+                       overflow_mode=self._overflow_mode)
         return retval
 
     def __getitem__(self, key):
