@@ -390,6 +390,8 @@ def test_equalities():
     y = fixbv(3.14159, min=-8, max=8, res=1e-5)
     z = fixbv(0, min=-8, max=8, res=1e-5)
     w = fixbv(0, min=-16, max=16, res=2**-16)
+    u = fixbv(-2.7183, min=-8, max=8, res=1e-5)
+    v = fixbv(-2.7183, min=-16, max=16, res=1e-7)
 
     assert x == y
     assert x >= y
@@ -402,6 +404,10 @@ def test_equalities():
     assert z == w
     assert z >= w
     assert z <= w
+    assert x > u
+    assert u <= y
+    assert w >= v
+    assert v < x
     # with pytest.raises(AssertionError) as excinfo:
     #     if x == w:
     #         print("nope, this shouldn't work")
@@ -413,6 +419,8 @@ def test_equalities():
     y = Signal(fixbv(3.14159, min=-8, max=8, res=1e-5))
     z = Signal(fixbv(0, min=-8, max=8, res=1e-5))
     w = Signal(fixbv(0, min=-16, max=16, res=2**-16))
+    u = Signal(fixbv(-2.7183, min=-8, max=8, res=1e-5))
+    v = Signal(fixbv(-2.7183, min=-16, max=16, res=1e-7))
 
     # these tests currrently fail, need to usderstand why
     assert x == y
@@ -426,6 +434,10 @@ def test_equalities():
     assert z == w
     assert z >= w
     assert z <= w
+    assert x > u
+    assert u <= y
+    assert w >= v
+    assert v < x
     # none of the following should work because 'x' and 'w' are
     # different types.  They need to be the same widths before 
     # the comparisons.
