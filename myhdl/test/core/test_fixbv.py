@@ -72,23 +72,31 @@ def test_fpf_add():
     assert fwl == 7, '%s+%s==%s'  % (W1,W2,Wa)
     assert wl == 5, '%s+%s==%s'  % (W1,W2,Wa)
 
-    # the following is a little odd, each /add/ has
-    # to make the assumption that an overflow can
-    # occur (require one extra bit), but for a /sum/
-    # the number of required bits is log(N,2) where N
-    # is the number of sums, when adding four operands
-    # only two additional bits are needed but the following
-    # will generate three, the operations would need a 
-    # method to look at the complete operation versus 
-    # each individual add
-    W1 = fpf(16,randint(3,16))  
-    W2 = fpf(16,randint(3,16))
-    W3 = fpf(8,randint(3,8))
-    W4 = fpf(8,randint(3,8))    
-    miwl = max([W1[1],W2[1],W3[1],W4[1]])
+    # The following test case is for fixbv addition. Each
+    # add operation would assume the worst case, that is,
+    # each addition would cause an overflow. So that the
+    # result always adds one more extra integer bit during
+    # addition.
+    # However, if several fixbv instances add together, the
+    # result might be huge and would change if the order of
+    # addition changes. In this case, fxsum would be
+    # recommended for optimal results.
+    W1_iwl = randint(3, 16)
+    W2_iwl = randint(3, 16)
+    W3_iwl = randint(3, 8)
+    W4_iwl = randint(3, 8)
+    Wa_iwl = max(W1_iwl, W2_iwl) + 1
+    Wa_iwl = max(Wa_iwl, W3_iwl) + 1
+    Wa_iwl = max(Wa_iwl, W4_iwl) + 1
+
+    W1 = fpf(16, W1_iwl)
+    W2 = fpf(16, W2_iwl)
+    W3 = fpf(8, W3_iwl)
+    W4 = fpf(8, W4_iwl)
     Wa = W1+W2+W3+W4
-    wl,iwl,fwl = Wa[:]
-    assert iwl == miwl+3, '%s+%s+%s+%s==%s'  % (W1,W2,W3,W4,Wa)
+    wl, iwl, fwl = Wa[:]
+
+    assert iwl == Wa_iwl, '%s+%s+%s+%s==%s'  % (W1,W2,W3,W4,Wa)
 
     # cross-over points when negative iwl becomes
     # positive and vise-versa
