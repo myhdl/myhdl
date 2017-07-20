@@ -78,7 +78,7 @@ def test_fpf_add():
     # result always adds one more extra integer bit during
     # addition.
     # However, if several fixbv instances add together, the
-    # result might be huge and would change if the order of
+    # result might be huge and odd if the order of
     # addition changes. In this case, fxsum would be
     # recommended for optimal results.
     W1_iwl = randint(3, 16)
@@ -96,7 +96,7 @@ def test_fpf_add():
     Wa = W1+W2+W3+W4
     wl, iwl, fwl = Wa[:]
 
-    assert iwl == Wa_iwl, '%s+%s+%s+%s==%s'  % (W1,W2,W3,W4,Wa)
+    assert iwl == Wa_iwl, '%s+%s+%s+%s==%s'  % (W1, W2, W3, W4, Wa)
 
     # cross-over points when negative iwl becomes
     # positive and vise-versa
