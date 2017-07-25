@@ -275,6 +275,18 @@ def test_math():
     z[:] = x * y
     assert float(z) == 3.375
 
+    x = fixbv(9.5, min=-16, max=16, res=0.25)
+    y = fixbv(-3.25, min=-4, max=4, res=2**-4)
+    z = fixbv(0)[9, 4, 4]
+    z[:] = x + y
+    assert float(z) == 6.25
+    z[:] = x - y
+    assert float(z) == 12.75
+    z[:] = y - x
+    assert float(z) == -12.75
+    z[:] = x * y
+    assert float(z) == -30.875
+
 def m_add(x, y, z):
 
     @always_comb
