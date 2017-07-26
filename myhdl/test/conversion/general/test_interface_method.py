@@ -64,5 +64,7 @@ def test_simple_do_verify():
 
 
 if __name__ == '__main__':
-    #TODO: implement this
-    pass
+    print(sys.argv[1])
+    verify.simulator = analyze.simulator = sys.argv[1]
+    Simulation(testbench_one()).run()
+    print(verify(testbench_one))
