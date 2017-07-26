@@ -538,7 +538,7 @@ class fixbv(modbv):
 
     def _from_float(self, val):
         """Convert float value to fixed point"""
-        retval = self._round(val)
+        retval = round(val * 2.0**self._W._fwl)
         # retval = self._overflow(retval)
         return retval
 
