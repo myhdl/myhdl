@@ -56,12 +56,11 @@ def testbench_one():
 def test_simple_do_analyze():
     clock = Signal(bool(0))
     reset = ResetSignal(0, active = 0, async = True)
-    analyze(simple_do(clock,reset))
+    analyze(simple_do(clk,reset))
 
 @block
 def test_simple_do_verify():
-    #TODO: implement this
-    pass
+    assert verify(testbench_one()) == 0
 
 
 if __name__ == '__main__':
