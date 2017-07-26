@@ -546,14 +546,52 @@ class fixbv(modbv):
         """Convert fixed point value to floating point number"""
         return float(self._val) / (2.0 ** self._W._fwl)
 
-    def _round(self, val):
-        """Round the initial value if needed"""
-        # Scale the value to the integer range (the underlying representation)
+    ######################################################################
+    # private static methods
+    ######################################################################
+    @staticmethod
+    def _round(val, from_fmt, to_fmt, round_mode):
+        """Round the value into a new format"""
 
-        val = val * 2.0**self._W._fwl
-        retval = round(val)
+        round_bits = from_fmt._fwl - to_fmt._fwl
 
-        return int(retval)
+        sign_bit = (val >> (from_fmt._wl - 1)) & 1
+        last_bit = (val >> (round_bits - 1)) & 1
+        tail_bits = val & ((1 << round_bits) - 1)
+        retval = (val >> round_bits)
+
+        if round_mode == 'ceil':
+            if tail_bits != 0:
+                retval += 1
+
+        elif round_mode == 'floor':
+            pass
+
+        elif round_mode == 'fix':
+            # Ceil for negatives and floor for non-negatives
+            if sign_bit == 1 and tail_bits != 0:
+                retval += 1
+
+        elif round_mode == 'nearest':
+            # TODO
+            pass
+
+        elif round_mode == 'round':
+            # TODO
+            pass
+
+        elif round_mode == 'round_even':
+            # TODO
+            pass
+
+        elif round_mode == 'convergent':
+            # TODO
+            pass
+
+        else:
+            raise TypeError("Invalid round mode %s" % self.round_mode)
+
+        return retval
 
     ######################################################################
     # public methods
