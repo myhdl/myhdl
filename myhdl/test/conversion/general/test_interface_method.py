@@ -45,7 +45,7 @@ def testbench_one():
         reset.next = True
         yield delay(17)
         for n in range(7):
-            yield clock.posedge
+            yield clk.posedge
         assert i.x == 3
         print("%d"%(i.x))
         raise StopSimulation
@@ -54,7 +54,7 @@ def testbench_one():
 
 @block
 def test_simple_do_analyze():
-    clock = Signal(bool(0))
+    clk = Signal(bool(0))
     reset = ResetSignal(0, active = 0, async = True)
     analyze(simple_do(clk,reset))
 
