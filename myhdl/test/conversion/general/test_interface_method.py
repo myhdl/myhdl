@@ -16,19 +16,41 @@ class simple_interface(object):
         return self.x + 1
 
 @block
-def simple_do(clk, reset, in_x, in_y):
+def simple_do(clk, reset):
 
     i = simple_interface()
     @always_seq(clk.posedge, reset = reset)
     def inc_caller():
         i.inc()
 
-    return inc_caller
-
 @block
 def testbench_one():
-    #TODO: implement this
-    pass
+    clk = Signal(bool(0))
+    reset = ResetSignal(0, active = 0, async = True)
+
+    tb_dut = simple_do(clk, reset)
+
+    @instance
+    def tb_clk():
+        clk.next = False
+        yield delay(10)
+        while True:
+            clk.next = not clk
+            yield delay(10)
+
+    @instance
+    def tb_stim():
+        reset.next = False
+        yield delay(17)
+        reset.next = True
+        yield delay(17)
+        for n in range(7):
+            yield clock.posedge
+        assert i.x == 3
+        print("%d"%(i.x))
+        raise StopSimulation
+
+    return tb_dut, tb_clk, tb_stim
 
 @block
 def test_simple_do_analyze():
