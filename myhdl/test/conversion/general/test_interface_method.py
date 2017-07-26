@@ -11,25 +11,19 @@ from myhdl.conversion import analyze, verify
 class simple_interface(object):
     def __init__(self):
         self.x = Signal(intbv(0, min=0, max=16))
-        self.y = Signal(intbv(0, min=-0, max=16))
 
     def inc(self):
         return self.x + 1
 
-    def add(self):
-        return self.x + self.y
-
 @block
 def simple_do(clk, reset, in_x, in_y):
 
-    ia = simple_interface()
-    @always_seq(clk.posedge, reset = reset_n)
+    i = simple_interface()
+    @always_seq(clk.posedge, reset = reset)
     def inc_caller():
-        ia.inc()
-    def add_caller():
-        ia.add()
+        i.inc()
 
-    return inc_caller, add_caller
+    return inc_caller
 
 @block
 def testbench_one():
