@@ -54,8 +54,9 @@ def testbench_one():
 
 @block
 def test_simple_do_analyze():
-    #TODO: implement this
-    pass
+    clock = Signal(bool(0))
+    reset = ResetSignal(0, active = 0, async = True)
+    analyze(simple_do(clock,reset))
 
 @block
 def test_simple_do_verify():
