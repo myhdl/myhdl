@@ -12,10 +12,10 @@ class simple_interface(object):
     def __init__(self):
         self.x = Signal(intbv(0, min=0, max=16))
         self.y = Signal(intbv(0, min=-0, max=16))
-    
+
     def inc(self):
         return self.x + 1
-    
+
     def add(self):
         return self.x + self.y
 
@@ -24,12 +24,12 @@ def simple_do(clk, reset, in_x, in_y):
 
     ia = simple_interface()
     @always_seq(clk.posedge, reset = reset_n)
-    def up():
+    def inc_caller():
         ia.inc()
-    def together():
+    def add_caller():
         ia.add()
-    
-    return up, together
+
+    return inc_caller, add_caller
 
 @block
 def testbench_one():
