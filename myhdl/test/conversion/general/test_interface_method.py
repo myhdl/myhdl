@@ -22,7 +22,7 @@ class interface_simple_input(object):
         self.x = Signal(intbv(0, min=0, max=16))
         self.y = Signal(intbv(0, min=0, max=16))
 
-    #TODO: fix input param
+    # TODO: fix input param
     def add(self):
         return self.x + self.y
 
@@ -43,7 +43,7 @@ def do_simple_input(clk, reset):
     i = interface_simple_input()
 
     @always_seq(clk.posedge, reset=reset)
-    #TODO: fix input param
+    # TODO: fix input param
     def add_caller():
         i.add()
 
@@ -99,13 +99,13 @@ def testbench_two():
 
     @instance
     def tb_clk():
-        #TODO: implement this
+        # TODO: implement this
 
     @instance
     def tb_stim():
-        #TODO: implement this
+        # TODO: implement this
 
-    #return tb_dut, tb_clk, tb_stim
+    # return tb_dut, tb_clk, tb_stim
 
 
 if __name__ == '__main__':
