@@ -118,6 +118,17 @@ class fixbv(modbv):
                  round_mode=None, overflow_mode=None):
         # TODO: Implement code related to round_mode and overflow_mode
 
+        # round mode and overflow mode
+        if round_mode is None:
+            self._round_mode = 'floor'
+        else:
+            self._round_mode = round_mode
+
+        if overflow_mode is None:
+            self._overflow_mode = 'saturate'
+        else:
+            self._overflow_mode = overflow_mode
+
         format = None
         val = float(val)
         self._ifval = val   # save the initial value
@@ -171,17 +182,6 @@ class fixbv(modbv):
 
         # make sure things were setup ok
         self._handleBounds()
-
-        # round mode and overflow mode
-        if round_mode is None:
-            self._round_mode = 'floor'
-        else:
-            self._round_mode = round_mode
-
-        if overflow_mode is None:
-            self._overflow_mode = 'saturate'
-        else:
-            self._overflow_mode = overflow_mode
 
     def _handleBounds(self):
         """ check bounds """
@@ -538,9 +538,9 @@ class fixbv(modbv):
 
     def _from_float(self, val):
         """Convert float value to fixed point"""
-        retval = round(val * 2.0**self._W._fwl)
+        retval = fixbv._round(val, self._W, self._round_mode)
         # retval = self._overflow(retval)
-        return retval
+        return int(retval * 2.0 ** self._W._fwl)
 
     def _to_float(self):
         """Convert fixed point value to floating point number"""
@@ -550,48 +550,93 @@ class fixbv(modbv):
     # private static methods
     ######################################################################
     @staticmethod
-    def _round(val, from_fmt, to_fmt, round_mode):
+    def _round(val, fmt, round_mode):
         """Round the value into a new format"""
 
-        round_bits = from_fmt._fwl - to_fmt._fwl
+        if isinstance(val, float):
+            val *= 2.0**fmt._fwl
 
-        sign_bit = (val >> (from_fmt._wl - 1)) & 1
-        last_bit = (val >> (round_bits - 1)) & 1
-        tail_bits = val & ((1 << round_bits) - 1)
-        retval = (val >> round_bits)
+            if round_mode == 'ceil':
+                retval = math.ceil(val)
 
-        if round_mode == 'ceil':
-            if tail_bits != 0:
-                retval += 1
+            elif round_mode == 'fix':
+                if val > 0:
+                    retval = math.floor(val)
+                else:
+                    retval = math.ceil(val)
 
-        elif round_mode == 'floor':
-            pass
+            elif round_mode == 'floor':
+                retval = math.floor(val)
 
-        elif round_mode == 'fix':
-            # Ceil for negatives and floor for non-negatives
-            if sign_bit == 1 and tail_bits != 0:
-                retval += 1
+            elif round_mode == 'nearest':
+                fval,ival = math.modf(val)
+                if fval == .5:
+                    retval = int(val+1) if val > 0 else int(val-1)
+                else:
+                    retval = round(val)
 
-        elif round_mode == 'nearest':
-            # TODO
-            pass
+            elif round_mode == 'round':
+                retval = round(val)
 
-        elif round_mode == 'round':
-            # TODO
-            pass
+            elif round_mode == 'round_even' or round_mode == 'convergent':
+                fval,ival = math.modf(val)
+                abs_ival = int(abs(ival))
+                sign = -1 if ival < 0 else 1
 
-        elif round_mode == 'round_even':
-            # TODO
-            pass
+                if (abs(fval) - 0.5) == 0.0:
+                    if abs_ival%2 == 0:
+                        retval = abs_ival * sign
+                    else:
+                        retval = (abs_ival + 1) * sign
+                else:
+                    retval = round(val)
 
-        elif round_mode == 'convergent':
-            # TODO
-            pass
+            else:
+                raise TypeError("Invalid round mode %s" % self.round_mode)
 
-        else:
-            raise TypeError("Invalid round mode %s" % self.round_mode)
+            retval /= 2.0 ** fmt._fwl
+            return retval
 
-        return retval
+        elif isinstance(val, fixbv):
+            round_bits = val._W._fwl - fmt._fwl
+
+            sign_bit = (val._val >> (val._W._wl - 1)) & 1
+            last_bit = (val._val >> (round_bits - 1)) & 1
+            tail_bits = val._val & ((1 << round_bits) - 1)
+            retval = (val._val >> round_bits)
+
+            if round_mode == 'ceil':
+                if tail_bits != 0:
+                    retval += 1
+
+            elif round_mode == 'floor':
+                pass
+
+            elif round_mode == 'fix':
+                # Ceil for negatives and floor for non-negatives
+                if sign_bit == 1 and tail_bits != 0:
+                    retval += 1
+
+            elif round_mode == 'nearest':
+                # TODO
+                pass
+
+            elif round_mode == 'round':
+                # TODO
+                pass
+
+            elif round_mode == 'round_even':
+                # TODO
+                pass
+
+            elif round_mode == 'convergent':
+                # TODO
+                pass
+
+            else:
+                raise TypeError("Invalid round mode %s" % self.round_mode)
+
+            return retval
 
     ######################################################################
     # public methods
