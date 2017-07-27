@@ -209,6 +209,44 @@ def test_basic():
     assert float(x) == 2.5
     assert x._val == 0x50
 
+def test_round_overflow():
+    x = fixbv(10.1875, min=-16, max=16, res=2**-5,
+              round_mode='round', overflow_mode='ring')
+    y = fixbv(0, min=-16, max=6, res=2**-2,
+              round_mode='round', overflow_mode='ring')
+    y[:] = x
+    assert float(y) == 10.25
+
+    # TODO: Write more tests
+
+def m_round_overflow(x, y):
+
+    @always_comb
+    def rtl():
+        y.next = x
+
+    return rtl
+
+def test_module_round_overflow():
+    x = Signal(fixbv(10.1875, min=-16, max=16, res=2**-5,
+                     round_mode='round', overflow_mode='ring'))
+    y = Signal(fixbv(0, min=-8, max=8, res=2**-2,
+                     round_mode='round', overflow_mode='ring'))
+
+    def _test():
+        tbdut = m_round_overflow(x, y)
+
+        @instance
+        def tbstim():
+            print(x, y)
+            yield delay(10)
+            print(x, y)
+            # TODO: Write assert
+
+        return tbdut, tbstim
+
+    Simulation(_test()).run()
+
 def test_math():
     x = fixbv(0.5)[16,0]  
     y = fixbv(0.25)[16,0]
