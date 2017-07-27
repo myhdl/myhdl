@@ -17,6 +17,16 @@ class interface_simple(object):
         return self.x + 1
 
 
+class interface_simple_input(object):
+    def __init__(self):
+        self.x = Signal(intbv(0, min=0, max=16))
+        self.y = Signal(intbv(0, min=0, max=16))
+
+    #TODO: fix input param
+    def add(self):
+        return self.x + self.y
+
+
 @block
 def do_simple(clk, reset):
 
