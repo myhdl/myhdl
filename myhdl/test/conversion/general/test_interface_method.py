@@ -38,6 +38,17 @@ def do_simple(clk, reset):
 
 
 @block
+def do_simple_input(clk, reset):
+
+    i = interface_simple_input()
+
+    @always_seq(clk.posedge, reset=reset)
+    #TODO: fix input param
+    def add_caller():
+        i.add()
+
+
+@block
 def testbench_one():
     clk = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=True)
