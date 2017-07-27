@@ -1,4 +1,4 @@
-module tb_inc;
+module tb_Inc;
 
 wire [7:0] count;
 reg enable;
@@ -16,7 +16,7 @@ initial begin
     );
 end
 
-inc dut(
+Inc dut(
     count,
     enable,
     clock,
