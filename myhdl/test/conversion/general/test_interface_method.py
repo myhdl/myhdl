@@ -9,7 +9,7 @@ from myhdl.conversion._misc import _error
 from myhdl.conversion import analyze, verify
 
 
-class simple_interface(object):
+class interface_simple(object):
     def __init__(self):
         self.x = Signal(intbv(0, min=0, max=16))
 
@@ -18,9 +18,9 @@ class simple_interface(object):
 
 
 @block
-def simple_do(clk, reset):
+def do_simple(clk, reset):
 
-    i = simple_interface()
+    i = interface_simple()
 
     @always_seq(clk.posedge, reset=reset)
     def inc_caller():
@@ -32,7 +32,7 @@ def testbench_one():
     clk = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=True)
 
-    tb_dut = simple_do(clk, reset)
+    tb_dut = do_simple(clk, reset)
 
     @instance
     def tb_clk():
@@ -58,14 +58,14 @@ def testbench_one():
 
 
 @block
-def test_simple_do_analyze():
+def test_do_simple_analyze():
     clk = Signal(bool(0))
     reset = ResetSignal(0, active=0, async=True)
-    analyze(simple_do(clk, reset))
+    analyze(do_simple(clk, reset))
 
 
 @block
-def test_simple_do_verify():
+def test_do_simple_verify():
     assert verify(testbench_one()) == 0
 
 
