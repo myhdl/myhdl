@@ -90,6 +90,24 @@ def test_do_simple_verify():
     assert verify(testbench_one()) == 0
 
 
+@block
+def testbench_two():
+    clk = Signal(bool(0))
+    reset = ResetSignal(0, active=0, async=True)
+
+    tb_dut = do_simple_input(clk, reset)
+
+    @instance
+    def tb_clk():
+        #TODO: implement this
+
+    @instance
+    def tb_stim():
+        #TODO: implement this
+
+    #return tb_dut, tb_clk, tb_stim
+
+
 if __name__ == '__main__':
     print(sys.argv[1])
     verify.simulator = analyze.simulator = sys.argv[1]
