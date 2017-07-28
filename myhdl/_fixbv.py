@@ -596,6 +596,10 @@ class fixbv(modbv):
             return int(retval)
 
         elif isinstance(val, fixbv):
+            if val._W._fwl <= fmt._fwl:
+                retval = (val._val << (fmt._fwl - val._W._fwl))
+                return retval
+
             round_bits = val._W._fwl - fmt._fwl
 
             sign_bit = (val._val >> (val._W._wl - 1)) & 1
