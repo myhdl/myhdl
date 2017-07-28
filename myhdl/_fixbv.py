@@ -569,7 +569,7 @@ class fixbv(modbv):
 
             elif round_mode == 'nearest':
                 fval,ival = math.modf(val)
-                if fval == .5:
+                if fval == .5 or fval == -.5:
                     retval = int(val+1) if val > 0 else int(val-1)
                 else:
                     retval = round(val)
