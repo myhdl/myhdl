@@ -601,10 +601,24 @@ class fixbv(modbv):
                 retval = (val._val << (fmt._fwl - val._W._fwl))
                 return retval
 
+            # Explanation of the variables
+            #
+            # flag  A       BC  D
+            # val   siiiii.ffffff
+            # fmt   siiiii.ff
+            #
+            # A: sign_bit
+            # B: least_reserve_bit
+            # C: greatest_tail_bit
+            # C-D: tail_bits
+            # A-B: retval
+            # |C-D|: round_bits
+
             round_bits = val._W._fwl - fmt._fwl
 
             sign_bit = (val._val >> (val._W._wl - 1)) & 1
-            last_bit = (val._val >> (round_bits - 1)) & 1
+            least_reserve_bit = (val._val >> round_bits) & 1
+            greatest_tail_bit = (val._val >> (round_bits - 1)) & 1
             tail_bits = val._val & ((1 << round_bits) - 1)
             retval = (val._val >> round_bits)
 
@@ -621,20 +635,36 @@ class fixbv(modbv):
                     retval += 1
 
             elif round_mode == 'nearest':
-                # TODO
-                pass
+                if sign_bit == 0:
+                    # positive
+                    if greatest_tail_bit == 1:
+                        retval += 1
+                else:
+                    # negative
+                    middle = (1 << (round_bits - 1))
+                    if tail_bits <= middle:
+                        retval -= 1
 
-            elif round_mode == 'round':
-                # TODO
-                pass
-
-            elif round_mode == 'round_even':
-                # TODO
-                pass
-
-            elif round_mode == 'convergent':
-                # TODO
-                pass
+            elif round_mode == ('round', 'round_even', 'convergent'):
+                middle = (1 << (round_bits - 1))
+                if sign_bit == 0:
+                    # positive
+                    if tail_bits == middle:
+                        # halfway
+                        if least_reserve_bit == 1:
+                            # odd number
+                            retval += 1
+                    elif tail_bits > middle:
+                        retval += 1
+                else:
+                    # negative
+                    if tail_bits == middle:
+                        # halfway
+                        if least_reserve_bit == 1:
+                            # odd number
+                            retval -= 1
+                    elif tail_bits < middle:
+                        retval -= 1
 
             else:
                 raise TypeError("Invalid round mode %s" % self.round_mode)
