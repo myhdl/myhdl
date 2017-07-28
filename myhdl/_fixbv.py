@@ -111,12 +111,11 @@ class FixedPointFormat(object):
 
 
 # TODO: write a common function to handle point alignment
-# TODO: deal with sign bits after point alignment
+# TODO: Implement code related to round_mode and overflow_mode
 class fixbv(modbv):
 
     def __init__(self, val, min=None, max=None, res=None,
                  round_mode=None, overflow_mode=None):
-        # TODO: Implement code related to round_mode and overflow_mode
 
         # round mode and overflow mode
         if round_mode is None:
