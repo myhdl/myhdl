@@ -597,6 +597,7 @@ class fixbv(modbv):
 
         elif isinstance(val, fixbv):
             if val._W._fwl <= fmt._fwl:
+                # Case when no rounding should apply
                 retval = (val._val << (fmt._fwl - val._W._fwl))
                 return retval
 
