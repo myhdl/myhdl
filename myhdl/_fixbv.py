@@ -539,7 +539,7 @@ class fixbv(modbv):
         """Convert float value to fixed point"""
         retval = fixbv._round(val, self._W, self._round_mode)
         # retval = self._overflow(retval)
-        return int(retval * 2.0 ** self._W._fwl)
+        return int(retval)
 
     def _to_float(self):
         """Convert fixed point value to floating point number"""
@@ -593,8 +593,7 @@ class fixbv(modbv):
             else:
                 raise TypeError("Invalid round mode %s" % self.round_mode)
 
-            retval /= 2.0 ** fmt._fwl
-            return retval
+            return int(retval)
 
         elif isinstance(val, fixbv):
             round_bits = val._W._fwl - fmt._fwl
