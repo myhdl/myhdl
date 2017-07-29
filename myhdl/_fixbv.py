@@ -660,7 +660,7 @@ class fixbv(modbv):
                     # negative
                     if tail_bits == middle:
                         # halfway
-                        if least_reserve_bit == 1:
+                        if least_reserve_bit == 0:
                             # odd number
                             retval -= 1
                     elif tail_bits < middle:
