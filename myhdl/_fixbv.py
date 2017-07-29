@@ -679,11 +679,27 @@ class fixbv(modbv):
         This function is convertible to V*.  This will return
         the integer portion as an integer.
         """
-        pass
+        sign_bit = (self._val >> (self._W._wl - 1)) & 1
+
+        if sign_bit == 0:
+            # positive
+            return self._val >> self._W._fwl
+
+        else:
+            # negative
+            return (self._val >> self._W._fwl) + 1
 
     def frac(self):
         """ Retrieve the fractional portion of hte fixed-point
         This funciton is convertible to V*.  This will return the
         fraction portion as an integer.
         """
-        pass
+        sign_bit = (self._val >> (self._W._wl - 1)) & 1
+
+        if sign_bit == 0:
+            # positive
+            return self._val & ((1 << self._W._fwl) - 1)
+
+        else:
+            # negative
+            return ~(self._val & ((1 << self._W._fwl) - 1)) - 1
