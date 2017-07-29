@@ -514,7 +514,16 @@ def test_equalities():
     # with pytest.raises(AssertionError) as excinfo:
     #     if x != w: print("nope, this shoudln't work")
     
+def test_int_frac():
+    x = fixbv(3.75, min=-4, max=4, res=0.125)
+    print(bin(x._val))
+    assert x.int() == 3
+    assert x.frac() == 6
 
+    x = fixbv(-4.625, min=-8, max=8, res=0.125)
+    print(bin(x._val))
+    assert x.int() == -4
+    assert x.frac() == -5
     
 if __name__ == '__main__':
     #test_fpf_add()
