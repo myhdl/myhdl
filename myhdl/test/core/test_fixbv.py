@@ -522,8 +522,8 @@ def test_int_frac():
 
     x = fixbv(-4.625, min=-8, max=8, res=0.125)
     print(bin(x._val))
-    assert x.int() == -4
-    assert x.frac() == -5
+    assert x.int() == -5
+    assert x.frac() == 3
     
 if __name__ == '__main__':
     #test_fpf_add()
