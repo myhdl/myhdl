@@ -212,7 +212,7 @@ def test_basic():
 def test_round_overflow():
     x = fixbv(10.1875, min=-16, max=16, res=2**-5,
               round_mode='round', overflow_mode='ring')
-    y = fixbv(0, min=-16, max=6, res=2**-2,
+    y = fixbv(0, min=-16, max=16, res=2**-2,
               round_mode='round', overflow_mode='ring')
     y[:] = x
     assert float(y) == 10.25
