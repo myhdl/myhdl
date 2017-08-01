@@ -591,7 +591,7 @@ class fixbv(modbv):
                     retval = round(val)
 
             else:
-                raise TypeError("Invalid round mode %s" % self.round_mode)
+                raise ValueError("Invalid round mode %s" % self.round_mode)
 
             return int(retval)
 
@@ -667,7 +667,7 @@ class fixbv(modbv):
                         retval -= 1
 
             else:
-                raise TypeError("Invalid round mode %s" % self.round_mode)
+                raise ValueError("Invalid round mode %s" % self.round_mode)
 
             return retval
 
