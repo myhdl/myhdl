@@ -210,14 +210,85 @@ def test_basic():
     assert x._val == 0x50
 
 def test_round_overflow():
+    # round mode: round
     x = fixbv(10.1875, min=-16, max=16, res=2**-5,
               round_mode='round', overflow_mode='ring')
-    y = fixbv(0, min=-16, max=16, res=2**-2,
+    y = fixbv(-3.14, min=-16, max=16, res=2**-6,
               round_mode='round', overflow_mode='ring')
-    y[:] = x
-    assert float(y) == 10.25
+    z = fixbv(-2.125, min=-16, max=16, res=2**-6,
+              round_mode='round', overflow_mode='ring')
+    w = fixbv(0, min=-16, max=16, res=2**-2,
+              round_mode='round', overflow_mode='ring')
+    w[:] = x
+    assert float(w) == 10.25
+    w[:] = y
+    assert float(w) == -3.25
+    w[:] = z
+    assert float(w) == -2
 
-    # TODO: Write more tests
+    # round mode: nearest
+    x = fixbv(10.625, min=-16, max=16, res=2**-5,
+              round_mode='nearest', overflow_mode='ring')
+    y = fixbv(-3.14, min=-16, max=16, res=2**-6,
+              round_mode='nearest', overflow_mode='ring')
+    z = fixbv(-2.125, min=-16, max=16, res=2**-6,
+              round_mode='nearest', overflow_mode='ring')
+    w = fixbv(0, min=-16, max=16, res=2**-2,
+              round_mode='nearest', overflow_mode='ring')
+    w[:] = x
+    assert float(w) == 10.75
+    w[:] = y
+    assert float(w) == -3.25
+    w[:] = z
+    assert float(w) == -2.25
+
+    # round mode: floor
+    x = fixbv(10.625, min=-16, max=16, res=2**-5,
+              round_mode='floor', overflow_mode='ring')
+    y = fixbv(-3.14, min=-16, max=16, res=2**-6,
+              round_mode='floor', overflow_mode='ring')
+    z = fixbv(-2.125, min=-16, max=16, res=2**-6,
+              round_mode='floor', overflow_mode='ring')
+    w = fixbv(0, min=-16, max=16, res=2**-2,
+              round_mode='floor', overflow_mode='ring')
+    w[:] = x
+    assert float(w) == 10.5
+    w[:] = y
+    assert float(w) == -3.25
+    w[:] = z
+    assert float(w) == -2.25
+
+    # overflow mode: ring
+    x = fixbv(10.1875, min=-16, max=16, res=2**-5,
+              round_mode='round', overflow_mode='ring')
+    y = fixbv(-2., min=-16, max=16, res=2**-6,
+              round_mode='round', overflow_mode='ring')
+    z = fixbv(-6.125, min=-16, max=16, res=2**-6,
+              round_mode='round', overflow_mode='ring')
+    w = fixbv(0, min=-4, max=4, res=2**-8,
+              round_mode='round', overflow_mode='ring')
+    w[:] = x
+    assert float(w) == 2.1875
+    w[:] = y
+    assert float(w) == -2.
+    w[:] = z
+    assert float(w) == 1.875
+
+    # overflow mode: saturate
+    x = fixbv(10.1875, min=-16, max=16, res=2**-5,
+              round_mode='saturate', overflow_mode='ring')
+    y = fixbv(-2., min=-16, max=16, res=2**-6,
+              round_mode='saturate', overflow_mode='ring')
+    z = fixbv(-6.125, min=-16, max=16, res=2**-6,
+              round_mode='saturate', overflow_mode='ring')
+    w = fixbv(0, min=-4, max=4, res=2**-8,
+              round_mode='saturate', overflow_mode='ring')
+    w[:] = x
+    assert float(w) == 4 - 2**-8
+    w[:] = y
+    assert float(w) == -2.
+    w[:] = z
+    assert float(w) == -4
 
 def m_round_overflow(x, y):
 
