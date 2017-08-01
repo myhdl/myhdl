@@ -671,6 +671,9 @@ class fixbv(modbv):
 
             return retval
 
+        else:
+            raise TypeError("%s is neither float nor fixbv" % type(val))
+
     ######################################################################
     # public methods
     ######################################################################
