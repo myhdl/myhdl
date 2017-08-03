@@ -674,6 +674,37 @@ class fixbv(modbv):
         else:
             raise TypeError("%s is neither float nor fixbv" % type(val))
 
+    @staticmethod
+    def _overflow(val, fmt, overflow_mode):
+        if isinstance(val, fixbv):
+            val = val._val
+            mm = 2 ** (wl - 1)
+        elif isinstance(val, float):
+            mm = 2 ** iwl
+        else:
+            raise TypeError("%s is neither float nor fixbv" % type(val))
+
+        wl, iwl, fwl = fmt
+        mm = 2 ** (wl - 1)
+        mmin, mmax = -mm, mm
+
+        if overflow_mode == 'saturate':
+            if val >= mmax:
+                retval = mmax-1
+            elif val <= mmin:
+                retval = mmin
+            else:
+                retval = val
+        elif overflow_mode == 'ring' or overflow_mode == 'wrap':
+            if isinstance(val, float):
+                retval = math.fmod(val - mmin, mmax - mmin) + mmin
+            else:
+                retval = (val - mmin) % (mmax - mmin) + mmin
+        else:
+            raise ValueError("Invalid overflow mode %s" % overflow_mode)
+
+        return retval
+
     ######################################################################
     # public methods
     ######################################################################
