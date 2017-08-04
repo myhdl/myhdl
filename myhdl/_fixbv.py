@@ -110,8 +110,6 @@ class FixedPointFormat(object):
         return self.__muldiv__(other)
 
 
-# TODO: write a common function to handle point alignment
-# TODO: Implement code related to round_mode and overflow_mode
 class fixbv(modbv):
 
     def __init__(self, val, min=None, max=None, res=None,
