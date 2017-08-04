@@ -676,16 +676,17 @@ class fixbv(modbv):
 
     @staticmethod
     def _overflow(val, fmt, overflow_mode):
+        wl, iwl, fwl = fmt
         if isinstance(val, fixbv):
             val = val._val
+            mm = 2 ** (wl - 1)
+        elif isinstance(val, integer_types):
             mm = 2 ** (wl - 1)
         elif isinstance(val, float):
             mm = 2 ** iwl
         else:
             raise TypeError("%s is neither float nor fixbv" % type(val))
 
-        wl, iwl, fwl = fmt
-        mm = 2 ** (wl - 1)
         mmin, mmax = -mm, mm
 
         if overflow_mode == 'saturate':
