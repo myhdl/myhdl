@@ -642,7 +642,7 @@ class fixbv(modbv):
                     if tail_bits <= middle:
                         retval -= 1
 
-            elif round_mode == ('round', 'round_even', 'convergent'):
+            elif round_mode in ('round', 'round_even', 'convergent'):
                 middle = (1 << (round_bits - 1))
                 if sign_bit == 0:
                     # positive
