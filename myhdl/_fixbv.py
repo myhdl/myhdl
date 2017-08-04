@@ -243,10 +243,9 @@ class fixbv(modbv):
     def __setitem__(self, key, val):
         if isinstance(val, fixbv):
             assert key == slice(None, None, None)
-            if self._W._fwl < val._W._fwl:
-                v = (val._val >> (val._W._fwl - self._W._fwl))
-            else:
-                v = (val._val << (self._W._fwl - val._W._fwl))
+
+            v = fixbv._round(val, self._W, self._round_mode)
+            v = fixbv._overflow(v, self._W, self._overflow_mode)
         else:
             v = val
         # @todo: convert negative keys to the correct bit index
