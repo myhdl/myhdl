@@ -386,7 +386,7 @@ def test_math():
 
     x = fixbv(9.5, min=-16, max=16, res=0.25)
     y = fixbv(-3.25, min=-4, max=4, res=2**-4)
-    z = fixbv(0)[9, 4, 4]
+    z = fixbv(0)[11, 6, 4]
     z[:] = x + y
     assert float(z) == 6.25
     z[:] = x - y
