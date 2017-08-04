@@ -312,7 +312,7 @@ def test_module_round_overflow():
             print(x, y)
             yield delay(10)
             print(x, y)
-            # TODO: Write assert
+            assert float(y) == -5.75
 
         return tbdut, tbstim
 
