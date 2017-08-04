@@ -311,14 +311,7 @@ class _Signal(object):
     def _setNextFixbv(self, val):
         if not isinstance(val, fixbv):
             raise TypeError("Expected fixbv, got %s" % type(val))
-        sfwl = self._next._W[2]
-        vfwl = val._W[2]
-        if sfwl < vfwl:
-            val = (val._val >> (vfwl - sfwl))
-        else:
-            val = (val._val << (sfwl - vfwl))
-            
-        self._next._val = val
+        self._next[:] = val
         self._next._handleBounds()
         
     def _setNextIntbv(self, val):
