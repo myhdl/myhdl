@@ -276,13 +276,13 @@ def test_round_overflow():
 
     # overflow mode: saturate
     x = fixbv(10.1875, min=-16, max=16, res=2**-5,
-              round_mode='saturate', overflow_mode='ring')
+              round_mode='round', overflow_mode='saturate')
     y = fixbv(-2., min=-16, max=16, res=2**-6,
-              round_mode='saturate', overflow_mode='ring')
+              round_mode='round', overflow_mode='saturate')
     z = fixbv(-6.125, min=-16, max=16, res=2**-6,
-              round_mode='saturate', overflow_mode='ring')
+              round_mode='round', overflow_mode='saturate')
     w = fixbv(0, min=-4, max=4, res=2**-8,
-              round_mode='saturate', overflow_mode='ring')
+              round_mode='round', overflow_mode='saturate')
     w[:] = x
     assert float(w) == 4 - 2**-8
     w[:] = y
