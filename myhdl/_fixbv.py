@@ -644,24 +644,13 @@ class fixbv(modbv):
 
             elif round_mode in ('round', 'round_even', 'convergent'):
                 middle = (1 << (round_bits - 1))
-                if sign_bit == 0:
-                    # positive
-                    if tail_bits == middle:
-                        # halfway
-                        if least_reserve_bit == 1:
-                            # odd number
-                            retval += 1
-                    elif tail_bits > middle:
+                if tail_bits == middle:
+                    # halfway
+                    if least_reserve_bit == 1:
+                        # odd number
                         retval += 1
-                else:
-                    # negative
-                    if tail_bits == middle:
-                        # halfway
-                        if least_reserve_bit == 1:
-                            # odd number
-                            retval += 1
-                    elif tail_bits > middle:
-                        retval += 1
+                elif tail_bits > middle:
+                    retval += 1
 
             else:
                 raise ValueError("Invalid round mode %s" % round_mode)
