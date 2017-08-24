@@ -507,7 +507,7 @@ def test_module_more():
             print(w,x,y,z)
             yield delay(10)
             print(w,x,y,z)
-            
+            assert float(z) == 0.015625
 
         return tbdut, tbstim
 
