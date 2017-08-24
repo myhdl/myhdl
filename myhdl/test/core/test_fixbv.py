@@ -454,34 +454,6 @@ def test_module_align():
 
     Simulation(_test()).run()
 
-def m_align_intbv(x, y, z):
-    
-    @always_comb
-    def rtl():
-        z.next = y._val + x
-
-    return rtl
-
-def test_module_align_intbv():
-    x = Signal(intbv(2, max=32))
-    y = Signal(intbv(4, max=128))
-    z = Signal(intbv(0, max=16))
-
-    def _test():
-        tbdut = m_align_intbv(x, y, z)
-
-        @instance
-        def tbstim():
-            print(x,y,z)
-            yield delay(10)
-            print(x,y,z)
-            assert int(z) == 6
-            
-
-        return tbdut, tbstim
-
-    Simulation(_test()).run()
-
 def m_more(w, x, y, z):
     
     @always_comb
