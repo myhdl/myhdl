@@ -9,9 +9,9 @@ def fixop1(x, y, z, w):
     @always_comb
     def inst():
         if x + y > z:
-            w[:] = z - y
+            w.next = z - y
         else:
-            w[:] = y + x - z
+            w.next = y + x - z
 
     return inst
 
@@ -20,9 +20,9 @@ def fixop2(x, y, z, w):
     @instance
     def inst():
         if x + y > z:
-            w[:] = z - y
+            w.next = z - y
         else:
-            w[:] = y + x - z
+            w.next = y + x - z
 
     return inst
 
