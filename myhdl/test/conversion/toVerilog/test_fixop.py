@@ -20,7 +20,7 @@ def fixop2(x, y, z, w):
     @instance
     def inst():
         while 1:
-            yield x, y, z, w
+            yield x, y, z
             if x + y > z:
                 w.next = z - y
             else:
