@@ -55,7 +55,6 @@ class FixbvTest(TestCase):
     def test_fixop1(self):
         sim = self.bench(fixop1)
         sim.run_sim()
-        sim.verify_convert()
 
     def test_fixop2(self):
         sim = self.bench(fixop2)
