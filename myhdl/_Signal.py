@@ -157,6 +157,7 @@ class _Signal(object):
             if val._val is None:
                 raise ValueError("fixbv has not been initialized correctly")
             self._W = val._W
+            self._nrbits = val._nrbits
             self._setNextVal = self._setNextFixbv
             if self._nrbits:
                 self._printVcd = self._printVcdVec
