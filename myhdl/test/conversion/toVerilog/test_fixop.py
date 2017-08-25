@@ -48,6 +48,7 @@ class FixbvTest(TestCase):
             yield delay(10)
             print(w, w_v)
             assert w == w_v
+            assert float(w) == -3.25
 
         return stimulus
 
