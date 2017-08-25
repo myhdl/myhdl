@@ -39,14 +39,17 @@ class FixbvTest(TestCase):
         w = Signal(fixbv(0, min=-8, max=8, res=2**-4))
         w_v = Signal(fixbv(0, min=-8, max=8, res=2**-4))
 
-        fixop_inst = toVerilog(fixop, x, y, z, w)
+        fixop_inst = fixop(x, y, z, w).convert(hdl='verilog')
+        fixop_v_inst = fixop(x, y, z, w)
 
         @instance
         def stimulus():
-            print(w)
+            print(w, w_v)
             yield delay(10)
-            print(w)
-            raise StopSimulation
+            print(w, w_v)
+            assert w == w_v
+
+        return stimulus
 
     def test_fixop1(self):
         sim = self.bench(fixop1)
