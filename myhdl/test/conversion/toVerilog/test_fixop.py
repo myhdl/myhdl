@@ -19,10 +19,12 @@ def fixop1(x, y, z, w):
 def fixop2(x, y, z, w):
     @instance
     def inst():
-        if x + y > z:
-            w.next = z - y
-        else:
-            w.next = y + x - z
+        while 1:
+            yield x, y, z, w
+            if x + y > z:
+                w.next = z - y
+            else:
+                w.next = y + x - z
 
     return inst
 
