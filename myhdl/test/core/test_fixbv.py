@@ -448,7 +448,7 @@ def test_module_align():
             print(x,y,z)
             yield delay(10)
             print(x,y,z)
-            
+            assert float(z) == 0.34375
 
         return tbdut, tbstim
 
