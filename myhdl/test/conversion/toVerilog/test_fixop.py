@@ -37,7 +37,7 @@ class FixbvTest(TestCase):
         y = Signal(fixbv(-2.25, min=-8, max=8, res=2**-4))
         z = Signal(fixbv(1.125, min=-8, max=8, res=2**-4))
         w = Signal(fixbv(0, min=-8, max=8, res=2**-4))
-        w_v = Signal(fixbv(0, min=-8, max=8, res=2**-4))
+        w_v = Signal(fixbv(0)[8, 3, 4])
 
         fixop_inst = fixop(x, y, z, w).convert(hdl='verilog')
         fixop_v_inst = fixop(x, y, z, w)

@@ -41,8 +41,7 @@ class FixbvTest(TestCase):
                          round_mode='round', overflow_mode='saturate'))
         w = Signal(fixbv(0, min=-8, max=8, res=2**-4,
                          round_mode='round', overflow_mode='saturate'))
-        w_v = Signal(fixbv(0, min=-8, max=8, res=2**-4,
-                           round_mode='round', overflow_mode='saturate'))
+        w_v = Signal(fixbv(0, round_mode='round', overflow_mode='saturate')[8, 3, 4])
 
         fixop_inst = fixop(x, y, z, w).convert(hdl='verilog')
         fixop_v_inst = fixop(x, y, z, w)
