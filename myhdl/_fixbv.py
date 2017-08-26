@@ -231,7 +231,8 @@ class fixbv(modbv):
                 fval = self._ifval
             else:
                 fval = self._to_float()
-            return fixbv(fval, min=nmin, max=nmax, res=res)
+            return fixbv(fval, min=nmin, max=nmax, res=res,
+                         round_mode=self._round_mode, overflow_mode=self._overflow_mode)
         else:
             # @todo: check for negative index and convert
             #        to the underlying intbv indexes
