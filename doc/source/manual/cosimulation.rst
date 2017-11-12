@@ -28,7 +28,7 @@ co-simulation. MyHDL is  enabled for co-simulation with any HDL simulator that
 has a procedural language interface (PLI). The MyHDL\ side is designed to be
 independent of a particular simulator, On the other hand, for each HDL simulator
 a specific PLI module will have to be written in C. Currently, the MyHDL release
-contains a PLI module for two Verilog simulators: Icarus and Cver.
+contains a PLI module for three Verilog simulators: Icarus, Cver, and Verilator.
 
 
 .. _cosim-hdl:
@@ -57,12 +57,13 @@ interface::
       ....
 
 To write a test bench, one creates a new module that instantiates the design
-under test (DUT).  The test bench declares nets and regs (or signals in VHDL)
-that are attached to the DUT, and to stimulus generators and response checkers.
-In an all-HDL flow, the generators and checkers are written in the HDL itself,
-but we will want to write them in MyHDL. To make the connection, we need to
-declare which regs & nets are driven and read by the MyHDL\ simulator. For our
-example, this is done as follows::
+under test (DUT). (Except for Verilator, where you skip this step; see the
+Verilator section below.)  The test bench declares nets and regs (or signals in
+VHDL) that are attached to the DUT, and to stimulus generators and response
+checkers.  In an all-HDL flow, the generators and checkers are written in the
+HDL itself, but we will want to write them in MyHDL. To make the connection, we
+need to declare which regs & nets are driven and read by the MyHDL\
+simulator. For our example, this is done as follows::
 
    module dut_bin2gray;
 
@@ -256,22 +257,22 @@ that they are guaranteed to change after the clock edge.
 
 .. _cosim-impl:
 
-Implementation notes
-====================
+Implementation and simulator-specific notes
+===========================================
 
-   This section requires some knowledge of PLI terminology.
+   Portions of this section require some knowledge of PLI terminology.
 
+This section documents specific simulator restrictions, the current approach and
+status of the PLI module implementation, and some reflections on future
+implementations.
 
 Enabling a simulator for co-simulation requires a PLI module written in C. In
 Verilog, the PLI is part of the "standard".  However, different simulators
 implement different versions and portions of the standard. Worse yet, the
 behavior of certain PLI callbacks is not defined on some essential points.  As a
 result, one should plan to write or at least customize a specific PLI module for
-any simulator. The release contains a PLI module for the open source Icarus and
-Cver simulators.
+any simulator.
 
-This section documents the current approach and status of the PLI module
-implementation and some reflections on future implementations.
 
 
 .. _cosim-icarus:
@@ -335,6 +336,34 @@ Cver
 MyHDL co-simulation is supported with the open source Verilog simulator Cver.
 The PLI module is based on the one for Icarus and basically has the same
 functionality. Only some cosmetic modifications were required.
+
+
+.. _cosim-verilator:
+
+Verilator
+---------
+
+MyHDL co-simulation is supported with the open source Verilog simulator
+Verilator.  Verilator is somewhat nontraditional, designed to convert Verilog
+designs to C++, and does not provide typical Verilog testbench support.
+Verilator does however cleanly allow a module to be embedded by another
+simulator, in this case MyHDL, so a different approach was taken compared to the
+other co-simulators.
+
+When co-simulating with Verilator, the Verilog module is directly attached to
+the ``Cosimulation`` object without a Verilog wrapper (containing ``$to_myhdl``
+or ``$from_myhdl``).  Instead, every module input automatically becomes a
+Cosimulation input, and every module output a Cosimulation output.  Parameters
+may be set using Verilator's -G argument.
+
+Verilator generates C++ code, which require compilation with a working C++
+compiler, and to speed up this process it is recommended to install ccache.
+This extra step means it typically takes longer to get to the first cycle of a
+simulation, but the per-cycle execution times are typically much less than other
+simulators.
+
+Verilator is a two-state simulator, and has other relatively atypical
+restrictions too, please see the Verilator documentation.
 
 
 .. _cosim-impl-verilog:
