@@ -28,6 +28,7 @@ work/
 work_nvc/
 work_vlog/
 work_vcom/
+obj_dir/
 *.wlf
 
 # Test artifacts
