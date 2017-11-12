@@ -20,6 +20,3 @@ def dff(q, d, clk, reset):
             q.next = d
 
     return logic
-
-
-

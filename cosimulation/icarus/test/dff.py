@@ -7,6 +7,6 @@ cmd = "iverilog -o dff.o " + \
       "../../test/verilog/dut_dff.v "
       
 def dff(q, d, clk, reset):
-    os.system(cmd)
+    os.system(cmd)  # TODO: error checking here?
     return Cosimulation("vvp -m ../myhdl.vpi dff.o", **locals())
                

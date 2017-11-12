@@ -8,4 +8,4 @@ test: myhdl.vpi
 	cd test && python test_all.py
 
 clean:
-	-rm *.o *.vpi
+	-rm -f *.o *.vpi
