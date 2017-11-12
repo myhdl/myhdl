@@ -16,9 +16,7 @@ module inc(count, enable, clock, reset);
       end
       else begin
 	 if (enable) begin
-	    // verilator lint_off WIDTH
 	    count <= (count + 1) % n;
-	    // verilator lint_on WIDTH
 	 end
       end
    end // always @ (posedge clock or negedge reset)
