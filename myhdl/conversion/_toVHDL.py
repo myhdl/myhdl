@@ -55,6 +55,8 @@ from myhdl.conversion._toVHDLPackage import _package
 from myhdl._util import _flatten
 from myhdl._compat import integer_types, class_types, StringIO
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
+from myhdl.conversion._VHDLNameValidation import _nameValid
+
 
 from myhdl._block import _Block
 from myhdl._getHierarchy import _getHierarchy
@@ -353,6 +355,8 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             pt = st = _getTypeString(s)
             if convertPort:
                 pt = "std_logic_vector"
+             # Check if VHDL keyword or reused name
+            _nameValid(s._name)
             if s._driven:
                 if s._read:
                     if not isinstance(s, _TristateSignal):
@@ -439,6 +443,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
         elif s._read:
+            # Check if VHDL keyword or reused name
+            _nameValid(s._name)
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
             # changed to a warning and a continuous assignment to a wire
@@ -458,6 +464,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 m._read = s._read
         if not m._driven and not m._read:
             continue
+        # Check if VHDL keyword or reused name
+        _nameValid(m.name)
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
