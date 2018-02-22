@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 # SEARCH, CONFIRM, SYNC = range(3)

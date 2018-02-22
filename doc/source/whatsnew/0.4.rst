@@ -1,0 +1,796 @@
+==============================================
+What's new in MyHDL 0.4: Conversion to Verilog
+==============================================
+
+:Author: Jan Decaluwe
+
+Introduction
+============
+
+MyHDL 0.4 supports the automatic conversion of a subset of MyHDL code to
+synthesizable Verilog code. This feature provides a direct path from
+Python to an FPGA or ASIC implementation.
+
+MyHDL aims to be a complete design language, for tasks such as high
+level modeling and verification, but also for implementation. However,
+prior to 0.4 a user had to translate MyHDL code manually to Verilog or
+VHDL. Needless to say, this was inconvenient. With MyHDL0.4, this manual
+step is no longer necessary.
+
+Solution description
+====================
+
+The solution works as follows. The hardware description should be
+modeled in MyHDL style, and satisfy certain constraints that are typical
+for implementation-oriented hardware modeling. Subsequently, such a
+design is converted to an equivalent model in the Verilog language,
+using the function :func:`toVerilog` from the MyHDLlibrary. Finally, a
+third-party *synthesis tool* is used to convert the Verilog design to a
+gate implementation for an ASIC or FPGA. There are a number of Verilog
+synthesis tools available, varying in price, capabilities, and target
+implementation technology.
+
+The conversion does not start from source files, but from a design that
+has been *elaborated* by the Python interpreter. The converter uses the
+Python profiler to track the interpreter’s operation and to infer the
+design structure and name spaces. It then selectively compiles pieces of
+source code for additional analysis and for conversion. This is done
+using the Python compiler package.
+
+Features
+========
+
+The design is converted after elaboration
+-----------------------------------------
+
+*Elaboration* refers to the initial processing of a hardware description
+to achieve a representation of a design instance that is ready for
+simulation or synthesis. In particular, structural parameters and
+constructs are processed in this step. In MyHDL, the Python interpreter
+itself is used for elaboration. A :class:`Simulation` object is
+constructed with elaborated design instances as arguments. Likewise, the
+Verilog conversion works on an elaborated design instance. The Python
+interpreter is thus used as much as possible.
+
+The structural description can be arbitrarily complex and hierarchical
+----------------------------------------------------------------------
+
+As the conversion works on an elaborated design instance, any modeling
+constraints only apply to the leaf elements of the design structure,
+that is, the co-operating generators. In other words, there are no
+restrictions on the description of the design structure: Python’s full
+power can be used for that purpose. Also, the design hierarchy can be
+arbitrarily deep.
+
+Generators are mapped to Verilog always or initial blocks
+---------------------------------------------------------
+
+The converter analyzes the code of each generator and maps it to a
+Verilog ``always`` blocks if possible, and to an ``initial`` block
+otherwise. The converted Verilog design will be a flat “net list of
+blocks”.
+
+The Verilog module interface is inferred from signal usage
+----------------------------------------------------------
+
+In MyHDL, the input or output direction of interface signals is not
+explicitly declared. The converter investigates signal usage in the
+design hierarchy to infer whether a signal is used as input, output, or
+as an internal signal. Internal signals are given a hierarchical name in
+the Verilog output.
+
+Function calls are mapped to a unique Verilog function or task call
+-------------------------------------------------------------------
+
+The converter analyzes function calls and function code to see if they
+should be mapped to Verilog functions or to tasks. Python functions are
+much more powerful than Verilog subprograms; for example, they are
+inherently generic, and they can be called with named association. To
+support this power in Verilog, a unique Verilog function or task is
+generated per Python function call.
+
+If-then-else structures may be mapped to Verilog case statements
+----------------------------------------------------------------
+
+Python does not provide a case statement. However, the converter
+recognizes if-then-else structures in which a variable is sequentially
+compared to items of an enumeration type, and maps such a structure to a
+Verilog case statement with the appropriate synthesis attributes.
+
+Choice of encoding schemes for enumeration types
+------------------------------------------------
+
+The :func:`enum` function in MyHDL returns an enumeration type. This
+function takes an additional parameter ``encoding`` that specifies the
+desired encoding in the implementation: binary, one hot, or one cold.
+The Verilog converter generates the appropriate code.
+
+The convertible subset
+======================
+
+Introduction
+------------
+
+Unsurprisingly, not all MyHDL code can be converted to Verilog. In fact,
+there are very important restrictions. As the goal of the conversion
+functionality is implementation, this should not be a big issue: anyone
+familiar with synthesis is used to similar restrictions in the
+*synthesizable subset* of Verilog and VHDL. The converter attempts to
+issue clear error messages when it encounters a construct that cannot be
+converted.
+
+In practice, the synthesizable subset usually refers to RTL synthesis,
+which is by far the most popular type of synthesis today. There are
+industry standards that define the RTL synthesis subset. However, those
+were not used as a model for the restrictions of the MyHDL converter,
+but as a minimal starting point. On that basis, whenever it was judged
+easy or useful to support an additional feature, this was done. For
+example, it is actually easier to convert :keyword:`while` loops than
+:keyword:`for` loops even though they are not RTL-synthesizable. As
+another example, :keyword:`print` is supported because it’s so useful
+for debugging, even though it’s not synthesizable. In summary, the
+convertible subset is a superset of the standard RTL synthesis subset,
+and supports synthesis tools with more advanced capabilities, such as
+behavioral synthesis.
+
+Recall that any restrictions only apply to the design post elaboration.
+In practice, this means that they apply only to the code of the
+generators, that are the leaf functional blocks in a MyHDL design.
+
+Coding style
+------------
+
+A natural restriction on convertible code is that it should be written
+in MyHDL style: cooperating generators, communicating through signals,
+and with ``yield`` statements specifying wait points and resume
+conditions. Supported resume conditions are a signal edge, a signal
+change, or a tuple of such conditions.
+
+Supported types
+---------------
+
+The most important restriction regards object types. Verilog is an
+almost typeless language, while Python is strongly (albeit dynamically)
+typed. The converter has to infer the types of names used in the code,
+and map those names to Verilog variables.
+
+Only a limited amount of types can be converted. Python :class:`int` and
+:class:`long` objects are mapped to Verilog integers. All other
+supported types are mapped to Verilog regs (or wires), and therefore
+need to have a defined bit width. The supported types are the Python
+:class:`bool` type, the MyHDL :class:`intbv` type, and MyHDL enumeration
+types returned by function :func:`enum`. The latter objects can also be
+used as the base object of a :class:`Signal`.
+
+:class:`intbv` objects must be constructed so that a bit width can be
+inferred. This can be done by specifying minimum and maximum values,
+e.g. as follows:
+
+::
+
+    index = intbv(0, min=0, max=2**N)
+
+Alternatively, a slice can be taken from an :class:`intbv` object as
+follows:
+
+::
+
+    index = intbv(0)[N:]
+
+Such as slice returns a new :class:`intbv` object, with minimum value
+``0`` , and maximum value ``2**N``.
+
+Supported statements
+--------------------
+
+The following is a list of the statements that are supported by the
+Verilog converter, possibly qualified with restrictions or usage notes.
+
+The :keyword:`break` statement.
+
+The :keyword:`continue` statement.
+
+The :keyword:`def` statement.
+
+The :keyword:`for` statement.
+    The only supported iteration scheme is iterating through sequences
+    of integers returned by built-in function :func:`range` or
+    MyHDLfunction :func:`downrange`. The optional :keyword:`else` clause
+    is not supported.
+
+The :keyword:`if` statement.
+    :keyword:`if`, :keyword:`elif`, and :keyword:`else` clauses are
+    fully supported.
+
+The :keyword:`pass` statement.
+
+The :keyword:`print` statement.
+    When printing an interpolated string, the format specifiers are
+    copied verbatim to the Verilog output. Printing to a file (with
+    syntax ``’>>’``) is not supported.
+
+The :keyword:`raise` statement.
+    This statement is mapped to Verilog statements that end the
+    simulation with an error message.
+
+The :keyword:`return` statement.
+
+The :keyword:`yield` statement.
+    The yielded expression can be a signal, a signal edge as specified
+    by MyHDL functions :func:`posedge` or :func:`negedge`, or a tuple of
+    signals and edge specifications.
+
+The :keyword:`while` statement.
+    The optional :keyword:`else` clause is not supported.
+
+Methodology notes
+=================
+
+Simulation
+----------
+
+In the Python philosophy, the run-time rules. The Python compiler
+doesn’t attempt to detect a lot of errors beyond syntax errors, which
+given Python’s ultra-dynamic nature would be an almost impossible task
+anyway. To verify a Python program, one should run it, preferably using
+unit testing to verify each feature.
+
+The same philosophy should be used when converting a MyHDL description
+to Verilog: make sure the simulation runs fine first. Although the
+converter checks many things and attempts to issue clear error messages,
+there is no guarantee that it does a meaningful job unless the
+simulation runs fine.
+
+Conversion output verification
+------------------------------
+
+It is always prudent to verify the converted Verilog output. To make
+this task easier, the converter also generates a test bench that makes
+it possible to simulate the Verilog design using the Verilog
+co-simulation interface. This permits to verify the Verilog code with
+the same test bench used for the MyHDL code. This is also how the
+Verilog converter development is being verified.
+
+Assignment issues
+-----------------
+
+Name assignment in Python
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Name assignment in Python is a different concept than in many other
+languages. This point is very important for effective modeling in
+Python, and even more so for synthesizable MyHDL code. Therefore, the
+issues are discussed here explicitly.
+
+Consider the following name assignments:
+
+::
+
+    a = 4
+    a = ``a string''
+    a = False
+
+In many languages, the meaning would be that an existing variable ``a``
+gets a number of different values. In Python, such a concept of a
+variable doesn’t exist. Instead, assignment merely creates a new binding
+of a name to a certain object, that replaces any previous binding. So in
+the example, the name ``a`` is bound a number of different objects in
+sequence.
+
+The Verilog converter has to investigate name assignment and usage in
+MyHDL code, and to map names to Verilog variables. To achieve that, it
+tries to infer the type and possibly the bit width of each expression
+that is assigned to a name.
+
+Multiple assignments to the same name can be supported if it can be
+determined that a consistent type and bit width is being used in the
+assignments. This can be done for boolean expressions, numeric
+expressions, and enumeration type literals. In Verilog, the
+corresponding name is mapped to a single bit ``reg``, an ``integer``, or
+a ``reg`` with the appropriate width, respectively.
+
+In other cases, a single assignment should be used when an object is
+created. Subsequent value changes are then achieved by modification of
+an existing object. This technique should be used for :class:`Signal`
+and :class:`intbv` objects.
+
+Signal assignment
+~~~~~~~~~~~~~~~~~
+
+Signal assignment in MyHDL is implemented using attribute assignment to
+attribute ``next``. Value changes are thus modeled by modification of
+the existing object. The converter investigates the :class:`Signal`
+object to infer the type and bit width of the corresponding Verilog
+variable.
+
+:class:`intbv` objects
+~~~~~~~~~~~~~~~~~~~~~~
+
+Type :class:`intbv` is likely to be the workhorse for synthesizable
+modeling in MyHDL. An :class:`intbv` instance behaves like a (mutable)
+integer whose individual bits can be accessed and modified. Also, it is
+possible to constrain its set of values. In addition to error checking,
+this makes it possible to infer a bit width, which is required for
+implementation.
+
+In Verilog, an :class:`intbv` instance will be mapped to a ``reg`` with
+an appropriate width. As noted before, it is not possible to modify its
+value using name assignment. In the following, we will show how it can
+be done instead. Consider:
+
+::
+
+    a = intbv(0)[8:]
+
+This is an :class:`intbv` object with initial value ``0`` and bit width
+8. The change its value to ``5``, we can use slice assignment:
+
+::
+
+    a[8:] = 5
+
+The same can be achieved by leaving the bit width unspecified, which has
+the meaning to change “all” bits:
+
+::
+
+    a[:] = 5
+
+Often the new value will depend on the old one. For example, to
+increment an :class:`intbv` with the technique above:
+
+::
+
+    a[:] = a + 1
+
+Python also provides *augmented* assignment operators, which can be used
+to implement in-place operations. These are supported on :class:`intbv`
+objects and by the converter, so that the increment can also be done as
+follows:
+
+::
+
+    a += 1
+
+Converter usage
+===============
+
+We will demonstrate the conversion process by showing some examples.
+
+A small design with a single generator
+--------------------------------------
+
+Consider the following MyHDL code for an incrementer module:
+
+::
+
+    def inc(count, enable, clock, reset, n):
+        """ Incrementer with enable.
+        
+        count -- output
+        enable -- control input, increment when 1
+        clock -- clock input
+        reset -- asynchronous reset input
+        n -- counter max value
+        """
+        def incProcess():
+            while 1:
+                yield posedge(clock), negedge(reset)
+                if reset == ACTIVE_LOW:
+                    count.next = 0
+                else:
+                    if enable:
+                        count.next = (count + 1) % n
+        return incProcess()
+
+In Verilog terminology, function :func:`inc` corresponds to a module,
+while generator function :func:`incProcess` roughly corresponds to an
+always block.
+
+Normally, to simulate the design, we would “elaborate” an instance as
+follows:
+
+::
+
+    m = 8
+    n = 2 ** m
+     
+    count = Signal(intbv(0)[m:])
+    enable = Signal(bool(0))
+    clock, reset = [Signal(bool()) for i in range(2)]
+
+    inc_inst = inc(count, enable, clock, reset, n=n)
+
+``incinst`` is an elaborated design instance that can be simulated. To
+convert it to Verilog, we change the last line as follows:
+
+::
+
+    inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
+
+Again, this creates an instance that can be simulated, but as a side
+effect, it also generates an equivalent Verilog module in file . The
+Verilog code looks as follows:
+
+::
+
+    module inc_inst (
+        count,
+        enable,
+        clock,
+        reset
+    );
+
+    output [7:0] count;
+    reg [7:0] count;
+    input enable;
+    input clock;
+    input reset;
+
+
+    always @(posedge clock or negedge reset) begin: _MYHDL1_BLOCK
+        if ((reset == 0)) begin
+            count <= 0;
+        end
+        else begin
+            if (enable) begin
+                count <= ((count + 1) % 256);
+            end
+        end
+    end
+
+    endmodule
+
+You can see the module interface and the always block, as expected from
+the MyHDL design.
+
+Converting a generator directly
+-------------------------------
+
+It is also possible to convert a generator directly. For example,
+consider the following generator function:
+
+::
+
+    def bin2gray(B, G, width):
+        """ Gray encoder.
+
+        B -- input intbv signal, binary encoded
+        G -- output intbv signal, gray encoded
+        width -- bit width
+        """
+        Bext = intbv(0)[width+1:]
+        while 1:
+            yield B
+            Bext[:] = B
+            for i in range(width):
+                G.next[i] = Bext[i+1] ^ Bext[i]
+
+As before, you can create an instance and convert to Verilog as follows:
+
+::
+
+    width = 8
+
+    B = Signal(intbv(0)[width:])
+    G = Signal(intbv(0)[width:])
+
+    bin2gray_inst = toVerilog(bin2gray, B, G, width)
+     
+
+The generated Verilog code looks as follows:
+
+::
+
+    module bin2gray_inst (
+        B,
+        G
+    );
+
+    input [7:0] B;
+    output [7:0] G;
+    reg [7:0] G;
+
+    always @(B) begin: _MYHDL1_BLOCK
+        integer i;
+        reg [9-1:0] Bext;
+        Bext[9-1:0] = B;
+        for (i=0; i<8; i=i+1) begin
+            G[i] <= (Bext[(i + 1)] ^ Bext[i]);
+        end
+    end
+
+    endmodule
+
+A hierarchical design
+---------------------
+
+The hierarchy of convertible designs can be arbitrarily deep.
+
+For example, suppose we want to design an incrementer with Gray code
+output. Using the designs from previous sections, we can proceed as
+follows:
+
+::
+
+    def GrayInc(graycnt, enable, clock, reset, width):
+        
+        bincnt = Signal(intbv()[width:])
+        
+        INC_1 = inc(bincnt, enable, clock, reset, n=2**width)
+        BIN2GRAY_1 = bin2gray(B=bincnt, G=graycnt, width=width)
+        
+        return INC_1, BIN2GRAY_1
+
+According to Gray code properties, only a single bit will change in
+consecutive values. However, as the ``bin2gray`` module is
+combinatorial, the output bits may have transient glitches, which may
+not be desirable. To solve this, let’s create an additional level of
+hierarchy and add an output register to the design. (This will create an
+additional latency of a clock cycle, which may not be acceptable, but we
+will ignore that here.)
+
+::
+
+    def GrayIncReg(graycnt, enable, clock, reset, width):
+        
+        graycnt_comb = Signal(intbv()[width:])
+        
+        GRAY_INC_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
+        
+        def reg():
+            while 1:
+                yield posedge(clock)
+                graycnt.next = graycnt_comb
+        REG_1 = reg()
+        
+        return GRAY_INC_1, REG_1
+
+We can convert this hierarchical design as before:
+
+::
+
+    width = 8
+    graycnt = Signal(intbv()[width:])
+    enable, clock, reset = [Signal(bool()) for i in range(3)]
+
+    GRAY_INC_REG_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
+
+The Verilog output code looks as follows:
+
+::
+
+    module GRAY_INC_REG_1 (
+        graycnt,
+        enable,
+        clock,
+        reset
+    );
+
+    output [7:0] graycnt;
+    reg [7:0] graycnt;
+    input enable;
+    input clock;
+    input reset;
+
+    reg [7:0] graycnt_comb;
+    reg [7:0] _GRAY_INC_1_bincnt;
+
+    always @(posedge clock or negedge reset) begin: _MYHDL1_BLOCK
+        if ((reset == 0)) begin
+            _GRAY_INC_1_bincnt <= 0;
+        end
+        else begin
+            if (enable) begin
+                _GRAY_INC_1_bincnt <= ((_GRAY_INC_1_bincnt + 1) % 256);
+            end
+        end
+    end
+
+    always @(_GRAY_INC_1_bincnt) begin: _MYHDL4_BLOCK
+        integer i;
+        reg [9-1:0] Bext;
+        Bext[9-1:0] = _GRAY_INC_1_bincnt;
+        for (i=0; i<8; i=i+1) begin
+            graycnt_comb[i] <= (Bext[(i + 1)] ^ Bext[i]);
+        end
+    end
+
+    always @(posedge clock) begin: _MYHDL9_BLOCK
+        graycnt <= graycnt_comb;
+    end
+
+    endmodule
+
+Note that the output is a flat “net list of blocks”, and that
+hierarchical signal names are generated as necessary.
+
+Optimizations for finite state machines
+---------------------------------------
+
+As often in hardware design, finite state machines deserve special
+attention.
+
+In Verilog and VHDL, finite state machines are typically described using
+case statements. Python doesn’t have a case statement, but the converter
+recognizes particular if-then-else structures and maps them to case
+statements. This optimization occurs when a variable whose type is an
+enumerated type is sequentially tested against enumeration items in an
+if-then-else structure. Also, the appropriate synthesis pragmas for
+efficient synthesis are generated in the Verilog code.
+
+As a further optimization, function :func:`enum` was enhanced to support
+alternative encoding schemes elegantly, using an additional parameter
+``encoding``. For example:
+
+::
+
+    t_State = enum('SEARCH', 'CONFIRM', 'SYNC', encoding='one_hot')
+
+The default encoding is ``’binary’``; the other possibilities are
+``’onehot’`` and ``’onecold’``. This parameter only affects the
+conversion output, not the behavior of the type. The generated Verilog
+code for case statements is optimized for an efficient implementation
+according to the encoding. Note that in contrast, a Verilog designer has
+to make nontrivial code changes to implement a different encoding
+scheme.
+
+As an example, consider the following finite state machine, whose state
+variable uses the enumeration type defined above:
+
+::
+
+    FRAME_SIZE = 8
+
+    def FramerCtrl(SOF, state, syncFlag, clk, reset_n):
+        
+        """ Framing control FSM.
+
+        SOF -- start-of-frame output bit
+        state -- FramerState output
+        syncFlag -- sync pattern found indication input
+        clk -- clock input
+        reset_n -- active low reset
+        
+        """
+        
+        index = intbv(0, min=0, max=8) # position in frame
+        while 1:
+            yield posedge(clk), negedge(reset_n)
+            if reset_n == ACTIVE_LOW:
+                SOF.next = 0
+                index[:] = 0
+                state.next = t_State.SEARCH
+            else:
+                SOF.next = 0
+                if state == t_State.SEARCH:
+                    index[:] = 0
+                    if syncFlag:
+                        state.next = t_State.CONFIRM
+                elif state == t_State.CONFIRM:
+                    if index == 0:
+                        if syncFlag:
+                            state.next = t_State.SYNC
+                        else:
+                            state.next = t_State.SEARCH
+                elif state == t_State.SYNC:
+                    if index == 0:
+                        if not syncFlag:
+                            state.next = t_State.SEARCH
+                    SOF.next = (index == FRAME_SIZE-1)
+                else:
+                    raise ValueError("Undefined state")
+                index[:]= (index + 1) % FRAME_SIZE
+
+The conversion is done as before:
+
+::
+
+    SOF = Signal(bool(0))
+    syncFlag = Signal(bool(0))
+    clk = Signal(bool(0))
+    reset_n = Signal(bool(1))
+    state = Signal(t_State.SEARCH)
+    framerctrl_inst = toVerilog(FramerCtrl, SOF, state, syncFlag, clk, reset_n)
+
+The Verilog output looks as follows:
+
+::
+
+    module framerctrl_inst (
+        SOF,
+        state,
+        syncFlag,
+        clk,
+        reset_n
+    );
+    output SOF;
+    reg SOF;
+    output [2:0] state;
+    reg [2:0] state;
+    input syncFlag;
+    input clk;
+    input reset_n;
+
+    always @(posedge clk or negedge reset_n) begin: _MYHDL1_BLOCK
+        reg [3-1:0] index;
+        if ((reset_n == 0)) begin
+            SOF <= 0;
+            index[3-1:0] = 0;
+            state <= 3'b001;
+        end
+        else begin
+            SOF <= 0;
+            // synthesis parallel_case full_case
+            casez (state)
+                3'b??1: begin
+                    index[3-1:0] = 0;
+                    if (syncFlag) begin
+                        state <= 3'b010;
+                    end
+                end
+                3'b?1?: begin
+                    if ((index == 0)) begin
+                        if (syncFlag) begin
+                            state <= 3'b100;
+                        end
+                        else begin
+                            state <= 3'b001;
+                        end
+                    end
+                end
+                3'b1??: begin
+                    if ((index == 0)) begin
+                        if ((!syncFlag)) begin
+                            state <= 3'b001;
+                        end
+                    end
+                    SOF <= (index == (8 - 1));
+                end
+                default: begin
+                    $display("Verilog: ValueError(Undefined state)");
+                    $finish;
+                end
+            endcase
+            index[3-1:0] = ((index + 1) % 8);
+        end
+    end
+    endmodule
+
+Known issues
+============
+
+Negative values of :class:`intbv` instances are not supported.
+    The :class:`intbv` class is quite capable of representing negative
+    values. However, the ``signed`` type support in Verilog is
+    relatively recent and mapping to it may be tricky. In my judgment,
+    this was not the most urgent requirement, so I decided to leave this
+    for later.
+
+Verilog integers are 32 bit wide
+    Usually, Verilog integers are 32 bit wide. In contrast, Python is
+    moving toward integers with undefined width. Python :class:`int` and
+    :class:`long` variables are mapped to Verilog integers; so for
+    values wider than 32 bit this mapping is incorrect.
+
+Synthesis pragmas are specified as Verilog comments.
+    The recommended way to specify synthesis pragmas in Verilog is
+    through attribute lists. However, my Verilog simulator (Icarus)
+    doesn’t support them for ``case`` statements (to specify
+    ``parallelcase`` and ``fullcase`` pragmas). Therefore, I still used
+    the old but deprecated method of synthesis pragmas in Verilog
+    comments.
+
+Inconsistent place of the sensitivity list inferred from ``alwayscomb``.
+    The semantics of ``alwayscomb``, both in Verilog and MyHDL, is to
+    have an implicit sensitivity list at the end of the code. However,
+    this may not be synthesizable. Therefore, the inferred sensitivity
+    list is put at the top of the corresponding ``always`` block. This
+    may cause inconsistent behavior at the start of the simulation. The
+    workaround is to create events at time 0.
+
+Non-blocking assignments to task arguments don’t work.
+    I didn’t get non-blocking (signal) assignments to task arguments to
+    work. I don’t know yet whether the issue is my own, a Verilog issue,
+    or an issue with my Verilog simulator Icarus. I’ll need to check
+    this further.

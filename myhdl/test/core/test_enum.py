@@ -20,69 +20,68 @@
 """ Run the unit tests for enum """
 from __future__ import absolute_import
 
-
-import random
-from random import randrange
-random.seed(1) # random, but deterministic
-
-import sys
 import copy
+import random
 
-import unittest
-from unittest import TestCase
+import pytest
 
 from myhdl import enum
+
+random.seed(1)  # random, but deterministic
 
 
 t_State = enum("SEARCH", "CONFIRM", "SYNC")
 t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
+t_incomplete = enum("SEARCH", "CONFIRM")
 
-
-class TestEnum(TestCase):
+class TestEnum:
 
     def testUniqueLiterals(self):
-        try:
+        with pytest.raises(ValueError):
             t_State = enum("SEARCH", "CONFIRM", "SEARCH")
-        except ValueError:
-            pass
-        else:
-            self.fail()
 
     def testWrongAttr(self):
-        try:
+        with pytest.raises(AttributeError):
             t_State.TYPO
-        except AttributeError:
-            pass
-        else:
-            self.fail()
 
     def testAttrAssign(self):
-        try:
+        with pytest.raises(AttributeError):
             t_State.SEARCH = 4
-        except AttributeError:
-            pass
-        else:
-            self.fail()
 
     def testWrongAttrAssign(self):
-        try:
+        with pytest.raises(AttributeError):
             t_State.TYPO = 4
-        except AttributeError:
-            pass
-        else:
-            self.fail()
 
     def testHomograph(self):
-        self.assertTrue(t_State is not t_Homograph)
-        
+        assert t_State is not t_Homograph
+
     def testHomographLiteral(self):
-        self.assertTrue(t_State.SEARCH is not t_Homograph.SEARCH)
+        assert t_State.SEARCH is not t_Homograph.SEARCH
 
     def testItemCopy(self):
         e = copy.deepcopy(t_State.SEARCH)
-        self.assertTrue(e == t_State.SEARCH)
-        self.assertTrue(e != t_State.CONFIRM)
+        assert e == t_State.SEARCH
+        assert e != t_State.CONFIRM
+
+## Adding test coverage for encoding in enum
+ 
+    def testItemNotDeepCopy(self):
+        e = copy.copy(t_State.SEARCH)
+        assert e == t_State.SEARCH
+        assert e != t_State.CONFIRM
+
+    def testWrongEncoding(self):
+        def logic1(encoding):
+            t_State = enum("SEARCH", "CONFIRM", "SYNC",encoding=encoding)
+            with pytest.raises(ValueError):
+            	logic1(encoding)
+        
+    def testNotStringtype(self):
+        with pytest.raises(TypeError):
+            t_State = enum("SEARCH", 1, "SYNC")
+
+    def testEnumLength(self):
+        l = len(t_State)
+        assert l == len(t_State)
 
 
-if __name__ == "__main__":
-    unittest.main()

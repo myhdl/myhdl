@@ -41,6 +41,14 @@ A :class:`Simulation` object has the following method:
    Run the simulation forever (by default) or for a specified duration.
 
 
+.. method:: Simulation.quit()
+
+   Quit the simulation after it has run for a specified duration. The method should
+   be called (the simulation instance must be quit) before another simulation
+   instance is created. The method is called by default when the simulation is run
+   forever.
+
+
 .. _ref-simsupport:
 
 Simulation support functions
@@ -85,8 +93,18 @@ Waveform tracing
       This attribute is used to overwrite the default top-level instance name and the
       basename of the VCD output filename.
 
+   .. attribute:: directory
+
+      This attribute is used to set the directory to which VCD files are written. By
+      default, the current working directory is used.
+
+   .. attribute:: filename
+
+      This attribute is used to set the filename to which VCD files are written. By
+      default, the name attribbute is used.
+
    .. attribute:: timescale
-   
+
       This attribute is used to set the timescale corresponding to unit steps,
       according to the VCD format. The assigned value should be a string.
       The default timescale is "1ns".
@@ -212,7 +230,7 @@ Shadow signals
 .. class:: _SliceSignal(sig, left[, right=None])
 
     This class implements read-only structural slicing and indexing. It creates a new
-    signal that shadows the slice or index of the parent signal *sig*. If the
+    shadow signal of the slice or index of the parent signal *sig*. If the
     *right* parameter is omitted, you get indexing instead of slicing.
     Parameters *left*  and *right* have the usual meaning for slice
     indices: in particular, *left* is non-inclusive but *right*
@@ -229,11 +247,15 @@ Shadow signals
 
 .. class:: ConcatSignal(*args)
 
-    This class creates a new signal that shadows the concatenation
-    of its parent signal values. You can pass an arbitrary number
-    of signals to the constructor. The signal arguments should be bit-oriented
-    with a defined number of bits.
+   This class creates a new shadow signal of the concatenation of its arguments. 
 
+   You can pass an arbitrary number of arguments to the constructor.  The
+   arguments should be bit-oriented with a defined number of bits.  The following
+   argument types are supported: :class:`intbv` objects with a defined bit width,
+   :class:`bool` objects, signals of the previous objects, and bit strings. 
+
+   The new signal follows the value changes of the signal arguments. The non-signal
+   arguments are used to define constant values in the concatenation.  
 
 .. class:: TristateSignal(val)
 
@@ -601,8 +623,10 @@ useful for hardware description.
 
    The following argument types are supported: :class:`intbv` objects with a
    defined bit width, :class:`bool` objects, signals of the previous objects, and
-   bit strings. All these objects have a defined bit width. The first argument
-   *base* is special as it doesn't need to have a defined bit width. In addition to
+   bit strings. All these objects have a defined bit width. 
+
+   The first argument *base* is special as it does not need to have a 
+   defined bit width. In addition to
    the previously mentioned objects, unsized :class:`intbv`, :class:`int` and
    :class:`long` objects are supported, as well as signals of such objects.
 
@@ -761,6 +785,13 @@ Conversion
        This attribute can be used to set the library in the VHDL output
        file. The assigned value should be a string. The default 
        library is ``work``.
+
+    .. attribute:: std_logic_ports
+
+       This boolean attribute can be used to have only ``std_logic`` type
+       ports on the top-level interface (when ``True``) instead of the
+       default ``signed/unsigned`` types (when ``False``, the default). 
+
 
 
 .. _ref-conv-user:

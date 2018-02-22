@@ -1,23 +1,14 @@
-from myhdl import Signal, delay, always, now, Simulation
+from myhdl import block, delay, always, now
 
+@block
 def HelloWorld():
 
-    interval = delay(10)
-    
-    @always(interval)
-    def sayHello():
-        print "%s Hello World!" % now()
+    @always(delay(10))
+    def say_hello():
+        print("%s Hello World!" % now())
 
-    return sayHello
+    return say_hello
 
 
-def main():
-    inst = HelloWorld()
-    sim = Simulation(inst)
-    sim.run(30)
-    
-
-if __name__ == '__main__':
-    main()
-
-
+inst = HelloWorld()
+inst.run_sim(30)

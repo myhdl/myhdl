@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 ACTIVE, INACTIVE = bool(0), bool(1)

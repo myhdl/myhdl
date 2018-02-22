@@ -1,5 +1,6 @@
 import seven_segment
 
+import myhdl
 from myhdl import *
 
 code = [None] * 10

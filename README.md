@@ -1,8 +1,11 @@
-MyHDL 0.9
-=========
+MyHDL 1.0dev 
+============
 
-[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=master)](http://docs.myhdl.org/en/latest/manual)
-[![Build Status](https://travis-ci.org/jandecaluwe/myhdl.svg?branch=master)](https://travis-ci.org/jandecaluwe/myhdl)
+[![Join the chat at https://gitter.im/jandecaluwe/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=stable)](http://docs.myhdl.org/en/stable/manual)
+[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=latest)](http://docs.myhdl.org/en/latest/manual)
+[![Build Status](https://travis-ci.org/myhdl/myhdl.svg?branch=master)](https://travis-ci.org/myhdl/myhdl)
 
 What is MyHDL?
 --------------
@@ -11,11 +14,11 @@ description and verification language.
 
 To find out whether MyHDL can be useful to you, please read:
 
-[http://www.myhdl.org/start/why.html](http://www.myhdl.org/start/why.html)
+   - http://www.myhdl.org/start/why.html
 
 License
 -------
-MyHDL is available under the LGPL license.  See LICENSE.txt.
+MyHDL is available under the LGPL license.  See ``LICENSE.txt``.
 
 Website
 -------
@@ -25,13 +28,13 @@ Documentation
 -------------
 The manual is available on-line:
 
-   http://docs.myhdl.org/en/latest/manual
+   - http://docs.myhdl.org/en/stable/manual
 
 What's new
 ----------
 To find out what's new in this release, please read:
 
-[http://docs.myhdl.org/en/latest/whatsnew/0.8.html](http://docs.myhdl.org/en/latest/whatsnew/0.8.html)
+   - http://docs.myhdl.org/en/stable/whatsnew/0.9.html
 
 Installation
 ------------
@@ -52,7 +55,7 @@ python setup.py install --home=$HOME
 ```
 
 In this case, be sure to add the appropriate install dir to the
-$PYTHONPATH.
+``$PYTHONPATH``.
 
 If necessary, consult the distutils documentation in the standard
 Python library if necessary for more details;
@@ -62,11 +65,10 @@ You can test the proper installation as follows:
 
 ```
 cd myhdl/test/core
-python test_all.py
+py.test
 ```
 
 To install co-simulation support:
 
-Go to the directory co-simulation/<platform> for your target platform
-and following the instructions in the README.txt file.
-
+Go to the directory ``cosimulation/<platform>`` for your target platform
+and following the instructions in the ``README.txt`` file.

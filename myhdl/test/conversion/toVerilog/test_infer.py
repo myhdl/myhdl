@@ -4,11 +4,12 @@ path = os.path
 import unittest
 from random import randrange
 
+import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 b = c = 2
 

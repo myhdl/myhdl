@@ -20,84 +20,57 @@
 """ Run the unit tests for the @always decorator """
 from __future__ import absolute_import
 
-
-import random
 from random import randrange
+
+from myhdl import (AlwaysError, Signal, Simulation, StopSimulation, delay,
+                   instances, intbv, now)
+from myhdl._always import _error, always
+from myhdl._Waiter import (_DelayWaiter, _EdgeTupleWaiter, _EdgeWaiter,
+                           _SignalTupleWaiter, _SignalWaiter, _Waiter)
+from helpers import raises_kind
+
 # random.seed(3) # random, but deterministic
-
-import unittest
-from unittest import TestCase
-import inspect
-
-from myhdl import Signal, Simulation, instances, AlwaysError, \
-                  intbv, delay, StopSimulation, now
-
-from myhdl._always import always, _Always, _error
-
-from myhdl._Waiter import _inferWaiter, _Waiter
-from myhdl._Waiter import _SignalWaiter,_SignalTupleWaiter, _DelayWaiter, \
-                          _EdgeWaiter, _EdgeTupleWaiter
 
 
 QUIET=1
+
 
 def g():
     pass
 
 x = Signal(0)
 
-class AlwaysCompilationTest(TestCase):
-    
+
+class TestAlwaysCompilation:
 
     def testArgIsFunction(self):
         h = 5
-        try:
+        with raises_kind(AlwaysError, _error.ArgType):
             always(delay(3))(h)
-        except AlwaysError as e:
-            self.assertEqual(e.kind, _error.ArgType)
-        else:
-            self.fail()
-    
+
     def testArgIsNormalFunction(self):
-        try:
+        with raises_kind(AlwaysError, _error.ArgType):
             @always(delay(3))
             def h():
                 yield None
-        except AlwaysError as e:
-            self.assertEqual(e.kind, _error.ArgType)
-        else:
-            self.fail()
 
     def testArgHasNoArgs(self):
-        try:
+        with raises_kind(AlwaysError, _error.NrOfArgs):
             @always(delay(3))
             def h(n):
                 return n
-        except AlwaysError as e:
-            self.assertEqual(e.kind, _error.NrOfArgs)
-        else:
-            self.fail()
 
     def testDecArgType1(self):
-        try:
+        with raises_kind(AlwaysError, _error.DecArgType):
             @always
             def h(n):
                 return n
-        except AlwaysError as e:
-            self.assertEqual(e.kind, _error.DecArgType)
-        else:
-            self.fail()
 
     def testDecArgType2(self):
-        try:
+        with raises_kind(AlwaysError, _error.DecArgType):
             @always(g)
             def h(n):
                 return n
-        except AlwaysError as e:
-            self.assertEqual(e.kind, _error.DecArgType)
-        else:
-            self.fail()
-
 
 
 def SignalFunc1(a, b, c, d, r):
@@ -146,24 +119,23 @@ def EdgeTupleFunc1(a, b, c, d, r):
 
 
 def GeneralFunc(a, b, c, d, r):
-    
+
     @always(c.posedge, d)
     def logic():
         r.next = a + b + c + d
 
     return logic
-    
 
 
-class InferWaiterTest(TestCase):
+class TestInferWaiter:
 
     def bench(self, MyHDLFunc, waiterType):
 
         a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
 
         inst_r = MyHDLFunc(a, b, c, d, r)
-        self.assertEqual(type(inst_r.waiter), waiterType)
-        
+        assert type(inst_r.waiter) == waiterType
+
         inst_s = MyHDLFunc(a, b, c, d, s)
 
         def stimulus():
@@ -180,14 +152,14 @@ class InferWaiterTest(TestCase):
         def check():
             while 1:
                 yield a, b, c, r, s
-                self.assertEqual(r, s)
+                assert r == s
 
         return inst_r, _Waiter(inst_s.gen), _Waiter(stimulus()), _Waiter(check())
 
     def testSignal1(self):
         sim = Simulation(self.bench(SignalFunc1, _SignalWaiter))
         sim.run()
-        
+
     def testSignalTuple1(self):
         sim = Simulation(self.bench(SignalTupleFunc1, _SignalTupleWaiter))
         sim.run()
@@ -199,17 +171,11 @@ class InferWaiterTest(TestCase):
     def testEdge1(self):
         sim = Simulation(self.bench(EdgeFunc1, _EdgeWaiter))
         sim.run()
-        
+
     def testEdgeTuple1(self):
         sim = Simulation(self.bench(EdgeTupleFunc1, _EdgeTupleWaiter))
         sim.run()
-        
+
     def testGeneral(self):
         sim = Simulation(self.bench(GeneralFunc, _Waiter))
         sim.run()
-
-
-
-if __name__ == "__main__":
-    unittest.main()
-

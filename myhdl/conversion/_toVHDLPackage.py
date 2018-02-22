@@ -20,8 +20,8 @@ from __future__ import absolute_import
 
 import myhdl
 
-_version = myhdl.__version__.replace('.','')
-_shortversion = _version.replace('dev','')
+_version = myhdl.__version__.replace('.', '')
+_shortversion = _version.replace('dev', '')
 
 _package = """\
 library ieee;
@@ -57,6 +57,12 @@ package pck_myhdl_%(version)s is
     function bool (arg: integer) return boolean;
 
     function "-" (arg: unsigned) return signed;
+
+    function tern_op(cond: boolean; if_true: std_logic; if_false: std_logic) return std_logic;
+
+    function tern_op(cond: boolean; if_true: unsigned; if_false: unsigned) return unsigned;
+
+    function tern_op(cond: boolean; if_true: signed; if_false: signed) return signed;
 
 end pck_myhdl_%(version)s;
 
@@ -156,6 +162,33 @@ package body pck_myhdl_%(version)s is
     begin
         return - signed(resize(arg, arg'length+1));
     end function "-";
+
+    function tern_op(cond: boolean; if_true: std_logic; if_false: std_logic) return std_logic is
+    begin
+        if cond then
+            return if_true;
+        else
+            return if_false;
+        end if;
+    end function tern_op;
+
+    function tern_op(cond: boolean; if_true: unsigned; if_false: unsigned) return unsigned is
+    begin
+        if cond then
+            return if_true;
+        else
+            return if_false;
+        end if;
+    end function tern_op;
+
+    function tern_op(cond: boolean; if_true: signed; if_false: signed) return signed is
+    begin
+        if cond then
+            return if_true;
+        else
+            return if_false;
+        end if;
+    end function tern_op;
 
 end pck_myhdl_%(version)s;
 

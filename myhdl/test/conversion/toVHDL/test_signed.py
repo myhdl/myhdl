@@ -4,6 +4,7 @@ path = os.path
 import random
 from random import randrange
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -42,6 +43,7 @@ def binaryOps(
     ##         if right != 0:
     ##             FloorDiv.next = left // right
             # Keep left shifts smaller than 2** 31 for VHDL's to_integer
+            LeftShift.next = 0
             if left < 256 and right < 22 and right >= 0:
                 LeftShift.next = left << right
     ##         if right != 0:
@@ -163,24 +165,24 @@ def binaryBench(Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ## ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-            print LeftShift
+            print(LeftShift)
             # print Modulo
-            print Mul
+            print(Mul)
                 # self.assertEqual(Pow, Pow_v)
-            print RightShift
-            print Sub
-            print Sum
-            print Sum1
-            print Sum2
-            print Sum3
-            print int(EQ)
-            print int(NE)
-            print int(LT)
-            print int(GT)
-            print int(LE)
-            print int(GE)
-            print int(BoolAnd)
-            print int(BoolOr)
+            print(RightShift)
+            print(Sub)
+            print(Sum)
+            print(Sum1)
+            print(Sum2)
+            print(Sum3)
+            print(int(EQ))
+            print(int(NE))
+            print(int(LT))
+            print(int(GT))
+            print(int(LE))
+            print(int(GE))
+            print(int(BoolAnd))
+            print(int(BoolOr))
 
     return binops, stimulus, check
     
@@ -255,9 +257,9 @@ def unaryBench( m):
             yield arg
             yield delay(1)
             # print BoolNot
-            print Invert
+            print(Invert)
             # print UnaryAdd
-            print UnarySub
+            print(UnarySub)
 
                              
     return unaryops, stimulus, check
@@ -308,6 +310,7 @@ def augmOps(
     ##             var[:] = left
     ##             var //= right
     ##             FloorDiv.next = var
+            LeftShift.next = 0
             if left < 256 and right < 22 and right >= 0:
                 var2[:] = left
                 var2 <<= right
@@ -321,6 +324,7 @@ def augmOps(
             Mul.next = var
 
             var[:] = left
+            RightShift.next = 0
             if right >= 0:
                 var >>= right
                 RightShift.next = var
@@ -399,12 +403,12 @@ def augmBench( Ll, Ml, Lr, Mr):
 ##                 self.assertEqual(Bitor, Bitor_v)
 ##                 self.assertEqual(Bitxor, Bitxor_v)
 ##                 self.assertEqual(FloorDiv, FloorDiv_v)
-            print LeftShift
+            print(LeftShift)
 ##                 self.assertEqual(Modulo, Modulo_v)
-            print Mul
-            print RightShift
-            print Sub
-            print Sum
+            print(Mul)
+            print(RightShift)
+            print(Sub)
+            print(Sum)
 
     return augmops,  stimulus, check
     
@@ -488,8 +492,8 @@ def expressionsBench():
         while 1:
             yield clk.posedge
             yield delay(1)
-            print int(a)
-            print int(b)
+            print(int(a))
+            print(int(b))
 
     @instance
     def clkgen():

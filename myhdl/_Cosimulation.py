@@ -20,19 +20,20 @@
 """ Module that provides the Cosimulation class """
 from __future__ import absolute_import
 
-
 import sys
 import os
+#import shlex
+import subprocess
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
-from myhdl._compat import PY2, to_bytes, to_str
+from myhdl._compat import set_inheritable, string_types, to_bytes, to_str
 
 _MAXLINE = 4096
 
+
 class _error:
     pass
-_error.MultipleCosim = "Only a single cosimulator allowed"
 _error.DuplicateSigNames = "Duplicate signal name in myhdl vpi call"
 _error.SigNotFound = "Signal not found in Cosimulation arguments"
 _error.TimeZero = "myhdl vpi call when not at time 0"
@@ -40,25 +41,26 @@ _error.NoCommunication = "No signals communicating to myhdl"
 _error.SimulationEnd = "Premature simulation end"
 _error.OSError = "OSError"
 
+
 class Cosimulation(object):
 
     """ Cosimulation class. """
 
     def __init__(self, exe="", **kwargs):
-        
         """ Construct a cosimulation object. """
-        
-        if _simulator._cosim:
-            raise CosimulationError(_error.MultipleCosim)
-        _simulator._cosim = 1
-        
-        self._rt, self._wt = rt, wt = os.pipe()
-        self._rf, self._wf = rf, wf = os.pipe()
+        rt, wt = os.pipe()
+        rf, wf = os.pipe()
 
-        # New pipes are not inheritable by default since py 3.4
-        if not PY2:
-            for p in rt, wt, rf, wf:
-                os.set_inheritable(p, True)
+        # Disable inheritance for ends that we don't want the child to have
+        set_inheritable(rt, False)
+        set_inheritable(wf, False)
+
+        # Enable inheritance for child ends
+        set_inheritable(wt, True)
+        set_inheritable(rf, True)
+
+        self._rt = rt
+        self._wf = wf
 
         self._fromSignames = fromSignames = []
         self._fromSizes = fromSizes = []
@@ -67,67 +69,74 @@ class Cosimulation(object):
         self._toSizes = toSizes = []
         self._toSigs = toSigs = []
         self._toSigDict = toSigDict = {}
-
         self._hasChange = 0
         self._getMode = 1
 
-        child_pid = self._child_pid = os.fork()
+        env = os.environ.copy()
 
-        if child_pid == 0:
-            os.close(rt)
-            os.close(wf)
-            os.environ['MYHDL_TO_PIPE'] = str(wt)
-            os.environ['MYHDL_FROM_PIPE'] = str(rf)
-            if isinstance(exe, list): arglist = exe
-            else: arglist = exe.split()
-            p = arglist[0]
-            arglist[0] = os.path.basename(p)
-            try:
-                os.execvp(p, arglist)
-            except OSError as e:
-                raise CosimulationError(_error.OSError, str(e))
+        # In Windows the FDs aren't inheritable when using Popen,
+        # only the HANDLEs are
+        if sys.platform != "win32":
+            env['MYHDL_TO_PIPE'] = str(wt)
+            env['MYHDL_FROM_PIPE'] = str(rf)
         else:
-            os.close(wt)
-            os.close(rf)
-            while 1:
-                s = to_str(os.read(rt, _MAXLINE))
-                if not s:
-                    raise CosimulationError(_error.SimulationEnd)
-                e = s.split()
-                if e[0] == "FROM":
-                    if int(e[1]) != 0:
-                        raise CosimulationError(_error.TimeZero, "$from_myhdl")
-                    for i in range(2, len(e)-1, 2):
-                        n = e[i]
-                        if n in fromSignames:
-                            raise CosimulationError(_error.DuplicateSigNames, n)
-                        if not n in kwargs:
-                            raise CosimulationError(_error.SigNotFound, n)
-                        fromSignames.append(n)
-                        fromSigs.append(kwargs[n])
-                        fromSizes.append(int(e[i+1]))
-                    os.write(wf, b"OK")
-                elif e[0] == "TO":
-                    if int(e[1]) != 0:
-                        raise CosimulationError(_error.TimeZero, "$to_myhdl")
-                    for i in range(2, len(e)-1, 2):
-                        n = e[i]
-                        if n in toSignames:
-                            raise CosimulationError(_error.DuplicateSigNames, n)
-                        if not n in kwargs:
-                            raise CosimulationError(_error.SigNotFound, n)
-                        toSignames.append(n)
-                        toSigs.append(kwargs[n])
-                        toSigDict[n] = kwargs[n]
-                        toSizes.append(int(e[i+1]))
-                    os.write(wf, b"OK")
-                elif e[0] == "START":
-                    if not toSignames:
-                        raise CosimulationError(_error.NoCommunication)
-                    os.write(wf, b"OK")
-                    break
-                else:
-                    raise CosimulationError("Unexpected cosim input")
+            import msvcrt
+            env['MYHDL_TO_PIPE'] = str(msvcrt.get_osfhandle(wt))
+            env['MYHDL_FROM_PIPE'] = str(msvcrt.get_osfhandle(rf))
+
+        if isinstance(exe, string_types):
+#             exe = shlex.split(exe)
+            exe = exe.split(' ')
+
+
+        try:
+            sp = subprocess.Popen(exe, env=env, close_fds=False)
+        except OSError as e:
+            raise CosimulationError(_error.OSError, str(e))
+
+        self._child = sp
+
+        os.close(wt)
+        os.close(rf)
+        while 1:
+            s = to_str(os.read(rt, _MAXLINE))
+            if not s:
+                raise CosimulationError(_error.SimulationEnd)
+            e = s.split()
+            if e[0] == "FROM":
+                if int(e[1]) != 0:
+                    raise CosimulationError(_error.TimeZero, "$from_myhdl")
+                for i in range(2, len(e) - 1, 2):
+                    n = e[i]
+                    if n in fromSignames:
+                        raise CosimulationError(_error.DuplicateSigNames, n)
+                    if not n in kwargs:
+                        raise CosimulationError(_error.SigNotFound, n)
+                    fromSignames.append(n)
+                    fromSigs.append(kwargs[n])
+                    fromSizes.append(int(e[i + 1]))
+                os.write(wf, b"OK")
+            elif e[0] == "TO":
+                if int(e[1]) != 0:
+                    raise CosimulationError(_error.TimeZero, "$to_myhdl")
+                for i in range(2, len(e) - 1, 2):
+                    n = e[i]
+                    if n in toSignames:
+                        raise CosimulationError(_error.DuplicateSigNames, n)
+                    if not n in kwargs:
+                        raise CosimulationError(_error.SigNotFound, n)
+                    toSignames.append(n)
+                    toSigs.append(kwargs[n])
+                    toSigDict[n] = kwargs[n]
+                    toSizes.append(int(e[i + 1]))
+                os.write(wf, b"OK")
+            elif e[0] == "START":
+                if not toSignames:
+                    raise CosimulationError(_error.NoCommunication)
+                os.write(wf, b"OK")
+                break
+            else:
+                raise CosimulationError("Unexpected cosim input")
 
     def _get(self):
         if not self._getMode:
@@ -137,7 +146,7 @@ class Cosimulation(object):
             raise CosimulationError(_error.SimulationEnd)
         e = buf.split()
         for i in range(1, len(e), 2):
-            s, v = self._toSigDict[e[i]], e[i+1]
+            s, v = self._toSigDict[e[i]], e[i + 1]
             if v in 'zZ':
                 next = None
             elif v in 'xX':
@@ -146,19 +155,19 @@ class Cosimulation(object):
                 try:
                     next = int(v, 16)
                     if s._nrbits and s._min is not None and s._min < 0:
-                        if next >= (1 << (s._nrbits-1)):
+                        if next >= (1 << (s._nrbits - 1)):
                             next |= (-1 << s._nrbits)
                 except ValueError:
                     next = intbv(0)
             s.next = next
-                 
+
         self._getMode = 0
 
     def _put(self, time):
         buflist = []
         buf = repr(time)
         if buf[-1] == 'L':
-            buf = buf[:-1] # strip trailing L
+            buf = buf[:-1]  # strip trailing L
         buflist.append(buf)
         if self._hasChange:
             self._hasChange = 0
@@ -169,7 +178,7 @@ class Cosimulation(object):
                     v += (1 << s._nrbits)
                 buf = hex(v)[2:]
                 if buf[-1] == 'L':
-                    buf = buf[:-1] # strip trailing L
+                    buf = buf[:-1]  # strip trailing L
                 buflist.append(buf)
         os.write(self._wf, to_bytes(" ".join(buflist)))
         self._getMode = 1
@@ -179,7 +188,3 @@ class Cosimulation(object):
         while 1:
             yield sigs
             self._hasChange = 1
-            
-    def __del__(self):
-        """ Clear flag when this object destroyed - to suite unittest. """
-        _simulator._cosim = 0

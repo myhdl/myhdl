@@ -3,6 +3,7 @@ import os
 path = os.path
 from random import randrange
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify, analyze
 from myhdl import ConversionError
@@ -33,7 +34,7 @@ def LoopBench(LoopTest):
         for i in range(100):
             a.next = data[i]
             yield delay(10)
-            print z
+            print(z)
 
     return stimulus, looptest_inst
       

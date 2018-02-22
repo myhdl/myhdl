@@ -1,0 +1,131 @@
+
+Test: timer
+=====
+python
+------
+real 323.20
+user 322.52
+sys 0.43
+
+pypy
+----
+real 35.33
+user 35.27
+sys 0.03
+
+icarus
+------
+real 52.79
+user 52.75
+sys 0.00
+
+ghdl
+----
+real 28.70
+user 28.68
+sys 0.00
+
+Test: lfsr24
+=====
+python
+------
+real 469.81
+user 469.31
+sys 0.15
+
+pypy
+----
+real 38.13
+user 38.08
+sys 0.02
+
+icarus
+------
+real 39.30
+user 39.27
+sys 0.00
+
+ghdl
+----
+real 19.33
+user 19.31
+sys 0.00
+
+Test: randgen
+=====
+python
+------
+real 266.29
+user 266.06
+sys 0.02
+
+pypy
+----
+real 21.02
+user 20.96
+sys 0.04
+
+icarus
+------
+real 96.36
+user 96.28
+sys 0.00
+
+ghdl
+----
+real 6.26
+user 6.25
+sys 0.00
+
+Test: longdiv
+=====
+python
+------
+real 285.33
+user 285.10
+sys 0.01
+
+pypy
+----
+real 27.13
+user 27.06
+sys 0.04
+
+icarus
+------
+real 24.76
+user 24.74
+sys 0.00
+
+ghdl
+----
+real 40.14
+user 40.11
+sys 0.00
+
+Test: findmax
+=====
+python
+------
+real 226.55
+user 226.37
+sys 0.00
+
+pypy
+----
+real 18.97
+user 18.93
+sys 0.02
+
+icarus
+------
+real 27.61
+user 27.58
+sys 0.00
+
+ghdl
+----
+real 372.73
+user 372.44
+sys 0.00
+

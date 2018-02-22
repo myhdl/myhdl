@@ -23,14 +23,11 @@
 from __future__ import absolute_import
 
 
-import inspect
 import ast
 
-import myhdl
-from myhdl import *
 from myhdl import ConversionError
-from myhdl._util import _flatten
 from myhdl._compat import PY2
+
 
 class _error(object):
     FirstArgType = "first argument should be a classic function"
@@ -55,15 +52,15 @@ class _error(object):
     ReturnNrBitsMismatch = "Returned nr of bits mismatch"
     ReturnIntbvBitWidth = "Returned intbv instance should have bit width"
     ReturnTypeInfer = "Can't infer return type"
-    ShadowingSignal = "Port is shadowed by internal signal"
+    ShadowingSignal = "Port is not used or shadowed by internal signal"
     ShadowingVar = "Variable has same name as a hierarchical Signal"
     FreeVarTypeError = "Free variable should be a Signal or an int"
     ExtraArguments = "Extra positional or named arguments are not supported"
     UnsupportedYield = "Unsupported yield statement"
     UnsupportedListComp = \
-    "Unsupported list comprehension form: should be [intbv()[n:] for i in range(m)]"
+        "Unsupported list comprehension form: should be [intbv()[n:] for i in range(m)]"
     ListElementAssign = \
-     "Can't assign to list element; use slice assignment to change its value"
+        "Can't assign to list element; use slice assignment to change its value"
     NotASignal = "Non-local object should be a Signal"
     UnsupportedType = "Object type is not supported in this context"
     InconsistentType = "Signal elements should have the same base type"
@@ -78,40 +75,42 @@ class _error(object):
 
 class _access(object):
     INPUT, OUTPUT, INOUT, UNKNOWN = range(4)
-    
+
+
 class _kind(object):
     NORMAL, DECLARATION, ALWAYS, INITIAL, ALWAYS_DECO, \
-    ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_SEQ, \
-    TASK, REG \
-    = range(10)
+        ALWAYS_COMB, SIMPLE_ALWAYS_COMB, ALWAYS_SEQ, \
+        TASK, REG \
+        = range(10)
+
 
 class _context(object):
     BOOLEAN, YIELD, PRINT, SIGNED, UNKNOWN = range(5)
 
-    
+
 class _ConversionMixin(object):
-    
-#     def getLineNo(self, node):
-#         lineno = node.lineno
-#         if lineno is None:
-#             for n in node.getChildNodes():
-#                 if n.lineno is not None:
-#                     lineno = n.lineno
-#                     break
-#         lineno = lineno or 0
-#         return lineno
+
+    #     def getLineNo(self, node):
+    #         lineno = node.lineno
+    #         if lineno is None:
+    #             for n in node.getChildNodes():
+    #                 if n.lineno is not None:
+    #                     lineno = n.lineno
+    #                     break
+    #         lineno = lineno or 0
+    #         return lineno
 
     def getLineNo(self, node):
         lineno = 0
         if isinstance(node, (ast.stmt, ast.expr)):
             lineno = node.lineno
         return lineno
-    
+
     def getObj(self, node):
         if hasattr(node, 'obj'):
             return node.obj
         return None
-    
+
     def getTarget(self, node):
         if hasattr(node, 'target'):
             return node.target
@@ -141,11 +140,11 @@ class _ConversionMixin(object):
         val = eval(c, self.tree.symdict, self.tree.vardict)
         # val = eval(_unparse(node), self.tree.symdict, self.tree.vardict)
         return val
-    
+
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
         info = "in file %s, line %s:\n    " % \
-              (self.tree.sourcefile, self.tree.lineoffset+lineno)
+            (self.tree.sourcefile, self.tree.lineoffset + lineno)
         raise ConversionError(kind, msg, info)
 
     def require(self, node, test, msg=""):
@@ -161,30 +160,37 @@ class _ConversionMixin(object):
         for n in nodes:
             self.visit(n)
 
-            
 
 def _LabelGenerator():
     i = 1
     while 1:
         yield "MYHDL%s" % i
         i += 1
-        
+
 _genLabel = _LabelGenerator()
 
+
 class _Label(object):
+
     def __init__(self, name):
         self.name = next(_genLabel) + '_' + name
         self.isActive = False
+
     def __str__(self):
         return str(self.name)
 
 # this can be made more sophisticated to deal with existing suffixes
 # also, may require reset facility
+
+
 class _UniqueSuffixGenerator(object):
+
     def __init__(self):
         self.i = 0
+
     def reset(self):
         self.i = 0
+
     def next(self):
         self.i += 1
         return "_%s" % self.i
@@ -203,13 +209,15 @@ def _isConstant(tree, symdict):
             return False
     return True
 
+
 class _namesVisitor(ast.NodeVisitor):
-    
+
     def __init__(self):
         self.names = []
 
     def visit_Name(self, node):
         self.names.append(node.id)
+
 
 def _get_argnames(node):
     if PY2:

@@ -1,35 +1,27 @@
 # http://docs.travis-ci.com/user/workers/container-based-infrastructure/
-sudo: false
+sudo: required
+dist: trusty
 
 language: python
 python:
-  - "2.6"
   - "2.7"
   - "pypy"
   - "3.4"
-
-addons:
-  apt:
-    sources:
-      - pgavin-ghdl
-    packages:
-      - iverilog
-      - ghdl
+  - "3.5"
+  - "3.6"
 
 install:
   - pip install .
 
 env:
   - CI_TARGET=core
-  - CI_TARGET=icarus
+  - CI_TARGET=iverilog
   - CI_TARGET=ghdl
-  - CI_TARGET=bugs
 
-matrix:
-  allow_failures:
-    - python: "3.4"
+before_script:
+  - ./scripts/ci_deps.sh
 
-script: ./ci.sh
+script: ./scripts/ci.sh
 
 notifications:
   email: false

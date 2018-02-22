@@ -1,9 +1,0 @@
-
-Test: timer
-=====
-pypy
-----
-Command exited with non-zero status 1
-real 32.51
-user 29.72
-sys 0.10

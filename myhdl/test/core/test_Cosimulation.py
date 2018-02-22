@@ -20,23 +20,27 @@
 """ Run unit tests for Cosimulation """
 from __future__ import absolute_import
 
-
-import sys
+import gc
 import os
-import errno
-import unittest
-from unittest import TestCase
 import random
-from random import randrange
-random.seed(1) # random, but deterministic
+import sys
+
+if sys.platform == "win32":
+    import msvcrt
+
+from myhdl import Signal
+from myhdl._compat import to_bytes
+from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
+
+if __name__ != '__main__':
+    from helpers import raises_kind
+
+random.seed(1)  # random, but deterministic
 
 MAXLINE = 4096
 
-from myhdl import Signal
 
-from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
-
-exe = "python test_Cosimulation.py CosimulationTest"
+exe = "python {0} ".format(os.path.abspath(__file__))
 
 fromSignames = ['a', 'bb', 'ccc']
 fromSizes = [1, 11, 63]
@@ -54,215 +58,190 @@ toXVals = ["X00", "FZ3", "34XZ", "56U"]
 allSigs = fromSigs.copy()
 allSigs.update(toSigs)
 
-class CosimulationTest(TestCase):
-    
-    def testWrongExe(self):
-        try:
-            Cosimulation("bla -x 45")
-        except CosimulationError as e:
-            self.assertTrue(e.kind in(_error.OSError, _error.SimulationEnd))
-        else:
-            self.fail()
 
-    def testNotUnique(self):
-        cosim1 = Cosimulation(exe + ".cosimNotUnique", **allSigs)
-        try:
-            Cosimulation(exe + ".cosimNotUnique", **allSigs)
-        except CosimulationError as e:
-            self.assertEqual(e.kind, _error.MultipleCosim)
-        else:
-            self.fail()
-
-    def cosimNotUnique(self):
+def wtrf():
+    if sys.platform != "win32":
         wt = int(os.environ['MYHDL_TO_PIPE'])
         rf = int(os.environ['MYHDL_FROM_PIPE'])
-        os.write(wt, "TO 00 a 1")
-        os.read(rf, MAXLINE)
-        os.write(wt, "FROM 00 d 1")
-        os.read(rf, MAXLINE)
-        os.write(wt, "START")
-        os.read(rf, MAXLINE)
+    else:
+        wt = msvcrt.open_osfhandle(int(os.environ['MYHDL_TO_PIPE']), os.O_APPEND | os.O_TEXT)
+        rf = msvcrt.open_osfhandle(int(os.environ['MYHDL_FROM_PIPE']), os.O_RDONLY | os.O_TEXT)
+
+    return wt, rf
+
+
+class TestCosimulation:
+
+    def setup_method(self, method):
+        gc.collect()
+
+    def testWrongExe(self):
+        with raises_kind(CosimulationError, _error.OSError):
+            Cosimulation('bla -x 45')
 
     def testFromSignals(self):
-        cosim = Cosimulation(exe + ".cosimFromSignals", **allSigs)
-        self.assertEqual(cosim._fromSignames, fromSignames)
-        self.assertEqual(cosim._fromSizes, fromSizes)
+        cosim = Cosimulation(exe + "cosimFromSignals", **allSigs)
+        assert cosim._fromSignames == fromSignames
+        assert cosim._fromSizes == fromSizes
 
-    def cosimFromSignals(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    @staticmethod
+    def cosimFromSignals():
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "TO 0000 a 1")
+        os.write(wt, b"TO 0000 a 1")
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
 
     def testToSignals(self):
-        cosim = Cosimulation(exe + ".cosimToSignals", **toSigs)
-        self.assertEqual(cosim._fromSignames, [])
-        self.assertEqual(cosim._fromSizes, [])
-        self.assertEqual(cosim._toSignames, toSignames)
-        self.assertEqual(cosim._toSizes, toSizes)
+        cosim = Cosimulation(exe + "cosimToSignals", **toSigs)
+        assert cosim._fromSignames == []
+        assert cosim._fromSizes == []
+        assert cosim._toSignames == toSignames
+        assert cosim._toSizes == toSizes
 
-    def cosimToSignals(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    @staticmethod
+    def cosimToSignals():
+        wt, rf = wtrf()
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "FROM 0000")
+        os.write(wt, b"FROM 0000")
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
 
     def testFromToSignals(self):
-        cosim = Cosimulation(exe + ".cosimFromToSignals", **allSigs)
-        self.assertEqual(cosim._fromSignames, fromSignames)
-        self.assertEqual(cosim._fromSizes, fromSizes)
-        self.assertEqual(cosim._toSignames, toSignames)
-        self.assertEqual(cosim._toSizes, toSizes)
+        cosim = Cosimulation(exe + "cosimFromToSignals", **allSigs)
+        assert cosim._fromSignames == fromSignames
+        assert cosim._fromSizes == fromSizes
+        assert cosim._toSignames == toSignames
+        assert cosim._toSizes == toSizes
 
-    def cosimFromToSignals(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    @staticmethod
+    def cosimFromToSignals():
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
-    
-    def testTimeZero(self):
-        try:
-            Cosimulation(exe + ".cosimTimeZero", **allSigs)
-        except CosimulationError as e:
-            self.assertEqual(e.kind, _error.TimeZero)
-        except:
-            self.fail()
 
-    def cosimTimeZero(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    def testTimeZero(self):
+        with raises_kind(CosimulationError, _error.TimeZero):
+            Cosimulation(exe + "cosimTimeZero", **allSigs)
+
+    @staticmethod
+    def cosimTimeZero():
+        wt, rf = wtrf()
         buf = "TO 01 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
     def testNoComm(self):
-        try:
-            Cosimulation(exe + ".cosimNoComm", **allSigs)
-        except CosimulationError as e:
-            self.assertEqual(e.kind, _error.NoCommunication)
-        else:
-            self.fail()
- 
-    def cosimNoComm(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
-        os.write(wt, "FROM 0000")
+        with raises_kind(CosimulationError, _error.NoCommunication):
+            Cosimulation(exe + "cosimNoComm", **allSigs)
+
+    @staticmethod
+    def cosimNoComm():
+        wt, rf = wtrf()
+        os.write(wt, b"FROM 0000")
         os.read(rf, MAXLINE)
-        os.write(wt, "TO 0000")
+        os.write(wt, b"TO 0000")
         os.read(rf, MAXLINE)
-        os.write(wt, "START ")
+        os.write(wt, b"START ")
         os.read(rf, MAXLINE)
 
     def testFromSignalsDupl(self):
-        try:
-            Cosimulation(exe + ".cosimFromSignalsDupl", **allSigs)
-        except CosimulationError as e:
-            self.assertEqual(e.kind, _error.DuplicateSigNames)
-        else:
-            self.fail()
+        with raises_kind(CosimulationError, _error.DuplicateSigNames):
+            Cosimulation(exe + "cosimFromSignalsDupl", **allSigs)
 
-    def cosimFromSignalsDupl(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    @staticmethod
+    def cosimFromSignalsDupl():
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
         buf += "bb 5"
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
     def testToSignalsDupl(self):
-        try:
-            Cosimulation(exe + ".cosimToSignalsDupl", **allSigs)
-        except CosimulationError as e:
-            self.assertEqual(e.kind, _error.DuplicateSigNames)
-        else:
-            self.fail()
- 
-    def cosimToSignalsDupl(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+        with raises_kind(CosimulationError, _error.DuplicateSigNames):
+            Cosimulation(exe + "cosimToSignalsDupl", **allSigs)
+
+    @staticmethod
+    def cosimToSignalsDupl():
+        wt, rf = wtrf()
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
         buf += "fff 6"
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
     def testFromSignalVals(self):
-        cosim = Cosimulation(exe + ".cosimFromSignalVals", **allSigs)
+        cosim = Cosimulation(exe + "cosimFromSignalVals", **allSigs)
         os.read(cosim._rt, MAXLINE)
         cosim._hasChange = 1
         cosim._put(0)
 
-    def cosimFromSignalVals(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    @staticmethod
+    def cosimFromSignalVals():
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "TO 0000 a 1")
+        os.write(wt, b"TO 0000 a 1")
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
-        os.write(wt, "DUMMY")
+        os.write(wt, b"DUMMY")
         s = os.read(rf, MAXLINE)
-        vals = [long(e, 16) for e in s.split()[1:]]
-        self.assertEqual(vals, fromVals)
+        vals = [int(e, 16) for e in s.split()[1:]]
+        assert vals == fromVals
 
     def testToSignalVals(self):
-        cosim = Cosimulation(exe + ".cosimToSignalVals", **allSigs)
+        cosim = Cosimulation(exe + "cosimToSignalVals", **allSigs)
         for n in toSignames:
-            self.assertEqual(toSigs[n].next, 0)
+            assert toSigs[n].next == 0
         cosim._get()
         for n, v in zip(toSignames, toVals):
-            self.assertEqual(toSigs[n].next, v)
-        os.write(cosim._wf, "DUMMY")
+            assert toSigs[n].next == v
+        os.write(cosim._wf, b"DUMMY")
         cosim._getMode = 1
         cosim._get()
         for n in toSignames:
-            self.assertEqual(toSigs[n].next, 0)
-        
+            assert toSigs[n].next == 0
 
-    def cosimToSignalVals(self):
-        wt = int(os.environ['MYHDL_TO_PIPE'])
-        rf = int(os.environ['MYHDL_FROM_PIPE'])
+    @staticmethod
+    def cosimToSignalVals():
+        wt, rf = wtrf()
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
-        os.write(wt, "START")
+        os.write(wt, b"START")
         os.read(rf, MAXLINE)
         buf = "0 "
         for s, v in zip(toSignames, toVals):
@@ -270,7 +249,7 @@ class CosimulationTest(TestCase):
             buf += " "
             buf += hex(v)[2:]
             buf += " "
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
         os.read(rf, MAXLINE)
         buf = "0 "
         for s, v in zip(toSignames, toXVals):
@@ -278,11 +257,7 @@ class CosimulationTest(TestCase):
             buf += " "
             buf += v
             buf += " "
-        os.write(wt, buf)
+        os.write(wt, to_bytes(buf))
 
-def suite():
-    return unittest.makeSuite(CosimulationTest, 'test')
-        
 if __name__ == "__main__":
-    unittest.main()
-
+    getattr(TestCosimulation, sys.argv[1])()

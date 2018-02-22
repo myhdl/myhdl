@@ -1,12 +1,14 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 
+@block
 def bench_SliceSignal():
-    
+
     s = Signal(intbv(0)[8:])
     a, b, c = s(7), s(5), s(0)
     d, e, f, g = s(8,5), s(6,3), s(8,0), s(4,3)
-    N = len(s) 
+    N = len(s)
 
     @instance
     def check():
@@ -25,16 +27,17 @@ def bench_SliceSignal():
 
 
 def test_SliceSignal():
-    assert conversion.verify(bench_SliceSignal) == 0
+    assert conversion.verify(bench_SliceSignal()) == 0
 
 
+@block
 def bench_ConcatSignal():
-    
+
     a = Signal(intbv(0)[5:])
     b = Signal(bool(0))
     c = Signal(intbv(0)[3:])
     d = Signal(intbv(0)[4:])
-    
+
     s = ConcatSignal(a, b, c, d)
 
     I_max = 2**len(a)
@@ -56,13 +59,53 @@ def bench_ConcatSignal():
 
     return check
 
-
 def test_ConcatSignal():
-    assert conversion.verify(bench_ConcatSignal) == 0
+    assert conversion.verify(bench_ConcatSignal()) == 0
+
+@block
+def bench_ConcatSignalWithConsts():
+
+    a = Signal(intbv(0)[5:])
+    b = Signal(bool(0))
+    c = Signal(intbv(0)[3:])
+    d = Signal(intbv(0)[4:])
+    e = Signal(intbv(0)[1:])
+
+    c1 = "10"
+    c2 = intbv(3)[3:]
+    c3 = '0'
+    c4 = bool(1)
+    c5 = intbv(42)[8:]  # with leading zeroes
+
+    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
+
+    I_max = 2**len(a)
+    J_max = 2**len(b)
+    K_max = 2**len(c)
+    M_max = 2**len(d)
+    @instance
+    def check():
+        for i in range(I_max):
+            for j in range(J_max):
+                for k in range(K_max):
+                    for m in range(M_max):
+                        for n in range(2**len(e)):
+                            a.next = i
+                            b.next = j
+                            c.next = k
+                            d.next = m
+                            e.next = n
+                            yield delay(10)
+                            print(s)
+
+    return check
 
 
+def test_ConcatSignalWithConsts():
+    assert conversion.verify(bench_ConcatSignalWithConsts()) == 0
 
 
+@block
 def bench_TristateSignal():
     s = TristateSignal(intbv(0)[8:])
     a = s.driver()
@@ -90,21 +133,21 @@ def bench_TristateSignal():
         c.next = None
         yield delay(10)
         #print s
-    
+
     return check
 
 
 def test_TristateSignal():
-    assert conversion.verify(bench_TristateSignal) == 0
+    assert conversion.verify(bench_TristateSignal()) == 0
 
 
-
+@block
 def permute(x, a, mapping):
 
     p = [a(m) for m in mapping]
-    
+
     q = ConcatSignal(*p)
-    
+
     @always_comb
     def assign():
         x.next = q
@@ -112,7 +155,7 @@ def permute(x, a, mapping):
     return assign
 
 
-
+@block
 def bench_permute(conv=False):
 
     x = Signal(intbv(0)[3:])
@@ -120,7 +163,7 @@ def bench_permute(conv=False):
     mapping = (0, 2, 1)
 
     if conv:
-        dut = conv(permute, x, a, mapping)
+        dut = conv(permute(x, a, mapping))
     else:
         dut = permute(x, a, mapping)
 
@@ -138,7 +181,7 @@ def bench_permute(conv=False):
     return dut, stimulus
 
 def test_permute():
-    assert conversion.verify(bench_permute) == 0
+    assert conversion.verify(bench_permute()) == 0
 
 bench_permute(toVHDL)
 bench_permute(toVerilog)

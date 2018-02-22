@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import myhdl
 from myhdl import *
 from random import randrange
 
@@ -40,23 +41,23 @@ def bench_enum():
         a.next = 0xaa
         b.next = 0x55
         yield clock.posedge
-        print 'a=%s b=%s' % (a, b)
+        print('a=%s b=%s' % (a, b))
 
         op.next = bitwise_op.BW_AND
         yield clock.posedge
-        print c
+        print(c)
 
         op.next = bitwise_op.BW_ANDN
         yield clock.posedge
-        print c
+        print(c)
         
         op.next = bitwise_op.BW_OR
         yield clock.posedge
-        print c
+        print(c)
         
         op.next = bitwise_op.BW_XOR
         yield clock.posedge
-        print c
+        print(c)
 
         raise StopSimulation
         

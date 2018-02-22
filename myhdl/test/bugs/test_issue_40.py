@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 #! /usr/bin/env python
 
+import myhdl
 from myhdl import *
 
 def mpegChannel(clk, rst):

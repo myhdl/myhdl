@@ -1,5 +1,5 @@
 all:
-	python test_all.py
+	py.test
 
 clean:
 	- rm *.pyc *~

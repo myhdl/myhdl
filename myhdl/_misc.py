@@ -27,34 +27,35 @@ downrange -- function that returns a downward range
 from __future__ import absolute_import
 
 
-import sys
 import inspect
 
 from myhdl._Cosimulation import Cosimulation
 from myhdl._instance import _Instantiator
-      
+
 def _isGenSeq(obj):
-    if isinstance(obj, (Cosimulation, _Instantiator)):
+    from myhdl._block import _Block
+    if isinstance(obj, (Cosimulation, _Instantiator, _Block)):
         return True
     if not isinstance(obj, (list, tuple, set)):
         return False
-##     if not obj:
-##         return False
+# if not obj:
+# return False
     for e in obj:
         if not _isGenSeq(e):
             return False
     return True
 
-    
+
 def instances():
     f = inspect.currentframe()
     d = inspect.getouterframes(f)[1][0].f_locals
     l = []
     for v in d.values():
-      if _isGenSeq(v):
-         l.append(v)
+        if _isGenSeq(v):
+            l.append(v)
     return l
-    
+
+
 def downrange(start, stop=0, step=1):
     """ Return a downward range. """
-    return range(start-1, stop-1, -step)
+    return range(start - 1, stop - 1, -step)

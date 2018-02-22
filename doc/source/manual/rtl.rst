@@ -31,27 +31,26 @@ Combinatorial logic
 Template
 --------
 
-.. testsetup:: *
-
-   from myhdl import *
-
 
 Combinatorial logic is described with a code pattern as follows::
 
+   from myhdl import block, always_comb
+
+   @block
    def top(<parameters>):
        ...
        @always_comb
-       def combLogic():
+       def comb_logic():
            <functional code>
        ...
-       return combLogic, ...
+       return comb_logic, ...
 
-The :func:`always_comb` decorator describes combinatorial logic.  [#]_. The
-decorated function is a local function that specifies what happens when one of
-the input signals of the logic changes.  The :func:`always_comb` decorator
-infers the input signals automatically. It returns a generator that is sensitive
-to all inputs, and that executes the function whenever an input changes.
-
+The :func:`always_comb` decorator describes combinatorial logic. The name refers
+to a similar construct in SystemVerilog. The decorated function is a local
+function that specifies what happens when one of the input signals of the logic
+changes.  The :func:`always_comb` decorator infers the input signals
+automatically. It returns a generator that is sensitive to all inputs, and that
+executes the function whenever an input changes.
 
 .. _model-comb-ex:
 
@@ -60,76 +59,21 @@ Example
 
 The following is an example of a combinatorial multiplexer
 
+.. include-example:: mux.py
 
-.. testcode:: comb1
-
-   from myhdl import Signal, Simulation, delay, always_comb
-
-   def Mux(z, a, b, sel):
-       """ Multiplexer.
-
-       z -- mux output
-       a, b -- data inputs
-       sel -- control input: select a if asserted, otherwise b
-
-       """
-       
-       @always_comb
-       def muxLogic():
-           if sel == 1:
-               z.next = a
-           else:
-               z.next = b
-
-       return muxLogic
-
-   # Once we've created some signals...
-   z, a, b, sel = [Signal(intbv(0)) for i in range(4)]
-
-   # ...it can be instantiated as follows
-   mux_1 = Mux(z, a, b, sel)
 
 To verify it, we will simulate the logic with some random patterns. The
 ``random`` module in Python's standard library comes in handy for such purposes.
 The function ``randrange(n)`` returns a random natural integer smaller than *n*.
-It is used in the test bench code to produce random input values
+It is used in the test bench code to produce random input values.
 
-.. testcode:: comb1
-   :hide:
+.. include-example:: test_mux.py
 
-   import random
-   random.seed(0xDECAFBAD)
+It is often useful to keep the random values reproducible. This can be
+accomplished by providing a seed value as in the code. The run produces the
+following output:
 
-.. testcode:: comb1
-
-   from random import randrange
-
-   def test():
-   
-       print "z a b sel"
-       for i in range(8):
-           a.next, b.next, sel.next = randrange(8), randrange(8), randrange(2)
-           yield delay(10)
-           print "%s %s %s %s" % (z, a, b, sel)
-   
-   
-   test_1 = test()
-   sim = Simulation(mux_1, test_1).run()   
-
-Because of the randomness, the simulation output varies between runs  [#]_. One
-particular run produced the following output
-
-.. testoutput:: comb1
-
-   z a b sel
-   6 6 0 1
-   7 7 2 1
-   7 6 7 0
-   0 3 0 0
-   1 1 1 1
-   1 5 1 0
-   2 3 2 0
-   1 1 0 1
+.. run-example:: test_mux.py
 
 .. _model-seq:
 
@@ -137,7 +81,6 @@ Sequential logic
 ================
 
 .. index:: single: sequential logic
-
 
 .. _model-seq-templ:
 
@@ -148,13 +91,16 @@ Sequential RTL models are sensitive to a clock edge. In addition, they may be
 sensitive to a reset signal.  The :func:`always_seq` decorator supports this
 model directly::
 
+   from myhdl import block, always_seq
+
+   @instance
    def top(<parameters>, clock, ..., reset, ...):
        ...
        @always_seq(clock.posedge, reset=reset)
-       def seqLogic():
+       def seq_logic():
            <functional code>
        ...
-       return seqLogic, ...
+       return seq_logic, ...
 
 The :func:`always_seq` decorator automatically infers the reset
 functionality.  It detects which signals need to be reset, and uses their
@@ -175,104 +121,20 @@ Example
 -------
 
 The following code is a description of an incrementer with enable, and an
-asynchronous reset. 
+asynchronous reset.
 
-.. testcode:: seq1
-
-   from myhdl import *
-  
-   ACTIVE_LOW, INACTIVE_HIGH = 0, 1
-
-   def Inc(count, enable, clock, reset, n):
-
-       """ Incrementer with enable.
-
-       count -- output
-       enable -- control input, increment when 1
-       clock -- clock input
-       reset -- asynchronous reset input
-       n -- counter max value
-
-       """
-
-       @always_seq(clock.posedge, reset=reset)
-       def incLogic():
-           if enable:
-               count.next = (count + 1) % n
-
-       return incLogic
-
-
+.. include-example:: inc.py
 
 For the test bench, we will use an independent clock generator, stimulus
 generator, and monitor. After applying enough stimulus patterns, we can raise
 the :func:`StopSimulation()` exception to stop the simulation run. The test bench for
 a small incrementer and a small number of patterns is a follows
 
-.. testcode:: seq1
-   :hide:
-
-   import random
-   random.seed(0xDECAFBAD)
-
-.. testcode:: seq1
-
-   from random import randrange
-
-   def testbench():
-       count, enable, clock = [Signal(intbv(0)) for i in range(3)]
-       reset = ResetSignal(0, active=ACTIVE_LOW, async=True)
-
-       inc_1 = Inc(count, enable, clock, reset, n=4)
-
-       HALF_PERIOD = delay(10)
-
-       @always(HALF_PERIOD)
-       def clockGen():
-           clock.next = not clock
-
-       @instance
-       def stimulus():
-           reset.next = ACTIVE_LOW
-           yield clock.negedge
-           reset.next = INACTIVE_HIGH
-           for i in range(12):
-               enable.next = min(1, randrange(3))
-               yield clock.negedge
-           raise StopSimulation
-
-       @instance
-       def monitor():
-           print "enable  count"
-           yield reset.posedge
-           while 1:
-               yield clock.posedge
-               yield delay(1)
-               print "   %s      %s" % (enable, count)
-
-       return clockGen, stimulus, inc_1, monitor
-
-
-   tb = testbench()
-   Simulation(tb).run()
+.. include-example:: test_inc.py
 
 The simulation produces the following output
 
-.. testoutput:: seq1
-
-   enable  count
-      1      1
-      0      1
-      1      2
-      1      3
-      0      3
-      1      0
-      1      1
-      1      2
-      1      3
-      1      0
-      0      0
-      1      1
+.. run-example:: test_inc.py
 
 .. _mode-seq-templ-alt:
 
@@ -283,14 +145,19 @@ The template with the :func:`always_seq` decorator is convenient
 as it infers the reset functionality automatically. Alternatively,
 you can use a more explicit template as follows::
 
+    from myhdl import block, always
+
+    @block
     def top(<parameters>, clock, ..., reset, ...):
         ...
         @always(clock.posedge, reset.negedge)
-        def seqLogic():
+        def seq_logic():
            if not reset:
                <reset code>
            else:
                <functional code>
+
+        return seq_logic,...
 
 With this template, the reset values have to be specified
 explicitly.
@@ -353,55 +220,7 @@ When the ``syncFlag`` is confirmed on the expected position, the FSM declares
 ``SYNC``, otherwise it falls back to the ``SEARCH`` state.  This FSM can be
 coded as follows
 
-.. testcode:: sm1
-
-   from myhdl import *
-
-   ACTIVE_LOW = 0
-   FRAME_SIZE = 8
-   t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
-
-   def FramerCtrl(SOF, state, syncFlag, clk, reset):
-
-       """ Framing control FSM.
-
-       SOF -- start-of-frame output bit
-       state -- FramerState output
-       syncFlag -- sync pattern found indication input
-       clk -- clock input
-       reset_n -- active low reset
-
-       """
-
-       index = Signal(0) # position in frame
-
-       @always_seq(clk.posedge, reset=reset)
-       def FSM():
-           index.next = (index + 1) % FRAME_SIZE
-           SOF.next = 0
-
-           if state == t_State.SEARCH:
-               index.next = 1
-               if syncFlag:
-                   state.next = t_State.CONFIRM
-
-           elif state == t_State.CONFIRM:
-               if index == 0:
-                   if syncFlag:
-                       state.next = t_State.SYNC
-                   else:
-                       state.next = t_State.SEARCH
-
-           elif state == t_State.SYNC:
-               if index == 0:
-                   if not syncFlag:
-                       state.next = t_State.SEARCH
-               SOF.next = (index == FRAME_SIZE-1)
-
-           else:
-               raise ValueError("Undefined state")
-
-       return FSM
+.. include-example:: fsm.py
 
 .. index:: single: waveform viewing
 
@@ -410,7 +229,7 @@ waveform viewing. During simulation, signal changes can be written to a VCD
 output file.  The VCD file can then be loaded and viewed in a waveform viewer
 tool such as :program:`gtkwave`.
 
-.. % 
+.. %
 
 The user interface of this feature consists of a single function,
 :func:`traceSignals`.  To explain how it works, recall that in MyHDL, an
@@ -433,87 +252,8 @@ call.
 A small test bench for our framing controller example, with signal tracing
 enabled, is shown below:
 
-.. testcode:: sm1
+.. include-example:: test_fsm.py
 
-   def testbench():
-
-       SOF = Signal(bool(0))
-       syncFlag = Signal(bool(0))
-       clk = Signal(bool(0))
-       reset = ResetSignal(1, active=ACTIVE_LOW, async=True)
-       state = Signal(t_State.SEARCH)
-
-       framectrl = FramerCtrl(SOF, state, syncFlag, clk, reset)
-
-       @always(delay(10))
-       def clkgen():
-           clk.next = not clk
-
-       @instance
-       def stimulus():
-           for i in range(3):
-               yield clk.posedge
-           for n in (12, 8, 8, 4):
-               syncFlag.next = 1
-               yield clk.posedge
-               syncFlag.next = 0
-               for i in range(n-1):
-                   yield clk.posedge
-           raise StopSimulation
-
-       @always_seq(clk.posedge, reset=reset)
-       def output_printer():
-           print syncFlag, SOF, state
-       
-       return framectrl, clkgen, stimulus, output_printer
-
-   tb_fsm = traceSignals(testbench)
-   sim = Simulation(tb_fsm)
-   sim.run()
-
-.. testoutput:: sm1
-   :hide:
-   
-   False False SEARCH
-   False False SEARCH
-   False False SEARCH
-   1 False SEARCH
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False SEARCH
-   0 False SEARCH
-   0 False SEARCH
-   1 False SEARCH
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   0 False CONFIRM
-   1 False CONFIRM
-   0 False SYNC
-   0 False SYNC
-   0 False SYNC
-   0 False SYNC
-   0 False SYNC
-   0 False SYNC
-   0 False SYNC
-   1 True SYNC
-   0 False SYNC
-   0 False SYNC
-
-.. testcleanup:: sm1
-   
-   import os
-   os.remove('testbench.vcd')
-   
 When we run the test bench, it generates a VCD file called
 :file:`testbench.vcd`. When we load this file into :program:`gtkwave`, we can
 view the waveforms:
@@ -533,14 +273,3 @@ string representation, as returned by the standard :func:`str` function.
    Support for literal string representations is not part of the VCD standard. It
    is specific to :program:`gtkwave`. To generate a standard VCD file, you need to
    use signals with a defined bit width only.
-
-
-.. rubric:: Footnotes
-
-.. [#] The name :func:`always_comb` refers to a construct with similar semantics in
-   SystemVerilog.
-
-.. [#] It also possible to have a reproducible random output, by explicitly providing a
-   seed value. See the documentation of the ``random`` module.
-
-

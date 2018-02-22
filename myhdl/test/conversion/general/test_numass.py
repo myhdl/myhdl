@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 from random import randrange
 
+import myhdl
 from myhdl import *
 
 
+@block
 def NumassBench():
 
     p = Signal(intbv(1)[8:])
@@ -50,4 +52,4 @@ def NumassBench():
 
 
 def test_numass():
-    assert conversion.verify(NumassBench) == 0
+    assert conversion.verify(NumassBench()) == 0

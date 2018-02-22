@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 from bin2gray2 import bin2gray

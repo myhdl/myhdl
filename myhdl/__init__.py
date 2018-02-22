@@ -1,7 +1,7 @@
 #  This file is part of the myhdl library, a Python package for using
 #  Python as a Hardware Description Language.
 #
-#  Copyright (C) 2003-2013 Jan Decaluwe
+#  Copyright (C) 2003-2015 Jan Decaluwe
 #
 #  The myhdl library is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU Lesser General Public License as
@@ -21,7 +21,7 @@
 
 This module provides the following myhdl objects:
 Simulation -- simulation class
-StopStimulation -- exception that stops a simulation
+StopSimulation -- exception that stops a simulation
 now -- function that returns the current time
 Signal -- factory function to model hardware signals
 SignalType -- Signal base class
@@ -52,65 +52,97 @@ toVerilog -- function that converts a design to Verilog
 from __future__ import absolute_import
 from __future__ import print_function
 
-__version__ = "0.9.dev0"
+__version__ = "1.0dev"
 
-import sys
-import warnings
 
 class StopSimulation(Exception):
     """ Basic exception to stop a Simulation """
     pass
 
+
 class _SuspendSimulation(Exception):
     """ Basic exception to suspend a Simulation """
     pass
 
+
 class Error(Exception):
+
     def __init__(self, kind, msg="", info=""):
         self.kind = kind
         self.msg = msg
         self.info = info
+
     def __str__(self):
         s = "%s%s" % (self.info, self.kind)
         if self.msg:
             s += ": %s" % self.msg
         return s
 
+
 class AlwaysError(Error):
     pass
+
+
 class AlwaysCombError(Error):
     pass
+
+
 class InstanceError(Error):
     pass
+
+
+class BlockError(Error):
+    pass
+
+
+class BlockInstanceError(Error):
+    pass
+
+
 class CosimulationError(Error):
     pass
+
+
 class ExtractHierarchyError(Error):
     pass
+
+
 class SimulationError(Error):
     pass
-class ToVerilogError(Error):
-    pass
+
+
 class TraceSignalsError(Error):
     pass
+
+
 class ConversionError(Error):
     pass
+
+
 class ToVerilogError(ConversionError):
     pass
+
+
 class ToVHDLError(ConversionError):
     pass
 
+
 class ConversionWarning(UserWarning):
     pass
+
+
 class ToVerilogWarning(ConversionWarning):
     pass
+
+
 class ToVHDLWarning(ConversionWarning):
     pass
 # warnings.filterwarnings('always', r".*", ToVerilogWarning)
 
-def showwarning(message, category, filename, lineno, *args):
-    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
+# def showwarning(message, category, filename, lineno, *args):
+#    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
 
-warnings.showwarning = showwarning
+#warnings.showwarning = showwarning
 
 
 from ._bin import bin
@@ -130,6 +162,7 @@ from ._always_comb import always_comb
 from ._always_seq import always_seq, ResetSignal
 from ._always import always
 from ._instance import instance
+from ._block import block
 from ._enum import enum, EnumType, EnumItemType
 from ._traceSignals import traceSignals
 
@@ -159,6 +192,7 @@ __all__ = ["bin",
            "Simulation",
            "instances",
            "instance",
+           "block",
            "always_comb",
            "always_seq",
            "ResetSignal",
@@ -172,5 +206,3 @@ __all__ = ["bin",
            "conversion",
            "Tristate"
            ]
-
-

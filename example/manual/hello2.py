@@ -1,32 +1,20 @@
-from myhdl import Signal, delay, always, now, Simulation
+from myhdl import block, Signal, delay, always, now
 
-def ClkDriver(clk):
+@block
+def HelloWorld():
 
-    halfPeriod = delay(10)
+    clk = Signal(0)
 
-    @always(halfPeriod)
-    def driveClk():
+    @always(delay(10))
+    def drive_clk():
         clk.next = not clk
 
-    return driveClk
-
-
-def HelloWorld(clk):
-    
     @always(clk.posedge)
-    def sayHello():
-        print "%s Hello World!" % now()
+    def say_hello():
+        print("%s Hello World!" % now())
 
-    return sayHello
+    return drive_clk, say_hello
 
 
-
-def main():
-    clk = Signal(0)
-    clkdriver_inst = ClkDriver(clk)
-    hello_inst = HelloWorld(clk)
-    sim = Simulation(clkdriver_inst, hello_inst)
-    sim.run(50)
-
-if __name__ == '__main__':
-    main()
+inst = HelloWorld()
+inst.run_sim(50)

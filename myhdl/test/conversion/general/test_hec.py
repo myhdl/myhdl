@@ -3,8 +3,8 @@ import os
 path = os.path
 from random import randrange
 
+import myhdl
 from myhdl import *
-from myhdl.conversion import verify
 
 COSET = 0x55
 
@@ -25,7 +25,7 @@ def calculateHecRef(header):
 
 def calculateHecFunc(header):
     """ Return hec for an ATM header.
-    
+
     Translatable version.
     The hec polynomial is 1 + x + x**2 + x**8.
     """
@@ -42,7 +42,7 @@ def calculateHecFunc(header):
 
 def calculateHecTask(hec, header):
     """ Calculate hec for an ATM header.
-    
+
     Translatable version.
     The hec polynomial is 1 + x + x**2 + x**8.
     """
@@ -57,6 +57,7 @@ def calculateHecTask(hec, header):
     h ^= COSET
     hec[:] = h
 
+@block
 def HecCalculatorPlain(hec, header):
     """ Hec calculation module.
 
@@ -98,7 +99,7 @@ def HecCalculatorTask(hec, header):
         yield header
         calculateHecTask(h, header)
         hec.next = h
-        
+
 def HecCalculatorTask2(hec, header):
     """ Hec calculation module.
 
@@ -110,8 +111,7 @@ def HecCalculatorTask2(hec, header):
         calculateHecTask(header=header, hec=h)
         hec.next = h
 
-         
-        
+
 def HecCalculator_v(name, hec, header):
     return setupCosimulation(**locals())
 
@@ -125,7 +125,7 @@ headers = [ 0x00000000,
 headers.extend([randrange(2**32-1) for i in range(10)])
 headers = tuple(headers)
 
-
+@block
 def HecBench(HecCalculator):
 
     hec = Signal(intbv(0)[8:])
@@ -160,4 +160,4 @@ def HecBench(HecCalculator):
 ##     Simulation(sim).run()
 
 def testPlain():
-    assert verify(HecBench, HecCalculatorPlain) == 0
+    assert HecBench(HecCalculatorPlain).verify_convert() == 0

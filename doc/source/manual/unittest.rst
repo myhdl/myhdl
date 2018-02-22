@@ -19,20 +19,19 @@ to hardware design.
 
 .. index:: single: extreme programming
 
-One software design approach that gets a lot of attention recently is *Extreme
-Programming* (XP). It is a fascinating set of techniques and guidelines that
-often seems to go against the conventional wisdom. On other occasions, XP just
-seems to emphasize the common sense, which doesn't always coincide with common
-practice. For example, XP stresses the importance of normal workweeks, if we are
-to have the fresh mind needed for good software development.
+One software design approach that deserves attention is *Extreme Programming*
+(XP). It is a fascinating set of techniques and guidelines that often seems to
+go against the conventional wisdom. On other occasions, XP just seems to
+emphasize the common sense, which doesn't always coincide with common practice.
+For example, XP stresses the importance of normal workweeks, if we are to have
+the fresh mind needed for good software development.
 
-.. % 
+.. %
 
 It is not my intention nor qualification to present a tutorial on Extreme
 Programming. Instead, in this section I will highlight one XP concept which I
 think is very relevant to hardware design: the importance and methodology of
 unit testing.
-
 
 .. _unittest-why:
 
@@ -81,7 +80,7 @@ of :dfn:`codewords`, where a codeword is a bit string. A code of order ``n`` has
 
 A well-known characteristic is the one that Gray codes are all about:
 
-Consecutive codewords in a Gray code should differ in a single bit.
+*Consecutive codewords in a Gray code should differ in a single bit.*
 
 Is this sufficient? Not quite: suppose for example that an implementation
 returns the lsb of each binary input. This would comply with the requirement,
@@ -122,83 +121,39 @@ to be tests of the test case.
 We will define a test case for the Gray code properties, and then write a test
 for each of the requirements. The outline of the test case class is as follows::
 
-   from unittest import TestCase
+   import unittest
 
-   class TestGrayCodeProperties(TestCase):
+   class TestGrayCodeProperties(unittest.TestCase):
 
        def testSingleBitChange(self):
-        """ Check that only one bit changes in successive codewords """
+        """Check that only one bit changes in successive codewords."""
         ....
 
 
        def testUniqueCodeWords(self):
-           """ Check that all codewords occur exactly once """
+       """Check that all codewords occur exactly once."""
        ....
 
 Each method will be a small test bench that tests a single requirement. To write
 the tests, we don't need an implementation of the Gray encoder, but we do need
 the interface of the design. We can specify this by a dummy implementation, as
-follows::
+follows:
 
-   def bin2gray(B, G, width):
-       ### NOT IMPLEMENTED YET! ###
-       yield None
+.. include-example:: bin2gray_dummy.py
 
-For the first requirement, we will write a test bench that applies all
-consecutive input numbers, and compares the current output with the previous one
-for each input. Then we check that the difference is a single bit. We will test
-all Gray codes up to a certain order ``MAX_WIDTH``. ::
+For the first requirement, we will test all  consecutive input numbers, and
+compare the current output with the previous one For each input, we check that
+the difference is exactly a single bit. For the second requirement, we will test
+all input numbers and put the result in a list. The requirement implies that if
+we sort the result list, we should get a range of numbers. For both
+requirements, we will test all Gray codes up to a certain order ``MAX_WIDTH``.
+The test code looks as follows:
 
-   def testSingleBitChange(self):
-       """ Check that only one bit changes in successive codewords """
-
-       def test(B, G, width):
-           B.next = intbv(0)
-           yield delay(10)
-           for i in range(1, 2**width):
-               G_Z.next = G
-               B.next = intbv(i)
-               yield delay(10)
-               diffcode = bin(G ^ G_Z)
-               self.assertEqual(diffcode.count('1'), 1)
-
-       for width in range(1, MAX_WIDTH):
-           B = Signal(intbv(-1))
-           G = Signal(intbv(0))
-           G_Z = Signal(intbv(0))
-           dut = bin2gray(B, G, width)
-           check = test(B, G, width)
-           sim = Simulation(dut, check)
-           sim.run(quiet=1)
+.. include-example:: test_gray_properties.py
 
 Note how the actual check is performed by a ``self.assertEqual`` method, defined
-by the ``unittest.TestCase`` class.
-
-Similarly, we write a test bench for the second requirement. Again, we simulate
-all numbers, and put the result in a list. The requirement implies that if we
-sort the result list, we should get a range of numbers::
-
-   def testUniqueCodeWords(self):
-       """ Check that all codewords occur exactly once """
-
-       def test(B, G, width):
-           actual = []
-           for i in range(2**width):
-               B.next = intbv(i)
-               yield delay(10)
-               actual.append(int(G))
-           actual.sort()
-           expected = range(2**width)
-           self.assertEqual(actual, expected)
-
-       for width in range(1, MAX_WIDTH):
-           B = Signal(intbv(-1))
-           G = Signal(intbv(0))
-           dut = bin2gray(B, G, width)
-           check = test(B, G, width)
-           sim = Simulation(dut, check)
-           sim.run(quiet=1)
-
+by the ``unittest.TestCase`` class. Also, we have factored out running the
+tests for all Gray codes in a separate method :func:`runTests`.
 
 .. _unittest-impl:
 
@@ -216,66 +171,70 @@ a call to its ``main`` method at the end of the test module::
 
 Let's run the test using the dummy Gray encoder shown earlier::
 
-   % python test_gray.py -v
-   Check that only one bit changes in successive codewords ... FAIL
-   Check that all codewords occur exactly once ... FAIL
-   <trace backs not shown>
+  % python test_gray_properties.py
+  testSingleBitChange (__main__.TestGrayCodeProperties)
+  Check that only one bit changes in successive codewords. ... ERROR
+  testUniqueCodeWords (__main__.TestGrayCodeProperties)
+  Check that all codewords occur exactly once. ... ERROR
 
 As expected, this fails completely. Let us try an incorrect implementation, that
-puts the lsb of in the input on the output::
+puts the lsb of in the input on the output:
 
-   def bin2gray(B, G, width):
-       ### INCORRECT - DEMO PURPOSE ONLY! ###
-
-       @always_comb
-       def logic():
-           G.next = B[0]
-
-       return logic
+.. include-example:: bin2gray_wrong.py
 
 Running the test produces::
 
-   % python test_gray.py -v
-   Check that only one bit changes in successive codewords ... ok
-   Check that all codewords occur exactly once ... FAIL
+  python test_gray_properties.py
+  testSingleBitChange (__main__.TestGrayCodeProperties)
+  Check that only one bit changes in successive codewords. ... ok
+  testUniqueCodeWords (__main__.TestGrayCodeProperties)
+  Check that all codewords occur exactly once. ... FAIL
 
-   ======================================================================
-   FAIL: Check that all codewords occur exactly once
-   ----------------------------------------------------------------------
-   Traceback (most recent call last):
-     File "test_gray.py", line 109, in testUniqueCodeWords
-       sim.run(quiet=1)
-   ...
-     File "test_gray.py", line 104, in test
-       self.assertEqual(actual, expected)
-     File "/usr/local/lib/python2.2/unittest.py", line 286, in failUnlessEqual
-       raise self.failureException, \
-   AssertionError: [0, 0, 1, 1] != [0, 1, 2, 3]
+  ======================================================================
+  FAIL: testUniqueCodeWords (__main__.TestGrayCodeProperties)
+  Check that all codewords occur exactly once.
+  ----------------------------------------------------------------------
+  Traceback (most recent call last):
+    File "test_gray_properties.py", line 42, in testUniqueCodeWords
+      self.runTests(test)
+    File "test_gray_properties.py", line 53, in runTests
+      sim.run(quiet=1)
+    File "/home/jand/dev/myhdl/myhdl/_Simulation.py", line 154, in run
+      waiter.next(waiters, actives, exc)
+    File "/home/jand/dev/myhdl/myhdl/_Waiter.py", line 127, in next
+      clause = next(self.generator)
+    File "test_gray_properties.py", line 40, in test
+      self.assertEqual(actual, expected)
+  AssertionError: Lists differ: [0, 0, 1, 1] != [0, 1, 2, 3]
 
-   ----------------------------------------------------------------------
-   Ran 2 tests in 0.785s
+  First differing element 1:
+  0
+  1
+
+  - [0, 0, 1, 1]
+  + [0, 1, 2, 3]
+
+  ----------------------------------------------------------------------
+  Ran 2 tests in 0.083s
+
+  FAILED (failures=1)
 
 Now the test passes the first requirement, as expected, but fails the second
 one. After the test feedback, a full traceback is shown that can help to debug
 the test output.
 
-Finally, if we use the correct implementation as in section
-:ref:`hwtypes-indexing`, the output is::
+Finally, we use a correct implementation:
 
-   % python test_gray.py -v
-   Check that only one bit changes in successive codewords ... ok
-   Check that all codewords occur exactly once ... ok
+.. include-example:: bin2gray.py
 
-   ----------------------------------------------------------------------
-   Ran 2 tests in 6.364s
+Now the tests pass:
 
-   OK
-
+.. run-example:: test_gray_properties.py
 
 .. _unittest-change:
 
-Changing requirements
----------------------
+Additional requirements
+-----------------------
 
 In the previous section, we concentrated on the general requirements of a Gray
 code. It is possible to specify these without specifying the actual code. It is
@@ -305,54 +264,19 @@ It is possible to specify these codes by a recursive algorithm, as follows:
    of Ln0 and Ln1.
 
 Python is well-known for its elegant algorithmic descriptions, and this is a
-good example. We can write the algorithm in Python as follows::
+good example. We can write the algorithm in Python as follows:
 
-   def nextLn(Ln):
-       """ Return Gray code Ln+1, given Ln. """
-       Ln0 = ['0' + codeword for codeword in Ln]
-       Ln1 = ['1' + codeword for codeword in Ln]
-       Ln1.reverse()
-       return Ln0 + Ln1
+.. include-example:: next_gray_code.py
 
 The code ``['0' + codeword for ...]`` is called a :dfn:`list comprehension`. It
 is a concise way to describe lists built by short computations in a for loop.
 
 The requirement is now that the output code matches the expected code Ln. We use
 the ``nextLn`` function to compute the expected result. The new test case code
-is as follows::
+is as follows:
 
-   class TestOriginalGrayCode(TestCase):
+.. include-example:: test_gray_original.py
 
-       def testOriginalGrayCode(self):
-           """ Check that the code is an original Gray code """
+As it happens, our implementation is apparently an original Gray code:
 
-           Rn = []
-
-           def stimulus(B, G, n):
-               for i in range(2**n):
-                   B.next = intbv(i)
-                   yield delay(10)
-                   Rn.append(bin(G, width=n))
-
-           Ln = ['0', '1'] # n == 1
-           for n in range(2, MAX_WIDTH):
-               Ln = nextLn(Ln)
-               del Rn[:]
-               B = Signal(intbv(-1))
-               G = Signal(intbv(0))
-               dut = bin2gray(B, G, n)
-               stim = stimulus(B, G, n)
-               sim = Simulation(dut, stim)
-               sim.run(quiet=1)
-               self.assertEqual(Ln, Rn)
-
-As it happens, our implementation is apparently an original Gray code::
-
-   % python test_gray.py -v TestOriginalGrayCode
-   Check that the code is an original Gray code ... ok
-
-   ----------------------------------------------------------------------
-   Ran 1 tests in 3.091s
-
-   OK
-
+.. run-example:: test_gray_original.py

@@ -30,9 +30,10 @@ from os import path
 import unittest
 from unittest import TestCase
 
+import myhdl
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 QUIET = 1
 

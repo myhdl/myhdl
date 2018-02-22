@@ -4,7 +4,7 @@
 
 .. include:: <isonum.txt>
 
-|myhdl-site|_ 
+|myhdl-site|_
 
 .. |myhdl-site| replace:: Back to the main site |raquo|
 
@@ -18,10 +18,22 @@ Welcome to the MyHDL documentation
    :maxdepth: 2
 
    manual/index
+   whatsnew/1.0
+   python3
+
+Old Whatsnew documents
+======================
+.. toctree::
+   :maxdepth: 1
+
    whatsnew/0.9
    whatsnew/0.8
    whatsnew/0.7
    whatsnew/0.6
+   whatsnew/0.5
+   whatsnew/0.4
+   whatsnew/0.3
+
 
 Index
 =====
@@ -31,4 +43,3 @@ Index
 Search
 ======
 * :ref:`search`
-

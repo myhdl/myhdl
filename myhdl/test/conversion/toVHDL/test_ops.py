@@ -5,6 +5,7 @@ import random
 from random import randrange
 random.seed(2)
 
+import myhdl
 from myhdl import *
 from myhdl.conversion import verify
 
@@ -39,11 +40,14 @@ def binaryOps(
             Bitand.next = left & right
             Bitor.next = left | right
             Bitxor.next = left ^ right
+            FloorDiv.next = 0
             if right != 0:
                 FloorDiv.next = left // right
     ##         if left < 256 and right < 40:
+            LeftShift.next = 0
             if left < 256 and right < 26: # fails in ghdl for > 26
                 LeftShift.next = left << right
+            Modulo.next = 0 
             if right != 0:
                 Modulo.next = left % right
             Mul.next = left * right
@@ -52,6 +56,7 @@ def binaryOps(
             #    Pow.next = left ** right
     ##         Pow.next = 0
             RightShift.next = left >> right
+            Sub.next = 0
             if left >= right:
                 Sub.next = left - right
             Sum.next = left + right
@@ -145,27 +150,27 @@ def binaryBench(m, n):
             yield left, right
             yield delay(1)
 
-            print Bitand
-            print Bitor
-            print Bitxor
-            print FloorDiv
-            print LeftShift
+            print(Bitand)
+            print(Bitor)
+            print(Bitxor)
+            print(FloorDiv)
+            print(LeftShift)
 
             # print Pow, Pow_v
 
-            print Modulo
-            print RightShift
-            print Mul
-            print Sub
-            print Sum
-            print int(EQ)
-            print int(NE)
-            print int(LT)
-            print int(GT)
-            print int(LE)
-            print int(GE)
-            print int(Booland)
-            print int(Boolor)
+            print(Modulo)
+            print(RightShift)
+            print(Mul)
+            print(Sub)
+            print(Sum)
+            print(int(EQ))
+            print(int(NE))
+            print(int(LT))
+            print(int(GT))
+            print(int(LE))
+            print(int(GE))
+            print(int(Booland))
+            print(int(Boolor))
 
     return binops, stimulus, check
 
@@ -253,11 +258,11 @@ def multiBench(m, n, p):
             yield argm, argn, argp
             yield delay(1)
 
-            print Bitand
-            print Bitor
-            print Bitxor
-            print int(Booland)
-            print int(Boolor)
+            print(Bitand)
+            print(Bitor)
+            print(Bitxor)
+            print(int(Booland))
+            print(int(Boolor))
 
     return multiops, stimulus, check
 
@@ -315,8 +320,8 @@ def unaryBench(m):
         while 1:
             yield arg
             yield delay(1)
-            print int(Not_kw)
-            print Invert
+            print(int(Not_kw))
+            print(Invert)
             # check unary operator support in vhdl
             # print UnaryAdd
             # print UnarySub
@@ -358,10 +363,12 @@ def augmOps(  Bitand,
             var[:] = left
             var ^= left
             Bitxor.next = var
+            FloorDiv.next = 0
             if right != 0:
                 var[:] = left
                 var //= right
                 FloorDiv.next = var
+            Sub.next = 0
             if left >= right:
                 var[:] = left
                 var -= right
@@ -369,10 +376,12 @@ def augmOps(  Bitand,
             var[:] = left
             var += right
             Sum.next = var
+            LeftShift.next = 0
             if left < 256 and right < 26:
                 var2[:] = left
                 var2 <<= right
                 LeftShift.next = var2
+            Modulo.next = 0
             if right != 0:
                 var[:] = left
                 var %= right
@@ -449,16 +458,16 @@ def augmBench(m, n):
         while True:
             yield left, right
             yield delay(1)
-            print Bitand
-            print Bitor
-            print Bitxor
-            print Sub
-            print Sum
-            print FloorDiv
-            print LeftShift
-            print Modulo
-            print Mul
-            print RightShift
+            print(Bitand)
+            print(Bitor)
+            print(Bitxor)
+            print(Sub)
+            print(Sum)
+            print(FloorDiv)
+            print(LeftShift)
+            print(Modulo)
+            print(Mul)
+            print(RightShift)
             
     return augmops, stimulus, check
 

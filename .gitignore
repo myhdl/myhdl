@@ -2,17 +2,22 @@
 *~
 *.swp
 *.out
+*.coverage
 build/
+.cache
+.style.yapf
 
 # Python
 *.py[cod]
 __pycache__/
 *egg-info/
 dist/
+.tox
 
 # Cosim
 *.o
 *.vpi
+*.so
 
 # Simulator generated files
 *.vcd
@@ -20,6 +25,7 @@ modelsim.ini
 transcript
 *.log
 work/
+work_nvc/
 work_vlog/
 work_vcom/
 *.wlf
@@ -27,3 +33,6 @@ work_vcom/
 # Test artifacts
 myhdl/**/*.v
 myhdl/**/*.vhd
+
+# Pycharm ide junk
+.idea/

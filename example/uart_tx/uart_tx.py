@@ -1,3 +1,4 @@
+import myhdl
 from myhdl import *
 
 def uart_tx(tx_bit, tx_valid, tx_byte, tx_clk, tx_rst):

@@ -21,9 +21,10 @@
 """ Run the intbv.signed() unit tests. """
 from __future__ import absolute_import
 
+import myhdl
 from myhdl import *
 
-
+@block
 def PlainIntbv():
     '''Test a plain intbv instance with .signed() 
 
@@ -57,80 +58,80 @@ def PlainIntbv():
         # intbv with positive range, pos number, and msb not set, return signed()
         # Expect the number to be returned
         a1 = intbv(0x3b, min=0, max=0x7c)
-        b = a1.signed()
-        assert b == 0x3b
+        b1 = a1.signed()
+        assert b1 == 0x3b
 
         # intbv with positive range, pos number, and msb set, return signed()
         # test various bit patterns to see that the 2's complement
         # conversion works correct
         # Expect the number to be converted to a negative number
         a2 = intbv(7, min=0, max=8)
-        b = a2.signed()
-        assert b == -1
+        b2 = a2.signed()
+        assert b2 == -1
 
         a3 = intbv(6, min=0, max=8)
-        b = a3.signed()
-        assert b == -2
+        b3 = a3.signed()
+        assert b3 == -2
 
         a4 = intbv(5, min=0, max=8)
-        b = a4.signed()
-        assert b == -3
+        b4 = a4.signed()
+        assert b4 == -3
 
         # set bit #3 and increase the range so that the set bit is considered
         # the sign bit. Here min = 0
         # Expect to return -4
         a5 = intbv(4, min=0, max=5)
-        b = a5.signed()
-        assert b == -4
+        b5 = a5.signed()
+        assert b5 == -4
 
         a6 = intbv(4, min=0, max=6)
-        b = a6.signed()
-        assert b == -4
+        b6 = a6.signed()
+        assert b6 == -4
 
         a7 = intbv(4, min=0, max=7)
-        b = a7.signed()
-        assert b == -4
+        b7 = a7.signed()
+        assert b7 == -4
 
         a8 = intbv(4, min=0, max=8)
-        b = a8.signed()
-        assert b == -4
+        b8 = a8.signed()
+        assert b8 == -4
 
         # here it is not the sign bit anymore
         # Expect the value to be 4
         a9 = intbv(4, min=0, max=9)
-        b = a9.signed()
-        assert b == 4
+        b9 = a9.signed()
+        assert b9 == 4
 
         # set bit #3 and increase the range so that the set bit is considered
         # the sign bit. Here min > 0
         # Expect to return -4
         a10 = intbv(4, min=1, max=5)
-        b = a10.signed()
-        assert b == -4
+        b10 = a10.signed()
+        assert b10 == -4
 
         a11 = intbv(4, min=2, max=6)
-        b = a11.signed()
-        assert b == -4
+        b11 = a11.signed()
+        assert b11 == -4
 
         a12 = intbv(4, min=3, max=7)
-        b = a12.signed()
-        assert b == -4
+        b12 = a12.signed()
+        assert b12 == -4
 
         a13 = intbv(4, min=4, max=8)
-        b = a13.signed()
-        assert b == -4
+        b13 = a13.signed()
+        assert b13 == -4
 
         # again with min > 0, here it is not the sign bit anymore
         # Expect the value to be 4
         a14 = intbv(4, min=2, max=9)
-        b = a14.signed()
-        assert b == 4
+        b14 = a14.signed()
+        assert b14 == 4
 
         # intbv with positive range, value = 0, return signed()
         # Expect the number to be returned
         a15 = intbv(0, min=0, max=0x8)
-        b = a15.signed()
-        assert b == 0
+        b15 = a15.signed()
+        assert b15 == 0
 
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,60 +144,61 @@ def PlainIntbv():
         # msb, but due to the negative range not considered signed
         # Expect to return 4
         a20 = intbv(4, min=-1, max=5)
-        b = a20.signed()
-        assert b == 4
+        b20 = a20.signed()
+        assert b20 == 4
 
         a21 = intbv(4, min=-1, max=6)
-        b = a21.signed()
-        assert b == 4
+        b21 = a21.signed()
+        assert b21 == 4
 
         a22 = intbv(4, min=-1, max=7)
-        b = a22.signed()
-        assert b == 4
+        b22 = a22.signed()
+        assert b22 == 4
 
         a23 = intbv(4, min=-1, max=8)
-        b = a23.signed()
-        assert b == 4
+        b23 = a23.signed()
+        assert b23 == 4
  
         # intbv with negative range, pos number, and msb set, return signed()
         # Expect the number to returned as is
         a24 = intbv(7, min=-1, max=8)
-        b = a24.signed()
-        assert b == 7
+        b24 = a24.signed()
+        assert b24 == 7
 
         a25 = intbv(6, min=-1, max=8)
-        b = a25.signed()
-        assert b == 6
+        b25 = a25.signed()
+        assert b25 == 6
 
         a26 = intbv(5, min=-1, max=8)
-        b = a26.signed()
-        assert b == 5
+        b26 = a26.signed()
+        assert b26 == 5
 
         # intbv with symmetric (min = -max) range, pos value, msb set
         # return signed()
         # Expect value returned as is
         a27 = intbv(4, min=-8, max=8)
-        b = a27.signed()
-        assert b == 4
+        b27 = a27.signed()
+        assert b27 == 4
 
         # intbv with symmetric (min = -max) range, neg value,
         # return signed()
         # Expect value returned as is
         a28 = intbv(-4, min=-8, max=8)
-        b = a28.signed()
-        assert b == -4
+        b28 = a28.signed()
+        assert b28 == -4
 
         # intbv with symmetric (min=-max) range, value = 0,
         # return signed()
         # Expect value returned as is
         a29 = intbv(0, min=-8, max=8)
-        b = a29.signed()
-        assert b == 0
+        b29 = a29.signed()
+        assert b29 == 0
 
     return logic
 
 
 
+@block
 def SlicedSigned():
     '''Test a slice with .signed()
 
@@ -223,6 +225,7 @@ def SlicedSigned():
     return logic
 
 
+@block
 def SignedConcat():
     '''Test the .signed() function with the concatenate function'''
 
@@ -247,11 +250,11 @@ def SignedConcat():
     return logic
 
 def test_PlainIntbv():
-    assert conversion.verify(PlainIntbv) == 0
+    assert conversion.verify(PlainIntbv()) == 0
     
 def test_SlicedSigned():
-    assert conversion.verify(SlicedSigned) == 0
+    assert conversion.verify(SlicedSigned()) == 0
     
 def test_SignedConcat():
-    assert conversion.verify(SignedConcat) == 0
+    assert conversion.verify(SignedConcat()) == 0
     

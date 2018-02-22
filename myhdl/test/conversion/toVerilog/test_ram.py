@@ -4,9 +4,10 @@ path = os.path
 import unittest
 from unittest import TestCase
 
+import myhdl
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 def ram(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """

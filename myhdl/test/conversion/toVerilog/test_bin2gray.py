@@ -4,9 +4,10 @@ path = os.path
 import unittest
 from unittest import TestCase
 
+import myhdl
 from myhdl import *
 
-from util import setupCosimulation
+from .util import setupCosimulation
 
 def bin2gray2(B, G, width):
     """ Gray encoder.

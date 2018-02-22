@@ -1,6 +1,7 @@
 from math import pi, sin, cos, log
 import random
 
+import myhdl
 from myhdl import *
 
 from SineComputer import SineComputer, SineComputer_v

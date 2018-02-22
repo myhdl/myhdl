@@ -25,7 +25,6 @@ from types import GeneratorType
 
 import ast
 import inspect
-import re
 
 
 from myhdl._util import _dedent
@@ -33,8 +32,7 @@ from myhdl._delay import delay
 from myhdl._join import join
 from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
 from myhdl import _simulator
-from myhdl._simulator import _siglist, _futureEvents
-from myhdl._enum import enum
+from myhdl._simulator import _futureEvents
 
 
 schedule = _futureEvents.append
@@ -43,14 +41,14 @@ schedule = _futureEvents.append
 class _Waiter(object):
 
     __slots__ = ('caller', 'generator', 'hasRun', 'nrTriggers', 'semaphore')
-    
+
     def __init__(self, generator, caller=None):
         self.caller = caller
         self.generator = generator
         self.hasRun = 0
         self.nrTriggers = 1
         self.semaphore = 0
-        
+
     def next(self, waiters, actives, exc):
 
         if self.hasRun:
@@ -59,20 +57,20 @@ class _Waiter(object):
         if self.semaphore:
             self.semaphore -= 1
             raise StopIteration
-        
+
         if self.nrTriggers == 1:
             clone = self
         else:
             self.hasRun = 1
             clone = _Waiter(self.generator, self.caller)
-            
+
         try:
             clause = next(self.generator)
         except StopIteration:
             if self.caller:
                 waiters.append(self.caller)
-            raise # again
-            
+            raise  # again
+
         if isinstance(clause, _WaiterList):
             clauses = (clause,)
         elif isinstance(clause, (tuple, list)):
@@ -82,11 +80,11 @@ class _Waiter(object):
             else:
                 clauses = (None,)
         elif isinstance(clause, join):
-            clone.semaphore = len(clause._args)-1
+            clone.semaphore = len(clause._args) - 1
             clauses = clause._args
         else:
             clauses = (clause,)
-            
+
         nr = len(clauses)
         for clause in clauses:
             if isinstance(clause, _WaiterList):
@@ -116,37 +114,37 @@ class _Waiter(object):
             else:
                 raise TypeError("yield clause %s has type %s" %
                                 (repr(clause), type(clause)))
-    
-    
+
+
 class _DelayWaiter(_Waiter):
-    
+
     __slots__ = ('generator')
-    
+
     def __init__(self, generator):
         self.generator = generator
-    
+
     def next(self, waiters, actives, exc):
         clause = next(self.generator)
         schedule((_simulator._time + clause._time, self))
-        
+
 
 class _EdgeWaiter(_Waiter):
-    
+
     __slots__ = ('generator', 'hasRun')
-     
+
     def __init__(self, generator):
         self.generator = generator
         self.hasRun = 0
-    
+
     def next(self, waiters, actives, exc):
         clause = next(self.generator)
         clause.append(self)
-        
-    
+
+
 class _EdgeTupleWaiter(_Waiter):
-    
+
     __slots__ = ('generator', 'hasRun')
-    
+
     def __init__(self, generator):
         self.generator = generator
         self.hasRun = 0
@@ -160,25 +158,25 @@ class _EdgeTupleWaiter(_Waiter):
         for clause in clauses:
             clause.append(clone)
             actives[id(clause)] = clause
-            
-            
+
+
 class _SignalWaiter(_Waiter):
-    
+
     __slots__ = ('generator', 'hasRun')
-     
+
     def __init__(self, generator):
         self.generator = generator
         self.hasRun = 0
-    
+
     def next(self, waiters, actives, exc):
         clause = next(self.generator)
         clause._eventWaiters.append(self)
-        
+
 
 class _SignalTupleWaiter(_Waiter):
-    
+
     __slots__ = ('generator', 'hasRun')
-    
+
     def __init__(self, generator):
         self.generator = generator
         self.hasRun = 0
@@ -193,7 +191,7 @@ class _SignalTupleWaiter(_Waiter):
             wl = clause._eventWaiters
             wl.append(clone)
             actives[id(wl)] = wl
-            
+
 
 #_kind = enum("SIGNAL_TUPLE", "EDGE_TUPLE", "SIGNAL", "EDGE", "DELAY", "UNDEFINED")
 class _kind(object):
@@ -201,9 +199,9 @@ class _kind(object):
     EDGE_TUPLE = 2
     SIGNAL = 3
     EDGE = 4
-    DELAY= 5
+    DELAY = 5
     UNDEFINED = 6
-    
+
 
 def _inferWaiter(gen):
     f = gen.gi_frame
@@ -227,7 +225,6 @@ def _inferWaiter(gen):
         return _SignalWaiter(gen)
     # default
     return _Waiter(gen)
-   
 
 
 class _YieldVisitor(ast.NodeVisitor):
@@ -287,8 +284,6 @@ class _YieldVisitor(ast.NodeVisitor):
         if node.attr in ('posedge', 'negedge'):
             node.kind = _kind.EDGE
 
-        
 
-# avoid problems with recursive imports        
+# avoid problems with recursive imports
 from myhdl._instance import _Instantiator
-   
