@@ -170,3 +170,4 @@ def test_single_interface_with_single_method():
     output_interface = Signal(False)
 
     assert conversion.verify(bench(class_name='interface')) == 0
+
