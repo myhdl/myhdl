@@ -1944,7 +1944,12 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             inout = input and output
             dir = (inout and "inout") or (output and "out") or "in"
             self.writeline()
-            self.writeDeclaration(obj, name, dir=dir, constr=False, endchar="")
+            if isinstance(obj, _Signal):
+                kind = 'signal'
+            else:
+                kind = ''
+            self.writeDeclaration(obj, name, kind=kind, dir=dir,
+                                  constr=False, endchar="")
 
     def visit_FunctionDef(self, node):
         self.write("procedure %s" % self.tree.name)
