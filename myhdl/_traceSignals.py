@@ -232,7 +232,8 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                         s._code = next(namegen)
                         siglist.append(s)
                     w = s._nrbits
-                    if w:
+                    # use real for enum strings
+                    if w and not isinstance(sval, EnumItemType):
                         if w == 1:
                             print("$var reg 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
                         else:
