@@ -341,10 +341,10 @@ class _Block(object):
             setattr(converter, k, v)
         return converter(self)
 
-    def config_sim(self, trace=False):
+    def config_sim(self, trace=False, timescale='1ns'):
         self._config_sim['trace'] = trace
         if trace:
-            myhdl.traceSignals(self)
+            myhdl.traceSignals(self, timescale=timescale)
 
     def run_sim(self, duration=None, quiet=0):
         if self.sim is None:
