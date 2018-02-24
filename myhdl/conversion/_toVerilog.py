@@ -27,6 +27,7 @@ from __future__ import print_function
 import sys
 import math
 import os
+import textwrap
 
 import inspect
 from datetime import datetime
@@ -37,7 +38,6 @@ from types import GeneratorType
 from myhdl._compat import StringIO
 import warnings
 
-import myhdl
 import myhdl
 from myhdl import *
 from myhdl._compat import integer_types, class_types, PY2
@@ -107,7 +107,8 @@ class _ToVerilogConvertor(object):
                  "no_myhdl_header",
                  "no_testbench",
                  "portmap",
-                 "trace"
+                 "trace",
+                 "initial_values"
                  )
 
     def __init__(self):
@@ -121,6 +122,7 @@ class _ToVerilogConvertor(object):
         self.no_myhdl_header = False
         self.no_testbench = False
         self.trace = False
+        self.initial_values = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -327,8 +329,17 @@ def _writeSigDecls(f, intf, siglist, memlist):
             if s._driven == 'reg':
                 k = 'reg'
             # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (k, r, s._name, int(s._val))
-            print("%s %s%s%s;" % (k, p, r, s._name), file=f)
+            # don't initial value "wire", inital assignment to a wire
+            # equates to a continuous assignment [reference]
+            if not toVerilog.initial_values or k == 'wire':
+                print("%s %s%s%s;" % (k, p, r, s._name), file=f)
+            else:
+                if isinstance(s._init, myhdl._enum.EnumItemType):
+                    print("%s %s%s%s = %s;" %
+                          (k, p, r, s._name, s._init._toVerilog()), file=f)
+                else:
+                    print("%s %s%s%s = %s;" %
+                          (k, p, r, s._name, _intRepr(s._init)), file=f)
         elif s._read:
             # the original exception
             # raise ToVerilogError(_error.UndrivenSignal, s._name)
@@ -338,7 +349,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           )
             constwires.append(s)
             print("wire %s%s;" % (r, s._name), file=f)
-    print(file=f)
+    # print(file=f)
     for m in memlist:
         if not m._used:
             continue
@@ -353,9 +364,42 @@ def _writeSigDecls(f, intf, siglist, memlist):
         r = _getRangeString(m.elObj)
         p = _getSignString(m.elObj)
         k = 'wire'
+        initial_assignments = None
         if m._driven:
             k = m._driven
-        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
+
+            if toVerilog.initial_values and not k == 'wire':
+                if all([each._init == m.mem[0]._init for each in m.mem]):
+
+                    initialize_block_name = ('INITIALIZE_' + m.name).upper()
+                    _initial_assignments = (
+                        '''
+                        initial begin: %s
+                            integer i;
+                            for(i=0; i<%d; i=i+1) begin
+                                %s[i] = %s;
+                            end
+                        end
+                        ''' % (initialize_block_name, len(m.mem), m.name,
+                               _intRepr(m.mem[0]._init)))
+
+                    initial_assignments = (
+                        textwrap.dedent(_initial_assignments))
+
+                else:
+                    val_assignments = '\n'.join(
+                        ['    %s[%d] <= %s;' %
+                         (m.name, n, _intRepr(each._init))
+                         for n, each in enumerate(m.mem)])
+                    initial_assignments = (
+                        'initial begin\n' + val_assignments + '\nend')
+
+        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth),
+              file=f)
+
+        if initial_assignments is not None:
+            print(initial_assignments, file=f)
+
     print(file=f)
     for s in constwires:
         if s._type in (bool, intbv):
@@ -365,7 +409,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         c_len = s._nrbits
         c_str = "%s" % c
         print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
-    print(file=f)
+    # print(file=f)
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVerilog') and s._driven:
@@ -431,6 +475,24 @@ def _getSignString(s):
     else:
         return ''
 
+def _intRepr(n, radix=''):
+    # write size for large integers (beyond 32 bits signed)
+    # with some safety margin
+    # XXX signed indication 's' ???
+    p = abs(n)
+    size = ''
+    num = str(p).rstrip('L')
+    if radix == "hex" or p >= 2**30:
+        radix = "'h"
+        num = hex(p)[2:].rstrip('L')
+    if p >= 2**30:
+        size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
+#            if not radix:
+#                radix = "'d"
+    r = "%s%s%s" % (size, radix, num)
+    if n < 0: # add brackets and sign on negative numbers
+        r = "(-%s)" % r
+    return r
 
 def _convertGens(genlist, vfile):
     blockBuf = StringIO()
@@ -531,23 +593,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.ind = self.ind[:-4]
 
     def IntRepr(self, n, radix=''):
-        # write size for large integers (beyond 32 bits signed)
-        # with some safety margin
-        # XXX signed indication 's' ???
-        p = abs(n)
-        size = ''
-        num = str(p).rstrip('L')
-        if radix == "hex" or p >= 2**30:
-            radix = "'h"
-            num = hex(p)[2:].rstrip('L')
-        if p >= 2**30:
-            size = int(math.ceil(math.log(p + 1, 2))) + 1  # sign bit!
-#            if not radix:
-#                radix = "'d"
-        r = "%s%s%s" % (size, radix, num)
-        if n < 0:  # add brackets and sign on negative numbers
-            r = "(-%s)" % r
-        return r
+        return _intRepr(n, radix)
 
     def writeDeclaration(self, obj, name, dir):
         if dir:
@@ -1359,6 +1405,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = '1' if init else '0'
     elif tipe is intbv:
+        init = int(init) # int representation
         v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)

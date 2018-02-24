@@ -55,6 +55,8 @@ from myhdl.conversion._toVHDLPackage import _package
 from myhdl._util import _flatten
 from myhdl._compat import integer_types, class_types, StringIO
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
+from myhdl.conversion._VHDLNameValidation import _nameValid
+
 
 from myhdl._block import _Block
 from myhdl._getHierarchy import _getHierarchy
@@ -113,6 +115,7 @@ class _ToVHDLConvertor(object):
                  "use_clauses",
                  "architecture",
                  "std_logic_ports",
+                 "initial_values"
                  )
 
     def __init__(self):
@@ -126,6 +129,7 @@ class _ToVHDLConvertor(object):
         self.use_clauses = None
         self.architecture = "MyHDL"
         self.std_logic_ports = False
+        self.initial_values = False
 
     def __call__(self, func, *args, **kwargs):
         global _converting
@@ -351,6 +355,8 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             pt = st = _getTypeString(s)
             if convertPort:
                 pt = "std_logic_vector"
+             # Check if VHDL keyword or reused name
+            _nameValid(s._name)
             if s._driven:
                 if s._read:
                     if not isinstance(s, _TristateSignal):
@@ -391,7 +397,7 @@ def _writeTypeDefs(f):
     sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
         f.write("%s\n" % t._toVHDL())
-    f.write("\n")
+    # f.write("\n"
 
 constwires = []
 
@@ -411,9 +417,34 @@ def _writeSigDecls(f, intf, siglist, memlist):
                               category=ToVHDLWarning
                               )
             # the following line implements initial value assignments
-            # print >> f, "%s %s%s = %s;" % (s._driven, r, s._name, int(s._val))
-            print("signal %s: %s%s;" % (s._name, p, r), file=f)
+
+            sig_vhdl_obj = inferVhdlObj(s)
+
+            if not toVHDL.initial_values:
+                val_str = ""
+            else:
+
+                if isinstance(sig_vhdl_obj, vhd_std_logic):
+                    # Single bit
+                    val_str = " := '%s'" % int(s._init)
+                elif isinstance(sig_vhdl_obj, vhd_int):
+                    val_str = " := %s" % s._init
+                elif isinstance(sig_vhdl_obj, (vhd_signed, vhd_unsigned)):
+                    val_str = ' := %dX"%s"' % (
+                        sig_vhdl_obj.size, str(s._init))
+
+                elif isinstance(sig_vhdl_obj, vhd_enum):
+                    val_str = ' := %s' % (s._init,)
+
+                else:
+                    # default to no initial value
+                    val_str = ''
+
+            print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
+
         elif s._read:
+            # Check if VHDL keyword or reused name
+            _nameValid(s._name)
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
             # changed to a warning and a continuous assignment to a wire
@@ -433,11 +464,35 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 m._read = s._read
         if not m._driven and not m._read:
             continue
+        # Check if VHDL keyword or reused name
+        _nameValid(m.name)
         r = _getRangeString(m.elObj)
         p = _getTypeString(m.elObj)
         t = "t_array_%s" % m.name
+
+        if not toVHDL.initial_values:
+            val_str = ""
+        else:
+            sig_vhdl_objs = [inferVhdlObj(each) for each in m.mem]
+
+            if all([each._init == m.mem[0]._init for each in m.mem]):
+                if isinstance(m.mem[0]._init, bool):
+                    val_str = (
+                        ' := (others => \'%s\')' % str(int(m.mem[0]._init)))
+
+                else:
+                    val_str = (
+                        ' := (others => %dX"%s")' %
+                        (sig_vhdl_objs[0].size, str(m.mem[0]._init)))
+            else:
+                _val_str = ',\n    '.join(
+                    ['%dX"%s"' % (obj.size, str(each._init)) for
+                     obj, each in zip(sig_vhdl_objs, m.mem)])
+
+                val_str = ' := (\n    ' + _val_str + ')'
+
         print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
-        print("signal %s: %s;" % (m.name, t), file=f)
+        print("signal %s: %s%s;" % (m.name, t, val_str), file=f)
     print(file=f)
 
 
@@ -589,9 +644,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def writeDoc(self, node):
         assert hasattr(node, 'doc')
-        doc = _makeDoc(node.doc, self.ind)
-        self.write(doc)
-        self.writeline()
+        if node.doc is not None:
+            doc = _makeDoc(node.doc, self.ind)
+            self.write(doc)
+            self.writeline()
 
     def IntRepr(self, obj):
         if obj >= 0:
@@ -601,7 +657,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         return s
 
     def BitRepr(self, item, var):
-        return '"%s"' % bin(item, len(var))
+        if isinstance(var._val, bool):
+            return '\'%s\'' % bin(item, len(var))
+        else:
+            return '"%s"' % bin(item, len(var))
 
     def inferCast(self, vhd, ori):
         pre, suf = "", ""
@@ -1745,6 +1804,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = "'1'" if init else "'0'"
     elif tipe is intbv:
+        init = int(init) # int representation
         vhd_tipe = 'unsigned'
         if reg._min is not None and reg._min < 0:
             vhd_tipe = 'signed'
@@ -1884,7 +1944,12 @@ class _ConvertTaskVisitor(_ConvertVisitor):
             inout = input and output
             dir = (inout and "inout") or (output and "out") or "in"
             self.writeline()
-            self.writeDeclaration(obj, name, dir=dir, constr=False, endchar="")
+            if isinstance(obj, _Signal):
+                kind = 'signal'
+            else:
+                kind = ''
+            self.writeDeclaration(obj, name, kind=kind, dir=dir,
+                                  constr=False, endchar="")
 
     def visit_FunctionDef(self, node):
         self.write("procedure %s" % self.tree.name)

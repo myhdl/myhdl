@@ -13,7 +13,7 @@ M= 2**N
 @block
 def intbv2list():
     """Conversion between intbv and list of boolean signals."""
-    
+
     a = Signal(intbv(0)[N:])
     b = [Signal(bool(0)) for i in range(len(a))]
     z = Signal(intbv(0)[N:])
@@ -43,8 +43,8 @@ def intbv2list():
 
 def test_intbv2list():
     assert conversion.verify(intbv2list()) == 0
-            
-    
+
+
 ### A number of cases with relaxed constraints, for various decorator types ###
 
 @block
@@ -184,7 +184,7 @@ def case4(z, a, inv):
 @block
 def processlist(case, inv):
     """Extract list from intbv, do some processing, reassemble."""
-    
+
     a = Signal(intbv(1)[N:])
     z = Signal(intbv(0)[N:])
 
@@ -204,16 +204,16 @@ def processlist(case, inv):
 
 
 # functional tests
-    
+
 def test_processlist11():
     assert conversion.verify(processlist(case1, inv1)) == 0
-    
+
 def test_processlist12():
     assert conversion.verify(processlist(case1, inv2))== 0
-    
+
 def test_processlist22():
     assert conversion.verify(processlist(case2, inv2))== 0
-    
+
 def test_processlist33():
     assert conversion.verify(processlist(case3, inv3))== 0
 
@@ -244,7 +244,7 @@ def unsigned():
 
 def test_unsigned():
     conversion.verify(unsigned())
-        
+
 
 @block
 def signed():
@@ -267,7 +267,7 @@ def signed():
 
 def test_signed():
     conversion.verify(signed())
-        
+
 
 @block
 def mixed():
@@ -291,7 +291,7 @@ def mixed():
 
 def test_mixed():
     conversion.verify(mixed())
-        
+
 
 ### error tests
 
@@ -318,8 +318,8 @@ def test_portInList():
         assert e.kind == _error.PortInList
     else:
         assert False
-       
-    
+
+
 # signal in multiple lists
 
 @block
@@ -346,7 +346,7 @@ def test_sigInMultipleLists():
         assert False
 
 # list of signals as port
-       
+
 @block
 def my_register(clk, inp, outp):
     @always(clk.posedge)
@@ -369,4 +369,4 @@ def test_listAsPort():
 
 
 
-    
+

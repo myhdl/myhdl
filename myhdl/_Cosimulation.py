@@ -22,7 +22,7 @@ from __future__ import absolute_import
 
 import sys
 import os
-import shlex
+#import shlex
 import subprocess
 
 from myhdl._intbv import intbv
@@ -34,7 +34,6 @@ _MAXLINE = 4096
 
 class _error:
     pass
-_error.MultipleCosim = "Only a single cosimulator allowed"
 _error.DuplicateSigNames = "Duplicate signal name in myhdl vpi call"
 _error.SigNotFound = "Signal not found in Cosimulation arguments"
 _error.TimeZero = "myhdl vpi call when not at time 0"
@@ -49,11 +48,6 @@ class Cosimulation(object):
 
     def __init__(self, exe="", **kwargs):
         """ Construct a cosimulation object. """
-
-        if _simulator._cosim:
-            raise CosimulationError(_error.MultipleCosim)
-        _simulator._cosim = 1
-
         rt, wt = os.pipe()
         rf, wf = os.pipe()
 
@@ -91,7 +85,9 @@ class Cosimulation(object):
             env['MYHDL_FROM_PIPE'] = str(msvcrt.get_osfhandle(rf))
 
         if isinstance(exe, string_types):
-            exe = shlex.split(exe)
+#             exe = shlex.split(exe)
+            exe = exe.split(' ')
+
 
         try:
             sp = subprocess.Popen(exe, env=env, close_fds=False)
@@ -192,7 +188,3 @@ class Cosimulation(object):
         while 1:
             yield sigs
             self._hasChange = 1
-
-    def __del__(self):
-        """ Clear flag when this object destroyed - to suite unittest. """
-        _simulator._cosim = 0
