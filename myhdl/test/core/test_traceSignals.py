@@ -173,7 +173,7 @@ class TestTraceSigs:
         _simulator._tf.close()
         _simulator._tracing = 0
         size = path.getsize(p)
-        pbak = p + '.' + str(path.getmtime(p))
+        pbak = p[:-4] + '.' + str(path.getmtime(p)) + '.vcd'
         assert not path.exists(pbak)
         dut = traceSignals(fun())
         _simulator._tf.close()
