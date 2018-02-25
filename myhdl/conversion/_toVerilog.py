@@ -217,17 +217,18 @@ class _ToVerilogConvertor(object):
         self.portmap = portmap
 
         ### clean-up properly ###
-        self._cleanup(siglist)
+        self._cleanup(siglist, memlist)
 
         return h.top
 
-    def _cleanup(self, siglist):
-        # clean up signal names
+    def _cleanup(self, siglist, memlist):
+        # clean up signals
         for sig in siglist:
             sig._clear()
-#             sig._name = None
-#             sig._driven = False
-#             sig._read = False
+        for mem in memlist:
+            mem.name = None
+            for s in mem.mem:
+                s._clear()
 
         # clean up attributes
         self.name = None

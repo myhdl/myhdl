@@ -185,6 +185,7 @@ class _Signal(object):
         self._next = deepcopy(self._init)
         self._name = self._driven = None
         self._read = False # dont clear self._used
+        self._inList = False 
         self._numeric = True
         for s in self._slicesigs:
             s._clear()
