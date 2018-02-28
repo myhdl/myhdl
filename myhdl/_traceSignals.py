@@ -68,8 +68,6 @@ class _TraceSignalsClass(object):
 
     def __call__(self, dut, *args, **kwargs):
         global _tracing, vcdpath
-        if 'timescale' in kwargs:
-            self.timescale = kwargs['timescale']
         if isinstance(dut, _Block):
             # now we go bottom-up: so clean up and start over
             # TODO: consider a warning for the overruled block
