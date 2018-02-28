@@ -728,10 +728,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 tipe = obj._val._type._name
             else:
                 tipe = vhd.toStr(constr)
+        val_str = ""
         if init_values :
-            if not toVHDL.initial_values:
-                val_str = ""
-            else:
+            if toVHDL.initial_values:
                 s = obj
                 vhdl_obj = inferVhdlObj(s)
                 if isinstance(vhdl_obj, vhd_std_logic):
@@ -743,9 +742,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     val_str = ' := %dX"%s"' % (vhdl_obj.size, str(s))
                 elif isinstance(vhdl_obj, vhd_enum):
                     val_str = ' := %s' % (s._init, s)
-                else:
-                    # default to no initial value
-                    val_str = ''
         if kind:
             kind += " "
         if dir:
