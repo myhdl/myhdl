@@ -730,7 +730,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 tipe = vhd.toStr(constr)
         val_str = ""
         if init_values :
-            if toVHDL.initial_values:
+            if toVHDL.initial_values :
                 s = obj
                 vhdl_obj = inferVhdlObj(s)
                 if isinstance(vhdl_obj, vhd_std_logic):
