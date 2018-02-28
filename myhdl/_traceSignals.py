@@ -125,7 +125,7 @@ class _TraceSignalsClass(object):
 
             if path.exists(vcdpath):
                 if self.tracebackup :
-                    backup = vcdpath + '.' + str(path.getmtime(vcdpath))
+                    backup = vcdpath[:-4] + '.' + str(path.getmtime(vcdpath)) + '.vcd'
                     shutil.copyfile(vcdpath, backup)
                 os.remove(vcdpath)
             vcdfile = open(vcdpath, 'w')
