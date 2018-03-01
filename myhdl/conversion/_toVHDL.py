@@ -1208,6 +1208,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         args = cf.args
         assert len(args) <= 3
         self.require(node, len(args) < 3, "explicit step not supported")
+        self.require(node, len(args) > 0, "at least one argument requested")
         if f is range:
             cmp = '<'
             op = 'to'
