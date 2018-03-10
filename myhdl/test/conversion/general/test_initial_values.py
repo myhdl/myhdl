@@ -303,6 +303,63 @@ def initial_value_list_bench(initial_vals, **kwargs):
 
     return clkgen, output_drivers, drive_and_check, output_writer
 
+
+@block
+def initial_value_mem_convert_bench():
+
+    clock = Signal(bool(0))
+    reset = ResetSignal(0, active=0, async=True)
+    wr = Signal(bool(0))
+    wrd = Signal(intbv(0, min=0, max=32))
+    rdd = Signal(intbv(0, min=0, max=32))
+    addr = Signal(intbv(0, min=0, max=16))
+
+    inst = memory(clock, reset, wr, wrd, rdd, addr)
+
+    return inst
+
+
+@block
+def memory(clock, reset, wr, wrd, rdd, addr):
+
+    mem = [Signal(intbv(0, min=wrd.min, max=wrd.max))
+           for _ in range(addr.max)]
+
+    inst_init = memory_init(mem)
+
+    @always_seq(clock.posedge, reset=reset)
+    def beh_mem():
+        rdd.next = mem[addr]
+        if wr:
+            mem[addr].next = wrd
+
+    return inst_init, beh_mem
+
+@block
+def memory_init(mem):
+    mem_size = len(mem)
+    init_values = tuple([int(ss.val) for ss in mem])
+
+    with open("init_file.hex", 'w') as fp:
+        for ii in range(mem_size):
+            fp.write("CE \n")
+
+    @instance
+    def beh_init():
+        for ii in range(mem_size):
+            mem[ii].next = init_values[ii]
+        yield delay(10)
+
+    return beh_init
+
+
+memory_init.verilog_code = """
+    initial begin
+        $$readmemh("init_file.hex", $mem, $mem_size);
+    end
+"""
+
+
 def runner(initial_val, tb=initial_value_bench, **kwargs):
     pre_toVerilog_initial_values = toVerilog.initial_values
     pre_toVHDL_initial_values = toVHDL.initial_values
@@ -468,6 +525,29 @@ def test_init_used():
 
     runner(initial_val, change_input_signal=True)
 
+
+def test_memory_convert():
+    inst = initial_value_mem_convert_bench()
+
+    # TODO: this needs to be converted to use the `block` convert
+    #       only and not modify the `toV*` but this will require
+    #       changes to `conversion.verify` and `conversion.analyze`
+    #       or a `config_conversion` function add to the `Block`.
+    pre_xiv = toVerilog.initial_values
+    pre_viv = toVHDL.initial_values
+
+    # not using the runner, this test is setup for analyze only
+    toVerilog.initial_values = True
+    toVHDL.initial_values = True
+
+    try:
+        assert conversion.analyze(inst) == 0
+
+    finally:
+        toVerilog.initial_values = pre_xiv
+        toVHDL.initial_values = pre_viv
+
+
 #def test_init_used_list():
 #    '''It should be the _init attribute of each element in the list
 #    that is used for initialisation
@@ -481,6 +561,7 @@ def test_init_used():
 #        for each in range(10)]
 #
 #    list_runner(initial_val, change_input_signal=True)
+
 
 if __name__ == "__main__":
     test_signed_list()
