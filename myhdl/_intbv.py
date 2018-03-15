@@ -547,3 +547,30 @@ class intbv(object):
             return intbv(retVal, min=-M, max=M)
         else:
             return intbv(retVal)
+
+    def unsigned(self):
+        ''' Return new intbv with the values interpreted as unsigned
+        '''
+
+        # value is considered unsigned
+        if self.min is not None and self.min < 0 and self._nrbits:
+
+            # get 2's complement value of bits
+            msb = self._nrbits - 1
+
+            sign = ((self._val >> msb) & 0x1) > 0
+
+            # mask off the bits msb-1:lsb, they are always positive
+            mask = (1 << msb) - 1
+            retVal = self._val & mask
+            # if sign bit is set, subtract the value of the sign bit
+            if sign:
+                retVal -= 1 << msb
+
+        else:  # value is returned just as is
+            retVal = self._val
+
+        if self._nrbits:
+            return intbv(retVal)[self._nrbits:]
+        else:
+            return intbv(retVal)        
