@@ -56,7 +56,8 @@ class _TraceSignalsClass(object):
                 "directory",
                 "filename",
                 "timescale",
-                "tracelists"
+                "tracelists",
+                "tracebackup"
                 )
 
     def __init__(self):
@@ -65,11 +66,10 @@ class _TraceSignalsClass(object):
         self.filename = None
         self.timescale = "1ns"
         self.tracelists = True
+        self.tracebackup = True
 
     def __call__(self, dut, *args, **kwargs):
         global _tracing, vcdpath
-        if 'timescale' in kwargs:
-            self.timescale = kwargs['timescale']
         if isinstance(dut, _Block):
             # now we go bottom-up: so clean up and start over
             # TODO: consider a warning for the overruled block
@@ -124,8 +124,9 @@ class _TraceSignalsClass(object):
             vcdpath = os.path.join(directory, filename + ".vcd")
 
             if path.exists(vcdpath):
-                backup = vcdpath[:-4] + '.' + str(path.getmtime(vcdpath)) + '.vcd'
-                shutil.copyfile(vcdpath, backup)
+                if self.tracebackup :
+                    backup = vcdpath[:-4] + '.' + str(path.getmtime(vcdpath)) + '.vcd'
+                    shutil.copyfile(vcdpath, backup)
                 os.remove(vcdpath)
             vcdfile = open(vcdpath, 'w')
             _simulator._tracing = 1
