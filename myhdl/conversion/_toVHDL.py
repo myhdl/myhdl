@@ -1503,9 +1503,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(post)
             return
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
-        if isinstance(node.value.vhd, vhd_signed) and isinstance(node.ctx, ast.Load):
-            pre = pre + "unsigned("
-            suf = ")" + suf
+#        if isinstance(node.value.vhd, vhd_signed) and isinstance(node.ctx, ast.Load):
+#            pre = pre + "unsigned("
+#            suf = ")" + suf
         self.write(pre)
         self.visit(node.value)
         lower, upper = node.slice.lower, node.slice.upper
