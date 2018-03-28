@@ -1,8 +1,6 @@
 import warnings
 from myhdl import *
 from myhdl import ToVHDLWarning
-from myhdl.conversion import _analyze
-import pytest
 
 #A list of all reserved words within VHDL which should not be used for
 #anything other than their own specific purpose
