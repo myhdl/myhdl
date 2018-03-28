@@ -18,7 +18,7 @@ Welcome to the MyHDL documentation
    :maxdepth: 2
 
    manual/index
-   whatsnew/1.0
+   whatsnew/0.10
    python3
 
 Old Whatsnew documents

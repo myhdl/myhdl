@@ -52,7 +52,7 @@ toVerilog -- function that converts a design to Verilog
 from __future__ import absolute_import
 from __future__ import print_function
 
-__version__ = "1.0dev"
+__version__ = "0.10"
 
 
 class StopSimulation(Exception):

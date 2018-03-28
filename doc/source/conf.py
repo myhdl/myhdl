@@ -46,7 +46,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'MyHDL'
-copyright = u'2015, Jan Decaluwe'
+copyright = u'2018, Jan Decaluwe'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -170,7 +170,7 @@ html_use_modindex = False
 # base URL from which the finished HTML is served.
 #html_use_opensearch = ''
 
-# This is the file name suffix for HTML files (e.g. ".xhtml").
+s This is the file name suffix for HTML files (e.g. ".xhtml").
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
