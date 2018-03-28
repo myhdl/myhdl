@@ -916,7 +916,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.write(suf)
         if isinstance(obj, (_Signal, intbv)):
             if node.attr in ('min', 'max'):
+                pre, suf = self.inferCast(node.vhd, node.vhdOri)
+                self.write(pre)
                 self.write("%s" % node.obj)
+                self.write(suf)
         if isinstance(obj, EnumType):
             assert hasattr(obj, node.attr)
             e = getattr(obj, node.attr)
@@ -1040,7 +1043,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is len:
             val = self.getVal(node)
             self.require(node, val is not None, "cannot calculate len")
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
+            self.write(pre)
             self.write(repr(val))
+            self.write(suf)
             return
         elif f is now:
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
