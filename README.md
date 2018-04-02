@@ -34,7 +34,7 @@ What's new
 ----------
 To find out what's new in this release, please read:
 
-   - http://docs.myhdl.org/en/stable/whatsnew/0.9.html
+   - http://docs.myhdl.org/en/stable/whatsnew/0.10.html
 
 Installation
 ------------
