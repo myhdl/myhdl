@@ -618,11 +618,4 @@ following output::
    290: TRY to get item
    StopSimulation: No more events
 
-.. rubric:: Footnotes
-
-.. [#] The name :func:`always_comb` refers to a construct with similar semantics in
-   SystemVerilog.
-
-.. [#] It also possible to have a reproducible random output, by explicitly providing a
-   seed value. See the documentation of the ``random`` module.
 

@@ -159,7 +159,7 @@ The API on a block instance looks as follows:
 
    Converts MyHDL code to a target HDL.
 
-   *hdl*:'VHDL' or 'Verilog'. Defaults to Verilog.
+   *hdl*: 'VHDL' or 'Verilog'. Defaults to Verilog.
 
    Supported keyword arguments:
 
