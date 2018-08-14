@@ -10,7 +10,7 @@ def testbench():
     sof = Signal(bool(0))
     sync_flag = Signal(bool(0))
     clk = Signal(bool(0))
-    reset_n = ResetSignal(1, active=ACTIVE_LOW, async=True)
+    reset_n = ResetSignal(1, active=ACTIVE_LOW, isasync=True)
     state = Signal(t_state.SEARCH)
 
     frame_ctrl_0 = framer_ctrl(sof, state, sync_flag, clk, reset_n)

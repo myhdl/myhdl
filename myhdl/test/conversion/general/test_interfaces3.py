@@ -151,7 +151,7 @@ def c_testbench_three():
     as well as top-level interface conversion.
     """
     clock = Signal(bool(0))
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
     x = Signal(intbv(3, min=-5000, max=5000))
     y = Signal(intbv(4, min=-200, max=200))
     intf = IntfWithConstant2()
@@ -217,7 +217,7 @@ def test_two_verify():
 
 def test_three_analyze():
     clock = Signal(bool(0))
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
     x = Signal(intbv(3, min=-5000, max=5000))
     y = Signal(intbv(4, min=-200, max=200))
     intf = IntfWithConstant2()

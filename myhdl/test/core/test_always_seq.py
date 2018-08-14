@@ -10,7 +10,7 @@ def test_clock():
 
     # should fail without a valid Signal
     clock = Signal(bool(0))
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
 
     with raises_kind(AlwaysSeqError, _error.EdgeType):
         @always_seq(clock, reset=reset)
@@ -40,7 +40,7 @@ def test_reset():
             pass
 
     # should work with a valid Signal
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
     try:
         @always_seq(clock.posedge, reset=reset)
         def logic2():

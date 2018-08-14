@@ -98,7 +98,7 @@ def c_testbench_one():
     used in this example caused and invalid multiple driver error.
     """
     clock = Signal(bool(0))
-    reset = ResetSignal(0, active=1, async=False)
+    reset = ResetSignal(0, active=1, isasync=False)
     sdi = Signal(bool(0))
     sdo = Signal(bool(0))
     nested = Signal(bool())
@@ -145,7 +145,7 @@ def test_one_testbench():
 
 def test_one_analyze():
     clock = Signal(bool(0))
-    reset = ResetSignal(0, active=1, async=False)
+    reset = ResetSignal(0, active=1, isasync=False)
     sdi = Signal(bool(0))
     sdo = Signal(bool(0))
     nested = Signal(bool(0))

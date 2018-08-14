@@ -65,7 +65,7 @@ def tb(uart_tx):
     tx_byte = Signal(intbv(0)[8:])
     tx_clk = Signal(bool(0))
     # tx_rst = Signal(bool(1))
-    tx_rst = ResetSignal(1, active=0, async=True)
+    tx_rst = ResetSignal(1, active=0, isasync=True)
    
     uart_tx_inst = uart_tx(tx_bit, tx_valid, tx_byte, tx_clk, tx_rst)
     

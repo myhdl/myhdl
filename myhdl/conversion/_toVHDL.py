@@ -1838,12 +1838,12 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
         senslist = self.tree.senslist
         edge = senslist[0]
         reset = self.tree.reset
-        async = reset is not None and reset.async
+        isasync = reset is not None and reset.isasync
         sigregs = self.tree.sigregs
         varregs = self.tree.varregs
         self.write("%s: process (" % self.tree.name)
         self.write(edge.sig)
-        if async:
+        if isasync:
             self.write(', ')
             self.write(reset)
         self.write(") is")
@@ -1853,7 +1853,7 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
         self.writeline()
         self.write("begin")
         self.indent()
-        if not async:
+        if not isasync:
             self.writeline()
             self.write("if %s then" % edge._toVHDL())
             self.indent()
@@ -1870,7 +1870,7 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
                 self.write("%s := %s;" % (n, _convertInitVal(reg, init)))
             self.dedent()
             self.writeline()
-            if async:
+            if isasync:
                 self.write("elsif %s then" % edge._toVHDL())
             else:
                 self.write("else")
@@ -1881,7 +1881,7 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
             self.writeline()
             self.write("end if;")
             self.dedent()
-        if not async:
+        if not isasync:
             self.writeline()
             self.write("end if;")
             self.dedent()

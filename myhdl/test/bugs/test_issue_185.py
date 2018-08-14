@@ -16,7 +16,7 @@ def shifter(reset, clock, opa, opb, result):
 def convert():
 
     clock = Signal(bool(0))
-    reset = ResetSignal(0, active=True, async=True)
+    reset = ResetSignal(0, active=True, isasync=True)
 
     opa = Signal(intbv(0)[4:])
     opb = Signal(intbv(0)[4:])

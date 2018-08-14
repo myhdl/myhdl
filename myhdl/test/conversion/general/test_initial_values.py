@@ -308,7 +308,7 @@ def initial_value_list_bench(initial_vals, **kwargs):
 def initial_value_mem_convert_bench():
 
     clock = Signal(bool(0))
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
     wr = Signal(bool(0))
     wrd = Signal(intbv(0, min=0, max=32))
     rdd = Signal(intbv(0, min=0, max=32))
