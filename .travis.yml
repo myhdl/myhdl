@@ -23,10 +23,9 @@ before_script:
       sudo apt-get -qq update;
       sudo apt-get install iverilog;
     elif [[ "$CI_TARGET" == "ghdl" ]]; then
-      wget -O ghdl.tgz "https://github.com/ghdl/ghdl/releases/download/v0.35/ghdl-0.35-mcode-ubuntu14.tgz";
-      mkdir -p ghdl;
-      tar -xvzf ghdl.tgz -C ghdl/;
-      export PATH=$PATH:$PWD/ghdl/bin;
+      sudo add-apt-repository ppa:mati75/ghdl -y;
+      sudo apt-get -qq update;
+      sudo apt-get install ghdl;
     fi
 
 script: ./scripts/ci.sh
