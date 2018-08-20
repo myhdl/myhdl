@@ -17,6 +17,11 @@ env:
   - CI_TARGET=iverilog
   - CI_TARGET=ghdl
 
+# Remove when py37 bugs are fixed
+matrix:
+  allow_failures:
+    - python: "3.7"
+
 
 before_script:
   - if [[ "$CI_TARGET" == "iverilog" ]]; then
