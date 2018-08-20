@@ -1,6 +1,6 @@
 # http://docs.travis-ci.com/user/workers/container-based-infrastructure/
-sudo: required
-dist: trusty
+dist: xenial
+sudo: true
 
 language: python
 python:
@@ -16,6 +16,7 @@ env:
   - CI_TARGET=core
   - CI_TARGET=iverilog
   - CI_TARGET=ghdl
+
 
 before_script:
   - if [[ "$CI_TARGET" == "iverilog" ]]; then
