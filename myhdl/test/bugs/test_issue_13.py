@@ -31,7 +31,7 @@ def issue_13(reset, clk, d, en, q):
 
 def test_issue_13():
 
-    reset = ResetSignal(0, active=1, async=False)
+    reset = ResetSignal(0, active=1, isasync=False)
     clk   = Signal(bool(0))
     d     = Signal(intbv(0)[32:])
     en    = Signal(bool(0))

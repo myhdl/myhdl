@@ -14,7 +14,7 @@ def testbench():
     count = Signal(modbv(0)[m:])
     enable = Signal(bool(0))
     clock  = Signal(bool(0))
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
 
     inc_1 = inc(count, enable, clock, reset)
 

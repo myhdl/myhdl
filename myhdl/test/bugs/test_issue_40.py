@@ -26,7 +26,7 @@ def mpegChannel(clk, rst):
 
 def test_issue_40():
     clk = Signal(bool(0))
-    rst = ResetSignal(0, active=1, async=True)
+    rst = ResetSignal(0, active=1, isasync=True)
 
     assert conversion.analyze(mpegChannel, clk, rst) == 0
 

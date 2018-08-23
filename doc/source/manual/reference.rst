@@ -276,13 +276,13 @@ Regular signals
 	This method returns a :class:`_SliceSignal` shadow signal. 
 
 
-.. class:: ResetSignal(val, active, async)
+.. class:: ResetSignal(val, active, isasync)
 
-    This Signal subclass defines reset signals. *val*, *active*, and *async*
+    This Signal subclass defines reset signals. *val*, *active*, and *isasync*
     are mandatory arguments.
     *val* is a boolean value that specifies the intial value,
     *active* is a boolean value that specifies the active level.
-    *async* is a boolean value that specifies the reset style:
+    *isasync* is a boolean value that specifies the reset style:
     asynchronous (``True``) or synchronous (``False``).
 
     This class should be used in conjunction with the :func:`always_seq`
