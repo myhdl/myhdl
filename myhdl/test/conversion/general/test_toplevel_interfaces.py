@@ -160,3 +160,8 @@ if __name__ == '__main__':
 
     dft = tb_top_level_interfaces()
     dft.run_sim()
+
+    dfc = XYTable(Clk, Reset, Table, Position)
+    dfc.name = 'XYTable'
+    dfc.convert('Verilog')
+    dfc.convert('VHDL')
