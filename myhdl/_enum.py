@@ -22,10 +22,10 @@
 """
 from __future__ import absolute_import
 
-
 from myhdl._bin import bin
 from myhdl._Signal import _Signal
 from myhdl._compat import string_types
+from myhdl.conversion._VHDLNameValidation import _nameValid
 
 
 class EnumType(object):
@@ -38,6 +38,7 @@ class EnumItemType(object):
 
     def __init__(self):
         raise TypeError("class EnumItemType is only intended for type checking on subclasses")
+
 
 supported_encodings = ("binary", "one_hot", "one_cold")
 
@@ -164,13 +165,17 @@ def enum(*names, **kwargs):
         _toVHDL = __str__
 
         def _toVHDL(self):
+            # check if a member name conflicts with a reserved VHDL keyword
+            for name in self.names:
+                _nameValid(name)
+
             typename = self.__dict__['_name']
-            str = "type %s is (\n    " % typename
-            str += ",\n    ".join(self._names)
-            str += "\n);"
+            enumtypedecl = "type %s is (\n    " % typename
+            enumtypedecl += ",\n    ".join(self._names)
+            enumtypedecl += "\n);"
             if self._encoding is not None:
                 codes = " ".join([self._codedict[name] for name in self._names])
-                str += '\nattribute enum_encoding of %s: type is "%s";' % (typename, codes)
-            return str
+                enumtypedecl += '\nattribute enum_encoding of %s: type is "%s";' % (typename, codes)
+            return enumtypedecl
 
     return Enum(names, codedict, nrbits, encoding)
