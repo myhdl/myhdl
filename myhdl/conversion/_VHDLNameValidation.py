@@ -1,5 +1,5 @@
 import warnings
-from myhdl import *
+# from myhdl import *
 from myhdl import ToVHDLWarning
 
 # A list of all reserved words within VHDL which should not be used for
