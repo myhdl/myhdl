@@ -65,6 +65,8 @@ from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFu
 from myhdl.conversion._toVHDLPackage import _package
 from myhdl.conversion._VHDLNameValidation import _nameValid
 
+from myhdl import bin as tobin
+
 _version = myhdl.__version__.replace('.', '')
 _shortversion = _version.replace('dev', '')
 _converting = 0
@@ -576,13 +578,13 @@ def _convertGens(genlist, siglist, memlist, vfile):
                     pre, suf = "to_signed(", ", %s)" % w
                 else:
                     pre, suf = "signed'(", ")"
-                    c = '"%s"' % bin(c, w)
+                    c = '"%s"' % tobin(c, w)
             else:
                 if w <= 31:
                     pre, suf = "to_unsigned(", ", %s)" % w
                 else:
                     pre, suf = "unsigned'(", ")"
-                    c = '"%s"' % bin(c, w)
+                    c = '"%s"' % tobin(c, w)
         else:
             raise ToVHDLError("Unexpected type for constant signal", s._name)
         print("%s <= %s%s%s;" % (s._name, pre, c, suf), file=vfile)
@@ -665,9 +667,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def BitRepr(self, item, var):
         if isinstance(var._val, bool):
-            return '\'%s\'' % bin(item, len(var))
+            return '\'%s\'' % tobin(item, len(var))
         else:
-            return '"%s"' % bin(item, len(var))
+            return '"%s"' % tobin(item, len(var))
 
     def inferCast(self, vhd, ori):
         pre, suf = "", ""
@@ -972,7 +974,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 elif isinstance(lhs.vhd, vhd_int):
                     self.write("%s;" % n)
                 else:
-                    self.write('"%s";' % bin(n, size))
+                    self.write('"%s";' % tobin(n, size))
             self.dedent()
             self.writeline()
             self.write("end case;")
@@ -1157,17 +1159,17 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif isinstance(node.vhd, vhd_boolean):
             self.write("%s" % bool(n))
         # elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
-        #    self.write('"%s"' % bin(n, node.vhd.size))
+        #    self.write('"%s"' % tobin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_unsigned):
             if abs(n) < 2 ** 31:
                 self.write("to_unsigned(%s, %s)" % (n, node.vhd.size))
             else:
-                self.write('unsigned\'("%s")' % bin(n, node.vhd.size))
+                self.write('unsigned\'("%s")' % tobin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_signed):
             if abs(n) < 2 ** 31:
                 self.write("to_signed(%s, %s)" % (n, node.vhd.size))
             else:
-                self.write('signed\'("%s")' % bin(n, node.vhd.size))
+                self.write('signed\'("%s")' % tobin(n, node.vhd.size))
         else:
             if n < 0:
                 self.write("(")
@@ -1425,12 +1427,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     if abs(obj) < 2 ** 31:
                         s = "to_unsigned(%s, %s)" % (obj, node.vhd.size)
                     else:
-                        s = 'unsigned\'("%s")' % bin(obj, node.vhd.size)
+                        s = 'unsigned\'("%s")' % tobin(obj, node.vhd.size)
                 elif isinstance(node.vhd, vhd_signed):
                     if abs(obj) < 2 ** 31:
                         s = "to_signed(%s, %s)" % (obj, node.vhd.size)
                     else:
-                        s = 'signed\'("%s")' % bin(obj, node.vhd.size)
+                        s = 'signed\'("%s")' % tobin(obj, node.vhd.size)
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
@@ -1506,10 +1508,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 if isinstance(node.vhd, vhd_unsigned):
                     pre, post = "unsigned'(", ")"
-                    c = '"%s"' % bin(c, node.vhd.size)
+                    c = '"%s"' % tobin(c, node.vhd.size)
                 elif isinstance(node.vhd, vhd_signed):
                     pre, post = "signed'(", ")"
-                    c = '"%s"' % bin(c, node.vhd.size)
+                    c = '"%s"' % tobin(c, node.vhd.size)
             self.write(pre)
             self.write("%s" % c)
             self.write(post)
@@ -1826,7 +1828,7 @@ def _convertInitVal(reg, init):
         if abs(init) < 2 ** 31:
             v = '%sto_%s(%s, %s)%s' % (pre, vhd_tipe, init, len(reg), suf)
         else:
-            v = '%s%s\'"%s"%s' % (pre, vhd_tipe, bin(init, len(reg)), suf)
+            v = '%s%s\'"%s"%s' % (pre, vhd_tipe, tobin(init, len(reg)), suf)
     else:
         assert isinstance(init, EnumItemType)
         v = init._toVHDL()
