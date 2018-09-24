@@ -25,7 +25,7 @@ from __future__ import absolute_import
 from myhdl._bin import bin
 from myhdl._Signal import _Signal
 from myhdl._compat import string_types
-# from myhdl.conversion._VHDLNameValidation import _nameValid
+from myhdl.conversion._VHDLNameValidation import _nameValid
 
 
 class EnumType(object):
@@ -165,11 +165,16 @@ def enum(*names, **kwargs):
         _toVHDL = __str__
 
         def _toVHDL(self):
-#             # check if a member name conflicts with a reserved VHDL keyword
-#             for name in self.names:
-#                 _nameValid(name)
-
             typename = self.__dict__['_name']
+            # check if a member name conflicts with a reserved VHDL keyword
+            for name in self.names:
+                # watch out _nameValid() will add every name to a check-list
+                # which will force you to be inventive with state names ...
+                # e.g. the typical 'IDLE' can only be used once
+                # so let's pre-fix the enum name
+                # we could have modified _nameValid() to take a default boolean argument
+                _nameValid(''.join((typename, '.', name)))
+
             enumtypedecl = "type %s is (\n    " % typename
             enumtypedecl += ",\n    ".join(self._names)
             enumtypedecl += "\n);"
