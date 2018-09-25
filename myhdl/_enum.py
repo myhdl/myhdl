@@ -25,7 +25,7 @@ from __future__ import absolute_import
 from myhdl._bin import bin
 from myhdl._Signal import _Signal
 from myhdl._compat import string_types
-from myhdl.conversion._VHDLNameValidation import _nameValid
+# from myhdl.conversion._VHDLNameValidation import _nameValid
 
 
 class EnumType(object):
@@ -87,9 +87,12 @@ def enum(*names, **kwargs):
             return hash((self._type, self._index))
 
         def __repr__(self):
-            return self._name
+            return "'{}'".format(self._name)
 
-        __str__ = __repr__
+#         __str__ = __repr__
+
+        def __str__(self):
+            return self._name
 
         def __int__(self):
             return int(self._val, 2)
@@ -154,9 +157,12 @@ def enum(*names, **kwargs):
             return len(self._names)
 
         def __repr__(self):
-            return "<Enum: %s>" % ", ".join(names)
+            return 'enum({})'.format(",".join(["'{}'".format(n) for n in  self._names]))
 
-        __str__ = __repr__
+#         __str__ = __repr__
+
+        def __str__(self):
+            return "<Enum: %s>" % ", ".join(self._names)
 
         def _setName(self, name):
             typename = "t_enum_%s" % name
@@ -164,23 +170,30 @@ def enum(*names, **kwargs):
 
         _toVHDL = __str__
 
-        def _toVHDL(self):
-            typename = self.__dict__['_name']
-            # check if a member name conflicts with a reserved VHDL keyword
-            for name in self.names:
-                # watch out _nameValid() will add every name to a check-list
-                # which will force you to be inventive with state names ...
-                # e.g. the typical 'IDLE' can only be used once
-                # so let's pre-fix the enum name
-                # we could have modified _nameValid() to take a default boolean argument
-                _nameValid(''.join((typename, '.', name)))
+#         def _toVHDL(self):
+#             typename = self.__dict__['_name']
+#             # check if a member name conflicts with a reserved VHDL keyword
+# #             for name in self.names:
+# #                 # watch out _nameValid() will add every name to a check-list
+# #                 # which will force you to be inventive with state names ...
+# #                 # e.g. the typical 'IDLE' can only be used once
+# #                 # so let's pre-fix the enum name
+# #                 # we could have modified _nameValid() to take a default boolean argument
+# #                 _nameValid(''.join((typename, '.', name)))
+#
+#             enumtypedecl = "type %s is (\n    " % typename
+#             enumtypedecl += ",\n    ".join(self._names)
+#             enumtypedecl += "\n);"
+#             if self._encoding is not None:
+#                 codes = " ".join([self._codedict[name] for name in self._names])
+#                 enumtypedecl += '\nattribute enum_encoding of %s: type is "%s";' % (typename, codes)
+#             return enumtypedecl
 
-            enumtypedecl = "type %s is (\n    " % typename
-            enumtypedecl += ",\n    ".join(self._names)
-            enumtypedecl += "\n);"
+        def reftype(self):
+            typename = self.__dict__['_name']
+            codes = None
             if self._encoding is not None:
                 codes = " ".join([self._codedict[name] for name in self._names])
-                enumtypedecl += '\nattribute enum_encoding of %s: type is "%s";' % (typename, codes)
-            return enumtypedecl
+            return (typename, (self._names) , codes)
 
     return Enum(names, codedict, nrbits, encoding)

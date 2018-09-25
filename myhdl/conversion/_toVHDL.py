@@ -363,7 +363,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             pt = st = _getTypeString(s)
             if convertPort:
                 pt = "std_logic_vector"
-             # Check if VHDL keyword or reused name
+            # Check if VHDL keyword or reused name
             _nameValid(s._name)
             if s._driven:
                 if s._read:
@@ -404,8 +404,24 @@ def _writeTypeDefs(f):
     sortedList = list(_enumTypeSet)
     sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
-        f.write("%s\n" % t._toVHDL())
-    # f.write("\n"
+#         f.write("%s\n" % t._toVHDL())
+        typename, names, codes = t.reftype()
+        for name in names:
+            # watch out _nameValid() will add every name to a check-list
+            # which will force you to be inventive with state names ...
+            # e.g. the typical 'IDLE' can only be used once
+            # so let's pre-fix the enum name
+            # we could have modified _nameValid() to take a default boolean argument
+            _nameValid(''.join((typename, '.', name)))
+
+        enumtypedecl = "type %s is (\n\t" % typename
+        enumtypedecl += ",\n\t".join(names)
+        enumtypedecl += "\n\t);\n"
+        if codes is not None:
+            enumtypedecl += 'attribute enum_encoding of %s: type is "%s";\n' % (typename, codes)
+        f.write('{}'.format(enumtypedecl))
+    # a final blank separator line
+    f.write("\n")
 
 
 constwires = []
