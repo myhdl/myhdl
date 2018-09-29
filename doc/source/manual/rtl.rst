@@ -93,7 +93,7 @@ model directly::
 
    from myhdl import block, always_seq
 
-   @instance
+   @block
    def top(<parameters>, clock, ..., reset, ...):
        ...
        @always_seq(clock.posedge, reset=reset)
