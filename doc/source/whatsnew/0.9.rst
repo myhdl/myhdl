@@ -63,9 +63,9 @@ MyHDL module instance. The converter will essentially replace the "." with an
 "_" for each interface element. In essence, interfaces are supported
 using hierarchical name expansion and name mangling. 
 
-Note that the MyHDL convertor supports interfaces, even though
+Note that the MyHDL converter supports interfaces, even though
 the target HDLs do not. This is another great example where the
-convertor supports a high-level feature that is not available
+converter supports a high-level feature that is not available
 in the target HDLs.
 
 See also
@@ -88,7 +88,7 @@ in the concatenation.
 ``std_logic`` type ports 
 ------------------------
 
-:func:`toVHDL` has a new attibute ``std_logic_ports``. When
+:func:`toVHDL` has a new attribute ``std_logic_ports``. When
 set, only ``std_logic`` type ports are used in the interface
 of the top-level VHDL module.
 

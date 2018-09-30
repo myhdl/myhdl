@@ -295,7 +295,7 @@ blocking assignment events have been processed.
 
 Consequently, I had to look for a workaround. One half of the solution is to use
 the ``cbReadOnlySync`` callback.  This callback runs after all pending events
-have been processed.  However, it does not permit to create new events in the
+have been processed.  However, it does not permit one to create new events in the
 current time step.  The second half of the solution is to map MyHDL delta cycles
 onto real Verilog time steps.  Note that fortunately I had some freedom here
 because of the restriction that only passive HDL code can be co-simulated.

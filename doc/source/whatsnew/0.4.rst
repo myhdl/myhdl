@@ -247,7 +247,7 @@ Conversion output verification
 It is always prudent to verify the converted Verilog output. To make
 this task easier, the converter also generates a test bench that makes
 it possible to simulate the Verilog design using the Verilog
-co-simulation interface. This permits to verify the Verilog code with
+co-simulation interface. This permits one to verify the Verilog code with
 the same test bench used for the MyHDL code. This is also how the
 Verilog converter development is being verified.
 

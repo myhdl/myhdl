@@ -79,7 +79,7 @@ The module ports are inferred from signal usage
 
 Interfaces are convertible 
   An *interface*: an object that has a number of :class:`Signal` objects as its
-  attributes. The convertor supports this by name expansion and mangling.
+  attributes. The converter supports this by name expansion and mangling.
 
 Function calls are mapped to Verilog or VHDL subprograms
   The converter analyzes function calls and function code. Each function is
@@ -130,7 +130,7 @@ Signed arithmetic
   resizings and type casts.
 
   In MyHDL, these issues don't exist because ``intbv`` objects simply
-  work as (constrained) integers. Moreover, the convertor automates
+  work as (constrained) integers. Moreover, the converter automates
   the cumbersome tasks that are required in Verilog and
   VHDL. It uses signed or unsigned types based on the value
   constraints of the intbv objects, and automatically performs the
@@ -216,7 +216,7 @@ follows::
 Such as slice returns a new :class:`intbv` object, with minimum value
 ``0`` , and maximum value ``2**N``.
 
-In addition to the scalar types described above, the convertor also
+In addition to the scalar types described above, the converter also
 supports a number of tuple and list based types. The mapping from
 MyHDL types is summarized in the following table.
 
@@ -267,7 +267,7 @@ Notes:
    Lists are mapped to Verilog memories. 
 
 
-The table as presented applies to MyHDL variables. The convertor also
+The table as presented applies to MyHDL variables. The converter also
 supports MyHDL signals that use ``bool``, ``intbv`` or ``enum``
 objects as their underlying type. For VHDL, these are mapped to VHDL signals
 with an underlying type as specified in the table above. Verilog doesn't have
@@ -275,7 +275,7 @@ the signal concept. For Verilog, a MyHDL signal is mapped to a Verilog
 ``reg`` as in the table above, or to a Verilog ``wire``, depending
 on the signal usage.
 
-The convertor supports MyHDL list of signals provided the underlying
+The converter supports MyHDL list of signals provided the underlying
 signal type is either ``bool`` or ``intbv``. They may be mapped to a
 VHDL signal with a VHDL type as specified in the table, or to a
 Verilog memory.  However, list of signals are not always mapped to a
@@ -381,12 +381,12 @@ converter.
 Docstrings
 ----------
 
-The convertor propagates comments under the form of Python
+The converter propagates comments under the form of Python
 docstrings.
 
 Docstrings are typically used in Python to document certain objects in
 a standard way. Such "official" docstrings are put into the converted
-output at appropriate locations.  The convertor supports official
+output at appropriate locations.  The converter supports official
 docstrings for the top level module and for generators.
 
 Within generators, "nonofficial" docstrings are propagated also. These
@@ -409,7 +409,7 @@ Lists of signals are useful for many purposes. For example, they make
 it easy to create a repetitive structure. Another application is the
 description of memory behavior.
 
-The convertor output is non-hierarchical. That implies that all
+The converter output is non-hierarchical. That implies that all
 signals are declared at the top-level in VHDL or Verilog (as VHDL
 signals, or Verilog regs and wires.)  However, some signals that are a
 list member at some level in the MyHDL design hierarchy may be used as
@@ -439,7 +439,7 @@ modelled by an *interface*: an object that has a number of :class:`Signal`
 objects as its attributes.  Grouping signals into an interface simplifies the
 code, improves efficiency, and reduces errors.
 
-The convertor supports interface using hierarchical name expansion and name
+The converter supports interface using hierarchical name expansion and name
 mangling. 
 
 .. _conv-meth-assign:
@@ -550,7 +550,7 @@ Excluding code from conversion
 For some tasks, such as debugging, it may be useful to insert arbitrary Python
 code that should not be converted.
 
-The convertor supports this by ignoring all code that is embedded in a
+The converter supports this by ignoring all code that is embedded in a
 ``if __debug__`` test. The value of the ``__debug__`` variable is not taken into
 account.
 
@@ -566,14 +566,14 @@ MyHDL provides a way to include user-defined code during the
 conversion process. There are special function attributes that are understood by the
 converter but ignored by the simulator. The attributes are :attr:`verilog_code`
 for Verilog and :attr:`vhdl_code` for VHDL.  They operate like a special
-return value. When defined in a MyHDL function, the convertor will use
+return value. When defined in a MyHDL function, the converter will use
 their value instead of the regular return value. Effectively, it will
 stop converting at that point.
 
 The value of :attr:`verilog_code` or :attr:`vhdl_code` should be a Python
 template string. A template string supports ``$``-based substitutions.
 The ``$name`` notation can be used to refer to the
-variable names in the context of the string. The convertor will
+variable names in the context of the string. The converter will
 substitute the appropriate values in the string and then insert it 
 instead of the regular converted output.
 
@@ -636,7 +636,7 @@ It is converted to VHDL as follows::
     end process DFF_LOGIC;
 
 
-The convertor can handle the more general case. For example, this is
+The converter can handle the more general case. For example, this is
 MyHDL code for a D flip-flop with asynchronous set, asynchronous
 reset, and preference of set over reset::
 
@@ -668,7 +668,7 @@ This is converted to VHDL as follows::
 
 All cases with practical utility can be handled in this way. However,
 there are other cases that cannot be transformed to equivalent
-VHDL. The convertor will detect those cases and give an error.
+VHDL. The converter will detect those cases and give an error.
 
 
 .. _conv-meth-conv:
@@ -681,7 +681,7 @@ Conversion output verification by co-simulation
 To verify the converted Verilog output, co-simulation can be used. To
 make this task easier, the converter also generates a test bench that
 makes it possible to simulate the Verilog design using the Verilog
-co-simulation interface. This permits to verify the Verilog code with
+co-simulation interface. This permits one to verify the Verilog code with
 the same test bench used for the MyHDL code.
 
 
@@ -699,7 +699,7 @@ An alternative is to convert the test bench itself, so that
 both test bench and design can be run in the HDL simulator. Of course,
 this is not a fully general solution, as there are important
 constraints on the kind of code that can be converted.
-Thus, the question is whether the conversion restrictions permit to develop
+Thus, the question is whether the conversion restrictions permit one to develop
 sufficiently complex test benches. In this section, we present some
 insights about this.
 
@@ -781,7 +781,7 @@ instance, and insert an instantiation instead.
 There is a workaround to accomplish this with a small amount of additional
 work. The workaround is to define user-defined code consisting of an
 instantiation of the design under test. As discussed in :ref:`conv-custom`,
-when the convertor sees the hook it will stop converting and insert the
+when the converter sees the hook it will stop converting and insert the
 instantiation instead. Of course, you will want to convert the design
 under test itself also. Therefore, you should use a flag that controls
 whether the hook is defined or not and set it according to the

@@ -40,7 +40,7 @@ The conversion to Verilog generates an equivalent Verilog module in file
 
 .. include-example:: inc.v
 
-The convertor infers a proper Verilog module interface and maps the MyHDL
+The converter infers a proper Verilog module interface and maps the MyHDL
 generator to a Verilog always block.
 
 Similarly, the conversion to VHDL generates a file :file:`inc.vhd` with  the
@@ -57,7 +57,7 @@ functions that make the conversion easier.
 Note also the use of an ``inout`` in the interface.  This is not
 recommended VHDL design practice, but it is required here to have a
 valid VHDL design that matches the behavior of the MyHDL design. As
-this is only an issue for ports and as the convertor output is
+this is only an issue for ports and as the converter output is
 non-hierarchical, the issue is not very common and has an easy
 workaround.
 
