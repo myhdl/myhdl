@@ -23,43 +23,49 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-
 import sys
 import math
 import os
 
 import inspect
 from datetime import datetime
-#import compiler
-#from compiler import ast as astNode
+# import compiler
+# from compiler import ast as astNode
 import ast
 from types import GeneratorType
 import warnings
 from copy import copy
 import string
 
+# import myhdl
 import myhdl
-import myhdl
-from myhdl import *
+# from myhdl import *
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVhdlCode, _userCodeMap)
 
 from myhdl._instance import _Instantiator
+from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
+from myhdl._enum import EnumType, EnumItemType
+from myhdl._intbv import intbv
+from myhdl._modbv import modbv
+from myhdl._simulator import now
+from myhdl._concat import concat
+from myhdl._delay import delay
+from myhdl._misc import downrange
+from myhdl._util import _flatten
+from myhdl._compat import integer_types, class_types, StringIO
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
+from myhdl._block import _Block
+from myhdl._getHierarchy import _getHierarchy
 from myhdl.conversion._misc import (_error, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
-from myhdl._Signal import _Signal, _WaiterList
 from myhdl.conversion._toVHDLPackage import _package
-from myhdl._util import _flatten
-from myhdl._compat import integer_types, class_types, StringIO
-from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 from myhdl.conversion._VHDLNameValidation import _nameValid
 
-
-from myhdl._block import _Block
-from myhdl._getHierarchy import _getHierarchy
+from myhdl import bin as tobin
 
 _version = myhdl.__version__.replace('.', '')
 _shortversion = _version.replace('dev', '')
@@ -259,7 +265,7 @@ class _ToVHDLConvertor(object):
         for sig in siglist:
             sig._clear()
         for mem in memlist:
-            mem.name = None 
+            mem.name = None
             for s in mem.mem:
                 s._clear()
 
@@ -299,6 +305,24 @@ def _writeFileHeader(f, fn):
     print(file=f)
 
 
+def _writeEnum(f, e):
+    typename, names, codes = e.reftype()
+    for name in names:
+        # watch out _nameValid() will add every name to a check-list
+        # which will force you to be inventive with state names ...
+        # e.g. the typical 'IDLE' can only be used once
+        # so let's pre-fix the enum name
+        # we could have modified _nameValid() to take a default boolean argument
+        _nameValid(''.join((typename, '.', name)))
+
+    enumtypedecl = "type %s is (\n\t" % typename
+    enumtypedecl += ",\n\t".join(names)
+    enumtypedecl += "\n\t);\n"
+    if codes is not None:
+        enumtypedecl += 'attribute enum_encoding of %s: type is "%s";\n' % (typename, codes)
+    f.write('{}'.format(enumtypedecl))
+
+
 def _writeCustomPackage(f, intf):
     print(file=f)
     print("package pck_%s is" % intf.name, file=f)
@@ -308,10 +332,12 @@ def _writeCustomPackage(f, intf):
     sortedList = list(_enumPortTypeSet)
     sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
-        print("    %s" % t._toVHDL(), file=f)
+#         print("    %s" % t._toVHDL(), file=f)
+        _writeEnum(f, t)
     print(file=f)
     print("end package pck_%s;" % intf.name, file=f)
     print(file=f)
+
 
 portConversions = []
 
@@ -356,7 +382,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             pt = st = _getTypeString(s)
             if convertPort:
                 pt = "std_logic_vector"
-             # Check if VHDL keyword or reused name
+            # Check if VHDL keyword or reused name
             _nameValid(s._name)
             if s._driven:
                 if s._read:
@@ -397,8 +423,26 @@ def _writeTypeDefs(f):
     sortedList = list(_enumTypeSet)
     sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
-        f.write("%s\n" % t._toVHDL())
-    # f.write("\n"
+#         f.write("%s\n" % t._toVHDL())
+#         typename, names, codes = t.reftype()
+#         for name in names:
+#             # watch out _nameValid() will add every name to a check-list
+#             # which will force you to be inventive with state names ...
+#             # e.g. the typical 'IDLE' can only be used once
+#             # so let's pre-fix the enum name
+#             # we could have modified _nameValid() to take a default boolean argument
+#             _nameValid(''.join((typename, '.', name)))
+#
+#         enumtypedecl = "type %s is (\n\t" % typename
+#         enumtypedecl += ",\n\t".join(names)
+#         enumtypedecl += "\n\t);\n"
+#         if codes is not None:
+#             enumtypedecl += 'attribute enum_encoding of %s: type is "%s";\n' % (typename, codes)
+#         f.write('{}'.format(enumtypedecl))
+        _writeEnum(f, t)
+    # a final blank separator line
+    f.write("\n")
+
 
 constwires = []
 
@@ -570,13 +614,13 @@ def _convertGens(genlist, siglist, memlist, vfile):
                     pre, suf = "to_signed(", ", %s)" % w
                 else:
                     pre, suf = "signed'(", ")"
-                    c = '"%s"' % bin(c, w)
+                    c = '"%s"' % tobin(c, w)
             else:
                 if w <= 31:
                     pre, suf = "to_unsigned(", ", %s)" % w
                 else:
                     pre, suf = "unsigned'(", ")"
-                    c = '"%s"' % bin(c, w)
+                    c = '"%s"' % tobin(c, w)
         else:
             raise ToVHDLError("Unexpected type for constant signal", s._name)
         print("%s <= %s%s%s;" % (s._name, pre, c, suf), file=vfile)
@@ -659,9 +703,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def BitRepr(self, item, var):
         if isinstance(var._val, bool):
-            return '\'%s\'' % bin(item, len(var))
+            return '\'%s\'' % tobin(item, len(var))
         else:
-            return '"%s"' % bin(item, len(var))
+            return '"%s"' % tobin(item, len(var))
 
     def inferCast(self, vhd, ori):
         pre, suf = "", ""
@@ -710,7 +754,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def writeIntSize(self, n):
         # write size for large integers (beyond 32 bits signed)
         # with some safety margin
-        if n >= 2**30:
+        if n >= 2 ** 30:
             size = int(math.ceil(math.log(n + 1, 2))) + 1  # sign bit!
             self.write("%s'sd" % size)
 
@@ -966,7 +1010,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 elif isinstance(lhs.vhd, vhd_int):
                     self.write("%s;" % n)
                 else:
-                    self.write('"%s";' % bin(n, size))
+                    self.write('"%s";' % tobin(n, size))
             self.dedent()
             self.writeline()
             self.write("end case;")
@@ -1151,17 +1195,17 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif isinstance(node.vhd, vhd_boolean):
             self.write("%s" % bool(n))
         # elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
-        #    self.write('"%s"' % bin(n, node.vhd.size))
+        #    self.write('"%s"' % tobin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_unsigned):
-            if abs(n) < 2**31:
+            if abs(n) < 2 ** 31:
                 self.write("to_unsigned(%s, %s)" % (n, node.vhd.size))
             else:
-                self.write('unsigned\'("%s")' % bin(n, node.vhd.size))
+                self.write('unsigned\'("%s")' % tobin(n, node.vhd.size))
         elif isinstance(node.vhd, vhd_signed):
-            if abs(n) < 2**31:
+            if abs(n) < 2 ** 31:
                 self.write("to_signed(%s, %s)" % (n, node.vhd.size))
             else:
-                self.write('signed\'("%s")' % bin(n, node.vhd.size))
+                self.write('signed\'("%s")' % tobin(n, node.vhd.size))
         else:
             if n < 0:
                 self.write("(")
@@ -1236,10 +1280,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 start, stop, step = args
         assert step is None
 # if node.breakLabel.isActive:
-##             self.write("begin: %s" % node.breakLabel)
+# #             self.write("begin: %s" % node.breakLabel)
 # self.writeline()
 # if node.loopLabel.isActive:
-##             self.write("%s: " % node.loopLabel)
+# #             self.write("%s: " % node.loopLabel)
         self.write("for %s in " % var)
         if start is None:
             self.write("0")
@@ -1419,12 +1463,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     if abs(obj) < 2 ** 31:
                         s = "to_unsigned(%s, %s)" % (obj, node.vhd.size)
                     else:
-                        s = 'unsigned\'("%s")' % bin(obj, node.vhd.size)
+                        s = 'unsigned\'("%s")' % tobin(obj, node.vhd.size)
                 elif isinstance(node.vhd, vhd_signed):
                     if abs(obj) < 2 ** 31:
                         s = "to_signed(%s, %s)" % (obj, node.vhd.size)
                     else:
-                        s = 'signed\'("%s")' % bin(obj, node.vhd.size)
+                        s = 'signed\'("%s")' % tobin(obj, node.vhd.size)
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
@@ -1500,10 +1544,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 if isinstance(node.vhd, vhd_unsigned):
                     pre, post = "unsigned'(", ")"
-                    c = '"%s"' % bin(c, node.vhd.size)
+                    c = '"%s"' % tobin(c, node.vhd.size)
                 elif isinstance(node.vhd, vhd_signed):
                     pre, post = "signed'(", ")"
-                    c = '"%s"' % bin(c, node.vhd.size)
+                    c = '"%s"' % tobin(c, node.vhd.size)
             self.write(pre)
             self.write("%s" % c)
             self.write(post)
@@ -1537,7 +1581,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(pre)
         self.visit(node.value)
         self.write("(")
-        #assert len(node.subs) == 1
+        # assert len(node.subs) == 1
         self.visit(node.slice.value)
         self.write(")")
         self.write(suf)
@@ -1705,6 +1749,7 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         self.funcBuf = funcBuf
 
     def visit_FunctionDef(self, node):
+
         # a local function works nicely too
         def compressSensitivityList(senslist):
             ''' reduce spelled out list items like [*name*(0), *name*(1), ..., *name*(n)] to just *name*'''
@@ -1812,14 +1857,14 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = "'1'" if init else "'0'"
     elif tipe is intbv:
-        init = int(init) # int representation
+        init = int(init)  # int representation
         vhd_tipe = 'unsigned'
         if reg._min is not None and reg._min < 0:
             vhd_tipe = 'signed'
-        if abs(init) < 2**31:
+        if abs(init) < 2 ** 31:
             v = '%sto_%s(%s, %s)%s' % (pre, vhd_tipe, init, len(reg), suf)
         else:
-            v = '%s%s\'"%s"%s' % (pre, vhd_tipe, bin(init, len(reg)), suf)
+            v = '%s%s\'"%s"%s' % (pre, vhd_tipe, tobin(init, len(reg)), suf)
     else:
         assert isinstance(init, EnumItemType)
         v = init._toVHDL()
@@ -1977,7 +2022,6 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.writeline()
         self.write("end procedure %s;" % self.tree.name)
         self.writeline(2)
-
 
 # type inference
 
