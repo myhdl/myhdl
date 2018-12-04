@@ -32,7 +32,7 @@ from datetime import datetime
 # import compiler
 # from compiler import ast as astNode
 import ast
-from types import GeneratorType
+from types import GeneratorType, SliceType
 import warnings
 from copy import copy
 import string
@@ -61,7 +61,7 @@ from myhdl._getHierarchy import _getHierarchy
 from myhdl.conversion._misc import (_error, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
-                                       _Ram, _Rom, _enumTypeSet)
+                                       _Ram, _Rom, _enumTypeSet, _slice_constDict)
 from myhdl.conversion._toVHDLPackage import _package
 from myhdl.conversion._VHDLNameValidation import _nameValid
 
@@ -194,6 +194,7 @@ class _ToVHDLConvertor(object):
         ### initialize properly ###
         _genUniqueSuffix.reset()
         _enumTypeSet.clear()
+        _slice_constDict.clear()
         _enumPortTypeSet.clear()
 
         arglist = _flatten(h.top)
@@ -246,6 +247,7 @@ class _ToVHDLConvertor(object):
             _writeCustomPackage(vfile, intf)
         _writeModuleHeader(vfile, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts)
         _writeFuncDecls(vfile)
+        _writeConstants(vfile)
         _writeTypeDefs(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
@@ -416,6 +418,31 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
 def _writeFuncDecls(f):
     return
     # print >> f, package
+
+
+def _writeConstants(f):
+    f.write("\n")
+    # guess nice representation
+    for c in _slice_constDict:
+        v = _slice_constDict[c]
+        # Enable slice definition conversion via subtypes:
+        if type(v) == SliceType:
+            f.write("subtype %s is integer range %d-1 downto %d;\n" % (c, v.start, v.stop))
+        else:
+            s = str(int(v))
+            sign = ''
+            if v < 0:
+                sign = '-'
+            for i in range(4, 31):
+                if abs(v) == 2**i:
+                    s = "%s2**%s" % (sign, i)
+                    break
+                if abs(v) == 2**i-1:
+                    s = "%s2**%s-1" % (sign, i)
+                    break
+            # v = _constDict[c]
+            f.write("constant %s: integer := %s;\n" % (c, s))
+    f.write("\n")
 
 
 def _writeTypeDefs(f):
@@ -1482,6 +1509,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = obj._toVHDL()
             elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
+            elif type(obj) is SliceType:
+                s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:
@@ -2401,6 +2430,11 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_int()
         elif isinstance(obj, intbv):
             node.vhd = vhd_std_logic()
+        # Special case to allow named slices:
+        else:
+            sl = node.slice.value.obj
+            if isinstance(sl, slice):
+                node.vhd = vhd_unsigned(sl.start-sl.stop)
         node.vhdOri = copy(node.vhd)
 
     def visit_UnaryOp(self, node):

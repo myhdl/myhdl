@@ -54,6 +54,7 @@ myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
 
 _enumTypeSet = set()
+_slice_constDict = {}
 
 
 def _makeName(n, prefixes, namedict):
@@ -879,6 +880,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.tree.hasLos = True
             elif isinstance(node.obj, int):
                 node.value = node.obj
+            elif isinstance(node.obj, slice):
+                _slice_constDict[n] = node.obj
             if n in self.tree.nonlocaldict:
                 # hack: put nonlocal intbv's in the vardict
                 self.tree.vardict[n] = v = node.obj
@@ -993,6 +996,9 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = int(-1)
         elif isinstance(node.value.obj, intbv):
             node.obj = bool()
+        # Special case: We may have a named slice
+        elif isinstance(node.slice.value.obj, slice):
+            node.obj = self.getObj(node.value)
         else:
             node.obj = bool()  # XXX default
 
