@@ -459,6 +459,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
             continue
         r = _getRangeString(s)
         p = _getTypeString(s)
+        # Check if VHDL keyword or reused name
+        _nameValid(s._name)
         if s._driven:
             if not s._read and not isinstance(s, _TristateDriver):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
@@ -491,8 +493,6 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
         elif s._read:
-            # Check if VHDL keyword or reused name
-            _nameValid(s._name)
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
             # changed to a warning and a continuous assignment to a wire

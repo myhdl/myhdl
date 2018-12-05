@@ -55,7 +55,7 @@ def invalid_import_keyword(input_sig, output_sig):
 
 @block
 def invalid_signal_underscore(input_sig, output_sig):
-    _foo = Signal(False)
+    _foo = Signal(bool(0))
 
     @always_comb
     def do_something():
@@ -156,4 +156,12 @@ def test_invalid_function_underscore_name():
     # Multiple conversions of a valid block should pass without warning
     with pytest.warns(ToVHDLWarning):
         a_block.convert(hdl='VHDL')
+
+
+if __name__ == '__main__':
+    sig_1 = Signal(True)
+    sig_2 = Signal(True)
+
+    a_block = invalid_signal_underscore(sig_1, sig_2)
+    a_block.convert(hdl='VHDL')
 
