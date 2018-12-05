@@ -63,7 +63,7 @@ from myhdl.conversion._misc import (_error, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet)
 from myhdl.conversion._toVHDLPackage import _package
-from myhdl.conversion._VHDLNameValidation import _nameValid
+from myhdl.conversion._VHDLNameValidation import _nameValid, _usedNames
 
 from myhdl import bin as tobin
 
@@ -150,6 +150,9 @@ class _ToVHDLConvertor(object):
         if not isinstance(func, _Block):
             if not callable(func):
                 raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
+
+        # clear out the list of user declared Signal (and other?) names
+        del _usedNames[:]
 
         _converting = 1
         if self.name is None:
