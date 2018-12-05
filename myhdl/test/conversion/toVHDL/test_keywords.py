@@ -52,6 +52,7 @@ def invalid_import_keyword(input_sig, output_sig):
     return do_something, something_else
 """
 
+
 @block
 def invalid_signal_underscore(input_sig, output_sig):
     _foo = Signal(False)
@@ -66,6 +67,7 @@ def invalid_signal_underscore(input_sig, output_sig):
 
     return do_something, something_else
 
+
 @block
 def invalid_function_underscore(clock, input_sig, output_sig):
 
@@ -76,7 +78,6 @@ def invalid_function_underscore(clock, input_sig, output_sig):
     return do_something
 
 
-
 @block
 def valid(input_sig, output_sig):
 
@@ -85,6 +86,7 @@ def valid(input_sig, output_sig):
         output_sig.next = input_sig
 
     return do_something
+
 
 def test_multiple_conversion():
     sig_1 = Signal(True)
@@ -117,10 +119,10 @@ def test_invalid_keyword_name():
             fd, full_filename = tempfile.mkstemp(
                 suffix='.py', dir=temp_directory)
 
-            os.write(fd, keyword_template.substitute(keyword=keyword))
+            os.write(fd, keyword_template.substitute(keyword=keyword).encode('utf-8'))
             os.close(fd)
 
-            module_name = os.path.basename(full_filename)[:-3] # chop off .py
+            module_name = os.path.basename(full_filename)[:-3]  # chop off .py
             keyword_import = importlib.import_module(module_name)
 
             a_block = keyword_import.invalid_import_keyword(sig_1, sig_2)
@@ -132,6 +134,7 @@ def test_invalid_keyword_name():
         sys.path.pop()
         shutil.rmtree(temp_directory)
 
+
 def test_invalid_signal_underscore_name():
     sig_1 = Signal(True)
     sig_2 = Signal(True)
@@ -141,6 +144,7 @@ def test_invalid_signal_underscore_name():
     # Multiple conversions of a valid block should pass without warning
     with pytest.warns(ToVHDLWarning):
         a_block.convert(hdl='VHDL')
+
 
 def test_invalid_function_underscore_name():
     sig_1 = Signal(True)
