@@ -41,6 +41,9 @@ def _nameValid(name):
     if '-' in name:
         warnings.warn("VHDL variable names cannot contain '-': %s" % (name))
 
+    if '__' in name:
+        warnings.warn("VHDL variable names cannot contain double underscores '__': %s" % (name))
+
     if name.lower() in _usedNames:
         warnings.warn("Previously used name being reused: %s" % (name))
 
