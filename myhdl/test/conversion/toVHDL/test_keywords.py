@@ -71,11 +71,15 @@ def invalid_signal_underscore(input_sig, output_sig):
 @block
 def invalid_function_underscore(clock, input_sig, output_sig):
 
+    ttt = Signal(bool(0))
+
+    block1 = invalid_signal_underscore(input_sig, ttt)
+
     @always(clock.posedge)
     def do_something():
-        output_sig.next = input_sig
+        output_sig.next = ttt
 
-    return do_something
+    return block1, do_something
 
 
 @block
@@ -165,3 +169,9 @@ if __name__ == '__main__':
     a_block = invalid_signal_underscore(sig_1, sig_2)
     a_block.convert(hdl='VHDL')
 
+    clock = Signal(True)
+
+    a_block = invalid_function_underscore(clock, sig_1, sig_2)
+
+    # Multiple conversions of a valid block should pass without warning
+    a_block.convert(hdl='VHDL')
