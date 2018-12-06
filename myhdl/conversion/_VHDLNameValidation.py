@@ -1,6 +1,7 @@
 import warnings
 # from myhdl import *
-# from myhdl import ToVHDLWarning
+
+from myhdl import ToVHDLWarning
 
 # A list of all reserved words within VHDL which should not be used for
 # anything other than their own specific purpose
@@ -33,16 +34,19 @@ _usedNames = [];
 # ensure reserved words are not being used for the wrong purpose
 def _nameValid(name):
     if name.lower() in _vhdl_keywords:
-        warnings.warn("VHDL keyword used: %s" % (name))
+        warnings.warn("VHDL keyword used: {}".format(name), category=ToVHDLWarning)
 
     if name.startswith('_'):
-        warnings.warn("VHDL variable names cannot start with '_': %s" % (name))
+        warnings.warn("VHDL variable names cannot start with '_': {}".format(name), category=ToVHDLWarning)
 
     if '-' in name:
-        warnings.warn("VHDL variable names cannot contain '-': %s" % (name))
+        warnings.warn("VHDL variable names cannot contain '-': {}".format(name), category=ToVHDLWarning)
+
+    if '__' in name:
+        warnings.warn("VHDL variable names cannot contain double underscores '__': {}".format(name), category=ToVHDLWarning)
 
     if name.lower() in _usedNames:
-        warnings.warn("Previously used name being reused: %s" % (name))
+        warnings.warn("Previously used name being reused: {}".format(name), category=ToVHDLWarning)
 
     _usedNames.append(name.lower())
 
