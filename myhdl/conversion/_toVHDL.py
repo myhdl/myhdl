@@ -745,8 +745,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     pre, suf = "resize(", ", %s)" % vhd.size
             elif isinstance(ori, vhd_signed):
                 if vhd.size != ori.size:
-                    # note the order of resizing and casting here (otherwise bug!)
-                    pre, suf = "resize(unsigned(", "), %s)" % vhd.size
+                    # This is consistent with the VHDL simulation
+                    pre, suf = "unsigned(resize(", "), %s)" % vhd.size
                 else:
                     pre, suf = "unsigned(", ")"
             else:
