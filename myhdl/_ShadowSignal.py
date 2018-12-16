@@ -256,7 +256,7 @@ class ConcatSignal(_ShadowSignal):
 
                 elif re.match(r'b*[01_]+', a, re.RegexFlag.IGNORECASE):
                     # a plain binary string
-                    aa = a.tolower().replace('_', '').replace('b', '')
+                    aa = a.lower().replace('_', '').replace('b', '')
                     w = len(aa)
                     v = long(aa, 2)
 
