@@ -72,9 +72,9 @@ class _SliceSignal(_ShadowSignal):
         self._right = right
         gen = self._genfuncSlice()
         self._waiter = _SignalWaiter(gen)
-        # 6jun16 jb
-        sig._read = True
-        self._driven = 'wire'
+#         # 6jun16 jb
+#         sig._read = True
+#         self._driven = 'wire'
 
     def __repr__(self):
         if self._name:
@@ -174,8 +174,8 @@ class _CloneSignal(_ShadowSignal):
         gen = self._genfuncClone()
         self._waiter = _SignalWaiter(gen)
         self._driven = 'wire'
-        # as we are a shadow signal we are reading the provider signal
-        self._sig._read = True
+#         # as we are a shadow signal we are reading the provider signal
+#         self._sig._read = True
 
     def _genfuncClone(self):
         sig = self._sig
