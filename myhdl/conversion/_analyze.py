@@ -1240,22 +1240,16 @@ def isboundmethod(m):
 def expandinterface(v, name, obj):
     for attr, attrobj in vars(obj).items():
         if isinstance(attrobj, _Signal):
-            #                     signame = attrobj._name
-            #                     if not signame:
-            #                         signame = name + '_' + attr
-            #                         attrobj._name = signame
-            signame = name + '_' + attr
-#             signame = name + attr
-            attrobj._name = signame
-            # check if already in
-#                     if v.fullargdict.has_key(signame):
-#                         raise ConversionError(_error.NameCollision, signame)
+            signame = attrobj._name
+            if not signame:
+                signame = name + '_' + attr
+                attrobj._name = signame
             v.argdict[signame] = attrobj
             v.argnames.append(signame)
         elif isinstance(attrobj, myhdl.EnumType):
             pass
         elif hasattr(attrobj, '__dict__'):
-                    # can assume is yet another interface ...
+            # can assume is yet another interface ...
             expandinterface(v, name + '_' + attr, attrobj)
 
 
@@ -1264,31 +1258,13 @@ def _analyzeTopFunc(func, *args, **kwargs):
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
     v.visit(tree)
 
-#     objs = []
-#     for name, obj in v.fullargdict.items():
-#         if not isinstance(obj, _Signal):
-#             objs.append((name, obj))
-#
-#     # create ports for any signal in the top instance if it was buried in an
-#     # object passed as in argument
-#     # TODO: This will not work for nested objects in the top level
-#     for name, obj in objs:
-#         if not hasattr(obj, '__dict__'):
-#             continue
-#         for attr, attrobj in vars(obj).items():
-#             if isinstance(attrobj, _Signal):
-#                 signame = attrobj._name
-#                 if not signame:
-#                     signame = name + '_' + attr
-#                     attrobj._name = signame
-#                 v.argdict[signame] = attrobj
-#                 v.argnames.append(signame)
-
-    # collect the interface objects if any
     objs = []
     for name, obj in v.fullargdict.items():
         if not isinstance(obj, _Signal):
             objs.append((name, obj))
+
+    # create ports for any signal in the top instance if it was buried in an
+    # object passed as in argument
 
     # now expand the interface objects
     for name, obj in objs:

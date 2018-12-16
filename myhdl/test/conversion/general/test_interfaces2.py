@@ -1,9 +1,10 @@
 
 from myhdl import (block, Signal, ResetSignal, intbv, always_seq, always_comb,
-                   instance, delay, StopSimulation, )
+                   instance, delay, StopSimulation,)
 
 
 class Intf(object):
+
     def __init__(self):
         self.x = Signal(intbv(1, min=-1111, max=1111))
         self.y = Signal(intbv(2, min=-2211, max=2211))
@@ -126,3 +127,15 @@ def test_name_conflicts_analyze():
 def test_name_conflicts_verify():
     inst = c_testbench()
     assert inst.verify_convert() == 0
+
+
+if __name__ == '__main__':
+    clock = Signal(False)
+    reset = ResetSignal(0, active=0, isasync=False)
+    a = Intf()
+    a_x = Signal(intbv(0)[len(a.x):])
+    inst = name_conflict_after_replace(clock, reset, a, a_x)
+
+    inst.convert()
+    inst.convert(hdl='VHDL')
+

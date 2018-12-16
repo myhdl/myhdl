@@ -35,6 +35,28 @@ class Cartesian2D(object):
 
 
 @block
+def Encoder(Clk, Reset, Encoder, Position):
+    lpos = Signal(intbv(0, -2 ** 15, 2 ** 15))
+
+    @always_seq(Clk.posedge, reset=Reset)
+    def synch():
+        if Encoder.zero:
+            lpos.next = 0
+        elif Encoder.up and not Encoder.down:
+            if lpos < 2 ** 15:
+                lpos.next = lpos + 1
+        elif not Encoder.up and Encoder.down:
+            if lpos > -2 ** 15:
+                lpos.next = lpos - 1
+
+    @always_comb
+    def comb():
+        Position.next = lpos
+
+    return synch, comb
+
+
+@block
 def XYTable(Clk, Reset, Table, Position):
     '''
         Encoding the X,Y position of an XY Table using two Encoders
@@ -42,36 +64,18 @@ def XYTable(Clk, Reset, Table, Position):
         Table: an TableXY() object giving us the input
         Position: an Cartesian2D() object telling us the position    
     '''
-    # we need some local counter signals
-    lposx = Signal(intbv(0, -2 ** 15, 2 ** 15))
-    lposy = Signal(intbv(0, -2 ** 15, 2 ** 15))
-
-    @always_seq(Clk.posedge, reset=Reset)
-    def synch():
-        if Table.x.zero:
-            lposx.next = 0
-        elif Table.x.up:
-            if lposx < 2 ** 15:
-                lposx.next = lposx + 1
-        elif Table.x.down:
-            if lposx > -2 ** 15:
-                lposx.next = lposx - 1
-
-        if Table.y.zero:
-            lposy.next = 0
-        elif Table.y.up:
-            if lposy < 2 ** 15:
-                lposy.next = lposy + 1
-        elif Table.y.down:
-            if lposy > -2 ** 15:
-                lposy.next = lposy - 1
+    pos = Cartesian2D()
+    tablex = Encoder(Clk, Reset, Table.x, pos.x)
+    tablex.name = 'Table_X'
+    tabley = Encoder(Clk, Reset, Table.y, pos.y)
+    tabley.name = 'Table_Y'
 
     @always_comb
-    def comb():
-        Position.x.next = lposx
-        Position.y.next = lposy
+    def assign():
+        Position.x.next = pos.x
+        Position.y.next = pos.y
 
-    return synch, comb
+    return tablex, tabley, assign
 
 
 def test_top_level_interfaces_analyze():
@@ -86,8 +90,6 @@ def test_top_level_interfaces_analyze():
 
 @block
 def tb_top_level_interfaces():
-    import random
-    random.seed = 'We want repeatable randomness :)'
 
     Clk = Signal(bool(0))
     Reset = ResetSignal(0, 1, False)
@@ -96,11 +98,10 @@ def tb_top_level_interfaces():
 
     tb_dut = XYTable(Clk, Reset, Table, Position)
 
-    T_OPS = 32
-    xup = [ Signal(bool(random.randint(0, 1))) for _ in range(T_OPS)]
-    xdown = [ Signal(bool(random.randint(0, 1))) for _ in range(T_OPS)]
-    yup = [ Signal(bool(random.randint(0, 1))) for _ in range(T_OPS)]
-    ydown = [ Signal(bool(random.randint(0, 1))) for _ in range(T_OPS)]
+    xul = tuple([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+    xdl = tuple([0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1])
+    yul = tuple([0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1])
+    ydl = tuple([0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1])
 
     tCK = 20
     tReset = int(tCK * 3.5)
@@ -122,15 +123,16 @@ def tb_top_level_interfaces():
         Reset.next = 1
         yield delay(tReset)
         Reset.next = 0
-        yield Clk.posedge
+        yield Clk.negedge
 
-        for i in range(T_OPS):
-            Table.x.up.next = xup[i]
-            Table.x.down.next = xdown[i]
-            Table.y.up.next = yup[i]
-            Table.y.down.next = ydown[i]
+        for i in range(len(xul)):
+            yield Clk.negedge
+            Table.x.up.next = xul[i]
+            Table.x.down.next = xdl[i]
+            Table.y.up.next = yul[i]
+            Table.y.down.next = ydl[i]
             yield Clk.posedge
-            print("%d %d" % (Position.x, Position.y))
+            print("%d: %d %d" % (i, Position.x, Position.y))
 
         yield Clk.posedge
         Table.x.zero.next = 1
