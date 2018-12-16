@@ -239,7 +239,7 @@ class ConcatSignal(_ShadowSignal):
                 v = a
 
             elif isinstance(a, str):
-                if re.match(r'\d+x[0-9_abcdef]+', a, re.RegexFlag.IGNORECASE):
+                if re.match(r'\d+x[0-9_abcdef]+', a, re.I):
                     begin, _, rest = a.replace('_', '').lower().lpartition('x')
                     w = int(begin)
                     if w == 0:
@@ -247,14 +247,14 @@ class ConcatSignal(_ShadowSignal):
 
                     v = long(rest, 16) & (2 ** w - 1)
 
-                elif re.match(r'\d+b[01_]+', a, re.RegexFlag.IGNORECASE):
+                elif re.match(r'\d+b[01_]+', a, re.I):
                     begin, _, rest = a.replace('_', '').lower().lpartition('b')
                     w = int(begin)
                     if w == 0:
                         w = len(rest)
                     v = long(rest, 2) & (2 ** w - 1)
 
-                elif re.match(r'b*[01_]+', a, re.RegexFlag.IGNORECASE):
+                elif re.match(r'b*[01_]+', a, re.I):
                     # a plain binary string
                     aa = a.lower().replace('_', '').replace('b', '')
                     w = len(aa)
