@@ -653,6 +653,6 @@ SignalType = _Signal
 
 # avoid circular imports
 
-from myhdl._ShadowSignal import _SliceSignal, _IndexSignal, _CloneSignal, _ReverseSignal
+from myhdl._ShadowSignal import _SliceSignal, _IndexSignal, _CloneSignal
 from myhdl._Waiter import _SignalWaiter
 from myhdl._enum import EnumItemType
