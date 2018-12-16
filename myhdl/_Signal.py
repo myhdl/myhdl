@@ -184,8 +184,8 @@ class _Signal(object):
         self._val = deepcopy(self._init)
         self._next = deepcopy(self._init)
         self._name = self._driven = None
-        self._read = False # dont clear self._used
-        self._inList = False 
+        self._read = False  # dont clear self._used
+        self._inList = False
         self._numeric = True
         for s in self._slicesigs:
             s._clear()
@@ -272,7 +272,7 @@ class _Signal(object):
 
     @read.setter
     def read(self, val):
-        if not val in (True, ):
+        if not val in (True,):
             raise ValueError('Expected value True, got "%s"' % val)
         self._markRead()
 
@@ -339,8 +339,14 @@ class _Signal(object):
             print("b%s %s" % (bin(self._val, self._nrbits), self._code), file=sim._tf)
 
     ### use call interface for shadow signals ###
-    def __call__(self, left, right=None):
-        s = _SliceSignal(self, left, right)
+    def __call__(self, left=None, right=None, signed=False):
+        if left is None:
+            s = _CloneSignal(self)
+        else:
+            if right is None:
+                s = _IndexSignal(self, left)
+            else:
+                s = _SliceSignal(self, left, right, signed)
         self._slicesigs.append(s)
         return s
 
@@ -641,11 +647,12 @@ class _SignalWrap(object):
     def apply(self):
         return self.sig._apply(self.next, self.timeStamp)
 
+
 # for export
 SignalType = _Signal
 
 # avoid circular imports
 
-from myhdl._ShadowSignal import _SliceSignal
+from myhdl._ShadowSignal import _SliceSignal, _IndexSignal, _CloneSignal, _ReverseSignal
 from myhdl._Waiter import _SignalWaiter
 from myhdl._enum import EnumItemType
