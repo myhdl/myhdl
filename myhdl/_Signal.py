@@ -342,11 +342,10 @@ class _Signal(object):
     def __call__(self, left=None, right=None, signed=False):
         if left is None:
             s = _CloneSignal(self)
+        elif right is None:
+            s = _IndexSignal(self, left)
         else:
-            if right is None:
-                s = _IndexSignal(self, left)
-            else:
-                s = _SliceSignal(self, left, right, signed)
+            s = _SliceSignal(self, left, right, signed)
         self._slicesigs.append(s)
         return s
 

@@ -72,9 +72,6 @@ class _SliceSignal(_ShadowSignal):
         self._right = right
         gen = self._genfuncSlice()
         self._waiter = _SignalWaiter(gen)
-#         # 6jun16 jb
-#         sig._read = True
-#         self._driven = 'wire'
 
     def __repr__(self):
         if self._name:
@@ -110,34 +107,32 @@ class _SliceSignal(_ShadowSignal):
         return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
 
     def toVHDL(self):
-        return "    %s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
+        return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
 
 
 class _IndexSignal(_ShadowSignal):
     ''' a single bit out of an intbv signal '''
-    __slots__ = ('_sig', '_left')
+    __slots__ = ('_sig', '_index')
 
-    def __init__(self, sig, left):
-        _ShadowSignal.__init__(self, sig[left])
+    def __init__(self, sig, index):
+        _ShadowSignal.__init__(self, sig[index])
         self._sig = sig
-        self._left = left
-#         self._right = None
+        self._index = index
         gen = self._genfuncIndex()
         self._waiter = _SignalWaiter(gen)
-        self._driven = 'wire'
 
     def _genfuncIndex(self):
-        sig, index = self._sig, self._left
+        sig, index = self._sig, self._index
         set_next = _Signal.next.fset
         while 1:
             set_next(self, sig[index])
             yield sig
 
     def _setName(self, hdl):
-            if hdl == 'Verilog':
-                self._name = "%s[%s]" % (self._sig._name, self._left)
-            else:
-                self._name = "%s(%s)" % (self._sig._name, self._left)
+        if hdl == 'Verilog':
+            self._name = "%s[%s]" % (self._sig._name, self._index)
+        else:
+            self._name = "%s(%s)" % (self._sig._name, self._index)
 
     def _markRead(self):
         self._read = True
@@ -151,31 +146,25 @@ class _IndexSignal(_ShadowSignal):
         if self._name:
             return "{}: ShadowIndex({})".format(self._name, repr(self._val))
         else:
-            return "ShadowIndex({}, {} of {})".format(repr(self._val), self._left, repr(self._sig))
+            return "ShadowIndex({}, {} of {})".format(repr(self._val), self._index, repr(self._sig))
 
     def toVerilog(self):
-        return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
+        return "assign %s = %s[%s];" % (self._name, self._sig._name, self._index)
 
     def toVHDL(self):
-        return "    %s <= %s(%s);" % (self._name, self._sig._name, self._left)
+        return "%s <= %s(%s);" % (self._name, self._sig._name, self._index)
 
 
 class _CloneSignal(_ShadowSignal):
     ''' shadowing the whole signal '''
-    __slots__ = ('_sig')
+    __slots__ = ('_sig',)
 
     def __init__(self, sig):
-        # XXX error checks
         # a 'clone'
         _ShadowSignal.__init__(self, sig.val)
         self._sig = sig
-#         self._left = None
-#         self._right = None
         gen = self._genfuncClone()
         self._waiter = _SignalWaiter(gen)
-        self._driven = 'wire'
-#         # as we are a shadow signal we are reading the provider signal
-#         self._sig._read = True
 
     def _genfuncClone(self):
         sig = self._sig

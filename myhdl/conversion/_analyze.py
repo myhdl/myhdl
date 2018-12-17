@@ -43,7 +43,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,
                                     _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
-from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
+from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver, _IndexSignal, _CloneSignal
 from myhdl._util import _flatten
 from myhdl._util import _isTupleOfInts
 from myhdl._util import _makeAST
@@ -100,7 +100,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
-            if isinstance(s, _SliceSignal):
+            if isinstance(s, (_SliceSignal, _IndexSignal, _CloneSignal)):
                 continue
             s._name = _makeName(n, prefixes, namedict)
             if not s._nrbits:
@@ -380,6 +380,7 @@ class _Rom(object):
     def __init__(self, rom):
         self.rom = rom
 
+
 re_str = re.compile(r"[^%]+")
 re_ConvSpec = re.compile(r"%(?P<justified>[-]?)(?P<width>[0-9]*)(?P<conv>[sd])")
 
@@ -396,6 +397,7 @@ class ConvSpec(object):
             self.width = int(kwargs['width'])
         if kwargs['conv'] == 'd':
             self.conv = int
+
 
 defaultConvSpec = ConvSpec(**re_ConvSpec.match(r"%s").groupdict())
 
@@ -591,7 +593,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f in _flatten(integer_types):
             node.obj = int(-1)
 # elif f in (posedge , negedge):
-##             node.obj = _EdgeDetector()
+# #             node.obj = _EdgeDetector()
         elif f is ord:
             node.obj = int(-1)
             if not (isinstance(node.args[0], ast.Str) and (len(node.args[0].s) == 1)):
@@ -661,8 +663,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         for n in [node.left] + node.comparators:
             self.visit(n)
         op, arg = node.ops[0], node.comparators[0]
-##         node.expr.target = self.getObj(arg)
-##         arg.target = self.getObj(node.expr)
+# #         node.expr.target = self.getObj(arg)
+# #         arg.target = self.getObj(node.expr)
         # detect specialized case for the test
         if isinstance(op, ast.Eq) and isinstance(node.left, ast.Name):
             # check wether it can be a case
