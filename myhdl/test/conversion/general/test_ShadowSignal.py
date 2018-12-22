@@ -77,19 +77,19 @@ def bench_ConcatSignalWithConsts():
     d = Signal(intbv(0)[4:])
     e = Signal(intbv(0)[1:])
 
-#     c0 = 'b010'
-#     c1 = "10_01"
-    c1 = "10"
+    c0 = 'b010'
+    c1 = "10_01"
+#     c1 = "10"
     c2 = intbv(3)[3:]
     c3 = '0'
     c4 = bool(1)
     c5 = intbv(42)[8:]  # with leading zeroes
-#     c6 = "MyHDL"
-#     c7 = "0x1234"
-#     c8 = "88"
+    c6 = "MyHDL"
+    c7 = "0x1234"
+    c8 = "88"
 
-#     s = ConcatSignal(c0, c1, a, c2, b, c3, c, c4, d, c5, e, c6, c7, c8)
-    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
+    s = ConcatSignal(c0, c1, a, c2, b, c3, c, c4, d, c5, e, c6, c7, c8)
+#     s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
 
     I_max = 2 ** len(a)
     J_max = 2 ** len(b)
