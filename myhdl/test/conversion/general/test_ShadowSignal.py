@@ -84,9 +84,9 @@ def bench_ConcatSignalWithConsts():
     c3 = '0'
     c4 = bool(1)
     c5 = intbv(42)[8:]  # with leading zeroes
-    c6 = "MyHDL"
-    c7 = "0x1234"
-    c8 = "88"
+#     c6 = "MyHDL"
+#     c7 = "0x1234"
+#     c8 = "88"
 
 #     s = ConcatSignal(c0, c1, a, c2, b, c3, c, c4, d, c5, e, c6, c7, c8)
     s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
@@ -207,9 +207,9 @@ if __name__ == '__main__':
 #     dfc.convert(hdl='Verilog')
 #     dfc.convert(hdl='VHDL')
 
-    dft = bench_ConcatSignalWithConsts()
+#     dft = bench_ConcatSignalWithConsts()
 #     dft.run_sim()
 #     dft.convert(hdl='Verilog')
-    dft.convert(hdl='VHDL')
+#     dft.convert(hdl='VHDL')
 
-#     conversion.verify(bench_ConcatSignalWithConsts())
+    conversion.verify(bench_ConcatSignalWithConsts())

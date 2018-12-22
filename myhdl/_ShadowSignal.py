@@ -204,7 +204,6 @@ class ConcatSignal(_ShadowSignal):
 
     def __init__(self, *args):
         assert len(args) >= 2
-#         self._args = args
         self._args = []
         self._sigargs = sigargs = []
 
@@ -281,17 +280,14 @@ class ConcatSignal(_ShadowSignal):
         while 1:
             hi = nrbits
             for a, w in args:
-#                 if isinstance(a, bool):
-#                     w = 1
-#                 else:
-#                     w = len(a)
                 lo = hi - w
                 # note: 'a in sigargs' is equivalence check, not identity
                 if isinstance(a, _Signal):
                     if isinstance(a._val, intbv):
                         newval[hi:lo] = a[w:]
                     else:
-                        newval[hi:lo] = a
+                        # bool
+                        newval[lo] = a
                 hi = lo
             set_next(self, newval)
             yield sigargs
@@ -317,13 +313,6 @@ class ConcatSignal(_ShadowSignal):
         ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
         for a, w in self._args:
-#             if isinstance(a, bool):
-#                 w = 1
-#             elif isinstance(a, string_types):
-#                 aa = a.replace('_', '')
-#                 w = len(aa)
-#             else:
-#                 w = len(a)
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
@@ -356,10 +345,6 @@ class ConcatSignal(_ShadowSignal):
         ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
         for a, w in self._args:
-#             if isinstance(a, bool):
-#                 w = 1
-#             else:
-#                 w = len(a)
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):

@@ -40,6 +40,7 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
         raise ValueError("Invalid simulator command")
     _simulators[name] = sim(name, hdl, analyze, elaborate, simulate, skiplines, skipchars, ignore)
 
+
 registerSimulator(
     name="ghdl",
     hdl="VHDL",
@@ -75,7 +76,6 @@ registerSimulator(
     skipchars=2,
     ignore=("# **", "# //", "#    Time:", "# run -all")
 )
-
 
 registerSimulator(
     name="iverilog",
@@ -126,6 +126,7 @@ class _VerificationClass(object):
         vals = {}
         vals['topname'] = name
         vals['unitname'] = name.lower()
+#         vals['unitname'] = name
         vals['version'] = _version
 
         analyze = hdlsim.analyze % vals
@@ -161,7 +162,7 @@ class _VerificationClass(object):
                 except:
                     pass
 
-        # print(analyze)
+        print(os.getcwd(), analyze)
         ret = subprocess.call(analyze, shell=True)
         if ret != 0:
             print("Analysis failed", file=sys.stderr)
@@ -193,7 +194,7 @@ class _VerificationClass(object):
                 return ret
 
         g = tempfile.TemporaryFile(mode='w+t')
-        # print(simulate)
+        print(os.getcwd(), simulate)
         ret = subprocess.call(simulate, stdout=g, shell=True)
     #    if ret != 0:
     #        print "Simulation run failed"
@@ -237,6 +238,7 @@ class _VerificationClass(object):
             print("Conversion verification succeeded", file=sys.stderr)
         else:
             print("Conversion verification failed", file=sys.stderr)
+            print(s, file=sys.stderr)
             # print >> sys.stderr, s ,
             return 1
 
