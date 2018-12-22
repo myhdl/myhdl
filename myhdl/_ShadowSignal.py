@@ -280,11 +280,11 @@ class ConcatSignal(_ShadowSignal):
         newval = intbv(self._initval)[nrbits:]
         while 1:
             hi = nrbits
-            for a, _ in args:
-                if isinstance(a, bool):
-                    w = 1
-                else:
-                    w = len(a)
+            for a, w in args:
+#                 if isinstance(a, bool):
+#                     w = 1
+#                 else:
+#                     w = len(a)
                 lo = hi - w
                 # note: 'a in sigargs' is equivalence check, not identity
                 if isinstance(a, _Signal):
