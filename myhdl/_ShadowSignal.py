@@ -210,11 +210,7 @@ class ConcatSignal(_ShadowSignal):
         nrbits = 0
         val = 0
         for a in args:
-            if isinstance(a, intbv):
-                w = a._nrbits
-                v = a._val
-
-            elif isinstance(a, _Signal):
+            if isinstance(a, _Signal):
                 sigargs.append(a)
                 w = a._nrbits
                 if isinstance(a._val, intbv):
@@ -222,6 +218,11 @@ class ConcatSignal(_ShadowSignal):
                 else:
                     v = a._val
                 a._read = True
+
+            # any constants?
+            elif isinstance(a, intbv):
+                w = a._nrbits
+                v = a._val
 
             elif isinstance(a, bool):
                 w = 1
@@ -263,7 +264,8 @@ class ConcatSignal(_ShadowSignal):
 
             self._args.append([a, w])
             nrbits += w
-            val = val << w | v & (long(1) << w) - 1
+            val = (val << w) | (v & ((long(1) << w) - 1))
+
         self._initval = val
         ini = intbv(val)[nrbits:]
         _ShadowSignal.__init__(self, ini)
@@ -289,6 +291,7 @@ class ConcatSignal(_ShadowSignal):
                         # bool
                         newval[lo] = a
                 hi = lo
+
             set_next(self, newval)
             yield sigargs
 

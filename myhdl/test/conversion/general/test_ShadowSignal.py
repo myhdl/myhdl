@@ -98,7 +98,7 @@ def bench_ConcatSignalWithConsts():
 
     @instance
     def check():
-        print(s)
+#         print(s)
         for i in range(I_max):
             for j in range(J_max):
                 for k in range(K_max):
@@ -207,9 +207,9 @@ if __name__ == '__main__':
 #     dfc.convert(hdl='Verilog')
 #     dfc.convert(hdl='VHDL')
 
-#     dft = bench_ConcatSignalWithConsts()
-#     dft.run_sim()
+    dft = bench_ConcatSignalWithConsts()
+    dft.run_sim()
 #     dft.convert(hdl='Verilog')
 #     dft.convert(hdl='VHDL')
 
-    conversion.verify(bench_ConcatSignalWithConsts())
+#     conversion.verify(bench_ConcatSignalWithConsts())
