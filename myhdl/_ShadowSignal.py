@@ -64,7 +64,7 @@ class _SliceSignal(_ShadowSignal):
             if sig[left - 1]:
                 val = -(2 ** (left - right) - sig[left:right])
             else:
-                val = sig[left:right]
+                val = int(sig[left:right])
             _ShadowSignal.__init__(self, intbv(val, min=-2 ** (left - right - 1), max=2 ** (left - right - 1)))
 
         self._sig = sig
@@ -77,21 +77,34 @@ class _SliceSignal(_ShadowSignal):
         if self._name:
             return "{}: ShadowSlice({})".format(self._name, repr(self._val))
         else:
-            return "ShadowSlice({}, {}:{} of {})".format(repr(self._val), self._left, self._right, repr(self._sig))
+            return "ShadowSlice({}, {}, {} of {})".format(repr(self._val), self._min, self._max, repr(self._sig))
 
     def _genfuncSlice(self):
         sig, left, right = self._sig, self._left, self._right
         set_next = _Signal.next.fset
-        while 1:
-            set_next(self, sig[left:right])
-            yield sig
+        if self.min < 0:
+            while 1:
+                if sig[left - 1]:
+                    val = -(2 ** (left - right) - sig[left:right])
+                else:
+                    val = sig[left:right]
+                set_next(self, val)
+                yield sig
+        else:
+            while 1:
+                set_next(self, sig[left:right])
+                yield sig
 
     def _setName(self, hdl):
         if hdl == 'Verilog':
-            self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
+            if self._val._min < 0:
+                self._name = "$signed(%s[%s-1:%s])" % (self._sig._name, self._left, self._right)
+            else:
+                self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
         else:
-            if self._sig._min < 0:
-                self._name = "unsigned( %s( %s-1 downto %s ))" % (self._sig._name, self._left, self._right)
+#             if self._sig._min < 0:
+            if self._val._min < 0:
+                self._name = "signed( %s( %s-1 downto %s ))" % (self._sig._name, self._left, self._right)
             else:
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
 
@@ -104,10 +117,16 @@ class _SliceSignal(_ShadowSignal):
         self._sig._used = True
 
     def toVerilog(self):
-        return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
+        if self._val._min < 0:
+            return "assign %s = $signed(%s[%s-1:%s]);" % (self._name, self._sig._name, self._left, self._right)
+        else:
+            return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
 
     def toVHDL(self):
-        return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
+        if self._val._min < 0:
+            return "%s <= signed(%s(%s-1 downto %s));" % (self._name, self._sig._name, self._left, self._right)
+        else:
+            return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
 
 
 class _IndexSignal(_ShadowSignal):
