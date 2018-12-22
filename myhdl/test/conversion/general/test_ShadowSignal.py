@@ -77,8 +77,9 @@ def bench_ConcatSignalWithConsts():
     d = Signal(intbv(0)[4:])
     e = Signal(intbv(0)[1:])
 
-    c0 = 'b010'
-    c1 = "10_01"
+#     c0 = 'b010'
+#     c1 = "10_01"
+    c1 = "10"
     c2 = intbv(3)[3:]
     c3 = '0'
     c4 = bool(1)
@@ -87,8 +88,8 @@ def bench_ConcatSignalWithConsts():
     c7 = "0x1234"
     c8 = "88"
 
-    s = ConcatSignal(c0, c1, a, c2, b, c3, c, c4, d, c5, e, c6, c7, c8)
-#     s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
+#     s = ConcatSignal(c0, c1, a, c2, b, c3, c, c4, d, c5, e, c6, c7, c8)
+    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
 
     I_max = 2 ** len(a)
     J_max = 2 ** len(b)
@@ -202,11 +203,13 @@ bench_permute(toVHDL)
 bench_permute(toVerilog)
 
 if __name__ == '__main__':
-    dfc = bench_SliceSignal()
+#     dfc = bench_SliceSignal()
 #     dfc.convert(hdl='Verilog')
 #     dfc.convert(hdl='VHDL')
 
     dft = bench_ConcatSignalWithConsts()
 #     dft.run_sim()
-    dft.convert(hdl='Verilog')
+#     dft.convert(hdl='Verilog')
     dft.convert(hdl='VHDL')
+
+#     conversion.verify(bench_ConcatSignalWithConsts())
