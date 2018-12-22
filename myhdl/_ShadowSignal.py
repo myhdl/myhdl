@@ -204,7 +204,8 @@ class ConcatSignal(_ShadowSignal):
 
     def __init__(self, *args):
         assert len(args) >= 2
-        self._args = args
+#         self._args = args
+        self._args = []
         self._sigargs = sigargs = []
 
         nrbits = 0
@@ -229,7 +230,7 @@ class ConcatSignal(_ShadowSignal):
 
             elif isinstance(a, str):
                 if re.match(r'\d+x[0-9_abcdef]+', a, re.I):
-                    begin, _, rest = a.replace('_', '').lower().lpartition('x')
+                    begin, _, rest = a.replace('_', '').lower().partition('x')
                     w = int(begin)
                     if w == 0:
                         w = len(rest) * 4
@@ -237,7 +238,7 @@ class ConcatSignal(_ShadowSignal):
                     v = long(rest, 16) & (2 ** w - 1)
 
                 elif re.match(r'\d+b[01_]+', a, re.I):
-                    begin, _, rest = a.replace('_', '').lower().lpartition('b')
+                    begin, _, rest = a.replace('_', '').lower().partition('b')
                     w = int(begin)
                     if w == 0:
                         w = len(rest)
@@ -261,6 +262,7 @@ class ConcatSignal(_ShadowSignal):
                 raise TypeError("ConcatSignal: inappropriate argument type: %s"
                                 % type(a))
 
+            self._args.append([a, w])
             nrbits += w
             val = val << w | v & (long(1) << w) - 1
         self._initval = val
@@ -314,14 +316,14 @@ class ConcatSignal(_ShadowSignal):
         lines = []
         ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
-        for a in self._args:
-            if isinstance(a, bool):
-                w = 1
-            elif isinstance(a, string_types):
-                aa = a.replace('_', '')
-                w = len(aa)
-            else:
-                w = len(a)
+        for a, w in self._args:
+#             if isinstance(a, bool):
+#                 w = 1
+#             elif isinstance(a, string_types):
+#                 aa = a.replace('_', '')
+#                 w = len(aa)
+#             else:
+#                 w = len(a)
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
@@ -335,13 +337,17 @@ class ConcatSignal(_ShadowSignal):
                 if isinstance(a, _Signal):
                     if a._min < 0:
                         lines.append(
-                            "    %s(%s-1 downto %s) <= unsigned(%s);" % (self._name, hi, lo, a._name))
+                            "%s(%s downto %s) <= unsigned(%s);" % (self._name, hi - 1, lo, a._name))
                     else:
                         lines.append(
-                            "    %s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
+                            "%s(%s downto %s) <= %s;" % (self._name, hi - 1, lo, a._name))
                 else:
-                    lines.append('%s(%s-1 downto %s) <= "%s";' %
-                                 (self._name, hi, lo, bin(ini[hi:lo], w)))
+                    if w > 4:
+                        lines.append('{}({} downto {}) <= {};'.format(
+                            self._name, hi - 1, lo, '{}X"{}"'.format(w, ini[hi:lo])))
+                    else:
+                        lines.append('%s(%s downto %s) <= "%s";' %
+                                 (self._name, hi - 1, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -349,11 +355,11 @@ class ConcatSignal(_ShadowSignal):
         lines = []
         ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
-        for a in self._args:
-            if isinstance(a, bool):
-                w = 1
-            else:
-                w = len(a)
+        for a, w in self._args:
+#             if isinstance(a, bool):
+#                 w = 1
+#             else:
+#                 w = len(a)
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
@@ -365,10 +371,10 @@ class ConcatSignal(_ShadowSignal):
                     lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal):
-                    lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
+                    lines.append("assign %s[%s:%s] = %s;" % (self._name, hi - 1, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" %
-                                 (self._name, hi, lo, bin(ini[hi:lo], w)))
+                    lines.append("assign %s[%s:%s] = 'b%s;" %
+                                 (self._name, hi - 1, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 

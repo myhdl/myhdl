@@ -9,6 +9,7 @@ def bench_SliceSignal():
     s = Signal(intbv(0)[8:])
     a, b, c = s(7), s(5), s(0)
     d, e, f, g = s(8, 5), s(6, 3), s(8, 0), s(4, 3)
+    h = s()
     N = len(s)
 
     @instance
@@ -23,6 +24,7 @@ def bench_SliceSignal():
             print(e)
             print(f)
             print(g)
+            print(h)
 
     return check
 
@@ -75,13 +77,18 @@ def bench_ConcatSignalWithConsts():
     d = Signal(intbv(0)[4:])
     e = Signal(intbv(0)[1:])
 
-    c1 = "10"
+    c0 = 'b010'
+    c1 = "10_01"
     c2 = intbv(3)[3:]
     c3 = '0'
     c4 = bool(1)
     c5 = intbv(42)[8:]  # with leading zeroes
+    c6 = "MyHDL"
+    c7 = "0x1234"
+    c8 = "88"
 
-    s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
+    s = ConcatSignal(c0, c1, a, c2, b, c3, c, c4, d, c5, e, c6, c7, c8)
+#     s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
 
     I_max = 2 ** len(a)
     J_max = 2 ** len(b)
@@ -90,6 +97,7 @@ def bench_ConcatSignalWithConsts():
 
     @instance
     def check():
+        print(s)
         for i in range(I_max):
             for j in range(J_max):
                 for k in range(K_max):
@@ -196,4 +204,9 @@ bench_permute(toVerilog)
 if __name__ == '__main__':
     dfc = bench_SliceSignal()
 #     dfc.convert(hdl='Verilog')
-    dfc.convert(hdl='VHDL')
+#     dfc.convert(hdl='VHDL')
+
+    dft = bench_ConcatSignalWithConsts()
+#     dft.run_sim()
+    dft.convert(hdl='Verilog')
+    dft.convert(hdl='VHDL')

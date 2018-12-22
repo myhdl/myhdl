@@ -23,7 +23,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-
 import sys
 import math
 import os
@@ -476,6 +475,7 @@ def _getSignString(s):
     else:
         return ''
 
+
 def _intRepr(n, radix=''):
     # write size for large integers (beyond 32 bits signed)
     # with some safety margin
@@ -483,17 +483,18 @@ def _intRepr(n, radix=''):
     p = abs(n)
     size = ''
     num = str(p).rstrip('L')
-    if radix == "hex" or p >= 2**30:
+    if radix == "hex" or p >= 2 ** 30:
         radix = "'h"
         num = hex(p)[2:].rstrip('L')
-    if p >= 2**30:
-        size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
+    if p >= 2 ** 30:
+        size = int(math.ceil(math.log(p + 1, 2))) + 1  # sign bit!
 #            if not radix:
 #                radix = "'d"
     r = "%s%s%s" % (size, radix, num)
-    if n < 0: # add brackets and sign on negative numbers
+    if n < 0:  # add brackets and sign on negative numbers
         r = "(-%s)" % r
     return r
+
 
 def _convertGens(genlist, vfile):
     blockBuf = StringIO()
@@ -1179,7 +1180,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.writeline()
                     self.write("endcase")
                 else:
-                    print (type(obj), type(a))
+#                     print (type(obj), type(a))
                     self.write('$write("%s", ' % fs)
                     self.visit(a)
                     self.write(');')
@@ -1406,7 +1407,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = '1' if init else '0'
     elif tipe is intbv:
-        init = int(init) # int representation
+        init = int(init)  # int representation
         v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)
