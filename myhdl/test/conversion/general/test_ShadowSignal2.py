@@ -39,7 +39,7 @@ def bench_SliceSignalSigned():
         print(h)
         aa.next = e + f
         # iverilog and ghdl seem to need a delta delay
-        yield delay(0)
+        yield delay(1)
         print(aa)
 
         a.next = 127
