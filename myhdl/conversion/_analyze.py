@@ -380,6 +380,7 @@ class _Rom(object):
     def __init__(self, rom):
         self.rom = rom
 
+
 re_str = re.compile(r"[^%]+")
 re_ConvSpec = re.compile(r"%(?P<justified>[-]?)(?P<width>[0-9]*)(?P<conv>[sd])")
 
@@ -396,6 +397,7 @@ class ConvSpec(object):
             self.width = int(kwargs['width'])
         if kwargs['conv'] == 'd':
             self.conv = int
+
 
 defaultConvSpec = ConvSpec(**re_ConvSpec.match(r"%s").groupdict())
 
@@ -591,7 +593,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f in _flatten(integer_types):
             node.obj = int(-1)
 # elif f in (posedge , negedge):
-##             node.obj = _EdgeDetector()
+# #             node.obj = _EdgeDetector()
         elif f is ord:
             node.obj = int(-1)
             if not (isinstance(node.args[0], ast.Str) and (len(node.args[0].s) == 1)):
@@ -661,8 +663,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         for n in [node.left] + node.comparators:
             self.visit(n)
         op, arg = node.ops[0], node.comparators[0]
-##         node.expr.target = self.getObj(arg)
-##         arg.target = self.getObj(node.expr)
+# #         node.expr.target = self.getObj(arg)
+# #         arg.target = self.getObj(node.expr)
         # detect specialized case for the test
         if isinstance(op, ast.Eq) and isinstance(node.left, ast.Name):
             # check wether it can be a case
@@ -1234,6 +1236,23 @@ def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
 
+# a local function to drill down to the last interface
+def expandinterface(v, name, obj):
+    for attr, attrobj in vars(obj).items():
+        if isinstance(attrobj, _Signal):
+            signame = attrobj._name
+            if not signame:
+                signame = name + '_' + attr
+                attrobj._name = signame
+            v.argdict[signame] = attrobj
+            v.argnames.append(signame)
+        elif isinstance(attrobj, myhdl.EnumType):
+            pass
+        elif hasattr(attrobj, '__dict__'):
+            # can assume is yet another interface ...
+            expandinterface(v, name + '_' + attr, attrobj)
+
+
 def _analyzeTopFunc(func, *args, **kwargs):
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
@@ -1246,18 +1265,12 @@ def _analyzeTopFunc(func, *args, **kwargs):
 
     # create ports for any signal in the top instance if it was buried in an
     # object passed as in argument
-    # TODO: This will not work for nested objects in the top level
+
+    # now expand the interface objects
     for name, obj in objs:
-        if not hasattr(obj, '__dict__'):
-            continue
-        for attr, attrobj in vars(obj).items():
-            if isinstance(attrobj, _Signal):
-                signame = attrobj._name
-                if not signame:
-                    signame = name + '_' + attr
-                    attrobj._name = signame
-                v.argdict[signame] = attrobj
-                v.argnames.append(signame)
+        if hasattr(obj, '__dict__'):
+            # must be an interface object (probably ...?)
+            expandinterface(v, name, obj)
 
     return v
 
