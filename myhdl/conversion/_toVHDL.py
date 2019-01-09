@@ -368,6 +368,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
         f.write("    port (")
         c = ''
         for portname in intf.argnames:
+            _nameValid(portname)
             s = intf.argdict[portname]
             f.write("%s" % c)
             c = ';'
@@ -385,8 +386,8 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             pt = st = _getTypeString(s)
             if convertPort:
                 pt = "std_logic_vector"
-            # Check if VHDL keyword or reused name
-            _nameValid(s._name)
+#             # Check if VHDL keyword or reused name
+#             _nameValid(s._name)
             if s._driven:
                 if s._read:
                     if not isinstance(s, _TristateSignal):
