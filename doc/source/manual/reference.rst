@@ -280,7 +280,7 @@ Regular signals
 
     This Signal subclass defines reset signals. *val*, *active*, and *isasync*
     are mandatory arguments.
-    *val* is a boolean value that specifies the intial value,
+    *val* is a boolean value that specifies the initial value,
     *active* is a boolean value that specifies the active level.
     *isasync* is a boolean value that specifies the reset style:
     asynchronous (``True``) or synchronous (``False``).
@@ -544,7 +544,7 @@ The :class:`intbv` class
 
     .. method:: signed()
 
-       Interpretes the msb bit as as sign bit and extends it into the higher-order
+       Interprets the msb bit as as sign bit and extends it into the higher-order
        bits of the underlying object value. The msb bit is the highest-order bit
        within the object's bit width.
 

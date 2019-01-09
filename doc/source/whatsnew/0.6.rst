@@ -16,16 +16,16 @@ Rationale
 Since the MyHDL to Verilog conversion has been developed, a path to
 implementation from MyHDL is available. Given the widespread support
 for Verilog, it could thus be argued that there was no real need for a
-convertor to VHDL.
+converter to VHDL.
 
 However, it turns out that VHDL is still very much alive and will
-remain so for the forseeable future. This is especially true for the
+remain so for the foreseeable future. This is especially true for the
 FPGA market, which is especially interesting for MyHDL. It seems much
 more dynamic than the ASIC market. Moreover, because of the nature of
 FPGA's, FPGA designers may be more willing to try out new ideas.
 
 To convince designers to use a new tool, it should integrate with
-their current design flow. That is why the MyHDL to VHDL convertor is
+their current design flow. That is why the MyHDL to VHDL converter is
 needed. It should lower the threshold for VHDL designers to start
 using MyHDL.
 
@@ -38,12 +38,12 @@ MyHDL integration in a VHDL-based design flow
     Designers can start using MyHDL and benefit from its power and
     flexibility, within the context of their proven design flow.
 
-The convertor automates a number of hard tasks 
-    The convertor automates a number of tasks that are hard to do in
+The converter automates a number of hard tasks 
+    The converter automates a number of tasks that are hard to do in
     VHDL directly. For example, when mixing ``unsigned`` and ``signed``
     types it can be difficult to describe the desired behavior
     correctly.  In contrast, a MyHDL designer can use the high-level
-    ``intbv`` type, and let the convertor deal with type
+    ``intbv`` type, and let the converter deal with type
     conversions and resizings.
 
 MyHDL as an IP development platform 
@@ -64,7 +64,7 @@ Approach
 The approach followed to convert MyHDL code to VHDL is identical to
 the one followed for conversion to Verilog in previous MyHDL releases.
 
-In particular, the MyHDL code analyzer in the convertor is identical
+In particular, the MyHDL code analyzer in the converter is identical
 for both target languages. The goal is that all MyHDL code that can be
 converted to Verilog can be converted to VHDL also, and
 vice versa. This has been achieved except for a few minor issues due
@@ -106,7 +106,7 @@ Type mapping
 
 
 In contrast to Verilog, VHDL is a strongly typed language. The
-convertor has to carefully perform type inferencing, and handle type
+converter has to carefully perform type inferencing, and handle type
 conversions and resizings appropriately. To do this right, a
 well-chosen mapping from MyHDL types to VHDL types is crucial.
 
@@ -156,11 +156,11 @@ Notes:
 The table as presented applies to MyHDL variables. They are mapped to
 VHDL variables (except for the case of a ``tuple`` of ``int``).
 
-The convertor also supports MyHDL signals that use ``bool``,
+The converter also supports MyHDL signals that use ``bool``,
 ``intbv`` or ``enum`` objects as their underlying type. These are mapped to
 VHDL signals with a type as specified in the table above.
 
-The convertor supports MyHDL list of signals provided the underlying
+The converter supports MyHDL list of signals provided the underlying
 signal type is either ``bool`` or ``intbv``. They may be mapped to a VHDL
 signal with a VHDL type as specified in the table.
 However, list of signals are not always mapped to a corresponding VHDL
@@ -201,7 +201,7 @@ It is converted to VHDL as follows::
     end process DFF_LOGIC;
 
 
-The convertor can handle the more general case. For example, this is
+The converter can handle the more general case. For example, this is
 MyHDL code for a D flip-flop with asynchronous set, asynchronous
 reset, and preference of set over reset::
 
@@ -233,7 +233,7 @@ This is converted to VHDL as follows::
 
 All cases with practical utility can be handled in this way. However,
 there are other cases that cannot be transformed to equivalent
-VHDL. The convertor will detect those cases and give an error.
+VHDL. The converter will detect those cases and give an error.
 
 
 .. _new06-listofsigs:
@@ -245,7 +245,7 @@ Lists of signals are useful for many purposes. For example, they make
 it easy to create a repetitive structure. Another application is the
 description of memory behavior.
 
-The convertor output is non-hierarchical. That implies that all
+The converter output is non-hierarchical. That implies that all
 signals are declared at the top-level in VHDL or Verilog (as VHDL
 signals, or Verilog regs and wires.)  However, some signals that are a
 list member at some level in the design hierarchy may be used as
@@ -263,7 +263,7 @@ Conversely, when list syntax is used in some generator, then a Verilog
 memory or VHDL array will be declared. The typical example is the
 description of RAM memories.
 
-The convertor in the previous MyHDL release had a severe restriction
+The converter in the previous MyHDL release had a severe restriction
 on the latter case: it didn't allow that, for a certain signal, list
 syntax was used in some generator, and plain signal syntax in another.
 This restriction, together with its rather obscure error message, has
@@ -381,7 +381,7 @@ They can now be converted.
 Methodology notes
 -----------------
 
-The question is whether the conversion restrictions permit to develop
+The question is whether the conversion restrictions permit one to develop
 sufficiently complex test benches. In this section, we present some
 insights about this.
 
@@ -420,13 +420,13 @@ Conversion output verification
 
 .. note:: This functionality is not needed in a typical
           design flow. It is only relevant to debug the
-          MyHDL convertor itself.
+          MyHDL converter itself.
 
 
 Approach
 --------
 
-To verify the convertor output, a methodology has been developed and
+To verify the converter output, a methodology has been developed and
 implemented that doesn't rely on co-simulation and works for both
 Verilog and VHDL.
 
@@ -584,7 +584,7 @@ behavior, or even a bug.
 
 In the present release, lists of signals are considered and
 the corresponding signals are added to the sensitivity list.
-The convertor to Verilog and VHDL is adapted accordingly.
+The converter to Verilog and VHDL is adapted accordingly.
 
 
 Backwards incompatible changes
@@ -629,8 +629,8 @@ Conversion of printing without a newline
 ----------------------------------------
 
 Printing without a newline (a print statement followed by a comma) is
-no longer supported by the convertor to Verilog. This is done to be
-compatible with the convertor to VHDL. Currently, the VHDL solution
+no longer supported by the converter to Verilog. This is done to be
+compatible with the converter to VHDL. Currently, the VHDL solution
 relies on ``std.textio`` and this implies that printing without a
 newline cannot be reliably converted.
 
