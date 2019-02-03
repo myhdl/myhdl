@@ -38,28 +38,30 @@ To find out what's new in this release, please read:
 
 Installation
 ------------
-If you have superuser power, you can install MyHDL as follows:
+It is recommended to install MyHDL (and your project's other dependencies) in
+a virtualenv.
+
+Installing the latest stable release:
 
 ```
-python setup.py install
+pip install myhdl
 ```
 
-This will install the package in the appropriate site-wide Python
-package location.
-
-Otherwise, you can install it in a personal directory, e.g. as
-follows:
-
+To install the development version from github:
 ```
-python setup.py install --home=$HOME
+pip install -e 'git+https://github.com/myhdl/myhdl#egg=myhdl
 ```
 
-In this case, be sure to add the appropriate install dir to the
-``$PYTHONPATH``.
+To install a local clone of the repository:
+```
+pip install -e path/to/dir
+```
 
-If necessary, consult the distutils documentation in the standard
-Python library if necessary for more details;
-or contact me.
+To install a specific commit hash, tag or branch from git:
+```
+pip install -e 'git+https://github.com/myhdl/myhdl@f696b82ca5c9e3668920d1b66263941dcbcf08b6#egg=myhdl
+```
+
 
 You can test the proper installation as follows:
 
