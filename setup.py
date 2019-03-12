@@ -46,6 +46,7 @@ setup(
     license="LGPL",
     platforms='any',
     keywords="HDL ASIC FPGA hardware design",
+    python_requires='>=3.4',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
