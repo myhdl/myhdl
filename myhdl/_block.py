@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Block with the @block decorator function. """
-from __future__ import absolute_import, print_function
-
 import inspect
 
 #from functools import wraps

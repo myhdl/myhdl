@@ -1,6 +1,3 @@
-from __future__ import generators
-from __future__ import print_function
-
 from myhdl import Signal, Simulation, Cosimulation
 from myhdl import delay, intbv, now
 

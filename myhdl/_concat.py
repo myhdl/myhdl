@@ -22,8 +22,6 @@
 """ module with the concat function.
 
 """
-from __future__ import absolute_import
-
 from myhdl._intbv import intbv
 from myhdl._Signal import _Signal
 

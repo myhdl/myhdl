@@ -20,8 +20,6 @@
 """ MyHDL conversion analysis module.
 
 """
-from __future__ import absolute_import, print_function
-
 import inspect
 # import compiler
 # from compiler import ast as astNode

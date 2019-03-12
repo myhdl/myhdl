@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the modbv class """
-from __future__ import absolute_import
-
 from ._intbv import intbv
 
 

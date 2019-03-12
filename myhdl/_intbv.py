@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the intbv class """
-from __future__ import absolute_import, division
-
 import builtins
 
 from myhdl._bin import bin

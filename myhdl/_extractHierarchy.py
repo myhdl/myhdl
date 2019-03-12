@@ -20,9 +20,6 @@
 """ myhdl _extractHierarchy module.
 
 """
-from __future__ import absolute_import
-
-
 import sys
 import inspect
 import string
