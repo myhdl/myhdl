@@ -36,6 +36,7 @@ from types import GeneratorType
 import warnings
 from copy import copy
 import string
+from io import StringIO
 
 # import myhdl
 import myhdl
@@ -54,7 +55,6 @@ from myhdl._concat import concat
 from myhdl._delay import delay
 from myhdl._misc import downrange
 from myhdl._util import _flatten
-from myhdl._compat import integer_types, class_types, StringIO
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 from myhdl._block import _Block
 from myhdl._getHierarchy import _getHierarchy
@@ -1108,7 +1108,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             node.args[0].s = v
             self.write(v)
             return
-        elif f in integer_types:
+        elif f is int:
             opening, closing = '', ''
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
             # convert number argument to integer
@@ -1138,7 +1138,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(closing)
             self.write(suf)
             return
-        elif (type(f) in class_types) and issubclass(f, Exception):
+        elif (type(f) in (type,)) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -1456,7 +1456,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     s = "'%s'" % int(obj)
                 else:
                     s = "%s" % obj
-            elif isinstance(obj, integer_types):
+            elif isinstance(obj, int):
                 if isinstance(node.vhd, vhd_int):
                     s = self.IntRepr(obj)
                 elif isinstance(node.vhd, vhd_boolean):
@@ -1484,7 +1484,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVHDL()
-            elif (type(obj) in class_types) and issubclass(obj, Exception):
+            elif (type(obj) in (type,)) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
@@ -2149,7 +2149,7 @@ def inferVhdlObj(obj):
         else:
             tipe = obj._type
         vhd = vhd_enum(tipe)
-    elif isinstance(obj, integer_types):
+    elif isinstance(obj, int):
         if obj >= 0:
             vhd = vhd_nat()
         else:
@@ -2216,7 +2216,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_unsigned(s)
         elif f is bool:
             node.vhd = vhd_boolean()
-        elif f in _flatten(integer_types, ord):
+        elif f in (int, ord):
             node.vhd = vhd_int()
             node.args[0].vhd = vhd_int()
         elif f in (intbv, modbv):

@@ -26,7 +26,6 @@ from functools import reduce
 
 import pytest
 
-from myhdl._compat import long
 from myhdl._concat import concat
 from myhdl._intbv import intbv
 from myhdl._Signal import Signal
@@ -49,7 +48,7 @@ class TestConcat:
                 bv = concat(base, *exts)
                 refstr = basestr + reduce(operator.add, extstr)
                 reflen = len(refstr)
-                ref = long(refstr, 2)
+                ref = int(refstr, 2)
                 assert bv == ref
                 assert len(bv) == reflen
 
@@ -58,7 +57,7 @@ class TestConcat:
             for exts, extstr in zip(extslist, self.extslist):
                 bv = concat(base, *exts)
                 refstr = basestr + reduce(operator.add, extstr)
-                ref = long(refstr, 2)
+                ref = int(refstr, 2)
                 assert bv == ref
                 assert len(bv) == 0
 
@@ -68,12 +67,12 @@ class TestConcat:
         self.ConcatToSizedBase(bases, extslist)
 
     def testConcatStringsToInt(self):
-        bases = [long(base, 2) for base in self.bases]
+        bases = [int(base, 2) for base in self.bases]
         extslist = self.extslist
         self.ConcatToUnsizedBase(bases, extslist)
 
     def testConcatStringsToSignalInt(self):
-        bases = [Signal(long(base, 2)) for base in self.bases]
+        bases = [Signal(int(base, 2)) for base in self.bases]
         extslist = self.extslist
         self.ConcatToUnsizedBase(bases, extslist)
 
@@ -140,28 +139,28 @@ class TestConcat:
         self.ConcatToSizedBase(bases, extslist)
 
     def testConcatIntbvsToInt(self):
-        bases = [long(base, 2) for base in self.bases]
+        bases = [int(base, 2) for base in self.bases]
         extslist = []
         for exts in self.extslist:
             extslist.append([intbv(ext) for ext in exts])
         self.ConcatToUnsizedBase(bases, extslist)
 
     def testConcatSignalIntbvsToInt(self):
-        bases = [long(base, 2) for base in self.bases]
+        bases = [int(base, 2) for base in self.bases]
         extslist = []
         for exts in self.extslist:
             extslist.append([Signal(intbv(ext)) for ext in exts])
         self.ConcatToUnsizedBase(bases, extslist)
 
     def testConcatIntbvsToSignalInt(self):
-        bases = [Signal(long(base, 2)) for base in self.bases]
+        bases = [Signal(int(base, 2)) for base in self.bases]
         extslist = []
         for exts in self.extslist:
             extslist.append([intbv(ext) for ext in exts])
         self.ConcatToUnsizedBase(bases, extslist)
 
     def testConcatSignalIntbvsToSignalInt(self):
-        bases = [Signal(long(base, 2)) for base in self.bases]
+        bases = [Signal(int(base, 2)) for base in self.bases]
         extslist = []
         for exts in self.extslist:
             extslist.append([Signal(intbv(ext)) for ext in exts])
@@ -199,7 +198,7 @@ class TestConcat:
     def testConcatMixToUnsizedBase(self):
         bases = []
         for base in self.bases:
-            seq = (long(base, 2), Signal(long(base, 2)))
+            seq = (int(base, 2), Signal(int(base, 2)))
             bases.append(random.choice(seq))
         extslist = []
         for exts in self.extslist:

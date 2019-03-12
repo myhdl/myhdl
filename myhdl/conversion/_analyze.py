@@ -29,6 +29,7 @@ from types import FunctionType, MethodType
 import sys
 import re
 import ast
+import builtins
 from itertools import chain
 
 import myhdl
@@ -48,7 +49,6 @@ from myhdl._util import _flatten
 from myhdl._util import _isTupleOfInts
 from myhdl._util import _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._compat import builtins, integer_types, PY2
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -590,7 +590,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = int(0)  # XXX
         elif f is bool:
             node.obj = bool()
-        elif f in _flatten(integer_types):
+        elif f is int:
             node.obj = int(-1)
 # elif f in (posedge , negedge):
 # #             node.obj = _EdgeDetector()
@@ -628,7 +628,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
                     obj = c.cell_contents
-                    if not isinstance(obj, (integer_types, _Signal)):
+                    if not isinstance(obj, (int, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
                     tree.symdict[n] = obj
             v = _FirstPassVisitor(tree)
@@ -671,7 +671,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             val = arg.obj
             if isinstance(val, bool):
                 val = int(val)  # cast bool to int first
-            if isinstance(val, (EnumItemType, integer_types)):
+            if isinstance(val, (EnumItemType, int)):
                 node.case = (node.left, val)
             # check whether it can be part of an edge check
             n = node.left.id
@@ -898,12 +898,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         nr = 0
         a = []
 
-        if PY2 and isinstance(node, ast.Print):
-            node_args = node.values
-        else:
-            node_args = node.args
-
-        for n in node_args:
+        for n in node.args:
             if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mod) and \
                isinstance(n.left, ast.Str):
                 if isinstance(n.right, ast.Tuple):

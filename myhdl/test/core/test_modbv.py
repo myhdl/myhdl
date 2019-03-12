@@ -29,7 +29,6 @@ from random import randrange
 
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
-from myhdl._compat import integer_types, long
 
 random.seed(3)
 maxint=sys.maxsize

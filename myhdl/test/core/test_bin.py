@@ -25,7 +25,6 @@ import sys
 from random import randrange
 
 from myhdl import bin
-from myhdl._compat import long
 
 random.seed(1)  # random, but deterministic
 
@@ -48,7 +47,7 @@ def binref(num, width=0):
     Optional parameter:
     width -- specifies the desired string (sign bit padding)
     """
-    num = long(num)
+    num = int(num)
     s = _int2bitstring(num)
     if width:
         pad = '0'

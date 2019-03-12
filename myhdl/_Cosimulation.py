@@ -24,10 +24,10 @@ import sys
 import os
 #import shlex
 import subprocess
+from os import set_inheritable
 
 from myhdl._intbv import intbv
 from myhdl import _simulator, CosimulationError
-from myhdl._compat import set_inheritable, string_types, to_bytes, to_str
 
 _MAXLINE = 4096
 
@@ -84,7 +84,7 @@ class Cosimulation(object):
             env['MYHDL_TO_PIPE'] = str(msvcrt.get_osfhandle(wt))
             env['MYHDL_FROM_PIPE'] = str(msvcrt.get_osfhandle(rf))
 
-        if isinstance(exe, string_types):
+        if isinstance(exe, str):
 #             exe = shlex.split(exe)
             exe = exe.split(' ')
 
@@ -99,7 +99,7 @@ class Cosimulation(object):
         os.close(wt)
         os.close(rf)
         while 1:
-            s = to_str(os.read(rt, _MAXLINE))
+            s = os.read(rt, _MAXLINE).decode()
             if not s:
                 raise CosimulationError(_error.SimulationEnd)
             e = s.split()
@@ -141,7 +141,7 @@ class Cosimulation(object):
     def _get(self):
         if not self._getMode:
             return
-        buf = to_str(os.read(self._rt, _MAXLINE))
+        buf = os.read(self._rt, _MAXLINE).decode()
         if not buf:
             raise CosimulationError(_error.SimulationEnd)
         e = buf.split()
@@ -180,7 +180,7 @@ class Cosimulation(object):
                 if buf[-1] == 'L':
                     buf = buf[:-1]  # strip trailing L
                 buflist.append(buf)
-        os.write(self._wf, to_bytes(" ".join(buflist)))
+        os.write(self._wf, (" ".join(buflist)).encode())
         self._getMode = 1
 
     def _waiter(self):

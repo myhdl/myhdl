@@ -29,8 +29,7 @@ import sys
 import inspect
 
 from tokenize import generate_tokens, untokenize, INDENT
-
-from myhdl._compat import integer_types, StringIO
+from io import StringIO
 
 
 def _printExcInfo():
@@ -59,7 +58,7 @@ def _isTupleOfInts(obj):
     if not isinstance(obj, tuple):
         return False
     for e in obj:
-        if not isinstance(e, integer_types):
+        if not isinstance(e, int):
             return False
     return True
 
