@@ -1,6 +1,4 @@
-# http://docs.travis-ci.com/user/workers/container-based-infrastructure/
 dist: xenial
-sudo: true
 
 language: python
 python:
