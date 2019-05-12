@@ -17,14 +17,14 @@ def calculateHec(header):
     return hec ^ COSET
 
 
-headers = ( 0x00000000L,
-            0x01234567L,
-            0xbac6f4caL
+headers = ( 0x00000000,
+            0x01234567,
+            0xbac6f4ca
           )
 
 def main():
     for header in headers:
-        print hex(calculateHec(intbv(header)))
+        print(hex(calculateHec(intbv(header))))
         
 if __name__ == '__main__':
     main()
