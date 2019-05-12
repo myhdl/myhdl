@@ -94,7 +94,7 @@ Backwards compatibility issues
 In the 0.10 release, the old API still available next to the new API based on
 the `block` decorator.
 
-It is likely that the old API will be deprecated in a future release, resulting
+It is likely that the old deprecated API will be removed in a future release, resulting
 in backwards incompatibility for legacy code. Therefore, users are encouraged to
 start using the new API in their development methodology.
 
