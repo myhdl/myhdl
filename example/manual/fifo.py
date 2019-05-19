@@ -68,12 +68,12 @@ def fifo2(dout, din, re, we, empty, full, clk, maxFilling=sys.maxint):
             try:
                 dout.next = memory.pop()
             except IndexError:
-                raise Error, "Underflow -- Read from empty fifo"
+                raise Exception("Underflow -- Read from empty fifo")
         filling = len(memory)
         empty.next = (filling == 0)
         full.next = (filling == maxFilling)
         if filling > maxFilling:
-            raise Error, "Overflow -- Max filling %s exceeded" % maxFilling
+            raise Exception("Overflow -- Max filling %s exceeded" % maxFilling)
 
     return access
 
@@ -103,7 +103,7 @@ def write(data):
     we.next = 0
 
 def report():
-    print "dout: %s empty: %s full: %s" % (hex(dout), empty, full)
+    print("dout: %s empty: %s full: %s" % (hex(dout), empty, full))
     
 def test():
     yield write(0x55)

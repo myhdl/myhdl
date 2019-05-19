@@ -18,13 +18,14 @@ modules = ('hello1',
            'rom',
            'ram',
            'custom',
-          )
+           )
 
 for n in modules:
     m = __import__(n)
     info = "* %s.py *" % m.__name__
-    print
-    print '*' * len(info)
-    print "* %s.py *" % m.__name__
-    print '*' * len(info)
-    m.main()
+    print()
+    print('*' * len(info))
+    print("* %s.py *" % m.__name__)
+    print('*' * len(info))
+    if hasattr(m, 'main'):
+        m.main()
