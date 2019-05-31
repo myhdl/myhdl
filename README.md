@@ -1,4 +1,4 @@
-MyHDL 0.10 
+MyHDL 0.11 
 ==========
 
 [![Join the chat at https://gitter.im/myhdl/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -34,7 +34,7 @@ What's new
 ----------
 To find out what's new in this release, please read:
 
-   - http://docs.myhdl.org/en/stable/whatsnew/0.10.html
+   - http://docs.myhdl.org/en/stable/whatsnew/0.11.html
 
 Installation
 ------------
@@ -59,7 +59,7 @@ pip install -e path/to/dir
 
 To install a specific commit hash, tag or branch from git:
 ```
-pip install -e 'git+https://github.com/myhdl/myhdl@f696b82ca5c9e3668920d1b66263941dcbcf08b6#egg=myhdl
+pip install -e 'git+https://github.com/myhdl/myhdl@f696b8#egg=myhdl
 ```
 
 
