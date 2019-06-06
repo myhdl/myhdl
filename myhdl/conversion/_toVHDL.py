@@ -905,7 +905,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # vhdl type from UnaryOp node, and visit the modified operand
         if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
             node.operand.n = -node.operand.n
+            size = node.operand.vhd.size
             node.operand.vhd = node.vhd
+            node.operand.vhd.size = size
             self.visit(node.operand)
             return
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
