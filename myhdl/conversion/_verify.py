@@ -102,7 +102,7 @@ class _VerificationClass(object):
         self._analyzeOnly = analyzeOnly
 
     @property
-    def sim_hdl(self, func, *args, **kwargs):
+    def sim_hdl(self):
         if not self.simulator:
             raise ValueError("No simulator specified")
         if self.simulator not in _simulators:
