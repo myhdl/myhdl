@@ -360,12 +360,20 @@ def test_listAsPort():
     clk = Signal(False)
     inp = [Signal(intbv(0)[8:0]) for index in range(count)]
     outp = [Signal(intbv(0)[8:0]) for index in range(count)]
-    try:
-        inst = conversion.analyze(my_register(clk, inp, outp))
-    except ConversionError as e:
-        assert e.kind == _error.ListAsPort
-    else:
-        assert False
+    if conversion.analyze.simulator.hdl == "Verilog" :
+        try:
+            inst = conversion.analyze(my_register(clk, inp, outp))
+        except ConversionError as e:
+            assert e.kind == _error.ListAsPort
+        else:
+            assert False
+    if conversion.analyze.simulator.hdl == "VHDL" :
+        try:
+            inst = conversion.analyze(my_register(clk, inp, outp))
+        except ConversionError as e:
+            assert False
+        else:
+            assert True
 
 
 
