@@ -184,7 +184,7 @@ class _ToVerilogConvertor(object):
             func._inferInterface()
             intf = func
         else:
-            intf = _analyzeTopFunc(func, *args, **kwargs)
+            intf = _analyzeTopFunc(func, hdl="Verilog", *args, **kwargs)
 
         intf.name = name
 

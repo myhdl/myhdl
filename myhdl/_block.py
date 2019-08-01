@@ -233,6 +233,7 @@ class _Block(object):
             self.vhdl_code = _UserVhdlInstance(deco.vhdl_instance, self.symdict, func.__name__,
                                                func, srcfile, srcline)
         self._config_sim = {'trace': False}
+        self.hdl = None
 
     def _verifySubs(self):
         for inst in self.subs:
@@ -278,7 +279,7 @@ class _Block(object):
 
     def _inferInterface(self):
         from myhdl.conversion._analyze import _analyzeTopFunc
-        intf = _analyzeTopFunc(self.func, *self.args, **self.kwargs)
+        intf = _analyzeTopFunc(self.func, self.hdl, *self.args, **self.kwargs)
         self.argnames = intf.argnames
         self.argdict = intf.argdict
 
@@ -321,18 +322,21 @@ class _Block(object):
 
         self._clear()
 
-        if hdl.lower() == 'vhdl':
+        _hdl = hdl
+        hdl = hdl.lower()
+        if hdl == 'vhdl':
             converter = myhdl.conversion._toVHDL.toVHDL
-        elif hdl.lower() == 'verilog':
+        elif hdl == 'verilog':
             converter = myhdl.conversion._toVerilog.toVerilog
         else:
-            raise BlockInstanceError('unknown hdl %s' % hdl)
-
+            raise BlockInstanceError('unknown hdl %s' % _hdl)
+        self.hdl = hdl
+        
         conv_attrs = {}
         if 'name' in kwargs:
             conv_attrs['name'] = kwargs.pop('name')
         conv_attrs['directory'] = kwargs.pop('path', '')
-        if hdl.lower() == 'verilog':
+        if hdl == 'verilog':
             conv_attrs['no_testbench'] = not kwargs.pop('testbench', True)
             conv_attrs['timescale'] = kwargs.pop('timescale', '1ns/10ps')
             conv_attrs['trace'] = kwargs.pop('trace', False)

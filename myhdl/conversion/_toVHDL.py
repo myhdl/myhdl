@@ -42,7 +42,7 @@ import myhdl
 # from myhdl import *
 from myhdl import ToVHDLError, ToVHDLWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
-                                     _UserVhdlCode, _userCodeMap)
+                                     _UserVhdlCode, _userCodeMap, _MemInfo)
 
 from myhdl._instance import _Instantiator
 from myhdl._Signal import _Signal, _WaiterList, posedge, negedge
@@ -71,7 +71,6 @@ _version = myhdl.__version__.replace('.', '')
 _shortversion = _version.replace('dev', '')
 _converting = 0
 _profileFunc = None
-_enumPortTypeSet = set()
 
 
 def _checkArgs(arglist):
@@ -197,7 +196,7 @@ class _ToVHDLConvertor(object):
         ### initialize properly ###
         _genUniqueSuffix.reset()
         _enumTypeSet.clear()
-        _enumPortTypeSet.clear()
+        _enumPortTypeSet = set()
 
         arglist = _flatten(h.top)
         _checkArgs(arglist)
@@ -212,11 +211,15 @@ class _ToVHDLConvertor(object):
             func._inferInterface()
             intf = func
         else:
-            intf = _analyzeTopFunc(func, *args, **kwargs)
+            intf = _analyzeTopFunc(func, hdl="VHDL", *args, **kwargs)
         intf.name = name
         # sanity checks on interface
+        _memPortTypeSet = set()
         for portname in intf.argnames:
             s = intf.argdict[portname]
+            if isinstance(s, _MemInfo) :
+                _memPortTypeSet.add(s)
+                continue
             if s._name is None:
                 raise ToVHDLError(_error.ShadowingSignal, portname)
             if s._inList:
@@ -232,7 +235,7 @@ class _ToVHDLConvertor(object):
 
         doc = _makeDoc(inspect.getdoc(func))
 
-        needPck = len(_enumPortTypeSet) > 0
+        needPck = (len(_enumPortTypeSet) > 0) or (len(_memPortTypeSet) > 0)
         lib = self.library
         arch = self.architecture
         stdLogicPorts = self.std_logic_ports
@@ -246,10 +249,10 @@ class _ToVHDLConvertor(object):
 
         _writeFileHeader(vfile, vpath)
         if needPck:
-            _writeCustomPackage(vfile, intf)
-        _writeModuleHeader(vfile, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts)
+            _writeCustomPackage(vfile, intf, _enumPortTypeSet, _memPortTypeSet)
+        _writeModuleHeader(vfile, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts, memlist)
         _writeFuncDecls(vfile)
-        _writeTypeDefs(vfile)
+        _writeTypeDefs(vfile, _enumTypeSet)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
         _convertGens(genlist, siglist, memlist, vfile)
@@ -326,26 +329,44 @@ def _writeEnum(f, e):
     f.write('{}'.format(enumtypedecl))
 
 
-def _writeCustomPackage(f, intf):
+def _writeCustomPackage(f, intf, enumPorts, memPorts):
+    print("library IEEE;", file=f)
+    print("use IEEE.std_logic_1164.all;", file=f)
+    print("use IEEE.numeric_std.all;", file=f)
+    print("use std.textio.all;", file=f)
     print(file=f)
     print("package pck_%s is" % intf.name, file=f)
     print(file=f)
-    print("attribute enum_encoding: string;", file=f)
-    print(file=f)
-    sortedList = list(_enumPortTypeSet)
-    sortedList.sort(key=lambda x: x._name)
-    for t in sortedList:
-#         print("    %s" % t._toVHDL(), file=f)
-        _writeEnum(f, t)
+    
+    if len(enumPorts) :
+        print("attribute enum_encoding: string;", file=f)
+        print(file=f)
+        sortedlist = list(enumPorts)
+        sortedlist.sort(key=lambda x: x._name)
+        for t in sortedlist:
+            #print("    %s" % t._toVHDL(), file=f)
+            _writeEnum(f, t)
+        print(file=f)
+    
+    if len(memPorts) :
+        sortedlist = list(memPorts)
+        sortedlist.sort(key=lambda x: x.name)
+        for m in sortedlist :
+            r = _getRangeString(m.elObj)
+            p = _getTypeString(m.elObj)
+            t = "t_array_%s" % m.name
+            print("type %s is array(0 to %s-1) of %s%s;" % (t, m.depth, p, r), file=f)
     print(file=f)
     print("end package pck_%s;" % intf.name, file=f)
+    print(file=f)
+    print(file=f)
     print(file=f)
 
 
 portConversions = []
 
 
-def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts):
+def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts, memlist):
     print("library IEEE;", file=f)
     print("use IEEE.std_logic_1164.all;", file=f)
     print("use IEEE.numeric_std.all;", file=f)
@@ -374,26 +395,45 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             c = ';'
             # change name to convert to std_logic, or
             # make sure signal name is equal to its port name
-            convertPort = False
-            if stdLogicPorts and s._type is intbv:
-                s._name = portname + "_num"
-                convertPort = True
-                for sl in s._slicesigs:
-                    sl._setName('VHDL')
-            else:
-                s._name = portname
-            r = _getRangeString(s)
-            pt = st = _getTypeString(s)
-            if convertPort:
-                pt = "std_logic_vector"
-#             # Check if VHDL keyword or reused name
-#             _nameValid(s._name)
-            if s._driven:
-                if s._read:
-                    if not isinstance(s, _TristateSignal):
-                        warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+            if isinstance(s, _MemInfo) :
+                driven = s._driven
+                read = s._read
+                pt = "t_array_"+portname
+                r = ""
+            else :
+                convertPort = False
+                if stdLogicPorts and s._type is intbv:
+                    s._name = portname + "_num"
+                    convertPort = True
+                    for sl in s._slicesigs:
+                        sl._setName('VHDL')
+                else:
+                    s._name = portname
+                r = _getRangeString(s)
+                pt = st = _getTypeString(s)
+                if convertPort:
+                    pt = "std_logic_vector"
+                if s._driven:
+                    if s._read:
+                        if not isinstance(s, _TristateSignal):
+                            warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                                          category=ToVHDLWarning
+                                          )
+                    if convertPort:
+                        portConversions.append("%s <= %s(%s);" % (portname, pt, s._name))
+                        s._read = True
+                else:
+                    if not s._read:
+                        warnings.warn("%s: %s" % (_error.UnusedPort, portname),
                                       category=ToVHDLWarning
                                       )
+                    if convertPort:
+                        portConversions.append("%s <= %s(%s);" % (s._name, st, portname))
+                        s._driven = True
+                driven = s._driven
+                read = s._read
+            if driven:
+                if read:
                     f.write("\n        %s: inout %s%s" % (portname, pt, r))
                 else:
                     f.write("\n        %s: out %s%s" % (portname, pt, r))
@@ -422,9 +462,9 @@ def _writeFuncDecls(f):
     # print >> f, package
 
 
-def _writeTypeDefs(f):
+def _writeTypeDefs(f, enumTypeSet):
     f.write("\n")
-    sortedList = list(_enumTypeSet)
+    sortedList = list(enumTypeSet)
     sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
 #         f.write("%s\n" % t._toVHDL())
@@ -456,7 +496,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for s in siglist:
         if not s._used:
             continue
-        if s._name in intf.argnames:
+        if s._name in intf.argnames:    # Remove port signals
             continue
         r = _getRangeString(s)
         p = _getTypeString(s)
@@ -504,6 +544,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print("signal %s: %s%s;" % (s._name, p, r), file=f)
     for m in memlist:
         if not m._used:
+            continue
+        if m.name in intf.argnames :    # Signal in ports
             continue
         # infer attributes for the case of named signals in a list
         for i, s in enumerate(m.mem):
@@ -1486,6 +1528,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = obj._toVHDL()
             elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
+            elif isinstance(obj, list):
+                s = node.id
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
         else:

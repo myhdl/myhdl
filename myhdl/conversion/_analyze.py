@@ -1253,9 +1253,9 @@ def expandinterface(v, name, obj):
             expandinterface(v, name + '_' + attr, attrobj)
 
 
-def _analyzeTopFunc(func, *args, **kwargs):
+def _analyzeTopFunc(func, hdl, *args, **kwargs):
     tree = _makeAST(func)
-    v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
+    v = _AnalyzeTopFuncVisitor(func, tree, hdl, *args, **kwargs)
     v.visit(tree)
 
     objs = []
@@ -1277,9 +1277,10 @@ def _analyzeTopFunc(func, *args, **kwargs):
 
 class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
 
-    def __init__(self, func, tree, *args, **kwargs):
+    def __init__(self, func, tree, hdl, *args, **kwargs):
         self.func = func
         self.tree = tree
+        self.hdl = hdl
         self.args = args
         self.kwargs = kwargs
         self.name = None
@@ -1304,7 +1305,10 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
             if isinstance(arg, _Signal):
                 self.argdict[n] = arg
             if _isMem(arg):
-                self.raiseError(node, _error.ListAsPort, n)
+                if self.hdl == "vhdl" :
+                    self.argdict[n] = _getMemInfo(arg)
+                else :
+                    self.raiseError(node, _error.ListAsPort, n) 
         for n in self.argnames[i + 1:]:
             if n in self.kwargs:
                 arg = self.kwargs[n]
@@ -1312,5 +1316,8 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
                 if isinstance(arg, _Signal):
                     self.argdict[n] = arg
                 if _isMem(arg):
-                    self.raiseError(node, _error.ListAsPort, n)
+                    if self.hdl == "vhdl" :
+                        self.argdict[n] = _getMemInfo(arg)
+                    else :
+                        self.raiseError(node, _error.ListAsPort, n)
         self.argnames = [n for n in self.argnames if n in self.argdict]
