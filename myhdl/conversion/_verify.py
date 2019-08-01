@@ -107,7 +107,7 @@ class _VerificationClass(object):
             raise ValueError("No simulator specified")
         if self.simulator not in _simulators:
             raise ValueError("Simulator %s is not registered" % self.simulator)
-        return = _simulators[self.simulator].hdl
+        return _simulators[self.simulator].hdl
         
     def __call__(self, func, *args, **kwargs):
 
