@@ -211,7 +211,7 @@ class _ToVHDLConvertor(object):
             func._inferInterface()
             intf = func
         else:
-            intf = _analyzeTopFunc(func, hdl="VHDL", *args, **kwargs)
+            intf = _analyzeTopFunc(func, "vhdl", *args, **kwargs)
         intf.name = name
         # sanity checks on interface
         _memPortTypeSet = set()
