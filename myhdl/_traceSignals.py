@@ -41,6 +41,8 @@ vcdpath = ''
 
 class _error:
     pass
+
+
 _error.TopLevelName = "result of traceSignals call should be assigned to a top level name"
 _error.ArgType = "traceSignals first argument should be a classic function"
 _error.MultipleTraces = "Cannot trace multiple instances simultaneously"
@@ -134,8 +136,8 @@ class _TraceSignalsClass(object):
 
         return h.top
 
-traceSignals = _TraceSignalsClass()
 
+traceSignals = _TraceSignalsClass()
 
 _codechars = ""
 for i in range(33, 127):
@@ -208,11 +210,19 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                 siglist.append(s)
             w = s._nrbits
             # use real for enum strings
-            if w and not isinstance(sval, EnumItemType):
-                if w == 1:
-                    print("$var reg 1 %s %s $end" % (s._code, n), file=f)
+            if w:
+                if not isinstance(sval, EnumItemType):
+                    if w == 1:
+                        print("$var reg 1 %s %s $end" % (s._code, n), file=f)
+                    else:
+                        print("$var reg %s %s %s $end" % (w, s._code, n), file=f)
                 else:
-                    print("$var reg %s %s %s $end" % (w, s._code, n), file=f)
+                    # 18-04-2014 jb
+                    # it is an enum, and as Impulse doesn't know the awkward 'real' representation yet, so let's 'degrade' it to a binary type
+                    # 30-04-2014 jb
+                    # Impulse now has a 'string'type
+                    print("$var string %s %s %s $end" % (w, s._code, n), file=f)
+# print "30-04-2014 jb: Representing enum as string"  # leave a trace
             else:
                 print("$var real 1 %s %s $end" % (s._code, n), file=f)
         # Memory dump by Frederik Teichert, http://teichert-ing.de, date: 2011.03.28
