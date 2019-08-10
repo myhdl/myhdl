@@ -83,7 +83,7 @@ signal:
    single: VHDL; signal assignment
    single: Verilog; non-blocking assignment
 
-The clock driver function :func:`clk_driver` drives the clock signal. If defines
+The clock driver function :func:`drive_clk` drives the clock signal. If defines
 a generator that continuously toggles a clock signal after a certain delay. A
 new value of a signal is specified by assigning to its ``next`` attribute. This
 is the MyHDL equivalent of  the VHDL signal assignment and the  Verilog
