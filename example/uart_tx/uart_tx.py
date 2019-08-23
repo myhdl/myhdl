@@ -1,6 +1,7 @@
 import myhdl
 from myhdl import *
 
+@block
 def uart_tx(tx_bit, tx_valid, tx_byte, tx_clk, tx_rst):
     
     index = Signal(intbv(0, min=0, max=8))
@@ -31,6 +32,7 @@ def uart_tx(tx_bit, tx_valid, tx_byte, tx_clk, tx_rst):
                     
     return fsm
 
+@block
 def uart_tx_2(tx_bit, tx_valid, tx_byte, tx_clk, tx_rst):
     
     index = Signal(intbv(0, min=0, max=8))
@@ -57,7 +59,7 @@ def uart_tx_2(tx_bit, tx_valid, tx_byte, tx_clk, tx_rst):
     return fsm
 
 
-
+@block
 def tb(uart_tx):   
       
     tx_bit = Signal(bool(1))
@@ -95,9 +97,11 @@ def tb(uart_tx):
     return clk_gen, stimulus, uart_tx_inst
 
 
-sim = Simulation(traceSignals(tb, uart_tx_2))
+dut = uart_tx_2
+inst = tb(dut)
 
-sim.run()
+inst.config_sim(trace=True)
+inst.run_sim(10000)
         
     
     
