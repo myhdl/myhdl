@@ -1,5 +1,5 @@
 import myhdl
-from myhdl import *
+from myhdl import always, always_seq, block, delay, enum, instance, intbv, ResetSignal, Signal, StopSimulation
 
 @block
 def uart_tx(tx_bit, tx_valid, tx_byte, tx_clk, tx_rst):
