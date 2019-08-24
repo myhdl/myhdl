@@ -1,4 +1,3 @@
-import myhdl
 from myhdl import always, always_seq, block, delay, enum, instance, intbv, ResetSignal, Signal, StopSimulation
 
 @block
