@@ -1,0 +1,14 @@
+.. py:currentmodule:: myhdl
+
+.. _new11:
+
+************************
+What's new in MyHDL 0.11
+************************
+
+The `isasync` arguments
+=======================
+
+The `async` argument has been replaced with `isasync` to avoid
+the Python 3.7 keyword conflict.
+

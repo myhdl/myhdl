@@ -220,14 +220,14 @@ Verilog conversion
 Decorator support
 -----------------
 
-The Verilog convertor was enhanced to support the proposed decorators.
+The Verilog converter was enhanced to support the proposed decorators.
 
 Mapping a list of signals to a RAM memory 
 -----------------------------------------
 
 Certain synthesis tools can map Verilog memories to memory structures. For
 example, this is supported by the Xilinx toolset. To support this interesting
-feature, the Verilog convertor now maps lists of signals in MyHDL to Verilog
+feature, the Verilog converter now maps lists of signals in MyHDL to Verilog
 memories.
 
 The following MyHDL example is a ram model that uses a list of signals to model
@@ -288,7 +288,7 @@ Lists of signals can also be used in MyHDL to elegantly describe iterative
 hierarchical structures. (See the MyHDL manual.) However, there is an important
 difference: such signals will have a name at some level of the hierarchy, while
 in the case described above, the individual signals are anonymous. The
-:func:`toVerilog` convertor detects which case we are in. In the first case,
+:func:`toVerilog` converter detects which case we are in. In the first case,
 the individual signals will still be declared in the Verilog output, using the
 highest-level hierarchical name. It is only in the second case that the list of
 signals is declared as a Verilog memory.
@@ -382,16 +382,16 @@ If required, you can access the 2's complement representation of an
 :class:`intbv` object, but for integer operations such a counting, there is no
 need to worry about this.
 
-Of course, the Verilog convertor has to deal with the representation carefully.
+Of course, the Verilog converter has to deal with the representation carefully.
 MyHDL 0.4 avoided the issue by simply prohibiting :class:`intbv` objects with
 negative values. MyHDL 0.5 adds support for negative values and uses the signed
 Verilog representation to accomplish this.
 
 The problematic cases are those when signed and unsigned representations are
-mixed in Verilog expressions. The convertor avoids this by making sure that
+mixed in Verilog expressions. The converter avoids this by making sure that
 signed arithmetic is used whenever one of the operands is signed. Note that
 this is exactly the opposite of the Verilog default. More specifically, the
-convertor may convert an unsigned operand by adding a sign bit and casting to a
+converter may convert an unsigned operand by adding a sign bit and casting to a
 signed interpretation, using the Verilog ``$signed`` function. Operands that
 are treated like this are positive :class:`intbv` objects, slices and
 subscripts of :class:`intbv` objects, and :class:`bool` objects.
@@ -458,7 +458,7 @@ needs to be escaped (by doubling it) if it is required in the user-defined
 code.
 
 There is one more issue that needs user attention. Normally, the Verilog
-convertor infers inputs, internal signals, and outputs. It also detects
+converter infers inputs, internal signals, and outputs. It also detects
 undriven and multiple driven signals. To do this, it assumes that signals are
 not driven by default. It then processes the code to find out which signals are
 driven from where. However, it cannot do this for user-defined code. Without
@@ -540,7 +540,7 @@ MyHDL supports a number of "trigger objects". These are the objects that can
 occur in ``yield`` statements, for example :class:`delay`, ``posedge``,
 :class:`Signal`, and generator objects. Each of these are handled differently
 and so the simulation loop has to account for the object type. Prior to MyHDL
-0.5, this type check was explicitly done for each occurence of a ``yield``
+0.5, this type check was explicitly done for each occurrence of a ``yield``
 statement during simulation. As many generators will loop endlessly, it is
 clear that the same things will be checked over and over again, resulting in an
 important overhead.

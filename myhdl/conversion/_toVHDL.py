@@ -63,7 +63,7 @@ from myhdl.conversion._misc import (_error, _kind, _context,
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom, _enumTypeSet, _slice_constDict)
 from myhdl.conversion._toVHDLPackage import _package
-from myhdl.conversion._VHDLNameValidation import _nameValid
+from myhdl.conversion._VHDLNameValidation import _nameValid, _usedNames
 
 from myhdl import bin as tobin
 
@@ -150,6 +150,9 @@ class _ToVHDLConvertor(object):
         if not isinstance(func, _Block):
             if not callable(func):
                 raise ToVHDLError(_error.FirstArgType, "got %s" % type(func))
+
+        # clear out the list of user declared Signal (and other?) names
+        del _usedNames[:]
 
         _converting = 1
         if self.name is None:
@@ -367,6 +370,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
         f.write("    port (")
         c = ''
         for portname in intf.argnames:
+            _nameValid(portname)
             s = intf.argdict[portname]
             f.write("%s" % c)
             c = ';'
@@ -384,8 +388,8 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             pt = st = _getTypeString(s)
             if convertPort:
                 pt = "std_logic_vector"
-            # Check if VHDL keyword or reused name
-            _nameValid(s._name)
+#             # Check if VHDL keyword or reused name
+#             _nameValid(s._name)
             if s._driven:
                 if s._read:
                     if not isinstance(s, _TristateSignal):
@@ -483,6 +487,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
             continue
         r = _getRangeString(s)
         p = _getTypeString(s)
+        # Check if VHDL keyword or reused name
+        _nameValid(s._name)
         if s._driven:
             if not s._read and not isinstance(s, _TristateDriver):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
@@ -515,8 +521,6 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
         elif s._read:
-            # Check if VHDL keyword or reused name
-            _nameValid(s._name)
             # the original exception
             # raise ToVHDLError(_error.UndrivenSignal, s._name)
             # changed to a warning and a continuous assignment to a wire
@@ -745,8 +749,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     pre, suf = "resize(", ", %s)" % vhd.size
             elif isinstance(ori, vhd_signed):
                 if vhd.size != ori.size:
-                    # This is consistent with the VHDL simulation
-                    pre, suf = "unsigned(resize(", "), %s)" % vhd.size
+                    # This is the only correct way of conversion
+                    # according to the VHDL standard
+                    pre, suf = "unsigned(resize(", ", %s))" % vhd.size
                 else:
                     pre, suf = "unsigned(", ")"
             else:
@@ -757,7 +762,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     pre, suf = "resize(", ", %s)" % vhd.size
             elif isinstance(ori, vhd_unsigned):
                 if vhd.size != ori.size:
-                    # I think this should be the order of resizing and casting here
+                    # This is the only correct way of doing it:
                     pre, suf = "signed(resize(", ", %s))" % vhd.size
                 else:
                     pre, suf = "signed(", ")"

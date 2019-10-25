@@ -223,7 +223,7 @@ Interface
 
     This :class:`Signal` subclass defines reset signals. *val*, *active*, and *async*
     are mandatory arguments.
-    *val* is a boolean value that specifies the intial value,
+    *val* is a boolean value that specifies the initial value,
     *active* is a boolean value that specifies the active level.
     *async* is a boolean value that specifies the reset style:
     asynchronous (``True``) or asynchronous (``False``).
