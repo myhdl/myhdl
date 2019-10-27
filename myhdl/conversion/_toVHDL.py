@@ -1146,9 +1146,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             pre, post = "", ""
             arg = node.args[0]
             if isinstance(node.vhd, vhd_unsigned):
-                pre, post = "to_unsigned(", ", %s)" % node.vhd.size
+                pre, post = "resize(", ", %s)" % node.vhd.size
             elif isinstance(node.vhd, vhd_signed):
-                pre, post = "to_signed(", ", %s)" % node.vhd.size
+                pre, post = "resize(", ", %s)" % node.vhd.size
             self.write(pre)
             self.visit(arg)
             self.write(post)
