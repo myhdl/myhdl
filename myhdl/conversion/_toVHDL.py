@@ -32,7 +32,7 @@ from datetime import datetime
 # import compiler
 # from compiler import ast as astNode
 import ast
-from types import GeneratorType, SliceType
+from types import GeneratorType
 import warnings
 from copy import copy
 import string
@@ -430,7 +430,7 @@ def _writeConstants(f):
     for c in _slice_constDict:
         v = _slice_constDict[c]
         # Enable slice definition conversion via subtypes:
-        if type(v) == SliceType:
+        if isinstance(v, slice):
             f.write("subtype %s is integer range %d-1 downto %d;\n" % (c, v.start, v.stop))
         else:
             s = str(int(v))
@@ -1514,7 +1514,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = obj._toVHDL()
             elif (type(obj) in class_types) and issubclass(obj, Exception):
                 s = n
-            elif type(obj) is SliceType:
+            elif isinstance(obj, slice):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
