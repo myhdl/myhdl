@@ -1,11 +1,24 @@
 MyHDL 0.11 
 ==========
 
-[![Join the chat at https://gitter.im/myhdl/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+This is an UNSTABLE development branch for testing only.
+There are attempts to fix a few flaws and use an alternate testing approach, plus a few features (work in progress):
 
-[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=stable)](http://docs.myhdl.org/en/stable/manual/)
-[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=latest)](http://docs.myhdl.org/en/latest/manual)
-[![Build Status](https://travis-ci.org/myhdl/myhdl.svg?branch=master)](https://travis-ci.org/myhdl/myhdl)
+
+- Verified correct sign extension in VHDL conversion (consistency with MyHDL simulation)
+- Named slice subscript support for improved readability
+- Verified correctness for VHDL-93 and VHDL-08 standards
+
+
+Currently no tests are done, as most classic tests are failing with my current GHDL setup (which is differing from the official test suite by yet unknown parameters). When the commits start to be marked by continuous integration, development is considered stable.
+
+The reason for this new approach is to keep complex legacy code from an enhanced stable 0.9 release supported.
+This is following a rather strict verification procedure from another component that is using MyHDL.
+
+The primary goal is, to improve the VHDL conversion tests, then later see how this corresponds to Verilog support.
+
+
+------------------------
 
 What is MyHDL?
 --------------
