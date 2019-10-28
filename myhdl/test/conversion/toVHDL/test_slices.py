@@ -16,7 +16,7 @@ This test verifies that slices convert properly, for example constructs as:
 
 t_slmode = enum('SL_UNSIGNED', 'SL_SIGNED')
 
-SL_UPPER = 15
+SL_UPPER = 16
 SL_LOWER = 8
 SLICE_0 = slice(SL_UPPER, SL_LOWER)
 
@@ -33,6 +33,11 @@ CHECK_LIST_FUNC = (
 		( 0xdeadbeef, t_slmode.SL_UNSIGNED, None, 0xefde ),
 		( 0xfaced00f,   t_slmode.SL_UNSIGNED, None, 0x0ffa ),
 		( 0xfaced08f,   t_slmode.SL_SIGNED, None, 0x8ffa ),
+)
+
+CHECK_LIST_ASSIGN = (
+		( 0xdeadbeef, t_slmode.SL_UNSIGNED, None, 0x00ad ),
+		( 0xdeadbeef, t_slmode.SL_SIGNED,   None, 0xad00 ),
 )
 
 def slice_vectors(clk, SLICE, mode, data_out, data_in):
@@ -83,8 +88,6 @@ def slice_vectors_func(clk, mode, data_out, data_in, f_convert):
 
 		vs = to_fract_s(data_in, 16, 8)
 
-		tmp[15:8].next = 20
-
 		invalid = to_fract1(data_in, 16, 8)
 
 		data_out.next = concat(u, v)
@@ -92,7 +95,31 @@ def slice_vectors_func(clk, mode, data_out, data_in, f_convert):
 	return instances()
 
 
-def tb_slice(DATA_IN, MODE, SLICE, DATA_OUT):
+def slice_assign(clk, mode, data_out, data_in, f_convert):
+	"Resize signed and unsigned test case"
+
+	tmp = Signal(modbv()[32:])
+	high, low = [ Signal(modbv()[8:]) for i in range(2) ]
+	d = ConcatSignal(high, low)
+	
+	@always_comb
+	def assign():
+		u = data_in[24:16]
+
+		d.next = data_in
+
+		if mode == t_slmode.SL_UNSIGNED:
+			low.next = u
+		else:
+			high.next = u
+		
+	@always(clk.posedge)
+	def worker():
+		data_out.next = d
+
+	return instances()
+
+def tb_slice(DATA_IN, MODE, SLICE, DATA_VERIFY):
 
 	data_in, data_out, data_check = [ Signal(modbv()[32:]) for i in range(3) ]
 	data_in1, data_out1, data_check1 = [ Signal(modbv()[12:]) for i in range(3) ]
@@ -110,7 +137,7 @@ def tb_slice(DATA_IN, MODE, SLICE, DATA_OUT):
 	@instance
 	def stimulus():
 		data_in.next = DATA_IN
-		data_check.next = DATA_OUT
+		data_check.next = DATA_VERIFY
 		mode.next = MODE
 		yield clk.posedge
 		yield clk.posedge
@@ -118,19 +145,19 @@ def tb_slice(DATA_IN, MODE, SLICE, DATA_OUT):
 			print("PASS: case: %s" % mode)
 			pass
 		else:
-			raise ValueError("resize error, result %x" % data_out)
+			raise ValueError("slice error, result %x" % data_out)
 
 		raise StopSimulation
 
 	return instances()
 
-def tb_slice_func(DATA_IN, MODE, SLICE, DATA_OUT, f_convert):
+def tb_slice_func(DATA_IN, MODE, SLICE, DATA_VERIFY, f_convert, uut):
 	data_in = Signal(modbv()[32:])
 	data_out, data_check = [ Signal(modbv()[16:]) for i in range(2) ]
 	mode = Signal(t_slmode.SL_UNSIGNED)
 	clk = Signal(bool(0))
 
-	inst_uut = slice_vectors_func(clk, mode, data_out, data_in, f_convert)
+	inst_uut = uut(clk, mode, data_out, data_in, f_convert)
 
 	@instance
 	def clkgen():
@@ -141,7 +168,7 @@ def tb_slice_func(DATA_IN, MODE, SLICE, DATA_OUT, f_convert):
 	@instance
 	def stimulus():
 		data_in.next = DATA_IN
-		data_check.next = DATA_OUT
+		data_check.next = DATA_VERIFY
 		mode.next = MODE
 		yield clk.posedge
 		yield clk.posedge
@@ -150,7 +177,7 @@ def tb_slice_func(DATA_IN, MODE, SLICE, DATA_OUT, f_convert):
 			pass
 		else:
 			print("FAIL: data out: %s" % data_out)
-			raise ValueError("resize error, result %x" % data_out)
+			raise ValueError("slice error, result %x" % data_out)
 
 		raise StopSimulation
 
@@ -161,7 +188,10 @@ def check_slice(din, mode, sl, dout):
 	assert verify(tb_slice, din, mode, sl, dout) == 0
 
 def check_slice_func(din, mode, sl, dout, f_conv):
-	assert verify(tb_slice_func, din, mode, sl, dout, f_conv) == 0
+	assert verify(tb_slice_func, din, mode, sl, dout, f_conv, slice_vectors_func) == 0
+
+def check_slice_assign(din, mode, sl, dout, f_conv):
+	assert verify(tb_slice_func, din, mode, sl, dout, f_conv, slice_assign) == 0
 
 def test_slice():
 	for din, mode, sl, dout in CHECK_LIST:
@@ -175,10 +205,19 @@ def test_slice_func():
 		yield check_slice_func, din, mode, sl, dout, CORRECT_FUNC
 
 if __name__ == '__main__':
-	data_in, data_out, data_check = [ Signal(intbv()[12:]) for i in range(3) ]
+	data_in, data_out, data_check = [ Signal(intbv()[32:]) for i in range(3) ]
 	mode = Signal(t_slmode.SL_UNSIGNED)
 	clk = Signal(bool(0))
 
+	tb = traceSignals(tb_slice_func, 0xdeadbeef, t_slmode.SL_SIGNED, None, 0xad00, to_fract0, slice_assign)
+	sim = Simulation(tb)
+	sim.run(50000*1000)
+	#
 	# toVHDL(slice_vectors_func, clk, mode, data_out, data_in, to_fract0)
-	inst = slice_vectors_func(clk, mode, data_out, data_in, to_fract0)
-	inst.convert("VHDL")
+	#inst = slice_vectors_func(clk, mode, data_out, data_in, to_fract0)
+	#inst.convert("VHDL")
+
+def test_slice_assign():
+	for din, mode, sl, dout in CHECK_LIST_ASSIGN:
+		yield check_slice_assign, din, mode, sl, dout, to_fract0
+

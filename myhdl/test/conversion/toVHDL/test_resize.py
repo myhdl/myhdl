@@ -1,6 +1,8 @@
 from myhdl import *
 from myhdl.conversion import verify
 
+import sys
+
 """Test case #<ISSUE_NUMBER> (hackfin@section5.ch)
 
 - Conversion to VHDL is inconsistent with the MyHDL simulation on sign extension
@@ -13,10 +15,11 @@ from myhdl.conversion import verify
 #               [sign extend]    [unsigned]
 t_lmode = enum('LB', 'LH', 'LW', 'LBU', 'LHU')
 
+VERSION = sys.version_info
 
+# @block
 def resize_vectors(clk, mode, data_out, data_in):
 	"Resize signed and unsigned test case"
-
 	@always_comb
 	def worker():
 		if mode == t_lmode.LB:
@@ -33,8 +36,8 @@ def resize_vectors(clk, mode, data_out, data_in):
 	return instances()
 	
 
+# @block
 def tb_resize_vectors(DATA_IN, MODE, DATA_OUT):
-
 	data_in, data_out, data_check = [ Signal(modbv()[32:]) for i in range(3) ]
 	mode = Signal(t_lmode.LW)
 	clk = Signal(bool(0))
@@ -54,9 +57,23 @@ def tb_resize_vectors(DATA_IN, MODE, DATA_OUT):
 		mode.next = MODE
 		yield clk.posedge
 		yield clk.posedge
-		if data_out == data_check:
-			print("PASS: mode: %s" % mode)
+
+		if mode == t_lmode.LB:
+			print("LB     ")
+		elif mode == t_lmode.LBU:
+			print("LBU    ")
+		elif mode == t_lmode.LH:
+			print("LH     ")
+		elif mode == t_lmode.LHU:
+			print("LHU    ")
 		else:
+			print("LW     ")
+
+		if data_out == data_check:
+			print("PASS")
+		else:
+			print("FAIL")
+			print(data_out)
 			raise ValueError("resize error, result %x" % data_out)
 
 		raise StopSimulation
@@ -72,6 +89,7 @@ CHECK_LIST = (
 )
 
 		
+# @block
 def tb_myhdl_resize_vectors():
 
 	data_in, data_out, data_check = [ Signal(modbv()[32:]) for i in range(3) ]
@@ -111,8 +129,44 @@ def test_resize_vectors():
 	for din, m, dout in CHECK_LIST:
 		yield check_resize_vectors, din, m, dout
 
+def manual_test():
+	"""
+This specific case goes wrong for a recent GHDL checkout:
+	 
+To reproduce manually, run this:
+	
+	 python test_resize.py && ghdl -i --std=08 tb_resize_vectors.vhd \
+	 		pck_myhdl_011.vhd && ghdl -m --std=08 tb_resize_vectors && \
+	 	./tb_resize_vectors
+
+	
+	Output when converted incorrectly:
+
+> LH     
+> FAIL
+> 0000BEEF
+
+	Output when converted correctly:
+
+> LH     
+> PASS
+
+
+"""
+	data_in, data_out, data_check = [ Signal(modbv()[32:]) for i in range(3) ]
+	mode = Signal(t_lmode.LW)
+	clk = Signal(bool(0))
+
+	# tb_resize = tb_resize_vectors(0x80, t_lmode.LB, 0xffffff80)
+	# tb.resize.convert("VHDL")
+
+	toVHDL(tb_resize_vectors,  0xbeef,     t_lmode.LH, 0xffffbeef)
 
 if __name__ == '__main__':
+
 	tb = traceSignals(tb_myhdl_resize_vectors)
 	sim = Simulation(tb)
 	sim.run(50000)
+
+	manual_test()
+
