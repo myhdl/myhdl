@@ -1,5 +1,4 @@
 from myhdl import *
-from myhdl.conversion import verify
 
 import sys
 
@@ -17,7 +16,7 @@ t_lmode = enum('LB', 'LH', 'LW', 'LBU', 'LHU')
 
 VERSION = sys.version_info
 
-# @block
+@block
 def resize_vectors(clk, mode, data_out, data_in):
 	"Resize signed and unsigned test case"
 	@always_comb
@@ -36,7 +35,7 @@ def resize_vectors(clk, mode, data_out, data_in):
 	return instances()
 	
 
-# @block
+@block
 def tb_resize_vectors(DATA_IN, MODE, DATA_OUT):
 	data_in, data_out, data_check = [ Signal(modbv()[32:]) for i in range(3) ]
 	mode = Signal(t_lmode.LW)
@@ -89,7 +88,7 @@ CHECK_LIST = (
 )
 
 		
-# @block
+@block
 def tb_myhdl_resize_vectors():
 
 	data_in, data_out, data_check = [ Signal(modbv()[32:]) for i in range(3) ]
@@ -123,7 +122,7 @@ def tb_myhdl_resize_vectors():
 		
 
 def check_resize_vectors(din, m, dout):
-	assert verify(tb_resize_vectors, din, m, dout) == 0
+	assert tb_resize_vectors(din, m, dout).verify_convert() == 0
 
 def test_resize_vectors():
 	for din, m, dout in CHECK_LIST:
@@ -157,10 +156,8 @@ To reproduce manually, run this:
 	mode = Signal(t_lmode.LW)
 	clk = Signal(bool(0))
 
-	# tb_resize = tb_resize_vectors(0x80, t_lmode.LB, 0xffffff80)
-	# tb.resize.convert("VHDL")
-
-	toVHDL(tb_resize_vectors,  0xbeef,     t_lmode.LH, 0xffffbeef)
+	tb_resize = tb_resize_vectors(0x80, t_lmode.LB, 0xffffff80)
+	tb.resize.convert("VHDL")
 
 if __name__ == '__main__':
 
