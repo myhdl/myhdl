@@ -45,7 +45,9 @@ registerSimulator(
     hdl="VHDL",
     analyze="ghdl -a --std=08 --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
     elaborate="ghdl -e --std=08 --workdir=work %(unitname)s",
-    simulate="ghdl -r --workdir=work %(unitname)s"
+	# Since newer GHDL versions are using stdout for all messages,
+	# we need to make sure warnings don't pop up.
+    simulate="ghdl -r --workdir=work %(unitname)s --assert-level=warning --ieee-asserts=disable-at-0"
 )
 
 registerSimulator(
@@ -237,7 +239,7 @@ class _VerificationClass(object):
             print("Conversion verification succeeded", file=sys.stderr)
         else:
             print("Conversion verification failed", file=sys.stderr)
-            # print >> sys.stderr, s ,
+            print(s)
             return 1
 
         return 0

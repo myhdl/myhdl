@@ -1146,9 +1146,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             pre, post = "", ""
             arg = node.args[0]
             if isinstance(node.vhd, vhd_unsigned):
-                pre, post = "resize(", ", %s)" % node.vhd.size
+                pre, post = "to_unsigned(", ", %s)" % node.vhd.size
             elif isinstance(node.vhd, vhd_signed):
-                pre, post = "resize(", ", %s)" % node.vhd.size
+                pre, post = "to_signed(", ", %s)" % node.vhd.size
             self.write(pre)
             self.visit(arg)
             self.write(post)
@@ -1553,8 +1553,20 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write("writeline(output, L);")
 
     def visit_Raise(self, node):
-        self.write('assert False report "End of Simulation" severity Failure;')
+        if isinstance(node.type, ast.Call):
+            n = node.type.func
+            self.write('assert False report "%s" severity Failure;' % n.id)
+        elif isinstance(node.type, ast.Name):
+            n = node.type
 
+            if n.id == 'StopSimulation':
+                self.write('assert False report "End of Simulation" severity failure;')
+            else:
+                self.write('assert False report "%s" severity note;' % n.id)
+        else:
+            self.write('-- %s;' % ast.dump(node))
+            self.write('assert False report "UNHANDLED" severity failure;')
+               
     def visit_Return(self, node):
         pass
 
