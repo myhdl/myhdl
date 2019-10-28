@@ -14,11 +14,15 @@ This test verifies that slices convert properly, for example constructs as:
 
 """
 
+CONFIG_SUPPORT_SLICE_SUBSCRIPTS = False
+
+
 t_slmode = enum('SL_UNSIGNED', 'SL_SIGNED')
 
 SL_UPPER = 16
 SL_LOWER = 8
 SLICE_0 = slice(SL_UPPER, SL_LOWER)
+SLICE_1 = slice(SL_LOWER, 0)
 
 CHECK_LIST = (
 #         input       mode                  slice         result
@@ -100,22 +104,34 @@ def slice_assign(clk, mode, data_out, data_in, f_convert):
 
 	tmp = Signal(modbv()[32:])
 	high, low = [ Signal(modbv()[8:]) for i in range(2) ]
-	d = ConcatSignal(high, low)
 	
 	@always_comb
 	def assign():
 		u = data_in[24:16]
-
-		d.next = data_in
+		# Use defaults, otherwise we'll have the undefined 'XX' case.
+		# We may want to add test scenarios that are supposed to fail.
+		# TODO: Undefined 'X' support as MyHDL extension?
+		low.next = 0
+		high.next = 0
 
 		if mode == t_slmode.SL_UNSIGNED:
 			low.next = u
 		else:
 			high.next = u
-		
-	@always(clk.posedge)
-	def worker():
-		data_out.next = d
+
+	if CONFIG_SUPPORT_SLICE_SUBSCRIPTS:
+		@always(clk.posedge)
+		def worker():
+			"This works"
+			data_out.next[SLICE_0] = high
+			data_out.next[SLICE_1] = low
+	else:
+		@always(clk.posedge)
+		def worker():
+			"This works"
+			data_out.next = 0 # Default
+			data_out.next[16:8] = high
+			data_out.next[8:0] = low
 
 	return instances()
 
