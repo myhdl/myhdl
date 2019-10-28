@@ -157,11 +157,11 @@ To reproduce manually, run this:
 	clk = Signal(bool(0))
 
 	tb_resize = tb_resize_vectors(0x80, t_lmode.LB, 0xffffff80)
-	tb.resize.convert("VHDL")
+	tb_resize.convert("VHDL")
 
 if __name__ == '__main__':
 
-	tb = traceSignals(tb_myhdl_resize_vectors)
+	tb = traceSignals(tb_myhdl_resize_vectors())
 	sim = Simulation(tb)
 	sim.run(50000)
 

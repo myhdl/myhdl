@@ -1145,10 +1145,16 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif inspect.isclass(f) and issubclass(f, intbv):
             pre, post = "", ""
             arg = node.args[0]
-            if isinstance(node.vhd, vhd_unsigned):
-                pre, post = "to_unsigned(", ", %s)" % node.vhd.size
-            elif isinstance(node.vhd, vhd_signed):
-                pre, post = "to_signed(", ", %s)" % node.vhd.size
+            # If we want to support explicit assignment, we have
+            # to check the argument:
+            if isinstance(arg, ast.Num):
+                if isinstance(node.vhd, vhd_unsigned):
+                    pre, post = "to_unsigned(", ", %s)" % node.vhd.size
+                elif isinstance(node.vhd, vhd_signed):
+                    pre, post = "to_signed(", ", %s)" % node.vhd.size
+            else:
+                pre, post = "resize(", ", %s)" % node.vhd.size
+
             self.write(pre)
             self.visit(arg)
             self.write(post)

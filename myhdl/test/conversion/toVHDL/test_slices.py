@@ -1,5 +1,4 @@
 from myhdl import *
-from myhdl.conversion import verify
 
 """Test case #<ISSUE_NUMBER> (hackfin@section5.ch)
 
@@ -44,6 +43,7 @@ CHECK_LIST_ASSIGN = (
 		( 0xdeadbeef, t_slmode.SL_SIGNED,   None, 0xad00 ),
 )
 
+@block
 def slice_vectors(clk, SLICE, mode, data_out, data_in):
 	"Resize signed and unsigned test case"
 
@@ -74,6 +74,7 @@ def to_fract_s(val, pos, l):
 	v = modbv(val[pos:pos-l])
 	return v.signed()
 
+@block
 def slice_vectors_func(clk, mode, data_out, data_in, f_convert):
 	"Resize signed and unsigned test case"
 
@@ -82,23 +83,28 @@ def slice_vectors_func(clk, mode, data_out, data_in, f_convert):
 
 	@always_comb
 	def worker():
-		v = f_convert(data_in, 32, 8)
-		u = f_convert(data_in, 8, 8)
 
 		if mode == t_slmode.SL_SIGNED:
 			t = data_in.signed()
 			v = f_convert(t, 32, 8)
 			u = f_convert(t, 8, 8)
+			data_out.next = concat(u, v)
+		else:
+			v = f_convert(data_in, 32, 8)
+			# u = f_convert(data_in, 8, 8)
+			z = data_in[8:0]
+
+			data_out.next = concat(z, v)
 
 		vs = to_fract_s(data_in, 16, 8)
 
 		invalid = to_fract1(data_in, 16, 8)
 
-		data_out.next = concat(u, v)
 
 	return instances()
 
 
+@block
 def slice_assign(clk, mode, data_out, data_in, f_convert):
 	"Resize signed and unsigned test case"
 
@@ -135,6 +141,7 @@ def slice_assign(clk, mode, data_out, data_in, f_convert):
 
 	return instances()
 
+@block
 def tb_slice(DATA_IN, MODE, SLICE, DATA_VERIFY):
 
 	data_in, data_out, data_check = [ Signal(modbv()[32:]) for i in range(3) ]
@@ -167,6 +174,7 @@ def tb_slice(DATA_IN, MODE, SLICE, DATA_VERIFY):
 
 	return instances()
 
+@block
 def tb_slice_func(DATA_IN, MODE, SLICE, DATA_VERIFY, f_convert, uut):
 	data_in = Signal(modbv()[32:])
 	data_out, data_check = [ Signal(modbv()[16:]) for i in range(2) ]
@@ -201,17 +209,24 @@ def tb_slice_func(DATA_IN, MODE, SLICE, DATA_VERIFY, f_convert, uut):
 
 
 def check_slice(din, mode, sl, dout):
-	assert verify(tb_slice, din, mode, sl, dout) == 0
+	tb = tb_slice(din, mode, sl, dout)
+	assert tb.verify_convert() == 0
 
 def check_slice_func(din, mode, sl, dout, f_conv):
-	assert verify(tb_slice_func, din, mode, sl, dout, f_conv, slice_vectors_func) == 0
+	tb = tb_slice_func(din, mode, sl, dout, f_conv, slice_vectors_func)
+	assert tb.verify_convert() == 0
 
 def check_slice_assign(din, mode, sl, dout, f_conv):
-	assert verify(tb_slice_func, din, mode, sl, dout, f_conv, slice_assign) == 0
+	tb = tb_slice_func(din, mode, sl, dout, f_conv, slice_assign)
+	assert tb.verify_convert() == 0
 
 def test_slice():
 	for din, mode, sl, dout in CHECK_LIST:
 		yield check_slice, din, mode, sl, dout
+
+def test_slice_assign():
+	for din, mode, sl, dout in CHECK_LIST_ASSIGN:
+		yield check_slice_assign, din, mode, sl, dout, to_fract0
 
 def test_slice_func():
 	"Test slice functions"
@@ -225,15 +240,11 @@ if __name__ == '__main__':
 	mode = Signal(t_slmode.SL_UNSIGNED)
 	clk = Signal(bool(0))
 
-	tb = traceSignals(tb_slice_func, 0xdeadbeef, t_slmode.SL_SIGNED, None, 0xad00, to_fract0, slice_assign)
-	sim = Simulation(tb)
-	sim.run(50000*1000)
-	#
-	# toVHDL(slice_vectors_func, clk, mode, data_out, data_in, to_fract0)
-	#inst = slice_vectors_func(clk, mode, data_out, data_in, to_fract0)
-	#inst.convert("VHDL")
+	bench = tb_slice_func(0xdeadbeef, t_slmode.SL_SIGNED, None, 0xefde, to_fract0, slice_vectors_func)
+	bench.convert("VHDL")
 
-def test_slice_assign():
-	for din, mode, sl, dout in CHECK_LIST_ASSIGN:
-		yield check_slice_assign, din, mode, sl, dout, to_fract0
+	trace = traceSignals(bench)
+	sim = Simulation(trace)
+	sim.run(50000*1000)
+
 
