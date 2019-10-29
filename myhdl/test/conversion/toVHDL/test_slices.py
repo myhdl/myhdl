@@ -97,7 +97,8 @@ def slice_vectors_func(clk, mode, data_out, data_in, f_convert):
 			data_out.next = concat(z, v)
 
 		vs = to_fract_s(data_in, 16, 8)
-
+		# We should add a 'inverse' test for those
+		# that are expected to fail:
 		invalid = to_fract1(data_in, 16, 8)
 
 
