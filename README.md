@@ -17,6 +17,7 @@ This is following a rather strict verification procedure from another component 
 
 The primary goal is, to improve the VHDL conversion tests, then later see how this corresponds to Verilog support.
 
+See also 'Docker support' below.
 
 ------------------------
 
@@ -87,3 +88,24 @@ To install co-simulation support:
 
 Go to the directory ``cosimulation/<platform>`` for your target platform
 and following the instructions in the ``README.txt`` file.
+
+Docker support
+---------------
+
+This experimental branch supports continuous integration with Docker in some way (TBD).
+If you want to use a pre-built docker container, you can just run
+
+```
+docker run -it hackfin/myhdl_testing
+```
+
+on your local Linux system with docker service running, or using the Windows environment (see https://docs.docker.com/docker-for-windows/). You can also use it online within th docker playground (https://labs.play-with-docker.com).
+
+When inside the running container, you can run for example the conversion tests:
+
+```
+make -C src/myhdl/myhdl-upgrade/myhdl/test/conversion all
+```
+
+Currently, only a simple basic test is enabled just to satisfy the docker build. At a later stage, this might serve as auto-test.
+
