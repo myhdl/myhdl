@@ -14,10 +14,8 @@ RUN echo "export LD_LIBRARY_PATH=\$HOME/src/vhdl/ghdlex/src:$LD_LIBRARY_PATH" >>
 RUN adduser masocist sudo
 RUN echo "masocist ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/masocist-nopw
 
-COPY Makefile /home/masocist
-COPY scripts  /home/masocist/scripts
-RUN chown -R masocist scripts
-
 USER masocist
+RUN install -d /home/masocist/scripts/recipes
+RUN wget https://raw.githubusercontent.com/hackfin/myhdl/upgrade/scripts/recipes/myhdl.mk -O /home/masocist/scripts/recipes/myhdl.mk
 WORKDIR /home/masocist
 
