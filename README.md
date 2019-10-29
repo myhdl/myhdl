@@ -9,13 +9,12 @@ There are attempts to fix a few flaws and use an alternate testing approach, plu
 - Named slice subscript support for improved readability
 - Verified correctness for VHDL-93 and VHDL-08 standards
 
-
-Currently no tests are done, as most classic tests are failing with my current GHDL setup (which is differing from the official test suite by yet unknown parameters). When the commits start to be marked by continuous integration, development is considered stable.
-
 The reason for this new approach is to keep complex legacy code from an enhanced stable 0.9 release supported.
 This is following a rather strict verification procedure from another component that is using MyHDL.
 
 The primary goal is, to improve the VHDL conversion tests, then later see how this corresponds to Verilog support.
+Some basic tests are enabled in the continuous integration to verify a sane build environment. These currently use a different
+GHDL release than the travis CI setup from the master repository (https://github.com/myhdl/myhdl).
 
 See also 'Docker support' below.
 
