@@ -43,7 +43,7 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
 registerSimulator(
     name="ghdl",
     hdl="VHDL",
-    analyze="ghdl -a --std=08 --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
+    analyze="ghdl -a --std=08 --workdir=work %(auxfiles)s %(topname)s.vhd",
     elaborate="ghdl -e --std=08 --workdir=work %(unitname)s",
 	# Since newer GHDL versions are using stdout for all messages,
 	# we need to make sure warnings don't pop up.
@@ -128,9 +128,24 @@ class _VerificationClass(object):
         vals = {}
         vals['topname'] = name
         vals['unitname'] = name.lower()
-        vals['version'] = _version
+
+        if hdl == "VHDL":
+            ext = ".vhd"
+        else:
+            ext = ".v"
+
+        pkgfile = "pck_myhdl_%s%s" % (_version, ext)
+
+        try:
+            extra_files = kwargs['extra_files']
+            auxfiles = [ pkgfile, extra_files ]
+        except KeyError:
+            auxfiles = [ pkgfile ]
+
+        vals['auxfiles'] = " ".join(auxfiles)
 
         analyze = hdlsim.analyze % vals
+        print("analyze cmd", analyze)
         elaborate = hdlsim.elaborate
         if elaborate is not None:
             elaborate = elaborate % vals

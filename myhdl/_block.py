@@ -295,9 +295,9 @@ class _Block(object):
         for b in myhdl._simulator._blocks:
             b.calls = 0
 
-    def verify_convert(self):
+    def verify_convert(self, auxfiles = ""):
         self._clear()
-        return myhdl.conversion.verify(self)
+        return myhdl.conversion.verify(self, extra_files = auxfiles)
 
     def analyze_convert(self):
         self._clear()
