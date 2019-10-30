@@ -155,12 +155,12 @@ def ObjBench(hObj):
 def test_hdlobj():
     assert verify(ObjBench(HdlObj)) == 0
     
-def test_hdlobjobj():
-    assert verify(ObjBench(HdlObjObj)) == 0
-
 def test_hdlobjattrsimple():
     assert verify(ObjBench(HdlObjAttrSimple)) == 0
     
+def test_hdlobjobj():
+    assert verify(ObjBench(HdlObjObj)) == 0
+
 #def test_hdlobjattr():
 #    # object attributes currently not supported, these 
 #    # tests are for class method conversion only and not 

@@ -51,6 +51,8 @@ TEST_LIST_GENERAL = \
 	test_ternary.py \
 	test_toplevel_interfaces.py \
 	test_toplevel_method.py \
+	test_method.py \
+	test_resize.py \
 
 TEST_TO_BE_IMPLEMENTED = \
 	test_forbidden.py \
@@ -59,8 +61,6 @@ TEST_TO_BE_IMPLEMENTED = \
 # Need to be looked at
 TEST_BROKEN = \
 	test_interfaces2.py \
-	test_resize.py \
-	test_method.py \
 	test_keywords.py 
 
 

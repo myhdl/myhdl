@@ -748,7 +748,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if vhd.size != ori.size:
                     pre, suf = "resize(", ", %s)" % vhd.size
             elif isinstance(ori, vhd_signed):
-                if vhd.size != ori.size:
+                if vhd.size == ori.size - 1:
+                    # When off by one, we're in 'extended' space already
+                    # so do the original conversion:
+                    pre, suf = "resize(unsigned(", "), %s)" % vhd.size
+                elif vhd.size != ori.size:
                     # This is the only correct way of conversion
                     # according to the VHDL standard
                     pre, suf = "unsigned(resize(", ", %s))" % vhd.size
@@ -761,7 +765,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if vhd.size != ori.size:
                     pre, suf = "resize(", ", %s)" % vhd.size
             elif isinstance(ori, vhd_unsigned):
-                if vhd.size != ori.size:
+                if vhd.size == ori.size - 1:
+                    raise ValueError("NOT YET COVERED")
+                elif vhd.size != ori.size:
                     # This is the only correct way of doing it:
                     pre, suf = "signed(resize(", ", %s))" % vhd.size
                 else:
@@ -931,16 +937,17 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # in python3 a negative Num is represented as an USub of a positive Num
         # Fix: restore python2 behavior by a shortcut: invert value of Num, inherit
         # vhdl type from UnaryOp node, and visit the modified operand
+        op = node.operand
         if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
-            node.operand.n = -node.operand.n
-            node.operand.vhd = node.vhd
-            self.visit(node.operand)
+            op.n = -op.n
+            op.vhd = node.vhd
+            self.visit(op)
             return
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
         self.write(pre)
         self.write("(")
         self.write(opmap[type(node.op)])
-        self.visit(node.operand)
+        self.visit(op)
         self.write(")")
         self.write(suf)
 
@@ -1499,7 +1506,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     s = "'%s'" % int(obj)
                 elif isinstance(node.vhd, vhd_unsigned):
                     if abs(obj) < 2 ** 31:
-                        s = "to_unsigned(%s, %s)" % (obj, node.vhd.size)
+                        if abs(obj) >= (2 ** node.vhd.size):
+                            self.raiseError(node, _error.UnsupportedType, "Warning: Value %x exceeds vector size(%d)" % (obj, node.vhd.size))
+                        if obj < 0:
+                            self.raiseError(node, _error.UnsupportedType, "Negative immediate")
+                        else:
+                            s = "to_unsigned(%s, %s)" % (obj, node.vhd.size)
                     else:
                         s = 'unsigned\'("%s")' % tobin(obj, node.vhd.size)
                 elif isinstance(node.vhd, vhd_signed):

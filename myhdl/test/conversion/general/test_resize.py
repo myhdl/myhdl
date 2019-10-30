@@ -1,13 +1,17 @@
 from myhdl import *
-
+from myhdl import ConversionError
 import sys
 
 """Test case #<ISSUE_NUMBER> (hackfin@section5.ch)
 
 - Conversion to VHDL is inconsistent with the MyHDL simulation on sign extension
-  of unsigned/signed datatypes. In fact, I'd consider it broken. I had fixed it
-  for the time being years ago, now revisiting current releases, I am amazed to
-  still see this bug. Why the bug report went to nirvana is a mystery to me...
+  of unsigned/signed datatypes. 
+
+  There are more special scenarios where the test cases fail. Some of them are fixed,
+  some will raise a ConversionError for now. The rule is: Better fail early
+  (than producing wrong results turning up during verification)
+
+  See CHECK_LIST for the table of currently executed tests
 
 """
 
@@ -34,6 +38,7 @@ def resize_vectors(clk, mode, data_out, data_in, IMM):
 
 	return instances()
 
+
 @block
 def resize_vectors_op(clk, mode, data_out, data_in, IMM):
 	"Resize signed and unsigned test case #316"
@@ -50,8 +55,59 @@ def resize_vectors_op(clk, mode, data_out, data_in, IMM):
 		else:
 			data_out.next = data_in | IMM
 
+	return instances()
+
+@block
+def resize_vectors_op_sane(clk, mode, data_out, data_in, IMM):
+	"""Sane way to avoid warnings during VHDL conversion
+It is mandatory to define this as constant first, if written verbosely
+in the statements below, invalid VHDL will be generated.
+"""
+	const_imm8 = IMM & 0xff
+	const_imm16 = IMM & 0xffff
+
+	@always_comb
+	def worker():
+		if mode == t_lmode.LB:
+			data_out.next = data_in[8:].signed() | const_imm8
+		elif mode == t_lmode.LH:
+			data_out.next = data_in[16:].signed() | const_imm16
+		elif mode == t_lmode.LBU:
+			data_out.next = data_in[8:] | const_imm8
+		elif mode == t_lmode.LHU:
+			data_out.next = data_in[16:] | const_imm16
+		else:
+			data_out.next = data_in | IMM
+
 
 	return instances()
+
+@block
+def resize_single(clk, mode, data_out, data_in, IMM):
+	"""Single resize with immediate constant
+"""
+	@always_comb
+	def worker():
+		data_out.next = data_in | IMM
+
+	return instances()
+
+@block
+def resize_vectors_add(clk, mode, data_out, data_in, data_add):
+	"Resize signed and unsigned test case #316"
+	a, b = [ Signal(intbv(0, min=data_add.min, max=data_add.max)) for i in range(2) ]
+	@always_comb
+	def calc():
+		a.next = data_in + 1
+		b.next = data_add + 1
+
+	@always(clk.posedge)
+	def worker():
+		data_out.next = data_in + b + (b - a)
+
+
+	return instances()
+	
 	
 
 @block
@@ -61,7 +117,12 @@ def tb_resize_vectors(uut, DATA_IN, DATA_IMM, MODE, DATA_OUT):
 	mode = Signal(t_lmode.LW)
 	clk = Signal(bool(0))
 
-	inst_uut = uut(clk, mode, data_out, data_in, DATA_IMM)
+	if (type(DATA_IMM) == type(1)) or DATA_IMM == None:
+		inst_uut = uut(clk, mode, data_out, data_in, DATA_IMM)
+	else:
+		sig = Signal(DATA_IMM)
+
+		inst_uut = uut(clk, mode, data_out, data_in, sig)
 
 
 	@instance
@@ -69,6 +130,7 @@ def tb_resize_vectors(uut, DATA_IN, DATA_IMM, MODE, DATA_OUT):
 		data_in.next = DATA_IN[0]
 		data_check.next = DATA_OUT[0]
 		mode.next = MODE
+		clk.next = 0
 
 		yield delay(10)
 		clk.next = not clk
@@ -98,32 +160,61 @@ def tb_resize_vectors(uut, DATA_IN, DATA_IMM, MODE, DATA_OUT):
 
 	return instances()
 
+# Abbrevs to make the table compact
+RV = resize_vectors
+RVA = resize_vectors_add
+RVO = resize_vectors_op
+RVS = resize_vectors_op_sane
+RV1 = resize_single
+
 CHECK_LIST = (
-	( resize_vectors,    (0x80, 32),       None,     t_lmode.LB,  (0xffffff80, 32) ),
-	( resize_vectors,    (0x80, 32),       None,     t_lmode.LBU, (0x00000080, 32) ),
-	( resize_vectors,    (0xbeef, 32),     None,     t_lmode.LH,  (0xffffbeef, 32) ),
-	( resize_vectors,    (0xbeef, 32),     None,     t_lmode.LHU, (0x0000beef, 32) ),
-	( resize_vectors,    (0x8000beef, 32), None,     t_lmode.LW,  (0x8000beef, 32) ),
+#     False means: We expect a ConversionError
+	( True,  RV,  (0x80, 32),       None,            t_lmode.LB,  (0xffffff80, 32) ),
+	( True,  RV,  (0x80, 32),       None,            t_lmode.LBU, (0x00000080, 32) ),
+	( True,  RV,  (0xbeef, 32),     None,            t_lmode.LH,  (0xffffbeef, 32) ),
+	( True,  RV,  (0xbeef, 32),     None,            t_lmode.LHU, (0x0000beef, 32) ),
+	( True,  RV,  (0x8000beef, 32), None,            t_lmode.LW,  (0x8000beef, 32) ),
+	# Adder:
+	( True,  RVA, (0x80, 24),       intbv(-32)[24:], t_lmode.LW,  (0xffffc1, 24) ),
+	# Make sure things don't go wrong at the bounds:
+	( True,  RVA, (4, 4),   intbv(4)[4:],            t_lmode.LW,  (9, 4) ),
 	# Result is truncated
-	( resize_vectors_op, (0x80, 32),       0x0f0000, t_lmode.LW,  (0x000080, 16) ),
-	( resize_vectors_op, (0xdeadbeef, 32), 0x0f0000, t_lmode.LH,  (0xffbeef, 24) ),
-	( resize_vectors_op, (0x0000beef, 24), 0x800000, t_lmode.LH,  (0x0fbeef, 20) ),
+	( True,  RVS, (0x80, 32),       0x0f0000,        t_lmode.LW,  (0x000080, 16) ),
+	( True,  RVS, (0xdeadbeef, 32), 0x0f0000,        t_lmode.LH,  (0xffbeef, 24) ),
+	( False, RVS, (0x0000beef, 24), 0x800000,        t_lmode.LH,  (0x0fbeef, 20) ),
 	# Result is expanded:
-	( resize_vectors_op, (0x80, 16),       0x0f0000, t_lmode.LW,  (0x0f0080, 24) ),
-	# This is a tricky one, this must NOT sign extend:
-	( resize_vectors_op, (0x80, 16),       0x008000, t_lmode.LH,  (0x008080, 24) ),
-	# Negative operands:
-	( resize_vectors_op, (0x80, 24),       -32,      t_lmode.LW,  (0xffffe0, 24) ),
+
+	# This one is actually valid in MyHDL/Verilog, but will truncate the immediate.
+	( False, RVO, (0x80, 16),       0x0f0000,        t_lmode.LW,  (0x0f0080, 24) ),
+
+	( True,  RVS, (0x81, 16),       0x00f0f0,        t_lmode.LW,  (0x00f0f1, 24) ),
+
+	( True,  RV1, (0x80, 24),       32,              t_lmode.LW,  (0x0000a0, 24) ),
+	# Negative operands currently not supported:
+	( False, RV1, (0x80, 24),       -32,             t_lmode.LW,  (0xffffe0, 24) ),
+
+	# YET BROKEN ONES
+
+	# This is a tricky one: Does NOT sign extend in MyHDL/Verilog, but
+	# WILL sign extend in VHDL.
+	( True,  RVS, (0x80, 16),       0x008000,        t_lmode.LH,  (0x008080, 24) ),
 )
 
 		
 
-def check_resize_vectors(uut, din, imm, m, dout):
-	assert tb_resize_vectors(uut, din, imm, m, dout).verify_convert() == 0
+def check_resize_vectors(succeed, uut, din, imm, m, dout):
+	if not succeed: # expected to throw error:
+		try:
+			tb_resize_vectors(uut, din, imm, m, dout).verify_convert()
+		except ConversionError:
+			pass
+	else:
+		assert tb_resize_vectors(uut, din, imm, m, dout).verify_convert() == 0
+
 
 def test_resize_vectors():
-	for uut, din, imm, m, dout in CHECK_LIST:
-		yield check_resize_vectors, uut, din, imm, m, dout
+	for succeed, uut, din, imm, m, dout in CHECK_LIST:
+		yield check_resize_vectors, succeed, uut, din, imm, m, dout
 
 def manual_test():
 	"""
@@ -150,7 +241,7 @@ To reproduce manually, run this:
 
 """
 
-	uut, din, imm, mode, dout = CHECK_LIST[8]
+	uut, din, imm, mode, dout = CHECK_LIST[10]
 	tb_resize = tb_resize_vectors(uut, din, imm, mode, dout)
 	tb_resize.convert("VHDL")
 
