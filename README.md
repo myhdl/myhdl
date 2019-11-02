@@ -98,13 +98,13 @@ If you want to use a pre-built docker container, you can just run
 docker run -it hackfin/myhdl_testing
 ```
 
-on your local Linux system with docker service running, or using the Windows environment (see https://docs.docker.com/docker-for-windows/). You can also use it online within th docker playground (https://labs.play-with-docker.com).
+on your local Linux system with docker service running, or using the Windows environment (see https://docs.docker.com/docker-for-windows/). You can also run it in the browser, thanks to the docker playground (https://labs.play-with-docker.com).
 
-When inside the running container, you can run for example the conversion tests:
+When inside the running container, you can, for example, run the conversion tests:
 
 ```
 make -C src/myhdl/myhdl-upgrade/myhdl/test/conversion all
 ```
 
-Currently, only a simple basic test is enabled just to satisfy the docker build. At a later stage, this might serve as auto-test.
+Note: Even though the Docker tests may be marked as failing for the time being, the container is still usable.
 
