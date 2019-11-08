@@ -55,11 +55,25 @@ class _SliceSignal(_ShadowSignal):
     __slots__ = ('_sig', '_left', '_right')
 
     def __init__(self, sig, left, right=None):
+        if isinstance(sig, _SliceSignal):
+            if sig._right is not None:
+                if right is None:
+                    right = sig._right
+                else:
+                    right += sig._right
+                left += sig._right
+            sig = sig._sig
+        if isinstance(sig, _ShadowSignal):
+            raise TypeError("_ShadowSignal not supported as sig.")
+
+        sig._slicesigs.append(self)
+
         # XXX error checks
         if right is None:
             _ShadowSignal.__init__(self, sig[left])
         else:
             _ShadowSignal.__init__(self, sig[left:right])
+
         self._sig = sig
         self._left = left
         self._right = right

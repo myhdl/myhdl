@@ -340,9 +340,7 @@ class _Signal(object):
 
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):
-        s = _SliceSignal(self, left, right)
-        self._slicesigs.append(s)
-        return s
+        return _SliceSignal(self, left, right)
 
     ### operators for which delegation to current value is appropriate ###
 
