@@ -118,9 +118,10 @@ def _uniqueify_name(proposed_name):
 
 class _bound_function_wrapper(object):
 
-    def __init__(self, bound_func, srcfile, srcline):
+    def __init__(self, bound_func, srcfile, srcline, keepname):
         self.srcfile = srcfile
         self.srcline = srcline
+        self.keepname = keepname
         self.bound_func = bound_func
         functools.update_wrapper(self, bound_func)
         self.calls = 0
@@ -131,22 +132,24 @@ class _bound_function_wrapper(object):
         self.name = None
 
     def __call__(self, *args, **kwargs):
-
-        name = (
-            self.name_prefix + '_' + self.bound_func.__name__ +
-            str(self.calls))
-
-        self.calls += 1
-
-        # See concerns above about uniqueifying
-        name = _uniqueify_name(name)
-
+        if self.keepname:
+            name = (
+                self.name_prefix + '_' + self.bound_func.__name__ +
+                str(self.calls))
+    
+            self.calls += 1
+    
+            # See concerns above about uniqueifying
+            name = _uniqueify_name(name)
+        else:
+            name = None
         return _Block(self.bound_func, self, name, self.srcfile,
-                      self.srcline, *args, **kwargs)
+                      self.srcline, self.keepname, *args, **kwargs)
 
 class block(object):
 
-    def __init__(self, func):
+    def __init__(self, func, keepname=True):
+        self.keepname = keepname
         self.srcfile = inspect.getsourcefile(func)
         self.srcline = inspect.getsourcelines(func)[0]
         self.func = func
@@ -165,19 +168,24 @@ class block(object):
         if bound_key not in self.bound_functions:
             bound_func = self.func.__get__(instance, owner)
             function_wrapper = _bound_function_wrapper(
-                bound_func, self.srcfile, self.srcline)
+                bound_func, self.srcfile, self.srcline, 
+                self.keepname)
             self.bound_functions[bound_key] = function_wrapper
 
-            proposed_inst_name = owner.__name__ + '0'
-
-            n = 1
-            while proposed_inst_name in _inst_name_set:
-                proposed_inst_name = owner.__name__ + str(n)
-                n += 1
-
-            function_wrapper.name_prefix = proposed_inst_name
-            _inst_name_set.add(proposed_inst_name)
-
+            if self.keepname:
+                if hasattr(instance, "get_instance_ident"):
+                    proposed_inst_name = instance.get_instance_ident()
+                else:
+                    proposed_inst_name = owner.__name__ + '0'
+                    n = 1
+                    while proposed_inst_name in _inst_name_set:
+                        proposed_inst_name = owner.__name__ + str(n)
+                        n += 1
+        
+                function_wrapper.name_prefix = proposed_inst_name
+                _inst_name_set.add(proposed_inst_name)
+            else:
+                function_wrapper.name_prefix = None
         else:
             function_wrapper = self.bound_functions[bound_key]
             bound_func = self.bound_functions[bound_key]
@@ -185,20 +193,25 @@ class block(object):
         return function_wrapper
 
     def __call__(self, *args, **kwargs):
+        if self.keepname:
+            name = self.func.__name__ + str(self.calls)
+            self.calls += 1
 
-        name = self.func.__name__ + str(self.calls)
-        self.calls += 1
-
-        # See concerns above about uniqueifying
-        name = _uniqueify_name(name)
-
+            # See concerns above about uniqueifying
+            name = _uniqueify_name(name)
+        else:
+            name = None
         return _Block(self.func, self, name, self.srcfile,
-                      self.srcline, *args, **kwargs)
+                      self.srcline, self.keepname, *args, **kwargs)
 
 
+class lightblock(block):
+    def __init__(self, func):
+        super(lightblock, self).__init__(func, keepname=False)
+        
 class _Block(object):
 
-    def __init__(self, func, deco, name, srcfile, srcline, *args, **kwargs):
+    def __init__(self, func, deco, name, srcfile, srcline, keepname, *args, **kwargs):
         calls = deco.calls
 
         self.func = func
@@ -212,6 +225,7 @@ class _Block(object):
         self.symdict = None
         self.sigdict = {}
         self.memdict = {}
+        self.keepname = keepname
         self.name = self.__name__ = name
 
         # flatten, but keep BlockInstance objects
