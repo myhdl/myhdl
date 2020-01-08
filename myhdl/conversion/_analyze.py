@@ -1313,4 +1313,12 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
                     self.argdict[n] = arg
                 if _isMem(arg):
                     self.raiseError(node, _error.ListAsPort, n)
+        for n, arg in self.kwargs.items():
+                if n not in self.argnames:
+                    self.argnames.append(n)
+                    self.fullargdict[n] = arg
+                    if isinstance(arg, _Signal):
+                        self.argdict[n] = arg
+                    if _isMem(arg):
+                        self.raiseError(node, _error.ListAsPort, n)
         self.argnames = [n for n in self.argnames if n in self.argdict]

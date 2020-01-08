@@ -27,8 +27,9 @@ from types import FunctionType
 from myhdl import InstanceError
 from myhdl._util import _isGenFunc, _makeAST
 from myhdl._Waiter import _inferWaiter
-from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._resolverefs import _AttrRefTransformer, _suffixer
 from myhdl._visitors import _SigNameVisitor
+from myhdl._Signal import _Signal, _isListOfSigs
 
 
 class _error:
@@ -62,6 +63,21 @@ def _getCallInfo():
     frame = funcrec[0]
     symdict = dict(frame.f_globals)
     symdict.update(frame.f_locals)
+    # unpack self and kwargs to the local namespace
+    unpack_attrs = ('self', 'kwargs')
+    for attr in unpack_attrs:
+        if attr in symdict:
+            iterable = symdict[attr].__dict__ if hasattr(symdict[attr], "__dict__") else symdict[attr]
+            for n, v in iterable.items():
+                existing_keys = [key  for (key, value) in symdict.items() if value is v]
+                if len(existing_keys) == 0:
+                    if isinstance(v, _Signal) or _isListOfSigs(v):
+                        base_name = n
+                        if base_name in symdict:
+                            base_name = attr + '_' + n
+                            if base_name in symdict:
+                                base_name = _suffixer(base_name, symdict)
+                        symdict[base_name] = v
     modctxt = False
     callerrec = inspect.stack()[3]
     f_locals = callerrec[0].f_locals
