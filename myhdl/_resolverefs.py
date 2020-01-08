@@ -77,7 +77,7 @@ class _AttrRefTransformer(ast.NodeTransformer):
         return ast.copy_location(new_node, node)
 
     def visit_FunctionDef(self, node):
-        nodes = _flatten(node.body, node.args)
+        nodes = _flatten(node.decorator_list, node.body, node.args)
         for n in nodes:
             self.visit(n)
         return node
