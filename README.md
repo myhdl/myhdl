@@ -100,10 +100,11 @@ docker run -it hackfin/myhdl_testing
 
 on your local Linux system with docker service running, or using the Windows environment (see https://docs.docker.com/docker-for-windows/). You can also run it in the browser, thanks to the docker playground (https://labs.play-with-docker.com).
 
-When inside the running container, you can, for example, run the conversion tests:
+When inside the running container, this command will check out the default branch of this fork, build and
+run the conversion tests:
 
 ```
-make -C src/myhdl/myhdl-upgrade/myhdl/test/conversion all
+make -f scripts/recipes/myhdl.mk all test
 ```
 
 Note: Even though the Docker tests may be marked as failing for the time being, the container is still usable.
