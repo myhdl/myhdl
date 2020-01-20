@@ -146,10 +146,12 @@ class _bound_function_wrapper(object):
         return _Block(self.bound_func, self, name, self.srcfile,
                       self.srcline, self.keepname, *args, **kwargs)
 
-class hardblock(object):
+class block_decorator(object):
 
-    def __init__(self, func, keepname=True):
-        self.keepname = keepname
+    keepname = True
+    ident_method = "get_instance_ident"
+    
+    def __init__(self, func):
         self.srcfile = inspect.getsourcefile(func)
         self.srcline = inspect.getsourcelines(func)[0]
         self.func = func
@@ -162,6 +164,11 @@ class hardblock(object):
 
         self.bound_functions = WeakValueDictionary()
 
+    @classmethod
+    def set_decorator_parameters(cls, **kwargs):
+        for param_name in kwargs:
+            setattr(cls, param_name, value)
+            
     def __get__(self, instance, owner):
         bound_key = (id(instance), id(owner))
 
@@ -173,8 +180,8 @@ class hardblock(object):
             self.bound_functions[bound_key] = function_wrapper
 
             if self.keepname:
-                if hasattr(instance, "get_instance_ident"):
-                    proposed_inst_name = instance.get_instance_ident()
+                if hasattr(instance, self.ident_method) and callable(getattr(instance, self.ident_method)):
+                    proposed_inst_name = getattr(instance, self.ident_method)()
                 else:
                     proposed_inst_name = owner.__name__ + '0'
                     n = 1
@@ -204,18 +211,12 @@ class hardblock(object):
         return _Block(self.func, self, name, self.srcfile,
                       self.srcline, self.keepname, *args, **kwargs)
 
-
-
-class lightblock(hardblock):
-    def __init__(self, func):
-        super(lightblock, self).__init__(func, keepname=False)
-
-def block(func=None, keepname=True):
-    decorator = hardblock if keepname else lightblock
+def block(func=None, **kwargs):
+    decorator = block_decorator
     if func is not None:
         return decorator(func)
     else:
-        return decorator
+        return type(decorator.__name__, (decorator,), kwargs)
         
 class _Block(object):
 
