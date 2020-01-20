@@ -146,7 +146,7 @@ class _bound_function_wrapper(object):
         return _Block(self.bound_func, self, name, self.srcfile,
                       self.srcline, self.keepname, *args, **kwargs)
 
-class block(object):
+class hardblock(object):
 
     def __init__(self, func, keepname=True):
         self.keepname = keepname
@@ -205,9 +205,17 @@ class block(object):
                       self.srcline, self.keepname, *args, **kwargs)
 
 
-class lightblock(block):
+
+class lightblock(hardblock):
     def __init__(self, func):
         super(lightblock, self).__init__(func, keepname=False)
+
+def block(func=None, keepname=True):
+    decorator = hardblock if keepname else lightblock
+    if func is not None:
+        return decorator(func)
+    else:
+        return decorator
         
 class _Block(object):
 
