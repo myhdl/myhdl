@@ -38,6 +38,26 @@ def ternary2(dout, clk, rst):
     return logic, comb
 
 @block
+def ternary3(dout, clk, rst):
+
+    dout_d = Signal(intbv(0)[len(dout):])
+
+    @always(clk.posedge, rst.negedge)
+    def logic():
+        if rst == 0:
+            dout.next = 0
+        else:
+            dout.next = dout_d
+
+    @always_comb
+    def comb():
+        int_var = 0
+        int_var += (dout + 1) if dout < 127 else 0
+        dout_d.next = int_var
+        
+    return logic, comb
+
+@block
 def TernaryBench(ternary):
 
     dout = Signal(intbv(0)[8:])
@@ -77,4 +97,8 @@ def test_ternary1():
 def test_ternary2():
     toVHDL.name = 'ternary2'
     assert conversion.verify(TernaryBench(ternary2)) == 0
+
+def test_ternary3():
+    toVHDL.name = 'ternary3'
+    assert conversion.verify(TernaryBench(ternary3)) == 0
 
