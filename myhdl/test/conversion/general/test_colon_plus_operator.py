@@ -36,7 +36,6 @@ def chunk_buffer_sim(Clk, Reset, Input, Output):
         Input.next = 0xABCDEF
         
         for i in range(100):
-            print(Output)
             yield delay(int(tCK // 2))
         raise StopSimulation
             
