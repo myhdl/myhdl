@@ -48,7 +48,7 @@ def test_top_level_interfaces_verify():
     Output = Signal(intbv(0)[8:])
     
     top_sim = chunk_buffer_sim(Clk, Reset, Input, Output)
-    assert top_sim.verify_convert() == 0
+    assert conversion.analyze(top_sim) == 0
 
     top = chunk_buffer(Clk, Reset, Input, Output)
     top.name = 'ChunkBuffer'
