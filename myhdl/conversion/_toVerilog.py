@@ -1216,6 +1216,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # special shortcut case for [:] slice
         if lower is None and upper is None:
             return
+
+        if isinstance(lower, ast.BinOp) and isinstance(lower.left, ast.Name) and isinstance(upper, ast.Name) and upper.id == lower.left.id and isinstance(lower.op, ast.Add):
+            self.write("[")
+            self.visit(upper)
+            self.write("+:")
+            self.visit(lower.right)
+            self.write("]")
+            return
+        
         self.write("[")
         if lower is None:
             self.write("%s" % node.obj._nrbits)
