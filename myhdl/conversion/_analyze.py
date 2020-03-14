@@ -43,7 +43,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,
                                     _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
 from myhdl._Signal import _Signal, _WaiterList
-from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
+from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver, _IndexSignal, _CloneSignal
 from myhdl._util import _flatten
 from myhdl._util import _isTupleOfInts
 from myhdl._util import _makeAST
@@ -100,7 +100,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for n, s in sigdict.items():
             if s._name is not None:
                 continue
-            if isinstance(s, _SliceSignal):
+            if isinstance(s, (_SliceSignal, _IndexSignal, _CloneSignal)):
                 continue
             s._name = _makeName(n, prefixes, namedict)
             if not s._nrbits:

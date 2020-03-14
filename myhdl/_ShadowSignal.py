@@ -21,12 +21,14 @@
 
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
+import re
 
 import warnings
 from copy import deepcopy
 
-from myhdl._compat import long
+from myhdl._compat import long, string_types
 from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
 from myhdl._intbv import intbv
@@ -38,7 +40,7 @@ from myhdl._bin import bin
 
 class _ShadowSignal(_Signal):
 
-    __slots__ = ('_waiter', )
+    __slots__ = ('_waiter',)
 
     def __init__(self, val):
         _Signal.__init__(self, val)
@@ -51,47 +53,58 @@ class _ShadowSignal(_Signal):
 
 
 class _SliceSignal(_ShadowSignal):
-
+    ''' cutting a piece from a large intbv signal '''
     __slots__ = ('_sig', '_left', '_right')
 
-    def __init__(self, sig, left, right=None):
+    def __init__(self, sig, left, right, signed):
         # XXX error checks
-        if right is None:
-            _ShadowSignal.__init__(self, sig[left])
-        else:
+        if not signed:
             _ShadowSignal.__init__(self, sig[left:right])
+        else:
+            if sig[left - 1]:
+                val = -(2 ** (left - right) - sig[left:right])
+            else:
+                val = int(sig[left:right])
+            _ShadowSignal.__init__(self, intbv(val, min=-2 ** (left - right - 1), max=2 ** (left - right - 1)))
+
         self._sig = sig
         self._left = left
         self._right = right
-        if right is None:
-            gen = self._genfuncIndex()
-        else:
-            gen = self._genfuncSlice()
+        gen = self._genfuncSlice()
         self._waiter = _SignalWaiter(gen)
 
-    def _genfuncIndex(self):
-        sig, index = self._sig, self._left
-        set_next = _Signal.next.fset
-        while 1:
-            set_next(self, sig[index])
-            yield sig
+    def __repr__(self):
+        if self._name:
+            return "{}: ShadowSlice({})".format(self._name, repr(self._val))
+        else:
+            return "ShadowSlice({}, {}, {} of {})".format(repr(self._val), self._min, self._max, repr(self._sig))
 
     def _genfuncSlice(self):
         sig, left, right = self._sig, self._left, self._right
         set_next = _Signal.next.fset
-        while 1:
-            set_next(self, sig[left:right])
-            yield sig
+        if self.min < 0:
+            while 1:
+                if sig[left - 1]:
+                    val = -(2 ** (left - right) - sig[left:right])
+                else:
+                    val = sig[left:right]
+                set_next(self, val)
+                yield sig
+        else:
+            while 1:
+                set_next(self, sig[left:right])
+                yield sig
 
     def _setName(self, hdl):
-        if self._right is None:
-            if hdl == 'Verilog':
-                self._name = "%s[%s]" % (self._sig._name, self._left)
+        if hdl == 'Verilog':
+            if self._val._min < 0:
+                self._name = "$signed(%s[%s-1:%s])" % (self._sig._name, self._left, self._right)
             else:
-                self._name = "%s(%s)" % (self._sig._name, self._left)
-        else:
-            if hdl == 'Verilog':
                 self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
+        else:
+#             if self._sig._min < 0:
+            if self._val._min < 0:
+                self._name = "signed( %s( %s-1 downto %s ))" % (self._sig._name, self._left, self._right)
             else:
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
 
@@ -104,16 +117,104 @@ class _SliceSignal(_ShadowSignal):
         self._sig._used = True
 
     def toVerilog(self):
-        if self._right is None:
-            return "assign %s = %s[%s];" % (self._name, self._sig._name, self._left)
+        if self._val._min < 0:
+            return "assign %s = $signed(%s[%s-1:%s]);" % (self._name, self._sig._name, self._left, self._right)
         else:
             return "assign %s = %s[%s-1:%s];" % (self._name, self._sig._name, self._left, self._right)
 
     def toVHDL(self):
-        if self._right is None:
-            return "%s <= %s(%s);" % (self._name, self._sig._name, self._left)
+        if self._val._min < 0:
+            return "%s <= signed(%s(%s-1 downto %s));" % (self._name, self._sig._name, self._left, self._right)
         else:
             return "%s <= %s(%s-1 downto %s);" % (self._name, self._sig._name, self._left, self._right)
+
+
+class _IndexSignal(_ShadowSignal):
+    ''' a single bit out of an intbv signal '''
+    __slots__ = ('_sig', '_index')
+
+    def __init__(self, sig, index):
+        _ShadowSignal.__init__(self, sig[index])
+        self._sig = sig
+        self._index = index
+        gen = self._genfuncIndex()
+        self._waiter = _SignalWaiter(gen)
+
+    def _genfuncIndex(self):
+        sig, index = self._sig, self._index
+        set_next = _Signal.next.fset
+        while 1:
+            set_next(self, sig[index])
+            yield sig
+
+    def _setName(self, hdl):
+        if hdl == 'Verilog':
+            self._name = "%s[%s]" % (self._sig._name, self._index)
+        else:
+            self._name = "%s(%s)" % (self._sig._name, self._index)
+
+    def _markRead(self):
+        self._read = True
+        self._sig._read = True
+
+    def _markUsed(self):
+        self._used = True
+        self._sig._used = True
+
+    def __repr__(self):
+        if self._name:
+            return "{}: ShadowIndex({})".format(self._name, repr(self._val))
+        else:
+            return "ShadowIndex({}, {} of {})".format(repr(self._val), self._index, repr(self._sig))
+
+    def toVerilog(self):
+        return "assign %s = %s[%s];" % (self._name, self._sig._name, self._index)
+
+    def toVHDL(self):
+        return "%s <= %s(%s);" % (self._name, self._sig._name, self._index)
+
+
+class _CloneSignal(_ShadowSignal):
+    ''' shadowing the whole signal '''
+    __slots__ = ('_sig',)
+
+    def __init__(self, sig):
+        # a 'clone'
+        _ShadowSignal.__init__(self, sig.val)
+        self._sig = sig
+        gen = self._genfuncClone()
+        self._waiter = _SignalWaiter(gen)
+
+    def _genfuncClone(self):
+        sig = self._sig
+        set_next = _Signal.next.fset
+        while 1:
+            set_next(self, sig)
+            yield sig
+
+    def _setName(self, hdl):
+        self._name = "%s" % (self._sig._name)
+
+    def _markRead(self):
+        self._read = True
+        self._sig._read = True
+
+    def _markUsed(self):
+        self._used = True
+        self._sig._used = True
+
+    def __repr__(self):
+        if self._name:
+            return "{}: Shadow({})".format(self._name, repr(self._val))
+        else:
+            return "Shadow({} of {})".format(repr(self._val), repr(self._sig))
+
+    def toVerilog(self):
+        return "assign %s = %s;" % (self._name, self._sig._name)
+
+    def toVHDL(self):
+#         print('_CloneSignal toVHDL', repr(self), repr(self._sig))
+        return "    %s <= %s;" % (self._name, self._sig._name)
 
 
 class ConcatSignal(_ShadowSignal):
@@ -122,36 +223,72 @@ class ConcatSignal(_ShadowSignal):
 
     def __init__(self, *args):
         assert len(args) >= 2
-        self._args = args
+        self._args = []
         self._sigargs = sigargs = []
 
         nrbits = 0
         val = 0
         for a in args:
-            if isinstance(a, intbv):
-                w = a._nrbits
-                v = a._val
-            elif isinstance(a, _Signal):
+            if isinstance(a, _Signal):
                 sigargs.append(a)
                 w = a._nrbits
                 if isinstance(a._val, intbv):
                     v = a._val._val
                 else:
                     v = a._val
+                a._read = True
+
+            # any constants?
+            elif isinstance(a, intbv):
+                w = a._nrbits
+                v = a._val
+
             elif isinstance(a, bool):
                 w = 1
                 v = a
+
             elif isinstance(a, str):
-                w = len(a)
-                v = long(a, 2)
+                if re.match(r'\d+x[0-9_abcdef]+', a, re.I):
+                    begin, _, rest = a.replace('_', '').lower().partition('x')
+                    w = int(begin)
+                    if w == 0:
+                        w = len(rest) * 4
+
+                    v = long(rest, 16) & (2 ** w - 1)
+
+                elif re.match(r'\d+b[01_]+', a, re.I):
+                    begin, _, rest = a.replace('_', '').lower().partition('b')
+                    w = int(begin)
+                    if w == 0:
+                        w = len(rest)
+                    v = long(rest, 2) & (2 ** w - 1)
+
+                elif re.match(r'b*[01_]+', a, re.I):
+                    # a plain binary string
+                    aa = a.lower().replace('_', '').replace('b', '')
+                    w = len(aa)
+                    v = long(aa, 2)
+
+                else:
+                    # a true text string
+                    w = len(a) * 8
+                    v = 0
+                    # reverse the string
+                    for i in range(len(a) - 1, -1, -1):
+                        v = v * 256 + ord(a[i])
+
             else:
                 raise TypeError("ConcatSignal: inappropriate argument type: %s"
                                 % type(a))
+
+            self._args.append([a, w])
             nrbits += w
-            val = val << w | v & (long(1) << w) - 1
+            val = (val << w) | (v & ((long(1) << w) - 1))
+
         self._initval = val
         ini = intbv(val)[nrbits:]
         _ShadowSignal.__init__(self, ini)
+        self._driven = 'wire'
         gen = self.genfunc()
         self._waiter = _SignalTupleWaiter(gen)
 
@@ -163,19 +300,17 @@ class ConcatSignal(_ShadowSignal):
         newval = intbv(self._initval)[nrbits:]
         while 1:
             hi = nrbits
-            for a in args:
-                if isinstance(a, bool):
-                    w = 1
-                else:
-                    w = len(a)
+            for a, w in args:
                 lo = hi - w
                 # note: 'a in sigargs' is equivalence check, not identity
                 if isinstance(a, _Signal):
                     if isinstance(a._val, intbv):
                         newval[hi:lo] = a[w:]
                     else:
-                        newval[hi:lo] = a
+                        # bool
+                        newval[lo] = a
                 hi = lo
+
             set_next(self, newval)
             yield sigargs
 
@@ -189,15 +324,17 @@ class ConcatSignal(_ShadowSignal):
         for s in self._sigargs:
             s._markUsed()
 
+    def __repr__(self):
+        if self._name:
+            return "{}: ConcatSignal({} of {})".format(self._name, repr(self._val), repr(self._sigargs))
+        else:
+            return "ConcatSignal({} of {})".format(repr(self._val), repr(self._sigargs))
+
     def toVHDL(self):
         lines = []
         ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
-        for a in self._args:
-            if isinstance(a, bool):
-                w = 1
-            else:
-                w = len(a)
+        for a, w in self._args:
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
@@ -209,10 +346,19 @@ class ConcatSignal(_ShadowSignal):
                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal):
-                    lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
+                    if a._min < 0:
+                        lines.append(
+                            "%s(%s downto %s) <= unsigned(%s);" % (self._name, hi - 1, lo, a._name))
+                    else:
+                        lines.append(
+                            "%s(%s downto %s) <= %s;" % (self._name, hi - 1, lo, a._name))
                 else:
-                    lines.append('%s(%s-1 downto %s) <= "%s";' %
-                                 (self._name, hi, lo, bin(ini[hi:lo], w)))
+                    if w > 4:
+                        lines.append('{}({} downto {}) <= {};'.format(
+                            self._name, hi - 1, lo, '{}X"{}"'.format(w, ini[hi:lo])))
+                    else:
+                        lines.append('%s(%s downto %s) <= "%s";' %
+                                 (self._name, hi - 1, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
 
@@ -220,11 +366,7 @@ class ConcatSignal(_ShadowSignal):
         lines = []
         ini = intbv(self._initval)[self._nrbits:]
         hi = self._nrbits
-        for a in self._args:
-            if isinstance(a, bool):
-                w = 1
-            else:
-                w = len(a)
+        for a, w in self._args:
             lo = hi - w
             if w == 1:
                 if isinstance(a, _Signal):
@@ -236,19 +378,19 @@ class ConcatSignal(_ShadowSignal):
                     lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])))
             else:
                 if isinstance(a, _Signal):
-                    lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
+                    lines.append("assign %s[%s:%s] = %s;" % (self._name, hi - 1, lo, a._name))
                 else:
-                    lines.append("assign %s[%s-1:%s] = 'b%s;" %
-                                 (self._name, hi, lo, bin(ini[hi:lo], w)))
+                    lines.append("assign %s[%s:%s] = 'b%s;" %
+                                 (self._name, hi - 1, lo, bin(ini[hi:lo], w)))
             hi = lo
         return "\n".join(lines)
-
 
 # Tristate signal
 
 
 class BusContentionWarning(UserWarning):
     pass
+
 
 warnings.filterwarnings('always', r".*", BusContentionWarning)
 
@@ -286,11 +428,11 @@ class _TristateSignal(_ShadowSignal):
 
     def _resolve(self):
         # set_next = _ShadowSignal._set_next
-        senslist = self._drivers
+        driverlist = self._drivers
         while 1:
-            yield senslist
+            yield driverlist
             res = None
-            for d in senslist:
+            for d in driverlist:
                 if res is None:
                     res = d._val
                 elif d._val is not None:
