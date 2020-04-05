@@ -45,6 +45,7 @@ _error.OSError = "OSError"
 class Cosimulation(object):
 
     """ Cosimulation class. """
+    name = 'cosimulation_dut'
 
     def __init__(self, exe="", **kwargs):
         """ Construct a cosimulation object. """

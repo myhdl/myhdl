@@ -30,11 +30,12 @@ from __future__ import absolute_import
 import inspect
 
 from myhdl._Cosimulation import Cosimulation
+from myhdl._Verilation import Verilation
 from myhdl._instance import _Instantiator
 
 def _isGenSeq(obj):
     from myhdl._block import _Block
-    if isinstance(obj, (Cosimulation, _Instantiator, _Block)):
+    if isinstance(obj, (Cosimulation, Verilation, _Instantiator, _Block)):
         return True
     if not isinstance(obj, (list, tuple, set)):
         return False
