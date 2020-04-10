@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the modbv unit tests. """
-from __future__ import absolute_import
-
 import sys
 import random
 import pytest
@@ -29,7 +27,6 @@ from random import randrange
 
 from myhdl._intbv import intbv
 from myhdl._modbv import modbv
-from myhdl._compat import integer_types, long
 
 random.seed(3)
 maxint=sys.maxsize

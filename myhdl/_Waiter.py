@@ -18,9 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module that provides the _Waiter class """
-from __future__ import absolute_import
-
-
 from types import GeneratorType
 
 import ast

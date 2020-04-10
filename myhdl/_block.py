@@ -18,15 +18,12 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Block with the @block decorator function. """
-from __future__ import absolute_import, print_function
-
 import inspect
 
 #from functools import wraps
 import functools
 
 import myhdl
-from myhdl._compat import PY2
 from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
@@ -74,10 +71,9 @@ def _getCallInfo():
         callerrec = stack[4]
     # special case for list comprehension's extra scope in PY3
     if name == '<listcomp>':
-        if not PY2:
-            funcrec = stack[4]
-            if len(stack) > 5:
-                callerrec = stack[5]
+        funcrec = stack[4]
+        if len(stack) > 5:
+            callerrec = stack[5]
 
     name = funcrec[3]
     frame = funcrec[0]
