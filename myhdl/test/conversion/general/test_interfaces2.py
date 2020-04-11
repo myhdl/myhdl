@@ -1,3 +1,4 @@
+import pytest
 
 from myhdl import (block, Signal, ResetSignal, intbv, always_seq, always_comb,
                    instance, delay, StopSimulation,)
@@ -74,6 +75,7 @@ def name_conflict_after_replace(clock, reset, a, a_x):
     return logic
 
 
+@pytest.mark.xfail
 def test_name_conflict_after_replace():
     clock = Signal(False)
     reset = ResetSignal(0, active=0, isasync=False)
