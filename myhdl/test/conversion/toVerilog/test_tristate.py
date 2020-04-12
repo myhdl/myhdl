@@ -1,5 +1,5 @@
 import os
-import pytest
+# import pytest
 path = os.path
 import unittest
 
@@ -91,11 +91,11 @@ class TestTristate(unittest.TestCase):
         sim = Simulation(self.bench())
         sim.run()
 
-    @pytest.xfail
-    def testOBufInterface(self):
-        obuf = OBuf()
-        sim = Simulation(self.bench(obuf))
-        sim.run()
+#     @pytest.xfail
+#     def testOBufInterface(self):
+#         obuf = OBuf()
+#         sim = Simulation(self.bench(obuf))
+#         sim.run()
 
 
 if __name__ == '__main__':
