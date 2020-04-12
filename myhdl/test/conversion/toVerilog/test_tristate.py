@@ -58,7 +58,7 @@ class TestTristate(unittest.TestCase):
             YY = TristateSignal(True)
             AA = Signal(True)
             OEE = Signal(False)
-            toVerilog(tristate_obuf, A, Y, OE)
+            toVerilog(tristate_obuf, AA, YY, OEE)
 
         inst = setupCosimulation(name='tristate_obuf', **toVerilog.portmap)
         # inst = tristate_obuf(A, Y, OE)
