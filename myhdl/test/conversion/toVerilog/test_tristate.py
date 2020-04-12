@@ -1,4 +1,5 @@
 import os
+import pytest
 path = os.path
 import unittest
 
@@ -90,6 +91,7 @@ class TestTristate(unittest.TestCase):
         sim = Simulation(self.bench())
         sim.run()
 
+    @pytest.xfail
     def testOBufInterface(self):
         obuf = OBuf()
         sim = Simulation(self.bench(obuf))
