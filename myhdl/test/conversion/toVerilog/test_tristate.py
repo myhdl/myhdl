@@ -36,14 +36,12 @@ def tristate_obuf_i(obuf):
     # Caveat: A local name of the interface signals must be declared,
     #         Otherwise, _HierExtr.extract() will not add them to symdict
     #         and conversion will fail.
-#     A, Y, OE = obuf.interface()
-#     Y_d = Y.driver()
-    Y_d = obuf.Y.driver()
+    A, Y, OE = obuf.interface()
+    Y_d = Y.driver()
 
     @always_comb
     def hdl():
-#         Y_d.next = A if OE else None
-        Y_d.next = obuf.A if obuf.OE else None
+        Y_d.next = A if OE else None
 
     return hdl
 
@@ -53,12 +51,12 @@ class TestTristate(unittest.TestCase):
     def bench(self, obuf=None):
         if obuf:
             toVerilog(tristate_obuf_i, obuf)
-            AA, YY, OEE = obuf.interface()
+            A, Y, OE = obuf.interface()
         else:
-            YY = TristateSignal(True)
-            AA = Signal(True)
-            OEE = Signal(False)
-            toVerilog(tristate_obuf, AA, YY, OEE)
+            Y = TristateSignal(True)
+            A = Signal(True)
+            OE = Signal(False)
+            toVerilog(tristate_obuf, A, Y, OE)
 
         inst = setupCosimulation(name='tristate_obuf', **toVerilog.portmap)
         # inst = tristate_obuf(A, Y, OE)
@@ -67,22 +65,22 @@ class TestTristate(unittest.TestCase):
         def stimulus():
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, None)
+            self.assertEqual(Y, None)
 
-            OEE.next = True
+            OE.next = True
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, AA)
+            self.assertEqual(Y, A)
 
-            AA.next = not AA
+            A.next = not A
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, AA)
+            self.assertEqual(Y, A)
 
-            OEE.next = False
+            OE.next = False
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, None)
+            self.assertEqual(Y, None)
 
             raise StopSimulation
 
