@@ -3,8 +3,8 @@ import pytest
 path = os.path
 import unittest
 
-import myhdl
-from myhdl import *
+from myhdl import (always_comb, TristateSignal, Signal, toVerilog, instance, delay,
+                   instances, StopSimulation, Simulation)
 from .util import setupCosimulation
 
 
