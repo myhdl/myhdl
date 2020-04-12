@@ -20,11 +20,8 @@
 """ Module that implements enum.
 
 """
-from __future__ import absolute_import
-
 from myhdl._bin import bin
 from myhdl._Signal import _Signal
-from myhdl._compat import string_types
 # from myhdl.conversion._VHDLNameValidation import _nameValid
 
 
@@ -58,7 +55,7 @@ def enum(*names, **kwargs):
     codedict = {}
     i = 0
     for name in names:
-        if not isinstance(name, string_types):
+        if not isinstance(name, str):
             raise TypeError()
         if name in codedict:
             raise ValueError("enum literals should be unique")

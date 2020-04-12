@@ -8,8 +8,8 @@ import sys
 
 from collections import defaultdict
 
-if sys.version_info < (2, 6) or (3, 0) <= sys.version_info < (3, 4):
-    raise RuntimeError("Python version 2.6, 2.7 or >= 3.4 required.")
+if sys.version_info < (3, 4):
+    raise RuntimeError("Python version 3.4+ required.")
 
 
 # Prefer setuptools over distutils
@@ -46,6 +46,7 @@ setup(
     license="LGPL",
     platforms='any',
     keywords="HDL ASIC FPGA hardware design",
+    python_requires='>=3.4',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -53,10 +54,11 @@ setup(
         'License :: OSI Approved :: GNU Lesser General Public License v2 (LGPLv2)',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3 :: Only',
     ]
 )

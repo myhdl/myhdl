@@ -2,8 +2,6 @@
 
 # http://www.myhdl.org/examples/bitonic/
 
-from __future__ import absolute_import
-
 import unittest
 from random import randrange
 

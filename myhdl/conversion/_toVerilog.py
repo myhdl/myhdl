@@ -20,10 +20,6 @@
 """ myhdl toVerilog conversion module.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
-
-
 import sys
 import math
 import os
@@ -33,14 +29,13 @@ import inspect
 from datetime import datetime
 import ast
 import string
+from io import StringIO
 
 from types import GeneratorType
-from myhdl._compat import StringIO
 import warnings
 
 import myhdl
 from myhdl import *
-from myhdl._compat import integer_types, class_types, PY2
 from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
@@ -835,7 +830,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is ord:
             opening, closing = '', ''
             node.args[0].s = str(ord(node.args[0].s))
-        elif f in integer_types:
+        elif f is int:
             opening, closing = '', ''
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
@@ -851,7 +846,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(opening)
             self.visit(fn.value)
             self.write(closing)
-        elif (type(f) in class_types) and issubclass(f, Exception):
+        elif (type(f) in (type,)) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -1093,10 +1088,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def getName(self, node):
         n = node.id
-        if PY2 and n in ('True', 'False', 'None'):
-            self.visit_NameConstant(node)
-            return
-
         addSignBit = False
         isMixedExpr = (not node.signed) and (self.context == _context.SIGNED)
         if n in self.tree.vardict:
@@ -1110,7 +1101,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             obj = self.tree.symdict[n]
             if isinstance(obj, bool):
                 s = "1'b%s" % int(obj)
-            elif isinstance(obj, integer_types):
+            elif isinstance(obj, int):
                 s = self.IntRepr(obj)
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
@@ -1121,7 +1112,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVerilog()
-            elif (type(obj) in class_types) and issubclass(obj, Exception):
+            elif (type(obj) in (type,)) and issubclass(obj, Exception):
                 s = n
             else:
                 self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
@@ -1216,6 +1207,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # special shortcut case for [:] slice
         if lower is None and upper is None:
             return
+
+        if isinstance(lower, ast.BinOp) and isinstance(lower.left, ast.Name) and isinstance(upper, ast.Name) and upper.id == lower.left.id and isinstance(lower.op, ast.Add):
+            self.write("[")
+            self.visit(upper)
+            self.write("+:")
+            self.visit(lower.right)
+            self.write("]")
+            return
+        
         self.write("[")
         if lower is None:
             self.write("%s" % node.obj._nrbits)
@@ -1535,7 +1535,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 def _maybeNegative(obj):
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
         return True
-    if isinstance(obj, integer_types) and obj < 0:
+    if isinstance(obj, int) and obj < 0:
         return True
     return False
 
