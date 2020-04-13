@@ -18,9 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the always function. """
-from __future__ import absolute_import
-
-
 from types import FunctionType
 
 from myhdl import AlwaysError

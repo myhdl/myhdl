@@ -49,9 +49,6 @@ traceSignals -- function that enables signal tracing in a VCD file
 toVerilog -- function that converts a design to Verilog
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
-
 __version__ = "0.11"
 
 

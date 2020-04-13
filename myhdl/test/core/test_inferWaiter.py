@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for inferWaiter """
-from __future__ import absolute_import
-
 import random
 from random import randrange
 from types import GeneratorType

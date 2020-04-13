@@ -4,8 +4,6 @@ Created on 23 aug. 2018
 @author: josy
 '''
 
-from __future__ import print_function
-
 from myhdl import Signal, intbv, block, always_comb, always_seq, ResetSignal, instance, \
                     delay, StopSimulation
 
