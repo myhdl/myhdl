@@ -30,7 +30,6 @@ if sys.platform == "win32":
     import msvcrt
 
 from myhdl import Signal, intbv, modbv, block, always, instance, delay, now, StopSimulation
-from myhdl._compat import to_bytes
 from myhdl._Verilation import Verilation, VerilationError, _error
 
 if __name__ != '__main__':

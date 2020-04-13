@@ -41,7 +41,6 @@ from subprocess import CalledProcessError
 #from myhdl.emulation.pinorder import Pinorder
 from myhdl._intbv import intbv
 from myhdl import _simulator, VerilationError
-from myhdl._compat import set_inheritable, string_types, to_bytes, to_str
 from myhdl._simulator import now
 
 _MAXLINE = 4096

@@ -41,8 +41,8 @@ def tb_top(sim = 'myhdl'):
     @always(clk.posedge)
     def dsp():
         print("%g\t %1x   %1x %20x %12x %2x" %
-      	      (now(), clk, rst, out80, out48, out8))
-    
+              (now(), clk, rst, out80, out48, out8))
+
     @instance
     def stim():
         print("time\tclk rst %20s %12s %s" % ('out80', 'out48', 'out8'))
@@ -56,7 +56,7 @@ def tb_top(sim = 'myhdl'):
         rst.next = 0
         yield delay(50)
         print("%g\t %1x   %1x %20x %12x %2x" %
-      	      (now(), clk, rst, out80, out48, out8))
+              (now(), clk, rst, out80, out48, out8))
         assert out8 == 0x6a
         assert out48 == 0x432100006a
         assert out80 == 0x340000432100006a
