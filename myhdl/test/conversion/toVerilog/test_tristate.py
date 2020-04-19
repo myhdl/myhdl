@@ -36,12 +36,12 @@ def tristate_obuf_i(obuf):
     # Caveat: A local name of the interface signals must be declared,
     #         Otherwise, _HierExtr.extract() will not add them to symdict
     #         and conversion will fail.
-    A, Y, OE = obuf.interface()
-    Y_d = Y.driver()
+    IA, IY, IOE = obuf.interface()
+    Y_d = IY.driver()
 
     @always_comb
     def hdl():
-        Y_d.next = A if OE else None
+        Y_d.next = IA if IOE else None
 
     return hdl
 
