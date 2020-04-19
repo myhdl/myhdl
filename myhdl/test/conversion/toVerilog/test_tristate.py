@@ -52,12 +52,12 @@ class TestTristate(unittest.TestCase):
     def bench(self, obuf=None):
         if obuf:
             toVerilog(tristate_obuf_i, obuf)
-            A, Y, OE = obuf.interface()
+            AA, YY, OEE = obuf.interface()
         else:
-            Y = TristateSignal(True)
-            A = Signal(True)
-            OE = Signal(False)
-            toVerilog(tristate_obuf, A, Y, OE)
+            YY = TristateSignal(True)
+            AA = Signal(True)
+            OEE = Signal(False)
+            toVerilog(tristate_obuf, AA, YY, OEE)
 
         inst = setupCosimulation(name='tristate_obuf', **toVerilog.portmap)
         # inst = tristate_obuf(A, Y, OE)
@@ -66,22 +66,22 @@ class TestTristate(unittest.TestCase):
         def stimulus():
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(Y, None)
+            self.assertEqual(YY, None)
 
-            OE.next = True
+            OEE.next = True
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(Y, A)
+            self.assertEqual(YY, AA)
 
-            A.next = not A
+            AA.next = not AA
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(Y, A)
+            self.assertEqual(YY, AA)
 
-            OE.next = False
+            OEE.next = False
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(Y, None)
+            self.assertEqual(YY, None)
 
             raise StopSimulation
 
