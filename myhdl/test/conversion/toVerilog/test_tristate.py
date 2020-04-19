@@ -92,10 +92,10 @@ class TestTristate(unittest.TestCase):
         sim.run()
 
 #     @pytest.xfail
-#     def testOBufInterface(self):
-#         obuf = OBuf()
-#         sim = Simulation(self.bench(obuf))
-#         sim.run()
+    def testOBufInterface(self):
+        obuf = OBuf()
+        sim = Simulation(self.bench(obuf))
+        sim.run()
 
 
 if __name__ == '__main__':
