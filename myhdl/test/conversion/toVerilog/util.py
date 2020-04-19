@@ -1,8 +1,8 @@
 import os
 path = os.path
 import subprocess
-import myhdl
-from myhdl import *
+from myhdl import Cosimulation
+
 
 # Icarus
 def setupCosimulationIcarus(**kwargs):
@@ -10,10 +10,13 @@ def setupCosimulationIcarus(**kwargs):
     objfile = "%s.o" % name
     if path.exists(objfile):
         os.remove(objfile)
-    analyze_cmd = ['iverilog', '-o', objfile, '%s.v' %name, 'tb_%s.v' % name]
+    analyze_cmd = ['iverilog', '-o', objfile, '%s.v' % name, 'tb_%s.v' % name]
     subprocess.call(analyze_cmd)
-    simulate_cmd = ['vvp', '-m', '../../../../cosimulation/icarus/myhdl.vpi', objfile]
+#     simulate_cmd = ['vvp', '-m', '../../../../cosimulation/icarus/myhdl.vpi', objfile]
+    # assume that myhdl.vpi has been copied to the iverilog\lib\ivl
+    simulate_cmd = ['vvp', '-m', 'myhdl', objfile]
     return Cosimulation(simulate_cmd, **kwargs)
+
 
 # cver
 def setupCosimulationCver(**kwargs):
@@ -22,6 +25,7 @@ def setupCosimulationCver(**kwargs):
           "%s.v tb_%s.v " % (name, name)
     return Cosimulation(cmd, **kwargs)
 
+
 def verilogCompileIcarus(name):
     objfile = "%s.o" % name
     if path.exists(objfile):
@@ -29,15 +33,14 @@ def verilogCompileIcarus(name):
     analyze_cmd = "iverilog -o %s %s.v tb_%s.v" % (objfile, name, name)
     os.system(analyze_cmd)
 
-    
+
 def verilogCompileCver(name):
     cmd = "cver -c %s.v" % name
     os.system(cmd)
-    
 
 
 setupCosimulation = setupCosimulationIcarus
-#setupCosimulation = setupCosimulationCver
+# setupCosimulation = setupCosimulationCver
 
 verilogCompile = verilogCompileIcarus
-#verilogCompile = verilogCompileCver
+# verilogCompile = verilogCompileCver

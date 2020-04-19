@@ -39,10 +39,12 @@ def tristate_obuf_i(obuf):
     #         and conversion will fail.
     IA, IY, IOE = obuf.interface()
     Y_d = IY.driver()
+#     Y_d = obuf.Y.driver()
 
     @always_comb
     def hdl():
         Y_d.next = IA if IOE else None
+#         Y_d.next = obuf.A if obuf.OE else None
 
     return hdl
 
@@ -52,46 +54,48 @@ class TestTristate(unittest.TestCase):
     def bench(self, obuf=None):
         if obuf:
             toVerilog(tristate_obuf_i, obuf)
-            AA, YY, OEE = obuf.interface()
+            A, Y, OE = obuf.interface()
+            inst = setupCosimulation(name='tristate_obuf_i', **toVerilog.portmap)
         else:
-            YY = TristateSignal(True)
-            AA = Signal(True)
-            OEE = Signal(False)
-            toVerilog(tristate_obuf, AA, YY, OEE)
+            Y = TristateSignal(True)
+            A = Signal(True)
+            OE = Signal(False)
+            toVerilog(tristate_obuf, A, Y, OE)
+            inst = setupCosimulation(name='tristate_obuf', **toVerilog.portmap)
 
-        inst = setupCosimulation(name='tristate_obuf', **toVerilog.portmap)
         # inst = tristate_obuf(A, Y, OE)
 
         @instance
         def stimulus():
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, None)
+            self.assertEqual(Y, None)
 
-            OEE.next = True
+            OE.next = True
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, AA)
+            self.assertEqual(Y, A)
 
-            AA.next = not AA
+            A.next = not A
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, AA)
+            self.assertEqual(Y, A)
 
-            OEE.next = False
+            OE.next = False
             yield delay(1)
             # print now(), A, OE, Y
-            self.assertEqual(YY, None)
+            self.assertEqual(Y, None)
 
             raise StopSimulation
 
         return instances()
 
     def testOBuf(self):
+        print(os.getcwd())
         sim = Simulation(self.bench())
         sim.run()
 
-#     @pytest.xfail
+# #     @pytest.xfail
     def testOBufInterface(self):
         obuf = OBuf()
         sim = Simulation(self.bench(obuf))
