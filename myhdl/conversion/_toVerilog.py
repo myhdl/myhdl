@@ -1601,8 +1601,11 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         # for n in ast.iter_child_nodes(node):
         for n in [node.left] + node.comparators:
             self.visit(n)
-            if n.signed:
-                node.signed = True
+            try:
+                if n.signed:
+                    node.signed = True
+            except AttributeError:
+                print("no signed for"+type(n).__name__)
 
     def visit_If(self, node):
         if node.ignore:
