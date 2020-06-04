@@ -716,7 +716,7 @@ useful for hardware description.
 
 .. function:: instances()
 
-   Looks up all MyHDL instances in the local name space and returns them in a list.
+   Looks up all MyHDL instances in the local name space and returns them in a list. It collects all generators, logic and instances of all blocks. In MyHDL, instances have to be returned explicitly by a top level function. It may be convenient to assemble the list of instances automatically, by calling this function.
 
    :rtype: list
 
