@@ -1257,9 +1257,8 @@ def isboundmethod(m):
 def expandinterface(v, name, obj):
     for attr, attrobj in vars(obj).items():
         if isinstance(attrobj, _Signal):
-# override any 'mangled' name
-#             signame = attrobj._name
-#             if not signame:
+            # signame = attrobj._name
+            # if not signame:
             signame = name + '_' + attr
             attrobj._name = signame
             v.argdict[signame] = attrobj
