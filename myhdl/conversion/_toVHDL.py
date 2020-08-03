@@ -1862,10 +1862,10 @@ def _convertInitVal(reg, init):
         vhd_tipe = 'unsigned'
         if reg._min is not None and reg._min < 0:
             vhd_tipe = 'signed'
-        if abs(init) < 2 ** 31:
+        if  abs(init) < 2 ** 31:
             v = '%sto_%s(%s, %s)%s' % (pre, vhd_tipe, init, len(reg), suf)
         else:
-            v = '%s%s\'"%s"%s' % (pre, vhd_tipe, tobin(init, len(reg)), suf)
+            v = '%s%s\'("%s")%s' % (pre, vhd_tipe, tobin(init, len(reg)), suf)
     else:
         assert isinstance(init, EnumItemType)
         v = init._toVHDL()
