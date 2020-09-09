@@ -137,9 +137,9 @@ class _VerificationClass(object):
 
         if isinstance(func, _Block):
             if hdl == "VHDL":
-                inst = func.convert(hdl='VHDL',*args, **kwargs)
+                inst = func.convert(hdl='VHDL', **kwargs)
             else:
-                inst = func.convert(hdl='Verilog',*args, **kwargs)
+                inst = func.convert(hdl='Verilog', **kwargs)
         else:
             if hdl == "VHDL":
                 inst = toVHDL(func, *args, **kwargs)
