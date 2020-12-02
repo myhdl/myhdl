@@ -547,6 +547,53 @@ def test_memory_convert():
         toVHDL.initial_values = pre_viv
 
 
+@block
+def init_reset_tb():
+
+    clk = Signal(bool(0))
+    reset = ResetSignal(0, active=1, isasync=False)
+
+    s_large = Signal(intbv(0xc0000000)[32:])
+    s_small = Signal(intbv(0xc)[32:])
+
+    @instance
+    def clkgen():
+
+        clk.next = 0
+        for n in range(10):
+            yield delay(10)
+            clk.next = not clk
+
+        raise StopSimulation()
+
+    @instance
+    def raise_reset():
+        yield clk.posedge
+        reset.next = 1
+        yield clk.posedge
+        reset.next = 0
+
+    @always_seq(clk.posedge,reset=reset)
+    def seq():
+
+        print(s_large)
+        print(s_small)
+        s_large.next = s_large + 1
+        s_small.next = s_small + 1
+
+    return instances()
+
+
+def test_init_reset():
+    """ Test assignment of initial values of signals used in an always_seq block with a reset signal
+        Because the _convertInitVal in _toVHDL.py does special handling depending on the init value
+        the test takes this into account.
+    """
+
+    inst = init_reset_tb()
+    assert conversion.verify(inst,initial_values=True) == 0
+
+
 #def test_init_used_list():
 #    '''It should be the _init attribute of each element in the list
 #    that is used for initialisation
