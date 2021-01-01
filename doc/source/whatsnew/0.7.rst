@@ -39,7 +39,7 @@ shadow signals.
 The whole reasoning behind shadow signals is explained in more detail in
 `mep-105`_.
 
-.. _mep-105: http://www.myhdl.org/doku.php/meps:mep-105
+.. _mep-105: http://dev.myhdl.org/meps/mep-105.html
 
 
 Introducing shadow signals
@@ -76,7 +76,7 @@ proposed in `mep-103`_  could be interpreted as a shadow signal of
 its drivers. With the machinery of the shadow signal in place, it
 became easier to support this for simulation and conversion.
 
-.. _mep-103: http://www.myhdl.org/doku.php/meps:mep-103
+.. _mep-103: http://dev.myhdl.org/meps/mep-103.html
 
 Concrete shadow signal subclasses
 ---------------------------------
