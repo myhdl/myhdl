@@ -1192,36 +1192,71 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(right)
         self.write(suf)
 
-    def visit_Num(self, node):
-        n = node.n
-        if isinstance(node.vhd, vhd_std_logic):
-            self.write("'%s'" % n)
-        elif isinstance(node.vhd, vhd_boolean):
-            self.write("%s" % bool(n))
-        # elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
-        #    self.write('"%s"' % tobin(n, node.vhd.size))
-        elif isinstance(node.vhd, vhd_unsigned):
-            if abs(n) < 2 ** 31:
-                self.write("to_unsigned(%s, %s)" % (n, node.vhd.size))
-            else:
-                self.write('unsigned\'("%s")' % tobin(n, node.vhd.size))
-        elif isinstance(node.vhd, vhd_signed):
-            if abs(n) < 2 ** 31:
-                self.write("to_signed(%s, %s)" % (n, node.vhd.size))
-            else:
-                self.write('signed\'("%s")' % tobin(n, node.vhd.size))
-        else:
-            if n < 0:
-                self.write("(")
-            self.write(n)
-            if n < 0:
-                self.write(")")
+    if sys.version_info >= (3, 8, 0):
 
-    def visit_Str(self, node):
-        typemark = 'string'
-        if isinstance(node.vhd, vhd_unsigned):
-            typemark = 'unsigned'
-        self.write("%s'(\"%s\")" % (typemark, node.s))
+        def visit_Constant(self, node):
+            if isinstance(node.value, int):
+                n = node.value
+                if isinstance(node.vhd, vhd_std_logic):
+                    self.write("'%s'" % n)
+                elif isinstance(node.vhd, vhd_boolean):
+                    self.write("%s" % bool(n))
+                # elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
+                #    self.write('"%s"' % tobin(n, node.vhd.size))
+                elif isinstance(node.vhd, vhd_unsigned):
+                    if abs(n) < 2 ** 31:
+                        self.write("to_unsigned(%s, %s)" % (n, node.vhd.size))
+                    else:
+                        self.write('unsigned\'("%s")' % tobin(n, node.vhd.size))
+                elif isinstance(node.vhd, vhd_signed):
+                    if abs(n) < 2 ** 31:
+                        self.write("to_signed(%s, %s)" % (n, node.vhd.size))
+                    else:
+                        self.write('signed\'("%s")' % tobin(n, node.vhd.size))
+                else:
+                    if n < 0:
+                        self.write("(")
+                    self.write(n)
+                    if n < 0:
+                        self.write(")")
+            elif isinstance(node.value, str):
+                typemark = 'string'
+                if isinstance(node.vhd, vhd_unsigned):
+                    typemark = 'unsigned'
+                self.write("%s'(\"%s\")" % (typemark, node.value))
+
+    else:
+
+        def visit_Num(self, node):
+            n = node.n
+            if isinstance(node.vhd, vhd_std_logic):
+                self.write("'%s'" % n)
+            elif isinstance(node.vhd, vhd_boolean):
+                self.write("%s" % bool(n))
+            # elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
+            #    self.write('"%s"' % tobin(n, node.vhd.size))
+            elif isinstance(node.vhd, vhd_unsigned):
+                if abs(n) < 2 ** 31:
+                    self.write("to_unsigned(%s, %s)" % (n, node.vhd.size))
+                else:
+                    self.write('unsigned\'("%s")' % tobin(n, node.vhd.size))
+            elif isinstance(node.vhd, vhd_signed):
+                if abs(n) < 2 ** 31:
+                    self.write("to_signed(%s, %s)" % (n, node.vhd.size))
+                else:
+                    self.write('signed\'("%s")' % tobin(n, node.vhd.size))
+            else:
+                if n < 0:
+                    self.write("(")
+                self.write(n)
+                if n < 0:
+                    self.write(")")
+
+        def visit_Str(self, node):
+            typemark = 'string'
+            if isinstance(node.vhd, vhd_unsigned):
+                typemark = 'unsigned'
+            self.write("%s'(\"%s\")" % (typemark, node.s))
 
     def visit_Continue(self, node, *args):
         self.write("next;")
@@ -2250,16 +2285,31 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             right.vhd = vhd_signed(right.vhd.size + 1)
         node.vhdOri = copy(node.vhd)
 
-    def visit_Str(self, node):
-        node.vhd = vhd_string()
-        node.vhdOri = copy(node.vhd)
+    if sys.version_info >= (3, 8, 0):
 
-    def visit_Num(self, node):
-        if node.n < 0:
-            node.vhd = vhd_int()
-        else:
-            node.vhd = vhd_nat()
-        node.vhdOri = copy(node.vhd)
+        def visit_Constant(self, node):
+            if isinstance(node.value, str):
+                node.vhd = vhd_string()
+                node.vhdOri = copy(node.vhd)
+            elif isinstance(node.value, int):
+                if node.value < 0:
+                    node.vhd = vhd_int()
+                else:
+                    node.vhd = vhd_nat()
+                node.vhdOri = copy(node.vhd)
+
+    else:
+
+        def visit_Str(self, node):
+            node.vhd = vhd_string()
+            node.vhdOri = copy(node.vhd)
+
+        def visit_Num(self, node):
+            if node.n < 0:
+                node.vhd = vhd_int()
+            else:
+                node.vhd = vhd_nat()
+            node.vhdOri = copy(node.vhd)
 
     def visit_For(self, node):
         var = node.target.id

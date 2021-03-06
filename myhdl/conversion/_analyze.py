@@ -682,19 +682,55 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif v == 1:
                         node.edge = sig.posedge
 
-    def visit_Num(self, node):
-        n = node.n
-        # assign to value attribute for backwards compatibility
-        node.value = n
-        if n in (0, 1):
-            node.obj = bool(n)
-        elif isinstance(n, int):
-            node.obj = n
-        else:
-            node.obj = None
+    if sys.version_info >= (3, 8, 0):
+        ''' Deprecated since version 3.8: 
+            Old classes ast.Num, ast.Str, ast.Bytes, ast.NameConstant and ast.Ellipsis 
+            are still available, but they will be removed in future Python releases. 
+            In the meantime, instantiating them will return an instance of a different class.
+        '''
 
-    def visit_Str(self, node):
-        node.obj = node.s
+        def visit_Constant(self, node):
+            '''
+                New in version 3.6.
+                A constant. The value attribute holds the Python object it represents. 
+                This can be simple types such as a number, string or None, but also immutable container 
+                types (tuples and frozensets) if all of their elements are constant.
+
+                    kind is 'u' for strings with a u prefix, and None otherwise, allowing tools to
+                    distinguish u"a" from "a".
+
+                This class is available in the ast module from Python 3.6, but it isn’t produced by
+                parsing code until Python 3.8.
+
+                Changed in version 3.8: The kind field was added.
+            '''
+            # ToDo check for tuples?
+            if isinstance(node.value, int):
+                if node.value in (0, 1):
+                    node.obj = bool(node.value)
+                else:
+                    node.obj = node.value
+            else:
+                node.obj = node.value
+
+    else:
+
+        def visit_Num(self, node):
+            n = node.n
+            # assign to value attribute for backwards compatibility
+            node.value = n
+            if n in (0, 1):
+                node.obj = bool(n)
+            elif isinstance(n, int):
+                node.obj = n
+            else:
+                node.obj = None
+
+        def visit_Str(self, node):
+            node.obj = node.s
+
+        def visit_NameConstant(self, node):
+            node.obj = node.value
 
     def visit_Continue(self, node):
         self.labelStack[-1].isActive = True
@@ -786,9 +822,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if f is not range or len(cf.args) != 1:
             self.raiseError(node, _error.UnsupportedListComp)
         mem.depth = cf.args[0].obj
-
-    def visit_NameConstant(self, node):
-        node.obj = node.value
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -949,6 +982,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.generic_visit(node)
 
     def visit_Subscript(self, node):
+        print(node.slice)
         if isinstance(node.slice, ast.Slice):
             self.accessSlice(node)
         else:
@@ -976,7 +1010,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.visit(node.value)
         self.access = _access.INPUT
-        print(node.slice)
         if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
             self.visit(node.slice)
         else:

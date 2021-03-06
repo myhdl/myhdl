@@ -891,20 +891,39 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         self.context = None
 
-    def visit_Num(self, node):
-        if self.context == _context.PRINT:
-            self.write('"%s"' % node.n)
-        else:
-            self.write(self.IntRepr(node.n))
+    if sys.version_info >= (3, 8, 0):
 
-    def visit_Str(self, node):
-        s = node.s
-        if self.context == _context.PRINT:
-            self.write('"%s"' % s)
-        elif len(s) == s.count('0') + s.count('1'):
-            self.write("%s'b%s" % (len(s), s))
-        else:
-            self.write(s)
+        def visit_Constant(self, node):
+            if isinstance(node.value, int):
+                if self.context == _context.PRINT:
+                    self.write('"%s"' % node.value)
+                else:
+                    self.write(self.IntRepr(node.value))
+            elif isinstance(node.value, str):
+                s = node.value
+                if self.context == _context.PRINT:
+                    self.write('"%s"' % s)
+                elif len(s) == s.count('0') + s.count('1'):
+                    self.write("%s'b%s" % (len(s), s))
+                else:
+                    self.write(s)
+
+    else:
+
+        def visit_Num(self, node):
+            if self.context == _context.PRINT:
+                self.write('"%s"' % node.n)
+            else:
+                self.write(self.IntRepr(node.n))
+
+        def visit_Str(self, node):
+            s = node.s
+            if self.context == _context.PRINT:
+                self.write('"%s"' % s)
+            elif len(s) == s.count('0') + s.count('1'):
+                self.write("%s'b%s" % (len(s), s))
+            else:
+                self.write(s)
 
     def visit_Continue(self, node):
         self.write("disable %s;" % self.labelStack[-1])
@@ -1622,11 +1641,18 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         self.generic_visit(node)
 
-    def visit_Num(self, node):
-        node.signed = False
+    if sys.version_info >= (3, 8, 0):
 
-    def visit_Str(self, node):
-        node.signed = False
+        def vist_Constant(self, node):
+            node.signed = False
+
+    else:
+
+        def visit_Num(self, node):
+            node.signed = False
+
+        def visit_Str(self, node):
+            node.signed = False
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
