@@ -1195,7 +1195,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 8, 0):
 
         def visit_Constant(self, node):
-            if isinstance(node.value, bool):
+            if node.value in (True, False, None):
+                # NameConstant
                 node.id = str(node.value)
                 self.getName(node)
             elif isinstance(node.value, int):
@@ -1227,9 +1228,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(node.vhd, vhd_unsigned):
                     typemark = 'unsigned'
                 self.write("%s'(\"%s\")" % (typemark, node.value))
-            else:
-                node.id = str(node.value)
-                self.getName(node)
 
     else:
 
@@ -2294,10 +2292,11 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 8, 0):
 
         def visit_Constant(self, node):
-            if isinstance(node.value, str):
+            if node.value  is None:
+                # NameConstant
                 node.vhd = vhd_string()
                 node.vhdOri = copy(node.vhd)
-            elif isinstance(node.value, bool):
+            elif node.value in (True, False):
                 node.vhd = inferVhdlObj(node.value)
                 node.vhdOri = copy(node.vhd)
             elif isinstance(node.value, int):
@@ -2305,10 +2304,6 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
                     node.vhd = vhd_int()
                 else:
                     node.vhd = vhd_nat()
-                node.vhdOri = copy(node.vhd)
-            else:
-                # NameConstant  None
-                node.vhd = inferVhdlObj(node.value)
                 node.vhdOri = copy(node.vhd)
 
     else:

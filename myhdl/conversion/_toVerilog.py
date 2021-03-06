@@ -894,14 +894,17 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 8, 0):
 
         def visit_Constant(self, node):
-            if isinstance(node.value, bool):
+            if node.value in (True, False, None):
+                # NameConstant
                 self.write(nameconstant_map[node.obj])
             elif isinstance(node.value, int):
+                # Num
                 if self.context == _context.PRINT:
                     self.write('"%s"' % node.value)
                 else:
                     self.write(self.IntRepr(node.value))
             elif isinstance(node.value, str):
+                # Str
                 s = node.value
                 if self.context == _context.PRINT:
                     self.write('"%s"' % s)
@@ -909,8 +912,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.write("%s'b%s" % (len(s), s))
                 else:
                     self.write(s)
-            else:
-                self.write(nameconstant_map[node.obj])
 
     else:
 
