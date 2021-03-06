@@ -1648,7 +1648,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
 
     if sys.version_info >= (3, 8, 0):
 
-        def vist_Constant(self, node):
+        def visit_Constant(self, node):
             node.signed = False
 
     else:

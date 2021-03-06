@@ -696,7 +696,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 #             else:
 #                 node.obj = node.value
             # this does the same as above
-            if isinstance(node.value, int) and node.value in (0, 1):
+            if node.value in (0, 1):
                 node.obj = bool(node.value)
             else:
                 node.obj = node.value
