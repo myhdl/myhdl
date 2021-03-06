@@ -1195,7 +1195,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 8, 0):
 
         def visit_Constant(self, node):
-            if isinstance(node.value, int):
+            if isinstance(node.value, bool):
+                node.id = str(node.value)
+                self.getName(node)
+            elif isinstance(node.value, int):
                 n = node.value
                 if isinstance(node.vhd, vhd_std_logic):
                     self.write("'%s'" % n)
@@ -1224,6 +1227,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 if isinstance(node.vhd, vhd_unsigned):
                     typemark = 'unsigned'
                 self.write("%s'(\"%s\")" % (typemark, node.value))
+            else:
+                node.id = str(node.value)
+                self.getName(node)
 
     else:
 
@@ -1257,6 +1263,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(node.vhd, vhd_unsigned):
                 typemark = 'unsigned'
             self.write("%s'(\"%s\")" % (typemark, node.s))
+
+        def visit_NameConstant(self, node):
+            node.id = str(node.value)
+            self.getName(node)
 
     def visit_Continue(self, node, *args):
         self.write("next;")
@@ -1436,10 +1446,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Module(self, node):
         for stmt in node.body:
             self.visit(stmt)
-
-    def visit_NameConstant(self, node):
-        node.id = str(node.value)
-        self.getName(node)
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -2291,11 +2297,18 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(node.value, str):
                 node.vhd = vhd_string()
                 node.vhdOri = copy(node.vhd)
+            elif isinstance(node.value, bool):
+                node.vhd = inferVhdlObj(node.value)
+                node.vhdOri = copy(node.vhd)
             elif isinstance(node.value, int):
                 if node.value < 0:
                     node.vhd = vhd_int()
                 else:
                     node.vhd = vhd_nat()
+                node.vhdOri = copy(node.vhd)
+            else:
+                # NameConstant  None
+                node.vhd = inferVhdlObj(node.value)
                 node.vhdOri = copy(node.vhd)
 
     else:
@@ -2311,15 +2324,15 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
                 node.vhd = vhd_nat()
             node.vhdOri = copy(node.vhd)
 
+        def visit_NameConstant(self, node):
+            node.vhd = inferVhdlObj(node.value)
+            node.vhdOri = copy(node.vhd)
+
     def visit_For(self, node):
         var = node.target.id
         # make it possible to detect loop variable
         self.tree.vardict[var] = _loopInt(-1)
         self.generic_visit(node)
-
-    def visit_NameConstant(self, node):
-        node.vhd = inferVhdlObj(node.value)
-        node.vhdOri = copy(node.vhd)
 
     def visit_Name(self, node):
         if node.id in self.tree.vardict:

@@ -894,7 +894,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 8, 0):
 
         def visit_Constant(self, node):
-            if isinstance(node.value, int):
+            if isinstance(node.value, bool):
+                self.write(nameconstant_map[node.obj])
+            elif isinstance(node.value, int):
                 if self.context == _context.PRINT:
                     self.write('"%s"' % node.value)
                 else:
@@ -907,6 +909,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.write("%s'b%s" % (len(s), s))
                 else:
                     self.write(s)
+            else:
+                self.write(nameconstant_map[node.obj])
 
     else:
 
@@ -924,6 +928,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.write("%s'b%s" % (len(s), s))
             else:
                 self.write(s)
+
+        def visit_NameConstant(self, node):
+            self.write(nameconstant_map[node.obj])
 
     def visit_Continue(self, node):
         self.write("disable %s;" % self.labelStack[-1])
@@ -1097,9 +1104,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_ListComp(self, node):
         pass  # do nothing
-
-    def visit_NameConstant(self, node):
-        self.write(nameconstant_map[node.obj])
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):

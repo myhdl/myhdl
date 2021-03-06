@@ -683,33 +683,21 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                         node.edge = sig.posedge
 
     if sys.version_info >= (3, 8, 0):
-        ''' Deprecated since version 3.8: 
-            Old classes ast.Num, ast.Str, ast.Bytes, ast.NameConstant and ast.Ellipsis 
-            are still available, but they will be removed in future Python releases. 
-            In the meantime, instantiating them will return an instance of a different class.
-        '''
 
         def visit_Constant(self, node):
-            '''
-                New in version 3.6.
-                A constant. The value attribute holds the Python object it represents. 
-                This can be simple types such as a number, string or None, but also immutable container 
-                types (tuples and frozensets) if all of their elements are constant.
-
-                    kind is 'u' for strings with a u prefix, and None otherwise, allowing tools to
-                    distinguish u"a" from "a".
-
-                This class is available in the ast module from Python 3.6, but it isn’t produced by
-                parsing code until Python 3.8.
-
-                Changed in version 3.8: The kind field was added.
-            '''
             # ToDo check for tuples?
-            if isinstance(node.value, int):
-                if node.value in (0, 1):
-                    node.obj = bool(node.value)
-                else:
-                    node.obj = node.value
+#             if isinstance(node.value, bool):
+#                 node.obj = node.value
+#             elif isinstance(node.value, int):
+#                 if node.value in (0, 1):
+#                     node.obj = bool(node.value)
+#                 else:
+#                     node.obj = node.value
+#             else:
+#                 node.obj = node.value
+            # this does the same as above
+            if isinstance(node.value, int) and node.value in (0, 1):
+                node.obj = bool(node.value)
             else:
                 node.obj = node.value
 
