@@ -686,20 +686,20 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 
         def visit_Constant(self, node):
             # ToDo check for tuples?
-#             if isinstance(node.value, bool):
-#                 node.obj = node.value
-#             elif isinstance(node.value, int):
-#                 if node.value in (0, 1):
-#                     node.obj = bool(node.value)
-#                 else:
-#                     node.obj = node.value
-#             else:
-#                 node.obj = node.value
-            # this does the same as above
-            if node.value in (0, 1):
-                node.obj = bool(node.value)
-            else:
+            if node.value in (True, False, None):
+                # NameConstant
                 node.obj = node.value
+            elif isinstance(node.value, str):
+                # Str
+                node.obj = node.value
+            else:
+                # Num?
+                if node.value in (0, 1):
+                    node.obj = bool(node.value)
+                elif isinstance(node.value, int):
+                    node.obj = node.value
+                else:
+                    node.obj = None
 
     else:
 
