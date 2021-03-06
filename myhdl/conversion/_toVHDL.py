@@ -1251,7 +1251,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.write("to_signed(%s, %s)" % (n, node.vhd.size))
                 else:
                     self.write('signed\'("%s")' % tobin(n, node.vhd.size))
-
             else:
                 if n < 0:
                     self.write("(")
@@ -2295,18 +2294,18 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 8, 0):
 
         def visit_Constant(self, node):
-            if node.value in (True, False, None):
-                # NameConstant
-                node.vhd = inferVhdlObj(node.value)
-            elif isinstance(node.value, str):
-                # Str
-                node.vhd = vhd_string()
-            elif isinstance(node.value, int):
+            if isinstance(node.value, int):
                 # Num
                 if node.value < 0:
                     node.vhd = vhd_int()
                 else:
                     node.vhd = vhd_nat()
+            elif node.value in (True, False, None):
+                # NameConstant
+                node.vhd = inferVhdlObj(node.value)
+            elif isinstance(node.value, str):
+                # Str
+                node.vhd = vhd_string()
             node.vhdOri = copy(node.vhd)
 
     else:
