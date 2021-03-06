@@ -1108,8 +1108,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = "1'b%s" % int(obj)
             elif isinstance(obj, int):
                 s = self.IntRepr(obj)
-            elif isinstance(obj, tuple):  # Python3.9+ ast.Index serves a tuple
-                s = str(obj[0])
+#             elif isinstance(obj, tuple):  # Python3.9+ ast.Index serves a tuple
+#                 print(obj)
+#                 # print(ast.dump(ast.parse('l[i]', mode='eval')))
+#                 # Expression(body=Subscript(value=Name(id='l', ctx=Load()), slice=Index(value=Name(id='i', ctx=Load())), ctx=Load()))
+#                 s = str(obj[0])
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
                 s = str(obj)
