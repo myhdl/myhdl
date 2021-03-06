@@ -16,7 +16,6 @@
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-from myhdl._misc import ispythonversion
 
 """ myhdl toVerilog conversion module.
 
@@ -759,7 +758,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #            self.write("// synthesis parallel_case full_case")
 #            self.writeline()
             self.write("case (")
-            if ispythonversion(3, 9) >= 0:
+            if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
                 self.visit(node.value)
             else:
                 self.visit(node.value.slice)
@@ -1109,6 +1108,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = "1'b%s" % int(obj)
             elif isinstance(obj, int):
                 s = self.IntRepr(obj)
+            elif isinstance(obj, tuple):  # Python3.9+ ast.Index serves a tuple
+                s = str(obj[0])
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
                 s = str(obj)
@@ -1246,7 +1247,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write("[")
         # assert len(node.subs) == 1
-        if ispythonversion(3, 9) >= 0:
+        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
             self.visit(node.slice)
         else:
             self.visit(node.slice.value)

@@ -16,7 +16,6 @@
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-from myhdl._misc import ispythonversion
 
 """ MyHDL conversion analysis module.
 
@@ -977,7 +976,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.visit(node.value)
         self.access = _access.INPUT
-        if ispythonversion(3, 9) >= 0:
+        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
             self.visit(node.slice)
         else:
             self.visit(node.slice.value)

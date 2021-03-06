@@ -50,7 +50,7 @@ from myhdl._modbv import modbv
 from myhdl._simulator import now
 from myhdl._concat import concat
 from myhdl._delay import delay
-from myhdl._misc import downrange, ispythonversion
+from myhdl._misc import downrange
 from myhdl._util import _flatten
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 from myhdl._block import _Block
@@ -990,7 +990,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                       isinstance(node.value.value.obj, _Rom):
             rom = node.value.value.obj.rom
             self.write("case ")
-            if ispythonversion(3, 9) >= 0:
+            if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
                 self.visit(node.value)
             else:
                 self.visit(node.value.slice)
@@ -1586,7 +1586,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write("(")
         # assert len(node.subs) == 1
-        if ispythonversion(3, 9) >= 0:
+        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
             self.visit(node.slice)
         else:
             self.visit(node.slice.value)
@@ -2397,7 +2397,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.generic_visit(node)
         node.vhd = vhd_std_logic()  # XXX default
-        if ispythonversion(3, 9) >= 0:
+        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
             node.slice.vhd = vhd_int()
         else:
             node.slice.value.vhd = vhd_int()

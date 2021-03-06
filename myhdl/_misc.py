@@ -24,34 +24,10 @@ instances -- function that returns instances in a generator function
 downrange -- function that returns a downward range
 
 """
-from sys import version_info
 import inspect
 
 from myhdl._Cosimulation import Cosimulation
 from myhdl._instance import _Instantiator
-
-
-# 06-03-2021 as the Python gang likes to keep breaking code with about every release ...
-# we need a way to keep track
-def ispythonversion(major, minor):
-    ''' 
-        compares the actual version with the given major, minor
-        returns 
-            -1 if smaller
-            0 if exact
-            1 if greater
-    '''
-    if version_info.major < major:
-        return -1
-    elif version_info.major == major:
-        if version_info.minor < minor:
-            return -1
-        elif version_info.minor == minor:
-            return 0
-        else:
-            return 1
-    else:
-        return 1
 
 
 def _isGenSeq(obj):
