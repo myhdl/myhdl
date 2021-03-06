@@ -1121,7 +1121,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             elif (type(obj) in (type,)) and issubclass(obj, Exception):
                 s = n
             else:
-                self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
+                self.raiseError(node, _error.UnsupportedType, "%s, %s %s" % (n, type(obj), obj))
         else:
             raise AssertionError("name ref: %s" % n)
         if addSignBit:
