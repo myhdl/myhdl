@@ -16,6 +16,7 @@
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+from myhdl._misc import ispythonversion
 
 """ myhdl toVerilog conversion module.
 
@@ -471,6 +472,7 @@ def _getSignString(s):
     else:
         return ''
 
+
 def _intRepr(n, radix=''):
     # write size for large integers (beyond 32 bits signed)
     # with some safety margin
@@ -478,17 +480,18 @@ def _intRepr(n, radix=''):
     p = abs(n)
     size = ''
     num = str(p).rstrip('L')
-    if radix == "hex" or p >= 2**30:
+    if radix == "hex" or p >= 2 ** 30:
         radix = "'h"
         num = hex(p)[2:].rstrip('L')
-    if p >= 2**30:
-        size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
+    if p >= 2 ** 30:
+        size = int(math.ceil(math.log(p + 1, 2))) + 1  # sign bit!
 #            if not radix:
 #                radix = "'d"
     r = "%s%s%s" % (size, radix, num)
-    if n < 0: # add brackets and sign on negative numbers
+    if n < 0:  # add brackets and sign on negative numbers
         r = "(-%s)" % r
     return r
+
 
 def _convertGens(genlist, vfile):
     blockBuf = StringIO()
@@ -750,13 +753,16 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Assign(self, node):
         # shortcut for expansion of ROM in case statement
         if isinstance(node.value, ast.Subscript) and \
-                isinstance(node.value.slice, ast.Index) and\
-                isinstance(node.value.value.obj, _Rom):
+                      not isinstance(node.value.slice, ast.Slice) and \
+                      isinstance(node.value.value.obj, _Rom):
             rom = node.value.value.obj.rom
 #            self.write("// synthesis parallel_case full_case")
 #            self.writeline()
             self.write("case (")
-            self.visit(node.value.slice)
+            if ispythonversion(3, 9) >= 0:
+                self.visit(node.value)
+            else:
+                self.visit(node.value.slice)
             self.write(")")
             self.indent()
             for i, n in enumerate(rom):
@@ -1215,7 +1221,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(lower.right)
             self.write("]")
             return
-        
+
         self.write("[")
         if lower is None:
             self.write("%s" % node.obj._nrbits)
@@ -1240,7 +1246,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write("[")
         # assert len(node.subs) == 1
-        self.visit(node.slice.value)
+        if ispythonversion(3, 9) >= 0:
+            self.visit(node.slice)
+        else:
+            self.visit(node.slice.value)
         self.write("]")
         if addSignBit:
             self.write("})")
@@ -1406,7 +1415,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = '1' if init else '0'
     elif tipe is intbv:
-        init = int(init) # int representation
+        init = int(init)  # int representation
         v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)
