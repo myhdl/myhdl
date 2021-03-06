@@ -1251,6 +1251,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.write("to_signed(%s, %s)" % (n, node.vhd.size))
                 else:
                     self.write('signed\'("%s")' % tobin(n, node.vhd.size))
+
             else:
                 if n < 0:
                     self.write("(")
