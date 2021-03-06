@@ -685,21 +685,20 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 8, 0):
 
         def visit_Constant(self, node):
+            node.obj = None  # safeguarding?
             # ToDo check for tuples?
-            if node.value in (True, False, None):
+            if isinstance(node.value, int):
+                # Num
+                if node.value in (0, 1):
+                    node.obj = bool(node.value)
+                else:
+                    node.obj = node.value
+            elif node.value in (True, False, None):
                 # NameConstant
                 node.obj = node.value
             elif isinstance(node.value, str):
                 # Str
                 node.obj = node.value
-            else:
-                # Num?
-                if node.value in (0, 1):
-                    node.obj = bool(node.value)
-                elif isinstance(node.value, int):
-                    node.obj = node.value
-                else:
-                    node.obj = None
 
     else:
 
