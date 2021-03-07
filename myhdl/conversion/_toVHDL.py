@@ -1514,6 +1514,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                         s = "to_signed(%s, %s)" % (obj, node.vhd.size)
                     else:
                         s = 'signed\'("%s")' % tobin(obj, node.vhd.size)
+            elif isinstance(obj, tuple):  # Python3.9+ ast.Index replacement serves a tuple
+                print('toVHDL: getName:', node, n, obj)
+                s = n
             elif isinstance(obj, _Signal):
                 s = str(obj)
                 ori = inferVhdlObj(obj)
