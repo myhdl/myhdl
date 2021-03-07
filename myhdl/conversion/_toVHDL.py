@@ -1192,7 +1192,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(right)
         self.write(suf)
 
-    if sys.version_info >= (3, 8, 0):
+    if sys.version_info >= (3, 9, 0):
 
         def visit_Constant(self, node):
             if isinstance(node.value, int):
@@ -2291,7 +2291,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             right.vhd = vhd_signed(right.vhd.size + 1)
         node.vhdOri = copy(node.vhd)
 
-    if sys.version_info >= (3, 8, 0):
+    if sys.version_info >= (3, 9, 0):
 
         def visit_Constant(self, node):
             if isinstance(node.value, int):

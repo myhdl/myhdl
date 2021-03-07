@@ -1133,7 +1133,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             elif isinstance(obj, int):
                 s = self.IntRepr(obj)
             elif isinstance(obj, tuple):  # Python3.9+ ast.Index serves a tuple
-                print(obj)
+                print('toVerilog', addSignBit, n, obj)
                 s = n
 #                 # print(ast.dump(ast.parse('l[i]', mode='eval')))
 #                 # Expression(body=Subscript(value=Name(id='l', ctx=Load()), slice=Index(value=Name(id='i', ctx=Load())), ctx=Load()))
@@ -1647,7 +1647,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         self.generic_visit(node)
 
-    if sys.version_info >= (3, 8, 0):
+    if sys.version_info >= (3, 9, 0):
 
         def visit_Constant(self, node):
             node.signed = False

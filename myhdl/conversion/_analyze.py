@@ -682,7 +682,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif v == 1:
                         node.edge = sig.posedge
 
-    if sys.version_info >= (3, 8, 0):
+    if sys.version_info >= (3, 9, 0):
 
         def visit_Constant(self, node):
             node.obj = None  # safeguarding?
