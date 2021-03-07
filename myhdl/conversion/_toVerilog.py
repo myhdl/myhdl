@@ -856,7 +856,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is concat:
             opening, closing = '{', '}'
         elif f is delay:
-            print('toVerilog: visit_Call:', node, node.args[0])
             self.visit(node.args[0])
             return
         elif hasattr(node, 'tree'):
@@ -892,7 +891,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 9, 0):
 
         def visit_Constant(self, node):
-            print('toVerilog: visit_Constant:', node.value, end=': ')
             if node.value is None:
                 # NameConstant
                 print('NameConstant: None')
@@ -1138,11 +1136,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             elif isinstance(obj, int):
                 s = self.IntRepr(obj)
             elif isinstance(obj, tuple):  # Python3.9+ ast.Index replacement serves a tuple
-                print('toVerilog: getName:', node, addSignBit, n, obj)
                 s = n
-#                 # print(ast.dump(ast.parse('l[i]', mode='eval')))
-#                 # Expression(body=Subscript(value=Name(id='l', ctx=Load()), slice=Index(value=Name(id='i', ctx=Load())), ctx=Load()))
-
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
                 s = str(obj)
@@ -1281,7 +1275,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write("[")
         # assert len(node.subs) == 1
         if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
-            print('toVerilog: accessIndex:', node, node.slice)
             self.visit(node.slice)
         else:
             self.visit(node.slice.value)
@@ -1335,7 +1328,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if isinstance(yieldObj, delay):
             self.write("# ")
             self.context = _context.YIELD
-            print('toVerilog: visit_Yield: delay:', node, node.value)
             self.visit(node.value)
             self.context = _context.UNKNOWN
             self.write(";")

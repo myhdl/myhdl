@@ -969,7 +969,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         self.generic_visit(node)
 
     def visit_Subscript(self, node):
-        print('Analyze', node.slice)
         if isinstance(node.slice, ast.Slice):
             self.accessSlice(node)
         else:

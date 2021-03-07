@@ -990,10 +990,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                       isinstance(node.value.value.obj, _Rom):
             rom = node.value.value.obj.rom
             self.write("case ")
-            if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
-                self.visit(node.value)
-            else:
-                self.visit(node.value.slice)
+            self.visit(node.value.slice)
             self.write(" is")
             self.indent()
             size = lhs.vhd.size
@@ -1195,7 +1192,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 9, 0):
 
         def visit_Constant(self, node):
-            if isinstance(node.value, int):
+            if node.value is None:
+                # NameConstant
+                node.id = str(node.value)
+                self.getName(node)
+            elif isinstance(node.value, bool):
+                # NameConstant
+                node.id = str(node.value)
+                self.getName(node)
+            elif isinstance(node.value, int):
                 # Num
                 n = node.value
                 if isinstance(node.vhd, vhd_std_logic):
@@ -1220,10 +1225,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.write(n)
                     if n < 0:
                         self.write(")")
-            elif node.value in (True, False, None):
-                # NameConstant
-                node.id = str(node.value)
-                self.getName(node)
             elif isinstance(node.value, str):
                 # Str
                 typemark = 'string'
@@ -1515,7 +1516,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     else:
                         s = 'signed\'("%s")' % tobin(obj, node.vhd.size)
             elif isinstance(obj, tuple):  # Python3.9+ ast.Index replacement serves a tuple
-                print('toVHDL: getName:', node, n, obj)
                 s = n
             elif isinstance(obj, _Signal):
                 s = str(obj)
@@ -2297,15 +2297,18 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
     if sys.version_info >= (3, 9, 0):
 
         def visit_Constant(self, node):
-            if isinstance(node.value, int):
+            if node.value is None:
+                # NameConstant
+                node.vhd = inferVhdlObj(node.value)
+            elif isinstance(node.value, bool):
+                # NameConstant
+                node.vhd = inferVhdlObj(node.value)
+            elif isinstance(node.value, int):
                 # Num
                 if node.value < 0:
                     node.vhd = vhd_int()
                 else:
                     node.vhd = vhd_nat()
-            elif node.value in (True, False, None):
-                # NameConstant
-                node.vhd = inferVhdlObj(node.value)
             elif isinstance(node.value, str):
                 # Str
                 node.vhd = vhd_string()
