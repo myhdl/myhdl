@@ -893,21 +893,17 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         def visit_Constant(self, node):
             if node.value is None:
                 # NameConstant
-                print('NameConstant: None')
                 self.write(nameconstant_map[node.obj])
             elif isinstance(node.value, bool):
-                print('NameConstant: bool')
                 self.write(nameconstant_map[node.obj])
             elif isinstance(node.value, int):
                 # Num
-                print('Num')
                 if self.context == _context.PRINT:
                     self.write('"%s"' % node.value)
                 else:
                     self.write(self.IntRepr(node.value))
             elif isinstance(node.value, str):
                 # Str
-                print('Str')
                 s = node.value
                 if self.context == _context.PRINT:
                     self.write('"%s"' % s)
@@ -1204,7 +1200,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.writeline()
                     self.write("endcase")
                 else:
-                    print (type(obj), type(a))
                     self.write('$write("%s", ' % fs)
                     self.visit(a)
                     self.write(');')
