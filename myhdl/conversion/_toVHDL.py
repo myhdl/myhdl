@@ -375,6 +375,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
             if stdLogicPorts and s._type is intbv:
                 s._name = portname + "_num"
                 convertPort = True
+                # override the names given by _analyze.py
                 for sl in s._slicesigs:
                     sl._setName('VHDL')
             else:

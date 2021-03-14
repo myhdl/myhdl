@@ -35,7 +35,7 @@ from myhdl._bin import bin
 
 class _ShadowSignal(_Signal):
 
-    __slots__ = ('_waiter', )
+    __slots__ = ('_waiter',)
 
     def __init__(self, val):
         _Signal.__init__(self, val)
@@ -58,6 +58,7 @@ class _SliceSignal(_ShadowSignal):
         else:
             _ShadowSignal.__init__(self, sig[left:right])
         self._sig = sig
+        sig._read = True
         self._left = left
         self._right = right
         if right is None:
@@ -65,6 +66,12 @@ class _SliceSignal(_ShadowSignal):
         else:
             gen = self._genfuncSlice()
         self._waiter = _SignalWaiter(gen)
+
+    def __repr__(self):
+        if self._right is None:
+            return repr(self._sig) + '({})'.format(self._left)
+        else:
+            return repr(self._sig) + '({}, {})'.format(self._left, self._right)
 
     def _genfuncIndex(self):
         sig, index = self._sig, self._left
@@ -81,6 +88,24 @@ class _SliceSignal(_ShadowSignal):
             yield sig
 
     def _setName(self, hdl):
+        # if we depend on a ShadowSignal ourselves
+        # it would be nice if we 'resolve' the slicing chain
+        # e.g. s[7:4][1:0][1] to s[5]
+        if isinstance(self._sig, _ShadowSignal):
+            # self._sig must have a _left and a _right
+            if self._right is None:
+                # we're a final index
+                self._left = self._sig._right + self._left
+            else:
+                self._right = self._sig._right + self._right
+                self._left = self._sig._right + self._left
+            # step one back up
+            self._sig = self._sig._sig
+
+        else:
+            # we're at the top of the chain
+            pass
+
         if self._right is None:
             if hdl == 'Verilog':
                 self._name = "%s[%s]" % (self._sig._name, self._left)
@@ -91,6 +116,10 @@ class _SliceSignal(_ShadowSignal):
                 self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
             else:
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
+        # we may have 'shadowed' as well (and further down ...)
+        if self._slicesigs:
+            for sl in self._slicesigs:
+                sl._setName(hdl)
 
     def _markRead(self):
         self._read = True
@@ -240,12 +269,12 @@ class ConcatSignal(_ShadowSignal):
             hi = lo
         return "\n".join(lines)
 
-
 # Tristate signal
 
 
 class BusContentionWarning(UserWarning):
     pass
+
 
 warnings.filterwarnings('always', r".*", BusContentionWarning)
 
