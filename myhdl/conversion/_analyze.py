@@ -682,19 +682,42 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif v == 1:
                         node.edge = sig.posedge
 
-    def visit_Num(self, node):
-        n = node.n
-        # assign to value attribute for backwards compatibility
-        node.value = n
-        if n in (0, 1):
-            node.obj = bool(n)
-        elif isinstance(n, int):
-            node.obj = n
-        else:
-            node.obj = None
+    if sys.version_info >= (3, 9, 0):
 
-    def visit_Str(self, node):
-        node.obj = node.s
+        def visit_Constant(self, node):
+            node.obj = None  # safeguarding?
+            # ToDo check for tuples?
+            if isinstance(node.value, int):
+                # Num
+                if node.value in (0, 1):
+                    node.obj = bool(node.value)
+                else:
+                    node.obj = node.value
+            elif node.value in (True, False, None):
+                # NameConstant
+                node.obj = node.value
+            elif isinstance(node.value, str):
+                # Str
+                node.obj = node.value
+
+    else:
+
+        def visit_Num(self, node):
+            n = node.n
+            # assign to value attribute for backwards compatibility
+            node.value = n
+            if n in (0, 1):
+                node.obj = bool(n)
+            elif isinstance(n, int):
+                node.obj = n
+            else:
+                node.obj = None
+
+        def visit_Str(self, node):
+            node.obj = node.s
+
+        def visit_NameConstant(self, node):
+            node.obj = node.value
 
     def visit_Continue(self, node):
         self.labelStack[-1].isActive = True
@@ -786,9 +809,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if f is not range or len(cf.args) != 1:
             self.raiseError(node, _error.UnsupportedListComp)
         mem.depth = cf.args[0].obj
-
-    def visit_NameConstant(self, node):
-        node.obj = node.value
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -976,7 +996,11 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.visit(node.value)
         self.access = _access.INPUT
-        self.visit(node.slice.value)
+        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
+            self.visit(node.slice)
+        else:
+            self.visit(node.slice.value)
+
         if isinstance(node.value.obj, _Ram):
             if isinstance(node.ctx, ast.Store):
                 self.raiseError(node, _error.ListElementAssign)
