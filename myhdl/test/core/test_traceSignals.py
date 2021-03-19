@@ -114,7 +114,7 @@ def topTristate():
     return inst
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def vcd_dir(tmpdir):
     with tmpdir.as_cwd():
         yield tmpdir
