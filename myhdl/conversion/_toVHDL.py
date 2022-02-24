@@ -211,21 +211,26 @@ class _ToVHDLConvertor(object):
         else:
             intf = _analyzeTopFunc(func, *args, **kwargs)
         intf.name = name
+
         # sanity checks on interface
         for portname in intf.argnames:
             s = intf.argdict[portname]
-            if s._name is None:
-                raise ToVHDLError(_error.ShadowingSignal, portname)
-            if s._inList:
-                raise ToVHDLError(_error.PortInList, portname)
-            # add enum types to port-related set
-            if isinstance(s._val, EnumItemType):
-                obj = s._val._type
-                if obj in _enumTypeSet:
-                    _enumTypeSet.remove(obj)
-                    _enumPortTypeSet.add(obj)
-                else:
-                    assert obj in _enumPortTypeSet
+            if _isMem(s):
+                for item in s:
+                    if item._name is None:
+                        raise ToVHDLError(_error.ShadowingSignal, portname)
+            else:
+                if s._name is None:
+                    raise ToVHDLError(_error.ShadowingSignal, portname)
+
+                # add enum types to port-related set
+                if isinstance(s._val, EnumItemType):
+                    obj = s._val._type
+                    if obj in _enumTypeSet:
+                        _enumTypeSet.remove(obj)
+                        _enumPortTypeSet.add(obj)
+                    else:
+                        assert obj in _enumPortTypeSet
 
         doc = _makeDoc(inspect.getdoc(func))
 
@@ -249,7 +254,7 @@ class _ToVHDLConvertor(object):
         _writeTypeDefs(vfile)
         _writeSigDecls(vfile, intf, siglist, memlist)
         _writeCompDecls(vfile, compDecls)
-        _convertGens(genlist, siglist, memlist, vfile)
+        _convertGens(genlist, siglist, memlist, intf, vfile)
         _writeModuleFooter(vfile, arch)
 
         vfile.close()
@@ -342,6 +347,47 @@ def _writeCustomPackage(f, intf):
 portConversions = []
 
 
+def _writePorts(f, portname, s, stdLogicPorts):
+    _nameValid(portname)
+    # change name to convert to std_logic, or
+    # make sure signal name is equal to its port name
+    convertPort = False
+    if stdLogicPorts and s._type is intbv:
+        s._name = portname + "_num"
+        convertPort = True
+        for sl in s._slicesigs:
+            sl._setName('VHDL')
+    else:
+        s._name = portname
+    r = _getRangeString(s)
+    pt = st = _getTypeString(s)
+    if convertPort:
+        pt = "std_logic_vector"
+#             # Check if VHDL keyword or reused name
+#             _nameValid(s._name)
+    if s._driven:
+        if s._read:
+            if not isinstance(s, _TristateSignal):
+                warnings.warn("%s: %s;" % (_error.OutputPortRead, portname),
+                              category=ToVHDLWarning
+                              )
+            f.write("        %s: inout %s%s;\n" % (portname, pt, r))
+        else:
+            f.write("        %s: out %s%s;\n" % (portname, pt, r))
+        if convertPort:
+            portConversions.append("%s <= %s(%s);\n" % (portname, pt, s._name))
+            s._read = True
+    else:
+        if not s._read:
+            warnings.warn("%s: %s;" % (_error.UnusedPort, portname),
+                          category=ToVHDLWarning
+                          )
+        f.write("        %s: in %s%s;\n" % (portname, pt, r))
+        if convertPort:
+            portConversions.append("%s <= %s(%s);" % (s._name, st, portname))
+            s._driven = True
+
+
 def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPorts):
     print("library IEEE;", file=f)
     print("use IEEE.std_logic_1164.all;", file=f)
@@ -362,51 +408,18 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
     print("entity %s is" % intf.name, file=f)
     del portConversions[:]
     if intf.argnames:
-        f.write("    port (")
-        c = ''
+        f.write("    port (\n")
+        b = StringIO()
         for portname in intf.argnames:
-            _nameValid(portname)
             s = intf.argdict[portname]
-            f.write("%s" % c)
-            c = ';'
-            # change name to convert to std_logic, or
-            # make sure signal name is equal to its port name
-            convertPort = False
-            if stdLogicPorts and s._type is intbv:
-                s._name = portname + "_num"
-                convertPort = True
-                for sl in s._slicesigs:
-                    sl._setName('VHDL')
+            if _isMem(s):
+                for i, item in enumerate(s):
+                    _writePorts(b, portname + '_' + str(i), item, stdLogicPorts)
             else:
-                s._name = portname
-            r = _getRangeString(s)
-            pt = st = _getTypeString(s)
-            if convertPort:
-                pt = "std_logic_vector"
-#             # Check if VHDL keyword or reused name
-#             _nameValid(s._name)
-            if s._driven:
-                if s._read:
-                    if not isinstance(s, _TristateSignal):
-                        warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                                      category=ToVHDLWarning
-                                      )
-                    f.write("\n        %s: inout %s%s" % (portname, pt, r))
-                else:
-                    f.write("\n        %s: out %s%s" % (portname, pt, r))
-                if convertPort:
-                    portConversions.append("%s <= %s(%s);" % (portname, pt, s._name))
-                    s._read = True
-            else:
-                if not s._read:
-                    warnings.warn("%s: %s" % (_error.UnusedPort, portname),
-                                  category=ToVHDLWarning
-                                  )
-                f.write("\n        %s: in %s%s" % (portname, pt, r))
-                if convertPort:
-                    portConversions.append("%s <= %s(%s);" % (s._name, st, portname))
-                    s._driven = True
-        f.write("\n    );\n")
+                _writePorts(b, portname, s, stdLogicPorts)
+        print(b.getvalue()[:-2], file=f)
+        b.close()
+        f.write("    );\n")
     print("end entity %s;" % intf.name, file=f)
     print(doc, file=f)
     print(file=f)
@@ -574,7 +587,7 @@ def _getTypeString(s):
         return 'unsigned'
 
 
-def _convertGens(genlist, siglist, memlist, vfile):
+def _convertGens(genlist, siglist, memlist, intf, vfile):
     blockBuf = StringIO()
     funcBuf = StringIO()
     for tree in genlist:
@@ -626,6 +639,18 @@ def _convertGens(genlist, siglist, memlist, vfile):
             raise ToVHDLError("Unexpected type for constant signal", s._name)
         print("%s <= %s%s%s;" % (s._name, pre, c, suf), file=vfile)
     print(file=vfile)
+    for portname in intf.argnames:
+        s = intf.argdict[portname]
+        if _isMem(s):
+            for i, item in enumerate(s):
+                if item._driven:
+                    if isinstance(item, _TristateSignal):
+                        print("%(name)s(%(index)0d) <= %(name)s_%(index)0d;" % {'name': portname, 'index': i}, file=vfile)
+                    else:
+                        print("%(name)s_%(index)0d <= %(name)s(%(index)0d);" % {'name': portname, 'index': i}, file=vfile)
+                else:
+                    print("%(name)s(%(index)0d) <= %(name)s_%(index)0d;" % {'name': portname, 'index': i}, file=vfile)
+
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVHDL') and s._read:
@@ -921,12 +946,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def setAttr(self, node):
         assert node.attr == 'next'
-        self.SigAss = True
-        if isinstance(node.value, ast.Name):
-            sig = self.tree.symdict[node.value.id]
-            self.SigAss = sig._name
+        self.isSigAss = True
         self.visit(node.value)
-        node.obj = self.getObj(node.value)
 
     def getAttr(self, node):
         if isinstance(node.value, ast.Subscript):

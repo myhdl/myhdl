@@ -190,7 +190,6 @@ class _ToVerilogConvertor(object):
         _writeFileHeader(vfile, vpath, self.timescale)
         _writeModuleHeader(vfile, intf, doc)
         _writeSigDecls(vfile, intf, siglist, memlist)
-        _writeListAssign(vfile, intf)
         _convertGens(genlist, vfile)
         _writeModuleFooter(vfile)
 
@@ -410,6 +409,21 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print(initial_assignments, file=f)
 
     print(file=f)
+
+    # port list assignments
+    for portname in intf.argnames:
+        s = intf.argdict[portname]
+        if _isMem(s):
+            for i, item in enumerate(s):
+                if item._driven:
+                    if isinstance(item, _TristateSignal):
+                        print("assign %(name)s[%(index)0d] = %(name)s_%(index)0d;" % {'name': portname, 'index': i}, file=f)
+                    else:
+                        print("assign %(name)s_%(index)0d = %(name)s[%(index)0d];" % {'name': portname, 'index': i}, file=f)
+                else:
+                    print("assign %(name)s[%(index)0d] = %(name)s_%(index)0d;" % {'name': portname, 'index': i}, file=f)
+
+    # constansts assignments
     for s in constwires:
         if s._type in (bool, intbv):
             c = int(s.val)
@@ -418,28 +432,12 @@ def _writeSigDecls(f, intf, siglist, memlist):
         c_len = s._nrbits
         c_str = "%s" % c
         print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
-    # print(file=f)
+
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVerilog') and s._driven:
             print(s.toVerilog(), file=f)
     print(file=f)
-
-
-def _writeListAssign(f, intf):
-    for portname in intf.argnames:
-        s = intf.argdict[portname]
-        if _isMem(s):
-            for i, item in enumerate(s):
-                # make sure signal name is equal to its port name
-                item._name = portname
-                if item._driven:
-                    if isinstance(item, _TristateSignal):
-                        print("assign %s[%0d] = %s_%0d;" % (portname, i, portname, i), file=f)
-                    else:
-                        print("assign %s_%s = %s[%0d];" % (portname, i, portname, i), file=f)
-                else:
-                    print("assign %s[%0d] = %s_%0d;" % (portname, i, portname, i), file=f)
 
 
 def _writeModuleFooter(f):
