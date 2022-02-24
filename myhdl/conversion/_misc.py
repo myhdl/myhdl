@@ -64,7 +64,6 @@ class _error(object):
     UnsupportedFormatString = "Unsupported format string"
     FormatString = "Format string error"
     UnsupportedAttribute = "Unsupported attribute"
-    # InterfaceInList = "Interface in list is not supported"
     SignalInMultipleLists = "Signal in multiple list is not supported"
 
 
