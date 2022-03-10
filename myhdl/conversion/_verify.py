@@ -38,6 +38,7 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
         raise ValueError("Invalid simulator command")
     _simulators[name] = sim(name, hdl, analyze, elaborate, simulate, skiplines, skipchars, ignore)
 
+
 registerSimulator(
     name="ghdl",
     hdl="VHDL",
@@ -74,7 +75,6 @@ registerSimulator(
     ignore=("# **", "# //", "#    Time:", "# run -all")
 )
 
-
 registerSimulator(
     name="iverilog",
     hdl="Verilog",
@@ -96,7 +96,7 @@ class _VerificationClass(object):
     __slots__ = ("simulator", "_analyzeOnly")
 
     def __init__(self, analyzeOnly=False):
-        self.simulator = None
+        self.simulator = 'ghdl'
         self._analyzeOnly = analyzeOnly
 
     def __call__(self, func, *args, **kwargs):
