@@ -155,7 +155,7 @@ code, but shadow signals can do this automatically. For
 example, we can construct a ``request_vector`` as a
 :class:`ConcatSignal` object::
 
-    request_vector = ConcatSignal(*reversed(request_list)
+    request_vector = ConcatSignal(*reversed(request_list))
 
 Note that we reverse the list first. This is done because the index range
 of lists is the inverse of the range of :class:`intbv` bit vectors.
