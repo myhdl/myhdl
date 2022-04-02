@@ -101,13 +101,19 @@ Waveform tracing
    .. attribute:: filename
 
       This attribute is used to set the filename to which VCD files are written. By
-      default, the name attribbute is used.
+      default, the name attribute is used.
 
    .. attribute:: timescale
 
       This attribute is used to set the timescale corresponding to unit steps,
       according to the VCD format. The assigned value should be a string.
       The default timescale is "1ns".
+
+   .. attribute:: tracebackup
+
+      This attribute controls making a backup copy of an existing .vcd file.
+      It appends the UTC time to create an unique filename.
+      The default setting is "True"
 
 
 .. _ref-model:
