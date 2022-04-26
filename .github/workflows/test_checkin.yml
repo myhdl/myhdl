@@ -1,0 +1,50 @@
+name: Test myhdl
+
+on: 
+  push: 
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false # So that one fail doesn't stop remaining tests
+      matrix:
+        python-version: ["3.6", "3.7", "3.8", "3.9", "3.10"]
+        #python-version: ["3.8"]
+        #os: [ubuntu-latest, windows-latest, macos-latest
+        os: [ubuntu-latest]
+        target: [core, iverilog, ghdl]
+
+    env:
+      CI_TARGET: ${{ matrix.target }}
+      TERM: xterm-256color # for tput in the script file
+    
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip pytest
+          python -m pip install .
+      - name: Report Environment
+        run: |
+          echo "Runing tests with env set to : ${CI_TARGET}"
+      - name: Install iverilog
+        if: ${{ env.CI_TARGET == 'iverilog' }}
+        run: |
+            sudo apt-get -qq update;
+            sudo apt-get install -y iverilog;
+      - name: Install ghdl
+        if: ${{ env.CI_TARGET == 'ghdl' }}
+        run: |
+            #sudo add-apt-repository ppa:mati75/ghdl -y;
+            sudo apt-get -qq update;
+            sudo apt-get install -y ghdl;
+      - name: Run Tests
+        run: |
+          ./scripts/ci.sh
