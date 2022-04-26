@@ -26,11 +26,11 @@ z, a, b, sel = [Signal(0) for i in range(4)]
 mux_1 = Mux(z, a, b, sel)
 
 def test():
-    print "z a b sel"
+    print("z a b sel")
     for i in range(8):
         a.next, b.next, sel.next = randrange(8), randrange(8), randrange(2)
         yield delay(10)
-        print "%s %s %s %s" % (z, a, b, sel)
+        print("%s %s %s %s" % (z, a, b, sel))
 
 test_1 = test()
 
