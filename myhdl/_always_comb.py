@@ -29,6 +29,8 @@ from myhdl._always import _Always
 
 class _error:
     pass
+
+
 _error.ArgType = "always_comb argument should be a classic function"
 _error.NrOfArgs = "always_comb argument should be a function without arguments"
 _error.Scope = "always_comb argument should be a local function"
@@ -55,10 +57,6 @@ class _AlwaysComb(_Always):
         senslist = []
         super(_AlwaysComb, self).__init__(func, senslist, callinfo=callinfo)
 
-        inouts = self.inouts | self.inputs.intersection(self.outputs)
-        if inouts:
-            raise AlwaysCombError(_error.SignalAsInout % inouts)
-
         if self.embedded_func:
             raise AlwaysCombError(_error.EmbeddedFunction)
 
@@ -80,3 +78,5 @@ class _AlwaysComb(_Always):
         while 1:
             func()
             yield senslist
+
+            
