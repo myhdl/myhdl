@@ -56,6 +56,8 @@ def bench_RecurseShadowSignal():
             print(slu)
             print(sll)
 
+    return check
+
 
 def test_RecurseShadowSignal():
     assert conversion.verify(bench_RecurseShadowSignal()) == 0
