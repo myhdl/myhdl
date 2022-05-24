@@ -46,7 +46,7 @@ def bench_RecurseShadowSignal():
     @instance
     def check():
         for i in range(25):
-            s.next = 0x12345678 + i * 39
+            s.next = 0x4567 + i * 39
             yield delay(10)
             print(s)
             print(int(su))
