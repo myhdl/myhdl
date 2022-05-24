@@ -1036,11 +1036,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #        if node.isFullCase:
 #            self.write(" full_case")
 #        self.writeline()
-        caseType = "case"
-        if isinstance(node.caseItem, EnumItemType):
-            if node.caseItem._type._encoding in ('one_hot', 'one_cold'):
-                caseType = "casez"
-        self.write("%s (" % caseType)
+        self.write("case (")
         self.visit(var)
         self.write(")")
         self.indent()
@@ -1048,7 +1044,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             item = test.case[1]
             if isinstance(item, EnumItemType):
-                self.write(item._toVerilog(dontcare=True))
+                self.write(item._toVerilog())
             else:
                 self.write(self.IntRepr(item, radix='hex'))
             self.write(": begin")
@@ -1103,7 +1099,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(stmt)
 
     def visit_ListComp(self, node):
-        pass  # do nothing
+        # do nothing
+        pass
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
