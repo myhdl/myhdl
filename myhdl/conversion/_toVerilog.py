@@ -1099,7 +1099,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(stmt)
 
     def visit_ListComp(self, node):
-        pass  # do nothing
+        # do nothing
+        pass
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
