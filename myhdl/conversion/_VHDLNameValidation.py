@@ -32,21 +32,38 @@ _usedNames = [];
 
 # Function which compares current parsed signal/entity to all keywords to
 # ensure reserved words are not being used for the wrong purpose
-def _nameValid(name):
+def _nameValid(name, namespace=None):
     if name.lower() in _vhdl_keywords:
-        warnings.warn("VHDL keyword used: {}".format(name), category=ToVHDLWarning)
+        warnings.warn(
+            "VHDL keyword used: {}".format(name), category=ToVHDLWarning)
 
     if name.startswith('_'):
-        warnings.warn("VHDL variable names cannot start with '_': {}".format(name), category=ToVHDLWarning)
+        warnings.warn(
+            "VHDL variable names cannot start with '_': {}".format(name),
+            category=ToVHDLWarning)
 
     if '-' in name:
-        warnings.warn("VHDL variable names cannot contain '-': {}".format(name), category=ToVHDLWarning)
+        warnings.warn(
+            "VHDL variable names cannot contain '-': {}".format(name),
+            category=ToVHDLWarning)
 
     if '__' in name:
-        warnings.warn("VHDL variable names cannot contain double underscores '__': {}".format(name), category=ToVHDLWarning)
+        warnings.warn(
+            "VHDL variable names cannot contain double underscores '__': "
+            "{}".format(name), category=ToVHDLWarning)
 
-    if name.lower() in _usedNames:
-        warnings.warn("Previously used name being reused: {}".format(name), category=ToVHDLWarning)
 
-    _usedNames.append(name.lower())
+    name_key = (namespace, name.lower())
+    if name_key in _usedNames:
+
+        if namespace is None:
+            warnings.warn(
+                "Previously used name being reused in root namespace: {}".format(
+                    name), category=ToVHDLWarning)
+        else:
+            warnings.warn(
+                "Previously used name being reused in namespace {}: {}".format(
+                    namespace, name), category=ToVHDLWarning)
+
+    _usedNames.append(name_key)
 

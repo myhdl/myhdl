@@ -312,12 +312,8 @@ def _writeFileHeader(f, fn):
 def _writeEnum(f, e):
     typename, names, codes = e.reftype()
     for name in names:
-        # watch out _nameValid() will add every name to a check-list
-        # which will force you to be inventive with state names ...
-        # e.g. the typical 'IDLE' can only be used once
-        # so let's pre-fix the enum name
-        # we could have modified _nameValid() to take a default boolean argument
-        _nameValid(''.join((typename, '.', name)))
+        # We put name in the typename namespace to check its validity
+        _nameValid(name, typename)
 
     enumtypedecl = "type %s is (\n\t" % typename
     enumtypedecl += ",\n\t".join(names)
@@ -425,22 +421,6 @@ def _writeTypeDefs(f):
     sortedList = list(_enumTypeSet)
     sortedList.sort(key=lambda x: x._name)
     for t in sortedList:
-#         f.write("%s\n" % t._toVHDL())
-#         typename, names, codes = t.reftype()
-#         for name in names:
-#             # watch out _nameValid() will add every name to a check-list
-#             # which will force you to be inventive with state names ...
-#             # e.g. the typical 'IDLE' can only be used once
-#             # so let's pre-fix the enum name
-#             # we could have modified _nameValid() to take a default boolean argument
-#             _nameValid(''.join((typename, '.', name)))
-#
-#         enumtypedecl = "type %s is (\n\t" % typename
-#         enumtypedecl += ",\n\t".join(names)
-#         enumtypedecl += "\n\t);\n"
-#         if codes is not None:
-#             enumtypedecl += 'attribute enum_encoding of %s: type is "%s";\n' % (typename, codes)
-#         f.write('{}'.format(enumtypedecl))
         _writeEnum(f, t)
     # a final blank separator line
     f.write("\n")
