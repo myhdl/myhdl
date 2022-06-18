@@ -20,7 +20,7 @@
 """ Block with the @block decorator function. """
 import inspect
 
-#from functools import wraps
+# from functools import wraps
 import functools
 
 import myhdl
@@ -34,8 +34,11 @@ from myhdl._Signal import _Signal, _isListOfSigs
 
 from weakref import WeakValueDictionary
 
+
 class _error:
     pass
+
+
 _error.ArgType = "%s: A block should return block or instantiator objects"
 _error.InstanceError = "%s: subblock %s should be encapsulated in a block decorator"
 
@@ -87,14 +90,15 @@ def _getCallInfo():
     return _CallInfo(name, modctxt, symdict)
 
 
-### I don't think this is the right place for uniqueifying the name.
-### This seems to me to be a conversion concern, not a block concern, and
-### there should not be the corresponding global state to be maintained here.
-### The name should be whatever it is, which is then uniqueified at
-### conversion time. Perhaps this happens already (FIXME - check and fix)
-### ~ H Gomersall 24/11/2017
+# ## I don't think this is the right place for uniqueifying the name.
+# ## This seems to me to be a conversion concern, not a block concern, and
+# ## there should not be the corresponding global state to be maintained here.
+# ## The name should be whatever it is, which is then uniqueified at
+# ## conversion time. Perhaps this happens already (FIXME - check and fix)
+# ## ~ H Gomersall 24/11/2017
 _inst_name_set = set()
 _name_set = set()
+
 
 def _uniqueify_name(proposed_name):
     '''Creates a unique block name from the proposed name by appending
@@ -139,6 +143,7 @@ class _bound_function_wrapper(object):
 
         return _Block(self.bound_func, self, name, self.srcfile,
                       self.srcline, *args, **kwargs)
+
 
 class block(object):
 
@@ -302,8 +307,13 @@ class _Block(object):
     def convert(self, hdl='Verilog', **kwargs):
         """Converts this BlockInstance to another HDL
 
-        Args:
+        args:
             hdl (Optional[str]): Target HDL. Defaults to Verilog
+                choices: 'VHDL', 'Verilog', 'SystemVerilog'
+        kwargs:
+            standard (Optional[sytr]): 
+                VHDL: ignored
+                Verilog: '2001', 'SystemVerilog'
             path (Optional[str]): Destination folder. Defaults to current
                 working dir.
             name (Optional[str]): Module and output file name. Defaults to
@@ -321,6 +331,8 @@ class _Block(object):
             converter = myhdl.conversion._toVHDL.toVHDL
         elif hdl.lower() == 'verilog':
             converter = myhdl.conversion._toVerilog.toVerilog
+        elif hdl.lower() == 'systemverilog':
+            converter = myhdl.conversion._toVerilog.toVerilog
         else:
             raise BlockInstanceError('unknown hdl %s' % hdl)
 
@@ -328,26 +340,29 @@ class _Block(object):
         if 'name' in kwargs:
             conv_attrs['name'] = kwargs.pop('name')
         conv_attrs['directory'] = kwargs.pop('path', '')
-        if hdl.lower() == 'verilog':
+        if hdl.lower() in ['verilog', 'systemverilog']:
             conv_attrs['no_testbench'] = not kwargs.pop('testbench', True)
             conv_attrs['timescale'] = kwargs.pop('timescale', '1ns/10ps')
             conv_attrs['trace'] = kwargs.pop('trace', False)
+        if hdl.lower() == 'systemverilog':
+            # override 'standard'
+            conv_attrs['standard'] = 'SystemVerilog'
         conv_attrs.update(kwargs)
         for k, v in conv_attrs.items():
             setattr(converter, k, v)
         return converter(self)
 
-    def config_sim(self, trace=False, **kwargs) :
+    def config_sim(self, trace=False, **kwargs):
         self._config_sim['trace'] = trace
         if trace:
-            for k, v in kwargs.items() :
+            for k, v in kwargs.items():
                 setattr(myhdl.traceSignals, k, v)
             myhdl.traceSignals(self)
 
     def run_sim(self, duration=None, quiet=0):
         if self.sim is None:
             sim = self
-            #if self._config_sim['trace']:
+            # if self._config_sim['trace']:
             #    sim = myhdl.traceSignals(self)
             self.sim = myhdl._Simulation.Simulation(sim)
         self.sim.run(duration, quiet)

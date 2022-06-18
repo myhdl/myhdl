@@ -53,6 +53,9 @@ from myhdl._getHierarchy import _getHierarchy
 
 _converting = 0
 _profileFunc = None
+_standard = '2001'
+_emitreg = 'reg'
+_emitwire = 'wire'
 
 
 def _checkArgs(arglist):
@@ -120,6 +123,19 @@ class _ToVerilogConvertor(object):
         self.initial_values = False
 
     def __call__(self, func, *args, **kwargs):
+        global _standard, _emitwire, _emitreg
+
+        if self.standard.lower() == 'systemverilog':
+            _emitreg = 'logic'
+            _emitwire = 'logic'
+            _standard = 'SystemVerilog'
+        else:
+            _emitreg = 'reg'
+            _emitwire = 'wire'
+            _standard = self.standard
+
+        print('Emitting {} -> {}, {}'.format(_standard, _emitwire, _emitreg))
+
         global _converting
         if _converting:
             return func(*args, **kwargs)  # skip
@@ -159,7 +175,10 @@ class _ToVerilogConvertor(object):
         else:
             directory = self.directory
 
-        vfilename = name + ".v"
+        if self.standard.lower() == 'systemverilog':
+            vfilename = name + ".sv"
+        else:
+            vfilename = name + ".v"
         vpath = os.path.join(directory, vfilename)
         vfile = open(vpath, 'w')
 
@@ -218,6 +237,8 @@ class _ToVerilogConvertor(object):
 
     def _cleanup(self, siglist, memlist):
         # clean up signals
+        global _standard, _emitwire, _emitreg
+
         for sig in siglist:
             sig._clear()
         for mem in memlist:
@@ -234,6 +255,10 @@ class _ToVerilogConvertor(object):
         self.no_myhdl_header = False
         self.no_testbench = False
         self.trace = False
+        # end others
+        _standard = self.standard
+        _emitreg = 'reg'
+        _emitwire = 'wire'
 
     def _convert_filter(self, h, intf, siglist, memlist, genlist):
         # intended to be a entry point for other uses:
@@ -265,46 +290,89 @@ def _writeFileHeader(f, fn, ts):
 
 
 def _writeModuleHeader(f, intf, doc):
-    print("module %s (" % intf.name, file=f)
-    b = StringIO()
-    for portname in intf.argnames:
-        print("    %s," % portname, file=b)
-    print(b.getvalue()[:-2], file=f)
-    b.close()
-    print(");", file=f)
-    print(doc, file=f)
-    print(file=f)
+    # first verify a few things
     for portname in intf.argnames:
         s = intf.argdict[portname]
         if s._name is None:
             raise ToVerilogError(_error.ShadowingSignal, portname)
         if s._inList:
             raise ToVerilogError(_error.PortInList, portname)
-        # make sure signal name is equal to its port name
-        s._name = portname
-        r = _getRangeString(s)
-        p = _getSignString(s)
-        if s._driven:
-            if s._read:
-                if not isinstance(s, _TristateSignal):
-                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+
+    # can now emit module header
+    if _standard == 'SystemVerilog':
+        moduledecl = 'module {} ('.format(intf.name)
+        moduledecl += '{}'.format(doc)
+
+        for portname in intf.argnames:
+            # clear definition
+            portdef = []
+            # get the 'Signal'
+            s = intf.argdict[portname]
+            # make sure signal name is equal to its port name
+            s._name = portname
+            r = _getRangeString(s)
+            p = _getSignString(s)
+            if s._driven:
+                if isinstance(s, _TristateSignal):
+                    portdef.append("    inout ")
+                else:
+                    portdef.append("    output ")
+                if s._driven == 'reg':
+                    portdef.append("%s  %s%s%s," % (_emitreg, p, r, portname))
+                else:
+                    portdef.append("wire %s%s%s," % (p, r, portname))
+            else:
+                if not s._read:
+                    warnings.warn("%s: %s" % (_error.UnusedPort, portname),
                                   category=ToVerilogWarning
                                   )
-            if isinstance(s, _TristateSignal):
-                print("inout %s%s%s;" % (p, r, portname), file=f)
+                portdef.append("    input  wire %s%s%s," % (p, r, portname))
+
+            moduledecl += '\n' + ''.join(portdef)
+        # exclude the last ',' and newline
+        print(moduledecl[:-1], file=f)
+        # remember that print() gratuitously adds a newline ...
+        print('    );\n\n', file=f)
+
+    else:
+        # opening
+        print("module %s (" % intf.name, file=f)
+        b = StringIO()
+        for portname in intf.argnames:
+            print("    %s," % portname, file=b)
+        print(b.getvalue()[:-2], file=f)
+        b.close()
+        print(");", file=f)
+        print(doc, file=f)
+        print(file=f)
+        for portname in intf.argnames:
+            s = intf.argdict[portname]
+            # make sure signal name is equal to its port name
+            s._name = portname
+            r = _getRangeString(s)
+            p = _getSignString(s)
+            if s._driven:
+                if s._read:
+                    if not isinstance(s, _TristateSignal):
+                        warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                                      category=ToVerilogWarning
+                                      )
+                if isinstance(s, _TristateSignal):
+                    print("inout %s%s%s;" % (p, r, portname), file=f)
+                else:
+                    print("output %s%s%s;" % (p, r, portname), file=f)
+                if s._driven == 'reg':
+                    print("%s %s%s%s;" % (_emitreg, p, r, portname), file=f)
+                else:
+                    print("%s %s%s%s;" % (_emitwire, p, r, portname), file=f)
             else:
-                print("output %s%s%s;" % (p, r, portname), file=f)
-            if s._driven == 'reg':
-                print("reg %s%s%s;" % (p, r, portname), file=f)
-            else:
-                print("wire %s%s%s;" % (p, r, portname), file=f)
-        else:
-            if not s._read:
-                warnings.warn("%s: %s" % (_error.UnusedPort, portname),
-                              category=ToVerilogWarning
-                              )
-            print("input %s%s%s;" % (p, r, portname), file=f)
-    print(file=f)
+                if not s._read:
+                    warnings.warn("%s: %s" % (_error.UnusedPort, portname),
+                                  category=ToVerilogWarning
+                                  )
+                print("input %s%s%s;" % (p, r, portname), file=f)
+        # extra blank line
+        print(file=f)
 
 
 def _writeSigDecls(f, intf, siglist, memlist):
@@ -321,20 +389,20 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 warnings.warn("%s: %s" % (_error.UnreadSignal, s._name),
                               category=ToVerilogWarning
                               )
-            k = 'wire'
+            k = _emitwire
             if s._driven == 'reg':
-                k = 'reg'
+                k = _emitreg
             # the following line implements initial value assignments
             # don't initial value "wire", inital assignment to a wire
             # equates to a continuous assignment [reference]
             if not toVerilog.initial_values or k == 'wire':
-                print("%s %s%s%s;" % (k, p, r, s._name), file=f)
+                print("    %s %s%s%s;" % (k, p, r, s._name), file=f)
             else:
                 if isinstance(s._init, myhdl._enum.EnumItemType):
-                    print("%s %s%s%s = %s;" %
+                    print("    %s %s%s%s = %s;" %
                           (k, p, r, s._name, s._init._toVerilog()), file=f)
                 else:
-                    print("%s %s%s%s = %s;" %
+                    print("    %s %s%s%s = %s;" %
                           (k, p, r, s._name, _intRepr(s._init)), file=f)
         elif s._read:
             # the original exception
@@ -344,13 +412,13 @@ def _writeSigDecls(f, intf, siglist, memlist):
                           category=ToVerilogWarning
                           )
             constwires.append(s)
-            print("wire %s%s;" % (r, s._name), file=f)
+            print("    wire %s%s;" % (r, s._name), file=f)
     # print(file=f)
     for m in memlist:
         if not m._used:
             continue
         # infer attributes for the case of named signals in a list
-        for i, s in enumerate(m.mem):
+        for __, s in enumerate(m.mem):
             if not m._driven and s._driven:
                 m._driven = s._driven
             if not m._read and s._read:
@@ -359,12 +427,13 @@ def _writeSigDecls(f, intf, siglist, memlist):
             continue
         r = _getRangeString(m.elObj)
         p = _getSignString(m.elObj)
-        k = 'wire'
+        k = _emitwire
         initial_assignments = None
         if m._driven:
-            k = m._driven
+            if m._driven != 'wire':
+                k = _emitreg
 
-            if toVerilog.initial_values and not k == 'wire':
+            if toVerilog.initial_values and not m._driven == 'wire':
                 if all([each._init == m.mem[0]._init for each in m.mem]):
 
                     initialize_block_name = ('INITIALIZE_' + m.name).upper()
@@ -390,7 +459,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
                     initial_assignments = (
                         'initial begin\n' + val_assignments + '\nend')
 
-        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth),
+        print("    %s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth),
               file=f)
 
         if initial_assignments is not None:
@@ -404,7 +473,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
             raise ToVerilogError("Unexpected type for constant signal", s._name)
         c_len = s._nrbits
         c_str = "%s" % c
-        print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
+        print("    assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
     # print(file=f)
     # shadow signal assignments
     for s in siglist:
@@ -427,10 +496,10 @@ def _writeTestBench(f, intf, trace=False):
         s = intf.argdict[portname]
         r = _getRangeString(s)
         if s._driven:
-            print("wire %s%s;" % (r, portname), file=f)
+            print("%s %s%s;" % (_emitwire, r, portname), file=f)
             print("        %s," % portname, file=to)
         else:
-            print("reg %s%s;" % (r, portname), file=f)
+            print("%s %s%s;" % (_emitreg, r, portname), file=f)
             print("        %s," % portname, file=fr)
         print("    %s," % portname, file=pm)
     print(file=f)
@@ -564,6 +633,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.okSigAss = True
         self.labelStack = []
         self.context = _context.UNKNOWN
+        self._always = 'always '
+        self._needsensitivitylist = True
 
     def raiseError(self, node, kind, msg=""):
         lineno = self.getLineNo(node)
@@ -581,8 +652,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def writeDoc(self, node):
         assert hasattr(node, 'doc')
         doc = _makeDoc(node.doc, self.ind)
-        self.write(doc)
-        self.writeline()
+        if doc != '':
+            self.write(doc)
+            self.writeline()
 
     def indent(self):
         self.ind += ' ' * 4
@@ -604,7 +676,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.writeline()
             self.write("integer %s" % name)
         elif isinstance(obj, _Ram):
-            self.write("reg [%s-1:0] %s [0:%s-1]" % (obj.elObj._nrbits, name, obj.depth))
+            self.write("%s [%s-1:0] %s [0:%s-1]" % (_emitreg, obj.elObj._nrbits, name, obj.depth))
         elif hasattr(obj, '_nrbits'):
             s = ""
             if isinstance(obj, (intbv, _Signal)):
@@ -628,13 +700,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def writeDeclarations(self):
         for name, obj in self.tree.vardict.items():
             self.writeline()
-            self.writeDeclaration(obj, name, "reg")
+            self.writeDeclaration(obj, name, "{}".format(_emitreg))
 
     def writeAlwaysHeader(self):
         assert self.tree.senslist
         senslist = self.tree.senslist
-        self.write("always ")
-        self.writeSensitivityList(senslist)
+        self.write('    {}'.format(self._always))
+        if self._needsensitivitylist:
+            self.writeSensitivityList(senslist)
         self.write(" begin: %s" % self.tree.name)
         self.indent()
 
@@ -975,6 +1048,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 start, stop, step = args[0], args[1], None
             else:
                 start, stop, step = args
+
         else:  # downrange
             cmp = '>='
             op = '-'
@@ -985,19 +1059,24 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 start, stop, step = args[0], args[1], None
             else:
                 start, stop, step = args
+
         if node.breakLabel.isActive:
             self.write("begin: %s" % node.breakLabel)
+            self.indent()
             self.writeline()
+
         self.write("for (%s=" % var)
         if start is None:
             self.write("0")
         else:
             self.visit(start)
+
         self.write("%s; %s%s" % (oneoff, var, cmp))
         if stop is None:
             self.write("0")
         else:
             self.visit(stop)
+
         self.write("; %s=%s%s" % (var, var, op))
         if step is None:
             self.write("1")
@@ -1005,6 +1084,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             v = self.getVal(step)
             self.require(node, v >= 0, "step should be >= 0")
             self.visit(step)
+
         self.write(") begin")
         if node.loopLabel.isActive:
             self.write(": %s" % node.loopLabel)
@@ -1014,8 +1094,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.writeline()
         self.write("end")
         if node.breakLabel.isActive:
+            self.dedent()
             self.writeline()
             self.write("end")
+
         self.labelStack.pop()
         self.labelStack.pop()
 
@@ -1297,18 +1379,19 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if node.breakLabel.isActive:
             self.write("begin: %s" % node.breakLabel)
             self.writeline()
+            self.indent()
         self.write("while (")
         self.visit(node.test)
         self.write(") begin")
         if node.loopLabel.isActive:
             self.write(": %s" % node.loopLabel)
-        self.indent()
         self.visit_stmt(node.body)
         self.dedent()
         self.writeline()
         self.write("end")
         if node.breakLabel.isActive:
             self.writeline()
+            self.dedent()
             self.write("end")
         self.labelStack.pop()
         self.labelStack.pop()
@@ -1350,7 +1433,7 @@ class _ConvertAlwaysVisitor(_ConvertVisitor):
         self.dedent()
         self.writeline()
         self.write("end")
-        self.writeline(2)
+        self.writeline()
 
 
 class _ConvertInitialVisitor(_ConvertVisitor):
@@ -1368,7 +1451,7 @@ class _ConvertInitialVisitor(_ConvertVisitor):
         self.dedent()
         self.writeline()
         self.write("end")
-        self.writeline(2)
+        self.writeline()
 
 
 class _ConvertAlwaysCombVisitor(_ConvertVisitor):
@@ -1378,16 +1461,22 @@ class _ConvertAlwaysCombVisitor(_ConvertVisitor):
         if toVerilog.prefer_blocking_assignments:
             self.okSigAss = False
         self.funcBuf = funcBuf
+        if _standard == 'SystemVerilog':
+            self._always = 'always_comb'
+            self._needsensitivitylist = False
 
     def visit_FunctionDef(self, node):
+        self.writeline()
         self.writeDoc(node)
         self.writeAlwaysHeader()
+        self.indent()
         self.writeDeclarations()
         self.visit_stmt(node.body)
         self.dedent()
+        self.dedent()
         self.writeline()
-        self.write("end")
-        self.writeline(2)
+        self.write("    end")
+        self.writeline()
 
 
 class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
@@ -1398,7 +1487,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
-            self.write("assign ")
+            self.write("    assign ")
             self.visit(node.value)
         else:
             self.getAttr(node)
@@ -1406,7 +1495,7 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
     def visit_FunctionDef(self, node):
         self.writeDoc(node)
         self.visit_stmt(node.body)
-        self.writeline(2)
+        self.writeline()
 
 
 class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
@@ -1422,8 +1511,8 @@ class _ConvertAlwaysDecoVisitor(_ConvertVisitor):
         self.visit_stmt(node.body)
         self.dedent()
         self.writeline()
-        self.write("end")
-        self.writeline(2)
+        self.write("    end")
+        self.writeline()
 
 
 def _convertInitVal(reg, init):
@@ -1448,10 +1537,14 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
     def __init__(self, tree, blockBuf, funcBuf):
         _ConvertVisitor.__init__(self, tree, blockBuf)
         self.funcBuf = funcBuf
+        if _standard == 'SystemVerilog':
+            self._always = 'always_ff '
 
     def visit_FunctionDef(self, node):
+        self.writeline()
         self.writeDoc(node)
         self.writeAlwaysHeader()
+        self.indent()
         self.writeDeclarations()
         reset = self.tree.reset
         sigregs = self.tree.sigregs
@@ -1481,7 +1574,8 @@ class _ConvertAlwaysSeqVisitor(_ConvertVisitor):
             self.dedent()
         self.writeline()
         self.write("end")
-        self.writeline(2)
+        self.dedent()
+        self.writeline(1)
 
 
 class _ConvertFunctionVisitor(_ConvertVisitor):
@@ -1517,7 +1611,7 @@ class _ConvertFunctionVisitor(_ConvertVisitor):
         self.write("end")
         self.writeline()
         self.write("endfunction")
-        self.writeline(2)
+        self.writeline()
 
     def visit_Return(self, node):
         self.write("%s = " % self.tree.name)
@@ -1558,7 +1652,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
         self.write("end")
         self.writeline()
         self.write("endtask")
-        self.writeline(2)
+        self.writeline()
 
 
 def _maybeNegative(obj):
