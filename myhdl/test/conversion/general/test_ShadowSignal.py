@@ -103,6 +103,24 @@ def bench_ConcatSignalWithConsts():
 def test_ConcatSignalWithConsts():
     assert conversion.verify(bench_ConcatSignalWithConsts()) == 0
 
+@block
+def bench_ConcatSignalUndriven():
+
+    n_sigs = 32
+
+    sig_list = [Signal(False) for n in range(n_sigs)]
+    concat_sig = ConcatSignal(*reversed(sig_list))
+
+    @instance
+    def check():
+
+        yield delay(10)
+        print(concat_sig)
+
+    return check
+
+def test_ConcatSignalUndriven():
+    assert conversion.verify(bench_ConcatSignalUndriven()) == 0
 
 @block
 def bench_TristateSignal():
