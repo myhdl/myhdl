@@ -264,11 +264,46 @@ def _writeFileHeader(f, fn, ts):
     print(file=f)
 
 
+def _writePort(f, s, portname):
+    if s._name is None:
+        raise ToVerilogError(_error.ShadowingSignal, portname)
+    # make sure signal name is equal to its port name
+    s._name = portname
+    r = _getRangeString(s)
+    p = _getSignString(s)
+    if s._driven:
+        if s._read:
+            if not isinstance(s, _TristateSignal):
+                warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
+                              category=ToVerilogWarning
+                              )
+        if isinstance(s, _TristateSignal):
+            print("inout %s%s%s;" % (p, r, portname), file=f)
+        else:
+            print("output %s%s%s;" % (p, r, portname), file=f)
+        if s._driven == 'reg':
+            print("reg %s%s%s;" % (p, r, portname), file=f)
+        else:
+            print("wire %s%s%s;" % (p, r, portname), file=f)
+    else:
+        if not s._read:
+            warnings.warn("%s: %s" % (_error.UnusedPort, portname),
+                          category=ToVerilogWarning
+                          )
+        print("input %s%s%s;" % (p, r, portname), file=f)
+
+
 def _writeModuleHeader(f, intf, doc):
     print("module %s (" % intf.name, file=f)
     b = StringIO()
     for portname in intf.argnames:
-        print("    %s," % portname, file=b)
+        s = intf.argdict[portname]
+        if _isMem(s):
+            for i, item in enumerate(s):
+                print("    %s_%0d," % (portname, i), file=b)
+        else:
+            print("    %s," % portname, file=b)
+
     print(b.getvalue()[:-2], file=f)
     b.close()
     print(");", file=f)
@@ -276,34 +311,11 @@ def _writeModuleHeader(f, intf, doc):
     print(file=f)
     for portname in intf.argnames:
         s = intf.argdict[portname]
-        if s._name is None:
-            raise ToVerilogError(_error.ShadowingSignal, portname)
-        if s._inList:
-            raise ToVerilogError(_error.PortInList, portname)
-        # make sure signal name is equal to its port name
-        s._name = portname
-        r = _getRangeString(s)
-        p = _getSignString(s)
-        if s._driven:
-            if s._read:
-                if not isinstance(s, _TristateSignal):
-                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                                  category=ToVerilogWarning
-                                  )
-            if isinstance(s, _TristateSignal):
-                print("inout %s%s%s;" % (p, r, portname), file=f)
-            else:
-                print("output %s%s%s;" % (p, r, portname), file=f)
-            if s._driven == 'reg':
-                print("reg %s%s%s;" % (p, r, portname), file=f)
-            else:
-                print("wire %s%s%s;" % (p, r, portname), file=f)
+        if _isMem(s):
+            for i, item in enumerate(s):
+                _writePort(f, item, portname + '_' + str(i))
         else:
-            if not s._read:
-                warnings.warn("%s: %s" % (_error.UnusedPort, portname),
-                              category=ToVerilogWarning
-                              )
-            print("input %s%s%s;" % (p, r, portname), file=f)
+            _writePort(f, s, portname)
     print(file=f)
 
 
@@ -397,6 +409,21 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print(initial_assignments, file=f)
 
     print(file=f)
+
+    # port list assignments
+    for portname in intf.argnames:
+        s = intf.argdict[portname]
+        if _isMem(s):
+            for i, item in enumerate(s):
+                if item._driven:
+                    if isinstance(item, _TristateSignal):
+                        print("assign %(name)s[%(index)0d] = %(name)s_%(index)0d;" % {'name': portname, 'index': i}, file=f)
+                    else:
+                        print("assign %(name)s_%(index)0d = %(name)s[%(index)0d];" % {'name': portname, 'index': i}, file=f)
+                else:
+                    print("assign %(name)s[%(index)0d] = %(name)s_%(index)0d;" % {'name': portname, 'index': i}, file=f)
+
+    # constansts assignments
     for s in constwires:
         if s._type in (bool, intbv):
             c = int(s.val)
@@ -405,7 +432,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         c_len = s._nrbits
         c_str = "%s" % c
         print("assign %s = %s'd%s;" % (s._name, c_len, c_str), file=f)
-    # print(file=f)
+
     # shadow signal assignments
     for s in siglist:
         if hasattr(s, 'toVerilog') and s._driven:
@@ -417,6 +444,17 @@ def _writeModuleFooter(f):
     print("endmodule", file=f)
 
 
+def _writeTestbenchSignal(f, to, fr, pm, s, portname):
+    r = _getRangeString(s)
+    if s._driven:
+        print("wire %s%s;" % (r, portname), file=f)
+        print("        %s," % portname, file=to)
+    else:
+        print("reg %s%s;" % (r, portname), file=f)
+        print("        %s," % portname, file=fr)
+    print("    %s," % portname, file=pm)
+
+
 def _writeTestBench(f, intf, trace=False):
     print("module tb_%s;" % intf.name, file=f)
     print(file=f)
@@ -425,14 +463,11 @@ def _writeTestBench(f, intf, trace=False):
     pm = StringIO()
     for portname in intf.argnames:
         s = intf.argdict[portname]
-        r = _getRangeString(s)
-        if s._driven:
-            print("wire %s%s;" % (r, portname), file=f)
-            print("        %s," % portname, file=to)
+        if _isMem(s):
+            for i, item in enumerate(s):
+                _writeTestbenchSignal(f, to, fr, pm, item, portname + '_' + str(i))
         else:
-            print("reg %s%s;" % (r, portname), file=f)
-            print("        %s," % portname, file=fr)
-        print("    %s," % portname, file=pm)
+            _writeTestbenchSignal(f, to, fr, pm, s, portname)
     print(file=f)
     print("initial begin", file=f)
     if trace:

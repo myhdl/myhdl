@@ -33,6 +33,7 @@ work_vcom/
 # Test artifacts
 myhdl/**/*.v
 myhdl/**/*.vhd
+myhdl/**/*.hex
 
 # Pycharm ide junk
 .idea/

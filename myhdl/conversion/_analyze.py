@@ -1319,16 +1319,12 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
         for i, arg in enumerate(self.args):
             n = self.argnames[i]
             self.fullargdict[n] = arg
-            if isinstance(arg, _Signal):
+            if isinstance(arg, _Signal) or _isMem(arg):
                 self.argdict[n] = arg
-            if _isMem(arg):
-                self.raiseError(node, _error.ListAsPort, n)
         for n in self.argnames[i + 1:]:
             if n in self.kwargs:
                 arg = self.kwargs[n]
                 self.fullargdict[n] = arg
-                if isinstance(arg, _Signal):
+                if isinstance(arg, _Signal) or _isMem(arg):
                     self.argdict[n] = arg
-                if _isMem(arg):
-                    self.raiseError(node, _error.ListAsPort, n)
         self.argnames = [n for n in self.argnames if n in self.argdict]
