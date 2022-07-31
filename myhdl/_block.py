@@ -311,7 +311,7 @@ class _Block(object):
             hdl (Optional[str]): Target HDL. Defaults to Verilog
                 choices: 'VHDL', 'Verilog', 'SystemVerilog'
         kwargs:
-            standard (Optional[sytr]): 
+            standard (Optional[str]): 
                 VHDL: ignored
                 Verilog: '2001', 'SystemVerilog'
             path (Optional[str]): Destination folder. Defaults to current
@@ -353,6 +353,20 @@ class _Block(object):
         return converter(self)
 
     def config_sim(self, trace=False, **kwargs):
+        """
+            args:
+                trace (Optional [bool]): Turn .vcd generation on. Defaults to False
+            kwargs:
+                name (Optional[str]): Sets the name of the top level. Defaults to to the
+                                        generated name of the top level.
+                directory (Optional[str]): Defaults to current working dir.
+                filename (Optional[str]): Defauts to 'name'
+                timescale (Optional[str]): Defaults to '1ns'
+                tracelists (Optional[bool]): Dumps list of Signals to the .vcd. Defaults to True
+                tracebackup (Optional[bool]): Creates a backup of the last .vcd outpu file, if any
+                                                Defaults to True
+                Note: the 'kwargs' are only processed if 'trace' is True
+        """
         self._config_sim['trace'] = trace
         if trace:
             for k, v in kwargs.items():
