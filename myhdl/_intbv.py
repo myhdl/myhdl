@@ -24,12 +24,12 @@ from myhdl._bin import bin
 
 
 class intbv(object):
-    #__slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
+    # __slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
 
     def __init__(self, val=0, min=None, max=None, _nrbits=0):
         if _nrbits:
             self._min = 0
-            self._max = 2**_nrbits
+            self._max = 2 ** _nrbits
         else:
             self._min = min
             self._max = max
@@ -476,14 +476,14 @@ class intbv(object):
             # I would prefer sign extension with hex format, but to
             # align with Verilog $display I don't do that
             if v < 0:
-                v = 2**nrbits + v
+                v = 2 ** nrbits + v
             w = (nrbits - 1) // 4 + 1
             return "{:0{w}x}".format(v, w=w)
         else:
             return "{:x}".format(v)
 
     def __repr__(self):
-        return "intbv(" + repr(self._val) + ")"
+        return "intbv(" + repr(self._val) + ")[{}:]".format(self._nrbits)
 
     def signed(self):
         ''' Return new intbv with the values interpreted as signed
@@ -541,7 +541,7 @@ class intbv(object):
             retVal = self._val
 
         if self._nrbits:
-            M = 2**(self._nrbits - 1)
+            M = 2 ** (self._nrbits - 1)
             return intbv(retVal, min=-M, max=M)
         else:
             return intbv(retVal)
@@ -561,4 +561,4 @@ class intbv(object):
         if self._nrbits:
             return intbv(retVal)[self._nrbits:]
         else:
-            return intbv(retVal)        
+            return intbv(retVal)
