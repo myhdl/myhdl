@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false # So that one fail doesn't stop remaining tests
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", 'pypy3.9']
+        python-version: ["3.7", "3.8", "3.9", "3.10", 'pypy-3.9']
         os: [ubuntu-latest]
         target: [core, iverilog, ghdl]
 
