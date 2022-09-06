@@ -433,31 +433,32 @@ def _writeSigDecls(f, intf, siglist, memlist):
             if m._driven != 'wire':
                 k = _emitreg
 
-            if toVerilog.initial_values and not m._driven == 'wire':
-                if all([each._init == m.mem[0]._init for each in m.mem]):
+        if toVerilog.initial_values and ((not m._driven == 'wire') or _standard == 'SystemVerilog'):
+            print('Initial Values!')
+            if all([each._init == m.mem[0]._init for each in m.mem]):
 
-                    initialize_block_name = ('INITIALIZE_' + m.name).upper()
-                    _initial_assignments = (
-                        '''
-                        initial begin: %s
-                            integer i;
-                            for(i=0; i<%d; i=i+1) begin
-                                %s[i] = %s;
-                            end
+                initialize_block_name = ('INITIALIZE_' + m.name).upper()
+                _initial_assignments = (
+                    '''
+                    initial begin: %s
+                        integer i;
+                        for(i=0; i<%d; i=i+1) begin
+                            %s[i] = %s;
                         end
-                        ''' % (initialize_block_name, len(m.mem), m.name,
-                               _intRepr(m.mem[0]._init)))
+                    end
+                    ''' % (initialize_block_name, len(m.mem), m.name,
+                           _intRepr(m.mem[0]._init)))
 
-                    initial_assignments = (
-                        textwrap.dedent(_initial_assignments))
+                initial_assignments = (
+                    textwrap.dedent(_initial_assignments))
 
-                else:
-                    val_assignments = '\n'.join(
-                        ['    %s[%d] <= %s;' %
-                         (m.name, n, _intRepr(each._init))
-                         for n, each in enumerate(m.mem)])
-                    initial_assignments = (
-                        'initial begin\n' + val_assignments + '\nend')
+            else:
+                val_assignments = '\n'.join(
+                    ['    %s[%d] <= %s;' %
+                     (m.name, n, _intRepr(each._init))
+                     for n, each in enumerate(m.mem)])
+                initial_assignments = (
+                    'initial begin\n' + val_assignments + '\nend')
 
         print("    %s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth),
               file=f)
