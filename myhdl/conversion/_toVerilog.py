@@ -1651,6 +1651,9 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         def visit_Str(self, node):
             node.signed = False
 
+        def visit_NameConstant(self, node):
+            node.signed = False
+
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
             self.setName(node)
