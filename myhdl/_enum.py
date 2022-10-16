@@ -106,6 +106,9 @@ def enum(*names, **kwargs):
                     val = val.replace('1', '?')
             return "%d'b%s" % (self._nrbits, val)
 
+        def _toSystemVerilog(self):
+            return self._name
+
         def _toVHDL(self):
             return self._name
 

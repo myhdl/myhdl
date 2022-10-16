@@ -396,10 +396,19 @@ def _writeSigDecls(f, intf, siglist, memlist):
             # don't initial value "wire", inital assignment to a wire
             # equates to a continuous assignment [reference]
             if not toVerilog.initial_values or k == 'wire':
-                print("    %s %s%s%s;" % (k, p, r, s._name), file=f)
+                if _standard == 'SystemVerilog':
+                    if isinstance(s._init, myhdl._enum.EnumItemType):
+                        print("    enum {{ {} }} {};".format(','.join(s._val._type._names) , s._name), file=f)
+                    else:
+                        print("    %s %s%s%s;" % (k, p, r, s._name), file=f)
+                else:
+                    print("    %s %s%s%s;" % (k, p, r, s._name), file=f)
             else:
                 if isinstance(s._init, myhdl._enum.EnumItemType):
-                    print("    %s %s%s%s = %s;" %
+                    if _standard == 'SystemVerilog':
+                        print("    enum {{ {} }} {}=  {};".format(','.join(s._val._type._names) , s._name, s._init._toSystemVerilog()), file=f)
+                    else:
+                        print("    %s %s%s%s = %s;" %
                           (k, p, r, s._name, s._init._toVerilog()), file=f)
                 else:
                     print("    %s %s%s%s = %s;" %
@@ -691,7 +700,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # disable for cver
         if False:
             if isinstance(obj, EnumItemType):
-                inival = obj._toVerilog()
+                if _standard == 'SystemVerilog':
+                    pass
+                else:
+                    inival = obj._toVerilog()
             else:
                 inival = int(obj)
             self.write(" = %s;" % inival)
@@ -808,7 +820,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         if isinstance(obj, EnumType):
             assert hasattr(obj, node.attr)
             e = getattr(obj, node.attr)
-            self.write(e._toVerilog())
+            if _standard == 'SystemVerilog':
+                self.write(e._toSystemVerilog())
+            else:
+                self.write(e._toVerilog())
 
     def visit_Assert(self, node):
         self.write("if (")
@@ -1127,7 +1142,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             item = test.case[1]
             if isinstance(item, EnumItemType):
-                self.write(item._toVerilog())
+                if _standard == 'SystemVerilog':
+                    self.write(item._toSystemVerilog())
+                else:
+                    self.write(item._toVerilog())
             else:
                 self.write(self.IntRepr(item, radix='hex'))
             self.write(": begin")
@@ -1221,7 +1239,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 assert m.name
                 s = m.name
             elif isinstance(obj, EnumItemType):
-                s = obj._toVerilog()
+                if  _standard == 'SystemVerilog':
+                    s = obj._toSystemVerilog()
+                else:
+                    s = obj._toVerilog()
             elif (type(obj) in (type,)) and issubclass(obj, Exception):
                 s = n
             else:
@@ -1266,19 +1287,34 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.writeline()
                     self.write('    $write("False");')
                 elif isinstance(obj, EnumItemType):
-                    tipe = obj._type
-                    self.write('case (')
-                    self.visit(a)
-                    self.write(')')
-                    self.indent()
-                    for n in tipe._names:
+                    if _standard == 'SystemVerilog':
+                        tipe = obj._type
+                        self.write('case (')
+                        self.visit(a)
+                        self.write(')')
+                        self.indent()
+                        for n in tipe._names:
+                            self.writeline()
+                            item = getattr(tipe, n)
+                            self.write("'b%s: " % item._val)
+                            self.write('$write("%s");' % n)
+                        self.dedent()
                         self.writeline()
-                        item = getattr(tipe, n)
-                        self.write("'b%s: " % item._val)
-                        self.write('$write("%s");' % n)
-                    self.dedent()
-                    self.writeline()
-                    self.write("endcase")
+                        self.write("endcase")
+                    else:
+                        tipe = obj._type
+                        self.write('case (')
+                        self.visit(a)
+                        self.write(')')
+                        self.indent()
+                        for n in tipe._names:
+                            self.writeline()
+                            item = getattr(tipe, n)
+                            self.write("'b%s: " % item._val)
+                            self.write('$write("%s");' % n)
+                        self.dedent()
+                        self.writeline()
+                        self.write("endcase")
                 else:
                     self.write('$write("%s", ' % fs)
                     self.visit(a)
@@ -1529,7 +1565,10 @@ def _convertInitVal(reg, init):
         v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)
-        v = init._toVerilog()
+        if _standard == 'SystemVerilog':
+            v = init._toSystemVerilog()
+        else:
+            v = init._toVerilog()
     return v
 
 
