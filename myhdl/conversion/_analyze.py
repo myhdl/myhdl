@@ -41,7 +41,7 @@ from myhdl.conversion._misc import (_error, _access, _kind,
                                     _ConversionMixin, _Label, _genUniqueSuffix,
                                     _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
-from myhdl._Signal import _Signal, _WaiterList
+from myhdl._Signal import _Signal, _WaiterList, _isListOfSigs
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
 from myhdl._util import _flatten
 from myhdl._util import _isTupleOfInts
@@ -1253,46 +1253,6 @@ def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
 
-# a local function to drill down to the last interface
-def expandinterface(v, name, obj):
-    for attr, attrobj in vars(obj).items():
-        if isinstance(attrobj, _Signal):
-# override any 'mangled' name
-#             signame = attrobj._name
-#             if not signame:
-            signame = name + '_' + attr
-            attrobj._name = signame
-            v.argdict[signame] = attrobj
-            v.argnames.append(signame)
-        elif isinstance(attrobj, myhdl.EnumType):
-            pass
-        elif hasattr(attrobj, '__dict__'):
-            # can assume is yet another interface ...
-            expandinterface(v, name + '_' + attr, attrobj)
-
-
-def _analyzeTopFunc(func, *args, **kwargs):
-    tree = _makeAST(func)
-    v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
-    v.visit(tree)
-
-    objs = []
-    for name, obj in v.fullargdict.items():
-        if not isinstance(obj, _Signal):
-            objs.append((name, obj))
-
-    # create ports for any signal in the top instance if it was buried in an
-    # object passed as in argument
-
-    # now expand the interface objects
-    for name, obj in objs:
-        if hasattr(obj, '__dict__'):
-            # must be an interface object (probably ...?)
-            expandinterface(v, name, obj)
-
-    return v
-
-
 class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
 
     def __init__(self, func, tree, *args, **kwargs):
@@ -1306,7 +1266,6 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
         self.argnames = []
 
     def visit_FunctionDef(self, node):
-
         self.name = node.name
         self.argnames = _get_argnames(node)
         if isboundmethod(self.func):
@@ -1321,8 +1280,8 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
             self.fullargdict[n] = arg
             if isinstance(arg, _Signal):
                 self.argdict[n] = arg
-            if _isMem(arg):
-                self.raiseError(node, _error.ListAsPort, n)
+            # if _isMem(arg):
+            #     self.raiseError(node, _error.ListAsPort, n)
         for n in self.argnames[i + 1:]:
             if n in self.kwargs:
                 arg = self.kwargs[n]
@@ -1332,3 +1291,55 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
                 if _isMem(arg):
                     self.raiseError(node, _error.ListAsPort, n)
         self.argnames = [n for n in self.argnames if n in self.argdict]
+
+
+def _analyzeTopFunc(func, *args, **kwargs):
+
+    tree = _makeAST(func)
+    v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
+    v.visit(tree)
+
+    for name, obj in v.fullargdict.items():
+        if not isinstance(obj, _Signal):
+            if hasattr(obj, '__dict__'):
+                # must be an interface object (probably ...?)
+                expandinterface(v, name, obj)
+
+            elif _isListOfSigs(obj):
+                expandlos(v, name, obj)
+
+    return v
+
+
+# local functions to drill down to the last interface and list of signals
+def expandinterface(v, name, obj, level=0):
+    for attr, attrobj in vars(obj).items():
+        if isinstance(attrobj, _Signal):
+            signame = name + '_' + attr
+            attrobj._name = signame
+            v.argdict[signame] = attrobj
+            v.argnames.append(signame)
+
+        elif isinstance(attrobj, myhdl.EnumType):
+            pass
+
+        elif _isListOfSigs(attrobj):
+            expandlos(v, name + '_' + attr, attrobj)
+
+        elif hasattr(attrobj, '__dict__'):
+            # a nested interface
+            # detect infinite recursion
+            if level > 9:
+                print(' 10 levels of expansion? {}, {}, {}'.format(name, attr, repr(attrobj)))
+            else:
+                expandinterface(v, name + '_' + attr, attrobj, level + 1)
+
+
+def expandlos(v, name, los):
+    for i in range(len(los)):
+        signame = name + '_' + '{}'.format(i)
+        los[i]._name = signame
+        los[i]._used = True
+        v.argdict[signame] = los[i]
+        v.argnames.append(signame)
+

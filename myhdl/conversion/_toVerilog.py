@@ -1134,7 +1134,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #        if node.isFullCase:
 #            self.write(" full_case")
 #        self.writeline()
-        self.write("case (")
+        if _standard == 'SystemVerilog':
+            # wonder whether this will pass in all 'cases' (pun not intended)
+            self.write("unique case (")
+        else:
+            self.write("case (")
         self.visit(var)
         self.write(")")
         self.indent()
