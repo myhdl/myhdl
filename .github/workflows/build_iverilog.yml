@@ -1,0 +1,33 @@
+name: Build Icarus
+
+on: 
+  #push: 
+  schedule:
+    - cron: '0 0 * * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+jobs:
+  build_dep:
+    uses: daxzio/setup-eda/.github/workflows/setup_iverilog.yml@main
+
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    needs: [build_dep]
+    steps:
+      - name: Cache Icarus
+        uses: actions/cache@v3
+        with:
+          path: ${{ needs.build_dep.outputs.cache_dir }}
+          key: ${{ needs.build_dep.outputs.cache_key }}
+      - name: Add to PATH
+        run: |
+          echo "${{ needs.build_dep.outputs.cache_dir }}/bin" >> $GITHUB_PATH
+      
+      - name: Report Icarus
+        run: |
+          which iverilog

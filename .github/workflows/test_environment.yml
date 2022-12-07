@@ -1,0 +1,46 @@
+name: Check cached Setup
+
+on: 
+  #push: 
+  schedule:
+    - cron: '0 1 * * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+jobs:
+  build_ghdl:
+    uses: ./.github/workflows/setup_ghdl.yml
+  check_ghdl:
+    runs-on: ubuntu-latest
+    needs: build_ghdl
+    steps:
+      - name: Cache GHDL
+        uses: actions/cache@v3
+        with:
+          path: ${{ needs.build_ghdl.outputs.cache_dir }}
+          key: ${{ needs.build_ghdl.outputs.cache_key }}
+      - name: Add to PATH
+        run: |
+          echo "${{ needs.build_ghdl.outputs.cache_dir }}/bin" >> $GITHUB_PATH
+      - name: Report GHDL
+        run: |
+          which ghdl
+
+  build_iverilog:
+    uses: ./.github/workflows/setup_iverilog.yml
+  check_iverilog:
+    runs-on: ubuntu-latest
+    needs: build_iverilog
+    steps:
+      - name: Cache Icarus
+        uses: actions/cache@v3
+        with:
+          path: ${{ needs.build_iverilog.outputs.cache_dir }}
+          key: ${{ needs.build_iverilog.outputs.cache_key }}
+      - name: Add to PATH
+        run: |
+          echo "${{ needs.build_iverilog.outputs.cache_dir }}/bin" >> $GITHUB_PATH
+      - name: Report Icarus
+        run: |
+          which iverilog
