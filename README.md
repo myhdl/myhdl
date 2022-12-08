@@ -1,9 +1,9 @@
-MyHDL 1.0dev 
-============
+MyHDL 0.11 
+==========
 
-[![Join the chat at https://gitter.im/jandecaluwe/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/myhdl/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=stable)](http://docs.myhdl.org/en/stable/manual)
+[![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=stable)](http://docs.myhdl.org/en/stable/manual/)
 [![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=latest)](http://docs.myhdl.org/en/latest/manual)
 [![Build Status](https://travis-ci.org/myhdl/myhdl.svg?branch=master)](https://travis-ci.org/myhdl/myhdl)
 
@@ -34,32 +34,34 @@ What's new
 ----------
 To find out what's new in this release, please read:
 
-   - http://docs.myhdl.org/en/stable/whatsnew/0.9.html
+   - http://docs.myhdl.org/en/stable/whatsnew/0.11.html
 
 Installation
 ------------
-If you have superuser power, you can install MyHDL as follows:
+It is recommended to install MyHDL (and your project's other dependencies) in
+a virtualenv.
+
+Installing the latest stable release:
 
 ```
-python setup.py install
+pip install myhdl
 ```
 
-This will install the package in the appropriate site-wide Python
-package location.
-
-Otherwise, you can install it in a personal directory, e.g. as
-follows:
-
+To install the development version from github:
 ```
-python setup.py install --home=$HOME
+pip install -e 'git+https://github.com/myhdl/myhdl#egg=myhdl
 ```
 
-In this case, be sure to add the appropriate install dir to the
-``$PYTHONPATH``.
+To install a local clone of the repository:
+```
+pip install -e path/to/dir
+```
 
-If necessary, consult the distutils documentation in the standard
-Python library if necessary for more details;
-or contact me.
+To install a specific commit hash, tag or branch from git:
+```
+pip install -e 'git+https://github.com/myhdl/myhdl@f696b8#egg=myhdl
+```
+
 
 You can test the proper installation as follows:
 

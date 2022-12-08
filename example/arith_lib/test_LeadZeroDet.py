@@ -37,7 +37,7 @@ class LeadZeroDetTest(TestCase):
         @instance
         def stimulus():
             if nrsamples:
-                vals = [long(random()*(2**width)) for i in range(nrsamples)]
+                vals = [int(random()*(2**width)) for i in range(nrsamples)]
             else:
                 vals = range(2**width)
             for i in vals:

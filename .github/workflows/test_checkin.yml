@@ -1,0 +1,64 @@
+name: Test myhdl
+
+on: 
+  push: 
+  pull_request:
+  schedule:
+    - cron: '0 1 * * 0'
+jobs:
+  build_ghdl:
+    #uses: daxzio/setup-eda/.github/workflows/setup_ghdl.yml@main
+    uses: ./.github/workflows/setup_ghdl.yml
+  build_iverilog:
+    #uses: daxzio/setup-eda/.github/workflows/setup_iverilog.yml@main
+    uses: ./.github/workflows/setup_iverilog.yml
+
+  build_code:
+
+    strategy:
+      fail-fast: false # So that one fail doesn't stop remaining tests
+      matrix:
+        python-version: ["3.7", "3.8", "3.9", "3.10", "pypy-3.9", "3.11"]
+        os: [ubuntu-latest]
+        target: [core, iverilog, ghdl]
+    runs-on: ${{ matrix.os }}
+    needs: [build_ghdl, build_iverilog]
+
+    env:
+      CI_TARGET: ${{ matrix.target }}
+      TERM: xterm-256color # for tput in the script file
+    
+    steps:
+      - uses: actions/checkout@v3
+      - name: Cache GHDL
+        uses: actions/cache@v3
+        with:
+          path: ${{ needs.build_ghdl.outputs.cache_dir }}
+          key: ${{ needs.build_ghdl.outputs.cache_key }}
+      - name: Cache Icarus
+        uses: actions/cache@v3
+        with:
+          path: ${{ needs.build_iverilog.outputs.cache_dir }}
+          key: ${{ needs.build_iverilog.outputs.cache_key }}
+      - name: Add to PATH
+        run: |
+          echo "${{ needs.build_ghdl.outputs.cache_dir }}/bin" >> $GITHUB_PATH
+          echo "${{ needs.build_iverilog.outputs.cache_dir }}/bin" >> $GITHUB_PATH
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip pytest
+          python -m pip install .
+      - name: Report Environment
+        run: |
+          echo "Runing tests with env set to : ${CI_TARGET}"
+      - name: Install depenacy for ghdl
+        if: ${{ env.CI_TARGET == 'ghdl' }}
+        run: |
+          sudo apt install gnat
+      - name: Run Tests
+        run: |
+          ./scripts/ci.sh

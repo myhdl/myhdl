@@ -1,13 +1,12 @@
-# http://docs.travis-ci.com/user/workers/container-based-infrastructure/
-sudo: required
-dist: trusty
+dist: xenial
 
 language: python
 python:
-  - "2.7"
-  - "pypy"
-  - "3.4"
-  - "3.5"
+  - "3.9"
+  - "3.8"
+  - "3.7"
+  - "3.6"
+  - "pypy3.5"
 
 install:
   - pip install .
@@ -17,8 +16,20 @@ env:
   - CI_TARGET=iverilog
   - CI_TARGET=ghdl
 
+matrix:
+  allow_failures:
+    - python: "pypy3.5"
+
+
 before_script:
-  - ./scripts/ci_deps.sh
+  - if [[ "$CI_TARGET" == "iverilog" ]]; then
+      sudo apt-get -qq update;
+      sudo apt-get install iverilog;
+    elif [[ "$CI_TARGET" == "ghdl" ]]; then
+      sudo add-apt-repository ppa:mati75/ghdl -y;
+      sudo apt-get -qq update;
+      sudo apt-get install ghdl;
+    fi
 
 script: ./scripts/ci.sh
 

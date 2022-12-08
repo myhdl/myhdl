@@ -17,16 +17,13 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" Module that provides the ShadowSignal classes
-
-
+""" 
+    Module that provides the ShadowSignal classes
 """
-from __future__ import absolute_import
 
 import warnings
 from copy import deepcopy
 
-from myhdl._compat import long
 from myhdl._Signal import _Signal
 from myhdl._Waiter import _SignalWaiter, _SignalTupleWaiter
 from myhdl._intbv import intbv
@@ -38,7 +35,7 @@ from myhdl._bin import bin
 
 class _ShadowSignal(_Signal):
 
-    __slots__ = ('_waiter', )
+    __slots__ = ('_waiter',)
 
     def __init__(self, val):
         _Signal.__init__(self, val)
@@ -61,6 +58,7 @@ class _SliceSignal(_ShadowSignal):
         else:
             _ShadowSignal.__init__(self, sig[left:right])
         self._sig = sig
+        sig._read = True
         self._left = left
         self._right = right
         if right is None:
@@ -68,6 +66,12 @@ class _SliceSignal(_ShadowSignal):
         else:
             gen = self._genfuncSlice()
         self._waiter = _SignalWaiter(gen)
+
+    def __repr__(self):
+        if self._right is None:
+            return repr(self._sig) + '({})'.format(self._left)
+        else:
+            return repr(self._sig) + '({}, {})'.format(self._left, self._right)
 
     def _genfuncIndex(self):
         sig, index = self._sig, self._left
@@ -84,6 +88,24 @@ class _SliceSignal(_ShadowSignal):
             yield sig
 
     def _setName(self, hdl):
+        # if we depend on a ShadowSignal ourselves
+        # it would be nice if we 'resolve' the slicing chain
+        # e.g. s[7:4][1:0][1] to s[5]
+        if isinstance(self._sig, _ShadowSignal):
+            # self._sig must have a _left and a _right
+            if self._right is None:
+                # we're a final index
+                self._left = self._sig._right + self._left
+            else:
+                self._right = self._sig._right + self._right
+                self._left = self._sig._right + self._left
+            # step one back up
+            self._sig = self._sig._sig
+
+        else:
+            # we're at the top of the chain
+            pass
+
         if self._right is None:
             if hdl == 'Verilog':
                 self._name = "%s[%s]" % (self._sig._name, self._left)
@@ -94,6 +116,10 @@ class _SliceSignal(_ShadowSignal):
                 self._name = "%s[%s-1:%s]" % (self._sig._name, self._left, self._right)
             else:
                 self._name = "%s(%s-1 downto %s)" % (self._sig._name, self._left, self._right)
+        # we may have 'shadowed' as well (and further down ...)
+        if self._slicesigs:
+            for sl in self._slicesigs:
+                sl._setName(hdl)
 
     def _markRead(self):
         self._read = True
@@ -143,12 +169,12 @@ class ConcatSignal(_ShadowSignal):
                 v = a
             elif isinstance(a, str):
                 w = len(a)
-                v = long(a, 2)
+                v = int(a, 2)
             else:
                 raise TypeError("ConcatSignal: inappropriate argument type: %s"
                                 % type(a))
             nrbits += w
-            val = val << w | v & (long(1) << w) - 1
+            val = val << w | v & (1 << w) - 1
         self._initval = val
         ini = intbv(val)[nrbits:]
         _ShadowSignal.__init__(self, ini)
@@ -199,8 +225,39 @@ class ConcatSignal(_ShadowSignal):
             else:
                 w = len(a)
             lo = hi - w
+
+            if isinstance(a, _Signal) and a._name is None:
+                # We have seen a bug when a concat signal is created in the
+                # following way:
+                #
+                #     sig_list = [Signal(False) for n in range(32)]
+                #     concat_sig = ConcatSignal(*reversed(sig_list))
+                #
+                # It seems that the _name attribute on the signals in sig_list
+                # is only updated if an assignment is made to them. Otherwise
+                # _name is left as None. We need to check for None and raise
+                # a warning.
+                from myhdl.conversion._misc import _error
+                from myhdl import ToVHDLWarning
+
+                if w == 1:
+                    warnings.warn(
+                        "%s: %s[%s]" % (_error.UndrivenSignal, self._name, lo),
+                        category=ToVHDLWarning)
+                else:
+                    warnings.warn(
+                        "%s: %s[%s:%s]" % (_error.UndrivenSignal, self._name, hi, lo),
+                        category=ToVHDLWarning)
+
             if w == 1:
-                if isinstance(a, _Signal):
+                if isinstance(a, _Signal) and a._name is not None:
+                    # Check that a._name is not None as None should not be
+                    # written into the converted code. If it is None then we
+                    # assume no assignment has been made to the signal
+                    # (otherwise the _name attribute would have been updated
+                    # by the _analyzeSigs function). In this situation the
+                    # signal should hold its init value (as handled in the
+                    # else branch).
                     if a._type == bool:  # isinstance(a._type , bool): <- doesn't work
                         lines.append("%s(%s) <= %s;" % (self._name, lo, a._name))
                     else:
@@ -208,7 +265,9 @@ class ConcatSignal(_ShadowSignal):
                 else:
                     lines.append("%s(%s) <= '%s';" % (self._name, lo, bin(ini[lo])))
             else:
-                if isinstance(a, _Signal):
+                if isinstance(a, _Signal) and a._name is not None:
+                    # Check that a._name is not None as None should not be
+                    # written into the converted code
                     lines.append("%s(%s-1 downto %s) <= %s;" % (self._name, hi, lo, a._name))
                 else:
                     lines.append('%s(%s-1 downto %s) <= "%s";' %
@@ -226,8 +285,39 @@ class ConcatSignal(_ShadowSignal):
             else:
                 w = len(a)
             lo = hi - w
+
+            if isinstance(a, _Signal) and a._name is None:
+                # We have seen a bug when a concat signal is created in the
+                # following way:
+                #
+                #     sig_list = [Signal(False) for n in range(32)]
+                #     concat_sig = ConcatSignal(*reversed(sig_list))
+                #
+                # It seems that the _name attribute on the signals in sig_list
+                # is only updated if an assignment is made to them. Otherwise
+                # _name is left as None. We need to check for None and raise
+                # a warning.
+                from myhdl.conversion._misc import _error
+                from myhdl import ToVerilogWarning
+
+                if w == 1:
+                    warnings.warn(
+                        "%s: %s[%s]" % (_error.UndrivenSignal, self._name, lo),
+                        category=ToVerilogWarning)
+                else:
+                    warnings.warn(
+                        "%s: %s[%s:%s]" % (_error.UndrivenSignal, self._name, hi, lo),
+                        category=ToVerilogWarning)
+
             if w == 1:
-                if isinstance(a, _Signal):
+                if isinstance(a, _Signal) and a._name is not None:
+                    # Check that a._name is not None as None should not be
+                    # written into the converted code. If it is None then we
+                    # assume no assignment has been made to the signal
+                    # (otherwise the _name attribute would have been updated
+                    # by the _analyzeSigs function). In this situation the
+                    # signal should hold its init value (as handled in the
+                    # else branch).
                     if a._type == bool:
                         lines.append("assign %s[%s] = %s;" % (self._name, lo, a._name))
                     else:
@@ -235,7 +325,9 @@ class ConcatSignal(_ShadowSignal):
                 else:
                     lines.append("assign %s[%s] = 'b%s;" % (self._name, lo, bin(ini[lo])))
             else:
-                if isinstance(a, _Signal):
+                if isinstance(a, _Signal) and a._name is not None:
+                    # Check that a._name is not None as None should not be
+                    # written into the converted code
                     lines.append("assign %s[%s-1:%s] = %s;" % (self._name, hi, lo, a._name))
                 else:
                     lines.append("assign %s[%s-1:%s] = 'b%s;" %
@@ -243,12 +335,12 @@ class ConcatSignal(_ShadowSignal):
             hi = lo
         return "\n".join(lines)
 
-
 # Tristate signal
 
 
 class BusContentionWarning(UserWarning):
     pass
+
 
 warnings.filterwarnings('always', r".*", BusContentionWarning)
 

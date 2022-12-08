@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import ast
 import itertools
 from types import FunctionType

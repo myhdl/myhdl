@@ -18,20 +18,18 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the intbv class """
-from __future__ import absolute_import, division
+import builtins
 
-
-from myhdl._compat import long, integer_types, string_types, builtins
 from myhdl._bin import bin
 
 
 class intbv(object):
-    #__slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
+    # __slots__ = ('_val', '_min', '_max', '_nrbits', '_handleBounds')
 
     def __init__(self, val=0, min=None, max=None, _nrbits=0):
         if _nrbits:
             self._min = 0
-            self._max = 2**_nrbits
+            self._max = 2 ** _nrbits
         else:
             self._min = min
             self._max = max
@@ -43,11 +41,11 @@ class intbv(object):
                 else:
                     # make sure there is a leading zero bit in positive numbers
                     _nrbits = builtins.max(len(bin(max - 1)) + 1, len(bin(min)))
-        if isinstance(val, integer_types):
+        if isinstance(val, int):
             self._val = val
-        elif isinstance(val, string_types):
+        elif isinstance(val, str):
             mval = val.replace('_', '')
-            self._val = long(mval, 2)
+            self._val = int(mval, 2)
             _nrbits = len(mval)
         elif isinstance(val, intbv):
             self._val = val._val
@@ -144,7 +142,7 @@ class intbv(object):
             if i <= j:
                 raise ValueError("intbv[i:j] requires i > j\n"
                                  "            i, j == %s, %s" % (i, j))
-            res = intbv((self._val & (long(1) << i) - 1) >> j, _nrbits=i - j)
+            res = intbv((self._val & (1 << i) - 1) >> j, _nrbits=i - j)
             return res
         else:
             i = int(key)
@@ -163,15 +161,15 @@ class intbv(object):
                 raise ValueError("intbv[i:j] = v requires j >= 0\n"
                                  "            j == %s" % j)
             if i is None:  # default
-                q = self._val % (long(1) << j)
-                self._val = val * (long(1) << j) + q
+                q = self._val % (1 << j)
+                self._val = val * (1 << j) + q
                 self._handleBounds()
                 return
             i = int(i)
             if i <= j:
                 raise ValueError("intbv[i:j] = v requires i > j\n"
                                  "            i, j, v == %s, %s, %s" % (i, j, val))
-            lim = (long(1) << (i - j))
+            lim = (1 << (i - j))
             if val >= lim or val < -lim:
                 raise ValueError("intbv[i:j] = v abs(v) too large\n"
                                  "            i, j, v == %s, %s, %s" % (i, j, val))
@@ -182,9 +180,9 @@ class intbv(object):
         else:
             i = int(key)
             if val == 1:
-                self._val |= (long(1) << i)
+                self._val |= (1 << i)
             elif val == 0:
-                self._val &= ~(long(1) << i)
+                self._val &= ~(1 << i)
             else:
                 raise ValueError("intbv[i] = v requires v in (0, 1)\n"
                                  "            i == %s " % i)
@@ -260,9 +258,9 @@ class intbv(object):
 
     def __lshift__(self, other):
         if isinstance(other, intbv):
-            return intbv(long(self._val) << other._val)
+            return intbv(int(self._val) << other._val)
         else:
-            return intbv(long(self._val) << other)
+            return intbv(int(self._val) << other)
 
     def __rlshift__(self, other):
         return other << self._val
@@ -356,7 +354,7 @@ class intbv(object):
             self._val **= other._val
         else:
             self._val **= other
-        if not isinstance(self._val, integer_types):
+        if not isinstance(self._val, int):
             raise ValueError("intbv value should be integer")
         self._handleBounds()
         return self
@@ -386,7 +384,7 @@ class intbv(object):
         return self
 
     def __ilshift__(self, other):
-        self._val = long(self._val)
+        self._val = int(self._val)
         if isinstance(other, intbv):
             self._val <<= other._val
         else:
@@ -413,7 +411,7 @@ class intbv(object):
 
     def __invert__(self):
         if self._nrbits and self._min >= 0:
-            return intbv(~self._val & (long(1) << self._nrbits) - 1)
+            return intbv(~self._val & (1 << self._nrbits) - 1)
         else:
             return intbv(~self._val)
 
@@ -421,7 +419,7 @@ class intbv(object):
         return int(self._val)
 
     def __long__(self):
-        return long(self._val)
+        return int(self._val)
 
     def __float__(self):
         return float(self._val)
@@ -484,14 +482,14 @@ class intbv(object):
             # I would prefer sign extension with hex format, but to
             # align with Verilog $display I don't do that
             if v < 0:
-                v = 2**nrbits + v
+                v = 2 ** nrbits + v
             w = (nrbits - 1) // 4 + 1
             return "{:0{w}x}".format(v, w=w)
         else:
             return "{:x}".format(v)
 
     def __repr__(self):
-        return "intbv(" + repr(self._val) + ")"
+        return "intbv(" + repr(self._val) + ")[{}:]".format(self._nrbits)
 
     def signed(self):
         ''' Return new intbv with the values interpreted as signed
@@ -549,7 +547,24 @@ class intbv(object):
             retVal = self._val
 
         if self._nrbits:
-            M = 2**(self._nrbits - 1)
+            M = 2 ** (self._nrbits - 1)
             return intbv(retVal, min=-M, max=M)
+        else:
+            return intbv(retVal)
+
+    def unsigned(self):
+        ''' Return new intbv with the values interpreted as unsigned
+        '''
+
+        # value is considered unsigned
+        if self.min is not None and self.min < 0 and self._nrbits:
+            mask = (1 << self._nrbits) - 1
+            retVal = self._val & mask
+
+        else:  # value is returned just as is
+            retVal = self._val
+
+        if self._nrbits:
+            return intbv(retVal)[self._nrbits:]
         else:
             return intbv(retVal)

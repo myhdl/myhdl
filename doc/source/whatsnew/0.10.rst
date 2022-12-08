@@ -1,0 +1,102 @@
+.. currentmodule:: myhdl
+
+.. _new10:
+
+************************
+What's new in MyHDL 0.10
+************************
+
+The `block` decorator
+=====================
+
+Rationale
+---------
+
+The historical approach for hierarchy extraction in MyHDL suffers from
+significant issues.  This results in complex code, a number of non-intuitive
+API concepts, and difficulties for future development.
+
+In this release, a new `block` decorator is introduced to address these issues. 
+
+For an in-depth discussion, see `mep-114`_.
+
+.. _mep-114: http://dev.myhdl.org/meps/mep-114.html
+
+
+API
+---
+
+.. function:: block() :noindex: 
+
+   The `block` decorator enables a method-based API which is more consistent,
+   simplifies implementation, and reduces the size of the `myhdl` namespace.
+    
+   The methods work on block instances, created by calling a function decorated
+   with the `block` decorator::
+
+       @block
+       def myblock(<ports>):
+       ...
+       return <instances>
+       
+       inst = myblock(<port-associations>)
+       # inst supports the methods of the block instance API
+
+The API on a block instance looks as follows:
+
+.. method:: <block_instance>.run_sim(duration=None)
+
+   Run a simulation "forever" (default) or for a specified duration.   
+
+.. method:: <block_instance>.config_sim(backend='myhdl', trace=False)
+
+   Optional simulation configuration: 
+
+   *backend*: Defaults to 'myhdl
+
+   *trace*: Enable waveform tracing, default False.  
+
+.. method:: <block_instance>.quit_sim()
+
+   Quit an active simulation. This is method is currently required because
+   only a single simulation can be active.
+
+.. method:: <block_instance>.convert(hdl='Verilog', **kwargs)  
+
+   Converts MyHDL code to a target HDL.
+
+   *hdl*: 'VHDL' or 'Verilog'. Defaults to Verilog.
+
+   Supported keyword arguments:
+
+   *path*: Destination folder. Defaults to current working dir.   
+
+   *name*: Module and output file name. Defaults to `self.mod.__name__`.      
+
+   *trace*: Whether the testbench should dump all signal waveforms. Defaults to False.   
+
+   *testbench*: Verilog only. Specifies whether a testbench should be created.  Defaults to True.   
+
+   *timescale*: timescale parameter. Defaults to '1ns/10ps'. Verilog only.   
+
+.. method:: <block_instance>.verify_convert()
+
+  Verify conversion output, by comparing target HDL simulation log with MyHDL simulation log.   
+
+.. method:: <block_instance>.analyze_convert()
+
+  Analyze conversion output by compilation with target HDL compiler.   
+
+
+Backwards compatibility issues
+==============================
+
+In the 0.10 release, the old API still available next to the new API based on
+the `block` decorator.
+
+It is likely that the old deprecated API will be removed in a future release, resulting
+in backwards incompatibility for legacy code. Therefore, users are encouraged to
+start using the new API in their development methodology.
+
+
+

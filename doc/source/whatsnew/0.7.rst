@@ -39,7 +39,7 @@ shadow signals.
 The whole reasoning behind shadow signals is explained in more detail in
 `mep-105`_.
 
-.. _mep-105: http://www.myhdl.org/doku.php/meps:mep-105
+.. _mep-105: http://dev.myhdl.org/meps/mep-105.html
 
 
 Introducing shadow signals
@@ -61,7 +61,7 @@ parent signal values. For simulation, the transformation is defined by
 a generator which is automatically created and added to the list of
 generators to be simulated. For conversion, the constructor defines
 a piece of dedicated Verilog and VHDL code which is automatically
-added to the convertor output.
+added to the converter output.
 
 Currently, three kinds of shadow signals have been implemented.  The
 original inspiration for shadow signals was to have solution for
@@ -76,7 +76,7 @@ proposed in `mep-103`_  could be interpreted as a shadow signal of
 its drivers. With the machinery of the shadow signal in place, it
 became easier to support this for simulation and conversion.
 
-.. _mep-103: http://www.myhdl.org/doku.php/meps:mep-103
+.. _mep-103: http://dev.myhdl.org/meps/mep-103.html
 
 Concrete shadow signal subclasses
 ---------------------------------
@@ -217,7 +217,7 @@ indexing and slicing. This conversion is no longer required;
 the objects can be used directly.
 The corresponding classes now have an :func:`__index__` method
 that takes care of the type conversion automatically.
-This feature is fully supported by the VHDL/Verilog convertor.
+This feature is fully supported by the VHDL/Verilog converter.
 
 
 New configuration attributes for conversion file headers
@@ -263,12 +263,12 @@ The same interpolation variables are available in custom headers.
 Conversion propagates docstrings
 ================================
 
-The convertor now propagates comments under the form of Python
+The converter now propagates comments under the form of Python
 docstrings.
 
 Docstrings are typically used in Python to document certain objects in
 a standard way. Such "official" docstrings are put into the converted
-output at appropriate locations.  The convertor supports official
+output at appropriate locations.  The converter supports official
 docstrings for the top level module and for generators.
 
 Within generators, "nonofficial" docstrings are propagated also. These
@@ -333,7 +333,7 @@ is deprecated and will be unsupported in the future.
 More powerful mapping to case statements
 ========================================
 
-The convertor has become more powerful to map if-then-else structures
+The converter has become more powerful to map if-then-else structures
 to case statements in VHDL and Verilog. Previously, only
 if-then-else structures testing enumerated types were considered.
 Now, integer tests are considered also.
@@ -368,14 +368,14 @@ most likely not an issue.
 Combinatorial always blocks use blocking assignments
 ----------------------------------------------------
 
-The convertor now uses blocking assignments for combinatorial
+The converter now uses blocking assignments for combinatorial
 always blocks in Verilog. This is in line with generally
 accepted Verilog coding conventions.
 
 No synthesis pragmas in Verilog output
 --------------------------------------
 
-The convertor no longer outputs the synthesis pragmas
+The converter no longer outputs the synthesis pragmas
 ``full_case`` and ``parallel_case``. These pragmas do
 more harm than good as they can cause simulation-synthesis
 mismatches. Synthesis tools should be able to infer the

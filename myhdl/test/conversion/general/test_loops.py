@@ -1,8 +1,6 @@
-from __future__ import absolute_import
 import os
 path = os.path
 from random import randrange
-
 
 import myhdl
 from myhdl import *
@@ -10,8 +8,10 @@ from myhdl.conversion import verify, analyze
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
+
 @block
 def ForLoopError1(a, out):
+
     @instance
     def logic():
         while 1:
@@ -21,10 +21,13 @@ def ForLoopError1(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
-        
+
+
 @block
 def ForLoopError2(a, out):
+
     @instance
     def logic():
         while 1:
@@ -34,10 +37,13 @@ def ForLoopError2(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
+
 
 @block
 def ForLoop1(a, out):
+
     @instance
     def logic():
         while 1:
@@ -47,10 +53,13 @@ def ForLoop1(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
+
 
 @block
 def ForLoop2(a, out):
+
     @instance
     def logic():
         while 1:
@@ -60,10 +69,13 @@ def ForLoop2(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
+
 
 @block
 def ForLoop3(a, out):
+
     @instance
     def logic():
         while 1:
@@ -73,10 +85,13 @@ def ForLoop3(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
-        
+
+
 @block
 def ForLoop4(a, out):
+
     @instance
     def logic():
         while 1:
@@ -86,10 +101,13 @@ def ForLoop4(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
+
 
 @block
 def ForLoop5(a, out):
+
     @instance
     def logic():
         while 1:
@@ -99,10 +117,13 @@ def ForLoop5(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
+
 
 @block
 def ForLoop6(a, out):
+
     @instance
     def logic():
         while 1:
@@ -112,10 +133,13 @@ def ForLoop6(a, out):
                 if a[i] == 1:
                     var += 1
             out.next = var
+
     return logic
+
 
 @block
 def ForContinueLoop(a, out):
+
     @instance
     def logic():
         while 1:
@@ -126,10 +150,13 @@ def ForContinueLoop(a, out):
                     continue
                 var += 1
             out.next = var
+
     return logic
+
 
 @block
 def ForBreakLoop(a, out):
+
     @instance
     def logic():
         while 1:
@@ -139,10 +166,13 @@ def ForBreakLoop(a, out):
                 if a[i] == 1:
                     out.next = i
                     break
+
     return logic
+
 
 @block
 def ForBreakContinueLoop(a, out):
+
     @instance
     def logic():
         while 1:
@@ -153,10 +183,13 @@ def ForBreakContinueLoop(a, out):
                     continue
                 out.next = i
                 break
+
     return logic
+
 
 @block
 def NestedForLoop1(a, out):
+
     @instance
     def logic():
         while 1:
@@ -168,13 +201,16 @@ def NestedForLoop1(a, out):
                 else:
                     for j in downrange(i):
                         if a[j] == 0:
-                            var +=1
+                            var += 1
                     break
             out.next = var
+
     return logic
+
 
 @block
 def NestedForLoop2(a, out):
+
     @instance
     def logic():
         while 1:
@@ -185,14 +221,16 @@ def NestedForLoop2(a, out):
                 if a[i] == 0:
                     continue
                 else:
-                    for j in downrange(i-1):
+                    for j in downrange(i - 1):
                         if a[j] == 0:
                             pass
                         else:
                             out.next = j
                             break
                     break
+
     return logic
+
 
 def ReturnFromFunction(a):
     for i in downrange(len(a)):
@@ -200,14 +238,18 @@ def ReturnFromFunction(a):
             return i
     return 0
 
+
 @block
 def FunctionCall(a, out):
+
     @instance
     def logic():
         while 1:
             yield a
             out.next = ReturnFromFunction(a)
+
     return logic
+
 
 # During the following check, I noticed that non-blocking assignments
 # are not scheduled when a task is disabled in Icarus. Apparently
@@ -217,10 +259,12 @@ def ReturnFromTask(a, out):
         if a[i] == 1:
             out[:] = i
             return
-    out[:] = 23 # to notice it
+    out[:] = 23  # to notice it
+
 
 @block
 def TaskCall(a, out):
+
     @instance
     def logic():
         var = intbv(0)[8:]
@@ -228,31 +272,37 @@ def TaskCall(a, out):
             yield a
             ReturnFromTask(a, var)
             out.next = var
+
     return logic
+
 
 @block
 def WhileLoop(a, out):
+
     @instance
     def logic():
         while 1:
             yield a
             var = 0
-            i = len(a)-1
+            i = len(a) - 1
             while i >= 0:
                 if a[i] == 1:
                     var += 1
                 i -= 1
             out.next = var
+
     return logic
+
 
 @block
 def WhileContinueLoop(a, out):
+
     @instance
     def logic():
         while 1:
             yield a
             var = 0
-            i = len(a)-1
+            i = len(a) - 1
             while i >= 0:
                 if a[i] == 0:
                     i -= 1
@@ -260,41 +310,49 @@ def WhileContinueLoop(a, out):
                 var += 1
                 i -= 1
             out.next = var
+
     return logic
-        
+
+
 @block
 def WhileBreakLoop(a, out):
+
     @instance
     def logic():
         while 1:
             yield a
             var = 0
-            i = len(a)-1
+            i = len(a) - 1
             out.next = 0
             while i >= 0:
                 if a[i] == 1:
                     out.next = i
                     break
                 i -= 1
+
     return logic
-    
+
+
 @block
 def WhileBreakContinueLoop(a, out):
+
     @instance
     def logic():
         while 1:
             yield a
             var = 0
-            i = len(a)-1
+            i = len(a) - 1
             out.next = 0
             while i >= 0:
                 if a[i] == 0:
-                     i -= 1
-                     continue
+                    i -= 1
+                    continue
                 out.next = i
                 break
+
     return logic
-    
+
+
 @block
 def LoopBench(LoopTest):
 
@@ -302,7 +360,7 @@ def LoopBench(LoopTest):
     z = Signal(intbv(0)[16:])
 
     looptest_inst = LoopTest(a, z)
-    data = tuple([randrange(2**min(i, 16)) for i in range(100)])
+    data = tuple([randrange(2 ** min(i, 16)) for i in range(100)])
 
     @instance
     def stimulus():
@@ -321,7 +379,8 @@ def testForLoopError1():
         assert e.kind == _error.Requirement
     else:
         assert False
-    
+
+
 def testForLoopError2():
     try:
         analyze(LoopBench(ForLoopError2))
@@ -330,47 +389,64 @@ def testForLoopError2():
     else:
         assert False
 
+
 def testForLoop1():
     assert verify(LoopBench(ForLoop1)) == 0
+
+
 def testForLoop2():
     assert verify(LoopBench(ForLoop2)) == 0
+
+
 def testForLoop4():
     assert verify(LoopBench(ForLoop4)) == 0
+
+
 def testForLoop5():
     assert verify(LoopBench(ForLoop5)) == 0
 
 # for loop 3 and 6 can't work in vhdl
 
+
 def testForContinueLoop():
   assert verify(LoopBench(ForContinueLoop)) == 0
+
 
 def testForBreakLoop():
    assert verify(LoopBench(ForBreakLoop)) == 0
 
+
 def testForBreakContinueLoop():
-   assert verify(LoopBench(ForBreakContinueLoop))== 0
+   assert verify(LoopBench(ForBreakContinueLoop)) == 0
+
 
 def testNestedForLoop1():
    assert verify(LoopBench(NestedForLoop1)) == 0
 
+
 def testNestedForLoop2():
    assert verify(LoopBench(NestedForLoop2)) == 0
 
-def testWhileLoop():
+
+def testFunctionCall():
     assert verify(LoopBench(FunctionCall)) == 0
 
-## def testTaskCall(self):
-##     sim = self.bench(TaskCall)
-##     Simulation(sim).run()
+# # def testTaskCall(self):
+# #     sim = self.bench(TaskCall)
+# #     Simulation(sim).run()
+
 
 def testWhileLoop():
     assert verify(LoopBench(WhileLoop)) == 0
 
+
 def testWhileContinueLoop():
     assert verify(LoopBench(WhileContinueLoop)) == 0
 
+
 def testWhileBreakLoop():
     assert verify(LoopBench(WhileBreakLoop)) == 0
+
 
 def testWhileBreakContinueLoop():
     assert verify(LoopBench(WhileBreakContinueLoop)) == 0

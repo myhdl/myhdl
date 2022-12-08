@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-from __future__ import print_function
 import sys
 import os
 import tempfile
@@ -40,12 +38,13 @@ def registerSimulator(name=None, hdl=None, analyze=None, elaborate=None, simulat
         raise ValueError("Invalid simulator command")
     _simulators[name] = sim(name, hdl, analyze, elaborate, simulate, skiplines, skipchars, ignore)
 
+
 registerSimulator(
     name="ghdl",
     hdl="VHDL",
     analyze="ghdl -a --std=08 --workdir=work pck_myhdl_%(version)s.vhd %(topname)s.vhd",
     elaborate="ghdl -e --std=08 --workdir=work %(unitname)s",
-    simulate="ghdl -r --workdir=work %(unitname)s"
+    simulate="ghdl -r --std=08 --workdir=work %(unitname)s --ieee-asserts=disable"
 )
 
 registerSimulator(
@@ -76,7 +75,6 @@ registerSimulator(
     ignore=("# **", "# //", "#    Time:", "# run -all")
 )
 
-
 registerSimulator(
     name="iverilog",
     hdl="Verilog",
@@ -98,7 +96,7 @@ class _VerificationClass(object):
     __slots__ = ("simulator", "_analyzeOnly")
 
     def __init__(self, analyzeOnly=False):
-        self.simulator = None
+        self.simulator = 'ghdl'
         self._analyzeOnly = analyzeOnly
 
     def __call__(self, func, *args, **kwargs):
@@ -139,9 +137,9 @@ class _VerificationClass(object):
 
         if isinstance(func, _Block):
             if hdl == "VHDL":
-                inst = func.convert(hdl='VHDL')
+                inst = func.convert(hdl='VHDL', **kwargs)
             else:
-                inst = func.convert(hdl='Verilog')
+                inst = func.convert(hdl='Verilog', **kwargs)
         else:
             if hdl == "VHDL":
                 inst = toVHDL(func, *args, **kwargs)

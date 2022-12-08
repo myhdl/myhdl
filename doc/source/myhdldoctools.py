@@ -2,7 +2,9 @@ import subprocess
 
 from docutils import nodes
 
-from sphinx.util.compat import Directive
+# deprecated
+# from sphinx.util.compat import Directive
+from docutils.parsers.rst import Directive
 from sphinx.directives.code import LiteralInclude
 
 example_dir = '/../../example/manual/'

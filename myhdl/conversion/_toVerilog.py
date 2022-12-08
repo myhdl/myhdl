@@ -20,10 +20,6 @@
 """ myhdl toVerilog conversion module.
 
 """
-from __future__ import absolute_import
-from __future__ import print_function
-
-
 import sys
 import math
 import os
@@ -33,14 +29,13 @@ import inspect
 from datetime import datetime
 import ast
 import string
+from io import StringIO
 
 from types import GeneratorType
-from myhdl._compat import StringIO
 import warnings
 
 import myhdl
 from myhdl import *
-from myhdl._compat import integer_types, class_types, PY2
 from myhdl import ToVerilogError, ToVerilogWarning
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
@@ -217,17 +212,18 @@ class _ToVerilogConvertor(object):
         self.portmap = portmap
 
         ### clean-up properly ###
-        self._cleanup(siglist)
+        self._cleanup(siglist, memlist)
 
         return h.top
 
-    def _cleanup(self, siglist):
-        # clean up signal names
+    def _cleanup(self, siglist, memlist):
+        # clean up signals
         for sig in siglist:
             sig._clear()
-#             sig._name = None
-#             sig._driven = False
-#             sig._read = False
+        for mem in memlist:
+            mem.name = None
+            for s in mem.mem:
+                s._clear()
 
         # clean up attributes
         self.name = None
@@ -368,7 +364,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if m._driven:
             k = m._driven
 
-            if toVerilog.initial_values:
+            if toVerilog.initial_values and not k == 'wire':
                 if all([each._init == m.mem[0]._init for each in m.mem]):
 
                     initialize_block_name = ('INITIALIZE_' + m.name).upper()
@@ -475,6 +471,7 @@ def _getSignString(s):
     else:
         return ''
 
+
 def _intRepr(n, radix=''):
     # write size for large integers (beyond 32 bits signed)
     # with some safety margin
@@ -482,17 +479,18 @@ def _intRepr(n, radix=''):
     p = abs(n)
     size = ''
     num = str(p).rstrip('L')
-    if radix == "hex" or p >= 2**30:
+    if radix == "hex" or p >= 2 ** 30:
         radix = "'h"
         num = hex(p)[2:].rstrip('L')
-    if p >= 2**30:
-        size = int(math.ceil(math.log(p+1,2))) + 1  # sign bit!
+    if p >= 2 ** 30:
+        size = int(math.ceil(math.log(p + 1, 2))) + 1  # sign bit!
 #            if not radix:
 #                radix = "'d"
     r = "%s%s%s" % (size, radix, num)
-    if n < 0: # add brackets and sign on negative numbers
+    if n < 0:  # add brackets and sign on negative numbers
         r = "(-%s)" % r
     return r
+
 
 def _convertGens(genlist, vfile):
     blockBuf = StringIO()
@@ -754,8 +752,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Assign(self, node):
         # shortcut for expansion of ROM in case statement
         if isinstance(node.value, ast.Subscript) and \
-                isinstance(node.value.slice, ast.Index) and\
-                isinstance(node.value.value.obj, _Rom):
+                      not isinstance(node.value.slice, ast.Slice) and \
+                      isinstance(node.value.value.obj, _Rom):
             rom = node.value.value.obj.rom
 #            self.write("// synthesis parallel_case full_case")
 #            self.writeline()
@@ -834,7 +832,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is ord:
             opening, closing = '', ''
             node.args[0].s = str(ord(node.args[0].s))
-        elif f in integer_types:
+        elif f is int:
             opening, closing = '', ''
             # convert number argument to integer
             if isinstance(node.args[0], ast.Num):
@@ -850,7 +848,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(opening)
             self.visit(fn.value)
             self.write(closing)
-        elif (type(f) in class_types) and issubclass(f, Exception):
+        elif (type(f) in (type,)) and issubclass(f, Exception):
             self.write(f.__name__)
         elif f in (posedge, negedge):
             opening, closing = ' ', ''
@@ -890,20 +888,49 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         self.context = None
 
-    def visit_Num(self, node):
-        if self.context == _context.PRINT:
-            self.write('"%s"' % node.n)
-        else:
-            self.write(self.IntRepr(node.n))
+    if sys.version_info >= (3, 9, 0):
 
-    def visit_Str(self, node):
-        s = node.s
-        if self.context == _context.PRINT:
-            self.write('"%s"' % s)
-        elif len(s) == s.count('0') + s.count('1'):
-            self.write("%s'b%s" % (len(s), s))
-        else:
-            self.write(s)
+        def visit_Constant(self, node):
+            if node.value is None:
+                # NameConstant
+                self.write(nameconstant_map[node.obj])
+            elif isinstance(node.value, bool):
+                self.write(nameconstant_map[node.obj])
+            elif isinstance(node.value, int):
+                # Num
+                if self.context == _context.PRINT:
+                    self.write('"%s"' % node.value)
+                else:
+                    self.write(self.IntRepr(node.value))
+            elif isinstance(node.value, str):
+                # Str
+                s = node.value
+                if self.context == _context.PRINT:
+                    self.write('"%s"' % s)
+                elif len(s) == s.count('0') + s.count('1'):
+                    self.write("%s'b%s" % (len(s), s))
+                else:
+                    self.write(s)
+
+    else:
+
+        def visit_Num(self, node):
+            if self.context == _context.PRINT:
+                self.write('"%s"' % node.n)
+            else:
+                self.write(self.IntRepr(node.n))
+
+        def visit_Str(self, node):
+            s = node.s
+            if self.context == _context.PRINT:
+                self.write('"%s"' % s)
+            elif len(s) == s.count('0') + s.count('1'):
+                self.write("%s'b%s" % (len(s), s))
+            else:
+                self.write(s)
+
+        def visit_NameConstant(self, node):
+            self.write(nameconstant_map[node.obj])
 
     def visit_Continue(self, node):
         self.write("disable %s;" % self.labelStack[-1])
@@ -1009,11 +1036,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 #        if node.isFullCase:
 #            self.write(" full_case")
 #        self.writeline()
-        caseType = "case"
-        if isinstance(node.caseItem, EnumItemType):
-            if node.caseItem._type._encoding in ('one_hot', 'one_cold'):
-                caseType = "casez"
-        self.write("%s (" % caseType)
+        self.write("case (")
         self.visit(var)
         self.write(")")
         self.indent()
@@ -1021,7 +1044,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             item = test.case[1]
             if isinstance(item, EnumItemType):
-                self.write(item._toVerilog(dontcare=True))
+                self.write(item._toVerilog())
             else:
                 self.write(self.IntRepr(item, radix='hex'))
             self.write(": begin")
@@ -1076,10 +1099,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(stmt)
 
     def visit_ListComp(self, node):
-        pass  # do nothing
-
-    def visit_NameConstant(self, node):
-        self.write(nameconstant_map[node.obj])
+        # do nothing
+        pass
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1092,10 +1113,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def getName(self, node):
         n = node.id
-        if PY2 and n in ('True', 'False', 'None'):
-            self.visit_NameConstant(node)
-            return
-
         addSignBit = False
         isMixedExpr = (not node.signed) and (self.context == _context.SIGNED)
         if n in self.tree.vardict:
@@ -1109,8 +1126,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             obj = self.tree.symdict[n]
             if isinstance(obj, bool):
                 s = "1'b%s" % int(obj)
-            elif isinstance(obj, integer_types):
+            elif isinstance(obj, int):
                 s = self.IntRepr(obj)
+            elif isinstance(obj, tuple):  # Python3.9+ ast.Index replacement serves a tuple
+                s = n
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
                 s = str(obj)
@@ -1120,10 +1139,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = m.name
             elif isinstance(obj, EnumItemType):
                 s = obj._toVerilog()
-            elif (type(obj) in class_types) and issubclass(obj, Exception):
+            elif (type(obj) in (type,)) and issubclass(obj, Exception):
                 s = n
             else:
-                self.raiseError(node, _error.UnsupportedType, "%s, %s" % (n, type(obj)))
+                self.raiseError(node, _error.UnsupportedType, "%s, %s %s" % (n, type(obj), obj))
         else:
             raise AssertionError("name ref: %s" % n)
         if addSignBit:
@@ -1178,7 +1197,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                     self.writeline()
                     self.write("endcase")
                 else:
-                    print (type(obj), type(a))
                     self.write('$write("%s", ' % fs)
                     self.visit(a)
                     self.write(');')
@@ -1215,6 +1233,15 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # special shortcut case for [:] slice
         if lower is None and upper is None:
             return
+
+        if isinstance(lower, ast.BinOp) and isinstance(lower.left, ast.Name) and isinstance(upper, ast.Name) and upper.id == lower.left.id and isinstance(lower.op, ast.Add):
+            self.write("[")
+            self.visit(upper)
+            self.write("+:")
+            self.visit(lower.right)
+            self.write("]")
+            return
+
         self.write("[")
         if lower is None:
             self.write("%s" % node.obj._nrbits)
@@ -1239,7 +1266,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write("[")
         # assert len(node.subs) == 1
-        self.visit(node.slice.value)
+        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
+            self.visit(node.slice)
+        else:
+            self.visit(node.slice.value)
         self.write("]")
         if addSignBit:
             self.write("})")
@@ -1405,7 +1435,7 @@ def _convertInitVal(reg, init):
     if tipe is bool:
         v = '1' if init else '0'
     elif tipe is intbv:
-        init = int(init) # int representation
+        init = int(init)  # int representation
         v = "%s" % init if init is not None else "'bz"
     else:
         assert isinstance(init, EnumItemType)
@@ -1534,7 +1564,7 @@ class _ConvertTaskVisitor(_ConvertVisitor):
 def _maybeNegative(obj):
     if hasattr(obj, '_min') and (obj._min is not None) and (obj._min < 0):
         return True
-    if isinstance(obj, integer_types) and obj < 0:
+    if isinstance(obj, int) and obj < 0:
         return True
     return False
 
@@ -1608,11 +1638,21 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         self.generic_visit(node)
 
-    def visit_Num(self, node):
-        node.signed = False
+    if sys.version_info >= (3, 9, 0):
 
-    def visit_Str(self, node):
-        node.signed = False
+        def visit_Constant(self, node):
+            node.signed = False
+
+    else:
+
+        def visit_Num(self, node):
+            node.signed = False
+
+        def visit_Str(self, node):
+            node.signed = False
+
+        def visit_NameConstant(self, node):
+            node.signed = False
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):

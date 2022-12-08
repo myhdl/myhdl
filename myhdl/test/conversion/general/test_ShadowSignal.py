@@ -1,13 +1,14 @@
-from __future__ import absolute_import
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always_comb, instance,
+                   TristateSignal, ConcatSignal, conversion, StopSimulation,
+                   toVerilog, toVHDL)
+
 
 @block
 def bench_SliceSignal():
 
     s = Signal(intbv(0)[8:])
     a, b, c = s(7), s(5), s(0)
-    d, e, f, g = s(8,5), s(6,3), s(8,0), s(4,3)
+    d, e, f, g = s(8, 5), s(6, 3), s(8, 0), s(4, 3)
     N = len(s)
 
     @instance
@@ -31,6 +32,38 @@ def test_SliceSignal():
 
 
 @block
+def bench_RecurseShadowSignal():
+    s = Signal(intbv(0)[16:])
+
+    # take some recursive ShadowSignals
+    su = s(16, 8)
+    sl = s(8, 0)
+    suu = su(8, 4)
+    sul = su(4, 0)
+    slu = sl(8, 4)
+    sll = sl(4, 0)
+
+    @instance
+    def check():
+        for i in range(25):
+            s.next = 0x4567 + i * 39
+            yield delay(10)
+            print(s)
+            print(int(su))
+            print(int(sl))
+            print(suu)
+            print(sul)
+            print(slu)
+            print(sll)
+
+    return check
+
+
+def test_RecurseShadowSignal():
+    assert conversion.verify(bench_RecurseShadowSignal()) == 0
+
+
+@block
 def bench_ConcatSignal():
 
     a = Signal(intbv(0)[5:])
@@ -40,10 +73,11 @@ def bench_ConcatSignal():
 
     s = ConcatSignal(a, b, c, d)
 
-    I_max = 2**len(a)
-    J_max = 2**len(b)
-    K_max = 2**len(c)
-    M_max = 2**len(d)
+    I_max = 2 ** len(a)
+    J_max = 2 ** len(b)
+    K_max = 2 ** len(c)
+    M_max = 2 ** len(d)
+
     @instance
     def check():
         for i in range(I_max):
@@ -59,8 +93,10 @@ def bench_ConcatSignal():
 
     return check
 
+
 def test_ConcatSignal():
     assert conversion.verify(bench_ConcatSignal()) == 0
+
 
 @block
 def bench_ConcatSignalWithConsts():
@@ -79,17 +115,18 @@ def bench_ConcatSignalWithConsts():
 
     s = ConcatSignal(c1, a, c2, b, c3, c, c4, d, c5, e)
 
-    I_max = 2**len(a)
-    J_max = 2**len(b)
-    K_max = 2**len(c)
-    M_max = 2**len(d)
+    I_max = 2 ** len(a)
+    J_max = 2 ** len(b)
+    K_max = 2 ** len(c)
+    M_max = 2 ** len(d)
+
     @instance
     def check():
         for i in range(I_max):
             for j in range(J_max):
                 for k in range(K_max):
                     for m in range(M_max):
-                        for n in range(2**len(e)):
+                        for n in range(2 ** len(e)):
                             a.next = i
                             b.next = j
                             c.next = k
@@ -104,6 +141,24 @@ def bench_ConcatSignalWithConsts():
 def test_ConcatSignalWithConsts():
     assert conversion.verify(bench_ConcatSignalWithConsts()) == 0
 
+@block
+def bench_ConcatSignalUndriven():
+
+    n_sigs = 32
+
+    sig_list = [Signal(False) for n in range(n_sigs)]
+    concat_sig = ConcatSignal(*reversed(sig_list))
+
+    @instance
+    def check():
+
+        yield delay(10)
+        print(concat_sig)
+
+    return check
+
+def test_ConcatSignalUndriven():
+    assert conversion.verify(bench_ConcatSignalUndriven()) == 0
 
 @block
 def bench_TristateSignal():
@@ -118,7 +173,7 @@ def bench_TristateSignal():
         b.next = None
         c.next = None
         yield delay(10)
-        #print s
+        # print s
         a.next = 1
         yield delay(10)
         print(s)
@@ -132,7 +187,7 @@ def bench_TristateSignal():
         print(s)
         c.next = None
         yield delay(10)
-        #print s
+        # print s
 
     return check
 
@@ -169,7 +224,7 @@ def bench_permute(conv=False):
 
     @instance
     def stimulus():
-        for i in range(2**len(a)):
+        for i in range(2 ** len(a)):
             a.next = i
             yield delay(10)
             print("%d %d" % (x, a))
@@ -180,8 +235,10 @@ def bench_permute(conv=False):
 
     return dut, stimulus
 
+
 def test_permute():
     assert conversion.verify(bench_permute()) == 0
+
 
 bench_permute(toVHDL)
 bench_permute(toVerilog)

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import myhdl
 from myhdl import *
 
@@ -28,7 +27,7 @@ def gray_counter (clk, reset, enable, gray_count):
     return comb, seq
        
 clk = Signal(bool(0))
-reset = ResetSignal(0, active=0, async=True)
+reset = ResetSignal(0, active=0, isasync=True)
 enable = Signal(bool(0))
 gray_count = Signal(intbv(0)[8:])
 

@@ -24,13 +24,11 @@ instances -- function that returns instances in a generator function
 downrange -- function that returns a downward range
 
 """
-from __future__ import absolute_import
-
-
 import inspect
 
 from myhdl._Cosimulation import Cosimulation
 from myhdl._instance import _Instantiator
+
 
 def _isGenSeq(obj):
     from myhdl._block import _Block

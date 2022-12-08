@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 #!/usr/bin/python2.7-32
 # -*- coding: utf-8 -*-
 

@@ -18,9 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Module with the always_seq decorator. """
-from __future__ import absolute_import
-
-
 from types import FunctionType
 
 from myhdl import AlwaysError, intbv
@@ -45,7 +42,7 @@ _error.EmbeddedFunction = "embedded functions in always_seq function not support
 
 class ResetSignal(_Signal):
 
-    def __init__(self, val, active, async):
+    def __init__(self, val, active, isasync):
         """ Construct a ResetSignal.
 
         This is to be used in conjunction with the always_seq decorator,
@@ -53,7 +50,7 @@ class ResetSignal(_Signal):
         """
         _Signal.__init__(self, bool(val))
         self.active = bool(active)
-        self.async = async
+        self.isasync = isasync
 
 
 def always_seq(edge, reset):
@@ -91,8 +88,8 @@ class _AlwaysSeq(_Always):
         if reset is not None:
             self.genfunc = self.genfunc_reset
             active = self.reset.active
-            async = self.reset.async
-            if async:
+            isasync = self.reset.isasync
+            if isasync:
                 if active:
                     senslist.append(reset.posedge)
                 else:

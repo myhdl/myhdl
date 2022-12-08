@@ -1,5 +1,3 @@
-from __future__ import generators
-
 import unittest
 from unittest import TestCase
 

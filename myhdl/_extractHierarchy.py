@@ -20,9 +20,6 @@
 """ myhdl _extractHierarchy module.
 
 """
-from __future__ import absolute_import
-
-
 import sys
 import inspect
 import string
@@ -115,7 +112,14 @@ class _UserCode(object):
         code = "\n%s\n" % code
         return code
 
+    def _scrub_namespace(self):
+        for nm, obj in self.namespace.items():
+            if _isMem(obj):
+                memi = _getMemInfo(obj)
+                self.namespace[nm] = memi.name
+
     def _interpolate(self):
+        self._scrub_namespace()
         return string.Template(self.code).substitute(self.namespace)
 
 

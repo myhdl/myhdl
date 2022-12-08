@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run unit tests for Cosimulation """
-from __future__ import absolute_import
-
 import gc
 import os
 import random
@@ -29,7 +27,6 @@ if sys.platform == "win32":
     import msvcrt
 
 from myhdl import Signal
-from myhdl._compat import to_bytes
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
 
 if __name__ != '__main__':
@@ -79,21 +76,6 @@ class TestCosimulation:
         with raises_kind(CosimulationError, _error.OSError):
             Cosimulation('bla -x 45')
 
-    def testNotUnique(self):
-        cosim1 = Cosimulation(exe + "cosimNotUnique", **allSigs)
-        with raises_kind(CosimulationError, _error.MultipleCosim):
-            Cosimulation(exe + "cosimNotUnique", **allSigs)
-
-    @staticmethod
-    def cosimNotUnique():
-        wt, rf = wtrf()
-        os.write(wt, b"TO 00 a 1")
-        os.read(rf, MAXLINE)
-        os.write(wt, b"FROM 00 d 1")
-        os.read(rf, MAXLINE)
-        os.write(wt, b"START")
-        os.read(rf, MAXLINE)
-
     def testFromSignals(self):
         cosim = Cosimulation(exe + "cosimFromSignals", **allSigs)
         assert cosim._fromSignames == fromSignames
@@ -105,7 +87,7 @@ class TestCosimulation:
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         os.write(wt, b"TO 0000 a 1")
         os.read(rf, MAXLINE)
@@ -125,7 +107,7 @@ class TestCosimulation:
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         os.write(wt, b"FROM 0000")
         os.read(rf, MAXLINE)
@@ -145,12 +127,12 @@ class TestCosimulation:
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         os.write(wt, b"START")
         os.read(rf, MAXLINE)
@@ -165,7 +147,7 @@ class TestCosimulation:
         buf = "TO 01 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
 
     def testNoComm(self):
         with raises_kind(CosimulationError, _error.NoCommunication):
@@ -192,7 +174,7 @@ class TestCosimulation:
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
         buf += "bb 5"
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
 
     def testToSignalsDupl(self):
         with raises_kind(CosimulationError, _error.DuplicateSigNames):
@@ -205,7 +187,7 @@ class TestCosimulation:
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
         buf += "fff 6"
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
 
     def testFromSignalVals(self):
         cosim = Cosimulation(exe + "cosimFromSignalVals", **allSigs)
@@ -219,7 +201,7 @@ class TestCosimulation:
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         os.write(wt, b"TO 0000 a 1")
         os.read(rf, MAXLINE)
@@ -249,12 +231,12 @@ class TestCosimulation:
         buf = "FROM 00 "
         for s, w in zip(fromSignames, fromSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         buf = "TO 00 "
         for s, w in zip(toSignames, toSizes):
             buf += "%s %s " % (s, w)
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         os.write(wt, b"START")
         os.read(rf, MAXLINE)
@@ -264,7 +246,7 @@ class TestCosimulation:
             buf += " "
             buf += hex(v)[2:]
             buf += " "
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
         os.read(rf, MAXLINE)
         buf = "0 "
         for s, v in zip(toSignames, toXVals):
@@ -272,7 +254,7 @@ class TestCosimulation:
             buf += " "
             buf += v
             buf += " "
-        os.write(wt, to_bytes(buf))
+        os.write(wt, buf.encode())
 
 if __name__ == "__main__":
     getattr(TestCosimulation, sys.argv[1])()

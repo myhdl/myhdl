@@ -1,5 +1,3 @@
-import sys
-
 import py
 import pytest
 
@@ -10,8 +8,7 @@ xfail = pytest.mark.xfail
 
 all_sims = list(_simulators)
 
-if sys.version_info[0] > 2:
-    collect_ignore = ['conversion/toVerilog/test_not_supported_py2.py']
+collect_ignore = ['conversion/toVerilog/test_not_supported_py2.py']
 
 def pytest_addoption(parser):
     parser.addoption("--sim", action="store", choices=all_sims,

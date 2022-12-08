@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import os
 path = os.path
 import random
@@ -10,6 +9,7 @@ from myhdl import *
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+
 @block
 def decRef(count, enable, clock, reset, n):
     """ Decrementer with enable.
@@ -20,6 +20,7 @@ def decRef(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
+
     @instance
     def logic():
         while 1:
@@ -29,9 +30,10 @@ def decRef(count, enable, clock, reset, n):
             else:
                 if enable:
                     if count == -n:
-                        count.next = n-1
+                        count.next = n - 1
                     else:
                         count.next = count - 1
+
     return logic
 
 
@@ -45,6 +47,7 @@ def dec(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
+
     @instance
     def decProcess():
         while 1:
@@ -52,11 +55,12 @@ def dec(count, enable, clock, reset, n):
             if reset == ACTIVE_LOW:
                 count.next = 0
             else:
-                if enable:
+                if enable == True:
                     if count == -n:
-                        count.next = n-1
+                        count.next = n - 1
                     else:
                         count.next = count - 1
+
     return decProcess
 
 
@@ -66,7 +70,7 @@ def decFunc(count, enable, clock, reset, n):
     def decFuncFunc(cnt):
         count_next = intbv(0, min=-n, max=n)
         if cnt == -n:
-            count_next[:] = n-1
+            count_next[:] = n - 1
         else:
             count_next[:] = cnt - 1
         return count_next
@@ -88,7 +92,7 @@ def decTask(count, enable, clock, reset, n):
     def decTaskFunc(cnt, enable, reset, n):
         if enable:
             if cnt == -n:
-                cnt[:] = n-1
+                cnt[:] = n - 1
             else:
                 cnt[:] = cnt - 1
 
@@ -114,7 +118,7 @@ def decTaskFreeVar(count, enable, clock, reset, n):
     def decTaskFunc():
         if enable:
             if count == -n:
-                count.next = n-1
+                count.next = n - 1
             else:
                 count.next = count - 1
 
@@ -135,7 +139,7 @@ def decTaskFreeVar(count, enable, clock, reset, n):
 def DecBench(dec):
 
     m = 8
-    n = 2 ** (m-1)
+    n = 2 ** (m - 1)
 
     count = Signal(intbv(0, min=-n, max=n))
     count_v = Signal(intbv(0, min=-n, max=n))
@@ -151,6 +155,7 @@ def DecBench(dec):
             clock.next = not clock
 
     enables = tuple([min(1, randrange(5)) for i in range(1000)])
+
     @instance
     def stimulus():
         reset.next = INACTIVE_HIGH
@@ -184,36 +189,38 @@ def DecBench(dec):
 def testDecRef():
     assert DecBench(decRef).verify_convert() == 0
 
+
 def testDec():
     assert DecBench(dec).verify_convert() == 0
+
 
 def testDecFunc():
     assert DecBench(decFunc).verify_convert() == 0
 
+
 def testDecTask():
     assert DecBench(decTask).verify_convert() == 0
 
+# # def testDecTaskFreeVar():
+# #     assert verify(DecBench, decTaskFreeVar) == 0
 
-## def testDecTaskFreeVar():
-##     assert verify(DecBench, decTaskFreeVar) == 0
+# #     def testDecRef(self):
+# #         sim = self.bench(decRef)
+# #         sim.run(quiet=1)
 
-##     def testDecRef(self):
-##         sim = self.bench(decRef)
-##         sim.run(quiet=1)
+# #     def testDec(self):
+# #         sim = self.bench(dec)
+# #         sim.run(quiet=1)
 
-##     def testDec(self):
-##         sim = self.bench(dec)
-##         sim.run(quiet=1)
+# #     def testDecFunc(self):
+# #         sim = self.bench(decFunc)
+# #         sim.run(quiet=1)
 
-##     def testDecFunc(self):
-##         sim = self.bench(decFunc)
-##         sim.run(quiet=1)
+# # signed inout in task doesn't work yet in Icarus
+# #     def testDecTask(self):
+# #         sim = self.bench(decTask)
+# #         sim.run(quiet=1)
 
-## signed inout in task doesn't work yet in Icarus
-##     def testDecTask(self):
-##         sim = self.bench(decTask)
-##         sim.run(quiet=1)
-
-##     def testDecTaskFreeVar(self):
-##         sim = self.bench(decTaskFreeVar)
-##         sim.run(quiet=1)
+# #     def testDecTaskFreeVar(self):
+# #         sim = self.bench(decTaskFreeVar)
+# #         sim.run(quiet=1)

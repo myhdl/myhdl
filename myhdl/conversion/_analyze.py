@@ -20,8 +20,6 @@
 """ MyHDL conversion analysis module.
 
 """
-from __future__ import absolute_import, print_function
-
 import inspect
 # import compiler
 # from compiler import ast as astNode
@@ -29,6 +27,7 @@ from types import FunctionType, MethodType
 import sys
 import re
 import ast
+import builtins
 from itertools import chain
 
 import myhdl
@@ -48,7 +47,6 @@ from myhdl._util import _flatten
 from myhdl._util import _isTupleOfInts
 from myhdl._util import _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
-from myhdl._compat import builtins, integer_types, PY2
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -380,6 +378,7 @@ class _Rom(object):
     def __init__(self, rom):
         self.rom = rom
 
+
 re_str = re.compile(r"[^%]+")
 re_ConvSpec = re.compile(r"%(?P<justified>[-]?)(?P<width>[0-9]*)(?P<conv>[sd])")
 
@@ -396,6 +395,7 @@ class ConvSpec(object):
             self.width = int(kwargs['width'])
         if kwargs['conv'] == 'd':
             self.conv = int
+
 
 defaultConvSpec = ConvSpec(**re_ConvSpec.match(r"%s").groupdict())
 
@@ -588,10 +588,10 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             node.obj = int(0)  # XXX
         elif f is bool:
             node.obj = bool()
-        elif f in _flatten(integer_types):
+        elif f is int:
             node.obj = int(-1)
 # elif f in (posedge , negedge):
-##             node.obj = _EdgeDetector()
+# #             node.obj = _EdgeDetector()
         elif f is ord:
             node.obj = int(-1)
             if not (isinstance(node.args[0], ast.Str) and (len(node.args[0].s) == 1)):
@@ -626,7 +626,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if f.__code__.co_freevars:
                 for n, c in zip(f.__code__.co_freevars, f.__closure__):
                     obj = c.cell_contents
-                    if not isinstance(obj, (integer_types, _Signal)):
+                    if not isinstance(obj, (int, _Signal)):
                         self.raiseError(node, _error.FreeVarTypeError, n)
                     tree.symdict[n] = obj
             v = _FirstPassVisitor(tree)
@@ -661,15 +661,15 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         for n in [node.left] + node.comparators:
             self.visit(n)
         op, arg = node.ops[0], node.comparators[0]
-##         node.expr.target = self.getObj(arg)
-##         arg.target = self.getObj(node.expr)
+# #         node.expr.target = self.getObj(arg)
+# #         arg.target = self.getObj(node.expr)
         # detect specialized case for the test
         if isinstance(op, ast.Eq) and isinstance(node.left, ast.Name):
             # check wether it can be a case
             val = arg.obj
             if isinstance(val, bool):
                 val = int(val)  # cast bool to int first
-            if isinstance(val, (EnumItemType, integer_types)):
+            if isinstance(val, (EnumItemType, int)):
                 node.case = (node.left, val)
             # check whether it can be part of an edge check
             n = node.left.id
@@ -682,19 +682,42 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif v == 1:
                         node.edge = sig.posedge
 
-    def visit_Num(self, node):
-        n = node.n
-        # assign to value attribute for backwards compatibility
-        node.value = n
-        if n in (0, 1):
-            node.obj = bool(n)
-        elif isinstance(n, int):
-            node.obj = n
-        else:
-            node.obj = None
+    if sys.version_info >= (3, 9, 0):
 
-    def visit_Str(self, node):
-        node.obj = node.s
+        def visit_Constant(self, node):
+            node.obj = None  # safeguarding?
+            # ToDo check for tuples?
+            if isinstance(node.value, int):
+                # Num
+                if node.value in (0, 1):
+                    node.obj = bool(node.value)
+                else:
+                    node.obj = node.value
+            elif node.value in (True, False, None):
+                # NameConstant
+                node.obj = node.value
+            elif isinstance(node.value, str):
+                # Str
+                node.obj = node.value
+
+    else:
+
+        def visit_Num(self, node):
+            n = node.n
+            # assign to value attribute for backwards compatibility
+            node.value = n
+            if n in (0, 1):
+                node.obj = bool(n)
+            elif isinstance(n, int):
+                node.obj = n
+            else:
+                node.obj = None
+
+        def visit_Str(self, node):
+            node.obj = node.s
+
+        def visit_NameConstant(self, node):
+            node.obj = node.value
 
     def visit_Continue(self, node):
         self.labelStack[-1].isActive = True
@@ -786,9 +809,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         if f is not range or len(cf.args) != 1:
             self.raiseError(node, _error.UnsupportedListComp)
         mem.depth = cf.args[0].obj
-
-    def visit_NameConstant(self, node):
-        node.obj = node.value
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -896,12 +916,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         nr = 0
         a = []
 
-        if PY2 and isinstance(node, ast.Print):
-            node_args = node.values
-        else:
-            node_args = node.args
-
-        for n in node_args:
+        for n in node.args:
             if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mod) and \
                isinstance(n.left, ast.Str):
                 if isinstance(n.right, ast.Tuple):
@@ -981,7 +996,11 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.visit(node.value)
         self.access = _access.INPUT
-        self.visit(node.slice.value)
+        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
+            self.visit(node.slice)
+        else:
+            self.visit(node.slice.value)
+
         if isinstance(node.value.obj, _Ram):
             if isinstance(node.ctx, ast.Store):
                 self.raiseError(node, _error.ListElementAssign)
@@ -1234,6 +1253,24 @@ def isboundmethod(m):
     return ismethod(m) and m.__self__ is not None
 
 
+# a local function to drill down to the last interface
+def expandinterface(v, name, obj):
+    for attr, attrobj in vars(obj).items():
+        if isinstance(attrobj, _Signal):
+# override any 'mangled' name
+#             signame = attrobj._name
+#             if not signame:
+            signame = name + '_' + attr
+            attrobj._name = signame
+            v.argdict[signame] = attrobj
+            v.argnames.append(signame)
+        elif isinstance(attrobj, myhdl.EnumType):
+            pass
+        elif hasattr(attrobj, '__dict__'):
+            # can assume is yet another interface ...
+            expandinterface(v, name + '_' + attr, attrobj)
+
+
 def _analyzeTopFunc(func, *args, **kwargs):
     tree = _makeAST(func)
     v = _AnalyzeTopFuncVisitor(func, tree, *args, **kwargs)
@@ -1246,18 +1283,12 @@ def _analyzeTopFunc(func, *args, **kwargs):
 
     # create ports for any signal in the top instance if it was buried in an
     # object passed as in argument
-    # TODO: This will not work for nested objects in the top level
+
+    # now expand the interface objects
     for name, obj in objs:
-        if not hasattr(obj, '__dict__'):
-            continue
-        for attr, attrobj in vars(obj).items():
-            if isinstance(attrobj, _Signal):
-                signame = attrobj._name
-                if not signame:
-                    signame = name + '_' + attr
-                    attrobj._name = signame
-                v.argdict[signame] = attrobj
-                v.argnames.append(signame)
+        if hasattr(obj, '__dict__'):
+            # must be an interface object (probably ...?)
+            expandinterface(v, name, obj)
 
     return v
 

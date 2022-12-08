@@ -18,7 +18,7 @@ Welcome to the MyHDL documentation
    :maxdepth: 2
 
    manual/index
-   whatsnew/1.0
+   whatsnew/0.11
    python3
 
 Old Whatsnew documents
@@ -26,6 +26,7 @@ Old Whatsnew documents
 .. toctree::
    :maxdepth: 1
 
+   whatsnew/0.10
    whatsnew/0.9
    whatsnew/0.8
    whatsnew/0.7

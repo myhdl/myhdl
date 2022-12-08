@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for enum """
-from __future__ import absolute_import
-
 import copy
 import random
 
@@ -32,7 +30,7 @@ random.seed(1)  # random, but deterministic
 
 t_State = enum("SEARCH", "CONFIRM", "SYNC")
 t_Homograph = enum("SEARCH", "CONFIRM", "SYNC")
-
+t_incomplete = enum("SEARCH", "CONFIRM")
 
 class TestEnum:
 
@@ -62,3 +60,26 @@ class TestEnum:
         e = copy.deepcopy(t_State.SEARCH)
         assert e == t_State.SEARCH
         assert e != t_State.CONFIRM
+
+## Adding test coverage for encoding in enum
+ 
+    def testItemNotDeepCopy(self):
+        e = copy.copy(t_State.SEARCH)
+        assert e == t_State.SEARCH
+        assert e != t_State.CONFIRM
+
+    def testWrongEncoding(self):
+        def logic1(encoding):
+            t_State = enum("SEARCH", "CONFIRM", "SYNC",encoding=encoding)
+            with pytest.raises(ValueError):
+            	logic1(encoding)
+        
+    def testNotStringtype(self):
+        with pytest.raises(TypeError):
+            t_State = enum("SEARCH", 1, "SYNC")
+
+    def testEnumLength(self):
+        l = len(t_State)
+        assert l == len(t_State)
+
+

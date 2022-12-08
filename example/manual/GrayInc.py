@@ -32,7 +32,7 @@ def main():
     graycnt = Signal(modbv(0)[width:])
     enable = Signal(bool())
     clock = Signal(bool())
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
 
     toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
     toVHDL(GrayIncReg, graycnt, enable, clock, reset, width)

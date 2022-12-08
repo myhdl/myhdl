@@ -106,7 +106,7 @@ See also
 --------
 For a more in-depth discussion, see `mep-106`_.
 
-.. _mep-106: http://www.myhdl.org/doku.php/meps:mep-106
+.. _mep-106: http://dev.myhdl.org/meps/mep-106.html
 
 
 ``always_seq`` decorator
@@ -223,7 +223,7 @@ Interface
 
     This :class:`Signal` subclass defines reset signals. *val*, *active*, and *async*
     are mandatory arguments.
-    *val* is a boolean value that specifies the intial value,
+    *val* is a boolean value that specifies the initial value,
     *active* is a boolean value that specifies the active level.
     *async* is a boolean value that specifies the reset style:
     asynchronous (``True``) or asynchronous (``False``).
@@ -276,7 +276,7 @@ See also
 
 For a more in-depth discussion, see `mep-109`_.
 
-.. _mep-109: http://www.myhdl.org/doku.php/meps:mep-109
+.. _mep-109: http://dev.myhdl.org/meps/mep-109.html
 
 Other improvements
 ==================
@@ -315,7 +315,7 @@ See also
 ^^^^^^^^
 For a more in-depth discussion, see `mep-108`_.
 
-.. _mep-108: http://www.myhdl.org/doku.php/meps:mep-108
+.. _mep-108: http://dev.myhdl.org/meps/mep-108.html
 
 
 

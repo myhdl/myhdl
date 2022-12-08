@@ -18,22 +18,21 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Block with the @block decorator function. """
-from __future__ import absolute_import
-
 import inspect
 
 #from functools import wraps
 import functools
 
 import myhdl
-from myhdl._compat import PY2
 from myhdl import BlockError, BlockInstanceError, Cosimulation
 from myhdl._instance import _Instantiator
 from myhdl._util import _flatten
 from myhdl._extractHierarchy import (_makeMemInfo,
-                                     _UserVerilogCode, _UserVhdlCode)
+                                     _UserVerilogCode, _UserVhdlCode,
+                                     _UserVerilogInstance, _UserVhdlInstance)
 from myhdl._Signal import _Signal, _isListOfSigs
 
+from weakref import WeakValueDictionary
 
 class _error:
     pass
@@ -72,10 +71,9 @@ def _getCallInfo():
         callerrec = stack[4]
     # special case for list comprehension's extra scope in PY3
     if name == '<listcomp>':
-        if not PY2:
-            funcrec = stack[4]
-            if len(stack) > 5:
-                callerrec = stack[5]
+        funcrec = stack[4]
+        if len(stack) > 5:
+            callerrec = stack[5]
 
     name = funcrec[3]
     frame = funcrec[0]
@@ -89,6 +87,31 @@ def _getCallInfo():
     return _CallInfo(name, modctxt, symdict)
 
 
+### I don't think this is the right place for uniqueifying the name.
+### This seems to me to be a conversion concern, not a block concern, and
+### there should not be the corresponding global state to be maintained here.
+### The name should be whatever it is, which is then uniqueified at
+### conversion time. Perhaps this happens already (FIXME - check and fix)
+### ~ H Gomersall 24/11/2017
+_inst_name_set = set()
+_name_set = set()
+
+def _uniqueify_name(proposed_name):
+    '''Creates a unique block name from the proposed name by appending
+    a suitable number to the end. Every name this function returns is
+    assumed to be used, so will not be returned again.
+    '''
+    n = 0
+
+    while proposed_name in _name_set:
+        proposed_name = proposed_name + '_' + str(n)
+        n += 1
+
+    _name_set.add(proposed_name)
+
+    return proposed_name
+
+
 class _bound_function_wrapper(object):
 
     def __init__(self, bound_func, srcfile, srcline):
@@ -100,47 +123,80 @@ class _bound_function_wrapper(object):
         # register the block
         myhdl._simulator._blocks.append(self)
 
+        self.name_prefix = None
+        self.name = None
+
     def __call__(self, *args, **kwargs):
+
+        name = (
+            self.name_prefix + '_' + self.bound_func.__name__ +
+            str(self.calls))
+
         self.calls += 1
-        return _Block(self.bound_func, self, self.srcfile,
+
+        # See concerns above about uniqueifying
+        name = _uniqueify_name(name)
+
+        return _Block(self.bound_func, self, name, self.srcfile,
                       self.srcline, *args, **kwargs)
 
 class block(object):
+
     def __init__(self, func):
         self.srcfile = inspect.getsourcefile(func)
         self.srcline = inspect.getsourcelines(func)[0]
         self.func = func
         functools.update_wrapper(self, func)
         self.calls = 0
+        self.name = None
+
         # register the block
         myhdl._simulator._blocks.append(self)
 
+        self.bound_functions = WeakValueDictionary()
+
     def __get__(self, instance, owner):
-        bound_func = self.func.__get__(instance, owner)
-        return _bound_function_wrapper(bound_func, self.srcfile, self.srcline)
+        bound_key = (id(instance), id(owner))
+
+        if bound_key not in self.bound_functions:
+            bound_func = self.func.__get__(instance, owner)
+            function_wrapper = _bound_function_wrapper(
+                bound_func, self.srcfile, self.srcline)
+            self.bound_functions[bound_key] = function_wrapper
+
+            proposed_inst_name = owner.__name__ + '0'
+
+            n = 1
+            while proposed_inst_name in _inst_name_set:
+                proposed_inst_name = owner.__name__ + str(n)
+                n += 1
+
+            function_wrapper.name_prefix = proposed_inst_name
+            _inst_name_set.add(proposed_inst_name)
+
+        else:
+            function_wrapper = self.bound_functions[bound_key]
+            bound_func = self.bound_functions[bound_key]
+
+        return function_wrapper
 
     def __call__(self, *args, **kwargs):
-        self.calls += 1
-        return _Block(self.func, self, self.srcfile,
-                      self.srcline, *args, **kwargs)
 
-#def block(func):
-#    srcfile = inspect.getsourcefile(func)
-#    srcline = inspect.getsourcelines(func)[0]
-#
-#    print(func, type(func))
-#    @wraps(func)
-#    def deco(*args, **kwargs):
-#        deco.calls += 1
-#        return _Block(func, deco, srcfile, srcline, *args, **kwargs)
-#    deco.calls = 0
-#    return deco
+        name = self.func.__name__ + str(self.calls)
+        self.calls += 1
+
+        # See concerns above about uniqueifying
+        name = _uniqueify_name(name)
+
+        return _Block(self.func, self, name, self.srcfile,
+                      self.srcline, *args, **kwargs)
 
 
 class _Block(object):
 
-    def __init__(self, func, deco, srcfile, srcline, *args, **kwargs):
+    def __init__(self, func, deco, name, srcfile, srcline, *args, **kwargs):
         calls = deco.calls
+
         self.func = func
         self.args = args
         self.kwargs = kwargs
@@ -152,7 +208,7 @@ class _Block(object):
         self.symdict = None
         self.sigdict = {}
         self.memdict = {}
-        self.name = self.__name__ = func.__name__ + '_' + str(calls)
+        self.name = self.__name__ = name
 
         # flatten, but keep BlockInstance objects
         self.subs = _flatten(func(*args, **kwargs))
@@ -166,6 +222,12 @@ class _Block(object):
         if hasattr(deco, 'vhdl_code'):
             self.vhdl_code = _UserVhdlCode(deco.vhdl_code, self.symdict, func.__name__,
                                            func, srcfile, srcline)
+        if hasattr(deco, 'verilog_instance'):
+            self.verilog_code = _UserVerilogInstance(deco.vhdl_instance, self.symdict, func.__name__,
+                                                     func, srcfile, srcline)
+        if hasattr(deco, 'vhdl_instance'):
+            self.vhdl_code = _UserVhdlInstance(deco.vhdl_instance, self.symdict, func.__name__,
+                                               func, srcfile, srcline)
         self._config_sim = {'trace': False}
 
     def _verifySubs(self):
@@ -275,9 +337,11 @@ class _Block(object):
             setattr(converter, k, v)
         return converter(self)
 
-    def config_sim(self, trace=False):
+    def config_sim(self, trace=False, **kwargs) :
         self._config_sim['trace'] = trace
         if trace:
+            for k, v in kwargs.items() :
+                setattr(myhdl.traceSignals, k, v)
             myhdl.traceSignals(self)
 
     def run_sim(self, duration=None, quiet=0):

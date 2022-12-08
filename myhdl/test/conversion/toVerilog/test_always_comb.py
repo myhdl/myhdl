@@ -18,9 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for always_comb """
-from __future__ import absolute_import
-
-
 import random
 from random import randrange
 # random.seed(3) # random, but deterministic

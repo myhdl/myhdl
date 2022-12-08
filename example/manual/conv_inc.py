@@ -10,7 +10,7 @@ m = 8
 count = Signal(modbv(0)[m:])
 enable = Signal(bool(0))
 clock  = Signal(bool(0))
-reset = ResetSignal(0, active=0, async=True)
+reset = ResetSignal(0, active=0, isasync=True)
 
 inc_inst = inc(count, enable, clock, reset)
 inc_inst = toVerilog(inc, count, enable, clock, reset)

@@ -18,8 +18,6 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for traceSignals """
-from __future__ import absolute_import
-
 import os
 import random
 
@@ -116,7 +114,7 @@ def topTristate():
     return inst
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def vcd_dir(tmpdir):
     with tmpdir.as_cwd():
         yield tmpdir
@@ -173,7 +171,7 @@ class TestTraceSigs:
         _simulator._tf.close()
         _simulator._tracing = 0
         size = path.getsize(p)
-        pbak = p + '.' + str(path.getmtime(p))
+        pbak = p[:-4] + '.' + str(path.getmtime(p)) + '.vcd'
         assert not path.exists(pbak)
         dut = traceSignals(fun())
         _simulator._tf.close()

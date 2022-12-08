@@ -93,7 +93,7 @@ model directly::
 
    from myhdl import block, always_seq
 
-   @instance
+   @block
    def top(<parameters>, clock, ..., reset, ...):
        ...
        @always_seq(clock.posedge, reset=reset)
@@ -107,10 +107,10 @@ functionality.  It detects which signals need to be reset, and uses their
 initial values as the reset values. The reset signal itself needs to be
 specified as a :class:`ResetSignal` object. For example::
 
-    reset = ResetSignal(0, active=0, async=True)
+    reset = ResetSignal(0, active=0, isasync=True)
 
 The first parameter specifies the initial value. The *active* parameter
-specifies the value on which the reset is active, and the *async*
+specifies the value on which the reset is active, and the *isasync*
 parameter specifies whether it is an asychronous (``True``) or a
 synchronous (``False``) reset. If no reset is needed, you can assign
 ``None`` to the *reset* parameter in the :func:`always_seq` parameter.
