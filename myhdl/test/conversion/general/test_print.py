@@ -5,6 +5,7 @@ from myhdl.conversion._misc import _error
 
 t_State = enum("START", "RUN", "STOP")
 
+@block
 def PrintBench():
     si1 = Signal(intbv(0)[8:])
     si2 = Signal(intbv(0, min=-10, max=12))
@@ -66,8 +67,9 @@ def PrintBench():
     return logic
 
 def testPrint():
-    assert conversion.verify(PrintBench) == 0
+    assert PrintBench().verify_convert() == 0
 
+@block
 def PrintLongVectorsBench():
     N84 = 84
     M84 = 2**N84-1
@@ -105,13 +107,11 @@ def PrintLongVectorsBench():
     return logic
 
 def testPrintLongVectors():
-    assert conversion.verify(PrintLongVectorsBench) == 0
-
-def testPrint():
-    assert conversion.verify(PrintBench) == 0
+    assert PrintLongVectorsBench().verify_convert() == 0
 
 # format string errors and unsupported features
 
+@block
 def PrintError1():
      @instance
      def logic():
@@ -122,12 +122,13 @@ def PrintError1():
 
 def testPrintError1():
     try:
-        conversion.verify(PrintError1)
+        PrintError1().verify_convert()
     except ConversionError as e:
         assert e.kind == _error.UnsupportedFormatString
     else:
         assert False
 
+@block
 def PrintError2():
      @instance
      def logic():
@@ -138,12 +139,13 @@ def PrintError2():
 
 def testPrintError2():
     try:
-        conversion.verify(PrintError2)
+        PrintError2().verify_convert()
     except ConversionError as e:
         assert e.kind == _error.FormatString
     else:
         assert False
 
+@block
 def PrintError3():
      @instance
      def logic():
@@ -155,12 +157,13 @@ def PrintError3():
 
 def testPrintError3():
     try:
-        conversion.verify(PrintError3)
+        PrintError3().verify_convert()
     except ConversionError as e:
         assert e.kind == _error.FormatString
     else:
         assert False
 
+@block
 def PrintError4():
      @instance
      def logic():
@@ -171,12 +174,13 @@ def PrintError4():
 
 def testPrintError4():
     try:
-        conversion.verify(PrintError4)
+        PrintError4().verify_convert()
     except ConversionError as e:
         assert e.kind == _error.UnsupportedFormatString
     else:
         assert False
 
+@block
 def PrintError5():
      @instance
      def logic():
@@ -187,7 +191,7 @@ def PrintError5():
 
 def testPrintError5():
     try:
-        conversion.verify(PrintError5)
+        PrintError5().verify_convert()
     except ConversionError as e:
         assert e.kind == _error.UnsupportedFormatString
     else:
