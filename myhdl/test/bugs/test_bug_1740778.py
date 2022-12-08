@@ -12,6 +12,7 @@ from myhdl.conversion import verify
 
 ACTIVE_LOW, INACTIVE_HIGH = bool(0), bool(1)
 
+@block
 def bug_1740778 ():
     """ Conversion of min and max attribute.
 
@@ -32,5 +33,5 @@ def bug_1740778 ():
 
 
 def test_bug_1740778 ():  
-    assert verify(bug_1740778) == 0
+    assert bug_1740778().verify_convert() == 0
     

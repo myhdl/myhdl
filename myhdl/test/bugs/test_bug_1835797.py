@@ -7,11 +7,10 @@ random.seed(2)
 
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify
-
 
 ACTIVE_LOW, INACTIVE_HIGH = bool(0), bool(1)
 
+@block
 def bug_1835797():
     """ Docstring in the middle.
 
@@ -29,5 +28,5 @@ def bug_1835797():
 
 
 def test_bug_1835797():  
-    assert verify(bug_1835797) == 0
+    assert bug_1835797().verify_convert() == 0
     

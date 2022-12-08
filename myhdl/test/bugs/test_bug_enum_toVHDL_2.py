@@ -3,7 +3,7 @@ from myhdl import *
 
 t_state = enum('WAIT_POSEDGE', 'WAIT_NEGEDGE', encoding='one_hot')
 
-
+@block
 def pcie_legacyint_next_state_logic(state_i, next_state_o, next_state_en_o, interrupt_pending_i, interrupt_assert_o):
 
         @always_comb
@@ -32,7 +32,7 @@ interrupt_assert = Signal(bool(0))
 
 
 def test_bug_enum_toVHDL_2():
-    assert conversion.analyze(pcie_legacyint_next_state_logic, state, next_state, next_state_en, interrupt_pending, interrupt_assert) == 0
+    assert pcie_legacyint_next_state_logic(state, next_state, next_state_en, interrupt_pending, interrupt_assert).analyze_convert() == 0
 
 
 if __name__ == '__main__':

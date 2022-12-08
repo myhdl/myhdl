@@ -1,7 +1,6 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import analyze
-
+@block
 def issue_13(reset, clk, d, en, q):
     COSET = 0x55
 
@@ -38,5 +37,5 @@ def test_issue_13():
 
     # toVHDL.numeric_ports = False
 
-    assert analyze(issue_13, reset, clk, d, en, q) == 0 
+    issue_13(reset, clk, d, en, q).analyze_convert() == 0 
 

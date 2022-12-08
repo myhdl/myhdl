@@ -50,6 +50,7 @@ def mytest_bench():
 
     return ins1, ins2
 
+#@pytest.mark.xfail
 def test_issue_169():
     test_inst = mytest_bench()
     test_inst.verify_convert()

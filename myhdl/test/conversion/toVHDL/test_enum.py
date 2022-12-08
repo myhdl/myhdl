@@ -16,12 +16,14 @@ def bitwise(a, b, op):
         r[:] = a ^ b
     return r
         
+@block
 def LogicUnit(a, b, c, op):
     @always_comb
     def operate():
         c.next = bitwise(a,b,op)
     return operate
 
+@block
 def bench_enum():
     clock = Signal(False)
     a, b, c = [Signal(intbv(0)[8:]) for i in range(3)]
@@ -63,5 +65,5 @@ def bench_enum():
     return instances()
 
 def test_enum():
-    assert conversion.verify(bench_enum) == 0
+    assert bench_enum().verify_convert() == 0
 
