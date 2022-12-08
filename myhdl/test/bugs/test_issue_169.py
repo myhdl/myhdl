@@ -3,7 +3,7 @@ from myhdl import Signal, block, delay, instance
 import pytest
 
 
-class Test1:
+class MyTest1:
     def __init__(self):
         self.clock = Signal(bool(0))
 
@@ -21,7 +21,7 @@ class Test1:
         return func
 
 
-class Test2:
+class MyTest2:
     def __init__(self):
         self.clock = Signal(bool(1))
 
@@ -40,9 +40,9 @@ class Test2:
 
 
 @block
-def test_bench():
-    inst1 = Test1()
-    inst2 = Test2()
+def mytest_bench():
+    inst1 = MyTest1()
+    inst2 = MyTest2()
     
     # Two instances are created
     ins1 = inst1.test()
@@ -50,11 +50,7 @@ def test_bench():
 
     return ins1, ins2
 
-@pytest.mark.xfail
 def test_issue_169():
-    test_inst = test_bench()
-    assert test_inst.verify_convert() == True
-    
-if __name__ == '__main__':
-    test_issue_169()
+    test_inst = mytest_bench()
+    test_inst.verify_convert()
 
