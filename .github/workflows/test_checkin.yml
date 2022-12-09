@@ -9,9 +9,7 @@ jobs:
   run_lint:
     strategy:
       fail-fast: false # So that one fail doesn't stop remaining tests
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}      
+    runs-on: ubuntu-latest      
     
     steps:
       - uses: actions/checkout@v3
