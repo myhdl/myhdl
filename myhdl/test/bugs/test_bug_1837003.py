@@ -3,7 +3,8 @@ from myhdl import *
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
-def SubFunction(xout,yout,xin,yin):
+@block
+def SubFunction_1837003(xout,yout,xin,yin):
     @always_comb
     def logic():
         x = 4
@@ -13,8 +14,8 @@ def SubFunction(xout,yout,xin,yin):
     return instances()
 
 
-def Function(xout,yout,x,y):
-    return SubFunction(xout,yout,x,y)
+#def Function_1837003(xout,yout,x,y):
+#    return SubFunction_1837003(xout,yout,x,y)
 
 x = Signal(bool(0))
 y = Signal(bool(0))
@@ -25,7 +26,7 @@ yin = Signal(bool(0))
 
 def test_bug_1837003():
     try:
-        toVerilog(SubFunction,xout,yout,x,y)
+        SubFunction_1837003(xout,yout,x,y).convert(hdl='Verilog')
     except ConversionError as e:
         assert e.kind == _error.ShadowingVar
     else:

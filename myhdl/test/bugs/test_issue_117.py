@@ -1,7 +1,8 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import analyze
+#from myhdl.conversion import analyze
 
+@block
 def issue_117(clk, sdi, pdo, sel, const=False):
      assert isinstance(const, (bool, intbv))
      delay_reg = Signal(intbv(0)[8:])
@@ -23,7 +24,7 @@ def test_issue_117_1():
      pdo = Signal(intbv(0)[8:])
      sel = Signal(intbv(0, min=0, max=3))
      toVHDL.name = toVerilog.name = 'issue_117_1'
-     assert analyze(issue_117, clk, sdi, pdo, sel, const=bool(0))== 0
+     assert issue_117(clk, sdi, pdo, sel, const=bool(0)).analyze_convert() == 0
 
 
 def test_issue_117_2():
@@ -31,7 +32,7 @@ def test_issue_117_2():
      pdo = Signal(intbv(0)[8:])
      sel = Signal(intbv(0, min=0, max=3))
      toVHDL.name = toVerilog.name = 'issue_117_2'
-     assert analyze(issue_117, clk, sdi, pdo, sel, const=False)== 0
+     assert issue_117(clk, sdi, pdo, sel, const=False).analyze_convert() == 0
 
 
 def test_issue_117_3():
@@ -39,7 +40,7 @@ def test_issue_117_3():
      pdo = Signal(intbv(0)[8:])
      sel = Signal(intbv(0, min=0, max=3))
      toVHDL.name = toVerilog.name = 'issue_117_3'
-     assert analyze(issue_117, clk, sdi, pdo, sel, const=intbv(0)[1:])== 0
+     assert issue_117(clk, sdi, pdo, sel, const=intbv(0)[1:]).analyze_convert() == 0
 
 
 if __name__ == '__main__':

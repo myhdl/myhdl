@@ -34,11 +34,13 @@ from .util import setupCosimulation
 
 QUIET = 1
 
+@block
 def design1(a, b, c, d, p, q, r):
     def logic():
         p.next = a | b
     return always_comb(logic)
 
+@block
 def design2(a, b, c, d, p, q, r):
     def logic():
         p.next = a | b
@@ -46,6 +48,7 @@ def design2(a, b, c, d, p, q, r):
         r.next = a ^ c
     return always_comb(logic)
 
+@block
 def design3(a, b, c, d, p, q, r):
     def logic():
         if a:
@@ -54,6 +57,7 @@ def design3(a, b, c, d, p, q, r):
             r.next = d ^ c
     return always_comb(logic)
 
+@block
 def design4(a, b, c, d, p, q, r):
     def logic():
         p.next = a | b
@@ -62,6 +66,7 @@ def design4(a, b, c, d, p, q, r):
         q.next = c | d
     return always_comb(logic)
 
+@block
 def design5(a, b, c, d, p, q, r):
     def logic():
         p.next = a | b
@@ -72,6 +77,7 @@ def design5(a, b, c, d, p, q, r):
     return always_comb(logic)
 
 
+@block
 def design_v(name, a, b, c, d, p, q, r):
     return setupCosimulation(**locals())
     
@@ -95,7 +101,7 @@ class AlwaysCombSimulationTest(TestCase):
         vectors = [intbv(j) for i in range(50) for j in range(16)]
         random.shuffle(vectors)
 
-        design_inst = toVerilog(design, a, b, c, d, p, q, r)
+        design_inst = design(a, b, c, d, p, q, r).convert(hdl='Verilog')
         design_v_inst = design_v(design.__name__, a, b, c, d, p_v, q_v, r_v)
 
         def clkGen():

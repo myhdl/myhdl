@@ -10,13 +10,14 @@ from .util import verilogCompile
 
 width = 8
 
-
+@block
 def add(x,a,b) :
     def logic() :
         x.next = a + b
     L0 = always_comb(logic)
     return L0
 
+@block
 def add3(x,a,b,c) :
     x0 = Signal(intbv(0,min=-2**(width-1),max=2**(width-1)))
     A0 = add(x0,a,b)
@@ -24,7 +25,8 @@ def add3(x,a,b,c) :
 
     return instances()
 
-def TestModule(x,a,b,c,d,e) :
+@block
+def DUT_Verilog_001(x,a,b,c,d,e) :
     x0 = Signal(intbv(0,min=-2**(width-1),max=2**(width-1)))
 
     A0 = add3(x0,a,b,c)
@@ -33,13 +35,13 @@ def TestModule(x,a,b,c,d,e) :
     return instances()
 
 
-def test():
+def test_bugreports_001():
     x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
 
-    toVerilog(TestModule, x,a,b,c,d,e)
-    verilogCompile(TestModule.__name__)
+    DUT_Verilog_001(x,a,b,c,d,e).convert(hdl='Verilog')
+    #verilogCompile(TestModule.__name__)
 
-test()
+#test()
 
 
 ##############################
@@ -47,13 +49,14 @@ test()
 # Conflicts in reg/wire names
 ###############################
 
-
+@block
 def add(x,a,b) :
     def logic() :
         x.next = a + b
     L0 = always_comb(logic)
     return L0
 
+@block
 def add4(x,a,b,c,d) :
     xL = [Signal(intbv(0,min=-2**(width+2),max=2**(width+2))) for i in range(2)]
 
@@ -66,7 +69,8 @@ def add4(x,a,b,c,d) :
 
     return instances()
 
-def TestModule(x,a,b,c,d,e):
+@block
+def DUT_Verilog_002(x,a,b,c,d,e):
     x0 = Signal(intbv(0,min=-2**(width+2),max=2**(width+2)))
 
     A0 = add4(x0,a,b,c,d)
@@ -74,15 +78,15 @@ def TestModule(x,a,b,c,d,e):
 
     return instances()
 
-def test():
+def test_bugreports_002():
     width = 8
 
     x,a,b,c,d,e = [Signal(intbv(0,min=-2**(width-1),max=2**(width-1))) for i in range(6)]
 
-    toVerilog(TestModule, x,a,b,c,d,e)
-    verilogCompile(TestModule.__name__)
+    DUT_Verilog_002(x,a,b,c,d,e).convert(hdl='Verilog')
+    verilogCompile(DUT_Verilog_002.__name__)
 
-test()
+#test()
 
 ###################################
 # Bug report (George Pantazopoulos)
@@ -103,18 +107,18 @@ def mid(SOF, clk, reset_n):
 
 
 @block
-def top(SOF, clk, reset_n):
+def DUT_Verilog_003(SOF, clk, reset_n):
     mid_1 = mid(SOF, clk, reset_n)
     return mid_1
 
 
-def test():
+def test_bugreports_003():
     clk = Signal(bool(0))
     reset_n = Signal(bool(1))
     SOF = Signal(bool(0))
    
-    top(SOF, clk, reset_n).convert()
-    verilogCompile(top.__name__)
+    DUT_Verilog_003(SOF, clk, reset_n).convert()
+    verilogCompile(DUT_Verilog_003.__name__)
 
-test()
+#test()
 

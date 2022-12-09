@@ -1,6 +1,7 @@
 import myhdl
 from myhdl import *
 
+@block
 def bug_3529686(clr, clk, run, ack, serialout):
 
     @always(clk.posedge, clr.posedge)
@@ -21,6 +22,6 @@ clr, clk, run, ack, serialout = [Signal(bool()) for i in range(5)]
 
 def test_bug_3529686():
     try:
-        toVHDL(bug_3529686, clr, clk, run, ack, serialout)
+        bug_3529686(clr, clk, run, ack, serialout).convert(hdl='VHDL')
     except:
         assert False

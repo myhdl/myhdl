@@ -8,6 +8,7 @@ from myhdl import *
 
 from .util import setupCosimulation
 
+@block
 def ram(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """
   
@@ -28,6 +29,7 @@ def ram(dout, din, addr, we, clk, depth=128):
     return logic
         
 
+@block
 def ram_clocked(dout, din, addr, we, clk, depth=128):
     """ Ram model """
     
@@ -43,6 +45,7 @@ def ram_clocked(dout, din, addr, we, clk, depth=128):
             
     return access
 
+@block
 def ram_deco1(dout, din, addr, we, clk, depth=128):
     """  Ram model """
     
@@ -61,6 +64,7 @@ def ram_deco1(dout, din, addr, we, clk, depth=128):
         
     return write, read
 
+@block
 def ram_deco2(dout, din, addr, we, clk, depth=128):
     """  Ram model """
     
@@ -79,6 +83,7 @@ def ram_deco2(dout, din, addr, we, clk, depth=128):
 
 
 
+@block
 def ram2(dout, din, addr, we, clk, depth=128):
         
     # memL = [intbv(0,min=dout._min,max=dout._max) for i in range(depth)]
@@ -100,6 +105,7 @@ def ram2(dout, din, addr, we, clk, depth=128):
     return wrLogic, rdLogic
 
   
+@block
 def ram_v(name, dout, din, addr, we, clk, depth=4):
     return setupCosimulation(**locals())
 
@@ -114,8 +120,7 @@ class TestMemory(TestCase):
         we = Signal(bool(0))
         clk = Signal(bool(0))
 
-        # mem_inst = ram(dout, din, addr, we, clk, depth)
-        mem_inst = toVerilog(ram, dout, din, addr, we, clk, depth)
+        mem_inst = ram(dout, din, addr, we, clk, depth).convert(hdl='Verilog')
         mem_v_inst = ram_v(ram.__name__, dout_v, din, addr, we, clk, depth)
 
         def stimulus():

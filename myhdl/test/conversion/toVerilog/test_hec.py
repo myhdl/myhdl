@@ -59,6 +59,7 @@ def calculateHecTask(hec, header):
     h ^= COSET
     hec[:] = h
 
+@block
 def HecCalculatorPlain(hec, header):
     """ Hec calculation module.
 
@@ -80,6 +81,7 @@ def HecCalculatorPlain(hec, header):
             hec.next = h ^ COSET
     return logic
 
+@block
 def HecCalculatorFunc(hec, header=1):
     """ Hec calculation module.
 
@@ -93,6 +95,7 @@ def HecCalculatorFunc(hec, header=1):
             hec.next = calculateHecFunc(header=header)
     return logic
 
+@block
 def HecCalculatorTask(hec, header):
     """ Hec calculation module.
 
@@ -107,6 +110,7 @@ def HecCalculatorTask(hec, header):
             hec.next = h
     return logic
         
+@block
 def HecCalculatorTask2(hec, header):
     """ Hec calculation module.
 
@@ -123,6 +127,7 @@ def HecCalculatorTask2(hec, header):
 
          
         
+@block
 def HecCalculator_v(name, hec, header):
     return setupCosimulation(**locals())
 
@@ -143,7 +148,7 @@ class TestHec(unittest.TestCase):
         hec_v = Signal(intbv(0)[8:])
         header = Signal(intbv(-1)[32:])
 
-        heccalc_inst = toVerilog(HecCalculator, hec, header)
+        heccalc_inst = HecCalculator(hec, header).convert(hdl='Verilog')
         # heccalc_inst = HecCalculator(hec, header)
         heccalc_v_inst = HecCalculator_v(HecCalculator.__name__, hec_v, header)
  

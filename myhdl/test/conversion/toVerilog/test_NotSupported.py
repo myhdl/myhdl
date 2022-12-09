@@ -11,20 +11,20 @@ class TestNotSupported(unittest.TestCase):
 
     def check(self, *args):
         try:
-            i = toVerilog(*args)
+            args[0](*args[1:]).convert(hdl='Verilog')
         except ConversionError as e:
             self.assertEqual(e.kind, _error.NotSupported)
-        except:
-            self.fail()
-        else:
-            self.fail()
+        except Exception as e:
+            raise e
 
     def nocheck(self, *args):
-        i = toVerilog(*args)
-
+        args[0](*args[1:]).convert(hdl='Verilog')
+    
     def testAssList(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -33,11 +33,14 @@ class TestNotSupported(unittest.TestCase):
                     z.next = 1
                     [p, q] = 1, 2
             return logic
+        
         self.check(g, z, a)
 
     def testAssTuple(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -51,6 +54,8 @@ class TestNotSupported(unittest.TestCase):
     def testClass(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -66,6 +71,8 @@ class TestNotSupported(unittest.TestCase):
     def testDict(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -79,6 +86,8 @@ class TestNotSupported(unittest.TestCase):
     def testDiv(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -91,6 +100,8 @@ class TestNotSupported(unittest.TestCase):
     def testFrom(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -104,6 +115,8 @@ class TestNotSupported(unittest.TestCase):
     def testFunction(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -118,6 +131,8 @@ class TestNotSupported(unittest.TestCase):
     def testGlobal(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -131,6 +146,8 @@ class TestNotSupported(unittest.TestCase):
     def testImport(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -144,6 +161,8 @@ class TestNotSupported(unittest.TestCase):
     def testLambda(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -157,6 +176,8 @@ class TestNotSupported(unittest.TestCase):
     def testListCompIf(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -170,6 +191,8 @@ class TestNotSupported(unittest.TestCase):
     def testList(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -202,6 +225,8 @@ class TestNotSupported(unittest.TestCase):
     def testTryExcept(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -218,6 +243,8 @@ class TestNotSupported(unittest.TestCase):
     def testTryFinally(self):
         a = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a):
             @instance
             def logic():
@@ -234,6 +261,8 @@ class TestNotSupported(unittest.TestCase):
     def testChainedCompare(self):
         a, b, c = [Signal(bool()) for i in range(3)]
         z = Signal(bool())
+        
+        @block
         def g(z, a, b, c):
             @instance
             def logic():
@@ -271,6 +300,8 @@ class TestNotSupported(unittest.TestCase):
         a = Signal(bool())
         b = intbv(0)[2:]
         z = Signal(bool())
+        
+        @block
         def g(z, a, b):
             @instance
             def logic():
@@ -288,6 +319,8 @@ class TestNotSupported(unittest.TestCase):
         b = intbv(0)[2:]
         c = Signal(bool())
         z = Signal(bool())
+        
+        @block
         def g(z, a, b):
             @instance
             def logic():
@@ -303,28 +336,37 @@ class TestNotSupported(unittest.TestCase):
     def testExtraArguments(self):
         a, b, c = [Signal(bool()) for i in range(3)]
         c = [1, 2]
+        
         def g(a, *args):
             return a
+        
+        @block
         def f(a, b, c, *args):
             @instance
             def logic():
                 g(a, b)
                 yield a
             return logic
+        
         self.check(f, a, b, c)
 
     def testExtraPositionalArgsInCall(self):
         a, b, c = [Signal(bool()) for i in range(3)]
         c = [1]
         d = {'b':2}
+        
         def h(b):
             return b
+        
+        @block
         def g(a):
             @instance
             def logic():
                 h(*c)
                 yield a
             return logic
+        
+        @block
         def f(a, b, c):
             return g(a)
         x = self.check(f, a, b, c)
@@ -333,14 +375,19 @@ class TestNotSupported(unittest.TestCase):
         a, b, c = [Signal(bool()) for i in range(3)]
         c = [1]
         d = {'b':2}
+        
         def h(b):
             return b
+        
+        @block
         def g(a):
             @instance
             def logic():
                 h(**d)
                 yield a
             return logic
+        
+        @block
         def f(a, b, c):
             return g(a)
         x = self.check(f, a, b, c)
@@ -354,21 +401,20 @@ class TestMisc(unittest.TestCase):
         d = {'a':2}
         def h(b):
             return b
+        
+        @block
         def g(a):
             @instance
             def logic():
                 h(a)
                 yield a
             return logic
+        
+        # b and c are not being used
+        @block
         def f(a, b, c):
             return g(a)
         f(a, b, c)
-        x = toVerilog(f, a, b, c)
-
-
-
-
-if __name__ == '__main__':
-    unittest.main()
+        x = f(a, b, c).convert(hdl='Verilog')
 
 

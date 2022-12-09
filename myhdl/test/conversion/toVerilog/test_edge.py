@@ -13,6 +13,7 @@ from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+@block
 def edge1(flag, sig, clock):
 
     sig_Z1 = Signal(bool(0))
@@ -26,6 +27,7 @@ def edge1(flag, sig, clock):
 
     return detect
 
+@block
 def edge2(flag, sig, clock):
 
     sig_Z1 = Signal(bool(0))
@@ -37,7 +39,7 @@ def edge2(flag, sig, clock):
 
     return detect
 
-
+@block
 def edge3(flag, sig, clock):
 
     @instance
@@ -51,6 +53,7 @@ def edge3(flag, sig, clock):
     return detect
 
 
+@block
 def edge4(flag, sig, clock):
 
     @instance
@@ -64,6 +67,7 @@ def edge4(flag, sig, clock):
     return detect
 
     
+@block
 def edge_v(name, flag, sig, clock):
     return setupCosimulation(**locals())
 
@@ -100,7 +104,7 @@ class TestEdge(TestCase):
             expected = sig_Z1 and not sig_Z2
             self.assertEqual(flag, expected)
 
-        edge_inst = toVerilog(edge, flag, sig, clock)
+        edge_inst = edge(flag, sig, clock).convert(hdl='Verilog')
         edge_inst_v = edge_v(edge.__name__, flag, sig, clock)
 
         return clockgen, stimulus, delayline, check, edge_inst_v

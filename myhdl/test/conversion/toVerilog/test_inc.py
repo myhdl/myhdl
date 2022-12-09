@@ -13,6 +13,7 @@ from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+@block
 def incRef(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -33,6 +34,7 @@ def incRef(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return logic
                 
+@block
 def inc(count, enable, clock, reset, n):
     
     """ Incrementer with enable.
@@ -55,6 +57,7 @@ def inc(count, enable, clock, reset, n):
                 
     return incProcess
 
+@block
 def inc2(count, enable, clock, reset, n):
     
     @always(clock.posedge, reset.negedge)
@@ -70,6 +73,7 @@ def inc2(count, enable, clock, reset, n):
     return incProcess
     
 
+@block
 def incTask(count, enable, clock, reset, n):
     
     def incTaskFunc(cnt, enable, reset, n):
@@ -91,7 +95,7 @@ def incTask(count, enable, clock, reset, n):
 
     return incTaskGen
 
-
+@block
 def incTaskFreeVar(count, enable, clock, reset, n):
     
     def incTaskFunc():
@@ -109,6 +113,7 @@ def incTaskFreeVar(count, enable, clock, reset, n):
     return incTaskGen
 
       
+@block
 def inc_v(name, count, enable, clock, reset):
     return setupCosimulation(**locals())
 
@@ -158,7 +163,7 @@ class TestInc(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
 
         inc_inst_ref = incRef(count, enable, clock, reset, n=n)
-        inc_inst = toVerilog(inc, count, enable, clock, reset, n=n)
+        inc_inst = inc(count, enable, clock, reset, n=n).convert(hdl='Verilog')
         # inc_inst = inc(count, enable, clock, reset, n=n)
         inc_inst_v = inc_v(inc.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)
@@ -190,9 +195,6 @@ class TestInc(TestCase):
     def testIncTaskFreeVar(self):
         sim = self.bench(incTaskFreeVar)
         sim.run(quiet=1)
-
-if __name__ == '__main__':
-    unittest.main()
 
 
             
