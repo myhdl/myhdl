@@ -56,3 +56,19 @@ def testOldAnalyze():
         pass
     except Exception as e:
         raise e
+
+def testOldToVHDL():
+    try:
+        toVHDL(bin2grayBench, width=8, bin2gray=bin2gray)
+    except DeprecationWarning as e:
+        pass
+    except Exception as e:
+        raise e
+
+def testOldToVerilog():
+    try:
+        toVerilog(bin2grayBench, width=8, bin2gray=bin2gray)
+    except DeprecationWarning as e:
+        pass
+    except Exception as e:
+        raise e
