@@ -7,6 +7,13 @@ on:
     - cron: '0 1 * * 0'
 jobs:
   run_lint:
+    strategy:
+      fail-fast: false # So that one fail doesn't stop remaining tests
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}      
+    
+    steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
