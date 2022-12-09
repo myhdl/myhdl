@@ -42,7 +42,17 @@ def bin2grayBench(width, bin2gray):
     return stimulus, bin2gray_inst
 
 def testOldVerify():
-    conversion.verify(bin2grayBench, width=8, bin2gray=bin2gray)
+    try:
+        conversion.verify(bin2grayBench, width=8, bin2gray=bin2gray)
+    except DeprecationWarning as e:
+        pass
+    except Exception as e:
+        raise e
 
 def testOldAnalyze():
-    conversion.analyze(bin2grayBench, width=8, bin2gray=bin2gray)
+    try:
+        conversion.analyze(bin2grayBench, width=8, bin2gray=bin2gray)
+    except DeprecationWarning as e:
+        pass
+    except Exception as e:
+        raise e
