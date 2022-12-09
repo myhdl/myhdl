@@ -20,6 +20,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --upgrade -r requirements.txt
       - name: Run lint
+        continue-on-error: true
         run: |
           pyflakes myhdl
  
@@ -39,7 +40,7 @@ jobs:
         os: [ubuntu-latest]
         target: [core, iverilog, ghdl]
     runs-on: ${{ matrix.os }}
-    needs: [build_ghdl, build_iverilog]
+    needs: [run_lint, build_ghdl, build_iverilog]
 
     env:
       CI_TARGET: ${{ matrix.target }}
