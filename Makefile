@@ -23,7 +23,7 @@ release:
 	python setup.py sdist 
 
 clean:
-	rm -rf *.vhd *.v *.o *.log *.hex
+	rm -rf *.vhd *.v *.o *.log *.hex work/
 
 core:
 	echo -e "\n${ANSI_CYAN}running test: $@ ${ANSI_RESET}"
