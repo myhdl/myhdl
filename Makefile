@@ -25,6 +25,11 @@ release:
 clean:
 	rm -rf *.vhd *.v *.o *.log *.hex work/ cosimulation/icarus/myhdl.vpi
 
+lint:
+	pyflakes myhdl/
+
+black:
+	black myhdl/
 core:
 	@echo -e "\n${ANSI_CYAN}running test: $@ ${ANSI_RESET}"
 	pytest ./myhdl/test/core ${PYTEST_OPTS}
