@@ -61,4 +61,4 @@ jobs:
           sudo apt install gnat
       - name: Run Tests
         run: |
-          ./scripts/ci.sh
+          make ${CI_TARGET}
