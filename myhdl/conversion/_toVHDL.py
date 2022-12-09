@@ -166,7 +166,10 @@ class _ToVHDLConvertor(object):
                 _converting = 0
         else:
             warnings.warn(
-                "\n    toVHDL(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+                "\n    toVHDL(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html",
+                stacklevel=2,
+                category=DeprecationWarning,
+            )
             try:
                 h = _HierExtr(name, func, *args, **kwargs)
             finally:
