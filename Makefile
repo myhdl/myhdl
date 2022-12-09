@@ -23,7 +23,7 @@ release:
 	python setup.py sdist 
 
 clean:
-	rm -rf *.vhd *.v *.o *.log *.hex work/
+	rm -rf *.vhd *.v *.o *.log *.hex work/ cosimulation/icarus/myhdl.vpi
 
 core:
 	@echo -e "\n${ANSI_CYAN}running test: $@ ${ANSI_RESET}"
