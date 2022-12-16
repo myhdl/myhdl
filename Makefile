@@ -19,7 +19,7 @@ livedocs:
 release:
 	rm -rf MANIFEST 
 	rm -rf CHANGELOG.txt
-	hg glog > CHANGELOG.txt
+	#hg glog > CHANGELOG.txt
 	python setup.py sdist 
 
 clean:
