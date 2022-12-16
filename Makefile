@@ -1,4 +1,4 @@
-PYTEST_OPTS ?= -W error::DeprecationWarning -W error::pytest.PytestWarning
+PYTEST_OPTS ?= 
 ANSI_RED=`tput setaf 1`
 ANSI_GREEN=`tput setaf 2`
 ANSI_CYAN=`tput setaf 6`
@@ -66,4 +66,4 @@ ghdl:
 	@echo -e "\n${ANSI_CYAN}running test: $@ ${ANSI_RESET}"
 	pytest ./myhdl/test/conversion/general ./myhdl/test/conversion/toVHDL ./myhdl/test/bugs --sim ghdl ${PYTEST_OPTS}
 
-test: core iverilog ghdl
+pytest: core iverilog ghdl
