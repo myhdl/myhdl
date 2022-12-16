@@ -84,6 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build_code]
     steps:
+      - uses: actions/checkout@v3
       - name: Make PyPi dist release
         run: make release
       - name: Publish Python distribution to PyPI
