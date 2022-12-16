@@ -20,22 +20,22 @@ def bin2gray_depr(B, G, width):
 
     return logic
 
-width = 8
-B = Signal(intbv(0)[width:])
-G = Signal(intbv(0)[width:])
+width = 1
+BB = Signal(intbv(0)[width:])
+GG = Signal(intbv(0)[width:])
 
 def testOldVerify():
     with pytest.deprecated_call():
-        conversion.verify(bin2gray_depr, width, B, G)
+        conversion.verify(bin2gray_depr, width, BB, GG)
 
 def testOldAnalyze():
     with pytest.deprecated_call():
-        conversion.analyze(bin2gray_depr, width, B, G)
+        conversion.analyze(bin2gray_depr, width, BB, GG)
 
 def testOldToVHDL():
     with pytest.deprecated_call():
-        toVHDL(bin2gray_depr, width, B, G)
+        toVHDL(bin2gray_depr, width, BB, GG)
 
 def testOldToVerilog():
     with pytest.deprecated_call():
-        toVerilog(bin2gray_depr, width, B, G)
+        toVerilog(bin2gray_depr, width, BB, GG)
