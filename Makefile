@@ -1,4 +1,7 @@
 PYTEST_OPTS ?= 
+TAG ?=`grep __version__ myhdl/__init__.py | grep -oe '\([0-9.]*\)'`
+MSG ?= "Release ${TAG}"
+VERSION_FILE := myhdl/__init__.py
 ANSI_RED=`tput setaf 1`
 ANSI_GREEN=`tput setaf 2`
 ANSI_CYAN=`tput setaf 6`
@@ -16,11 +19,20 @@ docs:
 livedocs:
 	tox -e docs livehtml
 
-release:
+dist:
 	rm -rf MANIFEST 
 	rm -rf CHANGELOG.txt
 	#hg glog > CHANGELOG.txt
-	python setup.py sdist 
+	python setup.py sdist
+
+release:
+	@echo "Preparing ${TAG}"
+	@rm -rf ${VERSION_FILE}
+	@git checkout -qf ${VERSION_FILE}
+	@sed -i "s|__version__ = \"[0-9.]\+\"|__version__ = \"${TAG}\"|g" ${VERSION_FILE}
+	git commit -m 
+	git tag -a ${TAG} -m "${MSG}"
+	git push && git push --tags
 
 clean:
 	rm -rf *.vhd *.v *.o *.log *.hex work/ cosimulation/icarus/myhdl.vpi
