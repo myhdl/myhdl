@@ -1,6 +1,6 @@
 PYTEST_OPTS ?= 
 TAG ?=`grep __version__ myhdl/__init__.py | grep -oe '\([0-9.]*\)'`
-MSG ?= "Release ${TAG}"
+MSG ?= "Release $${TAG}"
 VERSION_FILE := myhdl/__init__.py
 ANSI_RED=`tput setaf 1`
 ANSI_GREEN=`tput setaf 2`
@@ -30,7 +30,7 @@ release:
 	@rm -rf ${VERSION_FILE}
 	@git checkout -qf ${VERSION_FILE}
 	@sed -i "s|__version__ = \"[0-9.]\+\"|__version__ = \"${TAG}\"|g" ${VERSION_FILE}
-	git commit -m "${MSG}"
+	git commit -m "${MSG}"  ${VERSION_FILE}
 	git tag -a ${TAG} -m "${MSG}"
 	git push && git push --tags
 
