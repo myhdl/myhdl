@@ -33,6 +33,10 @@ for base, dir, files in os.walk('cosimulation'):
         if good:
             cosim_data[base].extend(os.path.join(base, f) for f in good)
 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 setup(
     name="myhdl",
     version=version,
