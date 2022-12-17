@@ -27,8 +27,6 @@ dist:
 
 release:
 	@echo "Preparing ${TAG} - Message - ${MSG}"
-	@rm -rf ${VERSION_FILE}
-	@git checkout -qf ${VERSION_FILE}
 	@sed -i "s|__version__ = \"[0-9.]\+\"|__version__ = \"${TAG}\"|g" ${VERSION_FILE}
 	git commit --allow-empty -m ${MSG} ${VERSION_FILE}
 	git tag -a ${TAG} -m ${MSG}
