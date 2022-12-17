@@ -13,7 +13,8 @@ from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-def GrayInc(graycnt, enable, clock, reset, width):
+@block
+def GrayInc_0(graycnt, enable, clock, reset, width):
     
     bincnt = Signal(intbv(0)[width:])
     
@@ -22,12 +23,12 @@ def GrayInc(graycnt, enable, clock, reset, width):
     
     return inc_1, bin2gray_1
 
-
-def GrayIncReg(graycnt, enable, clock, reset, width):
+@block
+def GrayIncReg_0(graycnt, enable, clock, reset, width):
     
     graycnt_comb = Signal(intbv(0)[width:])
     
-    gray_inc_1 = GrayInc(graycnt_comb, enable, clock, reset, width)
+    gray_inc_1 = GrayInc_0(graycnt_comb, enable, clock, reset, width)
 
     @always(clock.posedge)
     def reg_1():
@@ -75,25 +76,19 @@ class TestGrayInc(unittest.TestCase):
             self.assertEqual(graycnt, graycnt_v)
                 
     def bench(self):
-        gray_inc_reg_1 = toVerilog(GrayIncReg, graycnt, enable, clock, reset, width)
-        gray_inc_reg_v = GrayIncReg_v(GrayIncReg.__name__, graycnt_v, enable, clock, reset, width)
+        gray_inc_reg_1 = GrayIncReg_0(graycnt, enable, clock, reset, width).convert(hdl='Verilog')
+        gray_inc_reg_v = GrayIncReg_v(GrayIncReg_0.__name__, graycnt_v, enable, clock, reset, width)
         clk_1 = self.clockGen()
         st_1 = self.stimulus()
         ch_1 = self.check()
         sim = Simulation(gray_inc_reg_1, gray_inc_reg_v, clk_1, st_1, ch_1)
         return sim
 
-    def test(self):
+    def test_grayinc(self):
         """ Check gray inc operation """
         sim = self.bench()
         sim.run(quiet=1)
         
-
-          
-if __name__ == '__main__':
-    unittest.main()
-
-
             
             
 

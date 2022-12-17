@@ -8,6 +8,7 @@ from myhdl.conversion import verify, analyze
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
+@block
 def ForLoopError1(a, out):
     @instance
     def logic():
@@ -20,7 +21,7 @@ def ForLoopError1(a, out):
             out.next = var
     return logic
 
-
+@block
 def LoopBench(LoopTest):
 
     a = Signal(intbv(-1)[16:])
@@ -41,7 +42,7 @@ def LoopBench(LoopTest):
 
 def testForLoopError1():
     try:
-        analyze(LoopBench, ForLoopError1)
+        LoopBench(ForLoopError1).analyze_convert()
     except ConversionError as e:
         assert e.kind == _error.Requirement
     else:

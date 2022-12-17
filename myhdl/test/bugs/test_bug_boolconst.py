@@ -6,6 +6,7 @@ INT_CONDITION_1 = 1
 BOOL_CONDITION_0 = False 
 BOOL_CONDITION_1 = True 
 
+@block
 def bug_boolconst(sigin, sigout):
 
     @always_comb
@@ -34,6 +35,6 @@ def test_bug_boolconst():
     sigin = Signal(bool())
     sigout = Signal(bool())
 
-    assert conversion.analyze(bug_boolconst, sigin, sigout) == 0
+    assert bug_boolconst(sigin, sigout).analyze_convert() == 0
 
 

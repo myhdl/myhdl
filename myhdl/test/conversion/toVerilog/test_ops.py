@@ -11,7 +11,7 @@ from myhdl import *
 
 from .util import setupCosimulation
 
-
+@block
 def binaryOps(
               Bitand,
               Bitor,
@@ -67,6 +67,7 @@ def binaryOps(
 
 
 
+@block
 def binaryOps_v(name,
                 Bitand,
                 Bitor,
@@ -126,7 +127,7 @@ class TestBinaryOps(TestCase):
         And, Or = [Signal(bool()) for i in range(2)]
         And_v, Or_v, = [Signal(bool()) for i in range(2)]
 
-        binops = toVerilog(binaryOps,
+        binops = binaryOps(
                            Bitand,
                            Bitor,
                            Bitxor,
@@ -146,7 +147,8 @@ class TestBinaryOps(TestCase):
                            GE,
                            And,
                            Or,
-                           left, right)
+                           left, 
+                           right).convert(hdl='Verilog')
         binops_v = binaryOps_v(binaryOps.__name__,
                                Bitand_v,
                                Bitor_v,
@@ -219,6 +221,7 @@ class TestBinaryOps(TestCase):
                 
 
 
+@block
 def multiOps(
               Bitand,
               Bitor,
@@ -238,6 +241,7 @@ def multiOps(
     return logic
 
 
+@block
 def multiOps_v( name,
                 Bitand,
                 Bitor,
@@ -268,13 +272,15 @@ class TestMultiOps(TestCase):
         And, Or = [Signal(bool()) for i in range(2)]
         And_v, Or_v, = [Signal(bool()) for i in range(2)]
 
-        multiops = toVerilog(multiOps,
+        multiops = multiOps(
                            Bitand,
                            Bitor,
                            Bitxor,
                            And,
                            Or,
-                           argm, argn, argp)
+                           argm, 
+                           argn, 
+                           argp).convert(hdl='Verilog')
         multiops_v = multiOps_v(multiOps.__name__,
                                 Bitand_v,
                                 Bitor_v,
@@ -324,6 +330,7 @@ class TestMultiOps(TestCase):
 
 
 
+@block
 def unaryOps(
              Not,
              Invert,
@@ -340,6 +347,7 @@ def unaryOps(
             UnarySub.next = --arg
     return logic
 
+@block
 def unaryOps_v(name,
                Not,
                Invert,
@@ -366,12 +374,12 @@ class TestUnaryOps(TestCase):
         UnarySub = Signal(intbv(0)[m:])
         UnarySub_v = Signal(intbv(0)[m:])
 
-        unaryops = toVerilog(unaryOps,
+        unaryops = unaryOps(
                              Not,
                              Invert,
                              UnaryAdd,
                              UnarySub,
-                             arg)
+                             arg).convert(hdl='Verilog')
         unaryops_v = unaryOps_v(unaryOps.__name__,
                                 Not_v,
                                 Invert_v,
@@ -405,6 +413,7 @@ class TestUnaryOps(TestCase):
             Simulation(sim).run()
 
 
+@block
 def augmOps(
               Bitand,
               Bitor,
@@ -459,6 +468,7 @@ def augmOps(
     return logic
 
 
+@block
 def augmOps_v(  name,
                 Bitand,
                 Bitor,
@@ -503,7 +513,7 @@ class TestAugmOps(TestCase):
         Sum = Signal(intbv(0)[max(m, n)+1:])
         Sum_v = Signal(intbv(0)[max(m, n)+1:])
 
-        augmops = toVerilog(augmOps,
+        augmops = augmOps(
                            Bitand,
                            Bitor,
                            Bitxor,
@@ -514,7 +524,7 @@ class TestAugmOps(TestCase):
                            RightShift,
                            Sub,
                            Sum,
-                           left, right)
+                           left, right).convert(hdl='Verilog')
         augmops_v = augmOps_v( augmOps.__name__,
                                Bitand_v,
                                Bitor_v,

@@ -1,13 +1,13 @@
 import os
-# import pytest
-path = os.path
+import pytest
 import unittest
 
-from myhdl import (always_comb, TristateSignal, Signal, toVerilog, instance, delay,
+from myhdl import (always_comb, TristateSignal, Signal, block, instance, delay,
                    instances, StopSimulation, Simulation)
 from .util import setupCosimulation
 
 
+@block
 def tristate_obuf(A, Y, OE):
     '''three-state output buffer'''
 
@@ -30,7 +30,7 @@ class OBuf(object):
     def interface(self):
         return self.A, self.Y, self.OE
 
-
+@block
 def tristate_obuf_i(obuf):
     '''three-state output buffer, using interface'''
 
@@ -53,17 +53,15 @@ class TestTristate(unittest.TestCase):
 
     def bench(self, obuf=None):
         if obuf:
-            toVerilog(tristate_obuf_i, obuf)
+            tristate_obuf_i(obuf).convert(hdl='Verilog')
             A, Y, OE = obuf.interface()
-            inst = setupCosimulation(name='tristate_obuf_i', **toVerilog.portmap)
+            inst = setupCosimulation(name='tristate_obuf_i', A=A, Y=Y, OE=OE)
         else:
             Y = TristateSignal(True)
             A = Signal(True)
             OE = Signal(False)
-            toVerilog(tristate_obuf, A, Y, OE)
-            inst = setupCosimulation(name='tristate_obuf', **toVerilog.portmap)
-
-        # inst = tristate_obuf(A, Y, OE)
+            tristate_obuf(A, Y, OE).convert(hdl='Verilog')
+            inst = setupCosimulation(name='tristate_obuf', A=A, Y=Y, OE=OE)
 
         @instance
         def stimulus():
@@ -90,12 +88,12 @@ class TestTristate(unittest.TestCase):
 
         return instances()
 
+    @pytest.mark.xfail
     def testOBuf(self):
-        print(os.getcwd())
         sim = Simulation(self.bench())
         sim.run()
 
-# #     @pytest.xfail
+    @pytest.mark.xfail
     def testOBufInterface(self):
         obuf = OBuf()
         sim = Simulation(self.bench(obuf))

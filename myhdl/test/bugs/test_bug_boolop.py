@@ -1,7 +1,8 @@
 import myhdl
 from myhdl import *
 
-def gray_counter (clk, reset, enable, gray_count):
+@block
+def gray_counter_bug_boolop (clk, reset, enable, gray_count):
 
     q = Signal(intbv(0)[10:])
     no_ones_below = Signal(intbv(0)[10:])
@@ -33,7 +34,7 @@ gray_count = Signal(intbv(0)[8:])
 
 def test_bug_boolop():
     try:
-        toVerilog(gray_counter, clk, reset, enable, gray_count)
-        toVHDL(gray_counter, clk, reset, enable, gray_count)
+        gray_counter_bug_boolop(clk, reset, enable, gray_count).convert(hdl='Verilog')
+        gray_counter_bug_boolop(clk, reset, enable, gray_count).convert(hdl='VHDL')
     except:
         assert False

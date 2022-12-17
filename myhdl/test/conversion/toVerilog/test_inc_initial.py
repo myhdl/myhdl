@@ -13,6 +13,7 @@ from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+@block
 def inc_initial(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -36,7 +37,9 @@ def inc_initial(count, enable, clock, reset, n):
 
 objfile = "inc_initial_1.o"
 analyze_cmd = "iverilog -o %s inc_initial_1.v tb_inc_initial_1.v" % objfile
-simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
+vpifile = "../../../cosimulation/icarus/myhdl.vpi"
+#vpifile = "cosimulation/icarus/myhdl.vpi"
+simulate_cmd = "vvp -m %s %s" % (vpifile, objfile)
       
  
 def top(name, count, enable, clock, reset, n, arch="myhdl"):
@@ -88,8 +91,8 @@ class TestInc_initial(TestCase):
         count_v = Signal(intbv(0)[m:])
         enable, clock, reset = [Signal(bool()) for i in range(3)]
 
-        inc_initial_1 = toVerilog(top, top.__name__, count, enable, clock, reset, n=n)
-        inc_initial_v = top(top.__name__, count_v, enable, clock, reset, n=n, arch='verilog')
+        inc_initial_1 = top(top.__name__, count, enable, clock, reset, n=n).convert(hdl='Verilog')
+        inc_initial_v = top(top.__name__, count_v, enable, clock, reset, n=n).convert(hdl='Verilog')
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

@@ -13,6 +13,7 @@ from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+@block
 def behRef(count, enable, clock, reset, n):
 
     @instance
@@ -81,7 +82,7 @@ class TestBeh(TestCase):
         enable = Signal(bool(0))
         clock, reset = [Signal(bool()) for i in range(2)]
 
-        beh_inst = toVerilog(beh, count, enable, clock, reset, n=n)
+        beh_inst = beh(count, enable, clock, reset, n=n).convert(hdl='Verilog')
         # beh_inst = beh(count, enable, clock, reset, n=n)
         beh_inst_v = beh_v(beh.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)

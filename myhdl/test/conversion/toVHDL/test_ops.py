@@ -10,6 +10,7 @@ from myhdl.conversion import verify
 
 NRTESTS = 10
 
+@block
 def binaryOps(
               Bitand,
               Bitor,
@@ -69,7 +70,7 @@ def binaryOps(
             Boolor.next = bool(left) or bool(right)
     return logic
 
-
+@block
 def binaryBench(m, n):
 
     M = 2**m
@@ -173,17 +174,12 @@ def binaryBench(m, n):
 
     return binops, stimulus, check
 
-def checkBinary(m, n):
-    assert verify(binaryBench, m, n) == 0
-
 def testBinary():
     for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
     # for m, n in ((2, 6),):
-        yield checkBinary, m, n
+        assert binaryBench(m, n).verify_convert() == 0
 
-
-
-
+@block
 def multiOps(
               Bitand,
               Bitor,
@@ -204,6 +200,7 @@ def multiOps(
 
 
 
+@block
 def multiBench(m, n, p):
 
     M = 2**m
@@ -265,14 +262,11 @@ def multiBench(m, n, p):
 
     return multiops, stimulus, check
 
-def checkMultiOps(m, n, p):
-    assert verify(multiBench, m, n, p) == 0
-
 def testMultiOps():
     for m, n, p in ((4, 4, 4,), (5, 3, 2), (3, 4, 6), (3, 7, 4)):
-        yield checkMultiOps, m, n, p
+        assert multiBench(m, n, p).verify_convert() == 0
 
-
+@block
 def unaryOps(
              Not_kw,
              Invert,
@@ -290,6 +284,7 @@ def unaryOps(
             # UnarySub.next = --arg
     return logic
 
+@block
 def unaryBench(m):
 
     M = 2**m
@@ -327,14 +322,11 @@ def unaryBench(m):
 
     return unaryops, stimulus, check
 
-def checkUnaryOps(m):
-    assert verify(unaryBench, m) == 0
-    
 def testUnaryOps():
     for m in (4, 7):
-        yield checkUnaryOps, m
+        assert unaryBench(m).verify_convert() == 0
 
-
+@block
 def augmOps(  Bitand,
               Bitor,
               Bitxor,
@@ -392,11 +384,8 @@ def augmOps(  Bitand,
             var >>= right
             RightShift.next = var
     return logic
-
-
-        
-
-
+    
+@block
 def augmBench(m, n):
 
     M = 2**m
@@ -470,11 +459,7 @@ def augmBench(m, n):
             
     return augmops, stimulus, check
 
-
-def checkAugmOps(m, n):
-    assert verify(augmBench, m, n) == 0
-
 def testAugmOps():
     for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
-        yield checkAugmOps, m, n
+        assert augmBench(m, n).verify_convert() == 0
 

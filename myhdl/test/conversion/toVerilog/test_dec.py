@@ -13,6 +13,7 @@ from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+@block
 def decRef(count, enable, clock, reset, n):
     """ Decrementer with enable.
     
@@ -35,7 +36,8 @@ def decRef(count, enable, clock, reset, n):
                     else:
                         count.next = count - 1
     return logic
-                
+
+@block                
 def dec(count, enable, clock, reset, n):
     """ Decrementer with enable.
     
@@ -59,7 +61,7 @@ def dec(count, enable, clock, reset, n):
                         count.next = count - 1
     return decProcess
 
-
+@block
 def decFunc(count, enable, clock, reset, n):
 
     def decFuncFunc(cnt):
@@ -80,7 +82,7 @@ def decFunc(count, enable, clock, reset, n):
 
     return decFuncGen
 
-
+@block
 def decTask(count, enable, clock, reset, n):
     
     def decTaskFunc(cnt, enable, reset, n):
@@ -105,7 +107,7 @@ def decTask(count, enable, clock, reset, n):
 
     return decTaskGen
 
-
+@block
 def decTaskFreeVar(count, enable, clock, reset, n):
     
     def decTaskFunc():
@@ -181,7 +183,7 @@ class TestDec(TestCase):
         clock, reset = [Signal(bool()) for i in range(2)]
 
         dec_inst_ref = decRef(count, enable, clock, reset, n=n)
-        dec_inst = toVerilog(dec, count, enable, clock, reset, n=n)
+        dec_inst = dec(count, enable, clock, reset, n=n).convert(hdl='Verilog')
         # dec_inst = dec(count, enable, clock, reset, n=n)
         dec_inst_v = dec_v(dec.__name__, count_v, enable, clock, reset)
         clk_1 = self.clockGen(clock)

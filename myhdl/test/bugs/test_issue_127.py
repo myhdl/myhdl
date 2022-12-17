@@ -7,7 +7,7 @@ from random import randrange
 
 from myhdl import Signal, intbv, \
   always_comb, instance, \
-  delay, toVHDL, StopSimulation
+  delay, StopSimulation, block
 
 
 ASCENDING = True
@@ -15,7 +15,7 @@ DESCENDING = False
 
 
 # modules
-
+@block
 def compare(a_1, a_2, z_1, z_2, direction):
   """ Combinatorial circuit with two input and two output signals.
       Sorting to 'direction'. """
@@ -32,7 +32,7 @@ def compare(a_1, a_2, z_1, z_2, direction):
 
   return logic
 
-
+@block
 def feedthru(in_a, out_z):
   """ Equivalent of 'doing nothing'. """
 
@@ -43,7 +43,7 @@ def feedthru(in_a, out_z):
 
   return logic
 
-
+@block
 def bitonic_merge(list_a, list_z, direction):
   """ bitonicMerge:
       Generates the output from the input list of signals.
@@ -66,7 +66,7 @@ def bitonic_merge(list_a, list_z, direction):
     feed = feedthru(list_a[0], list_z[0])
     return feed
 
-
+@block
 def bitonic_sort(list_a, list_z, direction):
   """ bitonicSort:
       Produces a bitonic sequence.
@@ -89,8 +89,8 @@ def bitonic_sort(list_a, list_z, direction):
 
 
 # tests
-
-def array8sorter(a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7,
+@block
+def array8sorter_127(a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7,
                  z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7):
   ''' Sort Array with 8 values '''
 
@@ -116,7 +116,7 @@ class TestBitonicSort(unittest.TestCase):
       z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7 = outputs
       a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7 = inputs
 
-      inst = array8sorter(a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7,
+      inst = array8sorter_127(a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7,
                           z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7)
 
       @instance
@@ -142,5 +142,5 @@ def test_issue_127():
   length = 8
   width  = 4
   sigs = [Signal(intbv(0)[width:]) for _ in range(2*length)]
-  toVHDL(array8sorter, *sigs)
+  array8sorter_127(*sigs).convert(hdl='VHDL')
 

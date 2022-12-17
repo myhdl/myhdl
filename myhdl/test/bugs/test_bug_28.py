@@ -1,6 +1,7 @@
 import myhdl
 from myhdl import *
 
+@block
 def bug_28(dout, channel):
     @always_comb
     def comb():
@@ -12,6 +13,6 @@ channel = Signal(intbv(0)[4:0])
 
 def test_bug_28():
     try:
-        toVHDL(bug_28, dout, channel)
+        bug_28(dout, channel).convert(hdl='VHDL')
     except:
         raise

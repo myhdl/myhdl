@@ -11,6 +11,7 @@ from .util import setupCosimulation
 ### test of constant wire support ###
 
 # example from Frank Palazollo
+@block
 def or_gate(a,b,c):
     @instance
     def logic():
@@ -19,12 +20,14 @@ def or_gate(a,b,c):
             yield a, b
     return logic
         
+@block
 def my_bundle(p,q):
         r = Signal(bool(0))
         gen_or = or_gate(p,r,q)
         return instances()
 
 # additional level of hierarchy
+@block        
 def ConstWire2(p, q):
     r = Signal(bool(1))
     s = Signal(bool(1))
@@ -32,6 +35,7 @@ def ConstWire2(p, q):
     inst2 = or_gate(r, s, q)
     return inst1, inst2
 
+@block
 def adder(a, b, c):
     @instance
     def logic():
@@ -40,12 +44,14 @@ def adder(a, b, c):
             c.next = a + b
     return logic
 
+@block        
 def ConstWire3(p, q):
     t = Signal(intbv(17)[5:])
     adder_inst = adder(p, t, q)
     return instances()
 
         
+@block        
 def ConstWire_v(name, p, q):
     return setupCosimulation(**locals())
 
@@ -57,7 +63,7 @@ class TestConstWires(unittest.TestCase):
         q = Signal(bool(0))
         q_v = Signal(bool(0))
 
-        constwire_inst = toVerilog(ConstWire, p, q)
+        constwire_inst = ConstWire(p, q).convert(hdl='Verilog')
         constwire_v_inst = ConstWire_v(ConstWire.__name__, p, q_v)
 
         def stimulus():
@@ -82,7 +88,7 @@ class TestConstWires(unittest.TestCase):
         q = Signal(intbv(0)[8:])
         q_v = Signal(intbv(0)[8:])
 
-        constwire_inst = toVerilog(ConstWire, p, q)
+        constwire_inst = ConstWire(p, q).convert(hdl='Verilog')
         constwire_v_inst = ConstWire_v(ConstWire.__name__, p, q_v)
 
         def stimulus():
@@ -100,6 +106,7 @@ class TestConstWires(unittest.TestCase):
 
 ### tests of code ignore facility during translation ###
 
+@block        
 def adderRef(a, b, c):
     @instance
     def logic():
@@ -107,7 +114,8 @@ def adderRef(a, b, c):
             yield a, b
             c.next = a + b
     return logic
-        
+
+@block        
 def adderDebug(a, b, c):
     @instance
     def logic():
@@ -131,8 +139,7 @@ class TestIgnoreCode(unittest.TestCase):
         c = Signal(intbv(0)[9:])
         c_v = Signal(intbv(0)[9:])
 
-        ignorecode_inst = toVerilog(adder, a, b, c)
-        # ignorecode_inst = adder(a, b, c)
+        ignorecode_inst = adder(a, b, c).convert(hdl='Verilog')
         ignorecode_v_inst = Ignorecode_v(adder.__name__, a, b, c_v)
 
         def stimulus():

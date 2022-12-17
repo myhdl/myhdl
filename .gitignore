@@ -37,3 +37,7 @@ myhdl/**/*.vhd
 # Pycharm ide junk
 .idea/
 /.pytest_cache/
+
+*.hex
+*.vhd
+*.v
