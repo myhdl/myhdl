@@ -30,7 +30,7 @@ release:
 	@rm -rf ${VERSION_FILE}
 	@git checkout -qf ${VERSION_FILE}
 	@sed -i "s|__version__ = \"[0-9.]\+\"|__version__ = \"${TAG}\"|g" ${VERSION_FILE}
-	git commit -m ${MSG} ${VERSION_FILE}
+	git commit -q -m ${MSG} ${VERSION_FILE}
 	git tag -a ${TAG} -m "${MSG}"
 	git push && git push --tags
 
