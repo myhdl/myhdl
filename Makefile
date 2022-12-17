@@ -1,6 +1,6 @@
 PYTEST_OPTS ?= 
 TAG ?=`grep __version__ myhdl/__init__.py | grep -oe '\([0-9.]*\)'`
-MSG ?= "Release $${TAG}"
+MSG ?= "Release "${TAG}
 VERSION_FILE := myhdl/__init__.py
 ANSI_RED=`tput setaf 1`
 ANSI_GREEN=`tput setaf 2`
