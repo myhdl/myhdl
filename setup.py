@@ -33,11 +33,16 @@ for base, dir, files in os.walk('cosimulation'):
         if good:
             cosim_data[base].extend(os.path.join(base, f) for f in good)
 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 setup(
     name="myhdl",
     version=version,
     description="Python as a Hardware Description Language",
-    long_description="See home page.",
+    long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     author="Jan Decaluwe",
     author_email="jan@jandecaluwe.com",
     url="http://www.myhdl.org",
