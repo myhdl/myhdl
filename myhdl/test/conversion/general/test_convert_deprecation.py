@@ -39,3 +39,10 @@ def testOldToVHDL():
 def testOldToVerilog():
     with pytest.deprecated_call():
         toVerilog(bin2gray_depr, width, BB, GG)
+
+def testOldToTraceSignals():
+    with pytest.deprecated_call():
+        vcd = traceSignals(bin2gray_depr, width, BB, GG)
+        sim = Simulation(vcd)
+        sim.run(20)
+
