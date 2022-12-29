@@ -3,6 +3,7 @@
 import myhdl
 from myhdl import *
 
+@block
 def bug_43(sigin, sigout):
 
     @always_comb
@@ -20,6 +21,6 @@ def test_bug_43():
     sigin = Signal(intbv(0)[4:])
     sigout = Signal(intbv(0)[4:])
 
-    assert conversion.analyze(bug_43, sigin, sigout) == 0
+    assert bug_43(sigin, sigout).analyze_convert() == 0
 
 

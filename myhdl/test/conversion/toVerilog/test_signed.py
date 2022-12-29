@@ -12,6 +12,7 @@ from myhdl import *
 from .util import setupCosimulation
 
 
+@block
 def binaryOps(
 ##                 Bitand,
 ##               Bitor,
@@ -72,6 +73,7 @@ def binaryOps(
     return logic
 
 
+@block
 def binaryOps_v(name,
 ##                Bitand,
 ##                 Bitor,
@@ -130,7 +132,7 @@ class TestBinaryOps(TestCase):
         And, Or = [Signal(bool()) for i in range(2)]
         And_v, Or_v, = [Signal(bool()) for i in range(2)]
 
-        binops = toVerilog(binaryOps,
+        binops = binaryOps(
 ##                            Bitand,
 ##                            Bitor,
 ##                            Bitxor,
@@ -150,7 +152,7 @@ class TestBinaryOps(TestCase):
                            GE,
                            And,
                            Or,
-                           left, right, bit)
+                           left, right, bit).convert(hdl='Verilog')
         binops_v = binaryOps_v(binaryOps.__name__,
 ##                                Bitand_v,
 ##                                Bitor_v,
@@ -245,6 +247,7 @@ class TestBinaryOps(TestCase):
 
 
             
+@block
 def unaryOps(
              Not,
              Invert,
@@ -290,12 +293,12 @@ class TestUnaryOps(TestCase):
         UnarySub = Signal(intbv(0, min=-M, max=+M))
         UnarySub_v = Signal(intbv(0, min=-M, max=+M))
 
-        unaryops = toVerilog(unaryOps,
+        unaryops = unaryOps(
                              Not,
                              Invert,
                              UnaryAdd,
                              UnarySub,
-                             arg)
+                             arg).convert(hdl='Verilog')
         unaryops_v = unaryOps_v(unaryOps.__name__,
                                 Not_v,
                                 Invert_v,
@@ -329,6 +332,7 @@ class TestUnaryOps(TestCase):
             Simulation(sim).run()
 
 
+@block
 def augmOps(
 ##               Bitand,
 ##               Bitor,
@@ -387,7 +391,7 @@ def augmOps(
 
     return logic
 
-
+@block
 def augmOps_v(  name,
 ##                 Bitand,
 ##                 Bitor,
@@ -437,7 +441,7 @@ class TestAugmOps(TestCase):
         Sum = Signal(intbv(0, min=-M, max=+M))
         Sum_v = Signal(intbv(0, min=-M, max=+M))
 
-        augmops = toVerilog(augmOps,
+        augmops = augmOps(
 ##                            Bitand,
 ##                            Bitor,
 ##                            Bitxor,
@@ -448,7 +452,8 @@ class TestAugmOps(TestCase):
                            RightShift,
                            Sub,
                            Sum,
-                           left, right)
+                           left, 
+                           right).convert(hdl='Verilog')
         augmops_v = augmOps_v( augmOps.__name__,
 ##                                Bitand_v,
 ##                                Bitor_v,
@@ -504,7 +509,7 @@ class TestAugmOps(TestCase):
             sim = self.augmBench(Ll, Ml, Lr, Mr)
             Simulation(sim).run()
 
-
+@block
 def expressions(a, b, clk):
 
     c = Signal(intbv(0, min=0, max=47))
@@ -553,21 +558,23 @@ def expressions(a, b, clk):
         raise StopSimulation
 
     return logic
-        
+
+@block       
 def expressions_v(a, b, clk):
    return setupCosimulation(**locals())
         
 
 class TestExpressions(TestCase):
 
+    @block
     def bench(self):
         
         a, a_v = [Signal(intbv(0, min=-34, max=47)) for i in range(2)]
         b, b_v = [Signal(intbv(0, min=0, max=47)) for i in range(2)]
         clk = Signal(bool())
         
-        expr = toVerilog(expressions, a, b, clk)
-        expr_v = toVerilog(expressions, a_v, b_v, clk)
+        expr = expressions(a, b, clk).convert(hdl='Verilog')
+        expr_v = expressions(a_v, b_v, clk).convert(hdl='Verilog')
 
         @instance
         def check():

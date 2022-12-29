@@ -111,7 +111,10 @@ class _TraceSignalsClass(object):
                 h = _getHierarchy(name, dut)
             else:
                 warnings.warn(
-                    "\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", stacklevel=2)
+                    "\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", 
+                    category=DeprecationWarning,
+                    stacklevel=2,
+                    )
                 h = _HierExtr(name, dut, *args, **kwargs)
 
             if self.filename is None:

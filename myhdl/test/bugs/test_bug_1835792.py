@@ -7,11 +7,10 @@ random.seed(2)
 
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify
-
 
 ACTIVE_LOW, INACTIVE_HIGH = bool(0), bool(1)
 
+@block
 def bug_1835792 ():
     """ Semicolon conversion
 
@@ -28,5 +27,5 @@ def bug_1835792 ():
 
 
 def test_bug_1835792 ():  
-    assert verify(bug_1835792) == 0
+    assert bug_1835792().verify_convert() == 0
     

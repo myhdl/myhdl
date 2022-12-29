@@ -8,8 +8,8 @@ import sys
 
 from collections import defaultdict
 
-if sys.version_info < (3, 4):
-    raise RuntimeError("Python version 3.4+ required.")
+if sys.version_info < (3, 7):
+    raise RuntimeError("Python version 3.7+ required.")
 
 
 # Prefer setuptools over distutils
@@ -33,11 +33,16 @@ for base, dir, files in os.walk('cosimulation'):
         if good:
             cosim_data[base].extend(os.path.join(base, f) for f in good)
 
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 setup(
     name="myhdl",
     version=version,
     description="Python as a Hardware Description Language",
-    long_description="See home page.",
+    long_description=read('README.md'),
+    long_description_content_type='text/markdown',
     author="Jan Decaluwe",
     author_email="jan@jandecaluwe.com",
     url="http://www.myhdl.org",
@@ -46,7 +51,7 @@ setup(
     license="LGPL",
     platforms='any',
     keywords="HDL ASIC FPGA hardware design",
-    python_requires='>=3.4',
+    python_requires='>=3.7',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -55,10 +60,10 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3 :: Only',
     ]
 )

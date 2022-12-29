@@ -1,10 +1,9 @@
-#!/usr/bin/python2.7-32
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Failed VHDL code example
 """
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify
 
 def unsigned(width, value=0, cls=intbv):
     """Create an unsigned signal based on a bitvector with the
@@ -22,6 +21,7 @@ def signed(width, value=0, cls=intbv):
 flags = unsigned(4)
 position = signed(28)
 
+@block
 def Logic(flags, position):
 
     conc = unsigned(32)
@@ -37,4 +37,4 @@ def Logic(flags, position):
     return doit
 
 def test_issue_10_2():
-    assert verify(Logic, flags, position) == 0
+    assert Logic(flags, position).verify_convert() == 0

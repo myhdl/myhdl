@@ -1,7 +1,7 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import analyze
 
+@block
 def bug_3577799 (
         clk,
         reset_clk,
@@ -33,4 +33,4 @@ wr = Signal(bool(0))
 rd_data = Signal(intbv(0)[16:])
 
 def test_bug_3577799():
-    assert analyze(bug_3577799, clk, reset_clk, wr_data, wr, rd_data) == 0
+    assert bug_3577799(clk, reset_clk, wr_data, wr, rd_data).analyze_convert() == 0

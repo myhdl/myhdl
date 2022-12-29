@@ -12,6 +12,7 @@ from .util import setupCosimulation
 
 b = c = 2
 
+@block
 def UnboundError1(a, out):
     @instance
     def logic():
@@ -21,6 +22,7 @@ def UnboundError1(a, out):
             b = 1
     return logic
 
+@block
 def UnboundError2(a, out):
     @instance
     def logic():
@@ -32,6 +34,7 @@ def UnboundError2(a, out):
                 out.next = c
     return logic
 
+@block
 def UnboundError3(a, out):
     @instance
     def logic():
@@ -41,6 +44,7 @@ def UnboundError3(a, out):
             d = 1
     return logic
 
+@block
 def UnboundError4(a, out):
     @instance
     def logic():
@@ -52,6 +56,7 @@ def UnboundError4(a, out):
                 out.next = e
     return logic
 
+@block
 def InferError1(a, out):
     @instance
     def logic():
@@ -62,6 +67,7 @@ def InferError1(a, out):
         out.next = b
     return logic
     
+@block
 def InferError2(a, out):
     @instance
     def logic():
@@ -75,6 +81,7 @@ def InferError2(a, out):
 
 enumType = enum("a", "b", "c")
 
+@block
 def InferError3(a, out):
     @instance
     def logic():
@@ -84,6 +91,7 @@ def InferError3(a, out):
         out.next = b
     return logic
 
+@block
 def InferError4(a, out):
     @instance
     def logic():
@@ -99,6 +107,7 @@ def InferError5Func(a):
     else:
         return 1
 
+@block
 def InferError5(a, out):
     @instance
     def logic():
@@ -112,6 +121,7 @@ def InferError6Func(a):
     else:
         return intbv(1)
 
+@block
 def InferError6(a, out):
     @instance
     def logic():
@@ -125,6 +135,7 @@ def InferError7Func(a):
     else:
         return intbv(0xff)[7:2]
 
+@block
 def InferError7(a, out):
     @instance
     def logic():
@@ -151,7 +162,7 @@ class TestErrors(unittest.TestCase):
         out_v = Signal(intbv(0)[16:])
         out = Signal(intbv(0)[16:])
         try:
-            infertest_inst = toVerilog(Infertest, a, out)
+            infertest_inst = Infertest(a, out).convert(hdl='Verilog')
         except ConversionError as e:
             self.assertEqual(e.kind, err)
         except:
@@ -163,7 +174,7 @@ class TestErrors(unittest.TestCase):
         a = Signal(intbv(-1)[16:])
         out_v = Signal(intbv(0)[16:])
         out = Signal(intbv(0)[16:])
-        infertest_inst = toVerilog(Infertest, a, out)
+        infertest_inst = Infertest(a, out).convert(hdl='Verilog')
 
 
     def testUnboundError1(self):
@@ -200,7 +211,7 @@ class TestErrors(unittest.TestCase):
         sim = self.nocheck(InferError7, _error.ReturnIntbvBitWidth)
         
 
-
+@block
 def Infer1(a, out):
     @instance
     def logic():
@@ -214,7 +225,8 @@ def Infer1(a, out):
             c = True
             out.next = c
     return logic
-    
+
+@block    
 def Infer2(a, out):
     @instance
     def logic():
@@ -235,6 +247,7 @@ def Infer3Func(a):
     else:
         return 5
 
+@block
 def Infer3(a, out):
     @instance
     def logic():
@@ -250,6 +263,7 @@ def Infer4Func(a):
         else:
             return a < 3
 
+@block
 def Infer4(a, out):
     @instance
     def logic():
@@ -258,6 +272,7 @@ def Infer4(a, out):
             out.next = Infer4Func(a)
     return logic
 
+@block
 def Infer5(a, out):
     @instance
     def logic():
@@ -294,7 +309,7 @@ class TestInfer(unittest.TestCase):
         out_v = Signal(intbv(0)[16:])
         out = Signal(intbv(0)[16:])
 
-        infertest_inst = toVerilog(Infertest, a, out)
+        infertest_inst = Infertest(a, out).convert(hdl='Verilog')
         # infertest_inst = Infertest(hec, header)
         infertest_v_inst = Infertest_v(Infertest.__name__, a, out_v)
  

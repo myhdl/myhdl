@@ -13,7 +13,7 @@ from myhdl.conversion._misc import _error
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
-
+@block
 def freeVarTypeError(count, enable, clock, reset, n):
     cnt = intbv(0)[8:]
     def incTaskFunc():
@@ -29,6 +29,7 @@ def freeVarTypeError(count, enable, clock, reset, n):
                 incTaskFunc()
     return incTaskGen
 
+@block
 def multipleDrivenSignal(count, enable, clock, reset, n):
     @instance
     def incTaskGen():
@@ -41,6 +42,7 @@ def multipleDrivenSignal(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return incTaskGen, incTaskGen
 
+@block
 def shadowingSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0)[8:])
     @instance
@@ -54,6 +56,7 @@ def shadowingSignal(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return incTaskGen
 
+@block
 def internalSignal(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -67,6 +70,7 @@ def internalSignal(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
     return logic
 
+@block
 def undefinedBitWidthSignal(count, enable, clock, reset, n):
     count = Signal(intbv(0))
     @instance
@@ -81,7 +85,7 @@ def undefinedBitWidthSignal(count, enable, clock, reset, n):
     return incTaskGen
                 
 
-
+@block
 def yieldObject1(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -99,6 +103,7 @@ def g1(clock):
 def g2(reset):
         yield reset.negedge
       
+@block
 def yieldObject2(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -129,6 +134,7 @@ def f3(n):
     else:
         return f2(n-1)
       
+@block
 def recursion1(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -141,6 +147,7 @@ def recursion1(count, enable, clock, reset, n):
                     count.next = f1(n)
     return logic
                 
+@block
 def recursion2(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -157,6 +164,7 @@ def h1(n):
     pass
     # return None
 
+@block
 def functionNoReturnVal(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -173,6 +181,7 @@ def h2(cnt):
     cnt[:] = cnt + 1
     return 1
 
+@block
 def taskReturnVal(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -188,6 +197,7 @@ def taskReturnVal(count, enable, clock, reset, n):
     return logic
 
 
+@block
 def listComp1(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -197,6 +207,7 @@ def listComp1(count, enable, clock, reset, n):
             count.next = count + 1
     return logic
 
+@block
 def listComp2(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -206,6 +217,7 @@ def listComp2(count, enable, clock, reset, n):
             count.next = count + 1
     return logic
 
+@block
 def listComp3(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -215,6 +227,7 @@ def listComp3(count, enable, clock, reset, n):
             count.next = count + 1
     return logic
         
+@block
 def listComp4(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -224,6 +237,7 @@ def listComp4(count, enable, clock, reset, n):
             count.next = count + 1
     return logic
 
+@block
 def listComp5(count, enable, clock, reset, n):
     @instance
     def logic():
@@ -233,6 +247,7 @@ def listComp5(count, enable, clock, reset, n):
             count.next = count + 1
     return logic
 
+@block
 def undefinedBitWidthMem(count, enable, clock, reset, n):
     mem = [Signal(intbv(0)[8:]) for i in range(8)]
     mem[7] = Signal(intbv(0))
@@ -243,6 +258,7 @@ def undefinedBitWidthMem(count, enable, clock, reset, n):
             count.next = mem[0] + 1
     return f
 
+@block
 def inconsistentTypeMem(count, enable, clock, reset, n):
     mem = [Signal(intbv(0)[8:]) for i in range(8)]
     mem[3] = Signal(bool())
@@ -253,6 +269,7 @@ def inconsistentTypeMem(count, enable, clock, reset, n):
             count.next = mem[0] + 1
     return f
 
+@block
 def inconsistentBitWidthMem(count, enable, clock, reset, n):
     mem = [Signal(intbv(0)[8:]) for i in range(8)]
     mem[4] = Signal(intbv(0)[7:])
@@ -319,7 +336,7 @@ class TestErr(TestCase):
         enable = Signal(bool(0))
         clock, reset = [Signal(bool()) for i in range(2)]
 
-        err_inst = toVerilog(err, count, enable, clock, reset, n=n)
+        err_inst = err(count, enable, clock, reset, n=n).convert(hdl='Verilog')
         clk_1 = self.clockGen(clock)
         st_1 = self.stimulus(enable, clock, reset)
         ch_1 = self.check(count, count_v, enable, clock, reset, n=n)

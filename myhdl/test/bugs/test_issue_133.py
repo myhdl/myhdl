@@ -1,7 +1,7 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify 
 
+@block
 def issue_133():
     z = Signal(False)
     large_signal = Signal(intbv(123456789123456, min=0, max=2**256))
@@ -16,4 +16,4 @@ def issue_133():
     return check 
 
 def test_issue_133():
-    assert verify(issue_133) == 0
+    issue_133().verify_convert() == 0

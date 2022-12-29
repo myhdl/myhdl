@@ -10,6 +10,7 @@ from myhdl.conversion import verify
 
 NRTESTS = 10
 
+@block
 def binaryOps(
     Bitand,
 ##               Bitor,
@@ -71,7 +72,7 @@ def binaryOps(
     return logic
 
 
-
+@block
 def binaryBench(Ll, Ml, Lr, Mr):
 
     seqL = []
@@ -186,9 +187,6 @@ def binaryBench(Ll, Ml, Lr, Mr):
     return binops, stimulus, check
     
 
-def checkBinaryOps( Ll, Ml, Lr, Mr):
-    assert verify(binaryBench, Ll, Ml, Lr, Mr ) == 0
-
 def testBinaryOps():
     for Ll, Ml, Lr, Mr in (
                             (-254, 236, 0, 4),
@@ -199,12 +197,9 @@ def testBinaryOps():
                             (-54, -20, 45, 73),
                             (-25, -12, -123, -66),
                            ):
-        yield checkBinaryOps, Ll, Ml, Lr, Mr
+        assert binaryBench(Ll, Ml, Lr, Mr ).verify_convert() == 0
 
-
-
-
-            
+@block            
 def unaryOps(
              BoolNot,
              Invert,
@@ -221,10 +216,7 @@ def unaryOps(
             UnarySub.next = --arg
     return logic
 
-
-
-            
-
+@block
 def unaryBench( m):
 
     M = 2**m
@@ -263,18 +255,13 @@ def unaryBench( m):
                              
     return unaryops, stimulus, check
 
-
-def checkUnaryOps(m):
-    assert verify(unaryBench, m) == 0
-    
-
 def testUnaryOps():
     for m in (4, 7):
-        yield checkUnaryOps, m
+        assert unaryBench(m).verify_convert() == 0
 
 
 
-
+@block
 def augmOps(
 ##               Bitand,
 ##               Bitor,
@@ -338,7 +325,7 @@ def augmOps(
     return logic
 
 
-
+@block
 def augmBench( Ll, Ml, Lr, Mr):
     
     M = 2**17
@@ -425,9 +412,9 @@ def testAugmOps():
                             (-54, -20, 45, 73),
                             (-25, -12, -123, -66),
                            ):
-        yield checkAugmOps, Ll, Ml, Lr, Mr
+        assert augmBench(Ll, Ml, Lr, Mr).verify_convert() == 0
 
-
+@block
 def expressions(a, b, clk):
 
     c = Signal(intbv(0, min=0, max=47))
@@ -477,7 +464,7 @@ def expressions(a, b, clk):
     return logic
         
 
-
+@block
 def expressionsBench():
 
     a = Signal(intbv(0, min=-34, max=47))
@@ -504,7 +491,7 @@ def expressionsBench():
 
 
 def testExpressions():
-    assert verify(expressionsBench) == 0
+    assert expressionsBench().verify_convert() == 0
 
 
 

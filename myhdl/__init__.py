@@ -49,7 +49,7 @@ traceSignals -- function that enables signal tracing in a VCD file
 toVerilog -- function that converts a design to Verilog
 
 """
-__version__ = "0.11"
+__version__ = "0.11.42"
 
 
 class StopSimulation(Exception):

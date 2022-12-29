@@ -1,0 +1,62 @@
+
+name: Setup Iverilog
+
+on: 
+  workflow_call:
+    inputs:
+      githash:
+        description: "Allow a githash/tag/branch to be passed as an input"
+        required: false
+        type: string
+    outputs:
+      cache_dir:
+        description: "The Cache Directory"
+        value: ${{ jobs.build.outputs.output0 }}
+      cache_key:
+        description: "The Cache Key"
+        value: ${{ jobs.build.outputs.output1 }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      output0 : ${{ steps.step0.outputs.cache_dir }}
+      output1 : ${{ steps.step1.outputs.cache_key }}
+    steps:
+      - name: Test for GITHASH input
+        if: ${{ inputs.githash != '' }}
+        run: |
+          echo "GITHEAD=${{ inputs.githash }}" >> $GITHUB_ENV
+      - name: Setup Icarus 
+        run: |
+          export GITPATH=https://github.com/steveicarus/iverilog.git
+          if [ -z ${GITHEAD+x} ]; then
+            export GITHEAD=`git ls-remote $GITPATH HEAD | head -1 | awk '{print $1}'`
+            echo "GITHEAD=${GITHEAD}" >> $GITHUB_ENV
+          fi
+          echo "GITPATH=${GITPATH}" >> $GITHUB_ENV
+          echo "CACHE_DIR=${{ github.workspace }}/.cache/iverilog" >> $GITHUB_ENV
+          echo "CACHE_KEY=iverilog-${GITHEAD}" >> $GITHUB_ENV
+      - name: Cache Environment
+        id: git-cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.CACHE_DIR }}
+          key: ${{ env.CACHE_KEY }}
+      - if: ${{ steps.git-cache.outputs.cache-hit != 'true' }}
+        name: Compile Icarus 
+        run: |
+          mkdir -p ${{ env.CACHE_DIR }}
+          git clone ${{ env.GITPATH }}
+          cd iverilog
+          git checkout ${{ env.GITHEAD }}
+          sudo apt install -y build-essential gperf flex bison
+          autoconf
+          ./configure --prefix=${{ env.CACHE_DIR }}
+          make -j$(nproc)
+          sudo make install
+          cd ..
+      - id: step0
+        run: echo "cache_dir=${{ env.CACHE_DIR }}" >> $GITHUB_OUTPUT
+      - id: step1
+        run: echo "cache_key=${{ env.CACHE_KEY }}" >> $GITHUB_OUTPUT

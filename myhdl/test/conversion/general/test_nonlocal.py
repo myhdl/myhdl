@@ -5,6 +5,7 @@ import myhdl
 from myhdl import *
 
 
+@block
 def NonlocalBench():
 
     ALL_ONES = 2**7-1
@@ -60,5 +61,5 @@ def NonlocalBench():
 
 
 def test_nonlocal():
-    assert conversion.verify(NonlocalBench) == 0
+    assert NonlocalBench().verify_convert() == 0
 

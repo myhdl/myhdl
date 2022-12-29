@@ -3,7 +3,8 @@
 import myhdl
 from myhdl import *
 
-def module(sigin, sigout):
+@block
+def module_42(sigin, sigout):
 
     # Using @always(sigin) only warns, but using @always_comp breaks.
     # The reason is that len(sigout) is interpreted as sigout being used as
@@ -19,5 +20,5 @@ sigin = Signal(intbv(0)[2:])
 sigout = Signal(intbv(0)[2:])
 
 def test_bug_42():
-    toVHDL(module, sigin, sigout)
+    module_42(sigin, sigout).convert(hdl='VHDL')
 

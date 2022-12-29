@@ -1,7 +1,7 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import analyze
 
+@block
 def issue_18(dout, din, addr, we, clk, depth=128):
     """  Ram model """
     
@@ -28,5 +28,5 @@ clk = Signal(bool(0))
 
 def test_issue_18():
     toVHDL.std_logic_ports = True
-    assert analyze(issue_18, dout, din, addr, we, clk) == 0
+    assert issue_18(dout, din, addr, we, clk).analyze_convert() == 0
 

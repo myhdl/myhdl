@@ -14,6 +14,7 @@ D = 256
 ROM = tuple([randrange(D) for i in range(D)])
 # ROM = [randrange(256) for i in range(256)]
 
+@block
 def rom1(dout, addr, clk):
 
     @instance
@@ -24,6 +25,7 @@ def rom1(dout, addr, clk):
 
     return rdLogic
 
+@block
 def rom2(dout, addr, clk):
     
     theROM = ROM
@@ -37,6 +39,7 @@ def rom2(dout, addr, clk):
     return rdLogic
 
 
+@block
 def rom3(dout, addr, clk):
 
     @instance
@@ -49,6 +52,7 @@ def rom3(dout, addr, clk):
 
     return rdLogic
 
+@block
 def rom4(dout, addr, clk):
 
     @always_comb
@@ -57,7 +61,7 @@ def rom4(dout, addr, clk):
 
     return read
 
-      
+@block
 def rom_v(name, dout, addr, clk):
     return setupCosimulation(**locals())
 
@@ -70,8 +74,7 @@ class TestRom(TestCase):
         addr = Signal(intbv(1)[8:])
         clk = Signal(bool(0))
 
-        # rom_inst = rom(dout, din, addr, we, clk, depth)
-        rom_inst = toVerilog(rom, dout, addr, clk)
+        rom_inst = rom(dout, addr, clk).convert(hdl='Verilog')
         rom_v_inst = rom_v(rom.__name__, dout_v, addr, clk)
 
         def stimulus():

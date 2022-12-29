@@ -1,14 +1,15 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify 
+from myhdl import ConversionError
+from myhdl.conversion._misc import _error
 
+@block
 def issue_122(dout, i):
 
     d = i*10+1
 
     @instance
     def write():
-        # dout[i].next = int(i)        
         dout[i].next = i        
         yield delay(d)
         print(int(dout[i]))
@@ -26,5 +27,9 @@ def tb_issue_122():
     return inst
 
 def test_issue_122():
-    assert verify(tb_issue_122) == 0
-
+    try:
+        tb_issue_122().verify_convert()
+    except ConversionError as e:
+        assert e.kind == _error.ListAsPort
+    else:
+        assert False

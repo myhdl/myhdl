@@ -1,7 +1,7 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify
 
+@block
 def dut():
 
     rx = Signal(intbv(0, min=-512, max=512))
@@ -31,6 +31,6 @@ def dut():
     return logic, check
 
 def test_bug_39():
-    assert verify(dut) == 0
+    assert dut().verify_convert() == 0
 
 

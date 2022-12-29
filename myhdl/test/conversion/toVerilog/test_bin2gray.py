@@ -8,6 +8,7 @@ from myhdl import *
 
 from .util import setupCosimulation
 
+@block
 def bin2gray2(B, G, width):
     """ Gray encoder.
 
@@ -25,6 +26,7 @@ def bin2gray2(B, G, width):
                 G.next[i] = Bext[i+1] ^ Bext[i]
     return logic
 
+@block
 def bin2gray(B, G, width):
     
     """ Gray encoder.
@@ -49,13 +51,14 @@ objfile = "bin2gray.o"
 analyze_cmd = "iverilog -o %s bin2gray_inst.v tb_bin2gray_inst.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
       
- 
+@block
 def bin2gray_v(B, G):
     if path.exists(objfile):
         os.remove(objfile)
     os.system(analyze_cmd)
     return Cosimulation(simulate_cmd, **locals())
 
+@block
 def bin2gray_v(name, B, G):
     return setupCosimulation(**locals())
 
@@ -68,7 +71,7 @@ class TestBin2Gray(TestCase):
         G = Signal(intbv(0)[width:])
         G_v = Signal(intbv(0)[width:])
 
-        bin2gray_inst = toVerilog(bin2gray, B, G, width)
+        bin2gray_inst = bin2gray(B, G, width).convert(hdl='Verilog')
         # bin2gray_inst = bin2gray(B, G, width)
         bin2gray_v_inst = bin2gray_v(bin2gray.__name__, B, G_v)
 

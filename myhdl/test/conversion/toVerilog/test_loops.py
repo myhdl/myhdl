@@ -9,6 +9,7 @@ from myhdl import *
 
 from .util import setupCosimulation
 
+@block
 def ForLoop1(a, out):
     @instance
     def logic():
@@ -21,6 +22,7 @@ def ForLoop1(a, out):
             out.next = var
     return logic
 
+@block
 def ForLoop2(a, out):
     @instance
     def logic():
@@ -33,6 +35,7 @@ def ForLoop2(a, out):
             out.next = var
     return logic
 
+@block
 def ForLoop3(a, out):
     @instance
     def logic():
@@ -45,6 +48,7 @@ def ForLoop3(a, out):
             out.next = var
     return logic
         
+@block
 def ForLoop4(a, out):
     @instance
     def logic():
@@ -57,6 +61,7 @@ def ForLoop4(a, out):
             out.next = var
     return logic
 
+@block
 def ForLoop5(a, out):
     @instance
     def logic():
@@ -69,6 +74,7 @@ def ForLoop5(a, out):
             out.next = var
     return logic
 
+@block
 def ForLoop6(a, out):
     @instance
     def logic():
@@ -81,6 +87,7 @@ def ForLoop6(a, out):
             out.next = var
     return logic
 
+@block
 def ForContinueLoop(a, out):
     @instance
     def logic():
@@ -94,6 +101,7 @@ def ForContinueLoop(a, out):
             out.next = var
     return logic
 
+@block
 def ForBreakLoop(a, out):
     @instance
     def logic():
@@ -106,6 +114,7 @@ def ForBreakLoop(a, out):
                     break
     return logic
 
+@block
 def ForBreakContinueLoop(a, out):
     @instance
     def logic():
@@ -119,6 +128,7 @@ def ForBreakContinueLoop(a, out):
                 break
     return logic
 
+@block
 def NestedForLoop1(a, out):
     @instance
     def logic():
@@ -136,6 +146,7 @@ def NestedForLoop1(a, out):
             out.next = var
     return logic
 
+@block
 def NestedForLoop2(a, out):
     @instance
     def logic():
@@ -162,6 +173,7 @@ def ReturnFromFunction(a):
                 return i
        return 0
 
+@block
 def FunctionCall(a, out):
     @instance
     def logic():
@@ -180,6 +192,7 @@ def ReturnFromTask(a, out):
             return
     out[:] = 23 # to notice it
 
+@block
 def TaskCall(a, out):
     @instance
     def logic():
@@ -190,6 +203,7 @@ def TaskCall(a, out):
             out.next = var
     return logic
 
+@block
 def WhileLoop(a, out):
     @instance
     def logic():
@@ -205,6 +219,7 @@ def WhileLoop(a, out):
     return logic
 
 
+@block
 def WhileContinueLoop(a, out):
     @instance
     def logic():
@@ -221,6 +236,7 @@ def WhileContinueLoop(a, out):
             out.next = var
     return logic
         
+@block
 def WhileBreakLoop(a, out):
     @instance
     def logic():
@@ -236,6 +252,7 @@ def WhileBreakLoop(a, out):
                 i -= 1
     return logic
     
+@block
 def WhileBreakContinueLoop(a, out):
     @instance
     def logic():
@@ -253,6 +270,7 @@ def WhileBreakContinueLoop(a, out):
     return logic
     
         
+@block
 def LoopTest_v(name, a, out):
     return setupCosimulation(**locals())
 
@@ -264,7 +282,7 @@ class TestLoops(unittest.TestCase):
         out_v = Signal(intbv(0)[16:])
         out = Signal(intbv(0)[16:])
 
-        looptest_inst = toVerilog(LoopTest, a, out)
+        looptest_inst = LoopTest(a, out).convert(hdl='Verilog')
         # looptest_inst = LoopTest(hec, header)
         looptest_v_inst = LoopTest_v(LoopTest.__name__, a, out_v)
  

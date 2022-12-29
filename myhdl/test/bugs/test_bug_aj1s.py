@@ -1,7 +1,7 @@
 import myhdl
 from myhdl import *
-from myhdl.conversion import verify
 
+@block
 def dut():
 
     count = Signal(intbv(0, min=0, max=98))
@@ -21,5 +21,5 @@ def dut():
 
 
 def test_bug_aj1s():
-    assert verify(dut) == 0
+    assert dut().verify_convert() == 0
 
