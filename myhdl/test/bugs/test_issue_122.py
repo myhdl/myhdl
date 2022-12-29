@@ -1,5 +1,4 @@
-import myhdl
-from myhdl import *
+from myhdl import block, instance, delay, Signal, intbv
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
@@ -22,14 +21,16 @@ def issue_122(dout, i):
                 
 def tb_issue_122():
     n = 7
-    dout = [Signal(intbv(0, min=0, max=n+1)) for i in range(n+1)]
+    dout = [Signal(intbv(0, min=0, max=n+1)) for __ in range(n+1)]
     inst = issue_122(dout, n)
     return inst
 
 def test_issue_122():
-    try:
-        tb_issue_122().verify_convert()
-    except ConversionError as e:
-        assert e.kind == _error.ListAsPort
-    else:
-        assert False
+    # try:
+    #     tb_issue_122().verify_convert()
+    # except ConversionError as e:
+    #     assert e.kind == _error.ListAsPort
+    # else:
+    #     assert False
+    assert tb_issue_122().verify_convert() == 0
+
