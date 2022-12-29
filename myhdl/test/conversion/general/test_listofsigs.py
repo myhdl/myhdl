@@ -344,27 +344,27 @@ def test_sigInMultipleLists():
     else:
         assert False
 
-# list of signals as port
-
-@block
-def my_register(clk, inp, outp):
-    @always(clk.posedge)
-    def my_register_impl():
-        for index in range(len(inp)):
-            outp[index].next = inp[index]
-    return my_register_impl
-
-def test_listAsPort():
-    count = 3
-    clk = Signal(False)
-    inp = [Signal(intbv(0)[8:0]) for index in range(count)]
-    outp = [Signal(intbv(0)[8:0]) for index in range(count)]
-    try:
-        inst = conversion.analyze(my_register(clk, inp, outp))
-    except ConversionError as e:
-        assert e.kind == _error.ListAsPort
-    else:
-        assert False
+# # list of signals as port
+#
+# @block
+# def my_register(clk, inp, outp):
+#     @always(clk.posedge)
+#     def my_register_impl():
+#         for index in range(len(inp)):
+#             outp[index].next = inp[index]
+#     return my_register_impl
+#
+# def test_listAsPort():
+#     count = 3
+#     clk = Signal(False)
+#     inp = [Signal(intbv(0)[8:0]) for index in range(count)]
+#     outp = [Signal(intbv(0)[8:0]) for index in range(count)]
+#     try:
+#         inst = conversion.analyze(my_register(clk, inp, outp))
+#     except ConversionError as e:
+#         assert e.kind == _error.ListAsPort
+#     else:
+#         assert False
 
 
 
