@@ -219,8 +219,8 @@ class _ToVHDLConvertor(object):
             s = intf.argdict[portname]
             if s._name is None:
                 raise ToVHDLError(_error.ShadowingSignal, portname)
-            if s._inList:
-                raise ToVHDLError(_error.PortInList, portname)
+            # if s._inList:
+            #     raise ToVHDLError(_error.PortInList, portname)
             # add enum types to port-related set
             if isinstance(s._val, EnumItemType):
                 obj = s._val._type

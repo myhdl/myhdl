@@ -118,7 +118,8 @@ class _Signal(object):
                  '_eventWaiters', '_posedgeWaiters', '_negedgeWaiters',
                  '_code', '_tracing', '_nrbits', '_checkVal',
                  '_setNextVal', '_copyVal2Next', '_printVcd',
-                 '_driven', '_read', '_name', '_used', '_inList',
+                 # '_driven', '_read', '_name', '_used', '_inList',
+                 '_driven', '_read', '_name', '_used',
                  '_waiter', 'toVHDL', 'toVerilog', '_slicesigs',
                  '_numeric'
                  )
@@ -135,7 +136,7 @@ class _Signal(object):
         self._min = self._max = None
         self._name = self._driven = None
         self._read = self._used = False
-        self._inList = False
+        # self._inList = False
         self._nrbits = 0
         self._numeric = True
         self._printVcd = self._printVcdStr

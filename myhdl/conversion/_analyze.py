@@ -122,9 +122,9 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         for i, s in enumerate(m.mem):
             s._name = "%s%s%s%s" % (m.name, open, i, close)
             s._used = False
-            if s._inList:
-                raise ConversionError(_error.SignalInMultipleLists, s._name)
-            s._inList = True
+            # if s._inList:
+            #     raise ConversionError(_error.SignalInMultipleLists, s._name)
+            # s._inList = True
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
             if type(s.val) != type(m.elObj.val):

@@ -298,8 +298,8 @@ def _writeModuleHeader(f, intf, doc):
         s = intf.argdict[portname]
         if s._name is None:
             raise ToVerilogError(_error.ShadowingSignal, portname)
-        if s._inList:
-            raise ToVerilogError(_error.PortInList, portname)
+        # if s._inList:
+        #     raise ToVerilogError(_error.PortInList, portname)
 
     # can now emit module header
     if _standard == 'SystemVerilog':
