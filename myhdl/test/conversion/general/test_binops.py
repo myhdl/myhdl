@@ -2,7 +2,6 @@ from myhdl import *
 
 @block
 def binOpsCheck (
-    clk,
     a,
     b,
     c,
@@ -18,18 +17,6 @@ def binOpsCheck (
         z.next = a | b | c
 
     return instances()
-
-# def maskedDataSetup():
-#     clk = Signal(bool(0)) 
-#     a   = Signal(modbv(0)[1:])
-#     b   = Signal(modbv(0)[1:])
-#     c   = Signal(modbv(0)[1:])
-#     x   = Signal(modbv(0)[1:])
-#     y   = Signal(modbv(0)[1:])
-#     z   = Signal(modbv(0)[1:])
-    
-#     i_maskedData = maskedData(clk, data_in, sel, data_out)
-#     return i_maskedData
 
 @block
 def binOpsCheckBench0():
@@ -49,8 +36,6 @@ def binOpsCheckBench0():
             yield delay(10)
             clk.next = not clk
 
-
-    
     @instance
     def stimulus():
         a.next = 0x0
@@ -139,7 +124,7 @@ def binOpsCheckBench0():
         assert z == 0x0
         yield clk.posedge
    
-    i_binOpsCheck = binOpsCheck(clk, a, b, c, x, y, z)
+    i_binOpsCheck = binOpsCheck(a, b, c, x, y, z)
 
 
     return instances()
@@ -250,8 +235,7 @@ def binOpsCheckBench1():
         assert z == 0x0
         yield clk.posedge
    
-    i_binOpsCheck = binOpsCheck(clk, a, b, c, x, y, z)
-
+    i_binOpsCheck = binOpsCheck(a, b, c, x, y, z)
 
     return instances()
 
@@ -362,7 +346,7 @@ def binOpsCheckBench2():
         assert z == 0x0
         yield clk.posedge
    
-    i_binOpsCheck = binOpsCheck(clk, a, b, c, x, y, z)
+    i_binOpsCheck = binOpsCheck(a, b, c, x, y, z)
 
 
     return instances()
@@ -388,7 +372,6 @@ def test_binOps1_convert():
     #assert i_dut.verify_simulator() == 0
    
 def test_binOps1b_convert():
-    clk = Signal(bool(0)) 
     a   = Signal(modbv(0)[1:])
     b   = Signal(modbv(0)[1:])
     c   = Signal(modbv(0)[1:])
@@ -396,11 +379,10 @@ def test_binOps1b_convert():
     y   = Signal(False)
     z   = Signal(False)
 
-    i_dut = binOpsCheck(clk, a, b, c, x, y, z)
+    i_dut = binOpsCheck(a, b, c, x, y, z)
     assert i_dut.analyze_convert() == 0
  
 def test_binOps1c_convert():
-    clk = Signal(bool(0)) 
     a   = Signal(intbv(0)[1:])
     b   = Signal(intbv(0)[1:])
     c   = Signal(intbv(0)[1:])
@@ -408,7 +390,7 @@ def test_binOps1c_convert():
     y   = Signal(False)
     z   = Signal(False)
 
-    i_dut = binOpsCheck(clk, a, b, c, x, y, z)
+    i_dut = binOpsCheck(a, b, c, x, y, z)
     assert i_dut.analyze_convert() == 0
     
 def test_binOps2():
