@@ -881,14 +881,25 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(suf)
 
     def BitOp(self, node):
-        pre, suf = self.inferCast(node.vhd, node.vhdOri)
-        self.write(pre)
+        lpre = lsuf = ""
+        rpre = rsuf = ""
+        if hasattr(node, 'dest'):
+            node.left.dest = node.dest
+            node.right.dest = node.dest
+            if isinstance(node.left, ast.Name):
+                lpre, lsuf = self.inferCast(node.dest.vhd, node.left.vhd)
+            if isinstance(node.right, ast.Name):
+                rpre, rsuf = self.inferCast(node.dest.vhd, node.right.vhd)
+        
         self.write("(")
+        self.write(lpre)
         self.visit(node.left)
+        self.write(lsuf)
         self.write(" %s " % opmap[type(node.op)])
+        self.write(rpre)
         self.visit(node.right)
+        self.write(rsuf)
         self.write(")")
-        self.write(suf)
 
     def visit_BoolOp(self, node):
         if isinstance(node.vhd, vhd_std_logic):
@@ -1031,6 +1042,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(lhs)
         self.isLhs = False
         if self.SigAss:
+            rhs.dest = lhs.value
             if isinstance(lhs.value, ast.Name):
                 sig = self.tree.symdict[lhs.value.id]
             self.write(' <= ')
