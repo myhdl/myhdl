@@ -1100,7 +1100,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_MatchClass(self, node):
         for pattern in node.patterns:
-            pattern.subject = node.subject
+            #pattern.subject = node.subject
             self.visit(pattern)
 
     def visit_MatchAs(self, node):
