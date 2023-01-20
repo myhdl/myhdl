@@ -1039,27 +1039,41 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         self.indent()
         for c in node.cases:
+            c.subject = node.subject
+            self.visit(c)
             self.writeline()
 
-            c.pattern.subject = node.subject
-            self.visit(c.pattern)
+            # c.pattern.subject = node.subject
+            # self.visit(c.pattern)
 
-            self.write(": begin ")
-            self.indent()
-            # Write all the multiple assignment per case
-            for b in c.body:
-                self.writeline()
-                self.visit(b)
-            self.dedent()
-            self.writeline()
-            self.write("end")
+            # self.write(": begin ")
+            # self.indent()
+            # # Write all the multiple assignment per case
+            # for b in c.body:
+            #     self.writeline()
+            #     self.visit(b)
+            # self.dedent()
+            # self.writeline()
+            # self.write("end")
 
         self.dedent()
         self.writeline()
         self.write("endcase")
 
     def visit_match_case(self, node):
-        raise AssertionError("Unsupported Match type %s " % (type(node)))
+        pattern = node.pattern
+        pattern.subject = node.subject
+        self.visit(pattern)
+
+        self.write(": begin ")
+        self.indent()
+        # Write all the multiple assignment per case
+        for b in node.body:
+            self.writeline()
+            self.visit(b)
+        self.dedent()
+        self.writeline()
+        self.write("end")
 
     def visit_MatchValue(self, node):
         item = node.value
