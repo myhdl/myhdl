@@ -1441,7 +1441,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         raise AssertionError("Unsupported Match type %s " % (type(node)))
 
     def visit_MatchClass(self, node):
-        for i, pattern in enumerate(node.patterns):
+        for pattern in node.patterns:
             pattern.subject = node.subject
             self.visit(pattern)
 
