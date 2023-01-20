@@ -1393,7 +1393,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.subject)
         self.write(" is")
         self.indent()
-        for i, c in enumerate(node.cases):
+        for c in node.cases:
             self.writeline()
             self.write("when ")
 
