@@ -1388,6 +1388,44 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.mapToIf(node)
 
+    def visit_Match(self, node):
+        self.write("case ")
+        self.visit(node.subject)
+        self.write(" is")
+        self.indent()
+        for i, c in enumerate(node.cases):
+            self.writeline()
+            self.write("when ")
+            if isinstance(c.pattern, ast.MatchValue):
+                item = c.pattern.value
+                obj = self.getObj(node.subject)
+                
+                if isinstance(item, EnumItemType):
+                    itemRepr = item._toVHDL()
+                elif hasattr(obj, '_nrbits'):
+                    itemRepr = self.BitRepr(item.value, obj)
+                else:
+                    itemRepr = i
+                    raise
+                self.write(itemRepr)
+            elif isinstance(c.pattern, ast.MatchAs):
+                self.write("others")
+            else:
+                raise AssertionError("Unknown instance %s" % c.pattern)
+
+            self.write(" => ")
+            self.indent()
+            # Write all the multiple assignment per case
+            for b in c.body:
+                self.writeline()
+                self.visit(b)
+            self.dedent()
+
+        self.dedent()
+        self.writeline()
+        self.write("end case;")
+
+
     def mapToCase(self, node):
         var = node.caseVar
         obj = self.getObj(var)

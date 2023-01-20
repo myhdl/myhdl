@@ -1033,6 +1033,39 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.mapToIf(node)
 
+    def visit_Match(self, node):
+        self.write("case (")
+        self.visit(node.subject)
+        self.write(")")
+        self.indent()
+        for c in node.cases:
+            self.writeline()
+            if isinstance(c.pattern, ast.MatchValue):
+                item = c.pattern.value
+                if isinstance(item, EnumItemType):
+                    itemRepr = item._toVerilog()
+                else:
+                    itemRepr = self.IntRepr(item.value, radix='hex')
+                self.write(itemRepr)
+            elif isinstance(c.pattern, ast.MatchAs):
+                self.write("default")
+            else:
+                raise AssertionError("Unknown instance %s" % c.pattern)
+
+            self.write(": begin ")
+            self.indent()
+            # Write all the multiple assignment per case
+            for b in c.body:
+                self.writeline()
+                self.visit(b)
+            self.dedent()
+            self.writeline()
+            self.write("end")
+
+        self.dedent()
+        self.writeline()
+        self.write("endcase")
+
     def mapToCase(self, node, *args):
         var = node.caseVar
 #        self.write("// synthesis parallel_case")
