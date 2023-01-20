@@ -1038,23 +1038,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.subject)
         self.write(")")
         self.indent()
-        for c in node.cases:
-            c.subject = node.subject
-            self.visit(c)
+        for case in node.cases:
+            self.visit(case)
             self.writeline()
-
-            # c.pattern.subject = node.subject
-            # self.visit(c.pattern)
-
-            # self.write(": begin ")
-            # self.indent()
-            # # Write all the multiple assignment per case
-            # for b in c.body:
-            #     self.writeline()
-            #     self.visit(b)
-            # self.dedent()
-            # self.writeline()
-            # self.write("end")
 
         self.dedent()
         self.writeline()
@@ -1062,15 +1048,14 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_match_case(self, node):
         pattern = node.pattern
-        pattern.subject = node.subject
         self.visit(pattern)
 
         self.write(": begin ")
         self.indent()
         # Write all the multiple assignment per case
-        for b in node.body:
+        for stmt in node.body:
             self.writeline()
-            self.visit(b)
+            self.visit(stmt)
         self.dedent()
         self.writeline()
         self.write("end")
@@ -1100,7 +1085,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_MatchClass(self, node):
         for pattern in node.patterns:
-            #pattern.subject = node.subject
             self.visit(pattern)
 
     def visit_MatchAs(self, node):
@@ -1111,7 +1095,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     
     def visit_MatchOr(self, node):
         for i, pattern in enumerate(node.patterns):
-            pattern.subject = node.subject
             self.visit(pattern)
             if not i == len(node.patterns)-1:
                 self.write(" | ")
