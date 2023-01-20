@@ -1387,12 +1387,6 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.mapToCase(node)
         else:
             self.mapToIf(node)
-
-    def visit_Cases(self, node):
-        raise
-    
-    # def visit_Case(self, node):
-    #     raise
     
     def visit_Match(self, node):
         self.write("case ")
