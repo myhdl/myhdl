@@ -1042,8 +1042,10 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.writeline()
             if isinstance(c.pattern, ast.MatchValue):
                 item = c.pattern.value
-                if isinstance(item, EnumItemType):
-                    itemRepr = item._toVerilog()
+                obj = self.getObj(item)
+
+                if isinstance(obj, EnumItemType):
+                    itemRepr = obj._toVerilog()
                 else:
                     itemRepr = self.IntRepr(item.value, radix='hex')
                 self.write(itemRepr)

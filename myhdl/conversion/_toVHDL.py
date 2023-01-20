@@ -1393,17 +1393,18 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.subject)
         self.write(" is")
         self.indent()
+        baseobj  = self.getObj(node.subject)
         for i, c in enumerate(node.cases):
             self.writeline()
             self.write("when ")
             if isinstance(c.pattern, ast.MatchValue):
                 item = c.pattern.value
-                obj = self.getObj(node.subject)
+                obj = self.getObj(item)
                 
-                if isinstance(item, EnumItemType):
-                    itemRepr = item._toVHDL()
-                elif hasattr(obj, '_nrbits'):
-                    itemRepr = self.BitRepr(item.value, obj)
+                if isinstance(obj, EnumItemType):
+                    itemRepr = obj._toVHDL()
+                elif hasattr(baseobj, '_nrbits'):
+                    itemRepr = self.BitRepr(item.value, baseobj)
                 else:
                     itemRepr = i
                     raise
