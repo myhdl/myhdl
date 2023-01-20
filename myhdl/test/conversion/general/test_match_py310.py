@@ -1,4 +1,6 @@
+import sys
 from myhdl import *
+import pytest
 
 @block
 def mux4a(
@@ -27,16 +29,16 @@ def mux4a(
 def mux4b(sel, in0, in1, in2, in3, out0):
     @always_comb
     def rtl():
-        match sel:
-            case 0:
-                out0.next = in0
-            case 1:
-                out0.next = in1
-            case 2:
-                out0.next = in2
-            case _:
-                out0.next = in3
-
+            pass
+            match sel:
+                case 0:
+                    out0.next = in0
+                case 1:
+                    out0.next = in1
+                case 2:
+                    out0.next = in2
+                case _:
+                    out0.next = in3
     return instances()
 
 @block
@@ -119,6 +121,7 @@ def test_muxBench0_convert():
     i_dut = muxBench0(0)
     assert i_dut.analyze_convert() == 0
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_mux4b_convert():
     clk  = Signal(bool(0)) 
     sel  = Signal(intbv(0)[2:])
@@ -131,10 +134,12 @@ def test_mux4b_convert():
     i_dut = mux4b(sel, in0, in1, in2, in3, out0)
     assert i_dut.analyze_convert() == 0
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_muxBench1():
     sim = muxBench0(1)
     sim.run_sim()
 
+@pytest.mark.skipif(sys.version_info < (3, 10), reason="requires python3.10 or higher")
 def test_muxBench1_convert():
     i_dut = muxBench0(1)
     assert i_dut.analyze_convert() == 0
