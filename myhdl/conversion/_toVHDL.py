@@ -1441,6 +1441,78 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.mapToCase(node)
         else:
             self.mapToIf(node)
+    
+    def visit_Match(self, node):
+        self.write("case ")
+        self.visit(node.subject)
+        self.write(" is")
+        self.indent()
+        for case in node.cases:
+            case.subject = node.subject
+            self.visit(case)
+
+        self.dedent()
+        self.writeline()
+        self.write("end case;")
+ 
+    def visit_match_case(self, node):
+        self.writeline()
+        self.write("when ")
+
+        pattern = node.pattern
+        pattern.subject = node.subject
+        self.visit(pattern)
+
+        self.write(" => ")
+        self.indent()
+        # Write all the multiple assignment per case
+        for stmt in node.body:
+            self.writeline()
+            self.visit(stmt)
+        self.dedent()
+
+    def visit_MatchValue(self, node):
+        baseobj  = self.getObj(node.subject)
+        item = node.value
+        obj = self.getObj(item)
+        
+        if isinstance(obj, EnumItemType):
+            itemRepr = obj._toVHDL()
+        elif hasattr(baseobj, '_nrbits'):
+            itemRepr = self.BitRepr(item.value, baseobj)
+        else:
+            raise AssertionError("Unknown type %s " % (type(obj)))
+        self.write(itemRepr)
+
+    def visit_MatchSingleton(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchSequence(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchStar(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchMapping(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchClass(self, node):
+        for pattern in node.patterns:
+            pattern.subject = node.subject
+            self.visit(pattern)
+
+    def visit_MatchAs(self, node):
+        if node.name is None and  node.pattern is None:
+            self.write("others")
+        else:
+            raise AssertionError("Unknown name %s or pattern %s" % (node.name, node.pattern))
+    
+    def visit_MatchOr(self, node):
+        for i, pattern in enumerate(node.patterns):
+            pattern.subject = node.subject
+            self.visit(pattern)
+            if not i == len(node.patterns)-1:
+                self.write(" | ")
 
     def mapToCase(self, node):
         var = node.caseVar

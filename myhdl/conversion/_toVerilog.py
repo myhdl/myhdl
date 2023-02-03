@@ -1041,6 +1041,72 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         else:
             self.mapToIf(node)
 
+    def visit_Match(self, node):
+        self.write("case (")
+        self.visit(node.subject)
+        self.write(")")
+        self.indent()
+        for case in node.cases:
+            self.visit(case)
+            self.writeline()
+
+        self.dedent()
+        self.writeline()
+        self.write("endcase")
+
+    def visit_match_case(self, node):
+        pattern = node.pattern
+        self.visit(pattern)
+
+        self.write(": begin ")
+        self.indent()
+        # Write all the multiple assignment per case
+        for stmt in node.body:
+            self.writeline()
+            self.visit(stmt)
+        self.dedent()
+        self.writeline()
+        self.write("end")
+
+    def visit_MatchValue(self, node):
+        item = node.value
+        obj = self.getObj(item)
+
+        if isinstance(obj, EnumItemType):
+            itemRepr = obj._toVerilog()
+        else:
+            itemRepr = self.IntRepr(item.value, radix='hex')
+
+        self.write(itemRepr)
+
+    def visit_MatchSingleton(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchSequence(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchStar(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchMapping(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchClass(self, node):
+        for pattern in node.patterns:
+            self.visit(pattern)
+
+    def visit_MatchAs(self, node):
+        if node.name is None and  node.pattern is None:
+            self.write("default")
+        else:
+            raise AssertionError("Unknown name %s or pattern %s" % (node.name, node.pattern))
+    
+    def visit_MatchOr(self, node):
+        for i, pattern in enumerate(node.patterns):
+            self.visit(pattern)
+            if not i == len(node.patterns)-1:
+                self.write(" | ")
+
     def mapToCase(self, node, *args):
         var = node.caseVar
 #        self.write("// synthesis parallel_case")
