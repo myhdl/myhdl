@@ -920,17 +920,29 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             node.operand.vhd = node.vhd
             self.visit(node.operand)
             return
+                   
         pre, suf = self.inferCast(node.vhd, node.vhdOri)
-        self.write(pre)
-        if isinstance(node.op, ast.Invert) and isinstance(node.operand, ast.Constant):
-            node.operand.value = ~node.operand.value & ((1 << node.dest.vhd.size) - 1)
-            self.visit(node.operand)
+        if isinstance(node.op, ast.UAdd):
+            op = ""
         else:
+            op = opmap[type(node.op)]
+        if isinstance(node.operand, ast.Constant):
             self.write("(")
-            self.write(opmap[type(node.op)])
+            self.write(op)
+            self.write("(")
+            self.write(pre)
+            self.visit(node.operand)
+            self.write(suf)
+            self.write(")")
+            self.write(")")
+        else:
+            self.write(pre)
+            self.write("(")
+            self.write(op)
             self.visit(node.operand)
             self.write(")")
-        self.write(suf)
+            self.write(suf)
+
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
