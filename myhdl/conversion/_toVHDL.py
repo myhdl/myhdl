@@ -913,20 +913,66 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_UnaryOp(self, node):
         # in python3 a negative Num is represented as an USub of a positive Num
-        # Fix: restore python2 behavior by a shortcut: invert value of Num, inherit
+        # Fix: restore python2 behavior by a shortcut: invert value of Constant, inherit
         # vhdl type from UnaryOp node, and visit the modified operand
-        if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
-            node.operand.n = -node.operand.n
-            node.operand.vhd = node.vhd
-            self.visit(node.operand)
-            return
-        pre, suf = self.inferCast(node.vhd, node.vhdOri)
-        self.write(pre)
-        self.write("(")
-        self.write(opmap[type(node.op)])
-        self.visit(node.operand)
-        self.write(")")
-        self.write(suf)
+        if sys.version_info >= (3, 8, 0):
+            if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Constant):
+                node.operand.n = -node.operand.n
+                node.operand.vhd = node.vhd
+                self.visit(node.operand)
+                return
+                       
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
+            if isinstance(node.op, ast.UAdd):
+                op = ""
+            else:
+                op = opmap[type(node.op)]
+        
+            if isinstance(node.operand, ast.Constant):
+                self.write("(")
+                self.write(op)
+                self.write("(")
+                self.write(pre)
+                self.visit(node.operand)
+                self.write(suf)
+                self.write(")")
+                self.write(")")
+            else:
+                self.write(pre)
+                self.write("(")
+                self.write(op)
+                self.visit(node.operand)
+                self.write(")")
+                self.write(suf)
+        else:
+            if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
+                node.operand.n = -node.operand.n
+                node.operand.vhd = node.vhd
+                self.visit(node.operand)
+                return
+                       
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
+            if isinstance(node.op, ast.UAdd):
+                op = ""
+            else:
+                op = opmap[type(node.op)]
+        
+            if isinstance(node.operand, ast.Num):
+                self.write("(")
+                self.write(op)
+                self.write("(")
+                self.write(pre)
+                self.visit(node.operand)
+                self.write(suf)
+                self.write(")")
+                self.write(")")
+            else:
+                self.write(pre)
+                self.write("(")
+                self.write(op)
+                self.visit(node.operand)
+                self.write(")")
+                self.write(suf)
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1125,8 +1171,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             opening, closing = '', ''
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
             # convert number argument to integer
-            if isinstance(node.args[0], ast.Num):
-                node.args[0].n = int(node.args[0].n)
+            if sys.version_info >= (3, 8, 0):
+                if isinstance(node.args[0], ast.Constant):
+                    node.args[0].n = int(node.args[0].n)
+            else:
+                if isinstance(node.args[0], ast.Num):
+                    node.args[0].n = int(node.args[0].n)
         elif inspect.isclass(f) and issubclass(f, intbv):
             pre, post = "", ""
             arg = node.args[0]
@@ -1296,8 +1346,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(doc)
             return
         # skip extra semicolons
-        if isinstance(expr, ast.Num):
-            return
+        if sys.version_info >= (3, 8, 0):
+            if isinstance(expr, ast.Constant):
+                return
+        else:
+            if isinstance(expr, ast.Num):
+                return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):

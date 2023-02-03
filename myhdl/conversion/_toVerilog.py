@@ -838,8 +838,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is int:
             opening, closing = '', ''
             # convert number argument to integer
-            if isinstance(node.args[0], ast.Num):
-                node.args[0].n = int(node.args[0].n)
+            if sys.version_info >= (3, 8, 0):
+                if isinstance(node.args[0], ast.Constant):
+                    node.args[0].n = int(node.args[0].n)
+            else:
+                if isinstance(node.args[0], ast.Num):
+                    node.args[0].n = int(node.args[0].n)
         elif f in (intbv, modbv):
             self.visit(node.args[0])
             return
@@ -946,8 +950,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(doc)
             return
         # skip extra semicolons
-        if isinstance(expr, ast.Num):
-            return
+        if sys.version_info >= (3, 8, 0):
+            if isinstance(expr, ast.Constant):
+                return
+        else:
+            if isinstance(expr, ast.Num):
+                return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
@@ -1600,8 +1608,12 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         node.signed = node.operand.signed
         if isinstance(node.op, ast.USub):
             node.obj = int(-1)
-            if isinstance(node.operand, ast.Num):
-                node.signed = True
+            if sys.version_info >= (3, 8, 0):
+                if isinstance(node.operand, ast.Constant):
+                    node.signed = True
+            else:
+                if isinstance(node.operand, ast.Num):
+                    node.signed = True
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):

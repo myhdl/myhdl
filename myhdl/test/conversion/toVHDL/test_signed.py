@@ -6,6 +6,7 @@ from random import randrange
 import myhdl
 from myhdl import *
 from myhdl.conversion import verify
+import pytest
 
 
 NRTESTS = 10
@@ -187,6 +188,7 @@ def binaryBench(Ll, Ml, Lr, Mr):
     return binops, stimulus, check
     
 
+@pytest.mark.filterwarnings("ignore:Signal is not driven")
 def testBinaryOps():
     for Ll, Ml, Lr, Mr in (
                             (-254, 236, 0, 4),
