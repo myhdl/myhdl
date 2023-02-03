@@ -926,7 +926,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             op = ""
         else:
             op = opmap[type(node.op)]
-        if isinstance(node.operand, ast.Constant):
+        
+        if isinstance(node.operand, ast.Num):
             self.write("(")
             self.write(op)
             self.write("(")
