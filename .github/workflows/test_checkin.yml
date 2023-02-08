@@ -22,10 +22,10 @@ jobs:
         run: |
           pyflakes myhdl
  
-  build_ghdl:
+  build_ghdl_linux:
     #uses: daxzio/setup-eda/.github/workflows/setup_ghdl.yml@main
     uses: ./.github/workflows/setup_ghdl.yml
-  build_iverilog:
+  build_iverilog_linux:
     #uses: daxzio/setup-eda/.github/workflows/setup_iverilog.yml@main
     uses: ./.github/workflows/setup_iverilog.yml
 
@@ -37,7 +37,7 @@ jobs:
         python-version: ["3.7", "3.8", "3.9", "3.10", "pypy-3.9", "3.11"]
         target: [core, iverilog, ghdl]
     runs-on: ubuntu-latest
-    needs: [run_lint, build_ghdl, build_iverilog]
+    needs: [run_lint, build_ghdl_linux, build_iverilog_linux]
 
     env:
       CI_TARGET: ${{ matrix.target }}
