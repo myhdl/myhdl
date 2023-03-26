@@ -34,7 +34,7 @@ random.seed(1)  # random, but deterministic
 QUIET = 1
 
 
-def SignalFunc1(a, b, c, r):
+def SignalFunc1(a, b, c, d, r):
 
     @instance
     def logic():
@@ -45,7 +45,7 @@ def SignalFunc1(a, b, c, r):
     return logic
 
 
-def SignalFunc2(a, b, c, r):
+def SignalFunc2(a, b, c, d, r):
 
     def logic(a, r):
         while 1:
@@ -55,7 +55,7 @@ def SignalFunc2(a, b, c, r):
     return logic(a, r)
 
 
-def SignalTupleFunc1(a, b, c, r):
+def SignalTupleFunc1(a, b, c, d, r):
 
     @instance
     def logic():
@@ -66,7 +66,7 @@ def SignalTupleFunc1(a, b, c, r):
     return logic
 
 
-def SignalTupleFunc2(a, b, c, r):
+def SignalTupleFunc2(a, b, c, d, r):
 
     def logic(a, r):
         while 1:
@@ -76,7 +76,7 @@ def SignalTupleFunc2(a, b, c, r):
     return logic(a, r)
 
 
-def DelayFunc(a, b, c, r):
+def DelayFunc(a, b, c, d, r):
 
     @instance
     def logic():
@@ -87,7 +87,7 @@ def DelayFunc(a, b, c, r):
     return logic
 
 
-def EdgeFunc1(a, b, c, r):
+def EdgeFunc1(a, b, c, d, r):
 
     @instance
     def logic():
@@ -98,7 +98,7 @@ def EdgeFunc1(a, b, c, r):
     return logic
 
 
-def EdgeFunc2(a, b, c, r):
+def EdgeFunc2(a, b, c, d, r):
 
     def logic(c, r):
         while 1:
