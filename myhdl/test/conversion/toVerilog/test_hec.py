@@ -3,12 +3,13 @@ path = os.path
 import unittest
 from random import randrange
 
-import myhdl
-from myhdl import *
-
+from myhdl import (block, Signal, intbv, delay, always,
+                   instance, concat, downrange)
+from myhdl._Simulation import Simulation
 from .util import setupCosimulation
 
 COSET = 0x55
+
 
 def calculateHecRef(header):
     """ Return hec for an ATM header.
@@ -24,6 +25,7 @@ def calculateHecRef(header):
                          bit ^ hec[7]
                         )
     return hec ^ COSET
+
 
 def calculateHecFunc(header):
     """ Return hec for an ATM header.
@@ -42,6 +44,7 @@ def calculateHecFunc(header):
     h ^= COSET
     return h
 
+
 def calculateHecTask(hec, header):
     """ Calculate hec for an ATM header.
     
@@ -59,12 +62,14 @@ def calculateHecTask(hec, header):
     h ^= COSET
     hec[:] = h
 
+
 @block
 def HecCalculatorPlain(hec, header):
     """ Hec calculation module.
 
     Plain version.
     """
+
     @instance
     def logic():
         h = intbv(0)[8:]
@@ -79,7 +84,9 @@ def HecCalculatorPlain(hec, header):
                               bit ^ h[7]
                               )
             hec.next = h ^ COSET
+
     return logic
+
 
 @block
 def HecCalculatorFunc(hec, header=1):
@@ -87,13 +94,15 @@ def HecCalculatorFunc(hec, header=1):
 
     Version with function call.
     """
+
     @instance
     def logic():
-        h = intbv(0)[8:]
         while 1:
             yield header
             hec.next = calculateHecFunc(header=header)
+
     return logic
+
 
 @block
 def HecCalculatorTask(hec, header):
@@ -101,6 +110,7 @@ def HecCalculatorTask(hec, header):
 
     Version with task call.
     """
+
     @instance
     def logic():
         h = intbv(0)[8:]
@@ -108,14 +118,17 @@ def HecCalculatorTask(hec, header):
             yield header
             calculateHecTask(h, header)
             hec.next = h
+
     return logic
-        
+
+
 @block
 def HecCalculatorTask2(hec, header):
     """ Hec calculation module.
 
     Version with task call.
     """
+
     @instance
     def logic():
         h = intbv(0)[8:]
@@ -123,14 +136,13 @@ def HecCalculatorTask2(hec, header):
             yield header
             calculateHecTask(header=header, hec=h)
             hec.next = h
+
     return logic
 
-         
-        
+
 @block
 def HecCalculator_v(name, hec, header):
     return setupCosimulation(**locals())
-
 
 
 headers = [ 0x00000000,
@@ -138,12 +150,13 @@ headers = [ 0x00000000,
             0xbac6f4ca
           ]
 
-headers.extend([randrange(2**32-1) for i in range(10)])
+headers.extend([randrange(2 ** 32 - 1) for i in range(10)])
+
 
 class TestHec(unittest.TestCase):
 
     def bench(self, HecCalculator):
-        
+
         hec = Signal(intbv(0)[8:])
         hec_v = Signal(intbv(0)[8:])
         header = Signal(intbv(-1)[32:])
@@ -151,7 +164,7 @@ class TestHec(unittest.TestCase):
         heccalc_inst = HecCalculator(hec, header).convert(hdl='Verilog')
         # heccalc_inst = HecCalculator(hec, header)
         heccalc_v_inst = HecCalculator_v(HecCalculator.__name__, hec_v, header)
- 
+
         def stimulus():
             for h in headers:
                 header.next = h
@@ -174,11 +187,11 @@ class TestHec(unittest.TestCase):
     def testTask(self):
         sim = self.bench(HecCalculatorTask)
         Simulation(sim).run()
-       
+
     def testTask2(self):
         sim = self.bench(HecCalculatorTask2)
         Simulation(sim).run()
-       
-        
+
+
 if __name__ == '__main__':
     unittest.main()

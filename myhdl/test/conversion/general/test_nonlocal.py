@@ -1,14 +1,15 @@
 import os
 path = os.path
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always_seq,
+                   ResetSignal, instance, StopSimulation
+                   )
 
 
 @block
 def NonlocalBench():
 
-    ALL_ONES = 2**7-1
+    ALL_ONES = 2 ** 7 - 1
     ONE = 1
 
     qout = Signal(intbv(ONE)[8:])
@@ -21,10 +22,10 @@ def NonlocalBench():
     @always_seq(clk.posedge, reset=reset)
     def scrambler():
         if init:
-            q[8:1] = ALL_ONES 
+            q[8:1] = ALL_ONES
         else:
             q[0] = q[7] ^ q[6]
-            q[8:1] = q[7:0] 
+            q[8:1] = q[7:0]
         qout.next = q[8:1]
 
     @instance
@@ -44,7 +45,7 @@ def NonlocalBench():
         print(qout)
         assert qout == ONE
         reset.next = 0
-        for i in range(100):
+        for __ in range(100):
             yield clk.negedge
             print(qout)
         init.next = 1
@@ -52,12 +53,11 @@ def NonlocalBench():
         assert qout == ALL_ONES
         print(qout)
         init.next = 0
-        for i in range(300):
+        for __ in range(300):
             print(qout)
         raise StopSimulation()
-        
-    return scrambler, clkgen, stimulus
 
+    return scrambler, clkgen, stimulus
 
 
 def test_nonlocal():

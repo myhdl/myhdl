@@ -6,12 +6,13 @@ import random
 from random import randrange
 random.seed(2)
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, instance, StopSimulation,)
+from myhdl._Simulation import Simulation
 
 from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+
 
 @block
 def behRef(count, enable, clock, reset, n):
@@ -35,12 +36,15 @@ def behRef(count, enable, clock, reset, n):
 
     return logic
 
+
 objfile = "beh_inst.o"
 analyze_cmd = "iverilog -o %s beh_inst.v tb_beh_inst.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-      
+
+
 def beh_v(name, count, enable, clock, reset):
     return setupCosimulation(**locals())
+
 
 class TestBeh(TestCase):
 
@@ -48,17 +52,17 @@ class TestBeh(TestCase):
         while 1:
             yield delay(10)
             clock.next = not clock
-    
+
     def stimulus(self, enable, clock, reset):
         reset.next = INACTIVE_HIGH
         yield clock.negedge
         reset.next = ACTIVE_LOW
         yield clock.negedge
         reset.next = INACTIVE_HIGH
-        for i in range(1000):
+        for __ in range(1000):
             enable.next = 1
             yield clock.negedge
-        for i in range(1000):
+        for __ in range(1000):
             enable.next = min(1, randrange(5))
             yield clock.negedge
         raise StopSimulation
@@ -71,16 +75,16 @@ class TestBeh(TestCase):
             yield delay(1)
             # print "%d count %s count_v %s" % (now(), count, count_v)
             self.assertEqual(count, count_v)
-                
+
     def bench(self, beh):
 
         m = 8
         n = 2 ** m
- 
+
         count = Signal(intbv(0)[m:])
         count_v = Signal(intbv(0)[m:])
         enable = Signal(bool(0))
-        clock, reset = [Signal(bool()) for i in range(2)]
+        clock, reset = [Signal(bool()) for __ in range(2)]
 
         beh_inst = beh(count, enable, clock, reset, n=n).convert(hdl='Verilog')
         # beh_inst = beh(count, enable, clock, reset, n=n)
@@ -96,21 +100,8 @@ class TestBeh(TestCase):
     def testBehRef(self):
         sim = self.bench(behRef)
         sim.run(quiet=1)
-        
+
+
 if __name__ == '__main__':
     unittest.main()
-
-
-            
-            
-
-    
-
-    
-        
-
-
-                
-
-        
 

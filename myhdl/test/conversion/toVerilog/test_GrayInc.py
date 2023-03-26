@@ -3,8 +3,9 @@ path = os.path
 import unittest
 from random import randrange
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always,
+                    StopSimulation, negedge)
+from myhdl._Simulation import Simulation
 
 from .test_bin2gray import bin2gray
 from .test_inc import inc
@@ -13,27 +14,29 @@ from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+
 @block
 def GrayInc_0(graycnt, enable, clock, reset, width):
-    
+
     bincnt = Signal(intbv(0)[width:])
-    
-    inc_1 = inc(bincnt, enable, clock, reset, n=2**width)
+
+    inc_1 = inc(bincnt, enable, clock, reset, n=2 ** width)
     bin2gray_1 = bin2gray(B=bincnt, G=graycnt, width=width)
-    
+
     return inc_1, bin2gray_1
+
 
 @block
 def GrayIncReg_0(graycnt, enable, clock, reset, width):
-    
+
     graycnt_comb = Signal(intbv(0)[width:])
-    
+
     gray_inc_1 = GrayInc_0(graycnt_comb, enable, clock, reset, width)
 
     @always(clock.posedge)
     def reg_1():
         graycnt.next = graycnt_comb
-    
+
     return gray_inc_1, reg_1
 
 
@@ -42,10 +45,13 @@ graycnt = Signal(intbv(0)[width:])
 enable, clock, reset = [Signal(bool()) for i in range(3)]
 # GrayIncReg(graycnt, enable, clock, reset, width)
 
+
 def GrayIncReg_v(name, graycnt, enable, clock, reset, width):
     return setupCosimulation(**locals())
 
+
 graycnt_v = Signal(intbv(0)[width:])
+
 
 class TestGrayInc(unittest.TestCase):
 
@@ -74,7 +80,7 @@ class TestGrayInc(unittest.TestCase):
             yield delay(1)
             # print "%d graycnt %s %s" % (now(), graycnt, graycnt_v)
             self.assertEqual(graycnt, graycnt_v)
-                
+
     def bench(self):
         gray_inc_reg_1 = GrayIncReg_0(graycnt, enable, clock, reset, width).convert(hdl='Verilog')
         gray_inc_reg_v = GrayIncReg_v(GrayIncReg_0.__name__, graycnt_v, enable, clock, reset, width)
@@ -88,19 +94,4 @@ class TestGrayInc(unittest.TestCase):
         """ Check gray inc operation """
         sim = self.bench()
         sim.run(quiet=1)
-        
-            
-            
 
-    
-
-    
-        
-
-
-                
-
-        
-
-
-  

@@ -1,8 +1,8 @@
-import myhdl
-from myhdl import *
-from random import randrange
+from myhdl import (block, Signal, enum, intbv, delay, instance,
+                   instances, always_comb, StopSimulation)
 
 bitwise_op = enum('BW_AND', 'BW_ANDN', 'BW_OR', 'BW_XOR')
+
 
 def bitwise(a, b, op):
     r = intbv(0)[8:]
@@ -15,19 +15,24 @@ def bitwise(a, b, op):
     elif op == bitwise_op.BW_XOR:
         r[:] = a ^ b
     return r
-        
+
+
 @block
 def LogicUnit(a, b, c, op):
+
     @always_comb
     def operate():
-        c.next = bitwise(a,b,op)
+        c.next = bitwise(a, b, op)
+
     return operate
+
 
 @block
 def bench_enum():
     clock = Signal(False)
-    a, b, c = [Signal(intbv(0)[8:]) for i in range(3)]
+    a, b, c = [Signal(intbv(0)[8:]) for _ in range(3)]
     op = Signal(bitwise_op.BW_AND)
+
     logic_unit = LogicUnit(a=a, b=b, c=c, op=op)
 
     @instance
@@ -51,18 +56,19 @@ def bench_enum():
         op.next = bitwise_op.BW_ANDN
         yield clock.posedge
         print(c)
-        
+
         op.next = bitwise_op.BW_OR
         yield clock.posedge
         print(c)
-        
+
         op.next = bitwise_op.BW_XOR
         yield clock.posedge
         print(c)
 
         raise StopSimulation
-        
+
     return instances()
+
 
 def test_enum():
     assert bench_enum().verify_convert() == 0

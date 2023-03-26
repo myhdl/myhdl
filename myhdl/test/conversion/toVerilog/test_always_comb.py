@@ -18,69 +18,80 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for always_comb """
-import random
-from random import randrange
-# random.seed(3) # random, but deterministic
-import os
-from os import path
+from random import seed, shuffle
+seed('We want repeatable randomness')  # random, but deterministic
 
 import unittest
 from unittest import TestCase
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always_comb, StopSimulation,)
+from myhdl._Simulation import Simulation
 
 from .util import setupCosimulation
 
 QUIET = 1
 
+
 @block
 def design1(a, b, c, d, p, q, r):
+
     def logic():
         p.next = a | b
+
     return always_comb(logic)
+
 
 @block
 def design2(a, b, c, d, p, q, r):
+
     def logic():
         p.next = a | b
         q.next = c & d
         r.next = a ^ c
+
     return always_comb(logic)
+
 
 @block
 def design3(a, b, c, d, p, q, r):
+
     def logic():
         if a:
             p.next = c | b
             q.next = c & d
             r.next = d ^ c
+
     return always_comb(logic)
+
 
 @block
 def design4(a, b, c, d, p, q, r):
+
     def logic():
         p.next = a | b
         q.next = c & d
         r.next = a ^ c
         q.next = c | d
+
     return always_comb(logic)
+
 
 @block
 def design5(a, b, c, d, p, q, r):
+
     def logic():
         p.next = a | b
         q.next = c & d
         r.next = a ^ c
         q.next[0] = c | d
-        
+
     return always_comb(logic)
 
 
 @block
 def design_v(name, a, b, c, d, p, q, r):
     return setupCosimulation(**locals())
-    
+
 
 class AlwaysCombSimulationTest(TestCase):
 
@@ -98,8 +109,8 @@ class AlwaysCombSimulationTest(TestCase):
         p_v = Signal(bool(0))
         q_v = Signal(intbv(0)[8:])
         r_v = Signal(bool(0))
-        vectors = [intbv(j) for i in range(50) for j in range(16)]
-        random.shuffle(vectors)
+        vectors = [intbv(j) for __ in range(50) for j in range(16)]
+        shuffle(vectors)
 
         design_inst = design(a, b, c, d, p, q, r).convert(hdl='Verilog')
         design_v_inst = design_v(design.__name__, a, b, c, d, p_v, q_v, r_v)
@@ -122,28 +133,26 @@ class AlwaysCombSimulationTest(TestCase):
                 self.assertEqual(p, p_v)
                 self.assertEqual(q, q_v)
                 self.assertEqual(r, r_v)
-                
+
             raise StopSimulation("always_comb simulation test")
 
         return design_inst, design_v_inst, clkGen(), stimulus()
-        
 
     def test1(self):
         Simulation(self.bench(design1)).run(quiet=QUIET)
-        
+
     def test2(self):
         Simulation(self.bench(design2)).run(quiet=QUIET)
-        
+
     def test3(self):
         Simulation(self.bench(design3)).run(quiet=QUIET)
-    
+
     def test4(self):
         Simulation(self.bench(design4)).run(quiet=QUIET)
-        
+
     def test5(self):
         Simulation(self.bench(design5)).run(quiet=QUIET)
-        
-        
+
 
 if __name__ == "__main__":
     unittest.main()

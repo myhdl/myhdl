@@ -22,7 +22,7 @@ import random
 from random import randrange
 
 from myhdl import (AlwaysCombError, Signal, Simulation, StopSimulation, delay,
-                   instances, intbv, now)
+                   instances, intbv)
 from myhdl._always_comb import _error, always_comb
 from myhdl._Waiter import _SignalTupleWaiter, _SignalWaiter, _Waiter
 from helpers import raises_kind
@@ -71,7 +71,7 @@ class TestAlwaysCombCompilation:
 # #             self.fail()
 
     def testInfer1(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, c = [Signal(0) for __ in range(2)]
         u = 1
 
         def h():
@@ -84,7 +84,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     def testInfer2(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, c = [Signal(0) for __ in range(2)]
         u = 1
 
         def h():
@@ -97,7 +97,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     def testInfer3(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, c = [Signal(0) for __ in range(2)]
         u = 1
 
         def h():
@@ -110,7 +110,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     def testInfer4(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, c = [Signal(0) for __ in range(2)]
         u = 1
 
         def h():
@@ -123,7 +123,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     # def testInfer5(self):
-    #     a, b, c, d = [Signal(0) for i in range(4)]
+    #     a, b, c, d = [Signal(0) for __ in range(4)]
     #
     #     def h():
     #         c.next += 1
@@ -132,7 +132,7 @@ class TestAlwaysCombCompilation:
     #         g = always_comb(h).gen
     #
     # def testInfer6(self):
-    #     a, b, c, d = [Signal(0) for i in range(4)]
+    #     a, b, c, d = [Signal(0) for __ in range(4)]
     #
     #     def h():
     #         c.next = a
@@ -141,7 +141,7 @@ class TestAlwaysCombCompilation:
     #         g = always_comb(h).gen
 
     def testInfer7(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c = [Signal(0) for __ in range(3)]
 
         def h():
             c.next[a:0] = x[b:0]
@@ -152,7 +152,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     def testInfer8(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c = [Signal(0) for __ in range(3)]
         u = 1
 
         def h():
@@ -165,7 +165,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     def testInfer9(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c = [Signal(0) for __ in range(3)]
 
         def h():
             c.next[a - 1] = x[b - 1]
@@ -176,7 +176,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     def testInfer10(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def f(x, y, z):
             return 0
@@ -190,7 +190,7 @@ class TestAlwaysCombCompilation:
         assert i.inputs == expected
 
     def testEmbeddedFunction(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
         u = 1
 
         def h():
@@ -216,7 +216,7 @@ class TestAlwaysCombSimulation1:
         c = Signal(0)
         d = Signal(0)
         z = Signal(0)
-        vectors = [intbv(j) for i in range(32) for j in range(16)]
+        vectors = [intbv(j) for __ in range(32) for j in range(16)]
         random.shuffle(vectors)
 
         def combFunc():
@@ -300,7 +300,7 @@ class TestAlwaysCombSimulation2:
         k = Signal(0)
         z = Signal(0)
         x = Signal(0)
-        vectors = [intbv(j) for i in range(32) for j in range(16)]
+        vectors = [intbv(j) for __ in range(32) for j in range(16)]
         random.shuffle(vectors)
 
         def andFunc():
@@ -394,7 +394,7 @@ class TestInferWaiter:
 
     def bench(self, MyHDLFunc, waiterType):
 
-        a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
+        a, b, c, d, r, s = [Signal(intbv(0)) for __ in range(6)]
 
         inst_r = MyHDLFunc(a, b, c, d, r)
         assert type(inst_r.waiter) == waiterType
@@ -402,12 +402,12 @@ class TestInferWaiter:
         inst_s = MyHDLFunc(a, b, c, d, s)
 
         def stimulus():
-            for i in range(1000):
+            for __ in range(1000):
                 yield delay(randrange(1, 10))
                 if randrange(2):
                     a.next = randrange(32)
                 if randrange(2):
-                       b.next = randrange(32)
+                    b.next = randrange(32)
                 c.next = randrange(2)
                 d.next = randrange(2)
             raise StopSimulation

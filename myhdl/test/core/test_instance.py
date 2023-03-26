@@ -18,19 +18,18 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the unit tests for instance """
-from myhdl import (InstanceError, Signal, Simulation, StopSimulation, delay,
-                   instances, intbv, now)
-from myhdl._instance import _error, instance
+from myhdl import (InstanceError, Signal, instance)
+from myhdl._instance import _error
 from helpers import raises_kind
 
 # random.seed(3) # random, but deterministic
 
-
-QUIET=1
+QUIET = 1
 
 
 def g():
     pass
+
 
 x = Signal(0)
 
@@ -44,12 +43,14 @@ class TestInstanceCompilation:
 
     def testArgIsGeneratorFunction(self):
         with raises_kind(InstanceError, _error.ArgType):
+
             @instance
             def h():
                 return None
 
     def testArgHasNoArgs(self):
         with raises_kind(InstanceError, _error.NrOfArgs):
+
             @instance
             def h(n):
                 yield n

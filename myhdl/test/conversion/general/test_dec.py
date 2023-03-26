@@ -4,8 +4,7 @@ import random
 from random import randrange
 random.seed(2)
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always, instance, StopSimulation)
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
@@ -89,7 +88,7 @@ def decFunc(count, enable, clock, reset, n):
 @block
 def decTask(count, enable, clock, reset, n):
 
-    def decTaskFunc(cnt, enable, reset, n):
+    def decTaskFunc(cnt, enable, n):
         if enable:
             if cnt == -n:
                 cnt[:] = n - 1
@@ -106,7 +105,7 @@ def decTask(count, enable, clock, reset, n):
                 count.next = 0
             else:
                 # print count
-                decTaskFunc(cnt, enable, reset, n)
+                decTaskFunc(cnt, enable, n)
                 count.next = cnt
 
     return decTaskGen
@@ -127,7 +126,7 @@ def decTaskFreeVar(count, enable, clock, reset, n):
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
-               count.next = 0
+                count.next = 0
             else:
                 # print count
                 decTaskFunc()
@@ -142,9 +141,8 @@ def DecBench(dec):
     n = 2 ** (m - 1)
 
     count = Signal(intbv(0, min=-n, max=n))
-    count_v = Signal(intbv(0, min=-n, max=n))
     enable = Signal(bool(0))
-    clock, reset = [Signal(bool(1)) for i in range(2)]
+    clock, reset = [Signal(bool(1)) for __ in range(2)]
 
     @instance
     def clockGen():

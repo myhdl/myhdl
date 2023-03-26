@@ -3,10 +3,11 @@ path = os.path
 import unittest
 from unittest import TestCase
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always_comb, instance)
+from myhdl._Simulation import Simulation
 
 from .util import setupCosimulation
+
 
 @block
 def bin2gray2(B, G, width):
@@ -16,19 +17,22 @@ def bin2gray2(B, G, width):
     G -- output intbv signal, gray encoded
     width -- bit width
     """
+
     @instance
     def logic():
-        Bext = intbv(0)[width+1:]
+        Bext = intbv(0)[width + 1:]
         while 1:
             yield B
             Bext[:] = B
             for i in range(width):
-                G.next[i] = Bext[i+1] ^ Bext[i]
+                G.next[i] = Bext[i + 1] ^ Bext[i]
+
     return logic
+
 
 @block
 def bin2gray(B, G, width):
-    
+
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
@@ -39,24 +43,25 @@ def bin2gray(B, G, width):
 
     @always_comb
     def logic():
-        Bext = intbv(0)[width+1:]
+        Bext = intbv(0)[width + 1:]
         Bext[:] = B
         for i in range(width):
-            G.next[i] = Bext[i+1] ^ Bext[i]
+            G.next[i] = Bext[i + 1] ^ Bext[i]
 
     return logic
-           
-            
-objfile = "bin2gray.o"           
+
+
+objfile = "bin2gray.o"
 analyze_cmd = "iverilog -o %s bin2gray_inst.v tb_bin2gray_inst.v" % objfile
 simulate_cmd = "vvp -m ../../../cosimulation/icarus/myhdl.vpi %s" % objfile
-      
-@block
-def bin2gray_v(B, G):
-    if path.exists(objfile):
-        os.remove(objfile)
-    os.system(analyze_cmd)
-    return Cosimulation(simulate_cmd, **locals())
+
+# @block
+# def bin2gray_v(B, G):
+#     if path.exists(objfile):
+#         os.remove(objfile)
+#     os.system(analyze_cmd)
+#     return Cosimulation(simulate_cmd, **locals())
+
 
 @block
 def bin2gray_v(name, B, G):
@@ -76,12 +81,12 @@ class TestBin2Gray(TestCase):
         bin2gray_v_inst = bin2gray_v(bin2gray.__name__, B, G_v)
 
         def stimulus():
-            for i in range(2**width):
+            for i in range(2 ** width):
                 B.next = intbv(i)
                 yield delay(10)
-                #print "B: " + bin(B, width) + "| G_v: " + bin(G_v, width)
-                #print bin(G, width)
-                #print bin(G_v, width)
+                # print "B: " + bin(B, width) + "| G_v: " + bin(G_v, width)
+                # print bin(G, width)
+                # print bin(G_v, width)
                 self.assertEqual(G, G_v)
 
         return bin2gray_v_inst, stimulus(), bin2gray_inst
@@ -89,13 +94,12 @@ class TestBin2Gray(TestCase):
     def test1(self):
         sim = self.bench(width=8, bin2gray=bin2gray)
         Simulation(sim).run()
-        
+
     def test2(self):
         sim = self.bench(width=8, bin2gray=bin2gray2)
         Simulation(sim).run()
-    
+
 
 if __name__ == '__main__':
     unittest.main()
-    
 

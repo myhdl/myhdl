@@ -1,4 +1,3 @@
-import os
 import pytest
 import unittest
 
@@ -29,6 +28,7 @@ class OBuf(object):
 
     def interface(self):
         return self.A, self.Y, self.OE
+
 
 @block
 def tristate_obuf_i(obuf):

@@ -30,17 +30,20 @@ from helpers import raises_kind
 random.seed(1)  # random, but deterministic
 path = os.path
 
+QUIET = 1
 
-QUIET=1
 
 @block
 def gen(clk):
+
     @instance
     def logic():
         while 1:
             yield delay(10)
             clk.next = not clk
+
     return logic
+
 
 @block
 def fun():
@@ -48,29 +51,34 @@ def fun():
     inst = gen(clk)
     return inst
 
+
 @block
 def dummy():
     clk = Signal(bool(0))
-    inst = gen(clk)
+    inst = gen(clk)  # inst will not be returned ...
     return 1
+
 
 @block
 def top():
     inst = traceSignals(fun())
     return inst
 
+
 @block
 def top2():
-    inst = [{} for i in range(4)]
+    inst = [{} for __ in range(4)]
     j = 3
-    inst[j-2]['key'] = traceSignals(fun())
+    inst[j - 2]['key'] = traceSignals(fun())
     return inst
+
 
 @block
 def top3():
     inst_1 = traceSignals(fun())
     inst_2 = traceSignals(fun())
     return inst_1, inst_2
+
 
 @block
 def genTristate(clk, x, y, z):
@@ -95,18 +103,21 @@ def genTristate(clk, x, y, z):
                 yd.next = zd.next = 11
             else:
                 yd.next = zd.next = 0
-    return ckgen,logic
+
+    return ckgen, logic
+
 
 @block
 def tristate():
     from myhdl import TristateSignal
     clk = Signal(bool(0))
-    x = TristateSignal(True)            # single bit
-    y = TristateSignal(intbv(0))        # intbv with undefined width
-    z = TristateSignal(intbv(0)[8:])    # intbv with fixed width
+    x = TristateSignal(True)  # single bit
+    y = TristateSignal(intbv(0))  # intbv with undefined width
+    z = TristateSignal(intbv(0)[8:])  # intbv with fixed width
 
     inst = genTristate(clk, x, y, z)
     return inst
+
 
 @block
 def topTristate():
@@ -133,7 +144,7 @@ class TestTraceSigs:
 
     def testArgType1(self, vcd_dir):
         with raises_kind(TraceSignalsError, _error.ArgType):
-            dut = traceSignals([1, 2])
+            dut = traceSignals([1, 2])  # dut will not be returned ...
 
     # this test is no longer relevant
     # def testReturnVal(self, vcd_dir):
@@ -151,7 +162,7 @@ class TestTraceSigs:
     def testHierarchicalTrace2(self, vcd_dir):
         pdut = "%s.vcd" % top.__name__
         psub = "%s.vcd" % fun.__name__
-        dut = traceSignals(top())
+        dut = traceSignals(top())  # dut will not be returned ...
         assert path.exists(pdut)
         assert not path.exists(psub)
 
@@ -188,7 +199,7 @@ class TestTraceSigs:
         psub = "%s.vcd" % fun.__name__
         pdutd = path.join(traceSignals.directory, "%s.vcd" % top.__name__)
         psubd = path.join(traceSignals.directory, "%s.vcd" % fun.__name__)
-        dut = traceSignals(top())
+        dut = traceSignals(top())  # dut will not be returned ...
         _simulator._tf.close()
         _simulator._tracing = 0
         traceSignals.directory = None

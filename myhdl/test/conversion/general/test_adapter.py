@@ -1,5 +1,6 @@
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, instance, delay,
+                   ConcatSignal, always_comb)
+
 
 @block
 def adapter(o_err, i_err, o_spec, i_spec):
@@ -38,7 +39,7 @@ def adapter(o_err, i_err, o_spec, i_spec):
 @block
 def bench_adapter(hdl=None):
     o_spec = ('c', 'a', 'other', 'nomatch')
-    i_spec = { 'a' : 1, 'b' : 2, 'c' : 0, 'd' : 3, 'e' : 4, 'f' : 5, }
+    i_spec = { 'a': 1, 'b': 2, 'c': 0, 'd': 3, 'e': 4, 'f': 5, }
 
     o_err = Signal(intbv(0)[4:])
     i_err = Signal(intbv(0)[6:])
@@ -48,7 +49,8 @@ def bench_adapter(hdl=None):
     else:
         dut = adapter(o_err, i_err, o_spec, i_spec)
 
-    N = 2**len(i_err)
+    N = 2 ** len(i_err)
+
     @instance
     def stimulus():
         for i in range(N):
@@ -61,6 +63,7 @@ def bench_adapter(hdl=None):
             print(o_err)
 
     return dut, stimulus
+
 
 def test_adapter():
     assert bench_adapter().verify_convert() == 0
