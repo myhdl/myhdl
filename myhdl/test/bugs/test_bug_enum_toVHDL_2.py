@@ -1,7 +1,7 @@
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, enum, always_comb)
 
 t_state = enum('WAIT_POSEDGE', 'WAIT_NEGEDGE', encoding='one_hot')
+
 
 @block
 def pcie_legacyint_next_state_logic_2(state_i, next_state_o, next_state_en_o, interrupt_pending_i, interrupt_assert_o):

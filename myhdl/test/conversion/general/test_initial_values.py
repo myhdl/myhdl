@@ -22,7 +22,7 @@ def initial_value_enum_bench(initial_val, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for __ in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -107,7 +107,7 @@ def initial_value_bench(initial_val, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for __ in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -208,7 +208,7 @@ def initial_value_bool_list_bench(initial_vals, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for __ in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -278,7 +278,7 @@ def initial_value_list_bench(initial_vals, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for __ in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -576,7 +576,7 @@ def init_reset_tb():
     def clkgen():
 
         clk.next = 0
-        for __ in range(10):
+        for dummy in range(10):
             yield delay(10)
             clk.next = not clk
 

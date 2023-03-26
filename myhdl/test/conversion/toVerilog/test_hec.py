@@ -3,7 +3,7 @@ path = os.path
 import unittest
 from random import randrange
 
-from myhdl import (block, Signal, intbv, delay, always,
+from myhdl import (block, Signal, intbv, delay,
                    instance, concat, downrange)
 from myhdl._Simulation import Simulation
 from .util import setupCosimulation

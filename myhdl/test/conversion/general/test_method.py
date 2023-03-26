@@ -141,7 +141,7 @@ def ObjBench(hObj):
         yield delay(10)
         srst.next = False
         yield delay(10)
-        for __ in range(1000):
+        for dummy in range(1000):
             yield delay(10)
             clk.next = not clk
 

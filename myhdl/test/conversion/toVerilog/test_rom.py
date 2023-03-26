@@ -11,7 +11,7 @@ from .util import setupCosimulation
 
 D = 256
 
-ROM = tuple([randrange(D) for i in range(D)])
+ROM = tuple([randrange(D) for __ in range(D)])
 # ROM = [randrange(256) for i in range(256)]
 
 

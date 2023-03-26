@@ -94,7 +94,7 @@ class TestEdge(TestCase):
         @instance
         def stimulus():
             yield clock.negedge
-            for __ in range(100):
+            for dummy in range(100):
                 sig.next = randrange(2)
                 yield clock.negedge
             raise StopSimulation

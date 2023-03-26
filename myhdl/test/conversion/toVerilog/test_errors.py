@@ -243,7 +243,7 @@ def listComp1(count, enable, clock, reset, n):
 
     @instance
     def logic():
-        mem = [intbv(0)[8:] for __ in range(4) for __ in range(5)]
+        mem = [intbv(0)[8:] for dummy in range(4) for dummy in range(5)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
@@ -256,7 +256,7 @@ def listComp2(count, enable, clock, reset, n):
 
     @instance
     def logic():
-        mem = [intbv(0)[8:] for __ in downrange(4)]
+        mem = [intbv(0)[8:] for dummy in downrange(4)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
@@ -269,7 +269,7 @@ def listComp3(count, enable, clock, reset, n):
 
     @instance
     def logic():
-        mem = [intbv(0)[8:] for __ in range(1, 4)]
+        mem = [intbv(0)[8:] for dummy in range(1, 4)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
@@ -282,7 +282,7 @@ def listComp4(count, enable, clock, reset, n):
 
     @instance
     def logic():
-        mem = [intbv(0) for __ in range(4)]
+        mem = [intbv(0) for dummy in range(4)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
@@ -367,10 +367,10 @@ class TestErr(TestCase):
         reset.next = ACTIVE_LOW
         yield clock.negedge
         reset.next = INACTIVE_HIGH
-        for __ in range(1000):
+        for dummy in range(1000):
             enable.next = 1
             yield clock.negedge
-        for __ in range(1000):
+        for dummy in range(1000):
             enable.next = min(1, randrange(5))
             yield clock.negedge
         raise StopSimulation

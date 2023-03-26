@@ -16,7 +16,7 @@ def ram(dout, din, addr, we, clk, depth=128):
 
     @instance
     def logic():
-        mem = [intbv(0)[8:] for __ in range(depth)]
+        mem = [intbv(0)[8:] for dummy in range(depth)]
         # ad = 1
         while 1:
             yield clk.posedge

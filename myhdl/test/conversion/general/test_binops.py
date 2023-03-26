@@ -66,7 +66,7 @@ def binOpsCheckBench0():
     @instance
     def clkgen():
         clk.next = 1
-        for __ in range(400):
+        for dummy in range(400):
             yield delay(10)
             clk.next = not clk
 
@@ -177,7 +177,7 @@ def binOpsCheckBench1():
     @instance
     def clkgen():
         clk.next = 1
-        for __ in range(400):
+        for dummy in range(400):
             yield delay(10)
             clk.next = not clk
 
@@ -288,7 +288,7 @@ def binOpsCheckBench2():
     @instance
     def clkgen():
         clk.next = 1
-        for __ in range(400):
+        for dummy in range(400):
             yield delay(10)
             clk.next = not clk
 

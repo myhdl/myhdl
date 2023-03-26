@@ -5,10 +5,9 @@
 import unittest
 from random import randrange
 
-from myhdl import Signal, intbv, \
-  always_comb, instance, \
-  delay, StopSimulation, block
-
+from myhdl import (Signal, intbv,
+                   always_comb, instance,
+                   delay, StopSimulation, block)
 
 ASCENDING = True
 DESCENDING = False
@@ -17,130 +16,132 @@ DESCENDING = False
 # modules
 @block
 def compare(a_1, a_2, z_1, z_2, direction):
-  """ Combinatorial circuit with two input and two output signals.
-      Sorting to 'direction'. """
+    """ Combinatorial circuit with two input and two output signals.
+        Sorting to 'direction'. """
 
-  @always_comb
-  def logic():
-    ''' Combinatorial logic '''
-    if direction == (a_1 > a_2):
-      z_1.next = a_2
-      z_2.next = a_1
-    else:
-      z_1.next = a_1
-      z_2.next = a_2
+    @always_comb
+    def logic():
+        ''' Combinatorial logic '''
+        if direction == (a_1 > a_2):
+            z_1.next = a_2
+            z_2.next = a_1
+        else:
+            z_1.next = a_1
+            z_2.next = a_2
 
-  return logic
+    return logic
+
 
 @block
 def feedthru(in_a, out_z):
-  """ Equivalent of 'doing nothing'. """
+    """ Equivalent of 'doing nothing'. """
 
-  @always_comb
-  def logic():
-    ''' Combinatorial logic '''
-    out_z.next = in_a
+    @always_comb
+    def logic():
+        ''' Combinatorial logic '''
+        out_z.next = in_a
 
-  return logic
+    return logic
+
 
 @block
 def bitonic_merge(list_a, list_z, direction):
-  """ bitonicMerge:
-      Generates the output from the input list of signals.
-      Recursive. """
-  len_list = len(list_a)
-  half_len = len_list//2
-  width    = len(list_a[0])
+    """ bitonicMerge:
+        Generates the output from the input list of signals.
+        Recursive. """
+    len_list = len(list_a)
+    half_len = len_list // 2
+    width = len(list_a[0])
 
-  if len_list > 1:
-    tmp = [Signal(intbv(0)[width:]) for _ in range(len_list)]
+    if len_list > 1:
+        tmp = [Signal(intbv(0)[width:]) for _ in range(len_list)]
 
-    comp = [compare(list_a[i], list_a[i+half_len], tmp[i], tmp[i+half_len], \
-                    direction) for i in range(half_len)]
+        comp = [compare(list_a[i], list_a[i + half_len], tmp[i], tmp[i + half_len], \
+                        direction) for i in range(half_len)]
 
-    lo_merge = bitonic_merge( tmp[:half_len], list_z[:half_len], direction )
-    hi_merge = bitonic_merge( tmp[half_len:], list_z[half_len:], direction )
+        lo_merge = bitonic_merge(tmp[:half_len], list_z[:half_len], direction)
+        hi_merge = bitonic_merge(tmp[half_len:], list_z[half_len:], direction)
 
-    return comp, lo_merge, hi_merge
-  else:
-    feed = feedthru(list_a[0], list_z[0])
-    return feed
+        return comp, lo_merge, hi_merge
+    else:
+        feed = feedthru(list_a[0], list_z[0])
+        return feed
+
 
 @block
 def bitonic_sort(list_a, list_z, direction):
-  """ bitonicSort:
-      Produces a bitonic sequence.
-      Recursive. """
-  len_list = len(list_a)
-  half_len = len_list//2
-  width    = len(list_a[0])
+    """ bitonicSort:
+        Produces a bitonic sequence.
+        Recursive. """
+    len_list = len(list_a)
+    half_len = len_list // 2
+    width = len(list_a[0])
 
-  if len_list > 1:
-    tmp = [Signal(intbv(0)[width:]) for _ in range(len_list)]
+    if len_list > 1:
+        tmp = [Signal(intbv(0)[width:]) for _ in range(len_list)]
 
-    lo_sort = bitonic_sort( list_a[:half_len], tmp[:half_len], ASCENDING  )
-    hi_sort = bitonic_sort( list_a[half_len:], tmp[half_len:], DESCENDING )
+        lo_sort = bitonic_sort(list_a[:half_len], tmp[:half_len], ASCENDING)
+        hi_sort = bitonic_sort(list_a[half_len:], tmp[half_len:], DESCENDING)
 
-    merge = bitonic_merge( tmp, list_z, direction )
-    return lo_sort, hi_sort, merge
-  else:
-    feed = feedthru(list_a[0], list_z[0])
-    return feed
+        merge = bitonic_merge(tmp, list_z, direction)
+        return lo_sort, hi_sort, merge
+    else:
+        feed = feedthru(list_a[0], list_z[0])
+        return feed
 
 
 # tests
 @block
 def array8sorter_127(a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7,
                  z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7):
-  ''' Sort Array with 8 values '''
+    ''' Sort Array with 8 values '''
 
-  list_a = [a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7]
-  list_z = [z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7]
+    list_a = [a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7]
+    list_z = [z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7]
 
-  sort = bitonic_sort(list_a, list_z, ASCENDING)
-  return sort
+    sort = bitonic_sort(list_a, list_z, ASCENDING)
+    return sort
 
 
 class TestBitonicSort(unittest.TestCase):
-  ''' Test class for bitonic sort '''
+    ''' Test class for bitonic sort '''
 
-  def test_sort(self):
-    """ Check the functionality of the bitonic sort """
-    length = 8
-    width  = 4
+    def test_sort(self):
+        """ Check the functionality of the bitonic sort """
+        length = 8
+        width = 4
 
-    def test_impl():
-      ''' test implementation '''
-      inputs  = [ Signal(intbv(0)[width:]) for _ in range(length) ]
-      outputs = [ Signal(intbv(0)[width:]) for _ in range(length) ]
-      z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7 = outputs
-      a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7 = inputs
+        def test_impl():
+            ''' test implementation '''
+            inputs = [ Signal(intbv(0)[width:]) for _ in range(length) ]
+            outputs = [ Signal(intbv(0)[width:]) for _ in range(length) ]
+            z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7 = outputs
+            a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7 = inputs
 
-      inst = array8sorter_127(a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7,
-                          z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7)
+            inst = array8sorter_127(a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7,
+                              z_0, z_1, z_2, z_3, z_4, z_5, z_6, z_7)
 
-      @instance
-      def check():
-        ''' testbench input and validation '''
-        for i in range(100):
-          data = [randrange(2**width) for i in range(length)]
-          for i in range(length):
-            inputs[i].next = data[i]
-          yield delay(10)
-          data.sort()
-          self.assertEqual(data, outputs, 'wrong data')
-        raise StopSimulation
+            @instance
+            def check():
+                ''' testbench input and validation '''
+                for dummy in range(100):
+                    data = [randrange(2 ** width) for dummy in range(length)]
+                    for i in range(length):
+                        inputs[i].next = data[i]
+                    yield delay(10)
+                    data.sort()
+                    self.assertEqual(data, outputs, 'wrong data')
+                raise StopSimulation
 
-      return inst, check
-
-
+            return inst, check
 
 # convert
 
+
 def test_issue_127():
-  ''' Convert to VHDL '''
-  length = 8
-  width  = 4
-  sigs = [Signal(intbv(0)[width:]) for _ in range(2*length)]
-  array8sorter_127(*sigs).convert(hdl='VHDL')
+    ''' Convert to VHDL '''
+    length = 8
+    width = 4
+    sigs = [Signal(intbv(0)[width:]) for _ in range(2 * length)]
+    array8sorter_127(*sigs).convert(hdl='VHDL')
 

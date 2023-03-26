@@ -154,7 +154,7 @@ def IncBench(inc):
     @instance
     def clockgen():
         clock.next = 1
-        for __ in range(NR_CYCLES):
+        for dummy in range(NR_CYCLES):
             yield delay(10)
             clock.next = not clock
 

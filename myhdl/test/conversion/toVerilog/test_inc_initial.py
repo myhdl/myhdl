@@ -28,7 +28,7 @@ def inc_initial(count, enable, clock, reset, n):
 
     @instance
     def logic():
-        for __ in range(100):
+        for dummy in range(100):
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
                 count.next = 0
@@ -70,7 +70,7 @@ class TestInc_initial(TestCase):
         reset.next = ACTIVE_LOW
         yield negedge(clock)
         reset.next = INACTIVE_HIGH
-        for __ in range(1000):
+        for dummy in range(1000):
             enable.next = min(1, randrange(5))
             yield negedge(clock)
         raise StopSimulation

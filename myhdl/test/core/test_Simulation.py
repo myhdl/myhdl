@@ -264,7 +264,7 @@ class JoinedGen(TestCase):
         td = 10
 
         def gen(s, n):
-            for __ in range(n - 1):
+            for dummy in range(n - 1):
                 yield delay(td)
             s.next = 1
             yield delay(td)
@@ -332,7 +332,7 @@ class YieldZeroDelay(TestCase):
 
         def gen(s, n):
             s.next = 0
-            for __ in range(n):
+            for dummy in range(n):
                 yield delay(td)
             s.next = 1
 
@@ -367,7 +367,7 @@ class YieldConcurrentGen(TestCase):
 
         def gen(s, n):
             s.next = 0
-            for __ in range(n):
+            for dummy in range(n):
                 yield delay(td)
             s.next = 1
 
@@ -422,7 +422,7 @@ class YieldGen(TestCase):
 
         def task(nlist):
             n = nlist.pop(0)
-            for __ in range(n):
+            for dummy in range(n):
                 yield clk.posedge
                 shared.cnt += 1
             assert shared.cnt == expected[shared.i]
@@ -454,10 +454,10 @@ class DeltaCycleOrder(TestCase):
         c = Signal(0)
         d = Signal(0)
         z = Signal(0)
-        delta = [Signal(0) for __ in range(4)]
+        delta = [Signal(0) for dummy in range(4)]
         inputs = Signal(intbv(0))
         s = [a, b, c, d]
-        vectors = [intbv(j) for __ in range(8) for j in range(16)]
+        vectors = [intbv(j) for dummy in range(8) for j in range(16)]
         random.shuffle(vectors)
         index = list(range(4))
 
@@ -554,7 +554,7 @@ class DeltaCycleRace(TestCase):
         shared.t = now()
 
         def clkGen():
-            for __ in uprange[:-1]:
+            for dummy in uprange[:-1]:
                 yield delay(10)
                 clk.next = 1
                 yield delay(10)
@@ -820,7 +820,7 @@ class Waveform(TestCase):
 
 class WaveformSigDelay(Waveform):
 
-    """ Repeat wavfor __ tests with a delayed signal """
+    """ Repeat waveform in tests with a delayed signal """
 
     waveform = []
     duration = 0

@@ -141,7 +141,7 @@ class TestInferWaiter:
         inst_s = MyHDLFunc(a, b, c, d, s)
 
         def stimulus():
-            for __ in range(1000):
+            for dummy in range(1000):
                 yield delay(randrange(1, 10))
                 if randrange(2):
                     a.next = randrange(32)

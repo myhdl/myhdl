@@ -170,7 +170,7 @@ class TestInferWaiter:
             gen_inst_s = gen_inst_s.gen
 
         def stimulus():
-            for __ in range(1000):
+            for dummy in range(1000):
                 yield delay(randrange(1, 10))
                 if randrange(2):
                     a.next = randrange(32)

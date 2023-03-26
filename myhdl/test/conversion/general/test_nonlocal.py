@@ -45,7 +45,7 @@ def NonlocalBench():
         print(qout)
         assert qout == ONE
         reset.next = 0
-        for __ in range(100):
+        for dummy in range(100):
             yield clk.negedge
             print(qout)
         init.next = 1
@@ -53,7 +53,7 @@ def NonlocalBench():
         assert qout == ALL_ONES
         print(qout)
         init.next = 0
-        for __ in range(300):
+        for dummy in range(300):
             print(qout)
         raise StopSimulation()
 

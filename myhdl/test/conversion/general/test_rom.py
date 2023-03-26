@@ -7,7 +7,7 @@ from myhdl import (block, Signal, intbv, delay, always_comb,
                    )
 D = 256
 
-ROM = tuple([randrange(D) for i in range(D)])
+ROM = tuple([randrange(D) for __ in range(D)])
 
 
 @block

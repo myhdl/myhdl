@@ -76,7 +76,7 @@ def FSMBench(FramerCtrl, t_State):
         yield delay(10)
         reset_n.next = 1
         yield delay(10)
-        for __ in range(1000):
+        for dummy in range(1000):
             yield delay(10)
             clk.next = not clk
 
@@ -91,7 +91,7 @@ def FSMBench(FramerCtrl, t_State):
             syncFlag.next = 1
             yield clk.posedge
             syncFlag.next = 0
-            for __ in range(n - 1):
+            for dummy in range(n - 1):
                 yield clk.posedge
         raise StopSimulation
 

@@ -157,10 +157,10 @@ class TestDec(TestCase):
         reset.next = ACTIVE_LOW
         yield clock.negedge
         reset.next = INACTIVE_HIGH
-        for __ in range(1000):
+        for dummy in range(1000):
             enable.next = 1
             yield clock.negedge
-        for __ in range(1000):
+        for dummy in range(1000):
             enable.next = min(1, randrange(5))
             yield clock.negedge
         raise StopSimulation

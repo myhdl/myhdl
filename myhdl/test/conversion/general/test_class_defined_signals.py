@@ -129,7 +129,7 @@ def bench(class_name='different_class'):
     def clkgen():
 
         clk.next = 0
-        for __ in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
