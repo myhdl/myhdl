@@ -3,7 +3,7 @@ MyHDL 0.11
 
 [![Join the chat at https://gitter.im/myhdl/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[![Visit Discourse](https://www.clipartmax.com/png/small/208-2081333_discourse-meta-discourse-logo.png)](https://discourse.myhdl.org)
+[![Visit Discourse](https://d11a6trkgmumsb.cloudfront.net/original/3X/a/d/ad2526334012b2ad0c3421f9b6dd94bae2ede52f.svg)](https://discourse.myhdl.org)
 
 [![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=stable)](http://docs.myhdl.org/en/stable/manual/)
 [![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=latest)](http://docs.myhdl.org/en/latest/manual)
