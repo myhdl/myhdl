@@ -6,8 +6,8 @@ MyHDL 0.11
 
 [![Join the chat at https://gitter.im/myhdl/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[<img src="https://d11a6trkgmumsb.cloudfront.net/original/3X/a/d/ad2526334012b2ad0c3421f9b6dd94bae2ede52f.svg" alt="Visit MyHDL at Discourse" align="left" height="40" width="148" >](https://discourse.myhdl.org)  
-
+[<img src="https://d11a6trkgmumsb.cloudfront.net/original/3X/a/d/ad2526334012b2ad0c3421f9b6dd94bae2ede52f.svg" alt="Visit MyHDL at Discourse" align="left" height="36" width="134" >](https://discourse.myhdl.org)
+<br>
 
 
 What is MyHDL?
