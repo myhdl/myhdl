@@ -49,7 +49,7 @@ Installing the latest stable release:
 ```
 pip install myhdl
 ```
-Unfortunately version the PyPI is quite behind the current development status, so you are better off installing the *stable* master branch directly from this GitHub repository:
+Unfortunately the version on PyPI is quite behind the current development status, so you are better off installing the *stable* master branch directly from this GitHub repository:
 
 ```
 pip install git+https://github.com/myhdl/myhdl.git@master
