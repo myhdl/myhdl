@@ -1,7 +1,5 @@
-#! /usr/bin/env python
+from myhdl import (block, Signal, intbv, always)
 
-import myhdl
-from myhdl import *
 
 @block
 def module42_2(sigin, sigout):
@@ -11,16 +9,18 @@ def module42_2(sigin, sigout):
     # an input.
     @always(sigin)
     def output():
-         sigout.next = sigin[len(sigout):]
+        sigout.next = sigin[len(sigout):]
 
     return output
+
 
 sigin = Signal(intbv(0)[2:])
 sigout = Signal(intbv(0)[2:])
 
+
 def test_bug_42_2():
     module42_2(sigin, sigout).convert(hdl='VHDL')
 
-module42_2(sigin, sigout).convert(hdl='VHDL')
 
+module42_2(sigin, sigout).convert(hdl='VHDL')
 

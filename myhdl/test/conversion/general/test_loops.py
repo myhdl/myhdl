@@ -2,8 +2,7 @@ import os
 path = os.path
 from random import randrange
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, instance, downrange)
 from myhdl.conversion import verify, analyze
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
@@ -215,7 +214,6 @@ def NestedForLoop2(a, out):
     def logic():
         while 1:
             yield a
-            var = 0
             out.next = 0
             for i in downrange(len(a)):
                 if a[i] == 0:
@@ -321,7 +319,6 @@ def WhileBreakLoop(a, out):
     def logic():
         while 1:
             yield a
-            var = 0
             i = len(a) - 1
             out.next = 0
             while i >= 0:
@@ -340,7 +337,6 @@ def WhileBreakContinueLoop(a, out):
     def logic():
         while 1:
             yield a
-            var = 0
             i = len(a) - 1
             out.next = 0
             while i >= 0:
@@ -409,23 +405,23 @@ def testForLoop5():
 
 
 def testForContinueLoop():
-  assert verify(LoopBench(ForContinueLoop)) == 0
+    assert verify(LoopBench(ForContinueLoop)) == 0
 
 
 def testForBreakLoop():
-   assert verify(LoopBench(ForBreakLoop)) == 0
+    assert verify(LoopBench(ForBreakLoop)) == 0
 
 
 def testForBreakContinueLoop():
-   assert verify(LoopBench(ForBreakContinueLoop)) == 0
+    assert verify(LoopBench(ForBreakContinueLoop)) == 0
 
 
 def testNestedForLoop1():
-   assert verify(LoopBench(NestedForLoop1)) == 0
+    assert verify(LoopBench(NestedForLoop1)) == 0
 
 
 def testNestedForLoop2():
-   assert verify(LoopBench(NestedForLoop2)) == 0
+    assert verify(LoopBench(NestedForLoop2)) == 0
 
 
 def testFunctionCall():

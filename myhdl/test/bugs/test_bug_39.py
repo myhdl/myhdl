@@ -1,5 +1,5 @@
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, instance, always_comb, delay)
+
 
 @block
 def dut():
@@ -9,7 +9,7 @@ def dut():
     b = Signal(intbv(0, min=0, max=256))
     c = Signal(intbv(0, min=0, max=256))
     d = Signal(intbv(0, min=0, max=256))
-    
+
     @always_comb
     def logic():
         rx.next = a + b - (c + d)
@@ -20,7 +20,7 @@ def dut():
         b.next = 0
         c.next = 0
         d.next = 0
-        for i in range(100):
+        for dummy in range(100):
             yield delay(10)
             print(rx)
             a.next = (a + 37) % 256
@@ -30,7 +30,7 @@ def dut():
 
     return logic, check
 
+
 def test_bug_39():
     assert dut().verify_convert() == 0
-
 

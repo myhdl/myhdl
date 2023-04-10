@@ -22,115 +22,135 @@ import random
 from random import randrange
 from types import GeneratorType
 
-import myhdl
-from myhdl import *
+from myhdl import Signal, intbv, instance, delay, StopSimulation
+
+from myhdl._Simulation import Simulation
 from myhdl._Waiter import (_DelayWaiter, _EdgeTupleWaiter, _EdgeWaiter,
                            _inferWaiter, _SignalTupleWaiter, _SignalWaiter,
                            _Waiter)
 
 random.seed(1)  # random, but deterministic
 
-
-QUIET=1
+QUIET = 1
 
 
 def SignalFunc1(a, b, c, d, r):
+
     @instance
     def logic():
         while 1:
             yield a
             r.next = a + b + c
+
     return logic
 
 
 def SignalFunc2(a, b, c, d, r):
+
     def logic(a, r):
         while 1:
             yield a
             r.next = a - b + c
+
     return logic(a, r)
 
 
 def SignalTupleFunc1(a, b, c, d, r):
+
     @instance
     def logic():
         while 1:
             yield a, b, c
             r.next = a + b + c
+
     return logic
 
 
 def SignalTupleFunc2(a, b, c, d, r):
+
     def logic(a, r):
         while 1:
             yield a, b, c
             r.next = a - b + c
+
     return logic(a, r)
 
 
 def DelayFunc(a, b, c, d, r):
+
     @instance
     def logic():
         while 1:
             yield delay(3)
             r.next = a + b + c
+
     return logic
 
 
 def EdgeFunc1(a, b, c, d, r):
+
     @instance
     def logic():
         while 1:
             yield c.posedge
             r.next = a + b + c
+
     return logic
 
 
 def EdgeFunc2(a, b, c, d, r):
+
     def logic(c, r):
         while 1:
             yield c.negedge
             r.next = a + b + c
             if a > 5:
                 yield c.posedge
-                r.next = a - b -c
+                r.next = a - b - c
             else:
                 r.next = a + b - c
+
     return logic(c, r)
 
 
 def EdgeTupleFunc1(a, b, c, d, r):
+
     @instance
     def logic():
         while 1:
             yield c.posedge, d.negedge
             r.next = a + b + c
+
     return logic
 
 
 def EdgeTupleFunc2(a, b, c, d, r):
+
     def logic(c, r):
         while 1:
             yield c.negedge, d.posedge
             r.next = a + b + c
             if a > 5:
                 yield c.posedge, d.negedge
-                r.next = a - b -c
+                r.next = a - b - c
             else:
                 r.next = a + b - c
+
     return logic(c, r)
 
 
 def GeneralFunc(a, b, c, d, r):
+
     def logic(c, r):
         while 1:
             yield c.negedge, d.posedge
             r.next = a + b + c
             if a > 5:
                 yield c, d.negedge
-                r.next = a - b -c
+                r.next = a - b - c
             else:
                 r.next = a + b - c
+
     return logic(c, r)
 
 
@@ -138,7 +158,7 @@ class TestInferWaiter:
 
     def bench(self, genFunc, waiterType):
 
-        a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
+        a, b, c, d, r, s = [Signal(intbv(0)) for __ in range(6)]
 
         gen_inst_r = genFunc(a, b, c, d, r)
         if not isinstance(gen_inst_r, GeneratorType):  # decorator type
@@ -150,12 +170,12 @@ class TestInferWaiter:
             gen_inst_s = gen_inst_s.gen
 
         def stimulus():
-            for i in range(1000):
+            for dummy in range(1000):
                 yield delay(randrange(1, 10))
                 if randrange(2):
                     a.next = randrange(32)
                 if randrange(2):
-                       b.next = randrange(32)
+                    b.next = randrange(32)
                 c.next = randrange(2)
                 d.next = randrange(2)
             raise StopSimulation

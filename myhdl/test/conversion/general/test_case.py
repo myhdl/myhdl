@@ -1,5 +1,5 @@
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always_comb, instance)
+
 
 @block
 def map_case4(z, a):
@@ -17,6 +17,7 @@ def map_case4(z, a):
 
     return logic
 
+
 @block
 def map_case2(z, a):
 
@@ -29,6 +30,7 @@ def map_case2(z, a):
             z.next = 1
 
     return logic
+
 
 @block
 def map_case3(z, a):
@@ -43,6 +45,7 @@ def map_case3(z, a):
             z.next = 2
 
     return logic
+
 
 @block
 def map_case4_full(z, a):
@@ -78,6 +81,7 @@ def bench_case(map_case, N):
 
     return stimulus, inst
 
+
 @block
 def bool_bench_case(map_case):
 
@@ -94,6 +98,7 @@ def bool_bench_case(map_case):
             print(z)
 
     return stimulus, inst
+
 
 @block
 def length1_bench_case(map_case):
@@ -112,26 +117,34 @@ def length1_bench_case(map_case):
 
     return stimulus, inst
 
+
 def test_case4():
     assert bench_case(map_case4, 4).verify_convert() == 0
+
 
 def test_case2():
     assert bench_case(map_case2, 2).verify_convert() == 0
 
+
 def test_case3():
     assert bench_case(map_case3, 3).verify_convert() == 0
+
 
 def test_case4_full():
     assert bench_case(map_case4_full, 4).verify_convert() == 0
 
+
 def test_case2_bool():
     assert bool_bench_case(map_case3).verify_convert() == 0
+
 
 def test_case3_bool():
     assert bool_bench_case(map_case3).verify_convert() == 0
 
+
 def test_case2_single_bit():
     assert length1_bench_case(map_case3).verify_convert() == 0
+
 
 def test_case3_single_bit():
     assert length1_bench_case(map_case3).verify_convert() == 0

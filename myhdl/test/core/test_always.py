@@ -21,20 +21,20 @@
 from random import randrange
 
 from myhdl import (AlwaysError, Signal, Simulation, StopSimulation, delay,
-                   instances, intbv, now)
-from myhdl._always import _error, always
+                   intbv, always)
+from myhdl._always import _error
 from myhdl._Waiter import (_DelayWaiter, _EdgeTupleWaiter, _EdgeWaiter,
                            _SignalTupleWaiter, _SignalWaiter, _Waiter)
 from helpers import raises_kind
 
 # random.seed(3) # random, but deterministic
 
-
-QUIET=1
+QUIET = 1
 
 
 def g():
     pass
+
 
 x = Signal(0)
 
@@ -48,24 +48,28 @@ class TestAlwaysCompilation:
 
     def testArgIsNormalFunction(self):
         with raises_kind(AlwaysError, _error.ArgType):
+
             @always(delay(3))
             def h():
                 yield None
 
     def testArgHasNoArgs(self):
         with raises_kind(AlwaysError, _error.NrOfArgs):
+
             @always(delay(3))
             def h(n):
                 return n
 
     def testDecArgType1(self):
         with raises_kind(AlwaysError, _error.DecArgType):
+
             @always
             def h(n):
                 return n
 
     def testDecArgType2(self):
         with raises_kind(AlwaysError, _error.DecArgType):
+
             @always(g)
             def h(n):
                 return n
@@ -129,7 +133,7 @@ class TestInferWaiter:
 
     def bench(self, MyHDLFunc, waiterType):
 
-        a, b, c, d, r, s = [Signal(intbv(0)) for i in range(6)]
+        a, b, c, d, r, s = [Signal(intbv(0)) for __ in range(6)]
 
         inst_r = MyHDLFunc(a, b, c, d, r)
         assert type(inst_r.waiter) == waiterType
@@ -137,12 +141,12 @@ class TestInferWaiter:
         inst_s = MyHDLFunc(a, b, c, d, s)
 
         def stimulus():
-            for i in range(1000):
+            for dummy in range(1000):
                 yield delay(randrange(1, 10))
                 if randrange(2):
                     a.next = randrange(32)
                 if randrange(2):
-                       b.next = randrange(32)
+                    b.next = randrange(32)
                 c.next = randrange(2)
                 d.next = randrange(2)
             raise StopSimulation

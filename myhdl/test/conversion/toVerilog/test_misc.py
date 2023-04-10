@@ -3,31 +3,37 @@ import os
 path = os.path
 from random import randrange
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, instances,
+                   instance)
+from myhdl._Simulation import Simulation
 
 from .util import setupCosimulation
 
 ### test of constant wire support ###
 
+
 # example from Frank Palazollo
 @block
-def or_gate(a,b,c):
+def or_gate(a, b, c):
+
     @instance
     def logic():
         while 1:
             c.next = a | b
             yield a, b
+
     return logic
-        
+
+
 @block
-def my_bundle(p,q):
+def my_bundle(p, q):
         r = Signal(bool(0))
-        gen_or = or_gate(p,r,q)
+        gen_or = or_gate(p, r, q)
         return instances()
 
+
 # additional level of hierarchy
-@block        
+@block
 def ConstWire2(p, q):
     r = Signal(bool(1))
     s = Signal(bool(1))
@@ -35,30 +41,35 @@ def ConstWire2(p, q):
     inst2 = or_gate(r, s, q)
     return inst1, inst2
 
+
 @block
 def adder(a, b, c):
+
     @instance
     def logic():
         while 1:
             yield a, b
             c.next = a + b
+
     return logic
 
-@block        
+
+@block
 def ConstWire3(p, q):
     t = Signal(intbv(17)[5:])
     adder_inst = adder(p, t, q)
     return instances()
 
-        
-@block        
+
+@block
 def ConstWire_v(name, p, q):
     return setupCosimulation(**locals())
+
 
 class TestConstWires(unittest.TestCase):
 
     def benchBool(self, ConstWire):
-        
+
         p = Signal(bool(0))
         q = Signal(bool(0))
         q_v = Signal(bool(0))
@@ -67,7 +78,7 @@ class TestConstWires(unittest.TestCase):
         constwire_v_inst = ConstWire_v(ConstWire.__name__, p, q_v)
 
         def stimulus():
-            for i in range(100):
+            for dummy in range(100):
                 p.next = randrange(2)
                 yield delay(10)
                 self.assertEqual(q, q_v)
@@ -80,10 +91,10 @@ class TestConstWires(unittest.TestCase):
 
     def testConstWire2(self):
         sim = self.benchBool(ConstWire2)
-        Simulation(sim).run()        
+        Simulation(sim).run()
 
     def benchIntbv(self, ConstWire):
-        
+
         p = Signal(intbv(0)[8:])
         q = Signal(intbv(0)[8:])
         q_v = Signal(intbv(0)[8:])
@@ -96,27 +107,31 @@ class TestConstWires(unittest.TestCase):
                 p.next = i
                 yield delay(10)
                 self.assertEqual(q, q_v)
-                
+
         return stimulus(), constwire_inst, constwire_v_inst
-        
+
     def testConstWire3(self):
         sim = self.benchIntbv(ConstWire3)
         Simulation(sim).run()
 
-
 ### tests of code ignore facility during translation ###
 
-@block        
+
+@block
 def adderRef(a, b, c):
+
     @instance
     def logic():
         while 1:
             yield a, b
             c.next = a + b
+
     return logic
 
-@block        
+
+@block
 def adderDebug(a, b, c):
+
     @instance
     def logic():
         while 1:
@@ -124,11 +139,13 @@ def adderDebug(a, b, c):
             if __debug__:
                 import string
             c.next = a + b
+
     return logic
 
-        
+
 def Ignorecode_v(name, a, b, c):
     return setupCosimulation(**locals())
+
 
 class TestIgnoreCode(unittest.TestCase):
 
@@ -143,23 +160,22 @@ class TestIgnoreCode(unittest.TestCase):
         ignorecode_v_inst = Ignorecode_v(adder.__name__, a, b, c_v)
 
         def stimulus():
-            for i in range(100):
-                a.next = randrange(2**8)
-                b.next = randrange(2**8)
+            for dummy in range(100):
+                a.next = randrange(2 ** 8)
+                b.next = randrange(2 ** 8)
                 yield delay(10)
                 self.assertEqual(c, c_v)
-                
+
         return stimulus(), ignorecode_inst, ignorecode_v_inst
-        
+
     def testAdderRef(self):
         sim = self.bench(adderRef)
         Simulation(sim).run()
-        
+
     def testAdderDebug(self):
         sim = self.bench(adderDebug)
         Simulation(sim).run()
-        
 
-        
+
 if __name__ == '__main__':
     unittest.main()

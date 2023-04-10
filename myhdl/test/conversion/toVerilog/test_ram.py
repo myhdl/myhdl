@@ -3,37 +3,35 @@ path = os.path
 import unittest
 from unittest import TestCase
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, always, always_comb,
+                   instance, StopSimulation)
+from myhdl._Simulation import Simulation
 
 from .util import setupCosimulation
+
 
 @block
 def ram(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """
-  
+
     @instance
     def logic():
-        mem = [intbv(0)[8:] for i in range(depth)]
-        a = intbv(0)[8:]
+        mem = [intbv(0)[8:] for dummy in range(depth)]
         # ad = 1
         while 1:
             yield clk.posedge
             if we:
-                ad = int(addr)
                 mem[int(addr)][:] = din
-                # a = din.val
-                # a[2] = din
             dout.next = mem[int(addr)]
 
     return logic
-        
+
 
 @block
 def ram_clocked(dout, din, addr, we, clk, depth=128):
     """ Ram model """
-    
-    mem = [Signal(intbv(0)[8:]) for i in range(depth)]
+
+    mem = [Signal(intbv(0)[8:]) for __ in range(depth)]
 
     @instance
     def access():
@@ -42,14 +40,15 @@ def ram_clocked(dout, din, addr, we, clk, depth=128):
             if we:
                 mem[int(addr)].next = din
             dout.next = mem[int(addr)]
-            
+
     return access
+
 
 @block
 def ram_deco1(dout, din, addr, we, clk, depth=128):
     """  Ram model """
-    
-    mem = [Signal(intbv(0)[8:]) for i in range(depth)]
+
+    mem = [Signal(intbv(0)[8:]) for __ in range(depth)]
 
     @instance
     def write():
@@ -57,24 +56,25 @@ def ram_deco1(dout, din, addr, we, clk, depth=128):
             yield clk.posedge
             if we:
                 mem[int(addr)].next = din
-                
+
     @always_comb
     def read():
         dout.next = mem[int(addr)]
-        
+
     return write, read
+
 
 @block
 def ram_deco2(dout, din, addr, we, clk, depth=128):
     """  Ram model """
-    
-    mem = [Signal(intbv(0)[8:]) for i in range(depth)]
+
+    mem = [Signal(intbv(0)[8:]) for __ in range(depth)]
 
     @always(clk.posedge)
     def write():
         if we:
             mem[int(addr)].next = din
-                
+
     @always_comb
     def read():
         dout.next = mem[int(addr)]
@@ -82,32 +82,32 @@ def ram_deco2(dout, din, addr, we, clk, depth=128):
     return write, read
 
 
-
 @block
 def ram2(dout, din, addr, we, clk, depth=128):
-        
+
     # memL = [intbv(0,min=dout._min,max=dout._max) for i in range(depth)]
-    memL = [Signal(intbv()[len(dout):]) for i in range(depth)]
+    memL = [Signal(intbv()[len(dout):]) for __ in range(depth)]
 
     @instance
-    def wrLogic() :
+    def wrLogic():
         while 1:
             yield clk.posedge
             if we:
                 memL[int(addr)].next = din
 
     @instance
-    def rdLogic() :
+    def rdLogic():
         while 1:
             yield clk.posedge
             dout.next = memL[int(addr)]
 
     return wrLogic, rdLogic
 
-  
+
 @block
 def ram_v(name, dout, din, addr, we, clk, depth=4):
     return setupCosimulation(**locals())
+
 
 class TestMemory(TestCase):
 
@@ -135,8 +135,8 @@ class TestMemory(TestCase):
                 yield clk.negedge
                 yield clk.posedge
                 yield delay(1)
-                #print dout
-                #print dout_v
+                # print dout
+                # print dout_v
                 self.assertEqual(dout, i)
                 # self.assertEqual(dout, dout_v)
             raise StopSimulation()
@@ -151,25 +151,24 @@ class TestMemory(TestCase):
     def test1(self):
         sim = self.bench(ram)
         Simulation(sim).run()
-        
+
     def test2(self):
         sim = self.bench(ram2)
         Simulation(sim).run()
-        
+
     def testram_clocked(self):
         sim = self.bench(ram_clocked)
         Simulation(sim).run()
-        
+
     def testram_deco1(self):
         sim = self.bench(ram_deco1)
         Simulation(sim).run()
-        
+
     def testram_deco2(self):
         sim = self.bench(ram_deco2)
         Simulation(sim).run()
-        
+
 
 if __name__ == '__main__':
     unittest.main()
-    
 

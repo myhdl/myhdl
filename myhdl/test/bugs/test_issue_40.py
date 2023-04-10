@@ -1,7 +1,5 @@
-#! /usr/bin/env python
+from myhdl import (block, Signal, intbv, always_seq, instances, ResetSignal)
 
-import myhdl
-from myhdl import *
 
 @block
 def mpegChannel(clk, rst):
@@ -23,11 +21,9 @@ def mpegChannel(clk, rst):
     return instances()
 
 
-
 def test_issue_40():
     clk = Signal(bool(0))
     rst = ResetSignal(0, active=1, isasync=True)
 
     assert mpegChannel(clk, rst).analyze_convert() == 0
-
 

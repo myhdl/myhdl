@@ -1,17 +1,17 @@
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, always, always_comb, toVHDL)
+
 
 @block
 def issue_18(dout, din, addr, we, clk, depth=128):
     """  Ram model """
-    
-    mem = [Signal(intbv(0)[8:]) for i in range(depth)]
-    
+
+    mem = [Signal(intbv(0)[8:]) for __ in range(depth)]
+
     @always(clk.posedge)
     def write():
         if we:
             mem[addr].next = din
-                
+
     @always_comb
     def read():
         dout.next = mem[addr]
@@ -25,6 +25,7 @@ din = Signal(intbv(0)[8:])
 addr = Signal(intbv(0)[7:])
 we = Signal(bool(0))
 clk = Signal(bool(0))
+
 
 def test_issue_18():
     toVHDL.std_logic_ports = True

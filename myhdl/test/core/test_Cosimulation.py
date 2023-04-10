@@ -36,7 +36,6 @@ random.seed(1)  # random, but deterministic
 
 MAXLINE = 4096
 
-
 exe = "python {0} ".format(os.path.abspath(__file__))
 
 fromSignames = ['a', 'bb', 'ccc']
@@ -255,6 +254,7 @@ class TestCosimulation:
             buf += v
             buf += " "
         os.write(wt, buf.encode())
+
 
 if __name__ == "__main__":
     getattr(TestCosimulation, sys.argv[1])()

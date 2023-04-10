@@ -193,13 +193,13 @@ class FramerCtrlTest(TestCase):
 
         @instance
         def stimulus():
-            for __ in range(3):
+            for dummy in range(3):
                 yield clk.posedge
             for n in (12, 8, 8, 4, 11, 8, 8, 7, 6, 8, 8):
                 syncFlag.next = 1
                 yield clk.posedge
                 syncFlag.next = 0
-                for __ in range(n - 1):
+                for dummy in range(n - 1):
                     yield clk.posedge
             raise StopSimulation
 

@@ -24,9 +24,7 @@ from functools import reduce
 
 import pytest
 
-from myhdl._concat import concat
-from myhdl._intbv import intbv
-from myhdl._Signal import Signal
+from myhdl import concat, intbv, Signal
 
 random.seed(2)  # random, but deterministic
 
