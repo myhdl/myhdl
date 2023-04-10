@@ -325,14 +325,29 @@ def initial_value_mem_convert_bench():
 
     inst = memory(clock, reset, wr, wrd, rdd, addr)
 
-    return inst
+    tCKhalf = 10 // 2
+    tReset = int (10 * 3.5)
+
+    @instance
+    def genclk():
+        while True:
+            clock.next = not clock
+            yield delay(tCKhalf)
+
+    @instance
+    def genreset():
+        reset.next = 0
+        yield delay(tReset)
+        reset.next = 1
+
+    return instances()
 
 
 @block
 def memory(clock, reset, wr, wrd, rdd, addr):
 
     mem = [Signal(intbv(0, min=wrd.min, max=wrd.max))
-           for _ in range(addr.max)]
+           for __ in range(addr.max)]
 
     inst_init = memory_init(mem)
 
@@ -556,7 +571,8 @@ def test_memory_convert():
     toVHDL.initial_values = True
 
     try:
-        assert conversion.analyze(inst) == 0
+        # assert conversion.analyze(inst) == 0
+        assert inst.analyze_convert() == 0
 
     finally:
         toVerilog.initial_values = pre_xiv

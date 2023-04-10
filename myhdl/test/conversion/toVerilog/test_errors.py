@@ -73,6 +73,7 @@ def internalSignal(count, enable, clock, reset, n):
 
     @instance
     def logic():
+        a = Signal(bool())
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:

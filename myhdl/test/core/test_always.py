@@ -25,7 +25,8 @@ from myhdl import (AlwaysError, Signal, Simulation, StopSimulation, delay,
 from myhdl._always import _error
 from myhdl._Waiter import (_DelayWaiter, _EdgeTupleWaiter, _EdgeWaiter,
                            _SignalTupleWaiter, _SignalWaiter, _Waiter)
-from helpers import raises_kind
+# from helpers import raises_kind
+from myhdl.test.helpers import raises_kind
 
 # random.seed(3) # random, but deterministic
 

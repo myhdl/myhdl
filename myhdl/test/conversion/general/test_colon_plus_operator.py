@@ -1,6 +1,7 @@
 from myhdl import (block, Signal, intbv, modbv, delay, always_seq,
                    ResetSignal, instance, instances, StopSimulation,
-                   conversion)
+                   # conversion)
+                   )
 
 
 @block
@@ -18,7 +19,8 @@ def chunk_buffer(Clk, Reset, Input, Output):
 
 @block
 def chunk_buffer_sim(Clk, Reset, Input, Output):
-    chunk_buffer0 = chunk_buffer(Clk, Reset, Input, Output)
+
+    dut = chunk_buffer(Clk, Reset, Input, Output)
 
     tCK = 20
     tReset = int(tCK * 3.5)
@@ -53,7 +55,9 @@ def test_top_level_interfaces_verify():
     Output = Signal(intbv(0)[8:])
 
     top_sim = chunk_buffer_sim(Clk, Reset, Input, Output)
-    assert conversion.analyze(top_sim) == 0
+    # assert conversion.analyze(top_sim) == 0
+    # as top_sim is  a Block object, let's use the proper method
+    assert top_sim.analyze_convert() == 0
 
     top = chunk_buffer(Clk, Reset, Input, Output)
     top.name = 'ChunkBuffer'

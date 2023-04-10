@@ -88,12 +88,13 @@ class HdlObjAttrSimple(object):
 
 
 class HdlObjNotSelf(object):
+    ''' testing against using 'this' iso 'self '''
 
-    def __init__(self):
+    def __init__(this):
         pass
 
     @block
-    def method_func(self, clk, srst, x, y):
+    def method_func(this, clk, srst, x, y):
 
         @always(clk.posedge)
         def hdl():

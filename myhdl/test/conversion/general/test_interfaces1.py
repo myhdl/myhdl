@@ -1,8 +1,9 @@
 from myhdl import (block, Signal, ResetSignal, intbv, always_seq,
-                   instance, delay, StopSimulation, )
+                   instance, delay, StopSimulation,)
 
 
 class MyIntf(object):
+
     def __init__(self):
         self.x = Signal(intbv(2, min=0, max=16))
         self.y = Signal(intbv(3, min=0, max=18))

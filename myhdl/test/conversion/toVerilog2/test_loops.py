@@ -3,7 +3,7 @@ path = os.path
 from random import randrange
 
 from myhdl import (Signal, intbv, delay, instance)
-from myhdl.conversion import  analyze
+from myhdl.conversion import analyze
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 

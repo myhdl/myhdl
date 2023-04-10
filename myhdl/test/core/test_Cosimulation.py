@@ -30,12 +30,12 @@ from myhdl import Signal
 from myhdl._Cosimulation import Cosimulation, CosimulationError, _error
 
 if __name__ != '__main__':
-    from helpers import raises_kind
+    # from helpers import raises_kind
+    from myhdl.test.helpers import raises_kind
 
 random.seed(1)  # random, but deterministic
 
 MAXLINE = 4096
-
 
 exe = "python {0} ".format(os.path.abspath(__file__))
 
@@ -255,6 +255,7 @@ class TestCosimulation:
             buf += v
             buf += " "
         os.write(wt, buf.encode())
+
 
 if __name__ == "__main__":
     getattr(TestCosimulation, sys.argv[1])()
