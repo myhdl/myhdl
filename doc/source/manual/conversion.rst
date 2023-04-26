@@ -427,6 +427,10 @@ Conversely, when list syntax is used in some generator, then a Verilog
 memory or VHDL array will be declared. The typical example is the
 description of RAM memories.
 
+**Note:** a list of signals is handled as an atomic entity; e.g. if you
+use a single signal in an ``@always_seq`` generator with an active 
+*reset* **all** signals will be reset. This implies that you can not use
+some signals in a clocked process and others in a combinatorial process.
 
 .. _conv-interfaces:
 
@@ -435,7 +439,7 @@ Conversion of Interfaces
 
 Complex designs often have many signals that are passed to different levels of
 hierarchy.  Typically, many signals logically belong together. This can be
-modelled by an *interface*: an object that has a number of :class:`Signal`
+modeled by an *interface*: an object that has a number of :class:`Signal`
 objects as its attributes.  Grouping signals into an interface simplifies the
 code, improves efficiency, and reduces errors.
 
