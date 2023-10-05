@@ -6,10 +6,11 @@ import random
 from random import randrange
 random.seed(2)
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, delay, instance, StopSimulation)
+from myhdl._Simulation import Simulation
 
 from .util import setupCosimulation
+
 
 @block
 def binaryOps(
@@ -33,6 +34,7 @@ def binaryOps(
               And,
               Or,
               left, right):
+
     @instance
     def logic():
         while 1:
@@ -48,7 +50,7 @@ def binaryOps(
                 Mod.next = left % right
             Mul.next = left * right
             # Icarus doesn't support ** yet
-            #if left < 256 and right < 40:
+            # if left < 256 and right < 40:
             #    Pow.next = left ** right
             Pow.next = 0
             RightShift.next = left >> right
@@ -63,8 +65,8 @@ def binaryOps(
             GE.next = left >= right
             And.next = bool(left) and bool(right)
             Or.next = bool(left) or bool(right)
-    return logic
 
+    return logic
 
 
 @block
@@ -91,12 +93,13 @@ def binaryOps_v(name,
                 left, right):
     return setupCosimulation(**locals())
 
+
 class TestBinaryOps(TestCase):
 
     def binaryBench(self, m, n):
 
-        M = 2**m
-        N = 2**n
+        M = 2 ** m
+        N = 2 ** n
 
         left = Signal(intbv(0)[m:])
         right = Signal(intbv(0)[n:])
@@ -112,20 +115,20 @@ class TestBinaryOps(TestCase):
         LeftShift_v = Signal(intbv(0)[64:])
         Mod = Signal(intbv(0)[m:])
         Mod_v = Signal(intbv(0)[m:])
-        Mul = Signal(intbv(0)[m+n:])
-        Mul_v = Signal(intbv(0)[m+n:])
+        Mul = Signal(intbv(0)[m + n:])
+        Mul_v = Signal(intbv(0)[m + n:])
         Pow = Signal(intbv(0)[64:])
         Pow_v = Signal(intbv(0)[64:])
         RightShift = Signal(intbv(0)[m:])
         RightShift_v = Signal(intbv(0)[m:])
         Sub = Signal(intbv(0)[max(m, n):])
         Sub_v = Signal(intbv(0)[max(m, n):])
-        Sum = Signal(intbv(0)[max(m, n)+1:])
-        Sum_v = Signal(intbv(0)[max(m, n)+1:])
-        EQ, NE, LT, GT, LE, GE = [Signal(bool()) for i in range(6)]
-        EQ_v, NE_v, LT_v, GT_v, LE_v, GE_v = [Signal(bool()) for i in range(6)]
-        And, Or = [Signal(bool()) for i in range(2)]
-        And_v, Or_v, = [Signal(bool()) for i in range(2)]
+        Sum = Signal(intbv(0)[max(m, n) + 1:])
+        Sum_v = Signal(intbv(0)[max(m, n) + 1:])
+        EQ, NE, LT, GT, LE, GE = [Signal(bool()) for __ in range(6)]
+        EQ_v, NE_v, LT_v, GT_v, LE_v, GE_v = [Signal(bool()) for __ in range(6)]
+        And, Or = [Signal(bool()) for __ in range(2)]
+        And_v, Or_v, = [Signal(bool()) for __ in range(2)]
 
         binops = binaryOps(
                            Bitand,
@@ -147,7 +150,7 @@ class TestBinaryOps(TestCase):
                            GE,
                            And,
                            Or,
-                           left, 
+                           left,
                            right).convert(hdl='Verilog')
         binops_v = binaryOps_v(binaryOps.__name__,
                                Bitand_v,
@@ -181,7 +184,7 @@ class TestBinaryOps(TestCase):
                 left.next = randrange(M)
                 right.next = randrange(N)
                 yield delay(10)
-            for j, k in ((0, 0), (0, N-1), (M-1, 0), (M-1, N-1)):
+            for j, k in ((0, 0), (0, N - 1), (M - 1, 0), (M - 1, N - 1)):
                 left.next = j
                 right.next = k
                 yield delay(10)
@@ -212,13 +215,11 @@ class TestBinaryOps(TestCase):
                 self.assertEqual(Or, Or_v)
 
         return binops, binops_v, stimulus(), check()
-    
 
     def testBinaryOps(self):
         for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
             sim = self.binaryBench(m, n)
             Simulation(sim).run()
-                
 
 
 @block
@@ -229,6 +230,7 @@ def multiOps(
               And,
               Or,
               argm, argn, argp):
+
     @instance
     def logic():
         while 1:
@@ -238,11 +240,12 @@ def multiOps(
             Bitxor.next = argm ^ argn ^ argp
             And.next = bool(argm) and bool(argn) and bool(argp)
             Or.next = bool(argm) and bool(argn) and bool(argp)
+
     return logic
 
 
 @block
-def multiOps_v( name,
+def multiOps_v(name,
                 Bitand,
                 Bitor,
                 Bitxor,
@@ -252,13 +255,14 @@ def multiOps_v( name,
 
     return setupCosimulation(**locals())
 
+
 class TestMultiOps(TestCase):
 
     def multiBench(self, m, n, p):
 
-        M = 2**m
-        N = 2**n
-        P = 2**p
+        M = 2 ** m
+        N = 2 ** n
+        P = 2 ** p
 
         argm = Signal(intbv(0)[m:])
         argn = Signal(intbv(0)[n:])
@@ -269,8 +273,8 @@ class TestMultiOps(TestCase):
         Bitor_v = Signal(intbv(0)[max(m, n, p):])
         Bitxor = Signal(intbv(0)[max(m, n, p):])
         Bitxor_v = Signal(intbv(0)[max(m, n, p):])
-        And, Or = [Signal(bool()) for i in range(2)]
-        And_v, Or_v, = [Signal(bool()) for i in range(2)]
+        And, Or = [Signal(bool()) for __ in range(2)]
+        And_v, Or_v, = [Signal(bool()) for __ in range(2)]
 
         multiops = multiOps(
                            Bitand,
@@ -278,8 +282,8 @@ class TestMultiOps(TestCase):
                            Bitxor,
                            And,
                            Or,
-                           argm, 
-                           argn, 
+                           argm,
+                           argn,
                            argp).convert(hdl='Verilog')
         multiops_v = multiOps_v(multiOps.__name__,
                                 Bitand_v,
@@ -301,9 +305,9 @@ class TestMultiOps(TestCase):
                 argn.next = randrange(N)
                 argp.next = randrange(P)
                 yield delay(10)
-            for j, k, l in ((0, 0, 0),   (0, 0, P-1), (0, N-1, P-1),
-                            (M-1, 0, 0),  (M-1, 0, P-1), (M-1, N-1, 0),
-                            (0, N-1, 0), (M-1, N-1, P-1)):
+            for j, k, l in ((0, 0, 0), (0, 0, P - 1), (0, N - 1, P - 1),
+                            (M - 1, 0, 0), (M - 1, 0, P - 1), (M - 1, N - 1, 0),
+                            (0, N - 1, 0), (M - 1, N - 1, P - 1)):
                 argm.next = j
                 argn.next = k
                 argp.next = l
@@ -321,13 +325,11 @@ class TestMultiOps(TestCase):
                 self.assertEqual(Or, Or_v)
 
         return multiops, multiops_v, stimulus(), check()
-    
 
     def testMultiOps(self):
         for m, n, p in ((4, 4, 4,), (5, 3, 2), (3, 4, 6), (3, 7, 4)):
             sim = self.multiBench(m, n, p)
             Simulation(sim).run()
-
 
 
 @block
@@ -337,6 +339,7 @@ def unaryOps(
              UnaryAdd,
              UnarySub,
              arg):
+
     @instance
     def logic():
         while 1:
@@ -344,25 +347,21 @@ def unaryOps(
             Not.next = not arg
             Invert.next = ~arg
             UnaryAdd.next = +arg
-            UnarySub.next = --arg
+            UnarySub.next = - -arg
+
     return logic
 
-@block
-def unaryOps_v(name,
-               Not,
-               Invert,
-               UnaryAdd,
-               UnarySub,
-               arg):
-   return setupCosimulation(**locals())
 
+@block
+def unaryOps_v(name, Not, Invert, UnaryAdd, UnarySub, arg):
+    return setupCosimulation(**locals())
 
 
 class TestUnaryOps(TestCase):
 
     def unaryBench(self, m):
 
-        M = 2**m
+        M = 2 ** m
 
         arg = Signal(intbv(0)[m:])
         Not = Signal(bool(0))
@@ -426,6 +425,7 @@ def augmOps(
               Sub,
               Sum,
               left, right):
+
     @instance
     def logic():
         var = intbv(0)[max(64, len(left) + len(right)):]
@@ -465,11 +465,12 @@ def augmOps(
             var[:] = left
             var += right
             Sum.next = var
+
     return logic
 
 
 @block
-def augmOps_v(  name,
+def augmOps_v(name,
                 Bitand,
                 Bitor,
                 Bitxor,
@@ -483,12 +484,13 @@ def augmOps_v(  name,
                 left, right):
     return setupCosimulation(**locals())
 
+
 class TestAugmOps(TestCase):
 
     def augmBench(self, m, n):
 
-        M = 2**m
-        N = 2**n
+        M = 2 ** m
+        N = 2 ** n
 
         left = Signal(intbv(0)[m:])
         right = Signal(intbv(0)[n:])
@@ -504,14 +506,14 @@ class TestAugmOps(TestCase):
         LeftShift_v = Signal(intbv(0)[64:])
         Mod = Signal(intbv(0)[m:])
         Mod_v = Signal(intbv(0)[m:])
-        Mul = Signal(intbv(0)[m+n:])
-        Mul_v = Signal(intbv(0)[m+n:])
+        Mul = Signal(intbv(0)[m + n:])
+        Mul_v = Signal(intbv(0)[m + n:])
         RightShift = Signal(intbv(0)[m:])
         RightShift_v = Signal(intbv(0)[m:])
         Sub = Signal(intbv(0)[max(m, n):])
         Sub_v = Signal(intbv(0)[max(m, n):])
-        Sum = Signal(intbv(0)[max(m, n)+1:])
-        Sum_v = Signal(intbv(0)[max(m, n)+1:])
+        Sum = Signal(intbv(0)[max(m, n) + 1:])
+        Sum_v = Signal(intbv(0)[max(m, n) + 1:])
 
         augmops = augmOps(
                            Bitand,
@@ -525,7 +527,7 @@ class TestAugmOps(TestCase):
                            Sub,
                            Sum,
                            left, right).convert(hdl='Verilog')
-        augmops_v = augmOps_v( augmOps.__name__,
+        augmops_v = augmOps_v(augmOps.__name__,
                                Bitand_v,
                                Bitor_v,
                                Bitxor_v,
@@ -548,7 +550,7 @@ class TestAugmOps(TestCase):
                 left.next = randrange(M)
                 right.next = randrange(N)
                 yield delay(10)
-            for j, k in ((0, 0), (0, N-1), (M-1, 0), (M-1, N-1)):
+            for j, k in ((0, 0), (0, N - 1), (M - 1, 0), (M - 1, N - 1)):
                 left.next = j
                 right.next = k
                 yield delay(10)
@@ -570,14 +572,13 @@ class TestAugmOps(TestCase):
                 self.assertEqual(Sum, Sum_v)
 
         return augmops, augmops_v, stimulus(), check()
-    
 
     def testAugmOps(self):
         for m, n in ((4, 4,), (5, 3), (2, 6), (8, 7)):
             sim = self.augmBench(m, n)
             Simulation(sim).run()
 
+
 if __name__ == '__main__':
     unittest.main()
-
 

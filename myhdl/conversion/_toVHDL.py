@@ -881,14 +881,25 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(suf)
 
     def BitOp(self, node):
-        pre, suf = self.inferCast(node.vhd, node.vhdOri)
-        self.write(pre)
+        lpre = lsuf = ""
+        rpre = rsuf = ""
+        if hasattr(node, 'dest'):
+            node.left.dest = node.dest
+            node.right.dest = node.dest
+            if isinstance(node.left, ast.Name):
+                lpre, lsuf = self.inferCast(node.dest.vhd, node.left.vhd)
+            if isinstance(node.right, ast.Name):
+                rpre, rsuf = self.inferCast(node.dest.vhd, node.right.vhd)
+        
         self.write("(")
+        self.write(lpre)
         self.visit(node.left)
+        self.write(lsuf)
         self.write(" %s " % opmap[type(node.op)])
+        self.write(rpre)
         self.visit(node.right)
+        self.write(rsuf)
         self.write(")")
-        self.write(suf)
 
     def visit_BoolOp(self, node):
         if isinstance(node.vhd, vhd_std_logic):
@@ -902,20 +913,66 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
 
     def visit_UnaryOp(self, node):
         # in python3 a negative Num is represented as an USub of a positive Num
-        # Fix: restore python2 behavior by a shortcut: invert value of Num, inherit
+        # Fix: restore python2 behavior by a shortcut: invert value of Constant, inherit
         # vhdl type from UnaryOp node, and visit the modified operand
-        if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
-            node.operand.n = -node.operand.n
-            node.operand.vhd = node.vhd
-            self.visit(node.operand)
-            return
-        pre, suf = self.inferCast(node.vhd, node.vhdOri)
-        self.write(pre)
-        self.write("(")
-        self.write(opmap[type(node.op)])
-        self.visit(node.operand)
-        self.write(")")
-        self.write(suf)
+        if sys.version_info >= (3, 8, 0):
+            if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Constant):
+                node.operand.n = -node.operand.n
+                node.operand.vhd = node.vhd
+                self.visit(node.operand)
+                return
+                       
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
+            if isinstance(node.op, ast.UAdd):
+                op = ""
+            else:
+                op = opmap[type(node.op)]
+        
+            if isinstance(node.operand, ast.Constant):
+                self.write("(")
+                self.write(op)
+                self.write("(")
+                self.write(pre)
+                self.visit(node.operand)
+                self.write(suf)
+                self.write(")")
+                self.write(")")
+            else:
+                self.write(pre)
+                self.write("(")
+                self.write(op)
+                self.visit(node.operand)
+                self.write(")")
+                self.write(suf)
+        else:
+            if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
+                node.operand.n = -node.operand.n
+                node.operand.vhd = node.vhd
+                self.visit(node.operand)
+                return
+                       
+            pre, suf = self.inferCast(node.vhd, node.vhdOri)
+            if isinstance(node.op, ast.UAdd):
+                op = ""
+            else:
+                op = opmap[type(node.op)]
+        
+            if isinstance(node.operand, ast.Num):
+                self.write("(")
+                self.write(op)
+                self.write("(")
+                self.write(pre)
+                self.visit(node.operand)
+                self.write(suf)
+                self.write(")")
+                self.write(")")
+            else:
+                self.write(pre)
+                self.write("(")
+                self.write(op)
+                self.visit(node.operand)
+                self.write(")")
+                self.write(suf)
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1031,6 +1088,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(lhs)
         self.isLhs = False
         if self.SigAss:
+            rhs.dest = lhs.value
             if isinstance(lhs.value, ast.Name):
                 sig = self.tree.symdict[lhs.value.id]
             self.write(' <= ')
@@ -1113,8 +1171,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             opening, closing = '', ''
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
             # convert number argument to integer
-            if isinstance(node.args[0], ast.Num):
-                node.args[0].n = int(node.args[0].n)
+            if sys.version_info >= (3, 8, 0):
+                if isinstance(node.args[0], ast.Constant):
+                    node.args[0].n = int(node.args[0].n)
+            else:
+                if isinstance(node.args[0], ast.Num):
+                    node.args[0].n = int(node.args[0].n)
         elif inspect.isclass(f) and issubclass(f, intbv):
             pre, post = "", ""
             arg = node.args[0]
@@ -1284,8 +1346,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write(doc)
             return
         # skip extra semicolons
-        if isinstance(expr, ast.Num):
-            return
+        if sys.version_info >= (3, 8, 0):
+            if isinstance(expr, ast.Constant):
+                return
+        else:
+            if isinstance(expr, ast.Num):
+                return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
@@ -1375,6 +1441,78 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.mapToCase(node)
         else:
             self.mapToIf(node)
+    
+    def visit_Match(self, node):
+        self.write("case ")
+        self.visit(node.subject)
+        self.write(" is")
+        self.indent()
+        for case in node.cases:
+            case.subject = node.subject
+            self.visit(case)
+
+        self.dedent()
+        self.writeline()
+        self.write("end case;")
+ 
+    def visit_match_case(self, node):
+        self.writeline()
+        self.write("when ")
+
+        pattern = node.pattern
+        pattern.subject = node.subject
+        self.visit(pattern)
+
+        self.write(" => ")
+        self.indent()
+        # Write all the multiple assignment per case
+        for stmt in node.body:
+            self.writeline()
+            self.visit(stmt)
+        self.dedent()
+
+    def visit_MatchValue(self, node):
+        baseobj  = self.getObj(node.subject)
+        item = node.value
+        obj = self.getObj(item)
+        
+        if isinstance(obj, EnumItemType):
+            itemRepr = obj._toVHDL()
+        elif hasattr(baseobj, '_nrbits'):
+            itemRepr = self.BitRepr(item.value, baseobj)
+        else:
+            raise AssertionError("Unknown type %s " % (type(obj)))
+        self.write(itemRepr)
+
+    def visit_MatchSingleton(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchSequence(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchStar(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchMapping(self, node):
+        raise AssertionError("Unsupported Match type %s " % (type(node)))
+
+    def visit_MatchClass(self, node):
+        for pattern in node.patterns:
+            pattern.subject = node.subject
+            self.visit(pattern)
+
+    def visit_MatchAs(self, node):
+        if node.name is None and  node.pattern is None:
+            self.write("others")
+        else:
+            raise AssertionError("Unknown name %s or pattern %s" % (node.name, node.pattern))
+    
+    def visit_MatchOr(self, node):
+        for i, pattern in enumerate(node.patterns):
+            pattern.subject = node.subject
+            self.visit(pattern)
+            if not i == len(node.patterns)-1:
+                self.write(" | ")
 
     def mapToCase(self, node):
         var = node.caseVar

@@ -1,8 +1,7 @@
 import os
 path = os.path
 
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, enum, intbv, delay, always, instance, StopSimulation)
 
 # SEARCH, CONFIRM, SYNC = range(3)
 ACTIVE_LOW = bool(0)
@@ -10,6 +9,7 @@ FRAME_SIZE = 8
 t_State_b = enum('SEARCH', 'CONFIRM', 'SYNC')
 t_State_oh = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_hot")
 t_State_oc = enum('SEARCH', 'CONFIRM', 'SYNC', encoding="one_cold")
+
 
 @block
 def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
@@ -24,7 +24,7 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
 
     """
 
-    index = Signal(intbv(0)[8:]) # position in frame
+    index = Signal(intbv(0)[8:])  # position in frame
 
     @always(clk.posedge, reset_n.negedge)
     def FSM():
@@ -49,22 +49,21 @@ def FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State):
                 if index == 0:
                     if not syncFlag:
                         state.next = t_State.SEARCH
-                SOF.next = (index == FRAME_SIZE-1)
+                SOF.next = (index == FRAME_SIZE - 1)
             else:
                 raise ValueError("Undefined state")
 
     return FSM
 
+
 @block
 def FSMBench(FramerCtrl, t_State):
 
     SOF = Signal(bool(0))
-    SOF_v = Signal(bool(0))
     syncFlag = Signal(bool(0))
     clk = Signal(bool(0))
     reset_n = Signal(bool(1))
     state = Signal(t_State.SEARCH)
-    state_v = Signal(intbv(0)[8:])
 
     framerctrl_inst = FramerCtrl(SOF, state, syncFlag, clk, reset_n, t_State)
 
@@ -77,7 +76,7 @@ def FSMBench(FramerCtrl, t_State):
         yield delay(10)
         reset_n.next = 1
         yield delay(10)
-        for i in range(1000):
+        for dummy in range(1000):
             yield delay(10)
             clk.next = not clk
 
@@ -92,7 +91,7 @@ def FSMBench(FramerCtrl, t_State):
             syncFlag.next = 1
             yield clk.posedge
             syncFlag.next = 0
-            for j in range(n-1):
+            for dummy in range(n - 1):
                 yield clk.posedge
         raise StopSimulation
 
@@ -105,7 +104,7 @@ def FSMBench(FramerCtrl, t_State):
             # in the end, this should work
             # print state
 
-    return framerctrl_inst,  clkgen, stimulus, check
+    return framerctrl_inst, clkgen, stimulus, check
 
 
 def test():

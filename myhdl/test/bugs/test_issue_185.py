@@ -1,12 +1,14 @@
-from myhdl import *
+from myhdl import (block, Signal, intbv, ResetSignal, always_seq)
+
 
 def shift_left(c, a, b):
     c.next = a << b
 
+
 @block
 def shifter(reset, clock, opa, opb, result):
-    
-    @always_seq(clock.posedge, reset = reset)
+
+    @always_seq(clock.posedge, reset=reset)
     def assign():
         shift_left(result, opa, opb)
 

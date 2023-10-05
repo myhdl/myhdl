@@ -6,16 +6,16 @@ import random
 from random import randrange
 random.seed(2)
 
-import myhdl
-from myhdl import *
-
-from .util import setupCosimulation
-
+from myhdl import (block, Signal, intbv, delay, always, always_comb ,
+                   instance, StopSimulation, toVerilog)
+from myhdl._Simulation import Simulation
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
+from .util import setupCosimulation
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
+
 
 @block
 def incRef(count, enable, clock, reset, n):
@@ -27,6 +27,7 @@ def incRef(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
+
     @instance
     def logic():
         while 1:
@@ -36,12 +37,14 @@ def incRef(count, enable, clock, reset, n):
             else:
                 if enable:
                     count.next = (count + 1) % n
+
     return logic
 
 
 @block
 def incGen(count, enable, clock, reset, n):
     """ Generator with verilog_code is not permitted """
+
     @instance
     def logic():
         incGen.verilog_code = "Template string"
@@ -52,6 +55,7 @@ def incGen(count, enable, clock, reset, n):
             else:
                 if enable:
                     count.next = (count + 1) % n
+
     return logic
 
 
@@ -65,6 +69,7 @@ def inc(count, enable, clock, reset, n):
     reset -- asynchronous reset input
     n -- counter max value
     """
+
     @always(clock.posedge, reset.negedge)
     def incProcess():
         # make it fail in conversion
@@ -126,7 +131,6 @@ end
     return incProcess
 
 
-
 @block
 def inc_comb(nextCount, count, n):
 
@@ -138,12 +142,13 @@ def inc_comb(nextCount, count, n):
 
     nextCount.driven = "wire"
 
-    inc_comb.verilog_code =\
+    inc_comb.verilog_code = \
 """
 assign $nextCount = ($count + 1) % $n;
 """
 
     return logic
+
 
 @block
 def inc_seq(count, nextCount, enable, clock, reset):
@@ -175,6 +180,7 @@ end
 """
     return logic
 
+
 @block
 def inc2(count, enable, clock, reset, n):
 
@@ -191,7 +197,9 @@ def inc3(count, enable, clock, reset, n):
     inc2_inst = inc2(count, enable, clock, reset, n)
     return inc2_inst
 
+
 class ClassIncrementer(object):
+
     @block
     def inc(self, count, enable, clock, reset, n):
         """ Incrementer with enable.
@@ -202,6 +210,7 @@ class ClassIncrementer(object):
         reset -- asynchronous reset input
         n -- counter max value
         """
+
         @always(clock.posedge, reset.negedge)
         def incProcess():
             # make it fail in conversion
@@ -234,6 +243,7 @@ class ClassIncrementer(object):
 def inc_v(name, count, enable, clock, reset):
     return setupCosimulation(**locals())
 
+
 class TestInc(TestCase):
 
     def clockGen(self, clock):
@@ -247,10 +257,10 @@ class TestInc(TestCase):
         reset.next = ACTIVE_LOW
         yield clock.negedge
         reset.next = INACTIVE_HIGH
-        for i in range(1000):
+        for dummy in range(1000):
             enable.next = 1
             yield clock.negedge
-        for i in range(1000):
+        for dummy in range(1000):
             enable.next = min(1, randrange(5))
             yield clock.negedge
         raise StopSimulation
@@ -277,7 +287,7 @@ class TestInc(TestCase):
         count = Signal(intbv(0)[m:])
         count_v = Signal(intbv(0)[m:])
         enable = Signal(bool(0))
-        clock, reset = [Signal(bool()) for i in range(2)]
+        clock, reset = [Signal(bool()) for __ in range(2)]
 
         inc_inst_ref = incRef(count, enable, clock, reset, n=n)
         inc_inst = toVerilog(incVer(count, enable, clock, reset, n=n))
@@ -316,7 +326,7 @@ class TestInc(TestCase):
         n = 2 ** m
         count_v = Signal(intbv(0)[m:])
         enable = Signal(bool(0))
-        clock, reset = [Signal(bool()) for i in range(2)]
+        clock, reset = [Signal(bool()) for __ in range(2)]
         try:
             inc_inst = toVerilog(incGen(count_v, enable, clock, reset, n=n))
         except ConversionError as e:
@@ -329,10 +339,10 @@ class TestInc(TestCase):
         n = 2 ** m
         count_v = Signal(intbv(0)[m:])
         enable = Signal(bool(0))
-        clock, reset = [Signal(bool()) for i in range(2)]
+        clock, reset = [Signal(bool()) for __ in range(2)]
         try:
             inc_inst = toVerilog(incErr(count_v, enable, clock, reset, n=n))
-        except ConversionError as e:
+        except ConversionError:
             pass
         else:
             self.fail()
@@ -343,22 +353,6 @@ class TestInc(TestCase):
         sim.run(quiet=1)
 
 
-
-
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

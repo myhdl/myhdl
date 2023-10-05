@@ -1,10 +1,10 @@
-import sys
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, always_comb, always)
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
+
 class HdlObj(object):
+
     def __init__(self):
         pass
 
@@ -12,6 +12,7 @@ class HdlObj(object):
     def method_func(self, clk, srst, x, y):
         z = Signal(intbv(0, min=y.min, max=y.max))
         ifx = self._mfunc(x, z)
+
         @always(clk.posedge)
         def hdl():
             if srst:
@@ -23,19 +24,26 @@ class HdlObj(object):
 
     @block
     def _mfunc(self, x, y):
+
         @always_comb
         def _hdl():
             y.next = x + 1
+
         return _hdl
 
+
 @block
-def _func(x,y):
+def _func(x, y):
+
     @always_comb
     def _hdl():
         y.next = x + 1
+
     return _hdl
 
+
 class HdlObjObj(object):
+
     def __init__(self):
         pass
 
@@ -56,7 +64,9 @@ class HdlObjObj(object):
 
         return hdl, ifx1, ifx2
 
+
 class HdlObjAttrSimple(object):
+
     def __init__(self):
         self.Constant = 3
 
@@ -66,17 +76,20 @@ class HdlObjAttrSimple(object):
         # limitation for class method conversion, the object attributes
         # can only be used/accessed during elaboration.
         Constant = int(self.Constant)
+
         @always(clk.posedge)
         def hdl():
             if srst:
                 y.next = 0
             else:
-                y.next = x + (x+1) + Constant - 3
+                y.next = x + (x + 1) + Constant - 3
 
         return hdl
 
 
 class HdlObjNotSelf(object):
+    ''' testing against using 'this' iso 'self '''
+
     def __init__(this):
         pass
 
@@ -101,6 +114,7 @@ def test_hdlobj():
     hdlobj_inst = HdlObj()
     hdlobj_inst.method_func(clk, srst, x, y).analyze_convert()
 
+
 def test_hdlobjobj():
     clk = Signal(False)
     srst = Signal(False)
@@ -109,6 +123,7 @@ def test_hdlobjobj():
     hdlobj_inst = HdlObjObj()
     hdlobj_inst.method_func(clk, srst, x, y).analyze_convert()
 
+
 def test_hdlobjattrsimple():
     clk = Signal(False)
     srst = Signal(False)
@@ -116,6 +131,7 @@ def test_hdlobjattrsimple():
     y = Signal(intbv(0, min=0, max=16))
     hdlobj_inst = HdlObjAttrSimple()
     hdlobj_inst.method_func(clk, x, srst, y).analyze_convert()
+
 
 def test_hdlobjnotself():
     clk = Signal(False)

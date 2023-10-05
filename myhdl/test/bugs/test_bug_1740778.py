@@ -1,16 +1,12 @@
-import sys
 import os
 path = os.path
 import random
-from random import randrange
 random.seed(2)
 
-import myhdl
-from myhdl import *
-from myhdl.conversion import verify
-
+from myhdl import (block, Signal, intbv, instance, delay)
 
 ACTIVE_LOW, INACTIVE_HIGH = bool(0), bool(1)
+
 
 @block
 def bug_1740778 ():
@@ -18,7 +14,7 @@ def bug_1740778 ():
 
     """
     s = Signal(intbv(0, min=-13, max=46))
-    
+
     @instance
     def logic():
         v = intbv(0, min=-15, max=45)
@@ -28,10 +24,10 @@ def bug_1740778 ():
         print(s.val)
         print(s.min)
         print(s.max)
-        
+
     return logic
 
 
-def test_bug_1740778 ():  
+def test_bug_1740778 ():
     assert bug_1740778().verify_convert() == 0
-    
+

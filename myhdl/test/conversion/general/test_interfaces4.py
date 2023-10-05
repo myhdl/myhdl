@@ -1,7 +1,5 @@
 
-import sys
 
-import myhdl
 from myhdl import (block, Signal, ResetSignal, modbv, always_seq, concat,
                    instance, delay, StopSimulation)
 from myhdl.conversion import analyze, verify
@@ -15,6 +13,7 @@ to be a name collision in the name expansion and was introduced in
 
 
 class Intf1(object):
+
     def __init__(self):
         self.sig1 = Signal(bool(0))
         self.sig2 = Signal(bool(0))
@@ -22,6 +21,7 @@ class Intf1(object):
 
 
 class Intf2(object):
+
     def __init__(self):
         self.sig1 = Signal(bool(0))
         self.sig2 = Signal(bool(0))
@@ -31,7 +31,7 @@ class Intf2(object):
 
 @block
 def use_nested_intf(clock, reset, intf1, intf2):
-    
+
     sig1 = Signal(bool(0))
     sig2 = Signal(bool(0))
 
@@ -61,19 +61,19 @@ def something_peculiar(clock, reset, intf1, intf2):
         # remove the if/else and leave just the line in the
         # if clause the error does not occur, inlcude the if/else
         # and the error occurs
-        if intf1.sig3 > 0:        # remove no error
+        if intf1.sig3 > 0:  # remove no error
             intf2.sig1.next = not intf1.sig1
             intf2.sig2.next = not intf1.sig2
             intf2.sig3.next = intf1.sig3 + intf2.sig3
-        else:                     # remove no error
-            intf2.sig3.next = 0   # remove no error
+        else:  # remove no error
+            intf2.sig3.next = 0  # remove no error
 
     return proc
 
 
 @block
 def interfaces_top(clock, reset, sdi, sdo, nested):
-    
+
     intf1, intf2, intf3 = Intf1(), Intf2(), Intf1()
 
     inst1 = use_nested_intf(clock, reset, intf1, intf2)
@@ -104,13 +104,13 @@ def c_testbench_one():
     nested = Signal(bool())
     tbdut = interfaces_top(clock, reset, sdi, sdo, nested)
 
-    @instance    
+    @instance
     def tbclk():
         clock.next = False
         while True:
             yield delay(3)
             clock.next = not clock
-     
+
     # there is an issue when using bools with variables and
     # VHDL conversion, this might be an expected limitation?
     # expected = (False, False, False, True, True, True,

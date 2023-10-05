@@ -19,8 +19,8 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 """ Run the intbv.signed() unit tests. """
-import myhdl
-from myhdl import *
+from myhdl import (block, intbv, delay, concat, instance, conversion)
+
 
 @block
 def PlainIntbv():
@@ -131,12 +131,10 @@ def PlainIntbv():
         b15 = a15.signed()
         assert b15 == 0
 
-
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # in these cases the .signed() function should classify the
         # value of the intbv instance as signed and return the value as is
         #
-
 
         # set bit #3 and increase the range that the set bit is actually the
         # msb, but due to the negative range not considered signed
@@ -156,7 +154,7 @@ def PlainIntbv():
         a23 = intbv(4, min=-1, max=8)
         b23 = a23.signed()
         assert b23 == 4
- 
+
         # intbv with negative range, pos number, and msb set, return signed()
         # Expect the number to returned as is
         a24 = intbv(7, min=-1, max=8)
@@ -195,7 +193,6 @@ def PlainIntbv():
     return logic
 
 
-
 @block
 def SlicedSigned():
     '''Test a slice with .signed()
@@ -204,6 +201,7 @@ def SlicedSigned():
     min=0 and max > min, which will result in an intbv instance that
     will be considered unsigned by the intbv.signed() function.
     '''
+
     @instance
     def logic():
         b = intbv(4, min=-8, max=8)
@@ -213,12 +211,12 @@ def SlicedSigned():
         b[:] = a[4:]
         assert b == 4
         b[:] = a[4:].signed()
-        assert b == 4 # msb is not set with a 4 bit slice
+        assert b == 4  # msb is not set with a 4 bit slice
 
         b[:] = a[3:]
         assert b == 4
         b[:] = a[3:].signed()
-        assert b == -4 # msb is set with 3 bits sliced
+        assert b == -4  # msb is set with 3 bits sliced
 
     return logic
 
@@ -231,7 +229,7 @@ def SignedConcat():
     def logic():
         print("Signed Concat test")
         yield delay(10)
-        
+
         # concat 3 bits
         # Expect the signed function to return a negative value
         a = intbv(0)[3:]
@@ -242,17 +240,20 @@ def SignedConcat():
 
         # concat a 3 bit intbv with msb set and two bits
         # Expect a negative number
-        b = intbv(5,min=0,max=8)
+        b = intbv(5, min=0, max=8)
         assert concat(b, True, True).signed() == -9
-        
+
     return logic
+
 
 def test_PlainIntbv():
     assert conversion.verify(PlainIntbv()) == 0
-    
+
+
 def test_SlicedSigned():
     assert conversion.verify(SlicedSigned()) == 0
-    
+
+
 def test_SignedConcat():
     assert conversion.verify(SignedConcat()) == 0
-    
+

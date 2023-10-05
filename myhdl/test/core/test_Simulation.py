@@ -29,8 +29,7 @@ from helpers import raises_kind
 
 random.seed(1)  # random, but deterministic
 
-
-QUIET=1
+QUIET = 1
 
 
 class Shared:
@@ -45,8 +44,10 @@ class SimArgs(TestCase):
             Simulation(None)
 
     def test2(self):
+
         def g():
             yield delay(10)
+
         i = g()
         with raises_kind(SimulationError, _error.DuplicatedArg):
             Simulation(i, i)
@@ -56,6 +57,7 @@ class YieldNone(TestCase):
     """ Basic test of yield None behavior """
 
     def test1(self):
+
         def stimulus():
             a = Signal(0)
             yield delay(10)
@@ -66,9 +68,11 @@ class YieldNone(TestCase):
             yield delay(0)
             assert a.val == 1
             assert now() == 10
+
         Simulation(stimulus()).run(quiet=QUIET)
 
     def test2(self):
+
         def stimulus():
             a = Signal(0)
             yield delay(10)
@@ -86,9 +90,11 @@ class YieldNone(TestCase):
             yield delay(0)
             assert a.val == 1
             assert now() == 10
+
         Simulation(stimulus()).run(quiet=QUIET)
 
     def test3(self):
+
         def stimulus():
             a = Signal(0)
             yield delay(10)
@@ -99,9 +105,11 @@ class YieldNone(TestCase):
             yield delay(0)
             assert a.val == 1
             assert now() == 10
+
         Simulation(stimulus()).run(quiet=QUIET)
 
     def test4(self):
+
         def stimulus():
             a = Signal(0)
             yield delay(10)
@@ -109,11 +117,13 @@ class YieldNone(TestCase):
             def gen():
                 yield delay(20)
                 a.next = 1
+
             yield None, gen()
             assert a.val == 0
             assert now() == 10
             yield delay(25)
             assert a.val == 1
+
         Simulation(stimulus()).run(quiet=QUIET)
 
 
@@ -121,24 +131,29 @@ class JoinMix(TestCase):
     """ Test of joins mixed with other clauses """
 
     def test1(self):
+
         def stimulus():
             a = Signal(0)
 
             def gen():
                 yield join(delay(10), delay(20))
+
             yield gen(), delay(5)
             assert now() == 5
             yield a
             raise AssertionError("Incorrect run")  # should not get here
+
         Simulation(stimulus()).run(quiet=QUIET)
 
     def test2(self):
+
         def stimulus():
             a = Signal(0)
             yield join(delay(10), delay(20)), delay(5)
             assert now() == 5
             yield a
             raise AssertionError("Incorrect run")  # should not get here
+
         Simulation(stimulus()).run(quiet=QUIET)
 
     def stimulus(self, a, b, c, d):
@@ -158,75 +173,84 @@ class JoinMix(TestCase):
         d.next = 1
 
     def test3(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, b, c, d)
             assert now() == 20
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test4(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, b), join(c, d)
             assert now() == 10
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test5(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a), b, join(c, d)
             assert now() == 5
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test6(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, delay(20)), b, join(c, d)
             assert now() == 10
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test7(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, delay(30)), join(c, d)
             assert now() == 20
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test8(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, a.negedge)
             assert now() == 10
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test9(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, a.negedge, c.posedge)
             assert now() == 15
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test10(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, a)
             assert now() == 5
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
     def test11(self):
-        a, b, c, d = [Signal(0) for i in range(4)]
+        a, b, c, d = [Signal(0) for __ in range(4)]
 
         def response():
             yield join(a, b.posedge, b.negedge, a)
             assert now() == 15
+
         Simulation(self.stimulus(a, b, c, d), response()).run(quiet=QUIET)
 
 
@@ -235,25 +259,24 @@ class JoinedGen(TestCase):
     """ Basic test of yielding joined concurrent generators """
 
     def bench(self):
-        clk = Signal(0)
         sig1 = Signal(0)
         sig2 = Signal(0)
         td = 10
 
         def gen(s, n):
-            for i in range(n-1):
+            for dummy in range(n - 1):
                 yield delay(td)
             s.next = 1
             yield delay(td)
 
-        for i in range(10):
+        for __ in range(10):
             offset = now()
             n0 = randrange(1, 50)
             n1 = randrange(1, 50)
             n2 = randrange(1, 50)
             sig1.next = 0
             sig2.next = 0
-            yield join(delay(n0*td), gen(sig1, n1), gen(sig2, n2))
+            yield join(delay(n0 * td), gen(sig1, n1), gen(sig2, n2))
             assert sig1.val == 1
             assert sig2.val == 1
             assert now() == offset + td * max(n0, n1, n2)
@@ -303,30 +326,29 @@ class YieldZeroDelay(TestCase):
     """ Basic test of yielding a zero delay """
 
     def bench(self):
-        clk = Signal(0)
         sig1 = Signal(0)
         sig2 = Signal(0)
         td = 10
 
         def gen(s, n):
             s.next = 0
-            for i in range(n):
+            for dummy in range(n):
                 yield delay(td)
             s.next = 1
 
-        for i in range(100):
+        for __ in range(100):
             offset = now()
             n1 = randrange(2, 10)
-            n2 = randrange(n1+1, 20)  # n2 > n1
+            n2 = randrange(n1 + 1, 20)  # n2 > n1
             yield delay(0), gen(sig1, n1), gen(sig2, n2)
             assert sig1.val == 0
             assert sig2.val == 0
             assert now() == offset + 0
             yield sig1.posedge
             assert sig2.val == 0
-            assert now() == offset + n1*td
+            assert now() == offset + n1 * td
             yield sig2.posedge
-            assert now() == offset + n2*td
+            assert now() == offset + n2 * td
 
         raise StopSimulation("Zero delay yield")
 
@@ -339,30 +361,29 @@ class YieldConcurrentGen(TestCase):
     """ Basic test of yielding concurrent generators """
 
     def bench(self):
-        clk = Signal(0)
         sig1 = Signal(0)
         sig2 = Signal(0)
         td = 10
 
         def gen(s, n):
             s.next = 0
-            for i in range(n):
+            for dummy in range(n):
                 yield delay(td)
             s.next = 1
 
-        for i in range(100):
+        for __ in range(100):
             offset = now()
             n1 = randrange(2, 10)
-            n2 = randrange(n1+1, 20)  # n2 > n1
+            n2 = randrange(n1 + 1, 20)  # n2 > n1
             yield delay(td), gen(sig1, n1), gen(sig2, n2)
             assert sig1.val == 0
             assert sig2.val == 0
             assert now() == offset + td
             yield sig1.posedge
             assert sig2.val == 0
-            assert now() == offset + n1*td
+            assert now() == offset + n1 * td
             yield sig2.posedge
-            assert now() == offset + n2*td
+            assert now() == offset + n2 * td
 
         raise StopSimulation("Concurrent generator yield")
 
@@ -383,9 +404,9 @@ class YieldGen(TestCase):
         expected = []
         nlists = []
         expectedCnt = 0
-        for i in range(300):
+        for __ in range(300):
             l = []
-            for j in range(randrange(1, 6)):
+            for __ in range(randrange(1, 6)):
                 e = randrange(0, 5)
                 l.append(e)
                 expectedCnt += e
@@ -401,7 +422,7 @@ class YieldGen(TestCase):
 
         def task(nlist):
             n = nlist.pop(0)
-            for i in range(n):
+            for dummy in range(n):
                 yield clk.posedge
                 shared.cnt += 1
             assert shared.cnt == expected[shared.i]
@@ -433,10 +454,10 @@ class DeltaCycleOrder(TestCase):
         c = Signal(0)
         d = Signal(0)
         z = Signal(0)
-        delta = [Signal(0) for i in range(4)]
+        delta = [Signal(0) for dummy in range(4)]
         inputs = Signal(intbv(0))
         s = [a, b, c, d]
-        vectors = [intbv(j) for i in range(8) for j in range(16)]
+        vectors = [intbv(j) for dummy in range(8) for j in range(16)]
         random.shuffle(vectors)
         index = list(range(4))
 
@@ -451,7 +472,7 @@ class DeltaCycleOrder(TestCase):
                 delta[0].next = clk.val
                 yield delta[0]
                 for i in range(1, 4):
-                    delta[i].next = delta[i-1].val
+                    delta[i].next = delta[i - 1].val
                     yield delta[i]
 
         def inGen(i):
@@ -479,31 +500,41 @@ class DeltaCycleOrder(TestCase):
         return instance
 
     def testAnd(self):
+
         def andFunction(a, b, c, d):
             return a & b & c & d
+
         Simulation(self.bench(andFunction)).run(quiet=QUIET)
 
     def testOr(self):
+
         def orFunction(a, b, c, d):
             return a | b | c | d
+
         Simulation(self.bench(orFunction)).run(quiet=QUIET)
 
     def testXor(self):
+
         def xorFunction(a, b, c, d):
             return a ^ b ^ c ^ d
+
         Simulation(self.bench(xorFunction)).run(quiet=QUIET)
 
     def testMux(self):
+
         def muxFunction(a, b, c, d):
             if c:
                 return a
             else:
                 return b
+
         Simulation(self.bench(muxFunction)).run(quiet=QUIET)
 
     def testLogic(self):
+
         def function(a, b, c, d):
             return not (a & (not b)) | ((not c) & d)
+
         Simulation(self.bench(function)).run(quiet=QUIET)
 
 
@@ -515,15 +546,15 @@ class DeltaCycleRace(TestCase):
 
         uprange = range(300)
         msig = Signal(uprange[0])
-        ssig = [Signal(uprange[-1]) for i in range(2)]
-        dsig = [Signal(uprange[0]) for i in range(2)]
+        ssig = [Signal(uprange[-1]) for __ in range(2)]
+        dsig = [Signal(uprange[0]) for __ in range(2)]
         clk = Signal(0)
         deltaClk = Signal(0)
         shared = Shared()
         shared.t = now()
 
         def clkGen():
-            for i in uprange[:-1]:
+            for dummy in uprange[:-1]:
                 yield delay(10)
                 clk.next = 1
                 yield delay(10)
@@ -538,7 +569,7 @@ class DeltaCycleRace(TestCase):
             i = 0
             while 1:
                 yield clk.posedge
-                msig.next = uprange[i+1]
+                msig.next = uprange[i + 1]
                 assert msig.val == uprange[i]
                 shared.t = now()
                 i += 1
@@ -549,7 +580,7 @@ class DeltaCycleRace(TestCase):
             while 1:
                 yield clk.posedge
                 ssig.next = msig.val
-                assert ssig.val == uprange[i-1]
+                assert ssig.val == uprange[i - 1]
                 i += 1
 
         def deltaSlave(dsig):
@@ -589,8 +620,8 @@ class DelayLine(TestCase):
                 clk.next = 0
 
         def delayElement(n, i):
-                sig_Z[n].next = sig_Z[n-1].val
-                assert sig_Z[n].val == uprange[i-n]
+                sig_Z[n].next = sig_Z[n - 1].val
+                assert sig_Z[n].val == uprange[i - n]
 
         def stage(n):
             i = 0
@@ -604,7 +635,7 @@ class DelayLine(TestCase):
             while 1:
                 yield clk.posedge
                 delayElement(1, i)
-                sig_Z[0].next = uprange[i+1]
+                sig_Z[0].next = uprange[i + 1]
                 delayElement(2, i)
                 i += 1
 
@@ -617,7 +648,7 @@ class DelayLine(TestCase):
 
 
 def initSignal(waveform):
-    interval, val, sigdelay = waveform[0]
+    __, val, sigdelay = waveform[0]
     if sigdelay:
         return Signal(val=val, delay=sigdelay)
     else:
@@ -652,7 +683,7 @@ def getExpectedTimes(waveform, eventCheck):
         # print waveform[i]
         time += interval
         # check future events within inertial delay interval
-        j = i+1
+        j = i + 1
         inctime = 0
         while j < len(waveform) and inctime + waveform[j][0] < sigdelay:
             inctime += waveform[j][0]
@@ -789,7 +820,7 @@ class Waveform(TestCase):
 
 class WaveformSigDelay(Waveform):
 
-    """ Repeat waveform tests with a delayed signal """
+    """ Repeat waveform in tests with a delayed signal """
 
     waveform = []
     duration = 0
@@ -846,33 +877,33 @@ class TimeZeroEvents(TestCase):
 
     """ Check events at time 0 """
 
-    def bench(self, sig, next, clause, timeout=1):
-        val = sig.val
+    def bench(self, sig, nextval, clause, timeout=1):
 
         def stimulus():
-            sig.next = next
+            sig.next = nextval
             yield delay(10)
 
         def response():
             yield clause, delay(timeout)
             assert now() == 0
-            assert sig.val == next
+            assert sig.val == nextval
+
         return [stimulus(), response()]
 
     def testEvent(self):
         """ Event at time 0 """
         s = Signal(0)
-        testBench = self.bench(sig=s, next=1, clause=s)
+        testBench = self.bench(sig=s, nextval=1, clause=s)
         Simulation(testBench).run(quiet=QUIET)
 
     def testPosedge(self):
         """ Posedge at time 0 """
         s = Signal(0)
-        testBench = self.bench(sig=s, next=1, clause=s.posedge)
+        testBench = self.bench(sig=s, nextval=1, clause=s.posedge)
         Simulation(testBench).run(quiet=QUIET)
 
     def testNegedge(self):
         """ Negedge at time 0 """
         s = Signal(1)
-        testBench = self.bench(sig=s, next=0, clause=s.negedge)
+        testBench = self.bench(sig=s, nextval=0, clause=s.negedge)
         Simulation(testBench).run(quiet=QUIET)

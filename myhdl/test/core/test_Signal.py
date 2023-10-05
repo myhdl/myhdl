@@ -36,17 +36,17 @@ maxint = sys.maxsize
 class TestSig:
 
     def setup_method(self, method):
-        self.vals   = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]
-        self.nexts  = [0, 1, 1, 0, 1, 0, 4, 5, intbv(1), intbv(0), intbv(0)]
-        self.vals  += [intbv(0), intbv(1), intbv(0), intbv(1), 2           ]
+        self.vals = [0, 0, 1, 1, 1, 2, 3, 5, intbv(0), intbv(1), intbv(2)]
+        self.nexts = [0, 1, 1, 0, 1, 0, 4, 5, intbv(1), intbv(0), intbv(0)]
+        self.vals += [intbv(0), intbv(1), intbv(0), intbv(1), 2           ]
         self.nexts += [intbv(0), intbv(1), 1       , 0       , intbv(3)    ]
-        self.vals  += [ [1,2,3], (1,2,3), {1:1, 2:2}, (0, [2, 3], (1, 2))  ]
-        self.nexts += [ [4,5,6], (4,5,5), {3:3, 4:4}, (1, (0, 1), [2, 3])  ]
-        self.vals  += [bool(0), bool(1), bool(0), bool(1), bool(0), bool(1)]
+        self.vals += [ [1, 2, 3], (1, 2, 3), {1:1, 2:2}, (0, [2, 3], (1, 2))  ]
+        self.nexts += [ [4, 5, 6], (4, 5, 5), {3:3, 4:4}, (1, (0, 1), [2, 3])  ]
+        self.vals += [bool(0), bool(1), bool(0), bool(1), bool(0), bool(1)]
         self.nexts += [bool(0), bool(1), bool(1), bool(0), 1      , 0      ]
         self.sigs = [Signal(i) for i in self.vals]
 
-        self.incompatibleVals  = [ [3, 4], (1, 2),  3 , intbv(0), [1]      ]
+        self.incompatibleVals = [ [3, 4], (1, 2), 3 , intbv(0), [1]      ]
         self.incompatibleNexts = [ 4     , 3     , "3", (0)     , intbv(1) ]
         self.incompatibleSigs = [Signal(i) for i in self.incompatibleVals]
 
@@ -114,7 +114,7 @@ class TestSig:
                         oldval = s.val
                         s.next = n
 
-        assert i >= len(self.incompatibleSigs), "Nothing tested %s" %i
+        assert i >= len(self.incompatibleSigs), "Nothing tested %s" % i
 
     def testAfterUpdate(self):
         """ updated val and next should be equal but not identical """
@@ -223,14 +223,14 @@ class TestSig:
 class TestSignalAsNum:
 
     def seqSetup(self, imin, imax, jmin=0, jmax=None):
-        seqi = [imin, imin,   12, 34]
+        seqi = [imin, imin, 12, 34]
         seqj = [jmin, 12  , jmin, 34]
         if not imax and not jmax:
             l = 2222222222222222222222222222
             seqi.append(l)
             seqj.append(l)
         # first some smaller ints
-        for n in range(100):
+        for __ in range(100):
             ifirstmax = jfirstmax = 100000
             if imax:
                 ifirstmax = min(imax, ifirstmax)
@@ -241,7 +241,7 @@ class TestSignalAsNum:
             seqi.append(i)
             seqj.append(j)
         # then some potentially longs
-        for n in range(100):
+        for __ in range(100):
             if not imax:
                 i = randrange(maxint) + randrange(maxint)
             else:
@@ -389,7 +389,7 @@ class TestSignalAsNum:
     def testNeg(self):
         self.unaryCheck(operator.neg)
 
-    def testNeg(self):
+    def testPos(self):
         self.unaryCheck(operator.pos)
 
     def testAbs(self):
@@ -435,17 +435,17 @@ class TestSignalAsNum:
 
 
 def getItem(s, i):
-    ext = '0' * (i-len(s)+1)
+    ext = '0' * (i - len(s) + 1)
     exts = ext + s
-    si = len(exts)-1-i
+    si = len(exts) - 1 - i
     return exts[si]
 
 
 def getSlice(s, i, j):
-    ext = '0' * (i-len(s)+1)
+    ext = '0' * (i - len(s) + 1)
     exts = ext + s
-    si = len(exts)-i
-    sj = len(exts)-j
+    si = len(exts) - i
+    sj = len(exts) - j
     return exts[si:sj]
 
 
@@ -469,13 +469,13 @@ class TestSignalIntBvIndexing:
             n = int(s, 2)
             sbv = Signal(intbv(n))
             sbvi = Signal(intbv(~n))
-            for i in range(len(s)+20):
+            for i in range(len(s) + 20):
                 ref = int(getItem(s, i), 2)
                 res = sbv[i]
                 resi = sbvi[i]
                 assert res == ref
                 assert type(res) == bool
-                assert resi == ref^1
+                assert resi == ref ^ 1
                 assert type(resi) == bool
 
     def testGetSlice(self):
@@ -484,18 +484,18 @@ class TestSignalIntBvIndexing:
             n = int(s, 2)
             sbv = Signal(intbv(n))
             sbvi = Signal(intbv(~n))
-            for i in range(1, len(s)+20):
-                for j in range(0,len(s)+20):
+            for i in range(1, len(s) + 20):
+                for j in range(0, len(s) + 20):
                     try:
                         res = sbv[i:j]
                         resi = sbvi[i:j]
                     except ValueError:
-                        assert i<=j
+                        assert i <= j
                         continue
                     ref = int(getSlice(s, i, j), 2)
                     assert res == ref
                     assert type(res) == intbv
-                    mask = (2**(i-j))-1
+                    mask = (2 ** (i - j)) - 1
                     assert resi == ref ^ mask
                     assert type(resi) == intbv
 
@@ -513,7 +513,7 @@ class TestSignalIntBvIndexing:
 class TestSignalNrBits:
 
     def testBool(self):
-        if type(bool) is not type :  # bool not a type in 2.2
+        if type(bool) is not type:  # bool not a type in 2.2
             return
         s = Signal(bool())
         assert s._nrbits == 1
@@ -522,26 +522,26 @@ class TestSignalNrBits:
         for n in range(1, 40):
             for m in range(0, n):
                 s = Signal(intbv()[n:m])
-                assert s._nrbits == n-m
+                assert s._nrbits == n - m
 
     def testIntbvBounds(self):
         for n in range(1, 40):
-            s = Signal(intbv(min=-(2**n)))
+            s = Signal(intbv(min=-(2 ** n)))
             assert s._nrbits == 0
-            s = Signal(intbv(max=2**n))
+            s = Signal(intbv(max=2 ** n))
             assert s._nrbits == 0
-            s = Signal(intbv(min=0, max=2**n))
+            s = Signal(intbv(min=0, max=2 ** n))
             assert s._nrbits == n
-            s = Signal(intbv(1, min=1, max=2**n))
+            s = Signal(intbv(1, min=1, max=2 ** n))
             assert s._nrbits == n
-            s = Signal(intbv(min=0, max=2**n+1))
-            assert s._nrbits == n+1
-            s = Signal(intbv(min=-(2**n), max=2**n-1))
-            assert s._nrbits == n+1
-            s = Signal(intbv(min=-(2**n), max=1))
-            assert s._nrbits == n+1
-            s = Signal(intbv(min=-(2**n)-1, max=2**n-1))
-            assert s._nrbits == n+2
+            s = Signal(intbv(min=0, max=2 ** n + 1))
+            assert s._nrbits == n + 1
+            s = Signal(intbv(min=-(2 ** n), max=2 ** n - 1))
+            assert s._nrbits == n + 1
+            s = Signal(intbv(min=-(2 ** n), max=1))
+            assert s._nrbits == n + 1
+            s = Signal(intbv(min=-(2 ** n) - 1, max=2 ** n - 1))
+            assert s._nrbits == n + 2
 
 
 class TestSignalBoolBounds:
@@ -572,8 +572,8 @@ class TestSignalIntbvBounds:
                     s.next[k:] = i
 
         s = Signal(intbv(5)[8:])
-        for v in (0, 2**8-1, 100):
+        for v in (0, 2 ** 8 - 1, 100):
             s.next[:] = v
-        for v in (-1, 2**8, -10, 1000):
+        for v in (-1, 2 ** 8, -10, 1000):
             with pytest.raises(ValueError):
                 s.next[:] = v

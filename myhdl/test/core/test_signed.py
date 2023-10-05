@@ -21,8 +21,7 @@
 """ Run the intbv.signed() unit tests. """
 from random import randrange
 
-import myhdl
-from myhdl import *
+from myhdl import Signal, intbv, concat
 
 
 class TestIntbvSigned:
@@ -212,12 +211,12 @@ class TestIntbvSigned:
         b = a[4:]
         assert b == 4
         b = a[4:].signed()
-        assert b == 4    # msb is not set with a 4 bit slice
+        assert b == 4  # msb is not set with a 4 bit slice
 
         b = a[3:]
         assert b == 4
         b = a[3:].signed()
-        assert b == -4   # msb is set with 3 bits sliced
+        assert b == -4  # msb is set with 3 bits sliced
 
     def testSignedConcat(self):
         '''Test the .signed() function with the concatenate function'''
@@ -229,7 +228,7 @@ class TestIntbvSigned:
 
         # concate a 3 bit intbv with msb set and two bits
         # Expect a negative number
-        b = concat(intbv(5,min=0,max=8), True, True).signed()
+        b = concat(intbv(5, min=0, max=8), True, True).signed()
         assert b == -9
 
     def checkInvariants(self, a):
@@ -238,16 +237,16 @@ class TestIntbvSigned:
         b = intbv(a.signed())
         if W > 0:
             assert a[W:] == b[W:]
-            assert b[:W] == -a[W-1]
+            assert b[:W] == -a[W - 1]
         else:
             assert a == b
 
     def testRandom(self):
         NRTESTS = 1000
-        for L in (10, 1000, 2**32, 2**68):
-            for i in range(NRTESTS):
+        for L in (10, 1000, 2 ** 32, 2 ** 68):
+            for __ in range(NRTESTS):
                 lo = randrange(-L, L)
-                hi = randrange(lo+1, 2*L)
+                hi = randrange(lo + 1, 2 * L)
                 v = randrange(lo, hi)
                 a = intbv(v, min=lo, max=hi)
                 self.checkInvariants(a)

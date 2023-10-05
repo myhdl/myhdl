@@ -26,7 +26,6 @@ from myhdl import bin
 
 random.seed(1)  # random, but deterministic
 
-
 SIZE = 100
 
 
@@ -67,18 +66,18 @@ class TestBin:
             assert bin(i, w) == binref(i, w)
 
     def testRandomInt(self):
-        for j in range(SIZE):
+        for __ in range(SIZE):
             i = randrange(-sys.maxsize, sys.maxsize)
             assert bin(i) == binref(i)
 
     def testRandomIntWidth(self):
-        for j in range(SIZE):
+        for __ in range(SIZE):
             w = randrange(1, 1000)
             i = randrange(-sys.maxsize, sys.maxsize)
             assert bin(i, w) == binref(i, w)
 
     def testRandomLong(self):
-        for j in range(SIZE):
+        for __ in range(SIZE):
             k = randrange(sys.maxsize)
             i = k + sys.maxsize
             assert bin(i) == binref(i)
@@ -86,7 +85,7 @@ class TestBin:
             assert bin(i) == binref(i)
 
     def testRandomLongWith(self):
-        for j in range(SIZE):
+        for __ in range(SIZE):
             w = randrange(1, 1000)
             k = randrange(sys.maxsize)
             i = k + sys.maxsize

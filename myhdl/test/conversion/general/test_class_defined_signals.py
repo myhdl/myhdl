@@ -1,4 +1,6 @@
-from myhdl import *
+from myhdl import (block, Signal, delay, always, always_comb,
+                   instance, StopSimulation, conversion)
+
 
 class HDLClass(object):
 
@@ -19,6 +21,7 @@ class HDLClass(object):
             internal_out.next = internal_in.next
 
         return do_something, assignments
+
 
 class InterfaceWithInstanceSignal(object):
 
@@ -64,6 +67,7 @@ def different_class_pipeline(clock, input_interface, output_interface):
 
     return class_hdl_inst1, class_hdl_inst2
 
+
 @block
 def common_class_pipeline(clock, input_interface, output_interface):
 
@@ -86,6 +90,7 @@ def common_class_pipeline(clock, input_interface, output_interface):
         clock, intermediate_interface_3, output_interface)
 
     return class_hdl_inst1, class_hdl_inst2, class_hdl_inst3, class_hdl_inst4
+
 
 @block
 def interface_with_method_pipeline(clock, input_interface, output_interface):
@@ -110,11 +115,11 @@ def interface_with_method_pipeline(clock, input_interface, output_interface):
 
     return class_hdl_inst1, class_hdl_inst2, class_hdl_inst3, class_hdl_inst4
 
+
 @block
 def bench(class_name='different_class'):
 
     clk = Signal(False)
-    reset = Signal(False)
     input_interface = Signal(False)
     output_interface = Signal(False)
 
@@ -124,7 +129,7 @@ def bench(class_name='different_class'):
     def clkgen():
 
         clk.next = 0
-        for n in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -144,30 +149,15 @@ def bench(class_name='different_class'):
 
     return pipeline_inst, clkgen
 
+
 def test_multiple_class_single_method():
-
-    clock = Signal(False)
-    reset = Signal(False)
-    input_interface = Signal(False)
-    output_interface = Signal(False)
-
     assert conversion.verify(bench()) == 0
 
+
 def test_single_class_single_method():
-
-    clock = Signal(False)
-    reset = Signal(False)
-    input_interface = Signal(False)
-    output_interface = Signal(False)
-
     assert conversion.verify(bench(class_name='common_class')) == 0
 
+
 def test_single_interface_with_single_method():
-
-    clock = Signal(False)
-    reset = Signal(False)
-    input_interface = Signal(False)
-    output_interface = Signal(False)
-
     assert conversion.verify(bench(class_name='interface')) == 0
 

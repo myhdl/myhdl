@@ -1,11 +1,14 @@
 MyHDL 0.11 
 ==========
 
-[![Join the chat at https://gitter.im/myhdl/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 [![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=stable)](http://docs.myhdl.org/en/stable/manual/)
 [![Documentation Status](https://readthedocs.org/projects/myhdl/badge/?version=latest)](http://docs.myhdl.org/en/latest/manual)
-[![Build Status](https://travis-ci.org/myhdl/myhdl.svg?branch=master)](https://travis-ci.org/myhdl/myhdl)
+
+[![Join the chat at https://gitter.im/myhdl/myhdl](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/myhdl/myhdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[<img src="https://d11a6trkgmumsb.cloudfront.net/original/3X/a/d/ad2526334012b2ad0c3421f9b6dd94bae2ede52f.svg" alt="Visit MyHDL at Discourse" align="left" height="36" width="134" >](https://discourse.myhdl.org)
+<br><br><br>
+
 
 What is MyHDL?
 --------------
@@ -46,20 +49,22 @@ Installing the latest stable release:
 ```
 pip install myhdl
 ```
+Unfortunately the version on PyPI is quite behind the current development status, so you are better off installing the *stable* master branch directly from this GitHub repository:
 
-To install the development version from github:
 ```
-pip install -e 'git+https://github.com/myhdl/myhdl#egg=myhdl
+pip install git+https://github.com/myhdl/myhdl.git@master
 ```
 
 To install a local clone of the repository:
+
 ```
 pip install -e path/to/dir
 ```
 
 To install a specific commit hash, tag or branch from git:
+
 ```
-pip install -e 'git+https://github.com/myhdl/myhdl@f696b8#egg=myhdl
+pip install git+https://github.com/myhdl/myhdl@f696b8
 ```
 
 

@@ -1,5 +1,4 @@
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, always, always_comb)
 from myhdl import ToVHDLWarning
 
 import pytest

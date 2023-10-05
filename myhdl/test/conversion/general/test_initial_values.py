@@ -1,7 +1,9 @@
 from random import randrange
 
-from myhdl import *
-import myhdl
+from myhdl import (block, Signal, enum, intbv, modbv, delay, always_comb, always_seq,
+                   always, instance, instances, StopSimulation, toVHDL, toVerilog,
+                   ResetSignal, conversion)
+
 
 @block
 def initial_value_enum_bench(initial_val, **kwargs):
@@ -20,7 +22,7 @@ def initial_value_enum_bench(initial_val, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for n in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -46,6 +48,7 @@ def initial_value_enum_bench(initial_val, **kwargs):
 
     return state_walker, clkgen
 
+
 @block
 def bool_writer(signal, clk):
 
@@ -55,6 +58,7 @@ def bool_writer(signal, clk):
 
     return writer
 
+
 @block
 def int_writer(signal, clk):
 
@@ -63,6 +67,7 @@ def int_writer(signal, clk):
         print(signal)
 
     return writer
+
 
 @block
 def initial_value_bench(initial_val, **kwargs):
@@ -102,7 +107,7 @@ def initial_value_bench(initial_val, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for n in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -130,8 +135,8 @@ def initial_value_bench(initial_val, **kwargs):
     else:
         output_writer = int_writer(output_signal, clk)
 
-
     return clkgen, output_driver, drive_and_check, output_writer
+
 
 @block
 def canonical_list_writer(output_signal_list, clk):
@@ -166,6 +171,7 @@ end process INITIAL_VALUE_BENCH_OUTPUT_WRITER;
 '''
     return list_writer
 
+
 @block
 def bool_list_writer(output_signal_list, clk):
 
@@ -177,6 +183,7 @@ def bool_list_writer(output_signal_list, clk):
             print(int(output_signal_list[i]))
 
     return list_writer
+
 
 @block
 def initial_value_bool_list_bench(initial_vals, **kwargs):
@@ -201,7 +208,7 @@ def initial_value_bool_list_bench(initial_vals, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for n in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -231,13 +238,16 @@ def initial_value_bool_list_bench(initial_vals, **kwargs):
 
     return clkgen, output_driver, drive_and_check, output_writer
 
+
 @block
 def assign_output(input_signal, output_signal):
+
     @always_comb
     def assignment():
         output_signal.next = input_signal
 
     return assignment
+
 
 @block
 def initial_value_list_bench(initial_vals, **kwargs):
@@ -268,7 +278,7 @@ def initial_value_list_bench(initial_vals, **kwargs):
     def clkgen():
 
         clk.next = 0
-        for n in range(N):
+        for dummy in range(N):
             yield delay(10)
             clk.next = not clk
 
@@ -315,14 +325,29 @@ def initial_value_mem_convert_bench():
 
     inst = memory(clock, reset, wr, wrd, rdd, addr)
 
-    return inst
+    tCKhalf = 10 // 2
+    tReset = int (10 * 3.5)
+
+    @instance
+    def genclk():
+        while True:
+            clock.next = not clock
+            yield delay(tCKhalf)
+
+    @instance
+    def genreset():
+        reset.next = 0
+        yield delay(tReset)
+        reset.next = 1
+
+    return instances()
 
 
 @block
 def memory(clock, reset, wr, wrd, rdd, addr):
 
     mem = [Signal(intbv(0, min=wrd.min, max=wrd.max))
-           for _ in range(addr.max)]
+           for __ in range(addr.max)]
 
     inst_init = memory_init(mem)
 
@@ -333,6 +358,7 @@ def memory(clock, reset, wr, wrd, rdd, addr):
             mem[addr].next = wrd
 
     return inst_init, beh_mem
+
 
 @block
 def memory_init(mem):
@@ -396,19 +422,22 @@ def test_signed():
 
     runner(initial_val)
 
+
 def test_bool():
     '''The correct initial value should be used for bool type signal.
     '''
     initial_val = bool(randrange(0, 2))
     runner(initial_val)
 
+
 def test_modbv():
     '''The correct initial value should be used for modbv type signal.
     '''
 
-    initial_val = modbv(randrange(0, 2**10))[10:]
+    initial_val = modbv(randrange(0, 2 ** 10))[10:]
 
     runner(initial_val)
+
 
 def test_enum():
     '''The correct initial value should be used for enum type signals.
@@ -420,15 +449,17 @@ def test_enum():
     runner(val1, tb=initial_value_enum_bench, states=states)
     runner(val2, tb=initial_value_enum_bench, states=states)
 
+
 def test_long_signals():
     '''The correct initial value should work with wide bitwidths (i.e. >32)
     '''
-    min_val = -(2**71)
-    max_val = 2**71 - 1
+    min_val = -(2 ** 71)
+    max_val = 2 ** 71 - 1
     initial_val = intbv(
         randrange(min_val, max_val), min=min_val, max=max_val)
 
     runner(initial_val)
+
 
 def test_single_length_signals():
     '''The correct initial value should be used for a single length signal
@@ -437,14 +468,14 @@ def test_single_length_signals():
 
     runner(initial_val)
 
+
 def test_unsigned_list():
     '''The correct initial value should be used for unsigned type signal lists
     '''
     min_val = 0
     max_val = 34
-    initial_vals = [intbv(
-        randrange(min_val, max_val), min=min_val, max=max_val)
-        for each in range(10)]
+    initial_vals = [intbv(randrange(min_val, max_val), min=min_val, max=max_val)
+                            for __ in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
 
@@ -453,15 +484,15 @@ def test_unsigned_list():
         intbv(randrange(min_val, max_val), min=min_val, max=max_val)] * 10
     runner(initial_vals, tb=initial_value_list_bench)
 
+
 def test_signed_list():
     '''The correct initial value should be used for signed type signal lists
     '''
     min_val = -12
     max_val = 4
 
-    initial_vals = [intbv(
-        randrange(min_val, max_val), min=min_val, max=max_val)
-        for each in range(10)]
+    initial_vals = [intbv(randrange(min_val, max_val), min=min_val, max=max_val)
+        for __ in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
 
@@ -471,17 +502,17 @@ def test_signed_list():
 
     runner(initial_vals, tb=initial_value_list_bench)
 
+
 def test_modbv_list():
     '''The correct initial value should be used for modbv type signal lists
     '''
 
-    initial_vals = [
-        modbv(randrange(0, 2**10))[10:] for each in range(10)]
+    initial_vals = [modbv(randrange(0, 2 ** 10))[10:] for __ in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
 
     # All the same case
-    initial_vals = [modbv(randrange(0, 2**10))[10:]] * 10
+    initial_vals = [modbv(randrange(0, 2 ** 10))[10:]] * 10
     runner(initial_vals, tb=initial_value_list_bench)
 
 
@@ -489,22 +520,22 @@ def test_long_signals_list():
     '''The correct initial value should work with wide bitwidths (i.e. >32)
     signal lists
     '''
-    min_val = -(2**71)
-    max_val = 2**71 - 1
-    initial_vals = [intbv(
-        randrange(min_val, max_val), min=min_val, max=max_val)
-        for each in range(10)]
+    min_val = -(2 ** 71)
+    max_val = 2 ** 71 - 1
+    initial_vals = [intbv(randrange(min_val, max_val), min=min_val, max=max_val)
+        for __ in range(10)]
 
     runner(initial_vals, tb=initial_value_list_bench)
 
     # All the same case
-    initial_vals = [intbv(2**65-50, min=min_val, max=max_val)] * 10
+    initial_vals = [intbv(2 ** 65 - 50, min=min_val, max=max_val)] * 10
     runner(initial_vals, tb=initial_value_list_bench)
+
 
 def test_bool_signals_list():
     '''The correct initial value should be used for a boolean type signal lists
     '''
-    initial_vals = [False for each in range(10)]
+    initial_vals = [False for __ in range(10)]
 
     runner(initial_vals, tb=initial_value_bool_list_bench)
 
@@ -540,7 +571,8 @@ def test_memory_convert():
     toVHDL.initial_values = True
 
     try:
-        assert conversion.analyze(inst) == 0
+        # assert conversion.analyze(inst) == 0
+        assert inst.analyze_convert() == 0
 
     finally:
         toVerilog.initial_values = pre_xiv
@@ -560,7 +592,7 @@ def init_reset_tb():
     def clkgen():
 
         clk.next = 0
-        for n in range(10):
+        for dummy in range(10):
             yield delay(10)
             clk.next = not clk
 
@@ -573,7 +605,7 @@ def init_reset_tb():
         yield clk.posedge
         reset.next = 0
 
-    @always_seq(clk.posedge,reset=reset)
+    @always_seq(clk.posedge, reset=reset)
     def seq():
 
         print(s_large)
@@ -591,10 +623,9 @@ def test_init_reset():
     """
 
     inst = init_reset_tb()
-    assert conversion.verify(inst,initial_values=True) == 0
+    assert conversion.verify(inst, initial_values=True) == 0
 
-
-#def test_init_used_list():
+# def test_init_used_list():
 #    '''It should be the _init attribute of each element in the list
 #    that is used for initialisation
 #
@@ -611,5 +642,4 @@ def test_init_reset():
 
 if __name__ == "__main__":
     test_signed_list()
-
 

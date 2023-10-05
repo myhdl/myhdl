@@ -1,5 +1,5 @@
-import myhdl
-from myhdl import *
+from myhdl import (block, Signal, intbv, modbv, always)
+
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 from myhdl.conversion import verify
@@ -7,10 +7,13 @@ from myhdl.conversion import verify
 
 @block
 def sigAugmAssignUnsupported(z, a):
+
     @always(a)
     def logic():
         z.next += a
+
     return logic
+
 
 def test_SigAugmAssignUnsupported():
     z = Signal(intbv(0)[8:])
@@ -22,14 +25,18 @@ def test_SigAugmAssignUnsupported():
     else:
         assert False
 
+
 @block
 def modbvRange(z, a, b):
+
     @always(a, b)
     def logic():
         s = modbv(0, min=0, max=35)
         s[:] = a + b
         z.next = s
+
     return logic
+
 
 def test_modbvRange():
     z = Signal(intbv(0)[8:])
@@ -42,12 +49,16 @@ def test_modbvRange():
     else:
         assert False
 
+
 @block
 def modbvSigRange(z, a, b):
+
     @always(a, b)
     def logic():
         z.next = a + b
+
     return logic
+
 
 def test_modbvSigRange():
     z = Signal(modbv(0, min=0, max=42))
