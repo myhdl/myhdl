@@ -288,11 +288,6 @@ def _writeModuleHeader(f, intf, doc):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if s._read:
-                if not isinstance(s, _TristateSignal):
-                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                                  category=ToVerilogWarning
-                                  )
             if isinstance(s, _TristateSignal):
                 print("inout %s%s%s;" % (p, r, portname), file=f)
             else:
@@ -315,8 +310,14 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for s in siglist:
         if not s._used:
             continue
+
         if s._name in intf.argnames:
             continue
+
+        if s._name.startswith('-- OpenPort'):
+            # do not write a signal declaration
+            continue
+
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
@@ -1237,7 +1238,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             raise AssertionError("name ref: %s" % n)
         if addSignBit:
             self.write("$signed({1'b0, ")
-        self.write(s)
+
+        if s.startswith('--'):
+            self.write(s.replace('--', '//'))
+        else:
+            self.write(s)
         if addSignBit:
             self.write("})")
 
@@ -1488,6 +1493,11 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
+            # try intercepting '-- OpenPort' signals
+            obj = self.tree.symdict[node.value.id]
+            if obj._name.startswith('-- OpenPort'):
+                self.write('// ')
+
             self.write("assign ")
             self.visit(node.value)
         else:

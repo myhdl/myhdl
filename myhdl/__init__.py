@@ -162,6 +162,7 @@ from ._instance import instance
 from ._block import block
 from ._enum import enum, EnumType, EnumItemType
 from ._traceSignals import traceSignals
+from ._openport import OpenPort
 
 from myhdl import conversion
 from .conversion import toVerilog
@@ -201,5 +202,6 @@ __all__ = ["bin",
            "toVerilog",
            "toVHDL",
            "conversion",
-           "Tristate"
+           "Tristate",
+           "OpenPort"
            ]
