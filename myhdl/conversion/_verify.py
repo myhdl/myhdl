@@ -15,7 +15,7 @@ from myhdl._block import _Block
 
 _version = myhdl.__version__.replace('.', '')
 # strip 'dev' for version
-_version = _version.replace('dev', '')
+_version = _version.replace('dev', '')[:-2]
 
 _simulators = {}
 
