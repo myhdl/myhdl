@@ -390,11 +390,7 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
 #             # Check if VHDL keyword or reused name
 #             _nameValid(s._name)
             if s._driven:
-                if s._read:
-                    if not isinstance(s, _TristateSignal):
-                        warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                                      category=ToVHDLWarning
-                                      )
+                if s._read and isinstance(s, _TristateSignal):
                     f.write("\n        %s: inout %s%s" % (portname, pt, r))
                 else:
                     f.write("\n        %s: out %s%s" % (portname, pt, r))
@@ -457,8 +453,14 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for s in siglist:
         if not s._used:
             continue
+
         if s._name in intf.argnames:
             continue
+
+        if s._name.startswith('-- OpenPort'):
+            # do not write a signal declaration
+            continue
+
         r = _getRangeString(s)
         p = _getTypeString(s)
         # Check if VHDL keyword or reused name
@@ -495,9 +497,6 @@ def _writeSigDecls(f, intf, siglist, memlist):
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
         elif s._read:
-            # the original exception
-            # raise ToVHDLError(_error.UndrivenSignal, s._name)
-            # changed to a warning and a continuous assignment to a wire
             if isinstance(s, Constant):
                 if isinstance(s._val, intbv):
                     if s._init:
@@ -507,6 +506,9 @@ def _writeSigDecls(f, intf, siglist, memlist):
                 else:
                     print("constant %s: %s%s := %s;" % (s._name, p, r, "'1'" if s._init else "'0'"), file=f)
             else:
+                # the original exception
+                # raise ToVHDLError(_error.UndrivenSignal, s._name)
+                # changed to a warning and a continuous assignment to a wire
                 warnings.warn("%s: %s" % (_error.UndrivenSignal, s._name),
                               category=ToVHDLWarning
                               )

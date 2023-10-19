@@ -460,3 +460,11 @@ def test_binOps2_convert():
     assert i_dut.analyze_convert() == 0
     # assert i_dut.verify_convert() == 0
     # assert i_dut.verify_simulator() == 0
+
+
+if __name__ == '__main__':
+    a = Signal(intbv(0)[3:])
+    z = Signal(intbv(0)[3:])
+
+    i_dut = binOpsCheck2(a, z)
+    i_dut.convert(hdl='Verilog')

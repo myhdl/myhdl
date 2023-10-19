@@ -288,11 +288,6 @@ def _writeModuleHeader(f, intf, doc):
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
-            if s._read:
-                if not isinstance(s, _TristateSignal):
-                    warnings.warn("%s: %s" % (_error.OutputPortRead, portname),
-                                  category=ToVerilogWarning
-                                  )
             if isinstance(s, _TristateSignal):
                 print("inout %s%s%s;" % (p, r, portname), file=f)
             else:
@@ -315,8 +310,14 @@ def _writeSigDecls(f, intf, siglist, memlist):
     for s in siglist:
         if not s._used:
             continue
+
         if s._name in intf.argnames:
             continue
+
+        if s._name.startswith('-- OpenPort'):
+            # do not write a signal declaration
+            continue
+
         r = _getRangeString(s)
         p = _getSignString(s)
         if s._driven:
@@ -400,14 +401,22 @@ def _writeSigDecls(f, intf, siglist, memlist):
                         'initial begin\n' + val_assignments + '\nend')
             print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
         else:
-            # can assume it is a localparam array
-            # build the initial values list
-            vals = []
-            w = m.mem[0]._nrbits
-            for s in m.mem:
-                vals.append('{}\'d{}'.format(w, _intRepr(s._init)))
-
-            print('localparam {} {} {} [0:{}-1] = {{{}}};'.format(p, r, m.name, m.depth, ', '.join(vals)), file=f)
+            # remember for SystemVerilog, later
+            # # can assume it is a localparam array
+            # # build the initial values list
+            # vals = []
+            # w = m.mem[0]._nrbits
+            # for s in m.mem:
+            #     vals.append('{}\'d{}'.format(w, _intRepr(s._init)))
+            #
+            # print('localparam {} {} {} [0:{}-1] = \'{{{}}};'.format(p, r, m.name, m.depth, ', '.join(vals)), file=f)
+            print('reg {}{} {} [0:{}-1];'.format(p, r, m.name, m.depth), file=f)
+            val_assignments = '\n'.join(
+                        ['    %s[%d] <= %s;' %
+                         (m.name, n, _intRepr(each._init))
+                         for n, each in enumerate(m.mem)])
+            initial_assignments = (
+                'initial begin\n' + val_assignments + '\nend')
 
         if initial_assignments is not None:
             print(initial_assignments, file=f)
@@ -1237,7 +1246,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             raise AssertionError("name ref: %s" % n)
         if addSignBit:
             self.write("$signed({1'b0, ")
-        self.write(s)
+
+        if s.startswith('--'):
+            self.write(s.replace('--', '//'))
+        else:
+            self.write(s)
         if addSignBit:
             self.write("})")
 
@@ -1488,6 +1501,12 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
+            # try intercepting '-- OpenPort' signals
+            if isinstance(node.value, ast.Name):
+                obj = self.tree.symdict[node.value.id]
+                if obj._name.startswith('-- OpenPort'):
+                    self.write('// ')
+
             self.write("assign ")
             self.visit(node.value)
         else:
