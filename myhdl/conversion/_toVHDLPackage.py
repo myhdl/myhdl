@@ -19,7 +19,7 @@
 
 import myhdl
 
-_version = myhdl.__version__.replace('.', '')
+_version = myhdl.__version__.replace('.', '')[:-2]
 _shortversion = _version.replace('dev', '')
 
 _package = """\
@@ -191,4 +191,4 @@ package body pck_myhdl_%(version)s is
 
 end pck_myhdl_%(version)s;
 
-""" % {'version' : _shortversion}
+""" % {'version': _shortversion}

@@ -49,7 +49,7 @@ traceSignals -- function that enables signal tracing in a VCD file
 toVerilog -- function that converts a design to Verilog
 
 """
-__version__ = "0.11.42"
+__version__ = "0.11.43"
 
 
 class StopSimulation(Exception):
@@ -139,7 +139,7 @@ class ToVHDLWarning(ConversionWarning):
 # def showwarning(message, category, filename, lineno, *args):
 #    print("** %s: %s" % (category.__name__, message), file=sys.stderr)
 
-#warnings.showwarning = showwarning
+# warnings.showwarning = showwarning
 
 
 from ._bin import bin
@@ -147,7 +147,7 @@ from ._concat import concat
 from ._intbv import intbv
 from ._modbv import modbv
 from ._join import join
-from ._Signal import posedge, negedge, Signal, SignalType
+from ._Signal import posedge, negedge, Signal, SignalType, Constant
 from ._ShadowSignal import ConcatSignal
 from ._ShadowSignal import TristateSignal
 from ._simulator import now
@@ -169,7 +169,6 @@ from .conversion import toVHDL
 
 from ._tristate import Tristate
 
-
 __all__ = ["bin",
            "concat",
            "intbv",
@@ -179,6 +178,7 @@ __all__ = ["bin",
            "negedge",
            "Signal",
            "SignalType",
+           "Constant",
            "ConcatSignal",
            "TristateSignal",
            "now",
