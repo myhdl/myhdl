@@ -89,3 +89,26 @@ if __name__ == '__main__':
         dfc3.convert(hdl='Verilog')
 
     convert()
+
+    @block
+    def dff(Clk, D, Q, Q_n):
+
+        @always_seq(Clk.posedge, reset=None)
+        def sdff():
+            Q.next = D
+            Q_n.next = not D
+
+        return instances()
+
+    @block
+    def wrapper_dff(Clk, D, Q):
+        return dff(Clk, D, Q, Q_n=OpenPort())
+
+    Clk = Signal(bool(0))
+    D = Signal(bool(0))
+    Q = Signal(bool(0))
+
+    dfc = wrapper_dff(Clk, D, Q)
+    dfc.convert(hdl='Verilog')
+    dfc.convert(hdl='VHDL')
+
