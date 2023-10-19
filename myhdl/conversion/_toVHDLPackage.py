@@ -19,8 +19,8 @@
 
 import myhdl
 
-_version = myhdl.__version__.replace('.', '')[:-2]
-_shortversion = _version.replace('dev', '')
+_version = myhdl.__version__.replace('.', '')
+_shortversion = _version.replace('dev', '')[:-2]
 
 _package = """\
 library ieee;
