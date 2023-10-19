@@ -401,14 +401,22 @@ def _writeSigDecls(f, intf, siglist, memlist):
                         'initial begin\n' + val_assignments + '\nend')
             print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
         else:
-            # can assume it is a localparam array
-            # build the initial values list
-            vals = []
-            w = m.mem[0]._nrbits
-            for s in m.mem:
-                vals.append('{}\'d{}'.format(w, _intRepr(s._init)))
-
-            print('localparam {} {} {} [0:{}-1] = \'{{{}}};'.format(p, r, m.name, m.depth, ', '.join(vals)), file=f)
+            # remember for SystemVerilog, later
+            # # can assume it is a localparam array
+            # # build the initial values list
+            # vals = []
+            # w = m.mem[0]._nrbits
+            # for s in m.mem:
+            #     vals.append('{}\'d{}'.format(w, _intRepr(s._init)))
+            #
+            # print('localparam {} {} {} [0:{}-1] = \'{{{}}};'.format(p, r, m.name, m.depth, ', '.join(vals)), file=f)
+            print('reg {}{} {} [0:{}-1];'.format(p, r, m.name, m.depth), file=f)
+            val_assignments = '\n'.join(
+                        ['    %s[%d] <= %s;' %
+                         (m.name, n, _intRepr(each._init))
+                         for n, each in enumerate(m.mem)])
+            initial_assignments = (
+                'initial begin\n' + val_assignments + '\nend')
 
         if initial_assignments is not None:
             print(initial_assignments, file=f)
