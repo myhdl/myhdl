@@ -21,7 +21,7 @@
 from types import FunctionType
 
 from myhdl import AlwaysCombError
-from myhdl._Signal import _Signal, _isListOfSigs
+from myhdl._Signal import _Signal, _isListOfSigs, Constant
 from myhdl._util import _isGenFunc
 from myhdl._instance import _getCallInfo
 from myhdl._always import _Always
@@ -62,9 +62,9 @@ class _AlwaysComb(_Always):
 
         for n in self.inputs:
             s = self.symdict[n]
-            if isinstance(s, _Signal):
+            if isinstance(s, _Signal) and not isinstance(s, Constant):
                 senslist.append(s)
-            elif _isListOfSigs(s):
+            elif _isListOfSigs(s) and not isinstance(s[0], Constant):
                 senslist.extend(s)
         self.senslist = tuple(senslist)
         if len(self.senslist) == 0:
@@ -79,4 +79,3 @@ class _AlwaysComb(_Always):
             func()
             yield senslist
 
-            

@@ -7,7 +7,7 @@ from myhdl import (block, Signal, intbv, always, toVHDL, toVerilog)
 
 from myhdl import __version__
 _version = __version__.replace('.', '')
-_shortversion = _version.replace('dev', '')
+_shortversion = _version.replace('dev', '')[:-2]
 
 
 @block

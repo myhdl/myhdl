@@ -45,7 +45,7 @@ from myhdl.conversion._misc import (_error, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
-from myhdl._Signal import _Signal
+from myhdl._Signal import _Signal, Constant
 from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 
 from myhdl._block import _Block
@@ -340,14 +340,20 @@ def _writeSigDecls(f, intf, siglist, memlist):
                     print("%s %s%s%s = %s;" %
                           (k, p, r, s._name, _intRepr(s._init)), file=f)
         elif s._read:
-            # the original exception
-            # raise ToVerilogError(_error.UndrivenSignal, s._name)
-            # changed to a warning and a continuous assignment to a wire
-            warnings.warn("%s: %s" % (_error.UndrivenSignal, s._name),
-                          category=ToVerilogWarning
-                          )
-            constwires.append(s)
-            print("wire %s%s;" % (r, s._name), file=f)
+            if isinstance(s, Constant):
+                c = int(s.val)
+                c_len = s._nrbits
+                c_str = "%s" % c
+                print("localparam %s%s = %s'd%s;" % (r, s._name, c_len, c_str), file=f)
+            else:
+                # the original exception
+                # raise ToVerilogError(_error.UndrivenSignal, s._name)
+                # changed to a warning and a continuous assignment to a wire
+                warnings.warn("%s: %s" % (_error.UndrivenSignal, s._name),
+                              category=ToVerilogWarning
+                              )
+                constwires.append(s)
+                print("wire %s%s;" % (r, s._name), file=f)
     # print(file=f)
     for m in memlist:
         if not m._used:
@@ -392,9 +398,16 @@ def _writeSigDecls(f, intf, siglist, memlist):
                          for n, each in enumerate(m.mem)])
                     initial_assignments = (
                         'initial begin\n' + val_assignments + '\nend')
+            print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth), file=f)
+        else:
+            # can assume it is a localparam array
+            # build the initial values list
+            vals = []
+            w = m.mem[0]._nrbits
+            for s in m.mem:
+                vals.append('{}\'d{}'.format(w, _intRepr(s._init)))
 
-        print("%s %s%s%s [0:%s-1];" % (k, p, r, m.name, m.depth),
-              file=f)
+            print('localparam {} {} {} [0:{}-1] = {{{}}};'.format(p, r, m.name, m.depth, ', '.join(vals)), file=f)
 
         if initial_assignments is not None:
             print(initial_assignments, file=f)
@@ -1100,11 +1113,11 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.write("default")
         else:
             raise AssertionError("Unknown name %s or pattern %s" % (node.name, node.pattern))
-    
+
     def visit_MatchOr(self, node):
         for i, pattern in enumerate(node.patterns):
             self.visit(pattern)
-            if not i == len(node.patterns)-1:
+            if not i == len(node.patterns) - 1:
                 self.write(" | ")
 
     def mapToCase(self, node, *args):
