@@ -408,7 +408,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
             for s in m.mem:
                 vals.append('{}\'d{}'.format(w, _intRepr(s._init)))
 
-            print('localparam {} {} {} [0:{}-1] = {{{}}};'.format(p, r, m.name, m.depth, ', '.join(vals)), file=f)
+            print('localparam {} {} {} [0:{}-1] = \'{{{}}};'.format(p, r, m.name, m.depth, ', '.join(vals)), file=f)
 
         if initial_assignments is not None:
             print(initial_assignments, file=f)
@@ -1494,9 +1494,10 @@ class _ConvertSimpleAlwaysCombVisitor(_ConvertVisitor):
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
             # try intercepting '-- OpenPort' signals
-            obj = self.tree.symdict[node.value.id]
-            if obj._name.startswith('-- OpenPort'):
-                self.write('// ')
+            if isinstance(node.value, ast.Name):
+                obj = self.tree.symdict[node.value.id]
+                if obj._name.startswith('-- OpenPort'):
+                    self.write('// ')
 
             self.write("assign ")
             self.visit(node.value)
