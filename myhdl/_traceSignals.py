@@ -111,7 +111,7 @@ class _TraceSignalsClass(object):
                 h = _getHierarchy(name, dut)
             else:
                 warnings.warn(
-                    "\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html", 
+                    "\n    traceSignals(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html",
                     category=DeprecationWarning,
                     stacklevel=2,
                     )
@@ -125,7 +125,7 @@ class _TraceSignalsClass(object):
             vcdpath = os.path.join(directory, filename + ".vcd")
 
             if path.exists(vcdpath):
-                if self.tracebackup :
+                if self.tracebackup:
                     backup = vcdpath[:-4] + '.' + str(path.getmtime(vcdpath)) + '.vcd'
                     shutil.copyfile(vcdpath, backup)
                 os.remove(vcdpath)
@@ -245,13 +245,15 @@ def _writeVcdSigs(f, hierarchy, tracelists):
                         siglist.append(s)
                     w = s._nrbits
                     # use real for enum strings
+                    # 03-02-2024-04-2014 jb
+                    # Impulse has a 'string'type (since 2014, see above
                     if w and not isinstance(sval, EnumItemType):
                         if w == 1:
                             print("$var reg 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
                         else:
                             print("$var reg %s %s %s(%i) $end" % (w, s._code, n, memindex), file=f)
                     else:
-                        print("$var real 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
+                        print("$var string 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
                     memindex += 1
                 print("$upscope $end", file=f)
     for i in range(curlevel):
