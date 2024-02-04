@@ -37,19 +37,18 @@ import warnings
 import myhdl
 from myhdl import *
 from myhdl import ToVerilogError, ToVerilogWarning
+from myhdl._block import _Block
+from myhdl._enum import EnumItemType
 from myhdl._extractHierarchy import (_HierExtr, _isMem, _getMemInfo,
                                      _UserVerilogCode, _userCodeMap)
-
+from myhdl._getHierarchy import _getHierarchy
 from myhdl._instance import _Instantiator
+from myhdl._Signal import _Signal, Constant
+from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
 from myhdl.conversion._misc import (_error, _kind, _context,
                                     _ConversionMixin, _Label, _genUniqueSuffix, _isConstant)
 from myhdl.conversion._analyze import (_analyzeSigs, _analyzeGens, _analyzeTopFunc,
                                        _Ram, _Rom)
-from myhdl._Signal import _Signal, Constant
-from myhdl._ShadowSignal import _TristateSignal, _TristateDriver
-
-from myhdl._block import _Block
-from myhdl._getHierarchy import _getHierarchy
 
 _converting = 0
 _profileFunc = None
@@ -501,20 +500,23 @@ def _intRepr(n, radix=''):
     # write size for large integers (beyond 32 bits signed)
     # with some safety margin
     # XXX signed indication 's' ???
-    p = abs(n)
-    size = ''
-    num = str(p).rstrip('L')
-    if radix == "hex" or p >= 2 ** 30:
-        radix = "'h"
-        num = hex(p)[2:].rstrip('L')
-    if p >= 2 ** 30:
-        size = int(math.ceil(math.log(p + 1, 2))) + 1  # sign bit!
-#            if not radix:
-#                radix = "'d"
-    r = "%s%s%s" % (size, radix, num)
-    if n < 0:  # add brackets and sign on negative numbers
-        r = "(-%s)" % r
-    return r
+    if isinstance(n, EnumItemType):
+        return n._toVerilog()
+    else:
+        p = abs(n)
+        size = ''
+        num = str(p).rstrip('L')
+        if radix == "hex" or p >= 2 ** 30:
+            radix = "'h"
+            num = hex(p)[2:].rstrip('L')
+        if p >= 2 ** 30:
+            size = int(math.ceil(math.log(p + 1, 2))) + 1  # sign bit!
+    #            if not radix:
+    #                radix = "'d"
+        r = "%s%s%s" % (size, radix, num)
+        if n < 0:  # add brackets and sign on negative numbers
+            r = "(-%s)" % r
+        return r
 
 
 def _convertGens(genlist, vfile):
