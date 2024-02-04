@@ -45,7 +45,10 @@ class _Hierarchy(object):
             tn = absnames[id(obj)]
             for sn, so in subs:
                 names[id(so)] = sn
-                absnames[id(so)] = "%s_%s" % (tn, sn)
+                if sn is not None:
+                    absnames[id(so)] = "%s_%s" % (tn, sn)
+                else:
+                    absnames[id(so)] = "%s" % (tn, )
         # print (names)
         # print(absnames)
 
