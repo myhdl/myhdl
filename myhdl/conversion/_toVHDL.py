@@ -224,7 +224,6 @@ class _ToVHDLConvertor(object):
                 raise ToVHDLError(_error.PortInList, portname)
             # add enum types to port-related set
             if isinstance(s._val, EnumItemType):
-                print('EnumItemType', s._val)
                 obj = s._val._type
                 if obj in _enumTypeSet:
                     _enumTypeSet.remove(obj)
@@ -552,8 +551,8 @@ def _writeSigDecls(f, intf, siglist, memlist):
                         (sig_vhdl_objs[0].size, str(m.mem[0]._init)))
             else:
                 if isinstance(m.mem[0]._init, EnumItemType):
-                    _val_str = ',\n    '.join(
-                    '{}'.format(m.mem[0]._init._toVHDL()))
+                    _val_str = ',\n    '.join(['{}'.format(each._init._toVHDL()) for
+                         each in m.mem])
                 else:
                     _val_str = ',\n    '.join(
                         ['%dX"%s"' % (obj.size, str(each._init)) for
