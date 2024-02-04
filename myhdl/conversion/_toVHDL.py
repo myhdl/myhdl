@@ -64,8 +64,9 @@ from myhdl.conversion._VHDLNameValidation import _nameValid, _usedNames
 
 from myhdl import bin as tobin
 
-_version = myhdl.__version__.replace('.', '')
-_shortversion = _version.replace('dev', '')[:-2]  # loose the subminor version number
+_shortversion, __, __ = myhdl.__version__.replace('dev', '').rpartition('.')  # loose the subminor version number
+_shortversion = _shortversion.replace('.', '')
+
 _converting = 0
 _profileFunc = None
 _enumPortTypeSet = set()
@@ -223,6 +224,7 @@ class _ToVHDLConvertor(object):
                 raise ToVHDLError(_error.PortInList, portname)
             # add enum types to port-related set
             if isinstance(s._val, EnumItemType):
+                print('EnumItemType', s._val)
                 obj = s._val._type
                 if obj in _enumTypeSet:
                     _enumTypeSet.remove(obj)
