@@ -104,8 +104,9 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
             if not s._nrbits:
                 raise ConversionError(_error.UndefinedBitWidth, s._name)
             # slice signals
-            for sl in s._slicesigs:
-                sl._setName(hdl)
+            if s._slicesigs:
+                for sl in s._slicesigs:
+                    sl._setName(hdl)
             siglist.append(s)
         # list of signals
         for n, m in memdict.items():

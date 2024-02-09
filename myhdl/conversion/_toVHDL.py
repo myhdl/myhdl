@@ -380,8 +380,9 @@ def _writeModuleHeader(f, intf, needPck, lib, arch, useClauses, doc, stdLogicPor
                 s._name = portname + "_num"
                 convertPort = True
                 # override the names given by _analyze.py
-                for sl in s._slicesigs:
-                    sl._setName('VHDL')
+                if s._slicesigs:
+                    for sl in s._slicesigs:
+                        sl._setName('VHDL')
             else:
                 s._name = portname
             r = _getRangeString(s)
