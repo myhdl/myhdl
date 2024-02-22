@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false # So that one fail doesn't stop remaining tests
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10", "pypy-3.9", "3.11"]
+        python-version: ["3.8", "3.9",  "pypy-3.9", "3.10", "pypy-3.10","3.11", "3.12"]
         target: [core, iverilog, ghdl]
     runs-on: ubuntu-latest
     needs: [run_lint, build_ghdl_linux, build_iverilog_linux]
@@ -85,7 +85,7 @@ jobs:
     strategy:
       fail-fast: false # So that one fail doesn't stop remaining tests
       matrix:
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         #target: [core, iverilog, ghdl]
         target: [core, ghdl]
     runs-on: windows-latest
