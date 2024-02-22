@@ -291,7 +291,6 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         # don't visit decorator lists - they can support more than other calls
         # put official docstrings aside for separate processing
         node.doc = None
-        print('visit_FunctionDef:', ast.dump(node))
         if node.body and isinstance(node.body[0], ast.Expr) and \
             isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str):
             node.doc = node.body[0].value.value

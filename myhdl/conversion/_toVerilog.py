@@ -858,7 +858,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         elif f is ord:
             opening, closing = '', ''
-            node.args[0].s = str(ord(node.args[0].s))
+            node.args[0].value = str(ord(node.args[0].value))
         elif f is int:
             opening, closing = '', ''
             # convert number argument to integer
