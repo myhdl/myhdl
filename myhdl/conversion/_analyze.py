@@ -31,7 +31,6 @@ import builtins
 from itertools import chain
 
 import myhdl
-import myhdl
 from myhdl import *
 from myhdl import ConversionError
 from myhdl._always_comb import _AlwaysComb
@@ -268,12 +267,8 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Call(self, node):
         # ast.Call signature changed in python 3.5
         # http://greentreesnakes.readthedocs.org/en/latest/nodes.html#Call
-        if sys.version_info >= (3, 5):
-            starargs = any(isinstance(arg, ast.Starred) for arg in node.args)
-            kwargs = any(kw.arg is None for kw in node.keywords)
-        else:
-            starargs = node.starargs is not None
-            kwargs = node.kwargs is not None
+        starargs = any(isinstance(arg, ast.Starred) for arg in node.args)
+        kwargs = any(kw.arg is None for kw in node.keywords)
 
         if starargs:
             self.raiseError(node, _error.NotSupported, "extra positional arguments")
@@ -296,9 +291,10 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         # don't visit decorator lists - they can support more than other calls
         # put official docstrings aside for separate processing
         node.doc = None
+        print('visit_FunctionDef:', ast.dump(node))
         if node.body and isinstance(node.body[0], ast.Expr) and \
-                isinstance(node.body[0].value, ast.Str):
-            node.doc = node.body[0].value.s
+            isinstance(node.body[0].value, ast.Constant) and isinstance(node.body[0].value.value, str):
+            node.doc = node.body[0].value.value
             node.body = node.body[1:]
         self.visitList(node.body)
 
@@ -594,7 +590,11 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 # #             node.obj = _EdgeDetector()
         elif f is ord:
             node.obj = int(-1)
-            if not (isinstance(node.args[0], ast.Str) and (len(node.args[0].s) == 1)):
+            if isinstance(node.args[0], ast.Constant) and \
+               isinstance(node.args[0].value, str) and \
+               (len(node.args[0].value) == 1):
+                pass
+            else:
                 self.raiseError(node, _error.NotSupported,
                                 "ord: expect string argument with length 1")
         elif f is delay:
@@ -682,41 +682,20 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                     elif v == 1:
                         node.edge = sig.posedge
 
-    if sys.version_info >= (3, 9, 0):
-
-        def visit_Constant(self, node):
-            node.obj = None  # safeguarding?
-            # ToDo check for tuples?
-            if isinstance(node.value, int):
-                # Num
-                if node.value in (0, 1):
-                    node.obj = bool(node.value)
-                else:
-                    node.obj = node.value
-            elif node.value in (True, False, None):
-                # NameConstant
-                node.obj = node.value
-            elif isinstance(node.value, str):
-                # Str
-                node.obj = node.value
-
-    else:
-
-        def visit_Num(self, node):
-            n = node.n
-            # assign to value attribute for backwards compatibility
-            node.value = n
-            if n in (0, 1):
-                node.obj = bool(n)
-            elif isinstance(n, int):
-                node.obj = n
+    def visit_Constant(self, node):
+        node.obj = None  # safeguarding?
+        # ToDo check for tuples?
+        if isinstance(node.value, int):
+            # Num
+            if node.value in (0, 1):
+                node.obj = bool(node.value)
             else:
-                node.obj = None
-
-        def visit_Str(self, node):
-            node.obj = node.s
-
-        def visit_NameConstant(self, node):
+                node.obj = node.value
+        elif node.value in (True, False, None):
+            # NameConstant
+            node.obj = node.value
+        elif isinstance(node.value, str):
+            # Str
             node.obj = node.value
 
     def visit_Continue(self, node):
@@ -918,12 +897,12 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
 
         for n in node.args:
             if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Mod) and \
-               isinstance(n.left, ast.Str):
+               isinstance(n.left, ast.Constant) and isinstance(n.left.value, str):
                 if isinstance(n.right, ast.Tuple):
                     a.extend(n.right.elts)
                 else:
                     a.append(n.right)
-                s = n.left.s
+                s = n.left.value
                 while s:
                     if not s:
                         break
@@ -950,8 +929,8 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                         s = s[m.end():]
                         continue
                     self.raiseError(node, _error.UnsupportedFormatString, "%s" % s)
-            elif isinstance(n, ast.Str):
-                f.append(n.s)
+            elif isinstance(n, ast.Constant) and isinstance(n.value, str):
+                f.append(n.value)
             else:
                 f.append(defaultConvSpec)
                 a.append(n)

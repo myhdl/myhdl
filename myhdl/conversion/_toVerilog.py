@@ -862,12 +862,8 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f is int:
             opening, closing = '', ''
             # convert number argument to integer
-            if sys.version_info >= (3, 8, 0):
-                if isinstance(node.args[0], ast.Constant):
-                    node.args[0].n = int(node.args[0].n)
-            else:
-                if isinstance(node.args[0], ast.Num):
-                    node.args[0].n = int(node.args[0].n)
+            if isinstance(node.args[0], ast.Constant):
+                node.args[0].value = int(node.args[0].value)
         elif f in (intbv, modbv):
             self.visit(node.args[0])
             return
@@ -919,40 +915,21 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.write(")")
         self.context = None
 
-    if sys.version_info >= (3, 9, 0):
-
-        def visit_Constant(self, node):
-            if node.value is None:
-                # NameConstant
-                self.write(nameconstant_map[node.obj])
-            elif isinstance(node.value, bool):
-                self.write(nameconstant_map[node.obj])
-            elif isinstance(node.value, int):
-                # Num
-                if self.context == _context.PRINT:
-                    self.write('"%s"' % node.value)
-                else:
-                    self.write(self.IntRepr(node.value))
-            elif isinstance(node.value, str):
-                # Str
-                s = node.value
-                if self.context == _context.PRINT:
-                    self.write('"%s"' % s)
-                elif len(s) == s.count('0') + s.count('1'):
-                    self.write("%s'b%s" % (len(s), s))
-                else:
-                    self.write(s)
-
-    else:
-
-        def visit_Num(self, node):
+    def visit_Constant(self, node):
+        if node.value is None:
+            # NameConstant
+            self.write(nameconstant_map[node.obj])
+        elif isinstance(node.value, bool):
+            self.write(nameconstant_map[node.obj])
+        elif isinstance(node.value, int):
+            # Num
             if self.context == _context.PRINT:
-                self.write('"%s"' % node.n)
+                self.write('"%s"' % node.value)
             else:
-                self.write(self.IntRepr(node.n))
-
-        def visit_Str(self, node):
-            s = node.s
+                self.write(self.IntRepr(node.value))
+        elif isinstance(node.value, str):
+            # Str
+            s = node.value
             if self.context == _context.PRINT:
                 self.write('"%s"' % s)
             elif len(s) == s.count('0') + s.count('1'):
@@ -960,26 +937,19 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             else:
                 self.write(s)
 
-        def visit_NameConstant(self, node):
-            self.write(nameconstant_map[node.obj])
-
     def visit_Continue(self, node):
         self.write("disable %s;" % self.labelStack[-1])
 
     def visit_Expr(self, node):
         expr = node.value
         # docstrings on unofficial places
-        if isinstance(expr, ast.Str):
-            doc = _makeDoc(expr.s, self.ind)
+        if isinstance(expr, ast.Constant) and isinstance(expr.value, str):
+            doc = _makeDoc(expr.value, self.ind)
             self.write(doc)
             return
         # skip extra semicolons
-        if sys.version_info >= (3, 8, 0):
-            if isinstance(expr, ast.Constant):
-                return
-        else:
-            if isinstance(expr, ast.Num):
-                return
+        if isinstance(expr, ast.Constant):
+            return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
@@ -1708,12 +1678,8 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         node.signed = node.operand.signed
         if isinstance(node.op, ast.USub):
             node.obj = int(-1)
-            if sys.version_info >= (3, 8, 0):
-                if isinstance(node.operand, ast.Constant):
-                    node.signed = True
-            else:
-                if isinstance(node.operand, ast.Num):
-                    node.signed = True
+            if isinstance(node.operand, ast.Constant):
+                node.signed = True
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1753,21 +1719,8 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         self.generic_visit(node)
 
-    if sys.version_info >= (3, 9, 0):
-
-        def visit_Constant(self, node):
-            node.signed = False
-
-    else:
-
-        def visit_Num(self, node):
-            node.signed = False
-
-        def visit_Str(self, node):
-            node.signed = False
-
-        def visit_NameConstant(self, node):
-            node.signed = False
+    def visit_Constant(self, node):
+        node.signed = False
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Store):
