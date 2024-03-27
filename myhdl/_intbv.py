@@ -109,6 +109,12 @@ class intbv(object):
             raise TypeError("Cannot iterate over unsized intbv")
         return iter([self[i] for i in range(self._nrbits - 1, -1, -1)])
 
+    # reversed method
+    def __reversed__(self):
+        if not self._nrbits:
+           raise TypeError("Cannot reverse unsized intbv")
+        return iter([self[i] for i in range(self._nrbits)])
+
     # logical testing
     def __bool__(self):
         return bool(self._val)
