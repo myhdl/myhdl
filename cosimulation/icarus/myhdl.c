@@ -201,7 +201,9 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data) {
 		strcat(buf, " ");
 		sprintf(s, "%d ", vpi_get(vpiSize, net_handle));
 		strcat(buf, s);
-		changeFlag[i] = 0;
+        // initialize this to one such that Verilog signals that never
+        // change at least update the connected MyHDL Signal once
+		changeFlag[i] = 1;
 		id = malloc(sizeof(int));
 		*id = i;
 		cb_data_s.user_data = (PLI_BYTE8 *) id;
