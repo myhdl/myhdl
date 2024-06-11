@@ -41,6 +41,22 @@ def ForLoopError2(a, out):
 
 
 @block
+def ForLoopError3(a, out):
+
+    @instance
+    def logic():
+        while 1:
+            yield a
+            var = 0
+            for i in range(1, 4, -1):
+                if a[i] == 1:
+                    var += 1
+            out.next = var
+
+    return logic
+
+
+@block
 def ForLoop1(a, out):
 
     @instance
@@ -380,6 +396,15 @@ def testForLoopError1():
 def testForLoopError2():
     try:
         analyze(LoopBench(ForLoopError2))
+    except ConversionError as e:
+        assert e.kind == _error.Requirement
+    else:
+        assert False
+
+
+def testForLoopError3():
+    try:
+        analyze(LoopBench(ForLoopError3))
     except ConversionError as e:
         assert e.kind == _error.Requirement
     else:
