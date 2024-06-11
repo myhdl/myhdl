@@ -359,13 +359,19 @@ def _writeSigDecls(f, intf, siglist, memlist):
         if not m._used:
             continue
         # infer attributes for the case of named signals in a list
-        for i, s in enumerate(m.mem):
+        for s in m.mem:
             if not m._driven and s._driven:
                 m._driven = s._driven
+                # once suffices
+                break
             if not m._read and s._read:
                 m._read = s._read
+                # once suffices
+                break
+
         if not m._driven and not m._read:
             continue
+
         r = _getRangeString(m.elObj)
         p = _getSignString(m.elObj)
         k = 'wire'
@@ -375,21 +381,23 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
             if toVerilog.initial_values and not k == 'wire':
                 if all([each._init == m.mem[0]._init for each in m.mem]):
-
-                    initialize_block_name = ('INITIALIZE_' + m.name).upper()
-                    _initial_assignments = (
-                        '''
-                        initial begin: %s
-                            integer i;
-                            for(i=0; i<%d; i=i+1) begin
-                                %s[i] = %s;
+                    if toVerilog.initial_values == 'skip_zero_mem_init':
+                        pass
+                    else:
+                        initialize_block_name = ('INITIALIZE_' + m.name).upper()
+                        _initial_assignments = (
+                            '''
+                            initial begin: %s
+                                integer i;
+                                for(i=0; i<%d; i=i+1) begin
+                                    %s[i] = %s;
+                                end
                             end
-                        end
-                        ''' % (initialize_block_name, len(m.mem), m.name,
-                               _intRepr(m.mem[0]._init)))
+                            ''' % (initialize_block_name, len(m.mem), m.name,
+                                   _intRepr(m.mem[0]._init)))
 
-                    initial_assignments = (
-                        textwrap.dedent(_initial_assignments))
+                        initial_assignments = (
+                            textwrap.dedent(_initial_assignments))
 
                 else:
                     val_assignments = '\n'.join(

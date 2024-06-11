@@ -115,7 +115,8 @@ class _VerificationClass(object):
             name = func.func.__name__
         else:
             warnings.warn(
-                "\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html",
+                "\n    analyze()/verify(): Deprecated usage: See http://dev.myhdl.org/meps/mep-114.html"
+                f"\n Found hdl = {hdl} - func is: {func}",
                 stacklevel=2,
                 category=DeprecationWarning,
             )

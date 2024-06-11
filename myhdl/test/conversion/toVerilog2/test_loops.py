@@ -2,12 +2,13 @@ import os
 path = os.path
 from random import randrange
 
-from myhdl import (Signal, intbv, delay, instance)
+from myhdl import (block, Signal, intbv, delay, instance)
 from myhdl.conversion import analyze
 from myhdl import ConversionError
 from myhdl.conversion._misc import _error
 
 
+@block
 def ForLoopError1(a, out):
 
     @instance
@@ -23,6 +24,7 @@ def ForLoopError1(a, out):
     return logic
 
 
+@block
 def LoopBench(LoopTest):
 
     a = Signal(intbv(-1)[16:])
@@ -43,7 +45,7 @@ def LoopBench(LoopTest):
 
 def testForLoopError1():
     try:
-        analyze(LoopBench, ForLoopError1)
+        analyze(LoopBench(ForLoopError1))
     except ConversionError as e:
         assert e.kind == _error.Requirement
     else:
