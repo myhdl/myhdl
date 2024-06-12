@@ -562,3 +562,18 @@ class TestIntbvCopy:
                 assert n.min == m.min
                 assert n.max == m.max
                 assert len(n) == len(m)
+
+
+class TestIntbvIter:
+
+    def testIter(self):
+
+        n = intbv('01010001')
+        values_iter = []
+        values_rev = []
+        for bit in n:
+            values_iter.append(bit)
+        for bit in reversed(n):
+            values_rev.append(bit)
+        assert values_iter == values_rev[::-1]
+
