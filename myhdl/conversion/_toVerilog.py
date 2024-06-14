@@ -381,7 +381,7 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
             if toVerilog.initial_values and not k == 'wire':
                 if all([each._init == m.mem[0]._init for each in m.mem]):
-                    if toVerilog.initial_values == 'skip_zero_mem_init' and _intRepr(m.mem[0]._init) == 0:
+                    if toVerilog.initial_values == 'skip_zero_mem_init' and int(m.mem[0]._init) == 0:
                         pass
                     else:
                         initialize_block_name = ('INITIALIZE_' + m.name).upper()
