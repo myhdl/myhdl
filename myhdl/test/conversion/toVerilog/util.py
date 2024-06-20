@@ -5,6 +5,10 @@ from glob import glob
 from myhdl import Cosimulation
 
 
+_this = path.dirname(path.abspath(__file__))
+_cosim = path.normpath(f"{_this}/../../../../cosimulation")
+
+
 # Icarus
 def setupCosimulationIcarus(**kwargs):
     name = kwargs['name']
@@ -18,7 +22,7 @@ def setupCosimulationIcarus(**kwargs):
     if 1 == len(vpifiles):
         vpifile = vpifiles[0]
     elif sys.platform != "win32":
-        vpifile = "../../../../cosimulation/icarus/myhdl.vpi"
+        vpifile = f"{_cosim}/icarus/myhdl.vpi"
     simulate_cmd = ['vvp', '-m', vpifile, objfile]
     return Cosimulation(simulate_cmd, **kwargs)
 
@@ -26,7 +30,7 @@ def setupCosimulationIcarus(**kwargs):
 # cver
 def setupCosimulationCver(**kwargs):
     name = kwargs['name']
-    cmd = "cver -q +loadvpi=../../../../cosimulation/cver/myhdl_vpi:vpi_compat_bootstrap " + \
+    cmd = f"cver -q +loadvpi={_cosim}/cver/myhdl_vpi:vpi_compat_bootstrap " + \
           "%s.v tb_%s.v " % (name, name)
     return Cosimulation(cmd, **kwargs)
 
