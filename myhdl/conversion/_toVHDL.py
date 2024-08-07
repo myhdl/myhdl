@@ -475,25 +475,21 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
             sig_vhdl_obj = inferVhdlObj(s)
 
-            if not toVHDL.initial_values:
-                val_str = ""
-            else:
-
-                if isinstance(sig_vhdl_obj, vhd_std_logic):
+            val_str = ''
+            if toVHDL.initial_values:
+                if isinstance(s, _TristateSignal):
+                    # a TriState signal has no initial value
+                    # one might argue that 'Z' could be appropriate?
+                    pass
+                elif isinstance(sig_vhdl_obj, vhd_std_logic):
                     # Single bit
                     val_str = " := '%s'" % int(s._init)
                 elif isinstance(sig_vhdl_obj, vhd_int):
                     val_str = " := %s" % s._init
                 elif isinstance(sig_vhdl_obj, (vhd_signed, vhd_unsigned)):
-                    val_str = ' := %dX"%s"' % (
-                        sig_vhdl_obj.size, str(s._init))
-
+                    val_str = ' := %dX"%s"' % (sig_vhdl_obj.size, str(s._init))
                 elif isinstance(sig_vhdl_obj, vhd_enum):
-                    val_str = ' := %s' % (s._init,)
-
-                else:
-                    # default to no initial value
-                    val_str = ''
+                    val_str = ' := %s' % s._init
 
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
