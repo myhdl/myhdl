@@ -781,7 +781,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             size = int(math.ceil(math.log(n + 1, 2))) + 1  # sign bit!
             self.write("%s'sd" % size)
 
-    def writeDeclaration(self, obj, name, kind="", dir="", endchar=";", constr=True):
+    def writeDeclaration(self, obj, name, kind="", dir="", endchar=";", constr=True, init_values=False):
         if isinstance(obj, EnumItemType):
             tipe = obj._type._name
         elif isinstance(obj, _Ram):
@@ -795,11 +795,25 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 tipe = obj._val._type._name
             else:
                 tipe = vhd.toStr(constr)
+        val_str = ""
+        if init_values :
+            if toVHDL.initial_values :
+                s = obj
+                vhdl_obj = inferVhdlObj(s)
+                if isinstance(vhdl_obj, vhd_std_logic):
+                    # Single bit
+                    val_str = " := '%s'" % int(s)
+                elif isinstance(vhdl_obj, vhd_int):
+                    val_str = " := %s" % s
+                elif isinstance(vhdl_obj, (vhd_signed, vhd_unsigned)):
+                    val_str = ' := %dX"%s"' % (vhdl_obj.size, str(s))
+                elif isinstance(vhdl_obj, vhd_enum):
+                    val_str = ' := %s' % (s._init, s)
         if kind:
             kind += " "
         if dir:
             dir += " "
-        self.write("%s%s: %s%s%s" % (kind, name, dir, tipe, endchar))
+        self.write("%s%s: %s%s%s%s" % (kind, name, dir, tipe, val_str, endchar))
 
     def writeDeclarations(self):
         if self.tree.hasPrint:
@@ -809,7 +823,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(obj, _loopInt):
                 continue  # hack for loop vars
             self.writeline()
-            self.writeDeclaration(obj, name, kind="variable")
+            self.writeDeclaration(obj, name, kind="variable", init_values=True)
 
     def indent(self):
         self.ind += ' ' * 4
