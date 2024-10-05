@@ -475,25 +475,21 @@ def _writeSigDecls(f, intf, siglist, memlist):
 
             sig_vhdl_obj = inferVhdlObj(s)
 
-            if not toVHDL.initial_values:
-                val_str = ""
-            else:
-
-                if isinstance(sig_vhdl_obj, vhd_std_logic):
+            val_str = ''
+            if toVHDL.initial_values:
+                if isinstance(s, _TristateSignal):
+                    # a TriState signal has no initial value
+                    # one might argue that 'Z' could be appropriate?
+                    pass
+                elif isinstance(sig_vhdl_obj, vhd_std_logic):
                     # Single bit
                     val_str = " := '%s'" % int(s._init)
                 elif isinstance(sig_vhdl_obj, vhd_int):
                     val_str = " := %s" % s._init
                 elif isinstance(sig_vhdl_obj, (vhd_signed, vhd_unsigned)):
-                    val_str = ' := %dX"%s"' % (
-                        sig_vhdl_obj.size, str(s._init))
-
+                    val_str = ' := %dX"%s"' % (sig_vhdl_obj.size, str(s._init))
                 elif isinstance(sig_vhdl_obj, vhd_enum):
-                    val_str = ' := %s' % (s._init,)
-
-                else:
-                    # default to no initial value
-                    val_str = ''
+                    val_str = ' := %s' % s._init
 
             print("signal %s: %s%s%s;" % (s._name, p, r, val_str), file=f)
 
@@ -937,64 +933,35 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         # in python3 a negative Num is represented as an USub of a positive Num
         # Fix: restore python2 behavior by a shortcut: invert value of Constant, inherit
         # vhdl type from UnaryOp node, and visit the modified operand
-        if sys.version_info >= (3, 8, 0):
-            if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Constant):
-                node.operand.n = -node.operand.n
-                node.operand.vhd = node.vhd
-                self.visit(node.operand)
-                return
+        if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Constant) and isinstance(node.operand.value, int):
+            # assume number
+            node.operand.value = -node.operand.value
+            node.operand.vhd = node.vhd
+            self.visit(node.operand)
+            return
 
-            pre, suf = self.inferCast(node.vhd, node.vhdOri)
-            if isinstance(node.op, ast.UAdd):
-                op = ""
-            else:
-                op = opmap[type(node.op)]
-
-            if isinstance(node.operand, ast.Constant):
-                self.write("(")
-                self.write(op)
-                self.write("(")
-                self.write(pre)
-                self.visit(node.operand)
-                self.write(suf)
-                self.write(")")
-                self.write(")")
-            else:
-                self.write(pre)
-                self.write("(")
-                self.write(op)
-                self.visit(node.operand)
-                self.write(")")
-                self.write(suf)
+        pre, suf = self.inferCast(node.vhd, node.vhdOri)
+        if isinstance(node.op, ast.UAdd):
+            op = ""
         else:
-            if isinstance(node.op, ast.USub) and isinstance(node.operand, ast.Num):
-                node.operand.n = -node.operand.n
-                node.operand.vhd = node.vhd
-                self.visit(node.operand)
-                return
+            op = opmap[type(node.op)]
 
-            pre, suf = self.inferCast(node.vhd, node.vhdOri)
-            if isinstance(node.op, ast.UAdd):
-                op = ""
-            else:
-                op = opmap[type(node.op)]
-
-            if isinstance(node.operand, ast.Num):
-                self.write("(")
-                self.write(op)
-                self.write("(")
-                self.write(pre)
-                self.visit(node.operand)
-                self.write(suf)
-                self.write(")")
-                self.write(")")
-            else:
-                self.write(pre)
-                self.write("(")
-                self.write(op)
-                self.visit(node.operand)
-                self.write(")")
-                self.write(suf)
+        if isinstance(node.operand, ast.Constant):
+            self.write("(")
+            self.write(op)
+            self.write("(")
+            self.write(pre)
+            self.visit(node.operand)
+            self.write(suf)
+            self.write(")")
+            self.write(")")
+        else:
+            self.write(pre)
+            self.write("(")
+            self.write(op)
+            self.visit(node.operand)
+            self.write(")")
+            self.write(suf)
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Store):
@@ -1185,20 +1152,16 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             return
         elif f is ord:
             opening, closing = '', ''
-            v = ord(node.args[0].s)
-            node.args[0].s = v
+            v = ord(node.args[0].value)
+            node.args[0].value = v
             self.write(v)
             return
         elif f is int:
             opening, closing = '', ''
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
             # convert number argument to integer
-            if sys.version_info >= (3, 8, 0):
-                if isinstance(node.args[0], ast.Constant):
-                    node.args[0].n = int(node.args[0].n)
-            else:
-                if isinstance(node.args[0], ast.Num):
-                    node.args[0].n = int(node.args[0].n)
+            if isinstance(node.args[0], ast.Constant):
+                node.args[0].n = int(node.args[0].value)
         elif inspect.isclass(f) and issubclass(f, intbv):
             pre, post = "", ""
             arg = node.args[0]
@@ -1277,53 +1240,18 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(right)
         self.write(suf)
 
-    if sys.version_info >= (3, 9, 0):
-
-        def visit_Constant(self, node):
-            if node.value is None:
-                # NameConstant
-                node.id = str(node.value)
-                self.getName(node)
-            elif isinstance(node.value, bool):
-                # NameConstant
-                node.id = str(node.value)
-                self.getName(node)
-            elif isinstance(node.value, int):
-                # Num
-                n = node.value
-                if isinstance(node.vhd, vhd_std_logic):
-                    self.write("'%s'" % n)
-                elif isinstance(node.vhd, vhd_boolean):
-                    self.write("%s" % bool(n))
-                # elif isinstance(node.vhd, (vhd_unsigned, vhd_signed)):
-                #    self.write('"%s"' % tobin(n, node.vhd.size))
-                elif isinstance(node.vhd, vhd_unsigned):
-                    if abs(n) < 2 ** 31:
-                        self.write("to_unsigned(%s, %s)" % (n, node.vhd.size))
-                    else:
-                        self.write('unsigned\'("%s")' % tobin(n, node.vhd.size))
-                elif isinstance(node.vhd, vhd_signed):
-                    if abs(n) < 2 ** 31:
-                        self.write("to_signed(%s, %s)" % (n, node.vhd.size))
-                    else:
-                        self.write('signed\'("%s")' % tobin(n, node.vhd.size))
-                else:
-                    if n < 0:
-                        self.write("(")
-                    self.write(n)
-                    if n < 0:
-                        self.write(")")
-            elif isinstance(node.value, str):
-                # Str
-                typemark = 'string'
-                if isinstance(node.vhd, vhd_unsigned):
-                    typemark = 'unsigned'
-                self.write("%s'(\"%s\")" % (typemark, node.value))
-
-    else:
-
-        def visit_Num(self, node):
-            n = node.n
+    def visit_Constant(self, node):
+        if node.value is None:
+            # NameConstant
+            node.id = str(node.value)
+            self.getName(node)
+        elif isinstance(node.value, bool):
+            # NameConstant
+            node.id = str(node.value)
+            self.getName(node)
+        elif isinstance(node.value, int):
+            # Num
+            n = node.value
             if isinstance(node.vhd, vhd_std_logic):
                 self.write("'%s'" % n)
             elif isinstance(node.vhd, vhd_boolean):
@@ -1346,16 +1274,12 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.write(n)
                 if n < 0:
                     self.write(")")
-
-        def visit_Str(self, node):
+        elif isinstance(node.value, str):
+            # Str
             typemark = 'string'
             if isinstance(node.vhd, vhd_unsigned):
                 typemark = 'unsigned'
-            self.write("%s'(\"%s\")" % (typemark, node.s))
-
-        def visit_NameConstant(self, node):
-            node.id = str(node.value)
-            self.getName(node)
+            self.write("%s'(\"%s\")" % (typemark, node.value))
 
     def visit_Continue(self, node, *args):
         self.write("next;")
@@ -1363,17 +1287,13 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
     def visit_Expr(self, node):
         expr = node.value
         # docstrings on unofficial places
-        if isinstance(expr, ast.Str):
-            doc = _makeDoc(expr.s, self.ind)
+        if isinstance(expr, ast.Constant) and isinstance(expr.value, str):
+            doc = _makeDoc(expr.value, self.ind)
             self.write(doc)
             return
         # skip extra semicolons
-        if sys.version_info >= (3, 8, 0):
-            if isinstance(expr, ast.Constant):
-                return
-        else:
-            if isinstance(expr, ast.Num):
-                return
+        if isinstance(expr, ast.Constant):
+            return
         self.visit(expr)
         # ugly hack to detect an orphan "task" call
         if isinstance(expr, ast.Call) and hasattr(expr, 'tree'):
@@ -2419,7 +2339,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
         if f is concat:
             s = 0
             for a in node.args:
-                if isinstance(a, ast.Str):
+                if isinstance(a, ast.Constant) and isinstance(a.value, str):
                     a.vhd = vhd_unsigned(a.vhd.size)
                 elif isinstance(a.vhd, vhd_signed):
                     a.vhd = vhd_unsigned(a.vhd.size)
@@ -2458,42 +2378,23 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             right.vhd = vhd_signed(right.vhd.size + 1)
         node.vhdOri = copy(node.vhd)
 
-    if sys.version_info >= (3, 9, 0):
-
-        def visit_Constant(self, node):
-            if node.value is None:
-                # NameConstant
-                node.vhd = inferVhdlObj(node.value)
-            elif isinstance(node.value, bool):
-                # NameConstant
-                node.vhd = inferVhdlObj(node.value)
-            elif isinstance(node.value, int):
-                # Num
-                if node.value < 0:
-                    node.vhd = vhd_int()
-                else:
-                    node.vhd = vhd_nat()
-            elif isinstance(node.value, str):
-                # Str
-                node.vhd = vhd_string()
-            node.vhdOri = copy(node.vhd)
-
-    else:
-
-        def visit_Str(self, node):
-            node.vhd = vhd_string()
-            node.vhdOri = copy(node.vhd)
-
-        def visit_Num(self, node):
-            if node.n < 0:
+    def visit_Constant(self, node):
+        if node.value is None:
+            # NameConstant
+            node.vhd = inferVhdlObj(node.value)
+        elif isinstance(node.value, bool):
+            # NameConstant
+            node.vhd = inferVhdlObj(node.value)
+        elif isinstance(node.value, int):
+            # Num
+            if node.value < 0:
                 node.vhd = vhd_int()
             else:
                 node.vhd = vhd_nat()
-            node.vhdOri = copy(node.vhd)
-
-        def visit_NameConstant(self, node):
-            node.vhd = inferVhdlObj(node.value)
-            node.vhdOri = copy(node.vhd)
+        elif isinstance(node.value, str):
+            # Str
+            node.vhd = vhd_string()
+        node.vhdOri = copy(node.vhd)
 
     def visit_For(self, node):
         var = node.target.id
@@ -2513,7 +2414,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             self.inferShiftType(node)
         elif isinstance(node.op, (ast.BitAnd, ast.BitOr, ast.BitXor)):
             self.inferBitOpType(node)
-        elif isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Str):  # format string
+        elif isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Constant) and isinstance(node.left.value, str):  # format string
             pass
         else:
             self.inferBinOpType(node)
