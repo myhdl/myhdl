@@ -17,39 +17,44 @@
 #  License along with this library; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-""" myhdl package initialization.
+"""
+    myhdl package initialization.
 
-This module provides the following myhdl objects:
-Simulation -- simulation class
-StopSimulation -- exception that stops a simulation
-now -- function that returns the current time
-Signal -- factory function to model hardware signals
-SignalType -- Signal base class
-ConcatSignal --  factory function that models a concatenation shadow signal
-TristateSignal -- factory function that models a tristate shadow signal
-delay -- callable to model delay in a yield statement
-posedge -- callable to model a rising edge on a signal in a yield statement
-negedge -- callable to model a falling edge on a signal in a yield statement
-join -- callable to join clauses in a yield statement
-intbv -- mutable integer class with bit vector facilities
-modbv -- modular bit vector class
-downrange -- function that returns a downward range
-bin -- returns a binary string representation.
-       The optional width specifies the desired string
-       width: padding of the sign-bit is used.
-concat -- function to concat ints, bitstrings, bools, intbvs, Signals
-       -- returns an intbv
-instances -- function that returns all instances defined in a function
-always --
-always_comb -- decorator that returns an input-sensitive generator
-always_seq --
-ResetSignal --
-enum -- function that returns an enumeration type
-traceSignals -- function that enables signal tracing in a VCD file
-toVerilog -- function that converts a design to Verilog
+    This module provides the following myhdl objects:
+    Simulation -- simulation class
+    StopSimulation -- exception that stops a simulation
+    now -- function that returns the current time
+    Signal -- factory function to model hardware signals
+    SignalType -- Signal base class
+    ConcatSignal --  factory function that models a concatenation shadow signal
+    TristateSignal -- factory function that models a tristate shadow signal
+    delay -- callable to model delay in a yield statement
+    posedge -- callable to model a rising edge on a signal in a yield statement
+    negedge -- callable to model a falling edge on a signal in a yield statement
+    join -- callable to join clauses in a yield statement
+    intbv -- mutable integer class with bit vector facilities
+    modbv -- modular bit vector class
+    downrange -- function that returns a downward range
+    bin -- returns a binary string representation.
+           The optional width specifies the desired string
+           width: padding of the sign-bit is used.
+    concat -- function to concat ints, bitstrings, bools, intbvs, Signals
+           -- returns an intbv
+    instances -- function that returns all instances defined in a function
+    always --
+    always_comb -- decorator that returns an input-sensitive generator
+    always_seq --
+    ResetSignal --
+    enum -- function that returns an enumeration type
+    traceSignals -- function that enables signal tracing in a VCD file
+    toVerilog -- function that converts a design to Verilog
+    toVHDL -- function that converts a design to VHDL
+    OpenPort -- 
+    Constant -- 
+    HdlClass -- Abstract Base Class to build Class based structural designs
 
 """
-__version__ = "0.11.50"
+__version__ = "0.11.51"
 
 
 class StopSimulation(Exception):
@@ -163,6 +168,7 @@ from ._block import block
 from ._enum import enum, EnumType, EnumItemType
 from ._traceSignals import traceSignals
 from ._openport import OpenPort
+from ._hdlclass import HdlClass
 
 from myhdl import conversion
 from .conversion import toVerilog
@@ -203,5 +209,6 @@ __all__ = ["bin",
            "toVHDL",
            "conversion",
            "Tristate",
-           "OpenPort"
+           "OpenPort",
+           "HdlClass"
            ]

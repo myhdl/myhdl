@@ -360,6 +360,9 @@ class _Signal(object):
     def __getitem__(self, key):
         return self._val[key]
 
+    def duplicate(self):
+        return Signal(self._val)
+
     # integer-like methods
 
     def __add__(self, other):
