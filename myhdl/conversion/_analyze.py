@@ -153,7 +153,8 @@ def _analyzeGens(top, absnames):
                     # currently, only intbv as automatic nonlocals (until Python 3.0)
                     if isinstance(obj, intbv):
                         tree.nonlocaldict[n] = obj
-            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            # tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).lower()
             v = _AttrRefTransformer(tree)
             v.visit(tree)
             v = _FirstPassVisitor(tree)
@@ -172,7 +173,8 @@ def _analyzeGens(top, absnames):
             tree.symdict.update(f.f_locals)
             tree.nonlocaldict = {}
             tree.callstack = []
-            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            # tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).lower()
             v = _AttrRefTransformer(tree)
             v.visit(tree)
             v = _FirstPassVisitor(tree)

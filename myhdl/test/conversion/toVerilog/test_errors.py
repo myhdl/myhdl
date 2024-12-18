@@ -72,7 +72,7 @@ def shadowingSignal(count, enable, clock, reset, n):
 def internalSignal(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         a = Signal(bool())
         while 1:
             yield clock.posedge, reset.negedge
@@ -82,7 +82,7 @@ def internalSignal(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 @block
@@ -106,7 +106,7 @@ def undefinedBitWidthSignal(count, enable, clock, reset, n):
 def yieldObject1(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, delay(5)
             if reset == ACTIVE_LOW:
@@ -115,7 +115,7 @@ def yieldObject1(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 def g1(clock):
@@ -130,7 +130,7 @@ def g2(reset):
 def yieldObject2(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield g1(clock), g2(reset)
             if reset == ACTIVE_LOW:
@@ -139,7 +139,7 @@ def yieldObject2(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 def f1(n):
@@ -167,7 +167,7 @@ def f3(n):
 def recursion1(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -176,14 +176,14 @@ def recursion1(count, enable, clock, reset, n):
                 if enable:
                     count.next = f1(n)
 
-    return logic
+    return comb
 
 
 @block
 def recursion2(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -192,7 +192,7 @@ def recursion2(count, enable, clock, reset, n):
                 if enable:
                     count.next = f2(n)
 
-    return logic
+    return comb
 
 
 def h1(n):
@@ -204,7 +204,7 @@ def h1(n):
 def functionNoReturnVal(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -213,7 +213,7 @@ def functionNoReturnVal(count, enable, clock, reset, n):
                 if enable:
                     count.next = h1(n)
 
-    return logic
+    return comb
 
 
 def h2(cnt):
@@ -225,7 +225,7 @@ def h2(cnt):
 def taskReturnVal(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         cnt = intbv(0)[8:]
         while 1:
             yield clock.posedge, reset.negedge
@@ -236,72 +236,72 @@ def taskReturnVal(count, enable, clock, reset, n):
                     h2(cnt)
                     count.next = count + 1
 
-    return logic
+    return comb
 
 
 @block
 def listComp1(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         mem = [intbv(0)[8:] for dummy in range(4) for dummy in range(5)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
 
-    return logic
+    return comb
 
 
 @block
 def listComp2(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         mem = [intbv(0)[8:] for dummy in downrange(4)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
 
-    return logic
+    return comb
 
 
 @block
 def listComp3(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         mem = [intbv(0)[8:] for dummy in range(1, 4)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
 
-    return logic
+    return comb
 
 
 @block
 def listComp4(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         mem = [intbv(0) for dummy in range(4)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
 
-    return logic
+    return comb
 
 
 @block
 def listComp5(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         mem = [i for i in range(4)]
         while 1:
             yield clock.posedge, reset.negedge
             count.next = count + 1
 
-    return logic
+    return comb
 
 
 @block

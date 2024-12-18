@@ -355,13 +355,21 @@ class _Signal(object):
         return self._nrbits
         # return len(self._val)
 
+    @property
+    def nbits(self):
+        return self._nrbits
+        
+        
     # indexing and slicing methods
 
     def __getitem__(self, key):
         return self._val[key]
 
-    def duplicate(self):
-        return Signal(self._val)
+    def duplicate(self, val=None):
+        sig = Signal(self._val)
+        if val:
+            sig._val._val = val
+        return sig
 
     # integer-like methods
 

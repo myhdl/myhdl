@@ -18,7 +18,7 @@ ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 def behRef(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             if reset == ACTIVE_LOW:
                 yield reset.posedge
@@ -34,7 +34,7 @@ def behRef(count, enable, clock, reset, n):
                 count.next = 2 * j
                 j += 1
 
-    return logic
+    return comb
 
 
 objfile = "beh_inst.o"

@@ -17,20 +17,20 @@ b = c = 2
 def UnboundError1(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = a + b
             b = 1
 
-    return logic
+    return comb
 
 
 @block
 def UnboundError2(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             if a == 1:
@@ -38,27 +38,27 @@ def UnboundError2(a, out):
             else:
                 out.next = c
 
-    return logic
+    return comb
 
 
 @block
 def UnboundError3(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = a + d  # this is the error we want to test
             d = 1
 
-    return logic
+    return comb
 
 
 @block
 def UnboundError4(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             if a == 1:
@@ -66,28 +66,28 @@ def UnboundError4(a, out):
             else:
                 out.next = e
 
-    return logic
+    return comb
 
 
 @block
 def InferError1(a, out):
 
     @instance
-    def logic():
+    def comb():
         yield a
         b = 2
         b = intbv(0)[5:]
         b[:] = 4
         out.next = b
 
-    return logic
+    return comb
 
 
 @block
 def InferError2(a, out):
 
     @instance
-    def logic():
+    def comb():
         yield a
         c = intbv(0)[5:]
         c[:] = 4
@@ -95,7 +95,7 @@ def InferError2(a, out):
         c[:] = 4
         out.next = c
 
-    return logic
+    return comb
 
 
 enumType = enum("a", "b", "c")
@@ -105,25 +105,25 @@ enumType = enum("a", "b", "c")
 def InferError3(a, out):
 
     @instance
-    def logic():
+    def comb():
         yield a
         d = enumType.a
         d = 4
         out.next = b
 
-    return logic
+    return comb
 
 
 @block
 def InferError4(a, out):
 
     @instance
-    def logic():
+    def comb():
         h = intbv(0)
         yield a
         out.next = h
 
-    return logic
+    return comb
 
 
 def InferError5Func(a):
@@ -138,11 +138,11 @@ def InferError5Func(a):
 def InferError5(a, out):
 
     @instance
-    def logic():
+    def comb():
         yield a
         out.next = InferError5Func(a)
 
-    return logic
+    return comb
 
 
 def InferError6Func(a):
@@ -156,11 +156,11 @@ def InferError6Func(a):
 def InferError6(a, out):
 
     @instance
-    def logic():
+    def comb():
         yield a
         out.next = InferError6Func(a)
 
-    return logic
+    return comb
 
 
 def InferError7Func(a):
@@ -174,11 +174,11 @@ def InferError7Func(a):
 def InferError7(a, out):
 
     @instance
-    def logic():
+    def comb():
         yield a
         out.next = InferError7Func(a)
 
-    return logic
+    return comb
 
 
 class TestErrors(unittest.TestCase):
@@ -250,7 +250,7 @@ class TestErrors(unittest.TestCase):
 def Infer1(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             c = 5
@@ -261,14 +261,14 @@ def Infer1(a, out):
             c = True
             out.next = c
 
-    return logic
+    return comb
 
 
 @block
 def Infer2(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             c = a < 4
@@ -279,7 +279,7 @@ def Infer2(a, out):
             c = 5
             out.next = c
 
-    return logic
+    return comb
 
 
 def Infer3Func(a):
@@ -293,12 +293,12 @@ def Infer3Func(a):
 def Infer3(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = Infer3Func(a)
 
-    return logic
+    return comb
 
 
 def Infer4Func(a):
@@ -313,19 +313,19 @@ def Infer4Func(a):
 def Infer4(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = Infer4Func(a)
 
-    return logic
+    return comb
 
 
 @block
 def Infer5(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             c = a + 1
@@ -345,7 +345,7 @@ def Infer5(a, out):
             c = bool(a) and 1
             out.next = c
 
-    return logic
+    return comb
 
 
 def Infertest_v(name, a, out):

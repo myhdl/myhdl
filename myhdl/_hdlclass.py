@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 
 from myhdl import block
 from myhdl._misc import _isGenSeq
+from myhdl._block import _Block
 
 ForwardPort = collections.namedtuple('ForwardPort', ['hdlblock', 'port'])
 
@@ -40,6 +41,9 @@ class HdlClass(ABC):
         ''' return the hdl() of the instantiated building blocks '''
         # it needs a 'block decorator', because we we will call on the subsequent .hdl() methods ...
         # luckily we can now skip the adding of '_hdlinstances' in the name chain ...
+        # THIS doesn't look that great - the Simulator wiil show an intermediate block (this one)
+        # as 'None', and that really doesn't look nice
+        # BUT we have handled (hacked?) it in _tracesignals.py
 
         frame = inspect.currentframe()
         loi = []
@@ -48,27 +52,6 @@ class HdlClass(ABC):
             dlocals = outerframes[3][0].f_locals
             keys = dlocals.keys()
             values = dlocals.values()
-
-            # first resolve the ForwardPorts (if any)
-            for value in values:
-                if isinstance(value, list):
-                    if len(value):
-                        if isinstance(value[0], HdlClass):
-                            for item in value:
-                                refs = vars(item)
-                                for dest, sig in refs.items():
-                                    if isinstance(sig, ForwardPort):
-                                        item.__setattr__(dest, getattr(dlocals[sig.hdlblock], sig.port))
-
-                elif isinstance(value, HdlClass):
-                    if id(value) != id(self):
-                        refs = vars(value)
-                        for dest, sig in refs.items():
-                            if isinstance(sig, ForwardPort):
-                                value.__setattr__(dest, getattr(dlocals[sig.hdlblock], sig.port))
-
-                else:
-                    pass
 
             # now collect the hdl() and other logic generators
             for key, value in zip(keys, values):
@@ -88,12 +71,12 @@ class HdlClass(ABC):
                 elif isinstance(value, HdlClass):
                     if id(value) != id(self):
                         thdl = value.hdl()
-                        thdl.name = '{}'.format(key)
+                        thdl.name = f'{key}'
                         loi.append(thdl)
 
                 # note that the always_xxx generators are also in keys/values
                 elif _isGenSeq(value):
-                    # just use the instance name
+                    # just use the instance
                     loi.append(value)
 
                 else:
@@ -106,39 +89,4 @@ class HdlClass(ABC):
         del frame
 
         return loi
-
-# ToDo ???
-# None these work
-#     def convert(self, **kwargs):
-#         hchdl = self.hdl()
-#         hchdl.convert(**kwargs)
-#
-#
-# # helper routine
-# @block
-# # def wrapper(hdlclass, *args, **kwargs):
-# def wrapper(*args, **kwargs):
-#     # create the module
-#     # print(f'{args=}')
-#     # for arg in args:
-#     #     print(f'{arg=}')
-#
-#     hc = args[0](*args[1:], **kwargs)
-#     # print(f'{vars(hc)=}')
-#     # get the block
-#     hdlinstance = hc.hdl()
-#     # hdlinstance.name = hc.__class__.__name__
-#     # print(f'{vars(hdlinstance)=}')
-#
-#     return hdlinstance
-#
-#
-# def convert(wrapper, **kwargs):
-#     '''
-#         this allows us to convert a class design without
-#         having to write a wrapper
-#     '''
-#
-#     # now convert for real
-#     wrapper.convert(**kwargs)
 

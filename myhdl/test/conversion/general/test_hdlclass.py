@@ -33,7 +33,7 @@ class Counter(HdlClass):
         if isinstance(self.Q, OpenPort):
             count = Signal(intbv(0, 0, self.RANGE))
         else:
-            count = self.Q.duplicate()
+            count = self.Q
 
         if self.WRAP_AROUND:
 
@@ -60,8 +60,7 @@ class Counter(HdlClass):
                             count.next = count + 1
 
         @always_comb
-        def mkq():
-            self.Q.next = count
+        def mkismax():
             self.IsMax.next = (count == self.RANGE - 1)
 
         return self.hdlinstances()
@@ -76,7 +75,7 @@ class PwmCounter(HdlClass):
         self.PwmValue = PwmValue
         self.PwmOut = PwmOut if PwmOut is not None else Signal(bool(0))
 
-    @block(skipname=True)
+    @block
     def hdl(self):
         counter = Counter(self.RANGE, self.Clk, self.Reset, SClr=Constant(bool(0)), CntEn=Constant(bool(1)), IsMax=OpenPort(), WRAP_AROUND=True)
 
@@ -92,7 +91,7 @@ class PwmCounter(HdlClass):
 
 if __name__ == '__main__':
 
-    from myhdl import ResetSignal
+    from myhdl import ResetSignal, instance, delay, StopSimulation, instances
 
     class XYMotors(HdlClass):
 
@@ -112,39 +111,93 @@ if __name__ == '__main__':
 
             return self.hdlinstances()
 
-    # try converting
-    PWMCOUNT = 100
-    Clk = Signal(bool(0))
-    Reset = ResetSignal(0, 1, False)
-    XSpeed = Signal(intbv(0, 0, PWMCOUNT))
-    YSpeed = Signal(intbv(0, 0, PWMCOUNT))
-    XDrive = Signal(bool(0))
-    YDrive = Signal(bool(0))
+    # create a minimal test-bench to test the .vcd geenration
+    # as we have to weed out the `None` - because of an @block(skipname=True)
+    # which add an unnecessary indentation level in the waveform which absolutely looks ugly
+    @block
+    def tb_xymotors():
+        PWMCOUNT = 100
+        Clk = Signal(bool(0))
+        Reset = ResetSignal(0, 1, False)
+        XSpeed = Signal(intbv(0, 0, PWMCOUNT))
+        YSpeed = Signal(intbv(0, 0, PWMCOUNT))
+        XDrive = Signal(bool(0))
+        YDrive = Signal(bool(0))
+
+        dft = XYMotors(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
+        dfthdl = dft.hdl()
+        dfthdl.name = 'XYMotors'
+
+        tCK = 10
+
+        @instance
+        def genclkreset():
+            Reset.next = 1
+            for dummy in range(3):
+                Clk.next = 1
+                yield delay(tCK // 2)
+                Clk.next = 0
+                yield delay(tCK - tCK // 2)
+
+            Clk.next = 1
+            yield delay(tCK // 2)
+            Clk.next = 0
+            Reset.next = 0
+            yield delay(tCK - tCK // 2)
+            while True:
+                Clk.next = 1
+                yield delay(tCK // 2)
+                Clk.next = 0
+                yield delay(tCK - tCK // 2)
+
+        @instance
+        def stimulus():
+            for dummy in range(10):
+                yield Clk.posedge
+
+            raise StopSimulation
+
+        return instances()
 
     if 1:
-        ''' looks like we have to live with writing a wrapper '''
+        dft = tb_xymotors()
+        dft.config_sim(trace=True, timescale='1ps', tracebackup=False)
+        dft.run_sim()
 
-        # a local written-out wrapper works fine
-        @block
-        def wrapper(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive):
-            dfc = XYMotors(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
-            # print(f'{vars(dfc)=}')
-            dfchdl = dfc.hdl()
-            # print(f'{vars(dfchdl)=}')
-            return dfchdl
+    if 1:
+        # try converting
+        PWMCOUNT = 100
+        Clk = Signal(bool(0))
+        Reset = ResetSignal(0, 1, False)
+        XSpeed = Signal(intbv(0, 0, PWMCOUNT))
+        YSpeed = Signal(intbv(0, 0, PWMCOUNT))
+        XDrive = Signal(bool(0))
+        YDrive = Signal(bool(0))
 
-        dfc = wrapper(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
-        dfc.convert(hdl='VHDL', name='XYMotors')
-        dfc.convert(hdl='Verilog', name='XYMotors')
-    # these fail in one way or another
-    # else:
-    #     from _hdlclass import wrapper, convert
-    #     if 0:
-    #         # this raises an IndexError in _analyze.py
-    #         # beacuse the '*args' in wrapper disappear into nowhere?
-    #         convert(wrapper(XYMotors, PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive))
-    #     else:
-    #         # this produces an 'empty' entity
-    #         hc = XYMotors(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
-    #         hc.convert(hdl='VHDL', name='XYMotors')
+        if 1:
+            ''' looks like we have to live with writing a wrapper '''
+
+            # a local written-out wrapper works fine
+            @block(skipname=True)
+            def wrapper(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive):
+                dfc = XYMotors(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
+                dfchdl = dfc.hdl()
+                # ! DO NOT override the name
+                # e.g.: dfchdl.name = 'blabla' will prefix all names with 'blabla'
+                return dfchdl
+
+            dfc = wrapper(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
+            dfc.convert(hdl='VHDL', name='XYMotors')
+            dfc.convert(hdl='Verilog', name='XYMotors')
+        # these fail in one way or another
+        # else:
+        #     from _hdlclass import wrapper, convert
+        #     if 0:
+        #         # this raises an IndexError in _analyze.py
+        #         # beacuse the '*args' in wrapper disappear into nowhere?
+        #         convert(wrapper(XYMotors, PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive))
+        #     else:
+        #         # this produces an 'empty' entity
+        #         hc = XYMotors(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
+        #         hc.convert(hdl='VHDL', name='XYMotors')
 

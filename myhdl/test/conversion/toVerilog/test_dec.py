@@ -27,7 +27,7 @@ def decRef(count, enable, clock, reset, n):
     """
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -39,7 +39,7 @@ def decRef(count, enable, clock, reset, n):
                     else:
                         count.next = count - 1
 
-    return logic
+    return comb
 
 
 @block

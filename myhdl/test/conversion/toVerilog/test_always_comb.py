@@ -35,57 +35,57 @@ QUIET = 1
 @block
 def design1(a, b, c, d, p, q, r):
 
-    def logic():
+    def comb():
         p.next = a | b
 
-    return always_comb(logic)
+    return always_comb(comb)
 
 
 @block
 def design2(a, b, c, d, p, q, r):
 
-    def logic():
+    def comb():
         p.next = a | b
         q.next = c & d
         r.next = a ^ c
 
-    return always_comb(logic)
+    return always_comb(comb)
 
 
 @block
 def design3(a, b, c, d, p, q, r):
 
-    def logic():
+    def comb():
         if a:
             p.next = c | b
             q.next = c & d
             r.next = d ^ c
 
-    return always_comb(logic)
+    return always_comb(comb)
 
 
 @block
 def design4(a, b, c, d, p, q, r):
 
-    def logic():
+    def comb():
         p.next = a | b
         q.next = c & d
         r.next = a ^ c
         q.next = c | d
 
-    return always_comb(logic)
+    return always_comb(comb)
 
 
 @block
 def design5(a, b, c, d, p, q, r):
 
-    def logic():
+    def comb():
         p.next = a | b
         q.next = c & d
         r.next = a ^ c
         q.next[0] = c | d
 
-    return always_comb(logic)
+    return always_comb(comb)
 
 
 @block

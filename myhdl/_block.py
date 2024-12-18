@@ -87,8 +87,8 @@ def _getCallInfo():
         f_locals = callerrec[0].f_locals
         if 'self' in f_locals:
             modctxt = isinstance(f_locals['self'], _Block)
-    return _CallInfo(name, modctxt, symdict)
 
+    return _CallInfo(name, modctxt, symdict)
 
 # ## I don't think this is the right place for uniqueifying the name.
 # ## This seems to me to be a conversion concern, not a block concern, and
@@ -153,6 +153,7 @@ class block_decorator(object):
         as this was a PR from 2020 it had some issues to be merged, especially the 
         missing sub-version number
     '''
+	#TODO: revisit this code and check `self.name` ...
     skipname = False
     ident_method = "get_instance_ident"
 
@@ -162,7 +163,7 @@ class block_decorator(object):
         self.func = func
         functools.update_wrapper(self, func)
         self.calls = 0
-        self.name = None
+        self.name = func.__name__
 
         # register the block
         myhdl._simulator._blocks.append(self)
@@ -198,6 +199,7 @@ class block_decorator(object):
 
                 function_wrapper.name_prefix = proposed_inst_name
                 _inst_name_set.add(proposed_inst_name)
+            self.name= proposed_inst_name
 
         else:
             function_wrapper = self.bound_functions[bound_key]
@@ -244,7 +246,6 @@ class _Block(object):
         self.memdict = {}
         self.skipname = skipname
         self.name = self.__name__ = name
-
         # flatten, but keep BlockInstance objects
         self.subs = _flatten(func(*args, **kwargs))
         self._verifySubs()
@@ -380,6 +381,7 @@ class _Block(object):
             conv_attrs['no_testbench'] = not kwargs.pop('testbench', True)
             conv_attrs['timescale'] = kwargs.pop('timescale', '1ns/10ps')
             conv_attrs['trace'] = kwargs.pop('trace', False)
+            
         conv_attrs.update(kwargs)
         for k, v in conv_attrs.items():
             setattr(converter, k, v)

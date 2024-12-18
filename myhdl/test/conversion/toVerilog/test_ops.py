@@ -36,7 +36,7 @@ def binaryOps(
               left, right):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield left, right
             Bitand.next = left & right
@@ -66,7 +66,7 @@ def binaryOps(
             And.next = bool(left) and bool(right)
             Or.next = bool(left) or bool(right)
 
-    return logic
+    return comb
 
 
 @block
@@ -232,7 +232,7 @@ def multiOps(
               argm, argn, argp):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield argm, argn, argp
             Bitand.next = argm & argn & argp
@@ -241,7 +241,7 @@ def multiOps(
             And.next = bool(argm) and bool(argn) and bool(argp)
             Or.next = bool(argm) and bool(argn) and bool(argp)
 
-    return logic
+    return comb
 
 
 @block
@@ -341,7 +341,7 @@ def unaryOps(
              arg):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield arg
             Not.next = not arg
@@ -349,7 +349,7 @@ def unaryOps(
             UnaryAdd.next = +arg
             UnarySub.next = - -arg
 
-    return logic
+    return comb
 
 
 @block
@@ -427,7 +427,7 @@ def augmOps(
               left, right):
 
     @instance
-    def logic():
+    def comb():
         var = intbv(0)[max(64, len(left) + len(right)):]
         while 1:
             yield left, right
@@ -466,7 +466,7 @@ def augmOps(
             var += right
             Sum.next = var
 
-    return logic
+    return comb
 
 
 @block

@@ -19,7 +19,7 @@ def bin2gray2(B, G, width):
     """
 
     @instance
-    def logic():
+    def comb():
         Bext = intbv(0)[width + 1:]
         while 1:
             yield B
@@ -27,7 +27,7 @@ def bin2gray2(B, G, width):
             for i in range(width):
                 G.next[i] = Bext[i + 1] ^ Bext[i]
 
-    return logic
+    return comb
 
 
 @block
@@ -42,13 +42,13 @@ def bin2gray(B, G, width):
     """
 
     @always_comb
-    def logic():
+    def comb():
         Bext = intbv(0)[width + 1:]
         Bext[:] = B
         for i in range(width):
             G.next[i] = Bext[i + 1] ^ Bext[i]
 
-    return logic
+    return comb
 
 
 objfile = "bin2gray.o"

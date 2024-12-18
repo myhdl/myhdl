@@ -17,12 +17,12 @@ from .util import setupCosimulation
 def or_gate(a, b, c):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             c.next = a | b
             yield a, b
 
-    return logic
+    return comb
 
 
 @block
@@ -46,12 +46,12 @@ def ConstWire2(p, q):
 def adder(a, b, c):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a, b
             c.next = a + b
 
-    return logic
+    return comb
 
 
 @block
@@ -121,26 +121,26 @@ class TestConstWires(unittest.TestCase):
 def adderRef(a, b, c):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a, b
             c.next = a + b
 
-    return logic
+    return comb
 
 
 @block
 def adderDebug(a, b, c):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a, b
             if __debug__:
                 import string
             c.next = a + b
 
-    return logic
+    return comb
 
 
 def Ignorecode_v(name, a, b, c):

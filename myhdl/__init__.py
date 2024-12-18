@@ -168,7 +168,7 @@ from ._block import block
 from ._enum import enum, EnumType, EnumItemType
 from ._traceSignals import traceSignals
 from ._openport import OpenPort
-from ._hdlclass import HdlClass
+from ._hdlclass import HdlClass# , hdlinstances
 
 from myhdl import conversion
 from .conversion import toVerilog
@@ -210,5 +210,6 @@ __all__ = ["bin",
            "conversion",
            "Tristate",
            "OpenPort",
-           "HdlClass"
+           "HdlClass",
+           # "hdlinstances",
            ]

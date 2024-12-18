@@ -12,7 +12,7 @@ def PrintBench():
     sb = Signal(bool(0))
 
     @instance
-    def logic():
+    def comb():
         i1 = intbv(0)[8:]
         i2 = intbv(0, min=-10, max=12)
         b = bool(1)
@@ -64,7 +64,7 @@ def PrintBench():
         print(si1.signed())
         print(si2.signed())
 
-    return logic
+    return comb
 
 
 def testPrint():
@@ -85,7 +85,7 @@ def PrintLongVectorsBench():
     si2 = Signal(intbv(0, min=-M85, max=M86))
 
     @instance
-    def logic():
+    def comb():
         i1 = intbv(0)[N85:]
         i2 = intbv(0, min=-M86, max=M85)
         si1.next = 0
@@ -105,7 +105,7 @@ def PrintLongVectorsBench():
         yield delay(10)
         print("%s %s %s %s" % (i1, i2, si1, si2))
 
-    return logic
+    return comb
 
 
 def testPrintLongVectors():
@@ -118,12 +118,12 @@ def testPrintLongVectors():
 def PrintError1():
 
     @instance
-    def logic():
+    def comb():
         i1 = intbv(12)[8:]
         yield delay(10)
         print("floating point %f end" % i1)
 
-    return logic
+    return comb
 
 
 def testPrintError1():
@@ -139,12 +139,12 @@ def testPrintError1():
 def PrintError2():
 
     @instance
-    def logic():
+    def comb():
         i1 = intbv(12)[8:]
         yield delay(10)
         print("begin %s %s end" % i1)
 
-    return logic
+    return comb
 
 
 def testPrintError2():
@@ -160,13 +160,13 @@ def testPrintError2():
 def PrintError3():
 
     @instance
-    def logic():
+    def comb():
         i1 = intbv(12)[8:]
         i2 = intbv(13)[8:]
         yield delay(10)
         print("begin %s end" % (i1, i2))
 
-    return logic
+    return comb
 
 
 def testPrintError3():
@@ -182,12 +182,12 @@ def testPrintError3():
 def PrintError4():
 
     @instance
-    def logic():
+    def comb():
         i1 = intbv(12)[8:]
         yield delay(10)
         print("%10s" % i1)
 
-    return logic
+    return comb
 
 
 def testPrintError4():
@@ -203,12 +203,12 @@ def testPrintError4():
 def PrintError5():
 
     @instance
-    def logic():
+    def comb():
         i1 = intbv(12)[8:]
         yield delay(10)
         print("%-10s" % i1)
 
-    return logic
+    return comb
 
 
 def testPrintError5():
