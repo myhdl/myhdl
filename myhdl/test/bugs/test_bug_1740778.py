@@ -16,7 +16,7 @@ def bug_1740778 ():
     s = Signal(intbv(0, min=-13, max=46))
 
     @instance
-    def logic():
+    def comb():
         v = intbv(0, min=-15, max=45)
         yield delay(10)
         print(v.min)
@@ -25,7 +25,7 @@ def bug_1740778 ():
         print(s.min)
         print(s.max)
 
-    return logic
+    return comb
 
 
 def test_bug_1740778 ():

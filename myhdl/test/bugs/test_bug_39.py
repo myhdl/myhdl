@@ -11,7 +11,7 @@ def dut():
     d = Signal(intbv(0, min=0, max=256))
 
     @always_comb
-    def logic():
+    def comb():
         rx.next = a + b - (c + d)
 
     @instance
@@ -28,7 +28,7 @@ def dut():
             c.next = (c + 97) % 256
             d.next = (d + 137) % 256
 
-    return logic, check
+    return comb, check
 
 
 def test_bug_39():

@@ -5,7 +5,7 @@ from myhdl import (block, Signal, intbv, always_comb, concat)
 def bug_43(sigin, sigout):
 
     @always_comb
-    def output():
+    def comb():
         # This does not generate correct VHDL code (resize is missing)
         sigout.next = concat(sigin[0], sigin[2])
 
@@ -13,7 +13,7 @@ def bug_43(sigin, sigout):
         tmp = concat(sigin[0], sigin[2])
         sigout.next = tmp
 
-    return output
+    return comb
 
 
 def test_bug_43():

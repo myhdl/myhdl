@@ -15,14 +15,14 @@ def bug_1835797():
     """
 
     @instance
-    def logic():
+    def comb():
         v = intbv(0, min=-15, max=45)
         """Wrongly placed docstring"""
         yield delay(10)
         print(v.min)
         print(v.max)
 
-    return logic
+    return comb
 
 
 def test_bug_1835797():

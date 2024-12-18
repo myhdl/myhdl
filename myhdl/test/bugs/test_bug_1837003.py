@@ -8,7 +8,7 @@ from myhdl.conversion._misc import _error
 def SubFunction_1837003(xout, yout, xin, yin):
 
     @always_comb
-    def logic():
+    def comb():
         x = 4
         y = 2
         xout.next = xin
