@@ -22,11 +22,11 @@ def issue_13(reset, clk, d, en, q):
         return hec ^ COSET
 
     @always_seq(clk.posedge, reset=reset)
-    def logic():
+    def comb():
         if en:
             q.next = calculateHec(d)
 
-    return logic
+    return comb
 
 
 def test_issue_13():

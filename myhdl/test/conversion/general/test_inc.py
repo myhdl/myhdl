@@ -23,7 +23,7 @@ def incRef(count, enable, clock, reset, n):
     """
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -32,7 +32,7 @@ def incRef(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 @block

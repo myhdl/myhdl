@@ -11,13 +11,13 @@ from myhdl import (block, Signal, intbv, delay, always_comb,
 def ternary1(dout, clk, rst):
 
     @always(clk.posedge, rst.negedge)
-    def logic():
+    def comb():
         if rst == 0:
             dout.next = 0
         else:
             dout.next = (dout + 1) if dout < 127 else 0
 
-    return logic
+    return comb
 
 
 @block
@@ -26,7 +26,7 @@ def ternary2(dout, clk, rst):
     dout_d = Signal(intbv(0)[len(dout):])
 
     @always(clk.posedge, rst.negedge)
-    def logic():
+    def comb():
         if rst == 0:
             dout.next = 0
         else:
@@ -36,7 +36,7 @@ def ternary2(dout, clk, rst):
     def comb():
         dout_d.next = (dout + 1) if dout < 127 else 0
 
-    return logic, comb
+    return comb, comb
 
 
 @block

@@ -25,7 +25,7 @@ def incRef(count, enable, clock, reset, n):
     """
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -34,7 +34,7 @@ def incRef(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 @block
@@ -42,7 +42,7 @@ def incGen(count, enable, clock, reset, n):
     """ Generator with vhdl_code is not permitted """
 
     @instance
-    def logic():
+    def comb():
         incGen.vhdl_code = "Template string"
         while 1:
             yield clock.posedge, reset.negedge
@@ -52,7 +52,7 @@ def incGen(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 @block
@@ -130,7 +130,7 @@ end
 def inc_comb(nextCount, count, n):
 
     @always_comb
-    def logic():
+    def comb():
         # make if fail in conversion
         import types
         nextCount.next = (count + 1) % n
@@ -142,14 +142,14 @@ def inc_comb(nextCount, count, n):
 $nextCount <= ($count + 1) mod $n;
 """
 
-    return logic
+    return comb
 
 
 @block
 def inc_seq(count, nextCount, enable, clock, reset):
 
     @always(clock.posedge, reset.negedge)
-    def logic():
+    def comb():
         # make if fail in conversion
         import types
         if reset == ACTIVE_LOW:
@@ -173,7 +173,7 @@ process ($clock, $reset) begin
 end process;
 """
 
-    return logic
+    return comb
 
 
 @block
@@ -238,13 +238,13 @@ class ClassIncrementer(object):
 def clockGen(clock):
 
     @instance
-    def logic():
+    def comb():
         clock.next = 1
         while 1:
             yield delay(10)
             clock.next = not clock
 
-    return logic
+    return comb
 
 
 NRTESTS = 1000
@@ -256,7 +256,7 @@ ENABLES = tuple([min(1, randrange(5)) for i in range(NRTESTS)])
 def stimulus(enable, clock, reset):
 
     @instance
-    def logic():
+    def comb():
         reset.next = INACTIVE_HIGH
         yield clock.negedge
         reset.next = ACTIVE_LOW
@@ -270,14 +270,14 @@ def stimulus(enable, clock, reset):
             yield clock.negedge
         raise StopSimulation
 
-    return logic
+    return comb
 
 
 @block
 def check(count, enable, clock, reset, n):
 
     @instance
-    def logic():
+    def comb():
         expect = 0
         yield reset.posedge
         # assert count == expect
@@ -291,7 +291,7 @@ def check(count, enable, clock, reset, n):
             # assert count == expect
             print(count)
 
-    return logic
+    return comb
 
 
 @block

@@ -1,10 +1,11 @@
 import myhdl
 from myhdl import *
 
+
 def lfsr24(lfsr, enable, clock, reset):
 
     @always(clock.posedge, reset.posedge)
-    def logic():
+    def comb():
         if reset == 1:
             lfsr.next = 1
         else:
@@ -13,5 +14,5 @@ def lfsr24(lfsr, enable, clock, reset):
                 lfsr.next = lfsr << 1
                 lfsr.next[0] = lfsr[23] ^ lfsr[22] ^ lfsr[21] ^ lfsr[16]
 
-    return logic
+    return comb
 

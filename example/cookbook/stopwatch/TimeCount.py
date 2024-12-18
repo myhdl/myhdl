@@ -1,6 +1,7 @@
 import myhdl
 from myhdl import *
 
+
 def TimeCount(tens, ones, tenths, startstop, reset, clock):
 
     """ 3 digit time counter in seconds and tenths of a second.
@@ -13,29 +14,29 @@ def TimeCount(tens, ones, tenths, startstop, reset, clock):
     clock: 10Hz clock input
 
     """
-    
+
     @instance
-    def logic():
+    def comb():
         seen = False
         counting = False
-        
+
         while True:
             yield clock.posedge, reset.posedge
-            
+
             if reset:
                 tens.next = 0
                 ones.next = 0
                 tenths.next = 0
                 seen = False
                 counting = False
-                
+
             else:
                 if startstop and not seen:
                     seen = True
                     counting = not counting
                 elif not startstop:
                     seen = False
-                    
+
                 if counting:
                     if tenths == 9:
                         tenths.next = 0
@@ -50,9 +51,5 @@ def TimeCount(tens, ones, tenths, startstop, reset, clock):
                     else:
                         tenths.next = tenths + 1
 
-    return logic
-                    
-                        
-                
-                        
-                
+    return comb
+

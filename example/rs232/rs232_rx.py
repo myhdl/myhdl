@@ -3,8 +3,9 @@ from myhdl import *
 
 from rs232_util import sec, parity, ParityError, StopBitError
 
+
 def rs232_rx(rx, actual, cfg):
-    
+
     """ rs232 receiver.
 
     rx -- serial input data
@@ -12,11 +13,11 @@ def rs232_rx(rx, actual, cfg):
     cfg -- rs232_util.Config configuration object
 
     """
-    
+
     @instance
-    def logic():
+    def comb():
         data = intbv(0)
-        period = int(1*sec / cfg.baud_rate)
+        period = int(1 * sec / cfg.baud_rate)
 
         yield rx.posedge
         yield delay(period // 2)
@@ -37,6 +38,5 @@ def rs232_rx(rx, actual, cfg):
 
         actual[8:] = data
 
-    return logic
-        
-    
+    return comb
+

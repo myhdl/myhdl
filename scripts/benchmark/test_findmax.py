@@ -3,16 +3,18 @@ from myhdl import *
 
 from glibc_random import glibc_random
 
+
 def max2(z, a, b):
 
     @always_comb
-    def logic():
+    def comb():
         if a > b:
             z.next = a
         else:
             z.next = b
 
-    return logic
+    return comb
+
 
 def maxn(z, a):
     L = len(a)
@@ -36,8 +38,8 @@ def test_findmax():
 
     L = 32
     W = 16
-    
-    random_word = Signal(intbv(0)[L*W:])
+
+    random_word = Signal(intbv(0)[L * W:])
     clock = Signal(bool())
     stopped = Signal(bool())
     a = [Signal(intbv(0)[W:]) for i in range(L)]
@@ -52,7 +54,7 @@ def test_findmax():
         while not stopped:
             clock.next = not clock
             yield delay(10)
-        
+
     @instance
     def stimulus():
         stopped.next = 0
@@ -61,22 +63,23 @@ def test_findmax():
         val = intbv(0)[W:]
         random_word = intbv(0)[32:]
         random_word[:] = 93
-        for i in range(2**18):
+        for i in range(2 ** 18):
             exp[:] = 0
             for s in range(L):
                 random_word[:] = glibc_random(random_word)
                 val[:] = random_word[W:]
                 if exp < val:
-                    exp[:] = val 
-                a[s].next = val 
+                    exp[:] = val
+                a[s].next = val
             yield clock.negedge
             assert z == exp
-        stopped.next = 1 
+        stopped.next = 1
         yield delay(10)
-            
+
     return dut, clockgen, stimulus
-    
-if __name__ == '__main__':    
+
+
+if __name__ == '__main__':
     sim = Simulation(test_findmax())
     sim.run()
 

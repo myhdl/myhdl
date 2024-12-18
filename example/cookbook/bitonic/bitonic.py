@@ -6,40 +6,41 @@ from myhdl.conversion import analyze
 
 DESCENDING, ASCENDING = False, True
 
+
 @block
 def comp(a1, a2, z1, z2, dir):
 
     @always_comb
-    def logic():
+    def comb():
         z1.next = a1
         z2.next = a2
         if dir == (a1 > a2):
             z1.next = a2
             z2.next = a1
 
-    return logic
+    return comb
 
 
 @block
 def feedthru(a, z):
 
     @always_comb
-    def logic():
+    def comb():
         z.next = a
 
-    return logic
+    return comb
 
 
 @block
 def bitonicMerge(a, z, dir):
 
     n = len(a)
-    k = n//2
+    k = n // 2
     w = len(a[0])
 
     if n > 1:
         t = [Signal(intbv(0)[w:]) for i in range(n)]
-        comps = [comp(a[i], a[i+k], t[i], t[i+k], dir) for i in range(k)]
+        comps = [comp(a[i], a[i + k], t[i], t[i + k], dir) for i in range(k)]
         lomerge = bitonicMerge(t[:k], z[:k], dir)
         himerge = bitonicMerge(t[k:], z[k:], dir)
         lomerge.name = "lomerge"
@@ -53,7 +54,7 @@ def bitonicMerge(a, z, dir):
 def bitonicSort(a, z, dir):
 
     n = len(a)
-    k = n//2
+    k = n // 2
     w = len(a[0])
 
     if n > 1:
@@ -67,6 +68,7 @@ def bitonicSort(a, z, dir):
         return losort, hisort, merge
     else:
         return feedthru(a[0], z[0])
+
 
 @block
 def Array8Sorter(a0, a1, a2, a3, a4, a5, a6, a7,

@@ -68,7 +68,7 @@ def HecCalculatorPlain(hec, header):
     """
 
     @instance
-    def logic():
+    def comb():
         h = intbv(0)[8:]
         while 1:
             yield header
@@ -82,7 +82,7 @@ def HecCalculatorPlain(hec, header):
                               )
             hec.next = h ^ COSET
 
-    return logic
+    return comb
 
 
 def HecCalculatorFunc(hec, header):

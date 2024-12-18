@@ -9,10 +9,10 @@ from myhdl.conversion import verify
 def sigAugmAssignUnsupported(z, a):
 
     @always(a)
-    def logic():
+    def comb():
         z.next += a
 
-    return logic
+    return comb
 
 
 def test_SigAugmAssignUnsupported():
@@ -30,12 +30,12 @@ def test_SigAugmAssignUnsupported():
 def modbvRange(z, a, b):
 
     @always(a, b)
-    def logic():
+    def comb():
         s = modbv(0, min=0, max=35)
         s[:] = a + b
         z.next = s
 
-    return logic
+    return comb
 
 
 def test_modbvRange():
@@ -54,10 +54,10 @@ def test_modbvRange():
 def modbvSigRange(z, a, b):
 
     @always(a, b)
-    def logic():
+    def comb():
         z.next = a + b
 
-    return logic
+    return comb
 
 
 def test_modbvSigRange():

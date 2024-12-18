@@ -15,12 +15,12 @@ DEPTH = 5
 def xor(z, a, b, c):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a, b, c
             z.next = a ^ b ^ c
 
-    return logic
+    return comb
 
 
 def randOthers(i, n):

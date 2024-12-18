@@ -4,8 +4,9 @@ from myhdl import *
 ACTIVE = 0
 DirType = enum('RIGHT', 'LEFT')
 
+
 def jc2_alt(goLeft, goRight, stop, clk, q):
-    
+
     """ A bi-directional 4-bit Johnson counter with stop control.
 
     I/O pins:
@@ -30,7 +31,7 @@ def jc2_alt(goLeft, goRight, stop, clk, q):
     """
 
     @instance
-    def logic():
+    def comb():
         dir = DirType.LEFT
         run = False
         while True:
@@ -54,4 +55,4 @@ def jc2_alt(goLeft, goRight, stop, clk, q):
                     q.next[3:] = q[4:1]
                     q.next[3] = not q[0]
 
-    return logic
+    return comb

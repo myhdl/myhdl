@@ -78,55 +78,55 @@ class TestAlwaysCompilation:
 def SignalFunc1(a, b, c, d, r):
 
     @always(a)
-    def logic():
+    def comb():
         r.next = a + b + c + d
 
-    return logic
+    return comb
 
 
 def SignalTupleFunc1(a, b, c, d, r):
 
     @always(a, b, c)
-    def logic():
+    def comb():
         r.next = a + b + c + d
 
-    return logic
+    return comb
 
 
 def DelayFunc(a, b, c, d, r):
 
     @always(delay(3))
-    def logic():
+    def comb():
         r.next = a + b + c + d
 
-    return logic
+    return comb
 
 
 def EdgeFunc1(a, b, c, d, r):
 
     @always(c.posedge)
-    def logic():
+    def comb():
         r.next = a + b + c + d
 
-    return logic
+    return comb
 
 
 def EdgeTupleFunc1(a, b, c, d, r):
 
     @always(c.posedge, d.negedge)
-    def logic():
+    def comb():
         r.next = a + b + c + d
 
-    return logic
+    return comb
 
 
 def GeneralFunc(a, b, c, d, r):
 
     @always(c.posedge, d)
-    def logic():
+    def comb():
         r.next = a + b + c + d
 
-    return logic
+    return comb
 
 
 class TestInferWaiter:

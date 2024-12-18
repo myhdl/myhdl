@@ -10,14 +10,14 @@ def constants(v, u, x, y, z, a):
     e = Signal(intbv(4, min=-3, max=9))
 
     @always_comb
-    def logic():
+    def comb():
         u.next = d
         v.next = e
         x.next = b
         y.next = c
         z.next = a
 
-    return logic
+    return comb
 
 
 x, y, z, a = [Signal(bool(0)) for i in range(4)]

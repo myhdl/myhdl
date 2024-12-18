@@ -1,8 +1,9 @@
 import myhdl
 from myhdl import *
 
+
 def bin2gray(B, G, width):
-    
+
     """ Gray encoder.
 
     B -- input intbv signal, binary encoded
@@ -12,13 +13,13 @@ def bin2gray(B, G, width):
     """
 
     @always_comb
-    def logic():
-        Bext = intbv(0)[width+1:]
+    def comb():
+        Bext = intbv(0)[width + 1:]
         Bext[:] = B
         for i in range(width):
-            G.next[i] = Bext[i+1] ^ Bext[i]
+            G.next[i] = Bext[i + 1] ^ Bext[i]
 
-    return logic
+    return comb
 
 
 def main():
@@ -29,6 +30,7 @@ def main():
 
     toVerilog(bin2gray, B, G, width)
     toVHDL(bin2gray, B, G, width)
-    
+
+
 if __name__ == '__main__':
     main()

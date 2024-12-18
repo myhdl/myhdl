@@ -37,12 +37,12 @@ QUIET = 1
 def gen(clk):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield delay(10)
             clk.next = not clk
 
-    return logic
+    return comb
 
 
 @block
@@ -93,7 +93,7 @@ def genTristate(clk, x, y, z):
             clk.next = not clk
 
     @instance
-    def logic():
+    def comb():
         for v in [True, False, None, 0, True, None, None, 1]:
             yield clk.posedge
             xd.next = v
@@ -104,7 +104,7 @@ def genTristate(clk, x, y, z):
             else:
                 yd.next = zd.next = 0
 
-    return ckgen, logic
+    return ckgen, comb
 
 
 @block
