@@ -31,6 +31,7 @@ from myhdl._extractHierarchy import (_makeMemInfo,
                                      _UserVerilogCode, _UserVhdlCode,
                                      _UserVerilogInstance, _UserVhdlInstance)
 from myhdl._Signal import _Signal, _isListOfSigs
+from myhdl._misc import isboundmethod
 
 from weakref import WeakValueDictionary
 
@@ -87,6 +88,7 @@ def _getCallInfo():
         f_locals = callerrec[0].f_locals
         if 'self' in f_locals:
             modctxt = isinstance(f_locals['self'], _Block)
+
     return _CallInfo(name, modctxt, symdict)
 
 
@@ -101,9 +103,10 @@ _name_set = set()
 
 
 def _uniqueify_name(proposed_name):
-    '''Creates a unique block name from the proposed name by appending
-    a suitable number to the end. Every name this function returns is
-    assumed to be used, so will not be returned again.
+    '''
+        Creates a unique block name from the proposed name by appending
+        a suitable number to the end. Every name this function returns is
+        assumed to be used, so will not be returned again.
     '''
     n = 0
 
@@ -118,9 +121,10 @@ def _uniqueify_name(proposed_name):
 
 class _bound_function_wrapper(object):
 
-    def __init__(self, bound_func, srcfile, srcline):
+    def __init__(self, bound_func, srcfile, srcline, skipname):
         self.srcfile = srcfile
         self.srcline = srcline
+        self.skipname = skipname
         self.bound_func = bound_func
         functools.update_wrapper(self, bound_func)
         self.calls = 0
@@ -131,21 +135,29 @@ class _bound_function_wrapper(object):
         self.name = None
 
     def __call__(self, *args, **kwargs):
-
-        name = (
-            self.name_prefix + '_' + self.bound_func.__name__ +
-            str(self.calls))
-
-        self.calls += 1
-
-        # See concerns above about uniqueifying
-        name = _uniqueify_name(name)
+        if self.skipname:
+            name = None
+        else:
+            # name = self.name_prefix + '_' + self.bound_func.__name__ +  str(self.calls)
+            name = f'{self.name_prefix}_{self.bound_func.__name__}{self.calls}'
+            self.calls += 1
+            # See concerns above about uniqueifying
+            name = _uniqueify_name(name)
 
         return _Block(self.bound_func, self, name, self.srcfile,
-                      self.srcline, *args, **kwargs)
+                      self.srcline, self.skipname, *args, **kwargs)
 
 
-class block(object):
+class block_decorator(object):
+    '''
+        this code is borrowed (and slightly modified) from J. Villar's PR #328
+        https://github.com/myhdl/myhdl/pull/328
+        as this was a PR from 2020 it had some issues to be merged, especially the 
+        missing sub-version number
+    '''
+    # TODO: revisit this code and check `self.name` ...
+    skipname = False
+    ident_method = "get_instance_ident"
 
     def __init__(self, func):
         self.srcfile = inspect.getsourcefile(func)
@@ -153,31 +165,43 @@ class block(object):
         self.func = func
         functools.update_wrapper(self, func)
         self.calls = 0
-        self.name = None
+        self.name = func.__name__
 
         # register the block
         myhdl._simulator._blocks.append(self)
 
         self.bound_functions = WeakValueDictionary()
 
+    @classmethod
+    def set_decorator_parameters(cls, **kwargs):
+        for param_name, value in kwargs.items:
+            setattr(cls, param_name, value)
+
     def __get__(self, instance, owner):
         bound_key = (id(instance), id(owner))
 
         if bound_key not in self.bound_functions:
             bound_func = self.func.__get__(instance, owner)
-            function_wrapper = _bound_function_wrapper(
-                bound_func, self.srcfile, self.srcline)
+            function_wrapper = _bound_function_wrapper(bound_func, self.srcfile, self.srcline, self.skipname)
             self.bound_functions[bound_key] = function_wrapper
 
             proposed_inst_name = owner.__name__ + '0'
 
-            n = 1
-            while proposed_inst_name in _inst_name_set:
-                proposed_inst_name = owner.__name__ + str(n)
-                n += 1
+            if self.skipname:
+                function_wrapper.name_prefix = None
+            else:
+                if hasattr(instance, self.ident_method) and callable(getattr(instance, self.ident_method)):
+                    proposed_inst_name = getattr(instance, self.ident_method)()
+                else:
+                    proposed_inst_name = owner.__name__ + '0'
+                    n = 1
+                    while proposed_inst_name in _inst_name_set:
+                        proposed_inst_name = owner.__name__ + str(n)
+                        n += 1
 
-            function_wrapper.name_prefix = proposed_inst_name
-            _inst_name_set.add(proposed_inst_name)
+                function_wrapper.name_prefix = proposed_inst_name
+                _inst_name_set.add(proposed_inst_name)
+            self.name = proposed_inst_name
 
         else:
             function_wrapper = self.bound_functions[bound_key]
@@ -186,20 +210,29 @@ class block(object):
         return function_wrapper
 
     def __call__(self, *args, **kwargs):
-
-        name = self.func.__name__ + str(self.calls)
-        self.calls += 1
-
-        # See concerns above about uniqueifying
-        name = _uniqueify_name(name)
+        if self.skipname:
+            name = None
+        else:
+            name = self.func.__name__ + str(self.calls)
+            self.calls += 1
+            # See concerns above about uniqueifying
+            name = _uniqueify_name(name)
 
         return _Block(self.func, self, name, self.srcfile,
-                      self.srcline, *args, **kwargs)
+                      self.srcline, self.skipname, *args, **kwargs)
+
+
+def block(func=None, **kwargs):
+    decorator = block_decorator
+    if func is None:
+        return type(decorator.__name__, (decorator,), kwargs)
+    else:
+        return decorator(func)
 
 
 class _Block(object):
 
-    def __init__(self, func, deco, name, srcfile, srcline, *args, **kwargs):
+    def __init__(self, func, deco, name, srcfile, srcline, skipname, *args, **kwargs):
         calls = deco.calls
 
         self.func = func
@@ -213,8 +246,8 @@ class _Block(object):
         self.symdict = None
         self.sigdict = {}
         self.memdict = {}
+        self.skipname = skipname
         self.name = self.__name__ = name
-
         # flatten, but keep BlockInstance objects
         self.subs = _flatten(func(*args, **kwargs))
         self._verifySubs()
@@ -291,7 +324,21 @@ class _Block(object):
         This is a workaround function for cleaning up before converts.
         """
         # workaround: elaborate again for the side effect on signal attibutes
-        self.func(*self.args, **self.kwargs)
+        # TODO: jb -> jck: unfortunately this may/will also take twice as long, which for big designs matters!
+        # and second it will print every user debug message twice cluttering the console output
+        # so there must be a better way than this *lazy* workaround
+        # maybe later ...
+        if isboundmethod(self.func):
+            if hasattr(self, 'isHdlClass'):
+                # if present it will be `True`, even if it is `False` :)
+                # An HdlClass object's hdl() method does not take any args nor kwargs
+                # all ports/signals (must) have resolved in the `__iniy__()` call
+                self.func()
+            else:
+                self.func(*self.args, **self.kwargs)
+        else:
+            self.func(*self.args, **self.kwargs)
+
         # reset number of calls in all blocks
         for b in myhdl._simulator._blocks:
             b.calls = 0
@@ -350,6 +397,7 @@ class _Block(object):
             conv_attrs['no_testbench'] = not kwargs.pop('testbench', True)
             conv_attrs['timescale'] = kwargs.pop('timescale', '1ns/10ps')
             conv_attrs['trace'] = kwargs.pop('trace', False)
+
         conv_attrs.update(kwargs)
         for k, v in conv_attrs.items():
             setattr(converter, k, v)
@@ -373,3 +421,4 @@ class _Block(object):
     def quit_sim(self):
         if self.sim is not None:
             self.sim.quit()
+

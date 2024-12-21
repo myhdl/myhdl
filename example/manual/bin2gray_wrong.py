@@ -1,5 +1,6 @@
 from myhdl import block, always_comb
 
+
 @block
 def bin2gray(B, G):
     # INCORRECT IMPLEMENTATION
@@ -10,7 +11,7 @@ def bin2gray(B, G):
     """
 
     @always_comb
-    def logic():
+    def comb():
         G.next = B[0]
 
-    return logic
+    return comb

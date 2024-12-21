@@ -37,70 +37,70 @@ QUIET = 1
 def SignalFunc1(a, b, c, d, r):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             r.next = a + b + c
 
-    return logic
+    return comb
 
 
 def SignalFunc2(a, b, c, d, r):
 
-    def logic(a, r):
+    def comb(a, r):
         while 1:
             yield a
             r.next = a - b + c
 
-    return logic(a, r)
+    return comb(a, r)
 
 
 def SignalTupleFunc1(a, b, c, d, r):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a, b, c
             r.next = a + b + c
 
-    return logic
+    return comb
 
 
 def SignalTupleFunc2(a, b, c, d, r):
 
-    def logic(a, r):
+    def comb(a, r):
         while 1:
             yield a, b, c
             r.next = a - b + c
 
-    return logic(a, r)
+    return comb(a, r)
 
 
 def DelayFunc(a, b, c, d, r):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield delay(3)
             r.next = a + b + c
 
-    return logic
+    return comb
 
 
 def EdgeFunc1(a, b, c, d, r):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield c.posedge
             r.next = a + b + c
 
-    return logic
+    return comb
 
 
 def EdgeFunc2(a, b, c, d, r):
 
-    def logic(c, r):
+    def comb(c, r):
         while 1:
             yield c.negedge
             r.next = a + b + c
@@ -110,23 +110,23 @@ def EdgeFunc2(a, b, c, d, r):
             else:
                 r.next = a + b - c
 
-    return logic(c, r)
+    return comb(c, r)
 
 
 def EdgeTupleFunc1(a, b, c, d, r):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield c.posedge, d.negedge
             r.next = a + b + c
 
-    return logic
+    return comb
 
 
 def EdgeTupleFunc2(a, b, c, d, r):
 
-    def logic(c, r):
+    def comb(c, r):
         while 1:
             yield c.negedge, d.posedge
             r.next = a + b + c
@@ -136,12 +136,12 @@ def EdgeTupleFunc2(a, b, c, d, r):
             else:
                 r.next = a + b - c
 
-    return logic(c, r)
+    return comb(c, r)
 
 
 def GeneralFunc(a, b, c, d, r):
 
-    def logic(c, r):
+    def comb(c, r):
         while 1:
             yield c.negedge, d.posedge
             r.next = a + b + c
@@ -151,7 +151,7 @@ def GeneralFunc(a, b, c, d, r):
             else:
                 r.next = a + b - c
 
-    return logic(c, r)
+    return comb(c, r)
 
 
 class TestInferWaiter:
@@ -161,12 +161,12 @@ class TestInferWaiter:
         a, b, c, d, r, s = [Signal(intbv(0)) for __ in range(6)]
 
         gen_inst_r = genFunc(a, b, c, d, r)
-        if not isinstance(gen_inst_r, GeneratorType):  # decorator type
+        if not isinstance(gen_inst_r, GeneratorType): # decorator type
             gen_inst_r = gen_inst_r.gen
         assert type(_inferWaiter(gen_inst_r)) == waiterType
 
         gen_inst_s = genFunc(a, b, c, d, s)
-        if not isinstance(gen_inst_s, GeneratorType):  # decorator type
+        if not isinstance(gen_inst_s, GeneratorType): # decorator type
             gen_inst_s = gen_inst_s.gen
 
         def stimulus():

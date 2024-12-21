@@ -1,5 +1,6 @@
 from myhdl import block, always_comb
 
+
 @block
 def bin2gray(B, G):
     """ Gray encoder.
@@ -9,8 +10,8 @@ def bin2gray(B, G):
     """
 
     @always_comb
-    def logic():
-        G.next = (B>>1) ^ B
+    def comb():
+        G.next = (B >> 1) ^ B
 
-    return logic
+    return comb
 

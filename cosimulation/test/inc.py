@@ -3,6 +3,7 @@ from myhdl import *
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+
 def inc(count, enable, clock, reset, n):
     """ Incrementer with enable.
     
@@ -14,11 +15,11 @@ def inc(count, enable, clock, reset, n):
     """
 
     @always(clock.posedge, reset.negedge)
-    def logic():
+    def synch():
         if reset == ACTIVE_LOW:
             count.next = 0
         else:
             if enable:
                 count.next = (count + 1) % n
 
-    return logic
+    return synch

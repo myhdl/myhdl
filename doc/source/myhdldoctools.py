@@ -9,10 +9,13 @@ from sphinx.directives.code import LiteralInclude
 
 example_dir = '/../../example/manual/'
 
+
 class IncludeExample(LiteralInclude):
+
     def run(self):
         self.arguments[0] = '{}/{}'.format(example_dir, self.arguments[0])
         return super(IncludeExample, self).run()
+
 
 class RunExample(Directive):
     has_content = False
@@ -24,7 +27,7 @@ class RunExample(Directive):
         env = document.settings.env
         _ , wd = env.relfn2path(example_dir)
         prog = self.arguments[0]
-        out = subprocess.check_output(['python3', '-u', prog], cwd=wd, 
+        out = subprocess.check_output(['python', '-u', prog], cwd=wd,
                                       stderr=subprocess.STDOUT,
                                       universal_newlines=True)
         out = '$ python {}\n{}'.format(prog, out)

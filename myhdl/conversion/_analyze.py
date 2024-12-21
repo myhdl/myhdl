@@ -20,7 +20,6 @@
 """ MyHDL conversion analysis module.
 
 """
-import inspect
 # import compiler
 # from compiler import ast as astNode
 from types import FunctionType, MethodType
@@ -40,12 +39,15 @@ from myhdl.conversion._misc import (_error, _access, _kind,
                                     _ConversionMixin, _Label, _genUniqueSuffix,
                                     _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
-from myhdl._Signal import _Signal, _WaiterList
+from myhdl._Signal import _Signal, _WaiterList, _isListOfSigs
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
 from myhdl._util import _flatten
 from myhdl._util import _isTupleOfInts
 from myhdl._util import _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._misc import isboundmethod
+
+from myhdl._hdlclass import HdlClass
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -63,9 +65,9 @@ def _makeName(n, prefixes, namedict):
         name = n
     if '[' in name or ']' in name:
         name = "\\" + name + ' '
-# print prefixes
-# print name
-    return name
+
+    # dirty fix (for class based designs): remove 'self_' if there
+    return name.replace('self_', '')
 
 
 def _analyzeSigs(hierarchy, hdl='Verilog'):
@@ -87,7 +89,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
         delta = curlevel - level
         curlevel = level
         assert(delta >= -1)
-        if delta > -1:  # same or higher level
+        if delta > -1: # same or higher level
             prefixes = prefixes[:curlevel - 1]
         # skip processing and prefixing in context without signals
         # if not (sigdict or memdict):
@@ -106,6 +108,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
             for sl in s._slicesigs:
                 sl._setName(hdl)
             siglist.append(s)
+
         # list of signals
         for n, m in memdict.items():
             if m.name is not None:
@@ -153,7 +156,8 @@ def _analyzeGens(top, absnames):
                     # currently, only intbv as automatic nonlocals (until Python 3.0)
                     if isinstance(obj, intbv):
                         tree.nonlocaldict[n] = obj
-            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            # tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).lower()
             v = _AttrRefTransformer(tree)
             v.visit(tree)
             v = _FirstPassVisitor(tree)
@@ -165,14 +169,15 @@ def _analyzeGens(top, absnames):
             else:
                 v = _AnalyzeAlwaysDecoVisitor(tree, g.senslist)
             v.visit(tree)
-        else:  # @instance
+        else: # @instance
             f = g.gen.gi_frame
             tree = g.ast
             tree.symdict = f.f_globals.copy()
             tree.symdict.update(f.f_locals)
             tree.nonlocaldict = {}
             tree.callstack = []
-            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            # tree.name = absnames.get(id(g), str(_Label("BLOCK"))).upper()
+            tree.name = absnames.get(id(g), str(_Label("BLOCK"))).lower()
             v = _AttrRefTransformer(tree)
             v.visit(tree)
             v = _FirstPassVisitor(tree)
@@ -302,7 +307,7 @@ class _FirstPassVisitor(ast.NodeVisitor, _ConversionMixin):
         if node:
             if len(node) == 1 and \
                     isinstance(node[0], ast.If) and \
-                    node[0].body[0].col_offset == co:  # ugly hack to detect separate else clause
+                    node[0].body[0].col_offset == co: # ugly hack to detect separate else clause
                 elifnode = node[0]
                 tests.append((elifnode.test, elifnode.body))
                 self.flattenIf(elifnode.orelse, tests, else_, co)
@@ -505,7 +510,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 _enumTypeSet.add(obj)
                 suf = _genUniqueSuffix.next()
                 obj._setName(n + suf)
-        if node.obj is None:  # attribute lookup failed
+        if node.obj is None: # attribute lookup failed
             self.raiseError(node, _error.UnsupportedAttribute, node.attr)
 
     def visit_Assign(self, node):
@@ -798,7 +803,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
         # XXX INOUT access in Store context, unlike with compiler
         # XXX check whether ast context is correct
         n = node.id
-        if self.access == _access.INOUT:  # augmented assign
+        if self.access == _access.INOUT: # augmented assign
             if n in self.tree.sigdict:
                 sig = self.tree.sigdict[n]
                 if isinstance(sig, _Signal):
@@ -834,7 +839,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(sig, _TristateDriver):
                 sig._sig._driven = 'wire'
             if not isinstance(sig, _Signal):
-                # print "not a signal: %s" % n
                 pass
             else:
                 if sig._type is bool:
@@ -852,7 +856,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
                 self.raiseError(node, _error.NotSupported, "Augmented signal assignment")
         if n in self.tree.vardict:
             obj = self.tree.vardict[n]
-            if self.access == _access.INOUT:  # probably dead code
+            if self.access == _access.INOUT: # probably dead code
                 # upgrade bool to int for augmented assignments
                 if isinstance(obj, bool):
                     obj = int(-1)
@@ -974,7 +978,7 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.visit(node.value)
         self.access = _access.INPUT
-        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
+        if sys.version_info >= (3, 9, 0): # Python 3.9+: no ast.Index wrapper
             self.visit(node.slice)
         else:
             self.visit(node.slice.value)
@@ -1223,14 +1227,6 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             self.tree.hasReturn = True
 
 
-ismethod = inspect.ismethod
-# inspect doc is wrong: ismethod checks both bound and unbound methods
-
-
-def isboundmethod(m):
-    return ismethod(m) and m.__self__ is not None
-
-
 # a local function to drill down to the last interface
 def expandinterface(v, name, obj):
     for attr, attrobj in vars(obj).items():
@@ -1284,15 +1280,27 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
         self.argnames = []
 
     def visit_FunctionDef(self, node):
-
         self.name = node.name
-        self.argnames = _get_argnames(node)
         if isboundmethod(self.func):
-            if not self.argnames[0] == 'self':
-                self.raiseError(node, _error.NotSupported,
-                                "first method argument name other than 'self'")
-            # skip self
-            self.argnames = self.argnames[1:]
+            if isinstance(self.func.__self__, HdlClass):
+                # must find names ...
+                for arg in self.args:
+                    # be selective
+                    if isinstance(arg, _Signal):
+                        self.argnames.append(arg._name)
+                    elif _isListOfSigs(arg):
+                        raise NotImplementedError(f'do not handle ListOfSignals {self.name}:{arg}')
+            else:
+                # another class
+                self.argnames = _get_argnames(node)
+                if not self.argnames[0] == 'self':
+                    self.raiseError(node, _error.NotSupported,
+                                    "first method argument name other than 'self'")
+                # skip self
+                self.argnames = self.argnames[1:]
+        else:
+            self.argnames = _get_argnames(node)
+
         i = -1
         for i, arg in enumerate(self.args):
             n = self.argnames[i]

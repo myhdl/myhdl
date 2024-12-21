@@ -26,17 +26,21 @@ random.seed(1)  # random, but deterministic
 
 
 def A(n):
+
     @instance
-    def logic():
+    def comb():
         yield None
-    return logic
+
+    return comb
 
 
 def B(n):
+
     @instance
-    def logic():
+    def comb():
         yield None
-    return logic
+
+    return comb
 
 
 def C(n):
@@ -44,6 +48,7 @@ def C(n):
     A_2 = A(2)
     B_1 = B(1)
     return A_1, A_2, B_1
+
 
 g = 3
 
@@ -55,6 +60,7 @@ class TestInstances:
         @instance
         def D_1():
             yield None
+
         d = 1
 
         A_1 = A(1)

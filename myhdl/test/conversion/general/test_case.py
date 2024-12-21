@@ -5,7 +5,7 @@ from myhdl import (block, Signal, intbv, delay, always_comb, instance)
 def map_case4(z, a):
 
     @always_comb
-    def logic():
+    def comb():
         if a == 0:
             z.next = 0
         elif a == 1:
@@ -15,28 +15,28 @@ def map_case4(z, a):
         else:
             z.next = 3
 
-    return logic
+    return comb
 
 
 @block
 def map_case2(z, a):
 
     @always_comb
-    def logic():
+    def comb():
         z.next = 0
         if a == 0:
             z.next = 0
         elif a == 1:
             z.next = 1
 
-    return logic
+    return comb
 
 
 @block
 def map_case3(z, a):
 
     @always_comb
-    def logic():
+    def comb():
         if a == 0:
             z.next = 0
         elif a == 1:
@@ -44,14 +44,14 @@ def map_case3(z, a):
         else:
             z.next = 2
 
-    return logic
+    return comb
 
 
 @block
 def map_case4_full(z, a):
 
     @always_comb
-    def logic():
+    def comb():
         if a == 0:
             z.next = 0
         elif a == 1:
@@ -61,7 +61,7 @@ def map_case4_full(z, a):
         elif a == 3:
             z.next = 3
 
-    return logic
+    return comb
 
 
 @block

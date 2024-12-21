@@ -75,7 +75,7 @@ class _TraceSignalsClass(object):
                 _simulator._tracing = 0
                 _simulator._tf.close()
                 os.remove(vcdpath)
-        else:  # deprecated
+        else: # deprecated
             if _tracing:
                 return dut(*args, **kwargs)  # skip
             else:
@@ -166,13 +166,13 @@ def _namecode(n):
 
 def _writeVcdHeader(f, timescale):
     print("$date", file=f)
-    print("    %s" % time.asctime(), file=f)
+    print(f"   {time.asctime(time.gmtime())} UTC", file=f)
     print("$end", file=f)
     print("$version", file=f)
-    print("    MyHDL %s" % __version__, file=f)
+    print(f"    MyHDL {__version__}", file=f)
     print("$end", file=f)
     print("$timescale", file=f)
-    print("    %s" % timescale, file=f)
+    print(f"    {timescale}", file=f)
     print("$end", file=f)
     print(file=f)
 
@@ -188,78 +188,119 @@ def _getSval(s):
 
 
 def _writeVcdSigs(f, hierarchy, tracelists):
-    curlevel = 0
+    previouslevel = 0
     namegen = _genNameCode()
     siglist = []
+    indent = 2
+    upscopestack = []
+    prefixstack = []
+    fullpathnames = []
+
     for inst in hierarchy:
         level = inst.level
         name = inst.name
         sigdict = inst.sigdict
         memdict = inst.memdict
-        delta = curlevel - level
-        curlevel = level
-        assert(delta >= -1)
-        if delta >= 0:
-            for i in range(delta + 1):
-                print("$upscope $end", file=f)
-        print("$scope module %s $end" % name, file=f)
+        delta = previouslevel - level
+        previouslevel = level
+
+        if name is None:
+            # an @block(skipname=True) has been applied for this 'inst'
+            # Note that this will skip a level, so we should skip a matching 'upscope', the upscopestack helps in handling that
+            pass
+        else:
+            assert(delta >= -1)
+            # close previous 'downscopes'
+            if delta >= 0:
+                while upscopestack[-1] >= level:
+                        indent -= 2
+                        print(f"{' '*indent}$upscope $end", file=f)
+                        upscopestack.pop(-1)
+                        prefixstack.pop(-1)
+            # now open the new 'scope'
+            print(f"{' '*indent}$scope module {name} $end", file=f)
+            upscopestack.append(level)
+            prefixstack.append(name)
+            indent += 2
+
+        fullpathprefix = '_'.join(prefixstack)
         for n, s in sigdict.items():
             sval = _getSval(s)
             if sval is None:
-                raise ValueError("%s of module %s has no initial value" % (n, name))
+                raise ValueError(f"{n} of module {name} has no initial value")
             if not s._tracing:
                 s._tracing = 1
                 s._code = next(namegen)
                 siglist.append(s)
             w = s._nrbits
-            # use real for enum strings
-            if w:
-                if not isinstance(sval, EnumItemType):
-                    if w == 1:
-                        print("$var reg 1 %s %s $end" % (s._code, n), file=f)
+            n = n.replace('self_', '')
+            fullpathname = '_'.join((fullpathprefix, n))
+            if fullpathname not in fullpathnames:
+                fullpathnames.append(fullpathname)
+                if w:
+                    ww = w
+                    if isinstance(sval, EnumItemType):
+                        # 18-04-2014 jb
+                        #  it is an enum, and as Impulse doesn't know the awkward 'real' representation yet,
+                        #  so let's 'degrade' it to a binary type
+                        # 30-04-2014 jb
+                        #  Impulse now has a 'string'type
+                        #  print "30-04-2014 jb: Representing enum as string"  # leave a trace
+                        # TODO: re-visit string output in .vcd?
+                        vcdtype = 'string'
                     else:
-                        print("$var reg %s %s %s $end" % (w, s._code, n), file=f)
+                        vcdtype = 'reg'
                 else:
-                    # 18-04-2014 jb
-                    # it is an enum, and as Impulse doesn't know the awkward 'real' representation yet, so let's 'degrade' it to a binary type
-                    # 30-04-2014 jb
-                    # Impulse now has a 'string'type
-                    print("$var string %s %s %s $end" % (w, s._code, n), file=f)
-# print "30-04-2014 jb: Representing enum as string"  # leave a trace
-            else:
-                print("$var real 1 %s %s $end" % (s._code, n), file=f)
+                    vcdtype = 'real'
+                    ww = 1
+
+                print(f"{' '*indent}$var {vcdtype} {ww} {s._code} {n} $end", file=f)
+
         # Memory dump by Frederik Teichert, http://teichert-ing.de, date: 2011.03.28
         # The Value Change Dump standard doesn't support multidimensional arrays so
         # all memories are flattened and renamed.
         if tracelists:
             for n in memdict.keys():
-                print("$scope module {} $end" .format(n), file=f)
-                memindex = 0
-                for s in memdict[n].mem:
-                    sval = _getSval(s)
-                    if sval is None:
-                        raise ValueError("%s of module %s has no initial value" % (n, name))
-                    if not s._tracing:
-                        s._tracing = 1
-                        s._code = next(namegen)
-                        siglist.append(s)
-                    w = s._nrbits
-                    # use real for enum strings
-                    # 03-02-2024-04-2014 jb
-                    # Impulse has a 'string'type (since 2014, see above
-                    if w and not isinstance(sval, EnumItemType):
-                        if w == 1:
-                            print("$var reg 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
+                nn = n.replace('self_', '')
+                fullpathname = '_'.join((fullpathprefix, nn))
+                if fullpathname not in fullpathnames:
+                    fullpathnames.append(fullpathname)
+                    print(f"{' '*indent}$scope module {nn} $end", file=f)
+                    indent += 2
+                    memindex = 0
+                    for s in memdict[n].mem:
+                        sval = _getSval(s)
+                        if sval is None:
+                            raise ValueError(f"{nn} of module {name} has no initial value")
+                        if not s._tracing:
+                            s._tracing = 1
+                            s._code = next(namegen)
+                            siglist.append(s)
+                        w = s._nrbits
+                        if w:
+                            ww = w
+                            if  isinstance(sval, EnumItemType):
+                                # 03-02-20 jb
+                                # Impulse has a 'string'type (since 2014, see above)
+                                vcdtype = 'string'
+                            else:
+                                vcdtype = 'reg'
                         else:
-                            print("$var reg %s %s %s(%i) $end" % (w, s._code, n, memindex), file=f)
-                    else:
-                        print("$var string 1 %s %s(%i) $end" % (s._code, n, memindex), file=f)
-                    memindex += 1
-                print("$upscope $end", file=f)
-    for i in range(curlevel):
-        print("$upscope $end", file=f)
-    print(file=f)
-    print("$enddefinitions $end", file=f)
+                            vcdtype = 'real'
+                            ww = 1
+
+                        print(f"{' '*indent}$var {vcdtype} {ww} {s._code} {nn}({memindex}) $end", file=f)
+
+                        memindex += 1
+                    indent -= 2
+                    print(f"{' '*indent}$upscope $end", file=f)
+
+    # empty the upscope stack
+    for __ in range(len(upscopestack)):
+        indent -= 2
+        print(f"{' '*indent}$upscope $end", file=f)
+
+    print("\n$enddefinitions $end\n", file=f)
     print("$dumpvars", file=f)
     for s in siglist:
         s._printVcd()  # initial value

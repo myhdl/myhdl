@@ -11,7 +11,7 @@ from myhdl.conversion._misc import _error
 def ForLoopError1(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -20,7 +20,7 @@ def ForLoopError1(a, out):
                     var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block

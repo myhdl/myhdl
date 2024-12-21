@@ -4,7 +4,7 @@ from myhdl import (block, Signal, intbv, always)
 @block
 def module42_2(sigin, sigout):
 
-    # Using @always(sigin) only warns, but using @always_comp breaks.
+    # Using @always(sigin) only warns, but using @always_comb breaks.
     # The reason is that len(sigout) is interpreted as sigout being used as
     # an input.
     @always(sigin)

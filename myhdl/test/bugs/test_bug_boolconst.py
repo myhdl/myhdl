@@ -10,7 +10,7 @@ BOOL_CONDITION_1 = True
 def bug_boolconst(sigin, sigout):
 
     @always_comb
-    def output():
+    def comb():
         sigout.next = 0
         if INT_CONDITION_0:
             sigout.next = sigin
@@ -29,7 +29,7 @@ def bug_boolconst(sigin, sigout):
         if not BOOL_CONDITION_1:
             sigout.next = sigin
 
-    return output
+    return comb
 
 
 def test_bug_boolconst():

@@ -68,11 +68,11 @@ def name_conflict_after_replace(clock, reset, a, a_x):
     a_x_0 = [Signal(intbv(0)[len(a_x):]) for _ in range(8)]
 
     @always_seq(clock.posedge, reset=reset)
-    def logic():
+    def comb():
         a.x.next = a_x
         a_x.next = a_x_0[1]
 
-    return logic
+    return comb
 
 
 @pytest.mark.xfail

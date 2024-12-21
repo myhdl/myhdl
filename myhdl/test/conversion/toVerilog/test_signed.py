@@ -36,7 +36,7 @@ def binaryOps(
                  left, right, bit):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield left, right
     # #        Bitand.next = left & right
@@ -70,7 +70,7 @@ def binaryOps(
             And.next = bool(left) and bool(right)
             Or.next = bool(left) or bool(right)
 
-    return logic
+    return comb
 
 
 @block
@@ -255,7 +255,7 @@ def unaryOps(
              arg):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield arg
             Not.next = not arg
@@ -263,7 +263,7 @@ def unaryOps(
             UnaryAdd.next = +arg
             UnarySub.next = - -arg
 
-    return logic
+    return comb
 
 
 def unaryOps_v(name,
@@ -345,7 +345,7 @@ def augmOps(
               left, right):
 
     @instance
-    def logic():
+    def comb():
         var = intbv(0, min=-2 ** 17, max=+2 ** 17)
         var2 = intbv(0, min=-2 ** 64, max=+2 ** 64)
         while 1:
@@ -387,7 +387,7 @@ def augmOps(
             var += right
             Sum.next = var
 
-    return logic
+    return comb
 
 
 @block
@@ -513,7 +513,7 @@ def expressions(a, b, clk):
     c = Signal(intbv(0, min=0, max=47))
 
     @instance
-    def logic():
+    def comb():
 
         d = intbv(0, min=-23, max=43)
         d[:] = -17
@@ -553,7 +553,7 @@ def expressions(a, b, clk):
         yield clk.posedge
         raise StopSimulation
 
-    return logic
+    return comb
 
 
 @block

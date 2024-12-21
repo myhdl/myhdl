@@ -25,7 +25,7 @@ import math
 import os
 
 import inspect
-from datetime import datetime
+import time
 # import compiler
 # from compiler import ast as astNode
 import ast
@@ -142,6 +142,7 @@ class _ToVHDLConvertor(object):
         else:
             # clean start
             sys.setprofile(None)
+
         from myhdl import _traceSignals
         if _traceSignals._tracing:
             raise ToVHDLError("Cannot use toVHDL while tracing signals")
@@ -204,7 +205,6 @@ class _ToVHDLConvertor(object):
         _checkArgs(arglist)
         genlist = _analyzeGens(arglist, h.absnames)
         siglist, memlist = _analyzeSigs(h.hierarchy, hdl='VHDL')
-        # print h.top
         _annotateTypes(genlist)
 
         # infer interface
@@ -298,14 +298,14 @@ myhdl_header = """\
 
 
 def _writeFileHeader(f, fn):
-    vars = dict(filename=fn,
+    defs = dict(filename=fn,
                 version=myhdl.__version__,
-                date=datetime.today().ctime()
+                date=f"   {time.asctime(time.gmtime())} UTC"
                 )
     if toVHDL.header:
-        print(string.Template(toVHDL.header).substitute(vars), file=f)
+        print(string.Template(toVHDL.header).substitute(defs), file=f)
     if not toVHDL.no_myhdl_header:
-        print(string.Template(myhdl_header).substitute(vars), file=f)
+        print(string.Template(myhdl_header).substitute(defs), file=f)
     print(file=f)
 
 
@@ -613,7 +613,7 @@ def _convertGens(genlist, siglist, memlist, vfile):
             Visitor = _ConvertAlwaysDecoVisitor
         elif tree.kind == _kind.ALWAYS_SEQ:
             Visitor = _ConvertAlwaysSeqVisitor
-        else:  # ALWAYS_COMB
+        else: # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(tree, blockBuf, funcBuf)
         v.visit(tree)
@@ -1173,7 +1173,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             self.visit(arg)
             self.write(post)
             return
-        elif f == intbv.signed:  # note equality comparison
+        elif f == intbv.signed: # note equality comparison
             # this call comes from a getattr
             arg = fn.value
             pre, suf = self.inferCast(node.vhd, node.vhdOri)
@@ -1331,7 +1331,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 start, stop, step = args[0], args[1], None
             else:
                 start, stop, step = args
-        else:  # downrange
+        else: # downrange
             cmp = '>='
             op = 'downto'
             if len(args) == 1:
@@ -1599,7 +1599,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                         s = "to_signed(%s, %s)" % (obj, node.vhd.size)
                     else:
                         s = 'signed\'("%s")' % tobin(obj, node.vhd.size)
-            elif isinstance(obj, tuple):  # Python3.9+ ast.Index replacement serves a tuple
+            elif isinstance(obj, tuple): # Python3.9+ ast.Index replacement serves a tuple
                 s = n
             elif isinstance(obj, _Signal):
                 s = str(obj)
@@ -1714,7 +1714,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write("(")
         # assert len(node.subs) == 1
-        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
+        if sys.version_info >= (3, 9, 0): # Python 3.9+: no ast.Index wrapper
             self.visit(node.slice)
         else:
             self.visit(node.slice.value)
@@ -2356,7 +2356,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             node.vhd = vhd_int()
         elif f is now:
             node.vhd = vhd_nat()
-        elif f == intbv.signed:  # note equality comparison
+        elif f == intbv.signed: # note equality comparison
             # this comes from a getattr
             # node.vhd = vhd_int()
             node.vhd = vhd_signed(fn.value.vhd.size)
@@ -2414,7 +2414,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
             self.inferShiftType(node)
         elif isinstance(node.op, (ast.BitAnd, ast.BitOr, ast.BitXor)):
             self.inferBitOpType(node)
-        elif isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Constant) and isinstance(node.left.value, str):  # format string
+        elif isinstance(node.op, ast.Mod) and isinstance(node.left, ast.Constant) and isinstance(node.left.value, str): # format string
             pass
         else:
             self.inferBinOpType(node)
@@ -2528,7 +2528,7 @@ class _AnnotateTypesVisitor(ast.NodeVisitor, _ConversionMixin):
     def accessIndex(self, node):
         self.generic_visit(node)
         node.vhd = vhd_std_logic()  # XXX default
-        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
+        if sys.version_info >= (3, 9, 0): # Python 3.9+: no ast.Index wrapper
             node.slice.vhd = vhd_int()
         else:
             node.slice.value.vhd = vhd_int()

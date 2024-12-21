@@ -15,7 +15,7 @@ def ram(dout, din, addr, we, clk, depth=128):
     """ Simple ram model """
 
     @instance
-    def logic():
+    def comb():
         mem = [intbv(0)[8:] for dummy in range(depth)]
         # ad = 1
         while 1:
@@ -24,7 +24,7 @@ def ram(dout, din, addr, we, clk, depth=128):
                 mem[int(addr)][:] = din
             dout.next = mem[int(addr)]
 
-    return logic
+    return comb
 
 
 @block

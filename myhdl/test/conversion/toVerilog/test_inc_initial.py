@@ -27,7 +27,7 @@ def inc_initial(count, enable, clock, reset, n):
     """
 
     @instance
-    def logic():
+    def comb():
         for dummy in range(100):
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -37,7 +37,7 @@ def inc_initial(count, enable, clock, reset, n):
                     count.next = (count + 1) % n
         raise StopSimulation
 
-    return logic
+    return comb
 
 
 objfile = "inc_initial_1.o"

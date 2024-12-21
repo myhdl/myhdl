@@ -29,7 +29,7 @@ def incRef(count, enable, clock, reset, n):
     """
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield clock.posedge, reset.negedge
             if reset == ACTIVE_LOW:
@@ -38,7 +38,7 @@ def incRef(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 @block
@@ -46,7 +46,7 @@ def incGen(count, enable, clock, reset, n):
     """ Generator with verilog_code is not permitted """
 
     @instance
-    def logic():
+    def comb():
         incGen.verilog_code = "Template string"
         while 1:
             yield clock.posedge, reset.negedge
@@ -56,7 +56,7 @@ def incGen(count, enable, clock, reset, n):
                 if enable:
                     count.next = (count + 1) % n
 
-    return logic
+    return comb
 
 
 @block
@@ -135,7 +135,7 @@ end
 def inc_comb(nextCount, count, n):
 
     @always_comb
-    def logic():
+    def comb():
         # make if fail in conversion
         import types
         nextCount.next = (count + 1) % n
@@ -147,14 +147,14 @@ def inc_comb(nextCount, count, n):
 assign $nextCount = ($count + 1) % $n;
 """
 
-    return logic
+    return comb
 
 
 @block
 def inc_seq(count, nextCount, enable, clock, reset):
 
     @always(clock.posedge, reset.negedge)
-    def logic():
+    def comb():
         # make it fail in conversion
         import types
         if reset == ACTIVE_LOW:
@@ -178,7 +178,7 @@ always @(posedge $clock, negedge $reset) begin
     end
 end
 """
-    return logic
+    return comb
 
 
 @block

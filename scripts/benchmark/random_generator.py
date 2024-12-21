@@ -1,14 +1,15 @@
 import myhdl
 from myhdl import *
 
+
 def random_generator(random_word, enable, clock, reset):
 
     W = len(random_word)
 
     @instance
-    def logic():
+    def comb():
         lfsr = modbv(0)[64:]
-        word =  modbv(0)[W:]
+        word = modbv(0)[W:]
         while True:
             yield clock.posedge, reset.posedge
             if reset == 1:
@@ -23,17 +24,14 @@ def random_generator(random_word, enable, clock, reset):
                         lfsr[0] = tmp0
                     random_word.next = word
 
-    return logic
+    return comb
 
-
-
-                    
 # def random_generator(random_word, enable, clock, reset):
 
 #     W = len(random_word)
 
 #     @instance
-#     def logic():
+#     def comb():
 #         lfsr = intbv(0)[64:]
 #         word =  intbv(0)[W:]
 #         while True:
@@ -51,8 +49,5 @@ def random_generator(random_word, enable, clock, reset):
 #                         lfsr[63] = tmp63
 #                     random_word.next = word
 
-#     return logic
+#     return comb
 
-
-
-                    

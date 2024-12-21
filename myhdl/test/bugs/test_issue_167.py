@@ -21,8 +21,8 @@ def compare(a_1, a_2, z_1, z_2, direction):
         Sorting to 'direction'. """
 
     @always_comb
-    def logic():
-        ''' Combinatorial logic '''
+    def comb():
+        ''' Combinatorial comb '''
         if direction == (a_1 > a_2):
             z_1.next = a_2
             z_2.next = a_1
@@ -30,7 +30,7 @@ def compare(a_1, a_2, z_1, z_2, direction):
             z_1.next = a_1
             z_2.next = a_2
 
-    return logic
+    return comb
 
 
 @block
@@ -38,11 +38,11 @@ def feedthru(in_a, out_z):
     """ Equivalent of 'doing nothing'. """
 
     @always_comb
-    def logic():
-        ''' Combinatorial logic '''
+    def comb():
+        ''' Combinatorial comb '''
         out_z.next = in_a
 
-    return logic
+    return comb
 
 
 @block

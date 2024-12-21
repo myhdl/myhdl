@@ -1,28 +1,28 @@
 import myhdl
 from myhdl import *
 
+
 def inc_comb(nextCount, count, n):
 
     @always(count)
-    def logic():
+    def comb():
         # do nothing here
         pass
 
     nextCount.driven = "wire"
 
-    return logic
+    return comb
 
-inc_comb.verilog_code =\
+
+inc_comb.verilog_code = \
 """
 assign $nextCount = ($count + 1) % $n;
 """
 
-inc_comb.vhdl_code =\
+inc_comb.vhdl_code = \
 """
 $nextCount <= ($count + 1) mod $n;
 """
-
-
 
 
 def main():
@@ -33,21 +33,7 @@ def main():
     toVerilog(inc_comb, nextCount, count, n)
     toVHDL(inc_comb, nextCount, count, n)
 
-        
+
 if __name__ == '__main__':
     main()
-
-
-            
-            
-
-    
-
-    
-        
-
-
-                
-
-        
 

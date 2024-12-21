@@ -374,19 +374,19 @@ class TestAlwaysCombSimulation2:
 def SignalGen1(a, b, c, d, r):
 
     @always_comb
-    def logic():
+    def comb():
         r.next = a
 
-    return logic
+    return comb
 
 
 def SignalTupleGen1(a, b, c, d, r):
 
     @always_comb
-    def logic():
+    def comb():
         r.next = a + b + c
 
-    return logic
+    return comb
 
 
 class TestInferWaiter:

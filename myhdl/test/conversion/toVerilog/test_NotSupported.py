@@ -27,13 +27,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     [p, q] = 1, 2
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -45,13 +45,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     p, q = 1, 2
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -63,7 +63,7 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
@@ -71,7 +71,7 @@ class TestNotSupported(unittest.TestCase):
                     class c:
                         pass
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -83,13 +83,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     d = {}
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -101,12 +101,12 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = z / a
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -118,13 +118,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     from os import path
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -136,7 +136,7 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
@@ -144,7 +144,7 @@ class TestNotSupported(unittest.TestCase):
                     def f():
                         pass
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -156,13 +156,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     global e
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -174,13 +174,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     import os
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -192,13 +192,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     lambda: 1
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -210,13 +210,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     l = [i for i in range(5) if i > 1]
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -228,13 +228,13 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
                     l = [1, 2, 3]
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -265,7 +265,7 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
@@ -274,7 +274,7 @@ class TestNotSupported(unittest.TestCase):
                     except:
                         pass
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -286,7 +286,7 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     z.next = 1
@@ -295,7 +295,7 @@ class TestNotSupported(unittest.TestCase):
                     finally:
                         pass
 
-            return logic
+            return comb
 
         self.check(g, z, a)
 
@@ -307,12 +307,12 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a, b, c):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a, b, c
                     z.next = a <= b < c
 
-            return logic
+            return comb
 
         self.check(g, z, a, b, c)
 
@@ -349,7 +349,7 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a, b):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     if a:
@@ -357,7 +357,7 @@ class TestNotSupported(unittest.TestCase):
                     else:
                         z.next = a and b
 
-            return logic
+            return comb
 
         self.check(g, z, a, b)
 
@@ -371,7 +371,7 @@ class TestNotSupported(unittest.TestCase):
         def g(z, a, b):
 
             @instance
-            def logic():
+            def comb():
                 while 1:
                     yield a
                     if a:
@@ -379,7 +379,7 @@ class TestNotSupported(unittest.TestCase):
                     else:
                         z.next = a < (b or c)
 
-            return logic
+            return comb
 
         self.check(g, z, a, b)
 
@@ -394,11 +394,11 @@ class TestNotSupported(unittest.TestCase):
         def f(a, b, c, *args):
 
             @instance
-            def logic():
+            def comb():
                 g(a, b)
                 yield a
 
-            return logic
+            return comb
 
         self.check(f, a, b, c)
 
@@ -414,11 +414,11 @@ class TestNotSupported(unittest.TestCase):
         def g(a):
 
             @instance
-            def logic():
+            def comb():
                 h(*c)
                 yield a
 
-            return logic
+            return comb
 
         @block
         def f(a, b, c):
@@ -438,11 +438,11 @@ class TestNotSupported(unittest.TestCase):
         def g(a):
 
             @instance
-            def logic():
+            def comb():
                 h(**d)
                 yield a
 
-            return logic
+            return comb
 
         @block
         def f(a, b, c):
@@ -465,11 +465,11 @@ class TestMisc(unittest.TestCase):
         def g(a):
 
             @instance
-            def logic():
+            def comb():
                 h(a)
                 yield a
 
-            return logic
+            return comb
 
         # b and c are not being used
         @block

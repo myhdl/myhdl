@@ -48,7 +48,7 @@ def PlainIntbv():
     #
 
     @instance
-    def logic():
+    def comb():
 
         print("Plain Instance Test")
 
@@ -190,7 +190,7 @@ def PlainIntbv():
         b29 = a29.signed()
         assert b29 == 0
 
-    return logic
+    return comb
 
 
 @block
@@ -203,7 +203,7 @@ def SlicedSigned():
     '''
 
     @instance
-    def logic():
+    def comb():
         b = intbv(4, min=-8, max=8)
         a = intbv(4, min=-8, max=8)
         print("SLicedSigned test")
@@ -218,7 +218,7 @@ def SlicedSigned():
         b[:] = a[3:].signed()
         assert b == -4  # msb is set with 3 bits sliced
 
-    return logic
+    return comb
 
 
 @block
@@ -226,7 +226,7 @@ def SignedConcat():
     '''Test the .signed() function with the concatenate function'''
 
     @instance
-    def logic():
+    def comb():
         print("Signed Concat test")
         yield delay(10)
 
@@ -243,7 +243,7 @@ def SignedConcat():
         b = intbv(5, min=0, max=8)
         assert concat(b, True, True).signed() == -9
 
-    return logic
+    return comb
 
 
 def test_PlainIntbv():

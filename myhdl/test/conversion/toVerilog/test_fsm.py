@@ -124,7 +124,7 @@ def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
     """
 
     @instance
-    def logic():
+    def comb():
         index = intbv(0, min=0, max=8)  # position in frame
         while 1:
             yield clk.posedge, reset_n.negedge
@@ -153,7 +153,7 @@ def FramerCtrl_ref(SOF, state, syncFlag, clk, reset_n, t_State):
                     raise ValueError("Undefined state")
                 index[:] = (index + 1) % FRAME_SIZE
 
-    return logic
+    return comb
 
 
 @block

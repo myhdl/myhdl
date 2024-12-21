@@ -3,6 +3,7 @@ from myhdl import *
 
 ACTIVE_LOW, INACTIVE_HIGH = 0, 1
 
+
 def dff(q, d, clk, reset):
     """ D flip-flop.
     
@@ -13,13 +14,11 @@ def dff(q, d, clk, reset):
     """
 
     @always(clk.posedge, reset.negedge)
-    def logic():
+    def synch():
         if reset == ACTIVE_LOW:
             q.next = 0
         else:
             q.next = d
 
-    return logic
-
-
+    return synch
 

@@ -44,6 +44,14 @@ def _isGenSeq(obj):
     return True
 
 
+ismethod = inspect.ismethod
+# inspect doc is wrong: ismethod checks both bound and unbound methods
+
+
+def isboundmethod(m):
+    return ismethod(m) and m.__self__ is not None
+
+
 def instances():
     f = inspect.currentframe()
     d = inspect.getouterframes(f)[1][0].f_locals

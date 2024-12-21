@@ -3,8 +3,9 @@ from myhdl import *
 from arith_utils import BEHAVIOR
 from PrefixAnd import PrefixAnd
 
+
 def Dec(width, speed, A, Z, architecture=BEHAVIOR):
-    
+
     """ Decrementer module.
 
     width -- bitwidth of input and output
@@ -25,17 +26,18 @@ def Dec(width, speed, A, Z, architecture=BEHAVIOR):
         AI = Signal(intbv(0))
         PO = Signal(intbv(0))
         prefix = PrefixAnd(width, speed, AI, PO)
+
         @instance
-        def logic():
+        def comb():
             while 1:
                 yield A, PO
                 AI.next = ~A
-                Z.next = A ^ concat(PO[width-1:], '1')
-        return [prefix, logic]
+                Z.next = A ^ concat(PO[width - 1:], '1')
+
+        return [prefix, comb]
 
     if architecture == BEHAVIOR:
         return Behavioral
     else:
         return Structural()
-        
-        
+

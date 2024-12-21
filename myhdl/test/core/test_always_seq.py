@@ -39,7 +39,7 @@ def test_reset():
     with raises_kind(AlwaysSeqError, _error.ResetType):
 
         @always_seq(clock.posedge, reset=reset)
-        def logic():
+        def synch():
             pass
 
     # should work with a valid Signal
@@ -47,7 +47,7 @@ def test_reset():
     try:
 
         @always_seq(clock.posedge, reset=reset)
-        def logic2():
+        def synch2():
             pass
 
     except:

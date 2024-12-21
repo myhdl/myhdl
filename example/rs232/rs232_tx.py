@@ -5,6 +5,7 @@ from myhdl import *
 
 from rs232_util import reduceXor, sec, ODD, EVEN, MARK, SPACE
 
+
 def rs232_tx(tx, data, cfg):
 
     """ rs232 transmitter.
@@ -14,11 +15,11 @@ def rs232_tx(tx, data, cfg):
     cfg -- rs232_util.Config configuration object
 
     """
-    
-    duration = delay(int(1*sec / cfg.baud_rate))
-    
+
+    duration = delay(int(1 * sec / cfg.baud_rate))
+
     @instance
-    def logic():
+    def comb():
         tx.next = 1
         yield duration
 
@@ -43,6 +44,5 @@ def rs232_tx(tx, data, cfg):
         for i in range(cfg.n_stops):
             yield duration
 
-    return logic
-    
-    
+    return comb
+

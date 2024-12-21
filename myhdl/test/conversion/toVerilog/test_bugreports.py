@@ -13,10 +13,10 @@ width = 8
 @block
 def add(x, a, b):
 
-    def logic():
+    def comb():
         x.next = a + b
 
-    L0 = always_comb(logic)
+    L0 = always_comb(comb)
     return L0
 
 
@@ -55,10 +55,10 @@ def test_bugreports_001():
 # @block
 # def add(x, a, b):
 #
-#     def logic():
+#     def comb():
 #         x.next = a + b
 #
-#     L0 = always_comb(logic)
+#     L0 = always_comb(comb)
 #     return L0
 
 

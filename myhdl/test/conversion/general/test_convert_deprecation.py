@@ -16,13 +16,13 @@ def bin2gray_depr(B, G, width):
     """
 
     @always_comb
-    def logic():
+    def comb():
         Bext = intbv(0)[width + 1:]
         Bext[:] = B
         for i in range(width):
             G.next[i] = Bext[i + 1] ^ Bext[i]
 
-    return logic
+    return comb
 
 
 width = 1

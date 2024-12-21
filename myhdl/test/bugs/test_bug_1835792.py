@@ -15,13 +15,13 @@ def bug_1835792 ():
     """
 
     @instance
-    def logic():
+    def comb():
         v = intbv(0, min=-15, max=45)
         yield delay(10)
         print(v.min);
         print(v.max);
 
-    return logic
+    return comb
 
 
 def test_bug_1835792 ():

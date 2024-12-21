@@ -2,21 +2,23 @@ import myhdl
 from myhdl import *
 from myhdl.conversion import analyze
 
+
 def dff(q, d, clk):
 
     @always(clk.posedge)
-    def logic():
+    def comb():
         q.next = d
 
-    return logic
+    return comb
 
 
 from random import randrange
 
+
 def test_dff():
-    
+
     q, d, clk = [Signal(bool(0)) for i in range(3)]
-    
+
     dff_inst = dff(q, d, clk)
 
     @always(delay(10))
@@ -29,6 +31,7 @@ def test_dff():
 
     return dff_inst, clkgen, stimulus
 
+
 def simulate(timesteps):
     traceSignals.timescale = "1ps"
     tb = traceSignals(test_dff)
@@ -36,12 +39,15 @@ def simulate(timesteps):
     sim.run(timesteps)
     sim.quit()
 
+
 simulate(2000)
+
 
 def convert():
     q, d, clk = [Signal(bool(0)) for i in range(3)]
     toVerilog(dff, q, d, clk)
     analyze(dff, q, d, clk)
- 
+
+
 convert()
-    
+

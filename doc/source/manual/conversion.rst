@@ -260,11 +260,11 @@ Notes:
    should be the rhs of an assignment.
 
 (4)
-   All list members should have identical value constraints.
+   All list members should have identical size constraints.
 
   
 (5)
-   Lists are mapped to Verilog memories. 
+   Lists are mapped to VHDL/Verilog memories. 
 
 
 The table as presented applies to MyHDL variables. The converter also

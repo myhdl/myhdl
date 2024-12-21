@@ -52,45 +52,45 @@ def test_intbv2list():
 def inv1(z, a):
 
     @always(a)
-    def logic():
+    def comb():
         z.next = not a
 
-    return logic
+    return comb
 
 
 @block
 def inv2(z, a):
 
     @always_comb
-    def logic():
+    def comb():
         z.next = not a
 
-    return logic
+    return comb
 
 
 @block
 def inv3(z, a):
 
     @instance
-    def logic():
+    def comb():
         while True:
             yield a
             z.next = not a
 
-    return logic
+    return comb
 
 
 @block
 def inv4(z, a):
 
     @instance
-    def logic():
+    def comb():
         while True:
             yield a
             yield delay(1)
             z.next = not a
 
-    return logic
+    return comb
 
 
 @block
@@ -242,7 +242,7 @@ def unsigned():
     a = [Signal(intbv(0)[8:]) for __ in range(3)]
 
     @always_comb
-    def logic():
+    def comb():
         z.next = a[1] + a[2]
 
     @instance
@@ -252,7 +252,7 @@ def unsigned():
         yield delay(10)
         print(z)
 
-    return logic, stimulus
+    return comb, stimulus
 
 
 def test_unsigned():
@@ -265,7 +265,7 @@ def signed():
     a = [Signal(intbv(0, min=-5, max=17)) for __ in range(3)]
 
     @always_comb
-    def logic():
+    def comb():
         z.next = a[1] + a[2]
 
     @instance
@@ -275,7 +275,7 @@ def signed():
         yield delay(10)
         print(z)
 
-    return logic, stimulus
+    return comb, stimulus
 
 
 def test_signed():
@@ -289,7 +289,7 @@ def mixed():
     b = [Signal(intbv(0)[5:]) for __ in range(3)]
 
     @always_comb
-    def logic():
+    def comb():
         z.next = a[1] + b[2]
 
     @instance
@@ -299,7 +299,7 @@ def mixed():
         yield delay(10)
         print(z)
 
-    return logic, stimulus
+    return comb, stimulus
 
 
 def test_mixed():
@@ -316,10 +316,10 @@ def portInList(z, a, b):
     m = [a, b]
 
     @always_comb
-    def logic():
+    def comb():
         z.next = m[0] + m[1]
 
-    return logic
+    return comb
 
 
 def test_portInList():
@@ -344,10 +344,10 @@ def sigInMultipleLists():
     m2 = [a, b]
 
     @always_comb
-    def logic():
+    def comb():
         z.next = m1[0] + m2[1]
 
-    return logic
+    return comb
 
 
 def test_sigInMultipleLists():

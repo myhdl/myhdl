@@ -1,12 +1,13 @@
 import myhdl
 from myhdl import *
 
+
 def timer_sig(flag, clock, reset, MAXVAL):
 
-    count = Signal(intbv(0, min=0, max=MAXVAL+1))
+    count = Signal(intbv(0, min=0, max=MAXVAL + 1))
 
     @always (clock.posedge, reset.posedge)
-    def logic():
+    def synch():
         if reset == 1:
             count.next = 0
         else:
@@ -17,14 +18,14 @@ def timer_sig(flag, clock, reset, MAXVAL):
             else:
                 count.next = count + 1
 
-    return logic
+    return synch
 
 
 def timer_var(flag, clock, reset, MAXVAL):
 
     @instance
-    def logic():
-        count = intbv(0, min=0, max=MAXVAL+1)
+    def comb():
+        count = intbv(0, min=0, max=MAXVAL + 1)
         while True:
             yield clock.posedge, reset.posedge
             if reset == 1:
@@ -37,6 +38,5 @@ def timer_var(flag, clock, reset, MAXVAL):
                 else:
                     count += 1
 
-    return logic
-
+    return comb
 

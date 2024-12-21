@@ -33,7 +33,7 @@ def binaryOps(
               left, right):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield left, right
             Bitand.next = left & right
@@ -44,7 +44,7 @@ def binaryOps(
                 FloorDiv.next = left // right
     # #         if left < 256 and right < 40:
             LeftShift.next = 0
-            if left < 256 and right < 26:  # fails in ghdl for > 26
+            if left < 256 and right < 26: # fails in ghdl for > 26
                 LeftShift.next = left << right
             Modulo.next = 0
             if right != 0:
@@ -68,7 +68,7 @@ def binaryOps(
             Booland.next = bool(left) and bool(right)
             Boolor.next = bool(left) or bool(right)
 
-    return logic
+    return comb
 
 
 @block
@@ -191,7 +191,7 @@ def multiOps(
               argm, argn, argp):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield argm, argn, argp
             Bitand.next = argm & argn & argp
@@ -200,7 +200,7 @@ def multiOps(
             Booland.next = bool(argm) and bool(argn) and bool(argp)
             Boolor.next = bool(argm) and bool(argn) and bool(argp)
 
-    return logic
+    return comb
 
 
 @block
@@ -280,7 +280,7 @@ def unaryOps(
              arg):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield arg
             Not_kw.next = not arg
@@ -289,7 +289,7 @@ def unaryOps(
             # unary operators not supported ?
             # UnaryAdd.next = +arg
             # UnarySub.next = --arg
-    return logic
+    return comb
 
 
 @block
@@ -350,7 +350,7 @@ def augmOps(Bitand,
               left, right):
 
     @instance
-    def logic():
+    def comb():
         # var = intbv(0)[min(64, len(left) + len(right)):]
         var = intbv(0)[len(left) + len(right):]
         var2 = intbv(0)[64:]
@@ -395,7 +395,7 @@ def augmOps(Bitand,
             var >>= right
             RightShift.next = var
 
-    return logic
+    return comb
 
 
 @block

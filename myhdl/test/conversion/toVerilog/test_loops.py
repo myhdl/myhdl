@@ -14,7 +14,7 @@ from .util import setupCosimulation
 def ForLoop1(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -23,14 +23,14 @@ def ForLoop1(a, out):
                     var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def ForLoop2(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -39,14 +39,14 @@ def ForLoop2(a, out):
                     var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def ForLoop3(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -55,14 +55,14 @@ def ForLoop3(a, out):
                     var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def ForLoop4(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -71,14 +71,14 @@ def ForLoop4(a, out):
                     var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def ForLoop5(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -87,14 +87,14 @@ def ForLoop5(a, out):
                     var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def ForLoop6(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -103,14 +103,14 @@ def ForLoop6(a, out):
                     var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def ForContinueLoop(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -120,14 +120,14 @@ def ForContinueLoop(a, out):
                 var += 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def ForBreakLoop(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = 0
@@ -136,14 +136,14 @@ def ForBreakLoop(a, out):
                     out.next = i
                     break
 
-    return logic
+    return comb
 
 
 @block
 def ForBreakContinueLoop(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = 0
@@ -153,14 +153,14 @@ def ForBreakContinueLoop(a, out):
                 out.next = i
                 break
 
-    return logic
+    return comb
 
 
 @block
 def NestedForLoop1(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -174,14 +174,14 @@ def NestedForLoop1(a, out):
                     break
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def NestedForLoop2(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = 0
@@ -197,7 +197,7 @@ def NestedForLoop2(a, out):
                             break
                     break
 
-    return logic
+    return comb
 
 
 def ReturnFromFunction(a):
@@ -211,12 +211,12 @@ def ReturnFromFunction(a):
 def FunctionCall(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             out.next = ReturnFromFunction(a)
 
-    return logic
+    return comb
 
 
 # During the following check, I noticed that non-blocking assignments
@@ -234,21 +234,21 @@ def ReturnFromTask(a, out):
 def TaskCall(a, out):
 
     @instance
-    def logic():
+    def comb():
         var = intbv(0)[8:]
         while 1:
             yield a
             ReturnFromTask(a, var)
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def WhileLoop(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -259,14 +259,14 @@ def WhileLoop(a, out):
                 i -= 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def WhileContinueLoop(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             var = 0
@@ -279,14 +279,14 @@ def WhileContinueLoop(a, out):
                 i -= 1
             out.next = var
 
-    return logic
+    return comb
 
 
 @block
 def WhileBreakLoop(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             i = len(a) - 1
@@ -297,14 +297,14 @@ def WhileBreakLoop(a, out):
                     break
                 i -= 1
 
-    return logic
+    return comb
 
 
 @block
 def WhileBreakContinueLoop(a, out):
 
     @instance
-    def logic():
+    def comb():
         while 1:
             yield a
             i = len(a) - 1
@@ -316,7 +316,7 @@ def WhileBreakContinueLoop(a, out):
                 out.next = i
                 break
 
-    return logic
+    return comb
 
 
 @block
