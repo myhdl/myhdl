@@ -96,12 +96,15 @@ if __name__ == '__main__':
     class XYMotors(HdlClass):
 
         def __init__(self, PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive):
+            # mess up the order of the signals trying to confuse the convertor
+            # as we have to tweak things a bit to achieve 'direct' conversion of
+            # HdlClass objects
+            self.Reset = Reset
+            self.XDrive = XDrive
             self.PWMCOUNT = PWMCOUNT
             self.Clk = Clk
-            self.Reset = Reset
             self.XSpeed = XSpeed
             self.YSpeed = YSpeed
-            self.XDrive = XDrive
             self.YDrive = YDrive
 
         @block(skipname=True)
@@ -111,8 +114,8 @@ if __name__ == '__main__':
 
             return self.hdlinstances()
 
-    # create a minimal test-bench to test the .vcd geenration
-    # as we have to weed out the `None` - because of an @block(skipname=True)
+    # create a minimal test-bench to test the .vcd generation
+    # as we want/have to weed out the `None` - because of an @block(skipname=True)
     # which add an unnecessary indentation level in the waveform which absolutely looks ugly
     @block
     def tb_xymotors():
@@ -159,22 +162,23 @@ if __name__ == '__main__':
 
         return instances()
 
-    if 1:
+    if 0:
         dft = tb_xymotors()
         dft.config_sim(trace=True, timescale='1ps', tracebackup=False)
         dft.run_sim()
 
-    if 1:
+    def convert():
         # try converting
+        # note they will appear in this order in the entity/module declaration; why?
+        XDrive = Signal(bool(0))
         PWMCOUNT = 100
-        Clk = Signal(bool(0))
         Reset = ResetSignal(0, 1, False)
+        Clk = Signal(bool(0))
         XSpeed = Signal(intbv(0, 0, PWMCOUNT))
         YSpeed = Signal(intbv(0, 0, PWMCOUNT))
-        XDrive = Signal(bool(0))
         YDrive = Signal(bool(0))
 
-        if 1:
+        if 0:
             ''' looks like we have to live with writing a wrapper '''
 
             # a local written-out wrapper works fine
@@ -189,15 +193,27 @@ if __name__ == '__main__':
             dfc = wrapper(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
             dfc.convert(hdl='VHDL', name='XYMotors')
             dfc.convert(hdl='Verilog', name='XYMotors')
-        # these fail in one way or another
-        # else:
-        #     from _hdlclass import wrapper, convert
-        #     if 0:
-        #         # this raises an IndexError in _analyze.py
-        #         # beacuse the '*args' in wrapper disappear into nowhere?
-        #         convert(wrapper(XYMotors, PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive))
-        #     else:
-        #         # this produces an 'empty' entity
-        #         hc = XYMotors(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
-        #         hc.convert(hdl='VHDL', name='XYMotors')
 
+        else:
+            if 0:
+
+                @block
+                def wrapper(hdlclass, *args):
+                    return hdlclass(*args).hdl()
+
+                # this raises an IndexError in _analyze.py
+                # beacuse the '*args' in wrapper disappear into nowhere?
+                dfc = wrapper(XYMotors, PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
+                for key, value in vars(dfc).items():
+                    print(key, value)
+                print()
+                print(f'{dfc.sigdict=}')
+                dfc.convert(hdl='VHDL', name='XYMotors')
+            else:
+                # doing direct conversion from the class instance itself
+                # this is quite necessary for hierarchical conversion
+                dfc = XYMotors(PWMCOUNT, Clk, Reset, XSpeed, YSpeed, XDrive, YDrive)
+                dfc.convert(hdl='VHDL', name='XYMotors')
+                dfc.convert(hdl='Verilog', name='XYMotors')
+
+    convert()

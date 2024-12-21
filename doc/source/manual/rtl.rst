@@ -202,9 +202,9 @@ attributes of the type. For example
    >>> from myhdl import enum
    >>> t_State = enum('SEARCH', 'CONFIRM', 'SYNC')
    >>> t_State
-   <Enum: SEARCH, CONFIRM, SYNC>
+   enum('SEARCH','CONFIRM','SYNC')
    >>> t_State.CONFIRM
-   CONFIRM
+   'CONFIRM'
 
 We can use this type to construct a state signal as follows::
 

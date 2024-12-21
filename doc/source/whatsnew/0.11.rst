@@ -6,6 +6,67 @@
 What's new in MyHDL 0.11
 ************************
 
+0.11.51
+Class Based Design
+==================
+Initial code to enable true Class Based Design resulting in very
+clean designs with little, most ofthen none, glue signals to interconnect
+logic blocks
+
+
+0.11.50
+blocked intialisation of TristateSignals
+=======================================
+fixes issue #438
+
+0.11.49
+0.11.48
+0.11.47
+Verilog Skip zero mem initialisation
+====================================
+A specific vendor: Efinix limits initializing a memory up to 20000 entries.
+This allows for Verilog (only) to skip generating the initial block setting all entries of a memory to zero
+
+0.11.46
+Removed support for Python 3.7
+=============================
+As Python 3.7 is EOL we decided to remove any related code
+
+0.11.45
+Initialisation of list of enum
+==============================
+fixed #428
+
+0.11.44
+Array of Enum in .vcd
+=====================
+fixed representation of an arrayt (list) of enums in the generated .vcd outpu 
+
+0.11.43
+OpenPort
+========
+Until now if you did not use an output port of a block you would get
+a warning by MyHDL that the port was never read, but you would get a similar warning
+in the (FPGA) synthesis tool. You can now specify an OpenPort() as the output signal. 
+MyHDL will take care of this by not declaring that signal and commenting out any assigns
+in the generated code
+
+Constant Signal
+===============
+In stead of translating constants (Macro in C/C++) to magic numbers
+you can now delare them as a constant and they will show up as a `constant`
+in VHDL or as a `localparam` in Verilog
+For the moment it has to be a constrained `intbv`
+e.g.: 
+
+0.11.42
+A sub-minor version number
+=========================
+We introduced this and thought it wise to start off with 42 ...
+It is the idea that this subminor number is incremented for every commit/merger
+so we can give better support 
+
+< 0.11.42
 The `isasync` arguments
 =======================
 

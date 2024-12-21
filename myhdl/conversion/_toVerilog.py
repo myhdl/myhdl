@@ -26,7 +26,7 @@ import os
 import textwrap
 
 import inspect
-from datetime import datetime
+import time
 import ast
 import string
 from io import StringIO
@@ -253,14 +253,14 @@ myhdl_header = """\
 
 
 def _writeFileHeader(f, fn, ts):
-    vars = dict(filename=fn,
+    defs = dict(filename=fn,
                 version=myhdl.__version__,
-                date=datetime.today().ctime()
+                date=f"   {time.asctime(time.gmtime())} UTC"
                 )
     if not toVerilog.no_myhdl_header:
-        print(string.Template(myhdl_header).substitute(vars), file=f)
+        print(string.Template(myhdl_header).substitute(defs), file=f)
     if toVerilog.header:
-        print(string.Template(toVerilog.header).substitute(vars), file=f)
+        print(string.Template(toVerilog.header).substitute(defs), file=f)
     print(file=f)
     print("`timescale %s" % ts, file=f)
     print(file=f)
@@ -522,7 +522,7 @@ def _intRepr(n, radix=''):
     #            if not radix:
     #                radix = "'d"
         r = "%s%s%s" % (size, radix, num)
-        if n < 0:  # add brackets and sign on negative numbers
+        if n < 0: # add brackets and sign on negative numbers
             r = "(-%s)" % r
         return r
 
@@ -544,7 +544,7 @@ def _convertGens(genlist, vfile):
             Visitor = _ConvertAlwaysDecoVisitor
         elif tree.kind == _kind.ALWAYS_SEQ:
             Visitor = _ConvertAlwaysSeqVisitor
-        else:  # ALWAYS_COMB
+        else: # ALWAYS_COMB
             Visitor = _ConvertAlwaysCombVisitor
         v = Visitor(tree, blockBuf, funcBuf)
         v.visit(tree)
@@ -875,7 +875,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         elif f in (intbv, modbv):
             self.visit(node.args[0])
             return
-        elif f == intbv.signed:  # note equality comparison
+        elif f == intbv.signed: # note equality comparison
             # comes from a getattr
             opening, closing = '', ''
             if not fn.value.signed:
@@ -988,7 +988,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 start, stop, step = args[0], args[1], None
             else:
                 start, stop, step = args
-        else:  # downrange
+        else: # downrange
             cmp = '>='
             op = '-'
             oneoff = '-1'
@@ -1207,7 +1207,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
                 s = "1'b%s" % int(obj)
             elif isinstance(obj, int):
                 s = self.IntRepr(obj)
-            elif isinstance(obj, tuple):  # Python3.9+ ast.Index replacement serves a tuple
+            elif isinstance(obj, tuple): # Python3.9+ ast.Index replacement serves a tuple
                 s = n
             elif isinstance(obj, _Signal):
                 addSignBit = isMixedExpr
@@ -1349,7 +1349,7 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
         self.visit(node.value)
         self.write("[")
         # assert len(node.subs) == 1
-        if sys.version_info >= (3, 9, 0):  # Python 3.9+: no ast.Index wrapper
+        if sys.version_info >= (3, 9, 0): # Python 3.9+: no ast.Index wrapper
             self.visit(node.slice)
         else:
             self.visit(node.slice.value)

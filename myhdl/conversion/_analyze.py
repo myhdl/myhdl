@@ -20,7 +20,6 @@
 """ MyHDL conversion analysis module.
 
 """
-import inspect
 # import compiler
 # from compiler import ast as astNode
 from types import FunctionType, MethodType
@@ -40,12 +39,15 @@ from myhdl.conversion._misc import (_error, _access, _kind,
                                     _ConversionMixin, _Label, _genUniqueSuffix,
                                     _get_argnames)
 from myhdl._extractHierarchy import _isMem, _getMemInfo, _UserCode
-from myhdl._Signal import _Signal, _WaiterList
+from myhdl._Signal import _Signal, _WaiterList, _isListOfSigs
 from myhdl._ShadowSignal import _ShadowSignal, _SliceSignal, _TristateDriver
 from myhdl._util import _flatten
 from myhdl._util import _isTupleOfInts
 from myhdl._util import _makeAST
 from myhdl._resolverefs import _AttrRefTransformer
+from myhdl._misc import isboundmethod
+
+from myhdl._hdlclass import HdlClass
 
 myhdlObjects = myhdl.__dict__.values()
 builtinObjects = builtins.__dict__.values()
@@ -106,6 +108,7 @@ def _analyzeSigs(hierarchy, hdl='Verilog'):
             for sl in s._slicesigs:
                 sl._setName(hdl)
             siglist.append(s)
+
         # list of signals
         for n, m in memdict.items():
             if m.name is not None:
@@ -836,7 +839,6 @@ class _AnalyzeVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(sig, _TristateDriver):
                 sig._sig._driven = 'wire'
             if not isinstance(sig, _Signal):
-                # print "not a signal: %s" % n
                 pass
             else:
                 if sig._type is bool:
@@ -1225,14 +1227,6 @@ class _AnalyzeFuncVisitor(_AnalyzeVisitor):
             self.tree.hasReturn = True
 
 
-ismethod = inspect.ismethod
-# inspect doc is wrong: ismethod checks both bound and unbound methods
-
-
-def isboundmethod(m):
-    return ismethod(m) and m.__self__ is not None
-
-
 # a local function to drill down to the last interface
 def expandinterface(v, name, obj):
     for attr, attrobj in vars(obj).items():
@@ -1286,15 +1280,27 @@ class _AnalyzeTopFuncVisitor(_AnalyzeVisitor):
         self.argnames = []
 
     def visit_FunctionDef(self, node):
-
         self.name = node.name
-        self.argnames = _get_argnames(node)
         if isboundmethod(self.func):
-            if not self.argnames[0] == 'self':
-                self.raiseError(node, _error.NotSupported,
-                                "first method argument name other than 'self'")
-            # skip self
-            self.argnames = self.argnames[1:]
+            if isinstance(self.func.__self__, HdlClass):
+                # must find names ...
+                for arg in self.args:
+                    # be selective
+                    if isinstance(arg, _Signal):
+                        self.argnames.append(arg._name)
+                    elif _isListOfSigs(arg):
+                        raise NotImplementedError(f'do not handle ListOfSignals {self.name}:{arg}')
+            else:
+                # another class
+                self.argnames = _get_argnames(node)
+                if not self.argnames[0] == 'self':
+                    self.raiseError(node, _error.NotSupported,
+                                    "first method argument name other than 'self'")
+                # skip self
+                self.argnames = self.argnames[1:]
+        else:
+            self.argnames = _get_argnames(node)
+
         i = -1
         for i, arg in enumerate(self.args):
             n = self.argnames[i]

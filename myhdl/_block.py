@@ -31,6 +31,7 @@ from myhdl._extractHierarchy import (_makeMemInfo,
                                      _UserVerilogCode, _UserVhdlCode,
                                      _UserVerilogInstance, _UserVhdlInstance)
 from myhdl._Signal import _Signal, _isListOfSigs
+from myhdl._misc import isboundmethod
 
 from weakref import WeakValueDictionary
 
@@ -89,6 +90,7 @@ def _getCallInfo():
             modctxt = isinstance(f_locals['self'], _Block)
 
     return _CallInfo(name, modctxt, symdict)
+
 
 # ## I don't think this is the right place for uniqueifying the name.
 # ## This seems to me to be a conversion concern, not a block concern, and
@@ -153,7 +155,7 @@ class block_decorator(object):
         as this was a PR from 2020 it had some issues to be merged, especially the 
         missing sub-version number
     '''
-	#TODO: revisit this code and check `self.name` ...
+    # TODO: revisit this code and check `self.name` ...
     skipname = False
     ident_method = "get_instance_ident"
 
@@ -199,7 +201,7 @@ class block_decorator(object):
 
                 function_wrapper.name_prefix = proposed_inst_name
                 _inst_name_set.add(proposed_inst_name)
-            self.name= proposed_inst_name
+            self.name = proposed_inst_name
 
         else:
             function_wrapper = self.bound_functions[bound_key]
@@ -322,7 +324,21 @@ class _Block(object):
         This is a workaround function for cleaning up before converts.
         """
         # workaround: elaborate again for the side effect on signal attibutes
-        self.func(*self.args, **self.kwargs)
+        # TODO: jb -> jck: unfortunately this may/will also take twice as long, which for big designs matters!
+        # and second it will print every user debug message twice cluttering the console output
+        # so there must be a better way than this *lazy* workaround
+        # maybe later ...
+        if isboundmethod(self.func):
+            if hasattr(self, 'isHdlClass'):
+                # if present it will be `True`, even if it is `False` :)
+                # An HdlClass object's hdl() method does not take any args nor kwargs
+                # all ports/signals (must) have resolved in the `__iniy__()` call
+                self.func()
+            else:
+                self.func(*self.args, **self.kwargs)
+        else:
+            self.func(*self.args, **self.kwargs)
+
         # reset number of calls in all blocks
         for b in myhdl._simulator._blocks:
             b.calls = 0
@@ -381,7 +397,7 @@ class _Block(object):
             conv_attrs['no_testbench'] = not kwargs.pop('testbench', True)
             conv_attrs['timescale'] = kwargs.pop('timescale', '1ns/10ps')
             conv_attrs['trace'] = kwargs.pop('trace', False)
-            
+
         conv_attrs.update(kwargs)
         for k, v in conv_attrs.items():
             setattr(converter, k, v)
@@ -405,3 +421,4 @@ class _Block(object):
     def quit_sim(self):
         if self.sim is not None:
             self.sim.quit()
+
