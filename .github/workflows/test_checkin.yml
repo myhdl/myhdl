@@ -111,8 +111,9 @@ jobs:
           echo "Runing tests with env set to : ${{ env.CI_TARGET }}"
         
       - if: ${{ env.CI_TARGET == 'ghdl' }}
-        uses: ghdl/setup-ghdl-ci@nightly
+        uses: ghdl/setup-ghdl@v1
         with:
+          version: nightly
           backend: llvm
       - if: ${{ env.CI_TARGET == 'iverilog' }}
         name: Choco iverilog
