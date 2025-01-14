@@ -94,32 +94,27 @@ jobs:
        shell: msys2 {0}
     needs: [run_lint]
 
-    env:
-      CI_TARGET: ${{ matrix.target }}
-    
     steps:
       - uses: actions/checkout@v3
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
-          path-type: inherit
+          msystem: ucrt64
           update: true
-          pacboy: >-
-            make:p
       - name: Report Environment
         run: |
-          echo "Runing tests with env set to : ${{ env.CI_TARGET }}"
+          echo "Runing tests with env set to : ${{ matrix.target }}"
         
-      - if: ${{ env.CI_TARGET == 'ghdl' }}
+      - if: matrix.target == 'ghdl'
         uses: ghdl/setup-ghdl@v1
         with:
           version: nightly
           backend: llvm
-      - if: ${{ env.CI_TARGET == 'iverilog' }}
+          runtime: ucrt64
+      - if: matrix.target == 'iverilog'
         name: Choco iverilog
         run: |
-          choco install --yes ${{ env.CI_TARGET }}
-      - if: ${{ env.CI_TARGET == 'iverilog' }}
+          choco install --yes ${{ matrix.target }}
+      - if: matrix.target == 'iverilog'
         name: Compile vpi
         run: |
           make iverilog_myhdl.vpi
@@ -139,7 +134,7 @@ jobs:
           python -m pip install .
       - name: Run Tests
         run: |
-          make ${{ env.CI_TARGET }}
+          make ${{ matrix.target }}
   
   pypy_release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
