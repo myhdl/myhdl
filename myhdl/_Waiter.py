@@ -89,8 +89,13 @@ class _Waiter(object):
                 if nr > 1:
                     actives[id(clause)] = clause
             elif isinstance(clause, _Signal):
-                wl = clause._eventWaiters
-                wl.append(clone)
+                try:
+                    wl = clause._eventWaiters
+                    wl.append(clone)
+                except AttributeError:
+                    clause._eventWaiters = _WaiterList()
+                    wl = clause._eventWaiters
+                    wl.append(clone)
                 if nr > 1:
                     actives[id(wl)] = wl
             elif isinstance(clause, delay):
@@ -167,7 +172,11 @@ class _SignalWaiter(_Waiter):
 
     def next(self, waiters, actives, exc):
         clause = next(self.generator)
-        clause._eventWaiters.append(self)
+        try:
+            clause._eventWaiters.append(self)
+        except AttributeError:
+            clause._eventWaiters = _WaiterList()
+            clause._eventWaiters.append(self)
 
 
 class _SignalTupleWaiter(_Waiter):
@@ -185,8 +194,13 @@ class _SignalTupleWaiter(_Waiter):
         self.hasRun = 1
         clone = _SignalTupleWaiter(self.generator)
         for clause in clauses:
-            wl = clause._eventWaiters
-            wl.append(clone)
+            try:
+                wl = clause._eventWaiters
+                wl.append(clone)
+            except AttributeError:
+                clause._eventWaiters = _WaiterList()
+                wl = clause._eventWaiters
+                wl.append(clone)
             actives[id(wl)] = wl
 
 
