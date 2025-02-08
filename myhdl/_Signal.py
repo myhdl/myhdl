@@ -147,6 +147,10 @@ class _Signal(object):
         elif isinstance(val, int):
             self._type = (int,)
             self._setNextVal = self._setNextInt
+        elif isinstance(val, float):
+            self._type = float
+            self._setNextVal = self._setNextFloat
+            self._printVcd = self._printVcdFloat
         elif isinstance(val, intbv):
             self._type = intbv
             self._min = val._min
@@ -294,6 +298,11 @@ class _Signal(object):
             raise TypeError("Expected int or intbv, got %s" % type(val))
         self._next = val
 
+    def _setNextFloat(self, val):
+        if not isinstance(val, float):
+            raise TypeError("Expected float, got %s" % type(val))
+        self._next = val
+
     def _setNextIntbv(self, val):
         if isinstance(val, intbv):
             val = val._val
@@ -315,6 +324,9 @@ class _Signal(object):
     # vcd print methods
     def _printVcdStr(self):
         print("s%s %s" % (str(self._val), self._code), file=sim._tf)
+
+    def _printVcdFloat(self):
+        print("r%.16g %s" % (self._val, self._code), file=sim._tf)
 
     def _printVcdHex(self):
         if self._val is None:
