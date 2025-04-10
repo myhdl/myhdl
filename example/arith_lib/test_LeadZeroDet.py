@@ -9,7 +9,7 @@ from arith_utils import SLOW, FAST
 from LeadZeroDet import LeadZeroDet
 
 import random
-random.seed = 1
+random.seed(1)
 from random import random
 
 class LeadZeroDetTest(TestCase):
