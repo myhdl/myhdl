@@ -25,6 +25,7 @@ from types import GeneratorType
 from myhdl import StopSimulation, _SuspendSimulation
 from myhdl import _simulator, SimulationError
 from myhdl._Cosimulation import Cosimulation
+from myhdl._Verilation import Verilation
 from myhdl._simulator import _signals, _siglist, _futureEvents
 from myhdl._Waiter import _Waiter
 from myhdl._Waiter import _inferWaiter
@@ -82,7 +83,7 @@ class Simulation(object):
         """
         _simulator._time = 0
         arglist = _flatten(*args)
-        self._waiters, self._cosims = _makeWaiters(arglist)
+        self._waiters, self._cosims, self._veris = _makeWaiters(arglist)
         if Simulation._no_of_instances > 0:
             raise SimulationError(_error.MultipleSim)
         Simulation._no_of_instances += 1
@@ -128,7 +129,7 @@ class Simulation(object):
             stop.hasRun = 1
             maxTime = _simulator._time + duration
             schedule((maxTime, stop))
-        cosims = self._cosims
+        cosims = self._cosims + self._veris
         t = _simulator._time
         actives = {}
         tracing = _simulator._tracing
@@ -234,6 +235,7 @@ def _makeWaiters(arglist):
     waiters = []
     ids = set()
     cosims = []
+    veris = []
     for arg in arglist:
         if isinstance(arg, GeneratorType):
             waiters.append(_inferWaiter(arg))
@@ -241,6 +243,9 @@ def _makeWaiters(arglist):
             waiters.append(arg.waiter)
         elif isinstance(arg, Cosimulation):
             cosims.append(arg)
+            waiters.append(_SignalTupleWaiter(arg._waiter()))
+        elif isinstance(arg, Verilation):
+            veris.append(arg)
             waiters.append(_SignalTupleWaiter(arg._waiter()))
         elif isinstance(arg, _Waiter):
             waiters.append(arg)
@@ -255,4 +260,4 @@ def _makeWaiters(arglist):
     for sig in _signals:
         if hasattr(sig, '_waiter'):
             waiters.append(sig._waiter)
-    return waiters, cosims
+    return waiters, cosims, veris
