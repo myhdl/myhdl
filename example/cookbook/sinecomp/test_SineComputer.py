@@ -1,5 +1,6 @@
 from math import pi, sin, cos, log
 import random
+random.seed(2)
 
 import myhdl
 from myhdl import *
