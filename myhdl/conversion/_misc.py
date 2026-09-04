@@ -129,7 +129,7 @@ class _ConversionMixin(object):
         return None
 
     def getVal(self, node):
-        if sys.version_info >= (3, 14):
+        if sys.version_info >= (3, 13):
             # print(ast.dump(ast.parse('123', mode='eval'), indent=4))
             # Expression(body=Constant(value=123))
             expr = ast.Expression(node)
