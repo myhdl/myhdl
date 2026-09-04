@@ -21,6 +21,8 @@ typedef char PLI_BYTE8;
 typedef unsigned char PLI_UBYTE8;
 #endif
 
+//Globals
+
 /* 64 bit type for time calculations */
 typedef unsigned long long myhdl_time64_t;
 
@@ -47,7 +49,7 @@ static PLI_INT32 delay_callback(p_cb_data cb_data);
 static PLI_INT32 delta_callback(p_cb_data cb_data);
 static PLI_INT32 change_callback(p_cb_data cb_data);
 
-static int init_pipes();
+static int init_pipes(void);
 
 static myhdl_time64_t timestruct_to_time(const struct t_vpi_time*ts);
 
@@ -59,7 +61,7 @@ static myhdl_time64_t timestruct_to_time(const struct t_vpi_time*ts) {
 	return ti;
 }
 
-static int init_pipes() {
+static int init_pipes(void) {
 	char *w;
 	char *r;
 
@@ -91,6 +93,7 @@ static int init_pipes() {
 }
 
 static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data) {
+   (void)user_data; // Avoid a warning since user_data is not used.
 	vpiHandle reg_iter, reg_handle;
 	s_vpi_time verilog_time_s;
 	char buf[MAXLINE];
@@ -148,6 +151,7 @@ static PLI_INT32 from_myhdl_calltf(PLI_BYTE8 *user_data) {
 }
 
 static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data) {
+   (void)user_data; // Avoid a warning since user_data is not used.
 	vpiHandle net_iter, net_handle;
 	char buf[MAXLINE];
 	char s[MAXWIDTH];
@@ -157,7 +161,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data) {
 	s_cb_data cb_data_s;
 	s_vpi_time verilog_time_s;
 	s_vpi_time time_s;
-	s_vpi_value value_s;
+	// s_vpi_value value_s;
 	static int to_myhdl_flag = 0;
 
 	if (to_myhdl_flag) {
@@ -182,7 +186,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data) {
 	delta = 0;
 
 	time_s.type = vpiSuppressTime;
-	value_s.format = vpiSuppressVal;
+	// value_s.format = vpiSuppressVal;
 	cb_data_s.reason = cbValueChange;
 	cb_data_s.cb_rtn = change_callback;
 	cb_data_s.time = &time_s;
@@ -250,6 +254,7 @@ static PLI_INT32 to_myhdl_calltf(PLI_BYTE8 *user_data) {
 }
 
 static PLI_INT32 readonly_callback(p_cb_data cb_data) {
+   (void)cb_data; // Avoid a warning since user_data is not used.
 	vpiHandle net_iter, net_handle;
 	s_cb_data cb_data_s;
 	s_vpi_time verilog_time_s;
@@ -318,10 +323,10 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data) {
 	myhdl_time = (myhdl_time64_t) strtoull(myhdl_time_string, (char **) NULL,
 			10);
 	delay = (myhdl_time - pli_time) * 1000;
-	assert(delay >= 0);
+	// assert(delay >= 0); // always valid ...
 	assert(delay <= 0xFFFFFFFF);
 	if (delay > 0) { // schedule cbAfterDelay callback
-		assert(delay > delta);
+		assert(delay > (myhdl_time64_t) delta);
 		delay -= delta;
 		/* Icarus 20030518 runs RO callbacks when time has already advanced */
 		/* Therefore, one had to compensate for the prescheduled delta callback */
@@ -350,6 +355,7 @@ static PLI_INT32 readonly_callback(p_cb_data cb_data) {
 }
 
 static PLI_INT32 delay_callback(p_cb_data cb_data) {
+   (void)cb_data; // Avoid a warning since user_data is not used.
 	s_vpi_time time_s;
 	s_cb_data cb_data_s;
 
@@ -381,6 +387,7 @@ static PLI_INT32 delay_callback(p_cb_data cb_data) {
 }
 
 static PLI_INT32 delta_callback(p_cb_data cb_data) {
+   (void)cb_data; // Avoid a warning since user_data is not used.
 	s_cb_data cb_data_s;
 	s_vpi_time time_s;
 	vpiHandle reg_iter, reg_handle;
@@ -440,7 +447,7 @@ static PLI_INT32 change_callback(p_cb_data cb_data) {
 	return (0);
 }
 
-void myhdl_register() {
+void myhdl_register(void) {
 	s_vpi_systf_data tf_data;
 
 	tf_data.type = vpiSysTask;

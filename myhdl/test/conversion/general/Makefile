@@ -16,7 +16,7 @@ cver:
 	py.test --sim cver
 
 clean:
-	- rm *.o *.out *.v *.vhd *.pyc *~ *.vcd* *.log *_ghdl
+	- rm *.o *.out *.v *.vhd *.pyc *~ *.vcd* *.log *_ghdl *.exe
 
 gitclean:
 	git clean -dfx

@@ -54,7 +54,7 @@
     HdlClass -- Abstract Base Class to build Class based structural designs
 
 """
-__version__ = "0.11.51"
+__version__ = "0.11.52"
 
 
 class StopSimulation(Exception):

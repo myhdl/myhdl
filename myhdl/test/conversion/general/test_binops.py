@@ -51,6 +51,23 @@ def binOpsCheck2(
 
     return instances()
 
+@block
+def binOpsCheck3(
+    a,
+    b,
+    c,
+    x,
+    y,
+    z,
+):
+
+    @always_comb
+    def outputs():
+        x.next = a[0]
+        y.next = a[0] | b[0]
+        z.next = a[0] | b[0] | c[0]
+
+    return instances()
 
 @block
 def binOpsCheckBench0():
@@ -431,6 +448,27 @@ def test_binOps1c_convert():
     i_dut = binOpsCheck0(a, b, c, x, y, z)
     assert i_dut.analyze_convert() == 0
 
+def test_binOps1f_convert():
+    a = Signal(intbv(0)[2:])
+    b = Signal(intbv(0)[2:])
+    c = Signal(intbv(0)[2:])
+    x = Signal(False)
+    y = Signal(False)
+    z = Signal(False)
+
+    i_dut = binOpsCheck0(a, b, c, x, y, z)
+    assert i_dut.analyze_convert() == 0
+
+def test_binOps1g_convert():
+    a = Signal(intbv(0)[2:])
+    b = Signal(intbv(0)[2:])
+    c = Signal(intbv(0)[2:])
+    x = Signal(False)
+    y = Signal(False)
+    z = Signal(False)
+
+    i_dut = binOpsCheck3(a, b, c, x, y, z)
+    assert i_dut.analyze_convert() == 0
 
 def test_binOps1d_convert():
     a = Signal(intbv(0)[3:])

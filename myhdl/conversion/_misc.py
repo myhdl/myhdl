@@ -20,6 +20,7 @@
 """ myhdl toVerilog package.
 
 """
+import sys
 import ast
 
 from myhdl import ConversionError
@@ -128,8 +129,14 @@ class _ConversionMixin(object):
         return None
 
     def getVal(self, node):
-        expr = ast.Expression()
+        if sys.version_info >= (3, 14):
+            # print(ast.dump(ast.parse('123', mode='eval'), indent=4))
+            # Expression(body=Constant(value=123))
+            expr = ast.Expression(node)
+        else:
+            expr = ast.Expression()
         expr.body = node
+
         expr.lineno = node.lineno
         expr.col_offset = node.col_offset
         c = compile(expr, '<string>', 'eval')
