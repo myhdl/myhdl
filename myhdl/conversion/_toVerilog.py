@@ -1125,7 +1125,9 @@ class _ConvertVisitor(ast.NodeVisitor, _ConversionMixin):
             if isinstance(item, EnumItemType):
                 self.write(item._toVerilog())
             else:
-                self.write(self.IntRepr(item, radix='hex'))
+                # we can assume there will only be one comparison
+                # i.o.w. (el)if 1 < a <= 10: is not recognized
+                self.visit(test.comparators[0])
             self.write(": begin")
             self.indent()
             self.visit_stmt(suite)
