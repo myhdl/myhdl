@@ -165,38 +165,45 @@ class _Signal(object):
                 self._setNextVal = self._setNextMutable
             if hasattr(val, '_nrbits'):
                 self._nrbits = val._nrbits
-        self._eventWaiters = _WaiterList()
-        self._posedgeWaiters = _PosedgeWaiterList(self)
-        self._negedgeWaiters = _NegedgeWaiterList(self)
+        self._eventWaiters = None
+        self._posedgeWaiters = None
+        self._negedgeWaiters = None
         self._code = ""
-        self._slicesigs = []
+        self._slicesigs = None
         self._tracing = 0
         _signals.append(self)
 
     def _clear(self):
-        del self._eventWaiters[:]
-        del self._posedgeWaiters[:]
-        del self._negedgeWaiters[:]
+        if self._eventWaiters:
+            del self._eventWaiters[:]
+        if self._posedgeWaiters:
+            del self._posedgeWaiters[:]
+        if self._negedgeWaiters:
+            del self._negedgeWaiters[:]
         self._val = deepcopy(self._init)
         self._next = deepcopy(self._init)
         self._name = self._driven = None
         self._read = False  # dont clear self._used
         self._inList = False
         self._numeric = True
-        for s in self._slicesigs:
-            s._clear()
+        if self._slicesigs:
+            for s in self._slicesigs:
+                s._clear()
 
     def _update(self):
         val, next = self._val, self._next
         if val != next:
-            waiters = self._eventWaiters[:]
-            del self._eventWaiters[:]
-            if not val and next:
-                waiters.extend(self._posedgeWaiters[:])
-                del self._posedgeWaiters[:]
-            elif not next and val:
-                waiters.extend(self._negedgeWaiters[:])
-                del self._negedgeWaiters[:]
+            if self._eventWaiters is not None:
+                waiters = self._eventWaiters[:]
+                del self._eventWaiters[:]
+                if self._posedgeWaiters is not None and not val and next:
+                    waiters.extend(self._posedgeWaiters[:])
+                    del self._posedgeWaiters[:]
+                elif self._negedgeWaiters is not None and not next and val:
+                    waiters.extend(self._negedgeWaiters[:])
+                    del self._negedgeWaiters[:]
+            else:
+                waiters = []
             if next is None:
                 self._val = None
             elif isinstance(val, intbv):
@@ -234,11 +241,19 @@ class _Signal(object):
     # support for the 'posedge' attribute
     @property
     def posedge(self):
+        if self._posedgeWaiters is None:
+            self._posedgeWaiters = _PosedgeWaiterList(self)
+            if self._eventWaiters is None:
+                self._eventWaiters = _WaiterList()
         return self._posedgeWaiters
 
     # support for the 'negedge' attribute
     @property
     def negedge(self):
+        if self._negedgeWaiters is None:
+            self._negedgeWaiters = _NegedgeWaiterList(self)
+            if self._eventWaiters is None:
+                self._eventWaiters = _WaiterList()
         return self._negedgeWaiters
 
     # support for the 'min' and 'max' attribute
@@ -337,6 +352,8 @@ class _Signal(object):
     ### use call interface for shadow signals ###
     def __call__(self, left, right=None):
         s = _SliceSignal(self, left, right)
+        if self._slicesigs is None:
+            self._slicesigs = []
         self._slicesigs.append(s)
         return s
 
@@ -613,14 +630,17 @@ class _DelayedSignal(_Signal):
     def _apply(self, next, timeStamp):
         val = self._val
         if timeStamp == self._timeStamp and val != next:
-            waiters = self._eventWaiters[:]
-            del self._eventWaiters[:]
-            if not val and next:
-                waiters.extend(self._posedgeWaiters[:])
-                del self._posedgeWaiters[:]
-            elif not next and val:
-                waiters.extend(self._negedgeWaiters[:])
-                del self._negedgeWaiters[:]
+            if self._eventWaiters is not None:
+                waiters = self._eventWaiters[:]
+                del self._eventWaiters[:]
+                if self._posedgeWaiters is not None and not val and next:
+                    waiters.extend(self._posedgeWaiters[:])
+                    del self._posedgeWaiters[:]
+                elif self._negedgeWaiters is not None and not next and val:
+                    waiters.extend(self._negedgeWaiters[:])
+                    del self._negedgeWaiters[:]
+            else:
+                waiters = []
             self._val = copy(next)
             if self._tracing:
                 self._printVcd()
