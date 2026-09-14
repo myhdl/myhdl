@@ -177,16 +177,18 @@ class _VerificationClass(object):
             print("Analysis succeeded", file=sys.stderr)
             return 0
 
-        f = tempfile.TemporaryFile(mode='w+t')
-        sys.stdout = f
-        sim = Simulation(inst)
-        sim.run()
-        sys.stdout = sys.__stdout__
-        f.flush()
-        f.seek(0)
-
-        flines = f.readlines()
-        f.close()
+        sim_out = tempfile.TemporaryFile(mode='w+t')
+        old_stdout = sys.stdout
+        try:
+            sys.stdout = sim_out
+            sim = Simulation(inst)
+            sim.run()
+        finally:
+            sys.stdout = old_stdout
+        sim_out.flush()
+        sim_out.seek(0)
+        flines = sim_out.readlines()
+        sim_out.close()
         if not flines:
             print("No MyHDL simulation output - nothing to verify", file=sys.stderr)
             return 1
@@ -207,16 +209,14 @@ class _VerificationClass(object):
                 print("Elaboration failed", file=sys.stderr)
                 return ret
 
-        g = tempfile.TemporaryFile(mode='w+t')
-        # print(simulate)
-        ret = subprocess.call(simulate, stdout=g, shell=True)
-    #    if ret != 0:
-    #        print "Simulation run failed"
-    #        return
-        g.flush()
-        g.seek(0)
-
-        glines = g.readlines()[skiplines:]
+        hdl_out = tempfile.TemporaryFile(mode='w+t')
+        try:
+            ret = subprocess.call(simulate, stdout=hdl_out, shell=True)
+            hdl_out.flush()
+            hdl_out.seek(0)
+            glines = hdl_out.readlines()[skiplines:]
+        finally:
+            hdl_out.close()
         if ignore:
             for p in ignore:
                 glines = [line for line in glines if not line.startswith(p)]
@@ -227,7 +227,7 @@ class _VerificationClass(object):
         glines = [line[skipchars:] for line in glines]
         flinesNorm = [line.lower() for line in flines]
         glinesNorm = [line.lower() for line in glines]
-        g = difflib.unified_diff(flinesNorm, glinesNorm, fromfile='MyHDL', tofile=hdlsim.name)
+        diff = difflib.unified_diff(flinesNorm, glinesNorm, fromfile='MyHDL', tofile=hdlsim.name)
 
         MyHDLLog = "MyHDL.log"
         HDLLog = hdlsim.name + ".log"
@@ -237,16 +237,11 @@ class _VerificationClass(object):
         except:
             pass
 
-        s = "".join(g)
-        f = open(MyHDLLog, 'w')
-        g = open(HDLLog, 'w')
-        d = open('diff.log', 'w')
-        f.writelines(flines)
-        g.writelines(glines)
-        d.write(s)
-        f.close()
-        g.close()
-        d.close()
+        s = "".join(diff)
+        with open(MyHDLLog, 'w') as myhdl_log, open(HDLLog, 'w') as hdl_log, open('diff.log', 'w') as diff_log:
+            myhdl_log.writelines(flines)
+            hdl_log.writelines(glines)
+            diff_log.write(s)
 
         if not s:
             print("Conversion verification succeeded", file=sys.stderr)

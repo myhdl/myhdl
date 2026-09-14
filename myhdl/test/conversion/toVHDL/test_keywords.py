@@ -96,10 +96,11 @@ def test_multiple_conversion():
 
     a_block = valid(sig_1, sig_2)
 
-    # conversions with keyword should fail
-    with warnings.catch_warnings() as w:
-        warnings.simplefilter('error')
-
+    # Multiple conversions of a valid block should not emit ToVHDLWarning.
+    # Restrict the filter: a blanket error on all warnings trips PyPy when
+    # delayed GC reports ResourceWarning for files closed by earlier tests.
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', ToVHDLWarning)
         a_block.convert(hdl='VHDL')
         a_block.convert(hdl='VHDL')
 
