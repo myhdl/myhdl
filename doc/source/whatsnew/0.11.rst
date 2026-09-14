@@ -6,6 +6,11 @@
 What's new in MyHDL 0.11
 ************************
 
+0.11.53
+Removed support for Python 3.8 and 3.9
+======================================
+Python 3.9 is EOL. MyHDL now requires Python 3.10 or later.
+
 0.11.51
 Class Based Design
 ==================

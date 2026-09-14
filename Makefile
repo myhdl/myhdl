@@ -1,6 +1,5 @@
-PYTEST_OPTS ?= 
-TAG ?=`grep __version__ myhdl/__init__.py | grep -oe '\([0-9.]*\)'`
-MSG ?= "Release "${TAG}
+PYTEST_OPTS ?=
+GIT_TAG?=0.11.54
 VERSION_FILE := myhdl/__init__.py
 ANSI_RED=`tput setaf 1`
 ANSI_GREEN=`tput setaf 2`
@@ -32,10 +31,12 @@ dist:
 	python setup.py sdist
 
 release:
-	@echo "Preparing ${TAG} - Message - ${MSG}"
-	@sed -i "s|__version__ = \"[0-9.]\+\"|__version__ = \"${TAG}\"|g" ${VERSION_FILE}
-	git commit --allow-empty -m ${MSG} ${VERSION_FILE}
-	git tag -a ${TAG} -m ${MSG}
+	echo "Release v${GIT_TAG}"
+	git tag v${GIT_TAG} || { echo "make release GIT_TAG=0.11.54"; git tag ; exit 1; }
+	sed -i "s|__version__ = \"[0-9.]\+\"|__version__ = \"${GIT_TAG}\"|g" ${VERSION_FILE}
+	git add ${VERSION_FILE}
+	git commit --allow-empty -m "Update to version ${GIT_TAG}"
+	git tag -f v${GIT_TAG}
 	git push && git push --tags
 
 clean:

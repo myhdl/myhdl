@@ -8,8 +8,8 @@ import sys
 
 from collections import defaultdict
 
-if sys.version_info < (3, 7):
-    raise RuntimeError("Python version 3.7+ required.")
+if sys.version_info < (3, 10):
+    raise RuntimeError("Python version 3.10+ required.")
 
 
 # Prefer setuptools over distutils
@@ -51,7 +51,7 @@ setup(
     license="LGPL",
     platforms='any',
     keywords="HDL ASIC FPGA hardware design",
-    python_requires='>=3.8',
+    python_requires='>=3.10',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
@@ -60,11 +60,11 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
+        'Programming Language :: Python :: 3.13',
+        'Programming Language :: Python :: 3.14',
         'Programming Language :: Python :: 3 :: Only',
     ]
 )
