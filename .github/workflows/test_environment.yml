@@ -16,7 +16,7 @@ jobs:
     needs: build_ghdl
     steps:
       - name: Cache GHDL
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ${{ needs.build_ghdl.outputs.cache_dir }}
           key: ${{ needs.build_ghdl.outputs.cache_key }}
@@ -34,7 +34,7 @@ jobs:
     needs: build_iverilog
     steps:
       - name: Cache Icarus
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ${{ needs.build_iverilog.outputs.cache_dir }}
           key: ${{ needs.build_iverilog.outputs.cache_key }}

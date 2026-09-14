@@ -39,7 +39,7 @@ jobs:
           echo "CACHE_KEY=iverilog-${GITHEAD}" >> $GITHUB_ENV
       - name: Cache Environment
         id: git-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ${{ env.CACHE_DIR }}
           key: ${{ env.CACHE_KEY }}

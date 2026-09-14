@@ -20,7 +20,7 @@ jobs:
     needs: [build_dep]
     steps:
       - name: Cache GHDL
-        uses: actions/cache@v3
+        uses: actions/cache@v6
         with:
           path: ${{ needs.build_dep.outputs.cache_dir }}
           key: ${{ needs.build_dep.outputs.cache_key }}
