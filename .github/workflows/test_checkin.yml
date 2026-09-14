@@ -78,8 +78,7 @@ jobs:
       fail-fast: false # So that one fail doesn't stop remaining tests
       matrix:
         python-version: ["3.12", "3.14"]
-        #target: [core, iverilog, ghdl]
-        target: [core, ghdl]
+        target: [core, iverilog, ghdl]
     runs-on: windows-latest
     defaults:
       run:
@@ -106,9 +105,10 @@ jobs:
           backend: llvm
           runtime: ucrt64
       - if: matrix.target == 'iverilog'
-        name: Choco iverilog
+        name: Install Icarus
         run: |
-          choco install --yes ${{ matrix.target }}
+          pacman -S --noconfirm mingw-w64-ucrt-x86_64-cc mingw-w64-ucrt-x86_64-iverilog
+          iverilog -V
       - if: matrix.target == 'iverilog'
         name: Compile vpi
         run: |
@@ -120,6 +120,7 @@ jobs:
           cache: 'pip'
       - name: Set environment variables
         run: |
+          echo "C:\\msys64\\ucrt64\\bin" >> $GITHUB_PATH
           echo "C:\\msys64\\mingw64\\bin" >> $GITHUB_PATH          
           echo "${{ env.pythonLocation }}\bin" >> $GITHUB_PATH
           echo "C:\ProgramData\Chocolatey\bin" >> $GITHUB_PATH
