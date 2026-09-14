@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 import tempfile
 import subprocess
 import difflib
@@ -150,7 +151,12 @@ class _VerificationClass(object):
             else:
                 inst = toVerilog(func, *args, **kwargs)
 
-        if hdl == "VHDL":
+        if hdlsim.name == "ghdl":
+            # Drop a stale work library so reused top-level names
+            # (e.g. LoopBench.vhd) cannot elaborate against old objects.
+            shutil.rmtree("work", ignore_errors=True)
+            os.mkdir("work")
+        elif hdl == "VHDL":
             if not os.path.exists("work"):
                 os.mkdir("work")
         if hdlsim.name in ('vlog', 'vcom'):
@@ -163,13 +169,11 @@ class _VerificationClass(object):
                 except:
                     pass
 
-        # print(analyze)
-        ret = subprocess.call(analyze, shell=True)
-        if ret != 0:
-            print("Analysis failed", file=sys.stderr)
-            return ret
-
         if self._analyzeOnly:
+            ret = subprocess.call(analyze, shell=True)
+            if ret != 0:
+                print("Analysis failed", file=sys.stderr)
+                return ret
             print("Analysis succeeded", file=sys.stderr)
             return 0
 
@@ -186,6 +190,15 @@ class _VerificationClass(object):
         if not flines:
             print("No MyHDL simulation output - nothing to verify", file=sys.stderr)
             return 1
+
+        # Analyze immediately before elaborate. GHDL (especially llvm)
+        # errors with "file has changed and must be reanalysed" if MyHDL
+        # simulation sits between -a and -e while tests overwrite the
+        # same .vhd name.
+        ret = subprocess.call(analyze, shell=True)
+        if ret != 0:
+            print("Analysis failed", file=sys.stderr)
+            return ret
 
         if elaborate is not None:
             # print(elaborate)
