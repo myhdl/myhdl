@@ -26,6 +26,7 @@ transcript
 *.log
 work/
 work_nvc/
+work_vlt/
 work_vlog/
 work_vcom/
 *.wlf

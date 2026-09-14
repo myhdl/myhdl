@@ -1,3 +1,5 @@
+import pytest
+
 from myhdl import (block, Signal, intbv, delay, always_comb, instance,
                    TristateSignal, ConcatSignal, conversion, StopSimulation,
                    toVerilog, toVHDL)
@@ -196,6 +198,8 @@ def bench_TristateSignal():
     return check
 
 
+@pytest.mark.xfail(conversion.verify.simulator == 'verilator',
+                   reason='Verilator does not model Z/tristate buses')
 def test_TristateSignal():
     assert conversion.verify(bench_TristateSignal()) == 0
 

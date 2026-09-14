@@ -40,7 +40,7 @@ release:
 
 clean:
 # 	rm -rf *.vhd *.v *.o *.log *.vcd *.hex *.exe work/ cosimulation/icarus/myhdl.vpi
-	rm -rf *.vhd *.v *.o *.log *.vcd *.hex *.exe work/ 
+	rm -rf *.vhd *.v *.o *.log *.vcd *.hex *.exe work/ work_vlt/ 
 lint:
 	pyflakes myhdl/
 
@@ -69,6 +69,10 @@ iverilog_bugs:
 iverilog: iverilog_cosim
 	@echo -e "\n${ANSI_CYAN}running test: $@ ${ANSI_RESET}"
 	pytest -v ./myhdl/test/conversion/general ./myhdl/test/conversion/toVerilog ./myhdl/test/bugs --sim iverilog ${PYTEST_OPTS}
+
+verilator:
+	@echo -e "\n${ANSI_CYAN}running test: $@ ${ANSI_RESET}"
+	pytest -v ./myhdl/test/conversion/general ./myhdl/test/bugs --sim verilator ${PYTEST_OPTS}
 
 ghdl_general:
 	pytest ./myhdl/test/conversion/general --sim ghdl ${PYTEST_OPTS}

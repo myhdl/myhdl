@@ -83,6 +83,16 @@ registerSimulator(
 )
 
 registerSimulator(
+    name="verilator",
+    hdl="Verilog",
+    # --language 1364-2005: MyHDL identifiers such as `var` are not SV keywords
+    analyze=("verilator --binary --timing --Wno-fatal --language 1364-2005 "
+             "--quiet-stats --quiet-build -j 0 "
+             "--Mdir work_vlt -o %(topname)s_vlt %(topname)s.v"),
+    simulate="./work_vlt/%(topname)s_vlt"
+)
+
+registerSimulator(
     name="cver",
     hdl="Verilog",
     analyze="cver -c -q %(topname)s.v",
@@ -153,6 +163,9 @@ class _VerificationClass(object):
         if hdl == "VHDL":
             if not os.path.exists("work"):
                 os.mkdir("work")
+        if hdlsim.name == "verilator":
+            if not os.path.exists("work_vlt"):
+                os.mkdir("work_vlt")
         if hdlsim.name in ('vlog', 'vcom'):
             if not os.path.exists("work_vsim"):
                 try:
